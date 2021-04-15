@@ -8,8 +8,8 @@ neorg.modules = {}
 neorg.modules.module_base = {
 
 	-- Invoked whenever the module is loaded
-	load = function(loaded_modules, loaded_module_count)
-		return { loaded = true, subscribed_events = nil }
+	load = function()
+		return { success = true, requires = {} }
 	end,
 
 	-- Invoked whenever the module is unloaded
@@ -25,13 +25,40 @@ neorg.modules.module_base = {
 
 	-- Every module can expose any set of information it sees fit through the public field
 	-- All functions and variables declared in this table will be visible to any other module loaded
-	public = {}
+	public = {
+
+		version = '0.0.1' -- A good practice is to expose version information
+
+	},
+
+	-- Event data regarding the current module
+	events = {
+		subscribed = { -- The events that the module is subscribed to
+
+			--[[
+				EXAMPLE DEFINITION:
+				[ 'core.test' ] = { -- The name of the module that has events bound to it
+					[ 'test_event' ] = true,
+					[ 'other_event' ] = true
+				}
+			--]]
+
+		},
+		defined = { -- The events that the module itself has defined
+
+			--[[
+				EXAMPLE DEFINITION:
+				['my_event'] = { event_data }
+			--]]
+
+		}
+	},
 
 }
 
 -- @Summary Creates a new module
 -- @Description Returns a module that derives from neorg.modules.module_base, exposing all the necessary function and variables
--- @Param  name (string) - the name of the new module. Make sure this is unique. The recommended naming convention is username.module_name, but if your module name is unique enough the just a regular module name can suffice
+-- @Param  name (string) - the name of the new module. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
 function neorg.modules.create(name)
 	local new_module = {}
 	setmetatable(new_module, { __index = neorg.modules.module_base })

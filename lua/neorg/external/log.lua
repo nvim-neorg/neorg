@@ -2,6 +2,7 @@
 --
 -- Inspired by rxi/log.lua
 -- Modified by tjdevries and can be found at github.com/tjdevries/vlog.nvim
+-- Modified again by Vhyrro for use with neorg :)
 --
 -- This library is free software; you can redistribute it and/or modify it
 -- under the terms of the MIT license. See LICENSE for details.
@@ -38,12 +39,15 @@ local default_config = {
 }
 
 -- {{{ NO NEED TO CHANGE
-local log = {}
+log = {}
+
+log.get_default_config = function() return default_config end
 
 local unpack = unpack or table.unpack
 
 log.new = function(config, standalone)
   config = vim.tbl_deep_extend("force", default_config, config)
+  config.plugin = 'neorg' -- Force the plugin name to be neorg
 
   local outfile = string.format('%s/%s.log', vim.api.nvim_call_function('stdpath', {'data'}), config.plugin)
 
@@ -148,7 +152,6 @@ log.new = function(config, standalone)
   end
 end
 
-log.new(default_config, true)
 -- }}}
 
 return log
