@@ -7,9 +7,13 @@ neorg.modules = {}
 
 neorg.modules.module_base = {
 
-	-- Invoked whenever the module is loaded
-	load = function()
+	-- Invoked whenever the module is about to be loaded
+	setup = function()
 		return { success = true, requires = {} }
+	end,
+
+	-- Invoked after the module has been configured
+	load = function()
 	end,
 
 	-- Invoked whenever the module is unloaded
@@ -54,6 +58,23 @@ neorg.modules.module_base = {
 		}
 	},
 
+	-- If you ever require a module through the return value of the load() function,
+	-- All of the modules' public APIs will become available here
+	required = {
+
+		--[[
+
+			['core.test'] = {
+				-- Their public API here...
+			},
+
+			['core.some_other_plugin'] = {
+				-- Their public API here...
+			}
+
+		--]]
+	}
+
 }
 
 -- @Summary Creates a new module
@@ -61,7 +82,8 @@ neorg.modules.module_base = {
 -- @Param  name (string) - the name of the new module. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
 function neorg.modules.create(name)
 	local new_module = {}
-	setmetatable(new_module, { __index = neorg.modules.module_base })
+
+	new_module = vim.tbl_deep_extend("force", new_module, neorg.modules.module_base)
 
 	if name then
 		new_module.name = name

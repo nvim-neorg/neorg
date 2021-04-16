@@ -24,28 +24,14 @@ function neorg.setup(config)
 
 	log.new(neorg.configuration.user_configuration.logger or log.get_default_config(), true)
 
-	module = neorg.modules.create('core.test')
+	local ext = vim.fn.expand('%:e')
 
-	module.load = function()
-		return { success = true }
-	end
+	if ext == 'org' or ext == 'norg' then neorg.org_file_entered() end
+end
 
-	module.on_event = function(event)
-		(vim.schedule_wrap(function() require('neorg.external.log').warn("AYO") end))()
-	end
-
-	module.events.defined = { ['test_event'] = neorg.events.create_default_event(module, 'test_event') }
-
-	module.events.subscribed = {
-		['core.test'] = { test_event = true }
-	}
-
-	neorg.modules.load_module_from_table(module)
-
-	local event = neorg.events.create(module, 'core.test.events.test_event')
-	neorg.events.broadcast_event(module, event)
-
-	neorg.modules.load_module('core.autocommands', 'bruh/moment')
+function neorg.org_file_entered()
+	-- neorg.modules.load_module('core.autocommands', 'bruh/moment')
+	neorg.modules.load_module('core.test', 'bruh/moment')
 end
 
 return neorg

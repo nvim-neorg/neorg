@@ -11,14 +11,16 @@ require('neorg.external.helpers')
 
 neorg.events = {}
 
--- Holds the list of events. Events are bound to a module name.
-neorg.events.available_events = {}
-
 neorg.events.base_event = {
 
-	type = 'base_event',
+	type = 'core.base_event',
 	content = nil,
 	referrer = nil,
+
+	cursor_position = {},
+	filename = '',
+	filehead = '',
+	line_content = ''
 
 }
 
@@ -65,13 +67,13 @@ function neorg.events.create_default_event(module, name)
 
 	local new_event = {}
 
-	setmetatable(new_event, { __index = neorg.events.base_event })
+	new_event = vim.tbl_deep_extend("force", new_event, neorg.events.base_event)
 
 	if type then
 		new_event.type = name
 	end
 
-	new_event.referrer = module
+	new_event.referrer = module.name
 
 	return new_event
 
@@ -89,7 +91,7 @@ function neorg.events.create(module, type)
 	local new_event = copy(event_template)
 
 	new_event.type = type
-	new_event.referrer = module
+	new_event.referrer = module.name
 
 	return new_event
 
@@ -97,7 +99,11 @@ end
 
 function neorg.events.broadcast_event(module, event)
 
-	event.referrer = module
+	event.filename = vim.fn.expand('%:t')
+	event.filehead = vim.fn.expand('%:p:h')
+	event.cursor_position = vim.api.nvim_win_get_cursor(0)
+	event.line_content = vim.api.nvim_get_current_line()
+	event.referrer = module.name
 
 	local async
 

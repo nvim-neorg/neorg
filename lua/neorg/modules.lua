@@ -29,19 +29,40 @@ function neorg.modules.load_module_from_table(module)
 		return false
 	end
 
-	-- module.load() will soon return more than just a success variable, eventually we'd like modules to expose metadata about themselves too
-	local loaded_module = module.load()
+	-- module.setup() will soon return more than just a success variable, eventually we'd like modules to expose metadata about themselves too
+	local loaded_module = module.setup()
 
-	-- We do not expect module.load() to ever return nil, that's why this check is in place
+	-- We do not expect module.setup() to ever return nil, that's why this check is in place
 	if not loaded_module then
-		log.warn('Module', module.name, 'does not handle module loading correctly; module.load() returned nil. Omitting...')
+		log.error('Module', module.name, 'does not handle module loading correctly; module.load() returned nil. Omitting...')
 		return false
 	end
 
-	-- A part of the table returned by module.load() tells us whether or not the module initialization was successful
+	-- A part of the table returned by module.setup() tells us whether or not the module initialization was successful
 	if loaded_module.success == false then
 		log.info('Module', module.name, 'did not load.')
 		return false
+	end
+
+	if loaded_module.requires and vim.tbl_count(loaded_module.requires) > 0 then
+
+		log.info('Module', module.name, 'has dependencies. Loading dependencies first...')
+
+		for _, required_module in pairs(loaded_module.requires) do
+
+			log.trace('Loading submodule', required_module)
+
+			if not neorg.modules.is_module_loaded(required_module) then
+				if not neorg.modules.load_module(required_module) then
+					log.error(("Unable to load module %s, required dependency %s did not load successfully"):format(module.name, required_module))
+					return false
+				end
+			end
+
+			module.required[required_module] = neorg.modules.loaded_modules[required_module].public
+
+		end
+
 	end
 
 	log.info('Successfully loaded module', module.name)
@@ -51,6 +72,9 @@ function neorg.modules.load_module_from_table(module)
 
 	-- Keep track of the number of loaded modules
 	neorg.modules.loaded_module_count = neorg.modules.loaded_module_count + 1
+
+	-- Call the load function
+	module.load()
 
 	return true
 
@@ -108,7 +132,7 @@ function neorg.modules.get_module(module_name)
 
 	if not neorg.modules.is_module_loaded(module_name) then
 		log.info("Attempt to get module with name", module_name, "failed.")
-		return {}
+		return nil
 	end
 
 	return neorg.modules.loaded_modules[module_name].public
