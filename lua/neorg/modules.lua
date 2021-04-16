@@ -65,6 +65,19 @@ function neorg.modules.load_module_from_table(module)
 
 	end
 
+	if module.config.keymaps and vim.tbl_count(module.config.keymaps) > 0 then
+
+		log.info('Module', module.name, 'has keymaps. Binding...')
+
+		for keyname, keymap in pairs(module.config.keymaps) do
+			log.trace('Loading keymap', keyname)
+			vim.api.nvim_set_keymap(keymap.mode, keyname, ':lua require(\'neorg.modules.' .. module.name .. '.module\').on_keymap(\'' .. keymap.name .. '\')<CR>', keymap.options or {})
+		end
+
+		log.info('Loaded all keymaps for module', module.name)
+
+	end
+
 	log.info('Successfully loaded module', module.name)
 
 	-- Add the module into the list of loaded modules
@@ -98,6 +111,15 @@ function neorg.modules.load_module(module_name, shortened_git_address)
 
 	if not module then
 		return false
+	end
+
+	local config = neorg.configuration.user_configuration
+
+	if config then
+		module.config.public = vim.tbl_deep_extend('force', module.config.public, config.module_configs[module.name] or {})
+		if config.module_keymaps then
+			module.config.keymaps = vim.tbl_deep_extend('force', module.config.keymaps, config.module_keymaps[module.name] or {})
+		end
 	end
 
 	return neorg.modules.load_module_from_table(module)

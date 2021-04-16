@@ -5,7 +5,6 @@
 
 require('neorg.modules.base')
 require('neorg.events')
--- local log = require('neorg.external.log')
 
 local module = neorg.modules.create('core.autocommands')
 

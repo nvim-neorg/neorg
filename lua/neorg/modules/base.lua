@@ -24,6 +24,10 @@ neorg.modules.module_base = {
 	on_event = function(event)
 	end,
 
+	-- Invoked whenever a keymap for the current module is triggered
+	on_keymap = function(keymap)
+	end,
+
 	-- The name of the module, note that modules beginning with core are neorg's inbuilt modules
 	name = 'core.default',
 
@@ -32,6 +36,39 @@ neorg.modules.module_base = {
 	public = {
 
 		version = '0.0.1' -- A good practice is to expose version information
+
+	},
+
+	-- Configuration for the module
+	config = {
+
+		private = { -- Private module configuration, cannot be changed by other modules or by the user
+			--[[
+				config_option = false,
+				['option_group'] = {
+					sub_option = true
+				}
+			--]]
+		},
+
+		public = { -- Public config, can be changed by modules and the user
+			--[[
+				config_option = false,
+				['option_group'] = {
+					sub_option = true
+				}
+			--]]
+		},
+
+		keymaps = {
+			--[[
+				['<C-s>'] = {
+					mode = 'n',
+					name = 'some_keymap_name',
+					options = { silent = false, noremap = false, expr = false }
+				}
+			--]]
+		}
 
 	},
 

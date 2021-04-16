@@ -3,8 +3,15 @@ neorg = {}
 require('neorg.events')
 require('neorg.modules')
 
-neorg.configuration = {}
-neorg.configuration.user_configuration = {}
+neorg.configuration = {
+
+	user_configuration = {
+		module_configs = {},
+		module_keymaps = {}
+	}
+
+}
+
 neorg.configuration.os_info = (function()
 
 	if vim.fn.has('win32') == 1 then
@@ -18,11 +25,9 @@ neorg.configuration.os_info = (function()
 end)()
 
 function neorg.setup(config)
-	neorg.configuration.user_configuration = vim.tbl_deep_extend("force", config or {}, neorg.configuration.user_configuration)
+	neorg.configuration.user_configuration = config or {}
 
-	local log = require('neorg.external.log')
-
-	log.new(neorg.configuration.user_configuration.logger or log.get_default_config(), true)
+	require('neorg.external.log').new(neorg.configuration.user_configuration.logger or log.get_default_config(), true)
 
 	local ext = vim.fn.expand('%:e')
 
