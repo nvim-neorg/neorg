@@ -13,20 +13,20 @@ neorg.events = {}
 
 neorg.events.base_event = {
 
-	type = 'core.base_event',
+	type = "core.base_event",
 	content = nil,
 	referrer = nil,
 
 	cursor_position = {},
-	filename = '',
-	filehead = '',
-	line_content = ''
+	filename = "",
+	filehead = "",
+	line_content = ""
 
 }
 
 function neorg.events.split_event_type(type)
 
-		local start_str, end_str = type:find('%.events%.')
+		local start_str, end_str = type:find("%.events%.")
 
 		local split_event_type = { type:sub(0, start_str - 1), type:sub(end_str + 1) }
 
@@ -99,8 +99,8 @@ end
 
 function neorg.events.broadcast_event(module, event)
 
-	event.filename = vim.fn.expand('%:t')
-	event.filehead = vim.fn.expand('%:p:h')
+	event.filename = vim.fn.expand("%:t")
+	event.filehead = vim.fn.expand("%:p:h")
 	event.cursor_position = vim.api.nvim_win_get_cursor(0)
 	event.line_content = vim.api.nvim_get_current_line()
 	event.referrer = module.name

@@ -10,7 +10,7 @@
 -- User configuration section
 local default_config = {
   -- Name of the plugin. Prepended to log messages
-  plugin = 'neorg',
+  plugin = "neorg",
 
   -- Should print the output to neovim while running
   use_console = true,
@@ -47,9 +47,9 @@ local unpack = unpack or table.unpack
 
 log.new = function(config, standalone)
   config = vim.tbl_deep_extend("force", default_config, config)
-  config.plugin = 'neorg' -- Force the plugin name to be neorg
+  config.plugin = "neorg" -- Force the plugin name to be neorg
 
-  local outfile = string.format('%s/%s.log', vim.api.nvim_call_function('stdpath', {'data'}), config.plugin)
+  local outfile = string.format("%s/%s.log", vim.api.nvim_call_function("stdpath", {"data"}), config.plugin)
 
   local obj
   if standalone then
@@ -71,7 +71,7 @@ log.new = function(config, standalone)
 
   local make_string = function(...)
     local t = {}
-    for i = 1, select('#', ...) do
+    for i = 1, select("#", ...) do
       local x = select(i, ...)
 
       if type(x) == "number" and config.float_precision then
@@ -89,7 +89,7 @@ log.new = function(config, standalone)
 
 
   local log_at_level = function(level, level_config, message_maker, ...)
-    -- Return early if we're below the config.level
+    -- Return early if we"re below the config.level
     if level < levels[config.level] then
       return
     end
@@ -115,7 +115,7 @@ log.new = function(config, standalone)
 
       local split_console = vim.split(console_string, "\n")
       for _, v in ipairs(split_console) do
-        vim.cmd(string.format([[echom "[%s] %s"]], config.plugin, vim.fn.escape(v, '"')))
+        vim.cmd(string.format([[echom "[%s] %s"]], config.plugin, vim.fn.escape(v, "\"")))
       end
 
       if config.highlights and level_config.hl then

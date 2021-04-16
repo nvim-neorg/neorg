@@ -4,7 +4,7 @@
 --]]
 
 
--- Yoinked straight from stackoverflow, don't judge
+-- Yoinked straight from stackoverflow, don"t judge
 function string.split(inputstr, sep)
 
         if sep == nil then
@@ -23,7 +23,7 @@ function string.split(inputstr, sep)
 end
 
 function copy(obj, seen)
-	if type(obj) ~= 'table' then
+	if type(obj) ~= "table" then
 		return obj
 	end
 	if seen and seen[obj] then

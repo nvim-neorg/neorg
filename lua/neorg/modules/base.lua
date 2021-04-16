@@ -28,14 +28,14 @@ neorg.modules.module_base = {
 	on_keymap = function(keymap)
 	end,
 
-	-- The name of the module, note that modules beginning with core are neorg's inbuilt modules
-	name = 'core.default',
+	-- The name of the module, note that modules beginning with core are neorg"s inbuilt modules
+	name = "core.default",
 
 	-- Every module can expose any set of information it sees fit through the public field
 	-- All functions and variables declared in this table will be visible to any other module loaded
 	public = {
 
-		version = '0.0.1' -- A good practice is to expose version information
+		version = "0.0.1" -- A good practice is to expose version information
 
 	},
 
@@ -45,7 +45,7 @@ neorg.modules.module_base = {
 		private = { -- Private module configuration, cannot be changed by other modules or by the user
 			--[[
 				config_option = false,
-				['option_group'] = {
+				["option_group"] = {
 					sub_option = true
 				}
 			--]]
@@ -54,7 +54,7 @@ neorg.modules.module_base = {
 		public = { -- Public config, can be changed by modules and the user
 			--[[
 				config_option = false,
-				['option_group'] = {
+				["option_group"] = {
 					sub_option = true
 				}
 			--]]
@@ -62,9 +62,9 @@ neorg.modules.module_base = {
 
 		keymaps = {
 			--[[
-				['<C-s>'] = {
-					mode = 'n',
-					name = 'some_keymap_name',
+				["<C-s>"] = {
+					mode = "n",
+					name = "some_keymap_name",
 					options = { silent = false, noremap = false, expr = false }
 				}
 			--]]
@@ -78,9 +78,9 @@ neorg.modules.module_base = {
 
 			--[[
 				EXAMPLE DEFINITION:
-				[ 'core.test' ] = { -- The name of the module that has events bound to it
-					[ 'test_event' ] = true,
-					[ 'other_event' ] = true
+				[ "core.test" ] = { -- The name of the module that has events bound to it
+					[ "test_event" ] = true,
+					[ "other_event" ] = true
 				}
 			--]]
 
@@ -89,23 +89,23 @@ neorg.modules.module_base = {
 
 			--[[
 				EXAMPLE DEFINITION:
-				['my_event'] = { event_data }
+				["my_event"] = { event_data }
 			--]]
 
 		}
 	},
 
 	-- If you ever require a module through the return value of the load() function,
-	-- All of the modules' public APIs will become available here
+	-- All of the modules" public APIs will become available here
 	required = {
 
 		--[[
 
-			['core.test'] = {
+			["core.test"] = {
 				-- Their public API here...
 			},
 
-			['core.some_other_plugin'] = {
+			["core.some_other_plugin"] = {
 				-- Their public API here...
 			}
 
