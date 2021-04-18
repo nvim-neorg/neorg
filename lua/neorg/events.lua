@@ -52,11 +52,13 @@ end
 -- @Param  type (string) - a full path to a valid event type (e.g. 'core.module.events.some_event')
 function neorg.events.get_event_template(module, type)
 
+    -- You can't get the event template of a type if the type isn't loaded
     if not neorg.modules.is_module_loaded(module.name) then
 		log.info("Unable to get event of type", type, "with module", module.name)
 		return nil
 	end
 
+	-- Split the event type into two
 	local split_type = neorg.events.split_event_type(type)
 
 	if not split_type then
@@ -71,6 +73,7 @@ function neorg.events.get_event_template(module, type)
 		return nil
 	end
 
+	-- Return the defined event from the specific module
 	return neorg.modules.loaded_modules[module.name].events.defined[split_type[2]]
 
 end
@@ -80,6 +83,8 @@ end
 -- @Param  module (table) - a reference to the module invoking the function
 -- @Param  name (string) - a full path to a valid event type (e.g. 'core.module.events.some_event')
 function neorg.events.define_event(module, name)
+
+	-- Create a copy of the base event and override the values with ones specified by the user
 
 	local new_event = {}
 
@@ -102,6 +107,7 @@ end
 -- @Param  content (any) - the content of the event, can be anything from a string to a table to whatever you please
 function neorg.events.create(module, type, content)
 
+	-- Retrieve the template from module.events.defined
 	local event_template = neorg.events.get_event_template(module, type)
 
 	if not event_template then
@@ -109,7 +115,7 @@ function neorg.events.create(module, type, content)
 		return nil
 	end
 
-	local new_event = copy(event_template)
+	local new_event = vim.deepcopy(event_template)
 
 	new_event.type = type
 	new_event.content = content
@@ -125,6 +131,7 @@ end
 -- @Param  event (table) - an event, usually created by neorg.events.create()
 function neorg.events.broadcast_event(module, event)
 
+	-- Override all the important values
 	event.split_type = neorg.events.split_event_type(event.type)
 	event.filename = vim.fn.expand("%:t")
 	event.filehead = vim.fn.expand("%:p:h")
@@ -135,6 +142,7 @@ function neorg.events.broadcast_event(module, event)
 
 	local async
 
+	-- Asynchronously broadcast the event to all modules
 	async = vim.loop.new_async(function()
 
 		if not event.split_type then
@@ -142,13 +150,17 @@ function neorg.events.broadcast_event(module, event)
 			return
 		end
 
+		-- Loop through all the modules
 		for _, current_module in pairs(neorg.modules.loaded_modules) do
 
+			-- If the current module has any subscribed events and if it has a subscription bound to the event's module name then
 			if current_module.events.subscribed and current_module.events.subscribed[event.split_type[1]] then
 
+				-- Check whether we are subscribed to the event type
 				local evt = current_module.events.subscribed[event.split_type[1]][event.split_type[2]]
 
 				if evt ~= nil and evt == true then
+					-- Run the on_event() for that module
 					current_module.on_event(event)
 				end
 
@@ -170,6 +182,7 @@ end
 -- @Param  event (table) - an event, usually created by neorg.events.create()
 function neorg.events.send_event(module, recipient, event)
 
+	-- Override all the important values
 	event.split_type = neorg.events.split_event_type(event.type)
 	event.filename = vim.fn.expand("%:t")
 	event.filehead = vim.fn.expand("%:p:h")
@@ -178,17 +191,20 @@ function neorg.events.send_event(module, recipient, event)
 	event.referrer = module.name
 	event.broadcast = false
 
+	-- If the recipient is not loaded then there's no reason to send an event to it
 	if not neorg.modules.is_module_loaded(recipient) then
 		log.warn("Unable to send event to module", recipient, "- the module is not loaded.")
 		return
 	end
 
+	-- Get the recipient module and check whether it's subscribed to our event
 	local mod = neorg.modules.loaded_modules[recipient]
 
 	if mod.events.subscribed and mod.events.subscribed[event.split_type[1]] then
 
 		local evt = mod.events.subscribed[event.split_type[1]][event.split_type[2]]
 
+		-- If it is then trigger the module's on_event() function
 		if evt ~= nil and evt == true then
 			mod.on_event(event)
 		end

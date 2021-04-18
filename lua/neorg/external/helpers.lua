@@ -4,7 +4,7 @@
 --]]
 
 
--- Yoinked straight from stackoverflow, don"t judge
+-- Yoinked straight from stackoverflow, don't judge
 function string.split(inputstr, sep)
 
         if sep == nil then
@@ -20,21 +20,4 @@ function string.split(inputstr, sep)
         end
 
         return ret
-end
-
--- Totally not yoinked from stackoverflow either
-function copy(obj, seen)
-	if type(obj) ~= "table" then
-		return obj
-	end
-	if seen and seen[obj] then
-		return seen[obj]
-	end
-	local s = seen or {}
-	local res = setmetatable({}, getmetatable(obj))
-	s[obj] = res
-	for k, v in pairs(obj) do
-		res[copy(k, s)] = copy(v, s)
-	end
-	return res
 end

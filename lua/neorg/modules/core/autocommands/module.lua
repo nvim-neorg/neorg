@@ -1,6 +1,32 @@
 --[[
 --	AUTOCOMMAND MODULE FOR NEORG
 --	This module exposes functionality for subscribing to autocommands and performing actions based on those autocommands
+
+USAGE:
+
+	In your module.setup(), make sure to require core.autocommands (requires = { "core.autocommands" })
+	Afterwards in a function of your choice that gets called *after* core.autocommmands gets intialized e.g. load():
+
+	module.load = function()
+		module.required["core.autocommands"].enable_autocommand("VimLeavePre") -- Substitute VimLeavePre for any valid neovim autocommand
+	end
+
+	Afterwards, be sure to subscribe to the event:
+
+	module.events.subscribed = {
+
+		["core.autocommands"] = {
+			vimleavepre = true
+		}
+
+	}
+
+	Upon receiving an event, it will come in this format:
+	{
+		type = "core.autocommands.events.<name of autocommand, e.g. vimleavepre>",
+		broadcast = true
+	}
+
 --]]
 
 require('neorg.modules.base')
@@ -8,15 +34,20 @@ require('neorg.events')
 
 local module_autocommands = neorg.modules.create("core.autocommands")
 
+-- @Summary Autocommand callback
+-- @Description This function gets invoked whenever a core.autocommands enabled autocommand is triggered. Note that this function should be only used internally
+-- @Param  name (string) - the name of the autocommand that was just triggered
 function _neorg_module_autocommand_triggered(name)
 	neorg.events.broadcast_event(module_autocommands, neorg.events.create(module_autocommands, name))
 end
+
+-- A convenience wrapper around neorg.events.define_event
 module_autocommands.autocmd_base = function(name) return neorg.events.define_event(module_autocommands, "core.autocommands.events." .. name) end
 
 module_autocommands.public = {
 
 	-- @Summary Enable an autocommand event
-	-- @Description By default, all autocommands are disabled for performance reasons. To enable them, use this command
+	-- @Description By default, all autocommands are disabled for performance reasons. To enable them, use this command. If an invalid autocmd is given nothing happens.
 	-- @Param  autocmd (string) - the relative name of the autocommand to enable
 	enable_autocommand = function(autocmd)
 		autocmd = autocmd:lower()
@@ -32,6 +63,8 @@ module_autocommands.public = {
 	end
 
 }
+
+-- All the subscribeable events for core.autocommands
 module_autocommands.events.subscribed = {
 
 	["core.autocommands"] = {
@@ -151,6 +184,8 @@ module_autocommands.events.subscribed = {
 
 	}
 }
+
+-- All the autocommand definitions
 module_autocommands.events.defined = {
 
 	bufadd = module_autocommands.autocmd_base("bufadd"),

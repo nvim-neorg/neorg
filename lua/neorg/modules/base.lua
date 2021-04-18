@@ -7,7 +7,7 @@ neorg.modules = {}
 
 neorg.modules.module_base = {
 
-	-- Invoked whenever the module is about to be loaded
+	-- Invoked before any initial loading happens
 	setup = function()
 		return { success = true, requires = {} }
 	end,
@@ -28,7 +28,7 @@ neorg.modules.module_base = {
 	neorg_post_load = function()
 	end,
 
-	-- The name of the module, note that modules beginning with core are neorg"s inbuilt modules
+	-- The name of the module, note that modules beginning with core are neorg's inbuilt modules
 	name = "core.default",
 
 	-- Every module can expose any set of information it sees fit through the public field
@@ -68,8 +68,8 @@ neorg.modules.module_base = {
 			--[[
 				EXAMPLE DEFINITION:
 				[ "core.test" ] = { -- The name of the module that has events bound to it
-					[ "test_event" ] = true,
-					[ "other_event" ] = true
+					[ "test_event" ] = true, -- Subscribes to event core.test.events.test_event
+					[ "other_event" ] = true -- Subscribes to event core.test.events.other_event
 				}
 			--]]
 
@@ -78,7 +78,7 @@ neorg.modules.module_base = {
 
 			--[[
 				EXAMPLE DEFINITION:
-				["my_event"] = { event_data }
+				["my_event"] = { event_data } -- Creates an event of type category.module.events.my_event
 			--]]
 
 		}

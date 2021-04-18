@@ -15,6 +15,7 @@ require('neorg.modules.base')
 --]]
 neorg.modules.loaded_module_count = 0
 
+-- The table of currently loaded modules
 neorg.modules.loaded_modules = {}
 
 -- @Summary Load and enables a module
@@ -45,6 +46,10 @@ function neorg.modules.load_module_from_table(module)
 		return false
 	end
 
+	-- Add the module into the list of loaded modules
+	-- The reason we do this here is so other modules don't recursively require each other in the dependency loading loop below
+	neorg.modules.loaded_modules[module.name] = module
+
 	-- If any dependencies have been defined, handle them
 	if loaded_module.requires and vim.tbl_count(loaded_module.requires) > 0 then
 
@@ -55,9 +60,13 @@ function neorg.modules.load_module_from_table(module)
 
 			log.trace("Loading submodule", required_module)
 
+			-- This would've always returned false had we not added the current module to the loaded module list earlier above
 			if not neorg.modules.is_module_loaded(required_module) then
 				if not neorg.modules.load_module(required_module) then
 					log.error(("Unable to load module %s, required dependency %s did not load successfully"):format(module.name, required_module))
+
+					-- Make sure to clean up after ourselves if the module failed to load
+					neorg.modules.loaded_modules[module.name] = nil
 					return false
 				end
 			else
@@ -73,9 +82,6 @@ function neorg.modules.load_module_from_table(module)
 
 	log.info("Successfully loaded module", module.name)
 
-	-- Add the module into the list of loaded modules
-	neorg.modules.loaded_modules[module.name] = module
-
 	-- Keep track of the number of loaded modules
 	neorg.modules.loaded_module_count = neorg.modules.loaded_module_count + 1
 
@@ -90,11 +96,12 @@ end
 -- @Description Unlike load_module_from_table(), which loads a module from memory, load_module() tries to find the corresponding module file on disk and loads it into memory.
 -- If the module could not be found, attempt to load it off of github. This function also applies user-defined configurations and keymaps to the modules themselves.
 -- This is the recommended way of loading modules - load_module_from_table() should only really be used by neorg itself.
--- @Param  module_name
--- @Param  shortened_git_address
--- @Param  config
+-- @Param  module_name (string) - a path to a module on disk. A path seperator in neorg is '.', not '/'
+-- @Param  shortened_git_address (string) - for example "Vhyrro/neorg", tells neorg where to look on github if a module can't be found locally
+-- @Param  config (table) - a configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
 function neorg.modules.load_module(module_name, shortened_git_address, config)
 
+	-- Don't bother loading the module from disk if it's already loaded
 	if neorg.modules.is_module_loaded(module_name) then
 		return false
 	end
@@ -106,7 +113,7 @@ function neorg.modules.load_module(module_name, shortened_git_address, config)
 	exists, module = pcall(require, "neorg.modules." .. module_name .. ".module")
 	-- end))()
 
-	-- If the module can't be found, try looking for it on GitHub
+	-- If the module can't be found, try looking for it on GitHub (currently unimplemented :P)
 	if not exists then
 
 		log.warn(("Unable to load module %s - an error occured: %s"):format(module_name, module))
@@ -137,8 +144,10 @@ end
 -- @Param module_name (string) - the name of the module to unload
 function neorg.modules.unload_module(module_name)
 
-	local module = neorg.modules.loaded_module[module_name]
+	-- Check if the module is loaded
+	local module = neorg.modules.loaded_modules[module_name]
 
+	-- If not then obviously there's no point in unloading it
 	if not module then
 		log.info("Unable to unload module", module_name, "- module is not currently loaded.")
 		return false
@@ -146,8 +155,8 @@ function neorg.modules.unload_module(module_name)
 
 	module.unload()
 
-	neorg.modules.loaded_module[module_name] = nil
-
+	-- Remove the module from the loaded_modules list and decrement the counter
+	neorg.modules.loaded_modules[module_name] = nil
 	neorg.modules.loaded_module_count = neorg.modules.loaded_module_count - 1
 
 	return true
