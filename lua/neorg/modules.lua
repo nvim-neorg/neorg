@@ -1,9 +1,10 @@
-
+--[[
 --	NEORG MODULE MANAGER
 --	This file is responsible for loading, unloading, calling and managing modules
 --	Modules are internal mini-programs that execute on certain events, they build the foundation of neorg itself.
 --]]
 
+-- Include the global logger instance
 local log = require('neorg.external.log')
 
 require('neorg.modules.base')
@@ -44,10 +45,12 @@ function neorg.modules.load_module_from_table(module)
 		return false
 	end
 
+	-- If any dependencies have been defined, handle them
 	if loaded_module.requires and vim.tbl_count(loaded_module.requires) > 0 then
 
 		log.info("Module", module.name, "has dependencies. Loading dependencies first...")
 
+		-- Loop through each dependency and load it one by one
 		for _, required_module in pairs(loaded_module.requires) do
 
 			log.trace("Loading submodule", required_module)
@@ -57,24 +60,14 @@ function neorg.modules.load_module_from_table(module)
 					log.error(("Unable to load module %s, required dependency %s did not load successfully"):format(module.name, required_module))
 					return false
 				end
+			else
+				log.trace("Module", required_module, "already loaded, skipping...")
 			end
 
+			-- Create a reference to the dependency's public table
 			module.required[required_module] = neorg.modules.loaded_modules[required_module].public
 
 		end
-
-	end
-
-	if module.config.keymaps and vim.tbl_count(module.config.keymaps) > 0 then
-
-		log.info("Module", module.name, "has keymaps. Binding...")
-
-		for keyname, keymap in pairs(module.config.keymaps) do
-			log.trace("Loading keymap", keyname)
-			vim.api.nvim_set_keymap(keymap.mode, keyname, ":lua require(\'neorg.modules." .. module.name .. ".module\').on_keymap(\"" .. keymap.name .. "\")<CR>", keymap.options or {})
-		end
-
-		log.info("Loaded all keymaps for module", module.name)
 
 	end
 
@@ -93,13 +86,30 @@ function neorg.modules.load_module_from_table(module)
 
 end
 
-function neorg.modules.load_module(module_name, shortened_git_address)
+-- @Summary Loads a module from disk
+-- @Description Unlike load_module_from_table(), which loads a module from memory, load_module() tries to find the corresponding module file on disk and loads it into memory.
+-- If the module could not be found, attempt to load it off of github. This function also applies user-defined configurations and keymaps to the modules themselves.
+-- This is the recommended way of loading modules - load_module_from_table() should only really be used by neorg itself.
+-- @Param  module_name
+-- @Param  shortened_git_address
+-- @Param  config
+function neorg.modules.load_module(module_name, shortened_git_address, config)
 
-	-- local git_sites = { "github.com", "gitlab.com", "bitbucket.org" }
+	if neorg.modules.is_module_loaded(module_name) then
+		return false
+	end
 
-	local exists, module = pcall(require, "neorg.modules." .. module_name .. ".module")
+	-- Attempt to require the module, does not throw an error if the module doesn't exist
+	local exists, module
 
+	-- (vim.schedule_wrap(function()
+	exists, module = pcall(require, "neorg.modules." .. module_name .. ".module")
+	-- end))()
+
+	-- If the module can't be found, try looking for it on GitHub
 	if not exists then
+
+		log.warn(("Unable to load module %s - an error occured: %s"):format(module_name, module))
 
 		if shortened_git_address then
 			-- If module isn"t found, grab it from the internet here
@@ -109,21 +119,15 @@ function neorg.modules.load_module(module_name, shortened_git_address)
 		return false
 	end
 
-	if not module then
-		return false
+	-- If the module is nil for some reason return false
+	if not module then return false end
+
+	-- Load the user-defined configurations and keymaps
+	if config and not vim.tbl_isempty(config) then
+		module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
 	end
 
-	local config = neorg.configuration.user_configuration
-
-	if config then
-		if config.public then
-			module.config.public = vim.tbl_deep_extend("force", module.config.public, config.module_configs[module.name] or {})
-		end
-		if config.module_keymaps then
-			module.config.keymaps = vim.tbl_deep_extend("force", module.config.keymaps, config.module_keymaps[module.name] or {})
-		end
-	end
-
+	-- Pass execution onto load_module_from_table() and let it handle the rest
 	return neorg.modules.load_module_from_table(module)
 
 end
@@ -149,7 +153,7 @@ function neorg.modules.unload_module(module_name)
 	return true
 end
 
--- @Summary Gets a module by name
+-- @Summary Gets the public API of a module by name
 -- @Description Retrieves the public API exposed by the module
 -- @Param  module_name (string) - the name of the module to retrieve
 function neorg.modules.get_module(module_name)
@@ -160,6 +164,19 @@ function neorg.modules.get_module(module_name)
 	end
 
 	return neorg.modules.loaded_modules[module_name].public
+end
+
+-- @Summary Retrieves the public configuration of a module
+-- @Description Returns the module.config.public table if the module is loaded
+-- @Param  module_name (string) - the name of the module to retrieve (module must be loaded)
+function neorg.modules.get_module_config(module_name)
+
+	if not neorg.modules.is_module_loaded(module_name) then
+		log.info("Attempt to get module configuration with name", module_name, "failed.")
+		return nil
+	end
+
+	return neorg.modules.loaded_modules[module_name].config.public
 end
 
 -- @Summary Check whether a module is loaded

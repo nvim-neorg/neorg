@@ -24,8 +24,8 @@ neorg.modules.module_base = {
 	on_event = function(event)
 	end,
 
-	-- Invoked whenever a keymap for the current module is triggered
-	on_keymap = function(keymap)
+	-- Invoked after all plugins are loaded
+	neorg_post_load = function()
 	end,
 
 	-- The name of the module, note that modules beginning with core are neorg"s inbuilt modules
@@ -59,17 +59,6 @@ neorg.modules.module_base = {
 				}
 			--]]
 		},
-
-		keymaps = {
-			--[[
-				["<C-s>"] = {
-					mode = "n",
-					name = "some_keymap_name",
-					options = { silent = false, noremap = false, expr = false }
-				}
-			--]]
-		}
-
 	},
 
 	-- Event data regarding the current module
@@ -120,7 +109,7 @@ neorg.modules.module_base = {
 function neorg.modules.create(name)
 	local new_module = {}
 
-	new_module = vim.tbl_deep_extend("force", new_module, neorg.modules.module_base)
+	new_module = vim.deepcopy(neorg.modules.module_base)
 
 	if name then
 		new_module.name = name

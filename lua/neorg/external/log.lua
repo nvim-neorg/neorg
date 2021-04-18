@@ -110,16 +110,16 @@ log.new = function(config, standalone)
       )
 
       if config.highlights and level_config.hl then
-        vim.cmd(string.format("echohl %s", level_config.hl))
+        (vim.schedule_wrap(function() vim.cmd(string.format("echohl %s", level_config.hl)) end))()
       end
 
       local split_console = vim.split(console_string, "\n")
       for _, v in ipairs(split_console) do
-        vim.cmd(string.format([[echom "[%s] %s"]], config.plugin, vim.fn.escape(v, "\"")))
+        (vim.schedule_wrap(function() vim.cmd(string.format([[echom "[%s] %s"]], config.plugin, vim.fn.escape(v, "\""))) end))()
       end
 
       if config.highlights and level_config.hl then
-        vim.cmd("echohl NONE")
+        (vim.schedule_wrap(function() vim.cmd("echohl NONE") end))()
       end
     end
 

@@ -6,9 +6,12 @@ require('neorg.modules')
 neorg.configuration = {
 
 	user_configuration = {
-		module_configs = {},
-		module_keymaps = {}
-	}
+		load = {
+			--[[
+				["name"] = { git_address = "address", config = { ... } }
+			--]]
+		},
+	},
 
 }
 
@@ -31,12 +34,34 @@ function neorg.setup(config)
 
 	local ext = vim.fn.expand("%:e")
 
-	if ext == "org" or ext == "norg" then neorg.org_file_entered() end
+	if ext == "org" or ext == "norg" then neorg.org_file_entered(config.load) end
 end
 
-function neorg.org_file_entered()
-	-- neorg.modules.load_module("core.autocommands", "bruh/moment")
-	neorg.modules.load_module("core.test", "bruh/moment")
+function neorg.org_file_entered(module_list)
+
+	if not module_list then return end
+
+	for name, module in pairs(module_list) do
+		if not neorg.modules.load_module(name, module.git_address, module.config) then
+			log.error("Halting loading of modules due to error...")
+			break
+		end
+	end
+
+	local async
+
+	async = vim.loop.new_async(function()
+
+		for _, module in pairs(neorg.modules.loaded_modules) do
+			module.neorg_post_load()
+		end
+
+		async:close()
+
+	end)
+
+	async:send()
+
 end
 
 return neorg

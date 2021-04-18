@@ -22,6 +22,7 @@ function string.split(inputstr, sep)
         return ret
 end
 
+-- Totally not yoinked from stackoverflow either
 function copy(obj, seen)
 	if type(obj) ~= "table" then
 		return obj
