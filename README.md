@@ -43,6 +43,19 @@ To install using packer:
       }
   end}
 ```
+
+If you're feeling lucky and want all the bleeding edge features (might require Neovim HEAD):
+```lua
+
+  use { 'Vhyrro/neorg', branch = 'unstable', config = function()
+      require('neorg').setup {
+        load = {
+          ["your.module"] = { git_address = 'some/address', config = { ... } }
+        }
+      }
+  end}
+```
+
 Then run `:PackerSync`
 
 # WIP
