@@ -21,3 +21,38 @@ Table of Contents:
 ---
 
 # Understanding the File Tree
+```
+lua/
+├── neorg
+│   ├── events.lua
+│   ├── external
+│   │   ├── helpers.lua
+│   │   └── log.lua
+│   ├── modules
+│   │   ├── base.lua
+│   │   └── core
+│   │       ├── autocommands
+│   │       │   └── module.lua
+│   │       └── keybinds
+│   │           └── module.lua
+│   └── modules.lua
+└── neorg.lua
+```
+
+Above is a basic neorg file tree. 
+Here's a quick rundown:
+  - The `neorg/` directory holds all the logic
+    - The `external/` directory is something you shouldn't worry about, as those are usually either 3rd party files or some small helper functions.
+    - The `modules/` directory is where all the modules go. **Each module has its own subdirectory** - the contained `module.lua` file is the main file that gets sourced. Think of it as the init.lua for neorg modules.
+      - `modules/base.lua` is the file that should get sourced in every module that is made. It contains the `neorg.modules.create()` function and has the default table that all modules inherit from.
+    - `modules.lua` contains all the API functions for interacting with and querying data from loaded modules.
+    - `events.lua` contains all the API functions for defining and interacting with events.
+
+# Introduction to Modules
+### What is a module
+In reality, modules are just a fancy and easy way to manage and load code. Modules can be loaded at will, meaning they're not active unless you explicitly load them - this means there's no unnecessary code running in the background slowing the entire editor down. Whenever a module is loaded, the `setup()` function is invoked. We'll talk more about what the functions do later. Whenever an event is received, the `on_event(event)` function is called. Do you get the idea? Modules have several inbuilt functions that allow you to react to several different situations inside the neorg environment. They also allow you, the creator of the module, to expose your own public functions and variables to allow other modules to easily interact with you. You can also expose your own custom `config` table, which allows the user to potentially override anything they may please. To sum it up, **there's a lot you can do with these bad boys**.
+
+## Addressing modules
+In neorg, there's two types of addressing modes, relative and absolute. Despite these fairly scary names, the concept is quite simple.
+
+Let's say I want to reference the module
