@@ -1,5 +1,33 @@
 # Contributions welcome!
-Whilst any help is very special, please be considerate of certain rules in order to make the codebase uniform and coherent.
+Whilst any help is very special (I'm only one guy managing this currently!), please be considerate of certain rules in order to make the codebase uniform and coherent.
+
+---
+### Table of Contents
+
+- When you need help:
+  - [What to do when you encounter a bug](#reporting-a-bug-or-issue)
+
+- When contributing:
+  - [Formatting rules](#formatting-rules)
+  - [Coding style](#coding-style)
+  - [Working with modules](#modules)
+  - [Adding extra functionality](#adding-functionality)
+  - [Module ideas](#ideas-for-modules-if-you-dont-have-any)
+---
+
+### Reporting a bug or issue
+Whenever something happens the way it's not supposed to, [file an issue!](https://github.com/Vhyrro/neorg/issues/new/choose), but before you do, try the following:
+- If you haven't already, always try updating the plugin first. Issues may be fixed before you can even file one, so always make sure you are up to date beforehand.
+- Make sure you are running the latest neovim version. Whenever I test neorg, I test it on the latest compiled neovim from source which I recompile everyday. While you don't have to be *that* extreme with your updates, make sure you're at least running the latest neovim nightly.
+
+If you're certain it's a fault of the plugin, not your configuration, in the issue please provide the following:
+- The neovim version you're running (`nvim --version`)
+- The neorg log file (you'll find it at `stdpath('data') .. 'neorg.log'`). This file will contain the necessary info for me to effectively debug. 
+- The branch of neorg you are using
+- The list of modules you have loaded
+- Other plugins you are using which you think could potentially be conflicting with neorg.
+
+---
 
 ### Formatting rules
 - When using a `require()` statement, use single quotes. For example:
