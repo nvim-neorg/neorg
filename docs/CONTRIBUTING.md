@@ -1,5 +1,5 @@
 # Contributions welcome!
-Whilst any help is very special (I'm only one guy managing this currently!), please be considerate of certain rules in order to make the codebase uniform and coherent.
+Whilst any help is very special (I'm only one guy managing this currently!), please be considerate of certain rules in order to make the codebase uniform/coherent.
 
 ---
 ### Table of Contents
@@ -26,6 +26,7 @@ If you're certain it's a fault of the plugin, not your configuration, in the iss
 - The branch of neorg you are using
 - The list of modules you have loaded
 - Other plugins you are using which you think could potentially be conflicting with neorg.
+- Steps to reproduce the bug, if any - sometimes bugs get triggered only on certain configurations, which can be a pain. If you're aware that the bug requires a specific config, be sure to include that information as well!
 
 ---
 
@@ -52,6 +53,7 @@ Whenever you are planning on extending neorg, try your best to add *all* extra f
 When adding stuff, use lua only. `vim.cmd` in extreme cases :)
 
 ### Ideas for modules if you don't have any:
+- [ ] A `core.api` module to wrap potential internal functions and add extra safety checks so they can be used by anyone.
 - [ ] A `core.norg` module to read, parse and convert .norg files into a sort of syntax tree (currently being worked on)
 - [ ] A utility module to add wrap several monotonous functions
 - [ ] A module to simplify interactions and manipulation of text, something really important for a plugin like neorg :)
