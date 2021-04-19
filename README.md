@@ -64,7 +64,7 @@ As can be seen, this plugin is a work in progress - these magical features don't
   - The event system; the event system is the way for said modules to communicate. Events can be broadcast to all subscribed modules or to individual modules as well, they can hold any sort of data you'd want to transport to another plugin, things like the current cursor position, line content etc. The choice is yours really.
 
 # Consult The Wiki!
-The entire structure of neorg's core can be a bit complex, so it's definitely worth your time to read the docs! Take a look at them here.
+The entire structure of neorg's core can be a bit complex, so it's definitely worth your time to read the docs! For now you can take a look at them [here](docs/README.md), but in the future the actual github wiki will be available.
 
 # Contributing
 I really looove contributions! That's what this whole project is about - it's a really big plugin, so any help is appreciated :heart:
