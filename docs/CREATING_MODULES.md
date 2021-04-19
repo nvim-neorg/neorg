@@ -59,3 +59,23 @@ Let's say I want to reference the module in `neorg/modules/core/autocommands` (s
 
 ### Module Naming Conventions
 Whenever you pick a name for a module, make sure that the name is unique. The best way to make a unique name is by calling the module e.g `file_management.filereader`, where the module has a category and a name. You can even make subcategories, like this: `file_management.reading.file_reader`. This would mean that the `module.lua` file would be located in `neorg/modules/file_management/reading/file_reader/module.lua`. All core neorg modules are part of the `core` category, for example `core.autocommands` and `core.keybinds`.
+
+# Writing a Barebones Neorg Module
+
+### The basics
+In this section we will start building a barebones template for our module! Let's start with the important questions - what will we name our module? What will our module do? How will it fit in the neorg environment? These are the most important things you should keep in mind when developing neorg modules
+
+Let's answer the questions one by one:
+  - We'll call it `example.module` because honestly why not
+  - Our module will print some messages whenever certain actions are triggered
+  - It won't
+
+... I'm just kidding. You thought we were gonna do something so boring? Caught you slacking, think harder this time.
+
+**Let's answer the questions one by one:**
+  - We'll call it `utilities.dateinserter`
+  - Our module will allow the user to do some basic things like insert the current date and time into a buffer
+  - We will expose a small public API to allow other modules to interface with us and remotely force a date to be pasted into a buffer. We will also allow querying of that time and date as a string.
+
+#### There!
+Not too crazy, but should be at least a bit more interesting than the stuff we would've been working with earlier.
