@@ -83,3 +83,5 @@ The entire structure of neorg's core can be a bit complex, so it's definitely wo
 
 # Contributing
 I really looove contributions! That's what this whole project is about - it's a really big plugin, so any help is appreciated :heart:
+
+Also, if you love what I do and want to professionally support my work, boost development etc. drop me a few bucks will ya (links will be available tomorrow!). Making this my job would be like a dream come true.
