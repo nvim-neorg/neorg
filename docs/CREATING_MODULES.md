@@ -475,8 +475,8 @@ end
 ```
 
 Add the setup function wherever you please in your code, and let's start explaining the return value of `setup()`:
-	- `success` - as the name suggests, it tells neorg whether or not the plugin has successfully loaded. If `false` then neorg will halt the loading of that module.
-	- `requires` - an array of absolute paths to modules that we want to load beforehand. If a module has already been loaded, it will just be ignored.
+  - `success` - as the name suggests, it tells neorg whether or not the plugin has successfully loaded. If `false` then neorg will halt the loading of that module.
+  - `requires` - an array of absolute paths to modules that we want to load beforehand. If a module has already been loaded, it will just be ignored.
 
 Now we can be certain that whenever our module is loaded, `core.autocommands` will be alongside it.
 
