@@ -91,7 +91,7 @@ function neorg.events.define_event(module, name)
 	new_event = vim.deepcopy(neorg.events.base_event)
 
 	if type then
-		new_event.type = name
+		new_event.type = module.name .. ".events." .. name
 	end
 
 	new_event.referrer = module.name
