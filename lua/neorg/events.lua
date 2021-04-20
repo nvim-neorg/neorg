@@ -81,8 +81,8 @@ end
 -- @Summary Creates an event that derives from neorg.events.base_event
 -- @Description Creates a deep copy of the neorg.events.base_event event and returns it with a custom type and referrer
 -- @Param  module (table) - a reference to the module invoking the function
--- @Param  name (string) - a full path to a valid event type (e.g. 'core.module.events.some_event')
-function neorg.events.define_event(module, name)
+-- @Param  name (string) - a relative path to a valid event template
+function neorg.events.define(module, name)
 
 	-- Create a copy of the base event and override the values with ones specified by the user
 
@@ -90,7 +90,7 @@ function neorg.events.define_event(module, name)
 
 	new_event = vim.deepcopy(neorg.events.base_event)
 
-	if type then
+	if name then
 		new_event.type = module.name .. ".events." .. name
 	end
 

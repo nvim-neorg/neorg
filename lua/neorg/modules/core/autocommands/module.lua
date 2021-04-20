@@ -42,7 +42,7 @@ function _neorg_module_autocommand_triggered(name)
 end
 
 -- A convenience wrapper around neorg.events.define_event
-module_autocommands.autocmd_base = function(name) return neorg.events.define_event(module_autocommands, name) end
+module_autocommands.autocmd_base = function(name) return neorg.events.define(module_autocommands, name) end
 
 module_autocommands.public = {
 

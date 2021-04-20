@@ -68,7 +68,7 @@ module_keybinds.public = {
 				log.warn("Unable to set keybind", name, "for module", module_name, "- the specified key is already bound to", module_keybinds.events.defined[name].name or "something else")
 			else
 				local event_name = module_name .. '.' .. key.name
-				module_keybinds.events.defined[event_name] = neorg.events.define_event(module_keybinds, event_name);
+				module_keybinds.events.defined[event_name] = neorg.events.define(module_keybinds, event_name);
 				(vim.schedule_wrap(function() vim.api.nvim_set_keymap(key.mode, name, ":lua _neorg_module_keybinds_callback(\"" .. module_name .. "\", \"core.keybinds.events." .. event_name .. "\")<CR>", key.opts) end))()
 			end
 
