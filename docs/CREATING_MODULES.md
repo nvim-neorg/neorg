@@ -184,7 +184,7 @@ local log = require('neorg.external.log')
 
 module.load = function()
   log.info("DATEINSERTER loaded!")
-  neorg.events.broadcast_event(module, neorg.events.create("utilities.dateinserter.events.our_event"))
+  neorg.events.broadcast_event(module, neorg.events.create(module, "utilities.dateinserter.events.our_event"))
 end
 
 module.on_event = function(event)
@@ -225,7 +225,7 @@ We added a new inbuilt function - `module.on_event()`; this function is invoked 
 
 Inside the `module.load()` function we broadcast a new event using the `neorg.events.broadcast_event()` function! It takes in the current module that is invoking the function and an **instance** of an event template. We can create such an instance using `neorg.events.create()`. Note that `neorg.events.create()` takes an **absolute** path to the event, that's why we use `utilities.dateinserter.events.our_event` as a parameter.
 
-Inside `module.events.defined` we define our first custom event! We call it `our_event` and set it to `neorg.events.define(module, "our_event")` where `module` is the module that's invoking the function (that's us!) and `"our_event"` is the **relative address** for the event. This is our first time encountering such an addressing mode - can you start to get an idea of how they work now? Since we are already in the context of our module (`utilities.dateinserter`), we don't need the full path to define an event, since only we can define our own events. Neorg knows this and can infer the rest by itself.
+Inside `module.events.defined` we define our first event! We call it `our_event` and set it to `neorg.events.define(module, "our_event")` where `module` is the module that's invoking the function (that's us!) and `"our_event"` is the **relative address** for the event. This is our first time encountering such an addressing mode - can you start to get an idea of how they work now? Since we are already in the context of our module (`utilities.dateinserter`), we don't need the full path to define an event, since only we can define our own events. Neorg knows this and can infer the rest by itself.
 
 After defining the event and showing neorg it exists we now need to subscribe to it. Just defining an event isn't enough, we want to be able to finely control which events come our way. For this we use the `module.events.subscribed` table. We first create a subtable called `utilities.datainserter` - hey, that's the name of our module! The way you subscribe to events is with groups, since a module will usually have more than one event you'd like to subscribe to having to rewrite "utilities.dateinserter" for every single event it exposes would be rather painful. That's why we first define a group (our module name) and then subscribe to its events. Note that `our_event = true` is once again using relative addressing, since we're already in the "utilities.dateinserter" group the absolute path can be inferred. Whenever an event gets set to false (so e.g. if we wrote `our_event = false`) it is the equivalent of unsubscribing from the event.
 
@@ -275,3 +275,36 @@ Further down we change the settings for the neorg logger. By default logging to 
 
 ### We should be good to go now!
 To trigger neorg and therefore all the modules defined in the `load` table we need to either enter a `.org` file or a `.norg` file. Entering either one of such files should trigger everything, and you should see the event in the messages down below! To view all of it, type `:messages` into the command bar.
+You should see that events hold a lot of data by default! This is stuff I believed to be important and things I would want to know whenever I receive an event.
+Try to get yourself familiar with all of the elements of the table, as they are pretty important and useful!
+
+Let's go over all those elements one by one and explain them for you:
+```lua
+event = {
+	type = "core.base_event",
+	split_type = {},
+	content = nil,
+	referrer = nil,
+	broadcast = true,
+
+	cursor_position = {},
+	filename = "",
+	filehead = "",
+	line_content = ""
+}
+```
+
+What you see above are both all the default elements that come with every event but also their default values. So, let's begin:
+  - `type` - the absolute path to the event (e.g. `utilities.dateinserter.events.our_event`)
+  - `split_type` - the absolute path to the event except split into two! The split point is at `.events.`, meaning in our case this would be equal to `{ "utilities.dateinserter", "our_event" }`
+  - `content` - an optional string or table, this holds some optional content to send additionally alongside what we already currently have! You can pass some content through the `neorg.events.create()` function, like so: `neorg.events.create(module, "utilities.dateinserter.events.our_event", { my_content_here = "pretty cool!" })` or `neorg.events.create(module, "utilities.dateinserter.events.our_event", "this is some content!")`
+  - `referrer` - see [the theory behind events](#events---an-introduction). This is the name of the module that actually broadcasts or sends the event.
+  - `broadcast` - if the event was broadcasted via `neorg.events.broadcast_event()` then this is `true`, otherwise `false`
+  - `cursor_position` - the cursor position as returned by `vim.api.nvim_win_get_cursor(0)`
+  - `filename` - the filename as returned by `expand("%:t")`
+  - `filehead` - the directory leading up to the file as returned by `expand("%:p:h")`
+  - `line_content` - the content of the current line the user was on at the time of triggering the event
+
+### I wanna be more private
+Let's say we don't really want the entire world to know that we have just broadcasted an event. What then? Instead of using `neorg.events.broadcast_event()`, we can just use `neorg.events.send_event(module, recipient, event)`. As you can see, it takes an extra argument in the middle which is the recipient - the target module we want to notify. Let's change up our code again to use `send_event` now:
+
