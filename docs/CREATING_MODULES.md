@@ -135,6 +135,8 @@ end
 
 module.public = {
 
+  version = "0.1",
+
   insert_datetime = function()
     vim.cmd("put =strftime(\"%c\")") 
   end
@@ -143,3 +145,13 @@ module.public = {
 
 return module
 ```
+
+Woah, we added quite the bit of stuff now, what's going on?
+
+Let's start with the easiest things first:
+  - The logger - here we require `neorg.external.log`, which gives us a global instance of the logger. Note that the logger is a slightly modified version of [vlog.nvim](https://github.com/tjdevries/vlog.nvim), and you can find the docs there.
+  - The `public` table, what is it?
+    - The `public` table is what allows you to expose your own custom functionality to other modules that are loaded - you can put anything in this table, functions, variables, whatever. Note that it's good practice to expose a `module.public.version` variable with the current version stored as a string.
+    - We add the `insert_datetime` function that will be able to be called from anywhere in the neorg environment, pretty neat!
+
+# Events - an Introduction
