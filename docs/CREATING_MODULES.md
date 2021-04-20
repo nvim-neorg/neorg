@@ -454,3 +454,81 @@ Alright! Well done! You've got the basics out of the way, but it's not over yet.
 
 ---
 
+# Inbuilt Modules
+## core.autocommands
+Ever wanted to bind an event to an autocommand? Well, maybe it crossed your mind, but I wouldn't imagine it being a dream of yours or something. Anyway, we can do that with neorg's own `core.autocommands` module.
+
+How do we do it? It's quite simple, really. But before we do so, we need to understand one more concept - **requiring**. It's as easy as it sounds, we can require other modules to be loaded before ours is! Very nice. Let's see it in action. If you've read [the introduction to modules](#introduction-to-modules), you should recall the `setup()` function, right? It allows you to do some special preinitialization and allows you to return some simple metadata to neorg. Well it just so happens that part of that metadata is what modules we require, so let's begin!
+
+```lua
+
+local module = neorg.modules.create("utilities.dateinserter")
+
+...
+
+module.setup = function()
+	return { success = true, requires = { "core.autocommands" } }
+end
+
+```
+
+Add the setup function wherever you please in your code, and let's start explaining the return value of `setup()`:
+	- `success` - as the name suggests, it tells neorg whether or not the plugin has successfully loaded. If `false` then neorg will halt the loading of that module.
+	- `requires` - an array of absolute paths to modules that we want to load beforehand. If a module has already been loaded, it will just be ignored.
+
+Now we can be certain that whenever our module is loaded, `core.autocommands` will be alongside it.
+
+### The side effect of requiring a module
+Whenever you require a module, it probably means you want to use its functionality, right? Well we got you covered. Whenever you require a module, its `public` table will be available at `module.required["core.autocommands"]`. Yeah. Whatever you change there will also impact that table.
+
+So let's try binding ourselves to an autocommand! For this example only, we'll rewrite our module to something smaller and easier to comprehend:
+
+```lua
+
+--[[
+    DATEINSERTER
+    This module is responsible for handling the insertion of date and time into a neorg buffer.
+--]]
+
+require('neorg.modules.base')
+require('neorg.events')
+
+local module = neorg.modules.create("utilities.dateinserter")
+local log = require('neorg.external.log')
+
+module.setup = function()
+	return { success = true, requires = { "core.autocommands" } }
+end
+
+module.on_event = function(event)
+	log.info(event.type)
+end
+
+module.load = function()
+	module.required["core.autocommands"].enable_autocommand("insertenter")
+end
+
+module.public = {
+
+  version = "0.3",
+
+  insert_datetime = function()
+    vim.cmd("put =strftime(\"%c\")")
+  end
+
+}
+
+module.events.subscribed = {
+
+  ["core.autocommands"] = {
+    insertenter = true
+  }
+
+}
+
+return module
+
+```
+
+### Explanation
+Here we've cut some unnecessary stuff out and left all the important stuff in. If you don't know how to use a module, check out its documentation which is found at the top of its `module.lua` file.
