@@ -25,7 +25,7 @@ With the introduction of lua, we *will* fight back.
 # Introduction
 ### What this project is, and what it isn't
   - This project is supposed to serve as an organizational tool for Neovim. It will run on the .norg file format - a revised, extensible and more computer friendly format compared to .org, all while retaining a decent amount of backwards compatibility with org (you will be able to convert between both formats).
-  - A foundation for developers to make their own extensions to the plugin and interface with other parts of user-contibuted code, known as modules (mode info below)
+  - A foundation for developers to make their own extensions to the plugin and interface with other parts of user-contibuted code, known as modules (more info below)
   - A full on competitor to emacs's org-mode
  ### What this project isn't
   - **An org-mode clone** - this project does not plan on recreating or cloning org mode in neovim. Rather, the goal of this repo is to take concepts from other organizational tools and reimagine them for the great text editor that neovim is. Expect a bit of familiarity but also a lot of changes, things tailored to the vim philosophy.
