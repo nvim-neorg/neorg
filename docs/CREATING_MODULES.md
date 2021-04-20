@@ -203,7 +203,7 @@ module.public = {
 
 module.events.defined = {
 
-  our_event = neorg.events.create("our_event")
+  our_event = neorg.events.define(module, "our_event")
 
 }
 
