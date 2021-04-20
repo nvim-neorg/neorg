@@ -227,4 +227,51 @@ Inside the `module.load()` function we broadcast a new event using the `neorg.ev
 
 Inside `module.events.defined` we define our first custom event! We call it `our_event` and set it to `neorg.events.define(module, "our_event")` where `module` is the module that's invoking the function (that's us!) and `"our_event"` is the **relative address** for the event. This is our first time encountering such an addressing mode - can you start to get an idea of how they work now? Since we are already in the context of our module (`utilities.dateinserter`), we don't need the full path to define an event, since only we can define our own events. Neorg knows this and can infer the rest by itself.
 
-After defining the event and showing neorg it exists we now need to subscribe to it. Just defining an event isn't enough, we want to be able to finely control which events come our way. For this we use the `module.events.subscribed` table. We first create a subtable called `utilities.datainserter` - hey, that's the name of our module! The way you subscribe to events with groups, since a module will usually have more than one event you'd like to subscribe to having to rewrite "utilities.dateinserter" for every single event it exposes would be rather painful. That's why we first define a group (our module name) and then subscribe to its events. Note that `our_event = true` is once again using relative addressing, since we're already in the "utilities.dateinserter" group the absolute path can be inferred. Whenever an event gets set to false (so e.g. if we wrote `our_event = false`) it is the equivalent of unsubscribing to the event.
+After defining the event and showing neorg it exists we now need to subscribe to it. Just defining an event isn't enough, we want to be able to finely control which events come our way. For this we use the `module.events.subscribed` table. We first create a subtable called `utilities.datainserter` - hey, that's the name of our module! The way you subscribe to events is with groups, since a module will usually have more than one event you'd like to subscribe to having to rewrite "utilities.dateinserter" for every single event it exposes would be rather painful. That's why we first define a group (our module name) and then subscribe to its events. Note that `our_event = true` is once again using relative addressing, since we're already in the "utilities.dateinserter" group the absolute path can be inferred. Whenever an event gets set to false (so e.g. if we wrote `our_event = false`) it is the equivalent of unsubscribing from the event.
+
+### Let's test!
+It's time to test whether it works but... it doesn't work. Why? What are the prerequisites? Hehe, glad you asked. Your module can't just be loaded, how bad would it be if all available modules got loaded each time? The user needs to pick n choose which modules they want, which is exactly what we're going to do now.
+This part assumes you're using [packer.nvim](https://github.com/wbthomason/packer.nvim), although you should be able to easily follow along with any other package manager.
+
+Let's take a look at how we set up neorg. If you've seen the code in the README, you should already have a rough idea of what's going on.
+
+```lua
+
+use { 'Vhyrro/neorg', config = function()
+
+  require('neorg').setup {
+      load = {
+        ...
+      }
+  }
+
+end}
+
+```
+
+We're going to modify this to suit our needs, then we will explain what's happening.
+
+```lua
+
+use { 'Vhyrro/neorg', config = function()
+
+    require('neorg').setup {
+       load = {
+         ["utilities.dateinserter"] = {}
+       },
+    
+       logger = {
+         use_console = true
+       }
+    }
+    
+end}
+
+```
+
+Here in the `setup` function we configure the modules we would like to load. We do this by setting `["utilities.dateinserter"]` to an empty table. Certain info can be put into this empty table, but we will worry about that later.
+
+Further down we change the settings for the neorg logger. By default logging to the console is disabled, but since we're creating our own test plugin and logging certain things we definitely want this to be set to `true` for our convenience.
+
+### We should be good to go now!
+To trigger neorg and therefore all the modules defined in the `load` table we need to either enter a `.org` file or a `.norg` file. Entering either one of such files should trigger everything, and you should see the event in the messages down below! To view all of it, type `:messages` into the command bar.
