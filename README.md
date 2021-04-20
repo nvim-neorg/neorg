@@ -63,6 +63,8 @@ As can be seen, this plugin is a work in progress - these magical features don't
   - The module system; the module system is an extensible way to manage and interface with code. Modules are pay-for-what-you-use tables that can get loaded and unloaded at will. They can subscribe to events using the powerful event system and can directly communicate with each other - they can even expose their own public APIs and configuration to be edited by the user. Example modules can be found [here](lua/neorg/modules/core) and in the wiki.
   - The event system; the event system is the way for said modules to communicate. Events can be broadcast to all subscribed modules or to individual modules as well, they can hold any sort of data you'd want to transport to another plugin, things like the current cursor position, line content etc. The choice is yours really.
 
+Note that the neorg API may (and probably will be) subject to change! I'll try to refrain from breaking changes unless absolutely necessary, and will let developers know a while beforehand so they can update their modules. The API will stabilize after neorg becomes a bit more mature, so stick with me for now!
+
 # Consult The Wiki!
 The entire structure of neorg's core can be a bit complex, so it's definitely worth your time to read the docs! For now you can take a look at them [here](docs/README.md), but in the future the actual github wiki will be available.
 
