@@ -168,3 +168,52 @@ Theory:
   - Event broadcasting and event sending - whenever you send an event, you are doing exactly that, only *sending* the event to a single module. No other modules will receive the event. Whenever you broadcast, however, you asynchronously notify *all* subscribed and loaded modules in the neorg environment.
 
 # Defining and Broadcasting our Own Event!
+Time to define our own event! Let's add some code.
+
+```lua
+--[[
+    DATEINSERTER
+    This module is responsible for handling the insertion of date and time into a neorg buffer.
+--]]
+
+require('neorg.modules.base')
+require('neorg.events')
+
+local module = neorg.modules.create("utilities.dateinserter")
+local log = require('neorg.external.log')
+
+module.load = function()
+  log.info("DATEINSERTER loaded!")
+  neorg.events.broadcast_event(module, neorg.events.create("utilities.dateinserter.events.our_event"))
+end
+
+module.on_event = function(event)
+  log.info("Received event:", event)
+end
+
+module.public = {
+
+  version = "0.1",
+
+  insert_datetime = function()
+    vim.cmd("put =strftime(\"%c\")") 
+  end
+
+}
+
+module.events.defined = {
+
+  our_event = neorg.events.create("our_event")
+
+}
+
+module.events.subscribed = {
+
+  ["utilities.dateinserter"] = {
+    our_event = true
+  }
+
+}
+
+return module
+```
