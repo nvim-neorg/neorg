@@ -33,7 +33,20 @@ With the introduction of lua, we *will* fight back.
 ---
 # Installation
 ## Using packer
-To install using packer:
+
+If you don't know what you're doing, just run this:
+
+```lua
+
+  use { 'Vhyrro/neorg', config = function()
+
+      require('neorg').setup {}
+
+  end}
+```
+
+Otherwise:
+
 ```lua
   use { 'Vhyrro/neorg', config = function()
       require('neorg').setup {
