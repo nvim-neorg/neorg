@@ -84,8 +84,8 @@ neorg.modules.module_base = {
 		}
 	},
 
-	-- If you ever require a module through the return value of the load() function,
-	-- All of the modules" public APIs will become available here
+	-- If you ever require a module through the return value of the setup() function,
+	-- All of the modules' public APIs will become available here
 	required = {
 
 		--[[
