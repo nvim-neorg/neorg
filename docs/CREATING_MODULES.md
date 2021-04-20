@@ -13,6 +13,7 @@ Table of Contents:
   - [Writing a barebones neorg module](#writing-a-barebones-neorg-module)
   - [Introduction to events](#events---an-introduction)
   - [Broadcasting an event](#defining-and-broadcasting-our-own-event)
+  - [Configuring modules](#configuration)
   - Inbuilt modules:
     - The core.autocommands module
     - The core.keybinds module
@@ -424,3 +425,32 @@ end}
 Do you see what we did there? We can configure any module just like that: by using the `config` table.
 
 ### Making the module react on these changes
+Let's change this snippet of code:
+
+```lua
+
+module.on_event = function()
+	log.info("Received event:", event)
+end
+
+```
+
+And add an `if` check:
+
+```lua
+
+module.on_event = function(event)
+	if module.config.public.enabled then
+		log.info("Received event:", event)
+	end
+end
+
+```
+
+That's it! Let's see whether the changes will take effect. If using packer, make sure to `:PackerCompile` before testing! You should see that on entering any norg file nothing happens. It's cause the user overrode our config options! That's how you expose configuration.
+
+# Basics figured out
+Alright! Well done! You've got the basics out of the way, but it's not over yet. We still have some more things to cover, so hold out just a little longer. If it's hard to read so much text for you, imagine how I must've felt writing it, lol.
+
+---
+
