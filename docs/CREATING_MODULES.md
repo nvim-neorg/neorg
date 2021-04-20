@@ -217,3 +217,14 @@ module.events.subscribed = {
 
 return module
 ```
+
+### Explanation time!
+What have we added in the above code snippet? Well, first of all, we added a new require statement! Since we're going to be dealing with events now, we'll `require('neorg.events')`. This contains all the important functions regarding creating, broadcasting, manipulating events.
+
+We added a new inbuilt function - `module.on_event()`; this function is invoked whenever we receive an event. It just simply logs the event that we received upon receiving it.
+
+Inside the `module.load()` function we broadcast a new event using the `neorg.events.broadcast_event()` function! It takes in the current module that is invoking the function and an **instance** of an event template. We can create such an instance using `neorg.events.create()`. Note that `neorg.events.create()` takes an **absolute** path to the event, that's why we use `utilities.dateinserter.events.our_event` as a parameter.
+
+Inside `module.events.defined` we define our first custom event! We call it `our_event` and set it to `neorg.events.define(module, "our_event")` where `module` is the module that's invoking the function (that's us!) and `"our_event"` is the **relative address** for the event. This is our first time encountering such an addressing mode - can you start to get an idea of how they work now? Since we are already in the context of our module (`utilities.dateinserter`), we don't need the full path to define an event, since only we can define our own events. Neorg knows this and can infer the rest by itself.
+
+After defining the event and showing neorg it exists we now need to subscribe to it. Just defining an event isn't enough, we want to be able to finely control which events come our way. For this we use the `module.events.subscribed` table. We first create a subtable called `utilities.datainserter` - hey, that's the name of our module! The way you subscribe to events with groups, since a module will usually have more than one event you'd like to subscribe to having to rewrite "utilities.dateinserter" for every single event it exposes would be rather painful. That's why we first define a group (our module name) and then subscribe to its events. Note that `our_event = true` is once again using relative addressing, since we're already in the "utilities.dateinserter" group the absolute path can be inferred. Whenever an event gets set to false (so e.g. if we wrote `our_event = false`) it is the equivalent of unsubscribing to the event.
