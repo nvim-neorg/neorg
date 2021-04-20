@@ -15,9 +15,9 @@ Table of Contents:
   - [Broadcasting an event](#defining-and-broadcasting-our-own-event)
   - [Configuring modules](#configuration)
   - Inbuilt modules:
-    - The core.autocommands module
-    - The core.keybinds module
-  - Publishing our module to github and downloading it from there
+    - [The core.autocommands module](#coreautocommands)
+    - [The core.keybinds module](#corekeybinds)
+  - [Publishing our module to github and downloading it from there](#pushing-our-modules-to-git-and-pulling-them-from-there)
 
 ---
 
