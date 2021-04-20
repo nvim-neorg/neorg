@@ -47,6 +47,7 @@ If you're certain it's a fault of the plugin, not your configuration, in the iss
 ### Modules
 - When creating a module, add a comment up top as seen [here](/lua/neorg/modules/core/autocommands/module.lua) and [here](/lua/neorg/modules/core/keybinds/module.lua)
 - Add a general description of what the module does at the top and provide a `USAGE:` block describing how to use the module
+- Try to only access neorg data through functions, not through tables (e.g. don't access parts of `neorg.modules.loaded_modules` you're not supposed to - if anything only access the public fields exposed by other modules). Use the API as much as possible.
 
 ## Adding functionality
 Whenever you are planning on extending neorg, try your best to add *all* extra functionality through modules and modules only. Make changes to the neorg core only if absolutely necessary.
