@@ -308,3 +308,119 @@ What you see above are both all the default elements that come with every event 
 ### I wanna be more private
 Let's say we don't really want the entire world to know that we have just broadcasted an event. What then? Instead of using `neorg.events.broadcast_event()`, we can just use `neorg.events.send_event(module, recipient, event)`. As you can see, it takes an extra argument in the middle which is the recipient - the target module we want to notify. Let's change up our code again to use `send_event` now:
 
+```lua
+--[[
+    DATEINSERTER
+    This module is responsible for handling the insertion of date and time into a neorg buffer.
+--]]
+
+require('neorg.modules.base')
+require('neorg.events')
+
+local module = neorg.modules.create("utilities.dateinserter")
+local log = require('neorg.external.log')
+
+module.load = function()
+  log.info("DATEINSERTER loaded!")
+  neorg.events.send_event(module, "utilities.dateinserter", neorg.events.create(module, "utilities.dateinserter.events.our_event"))
+end
+
+module.on_event = function(event)
+  log.info("Received event:", event)
+end
+
+module.public = {
+
+  version = "0.2",
+
+  insert_datetime = function()
+    vim.cmd("put =strftime(\"%c\")")
+  end
+
+}
+
+module.events.defined = {
+
+  our_event = neorg.events.define(module, "our_event")
+
+}
+
+module.events.subscribed = {
+
+  ["utilities.dateinserter"] = {
+    our_event = true
+  }
+
+}
+
+return module
+```
+
+If you now save the file and enter a new `.org` or `.norg` file, you should see that nothing has changed. That's good! It means that the event is being delivered to your module and your module *only*. No other module will be able to see it.
+
+# Configuration
+Every bit of software needs to be configurable, right? Thankfully neorg allows for exactly that - you can expose your own options to be configurable.
+We'll do something pretty basic, but it'll still give you an idea of how it works.
+
+### Adding some code
+Just before the `return module` statement in your code add this:
+
+```lua
+module.config = {
+
+	private = {},
+	
+	public = {
+		enabled = true
+	}
+
+}
+```
+
+We just added a new table to our module - it's called `config`. Inside of this table we will always have **2** subtables - private and public. Whatever you put in private is yours and yours only. It can be used for internal debug options or whatever you don't want the user to dabble with. Whatever you put in public, on the other hand, can be modified by the user at will; it's also exposed to any module wanting to change your behaviour. We expose a simple variable called `enabled`, which will allow the user to toggle the module on and off - kinda useless, but it's nice for a learning experience.
+
+### How do we change it?
+If you're a module wanting to query the configuration for a module, you can use the `neorg.modules.get_module_config(module_name)`. It will return `nil` if the module cannot be found, but will return the whole public config table otherwise.
+If you're a regular user, however, you can just change this code:
+
+```lua
+use { 'Vhyrro/neorg', config = function()
+
+    require('neorg').setup {
+       load = {
+         ["utilities.dateinserter"] = {}
+       },
+    
+       logger = {
+         use_console = true
+       }
+    }
+    
+end}
+```
+
+Into this:
+
+```lua
+use { 'Vhyrro/neorg', config = function()
+
+    require('neorg').setup {
+       load = {
+         ["utilities.dateinserter"] = { 
+	 	config = { 
+			enabled = false
+		}
+	 }
+       },
+    
+       logger = {
+         use_console = true
+       }
+    }
+    
+end}
+```
+
+Do you see what we did there? We can configure any module just like that: by using the `config` table.
+
+### Making the module react on these changes
