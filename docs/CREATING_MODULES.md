@@ -17,9 +17,11 @@ Table of Contents:
   - Inbuilt modules:
     - The core.autocommands module
     - The core.keybinds module
-<!--  - Publishing our module to github and downloading it from there -->
+  - Publishing our module to github and downloading it from there
 
 ---
+
+Just a small note that certain things might not make full sense yet, I'm working on it to make it better! Hope you stick with me :D
 
 # Understanding the File Tree
 ```
@@ -539,3 +541,97 @@ Here we've cut some unnecessary stuff out and left all the important stuff in. I
 After enabling the autocommand, we need to listen for it - we do so in the `module.events.subscribed` table. You should know the drill by now. Let's test! If you launch an norg file and enter insert mode you should get the current date and time pasted into your buffer!
 
 ## core.keybinds
+It's time we bind some keys! Keybinds are one of the most important foundations of any plugin as they allow fine control without having to navigate menus to execute a command.
+As always, official documentation for the module can be found here in the `USAGE:` block.
+Here's our code for this section, then we'll explain it bit by bit:
+
+```lua
+
+--[[
+    DATEINSERTER
+    This module is responsible for handling the insertion of date and time into a neorg buffer.
+--]]
+
+require('neorg.modules.base')
+require('neorg.events')
+
+local module = neorg.modules.create("utilities.dateinserter")
+
+module.setup = function()
+	return { success = true, requires = { "core.keybinds" } }
+end
+
+module.on_event = function(event)
+	if event.split_type[2] == "utilities.dateinserter.insert_datetime" then
+		(vim.schedule_wrap(function() module.public.insert_datetime() end))()
+	end
+end
+
+module.public = {
+
+  version = "0.4",
+
+  insert_datetime = function()
+    vim.cmd("put =strftime('%c')")
+  end
+
+}
+
+module.events.subscribed = {
+
+  ["core.keybinds"] = {
+    ["utilities.dateinserter.insert_datetime"] = true
+  }
+
+}
+
+module.config.public = {
+
+	keybinds = {
+
+		["<Leader>oid"] = {
+			name = "insert_datetime",
+			mode = "n",
+			opts = { silent = true }
+		}
+
+	}
+
+}
+
+return module
+
+```
+
+Well, let's give it everything we've got, it's explaining time!
+
+First, we require the `core.keybinds` module in the `setup()` function, then we subscribe to the event. You'll notice some quirkiness here though, because we have an absolute path inside a place where there should be a relative path! What's going on? Well, whenever you bind a key, it needs to be bound to *your* module specifically. To do this, `core.keybinds` utilizes the event system to store your module name as well. So, whenever you receive an event, it will look like this (for example): `core.keybinds.events.utilities.dateinserter.<your keybind name>`, where `<your keybind name>` is the value of `["<Leader>oid"].name` (in this case). Whew, what a mouthful.
+
+Just gonna go off on a small tangent here, but I wanted to let you know that `core.keybinds` uses an inbuilt function called `neorg_post_load()`. What is that, you may ask? It's a function that gets invoked after *all* modules have been initialized and loaded, you can define it yourself, like so: `module.neorg_post_load = function() ...`. 
+
+`core.keybinds` uses this to read every single loaded module's `module.config.public.keybinds` table, and uses the things defined there to create keybinds! That's why it all happens automagically without you having to do something like `module.required["core.keybinds"].add_keybind(...)`. *END OF SMALL TANGENT*
+
+Inside the `module.config.public.keybinds` we define keymaps. The formula looks like so:
+
+```lua
+
+["keybind_here"] = {
+
+	name = "some_name", 	-- The name of the keybind. Make it descriptive
+	mode = "n", 		-- Which mode the keybind should run in, can be 'n', 'v', 'i' etc.
+	opts = {} 		-- Options to pass into vim.api.nvim_set_keymap
+}
+
+```
+
+If you look at the `on_event()` function, you can see we're using some magic function called `vim.schedule_wrap`. What's that? If you don't know, it just delays the execution of that function until it is safe for neovim to call. Doing it without this function will result in an error, as `on_event()` calls happen asynchronously.
+
+# Pushing our Modules to Git and Pulling them from There
+As of right now, neorg has the foundation ready, but the *actual* code that pulls from github is not implemented yet, stay tuned for that! The documentation will become bigger as features become readily available.
+
+---
+
+# THE END
+Congratulations! If you are still alive while reading this, then you made it! You should have enough basic knowledge to now extend and bend neorg to your will. For *all* available module tables and function alongside explanations, see [the base file](/lua/neorg/modules/base.lua).
+
+Thank you so much for reading! :heart:
