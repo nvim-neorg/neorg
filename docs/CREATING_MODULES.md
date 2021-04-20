@@ -17,7 +17,7 @@ Table of Contents:
   - Inbuilt modules:
     - The core.autocommands module
     - The core.keybinds module
-  - Publishing our module to github and downloading it from there
+<!--  - Publishing our module to github and downloading it from there -->
 
 ---
 
@@ -142,7 +142,7 @@ module.public = {
   version = "0.1",
 
   insert_datetime = function()
-    vim.cmd("put =strftime(\"%c\")") 
+    vim.cmd("put =strftime('%c')")
   end
 
 }
@@ -197,7 +197,7 @@ module.public = {
   version = "0.1",
 
   insert_datetime = function()
-    vim.cmd("put =strftime(\"%c\")") 
+    vim.cmd("put =strftime('%c')")
   end
 
 }
@@ -335,7 +335,7 @@ module.public = {
   version = "0.2",
 
   insert_datetime = function()
-    vim.cmd("put =strftime(\"%c\")")
+    vim.cmd("put =strftime('%c')")
   end
 
 }
@@ -501,7 +501,9 @@ module.setup = function()
 end
 
 module.on_event = function(event)
-	log.info(event.type)
+	if event.type == "core.autocommands.events.insertenter" then
+		(vim.schedule_wrap(function() module.public.insert_datetime() end))()
+	end
 end
 
 module.load = function()
@@ -513,7 +515,7 @@ module.public = {
   version = "0.3",
 
   insert_datetime = function()
-    vim.cmd("put =strftime(\"%c\")")
+    vim.cmd("put =strftime('%c')")
   end
 
 }
@@ -532,3 +534,8 @@ return module
 
 ### Explanation
 Here we've cut some unnecessary stuff out and left all the important stuff in. If you don't know how to use a module, check out its documentation which is found at the top of its `module.lua` file.
+`core.autocommands` exposes a public function called `enable_autocommand()` - by default all autocommands are disabled for performance reasons and need to be enabled manually through this function. If an invalid autocommand is passed nothing happens.
+
+After enabling the autocommand, we need to listen for it - we do so in the `module.events.subscribed` table. You should know the drill by now. Let's test! If you launch an norg file and enter insert mode you should get the current date and time pasted into your buffer!
+
+## core.keybinds
