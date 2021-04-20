@@ -8,11 +8,11 @@ The magic behind the scenes, or in other words understanding the inner workings 
 ---
 
 Table of Contents:
-  - Understanding the file tree
-  - Introduction to modules
-  - Writing a barebones neorg module
-  - Introduction to events
-  - Broadcasting an event
+  - [Understanding the file tree](#understanding-the-file-tree)
+  - [Introduction to modules](#introduction-to-modules)
+  - [Writing a barebones neorg module](#writing-a-barebones-neorg-module)
+  - [Introduction to events](#events---an-introduction)
+  - [Broadcasting an event](#defining-and-broadcasting-our-own-event)
   - Inbuilt modules:
     - The core.autocommands module
     - The core.keybinds module
@@ -166,3 +166,5 @@ Theory:
   - Absolute naming conventions - each event has something officially referred to as the `type`, but you can also just call it the name of the event. Whenever you receive an event through `module.on_event(event)`, the value of `event.type` will be `<root_categories>.<root_module_name>.events.<event_categories>.<event_type>`. This may seem a tad confusing now, but will make sense as we go on.
   - Event definitions - whenever you create an event, you get a choice. You can either derive from the **base event**, which provides all the default tables, or you can build atop the base event and add your own features. Building on top of the default event is by nature what a `definition` is. When the event is referenced, however, it is then referred to as an **event template** in the code, as you use that definition as a template to create **instances** of that event to send to other modules. Geez, what a mouthful.
   - Event broadcasting and event sending - whenever you send an event, you are doing exactly that, only *sending* the event to a single module. No other modules will receive the event. Whenever you broadcast, however, you asynchronously notify *all* subscribed and loaded modules in the neorg environment.
+
+# Defining and Broadcasting our Own Event!
