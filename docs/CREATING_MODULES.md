@@ -79,3 +79,67 @@ Let's answer the questions one by one:
 
 #### There!
 Not too crazy, but should be at least a bit more interesting than the stuff we would've been working with earlier.
+
+### Setting up the module
+In order to make the module readable by neorg, we have to place it in the correct directory.
+If our module name is to be `utilities.dateinserter`, we need to create the directory `neorg/modules/utilities/dateinserter`.
+
+Locate where your modules are loaded by neorg (you can probably find it in `stdpath('data') .. '/site'`), and enter the directory we specified above. For me the output of pwd is `~/.local/share/nvim/site/pack/packer/start/neorg/lua/modules/utilities/dateinserter`. Inside here let's create a `module.lua` file, this is the file that will get sourced by neorg automatically upon load.
+
+Here's some example contents, let's go over the file bit by bit:
+
+```lua
+--[[
+    DATEINSERTER
+    This module is responsible for handling the insertion of date and time into a neorg buffer.
+--]]
+
+require('neorg.modules.base')
+
+local module = neorg.modules.create("utilities.dateinserter")
+
+return module
+```
+
+So... what is there to know about our current bit of code?
+
+At top we provide an explanation about the module - this is important as it lets others know how to use the module and what the module actually does.
+
+Next, we require `neorg.modules.base`, which is a file every module needs to include. It contains all the barebones and basic stuff you'll need to create a module for neorg.
+
+Afterwards, we create a local variable `module` with the `neorg.modules.create()` function. This function takes in an **absolute** path to the module. Since our `module.lua` is in `modules/utilities/dateinserter/`, we *need* to pass `utilities.dateinserter` into the create() function. Not doing so will cause a lot of unintended side effects, so try not to lie to a machine, will you now.
+
+### Adding functionality through neorg callbacks
+The return value of `neorg.modules.create()` is an implementation of a fully fledged neorg module. Let's look at the functions provided to us by neorg and then they are invoked:
+  - `module.setup()` -> the first ever function to be called. The goal of this function is to do some very early setup and to return some basic metadata about our plugin for neorg to parse.
+  - `module.load()` -> gets invoked after all dependencies for the module are loaded and after everything is set up and stable - here you can do the serious initialization.
+  - `module.on_event(event)` -> triggered whenever an `event` is broadcasted to the module. Events will be talked about more later on.
+  - `module.unload()` -> gets invoked whenever the module is unloaded, you can do your cleanup here.
+ 
+So let's add all the barebones!
+
+```lua
+--[[
+    DATEINSERTER
+    This module is responsible for handling the insertion of date and time into a neorg buffer.
+--]]
+
+require('neorg.modules.base')
+
+local module = neorg.modules.create("utilities.dateinserter")
+local log = require('neorg.external.log')
+
+module.load = function()
+  log.info("DATEINSERTER loaded!")
+end
+
+module.public = {
+
+  insert_datetime = function()
+    vim.cmd("put =strftime(\"%c\")") 
+  end
+
+}
+
+return module
+```
