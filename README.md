@@ -2,9 +2,13 @@
 
 # Neorg - An Organized Future
 
+
+<a href="https://github.com/neovim/neovim"> ![Requires](https://img.shields.io/badge/requires-neovim%200.5%2B-green?style=flat-square&logo=neovim) </a>
+<a href="https://discord.gg/T6EgTAX7ht"> ![Discord](https://img.shields.io/badge/discord-join-7289da?style=flat-square&logo=discord) </a>
+<a href="https://paypal.me/ewaczupryna?locale.x=en_GB"> ![Paypal](https://img.shields.io/badge/support-paypal-blue?style=flat-square&logo=paypal) </a>
+
 ![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=flat-square)
 ![Status](https://img.shields.io/badge/status-WIP-informational?style=flat-square)
-![Requires](https://img.shields.io/badge/requires-neovim%200.5%2B-green?style=flat-square)
 
 </div>
 
@@ -82,6 +86,8 @@ Note that the neorg API may (and probably will be) subject to change! I'll try t
 The entire structure of neorg's core can be a bit complex, so it's definitely worth your time to read the docs! For now you can take a look at them [here](docs/README.md), but in the future the actual github wiki will be available.
 
 # Contributing
-I really looove contributions! That's what this whole project is about - it's a really big plugin, so any help is appreciated :heart:
+I really looove contributions! That's what this whole project is about - it's a really big plugin, so any help is appreciated :heart:. Don't know what to implement? Don't worry, a [roadmap](https://github.com/Vhyrro/neorg/projects) is available (it doesn't describe *all* features to be implemented, but should give you a solid idea!).
 
-Also, if you love what I do and want to professionally support my work, boost development etc. drop me a few bucks will ya (links will be available tomorrow!). Making this my job would be like a dream come true.
+Come chat with me on [discord](https://discord.gg/T6EgTAX7ht)!
+
+Also, if you love what I do and want to professionally support my work, boost development etc. drop me a few bucks will ya. Making this my job would be like a dream come true.

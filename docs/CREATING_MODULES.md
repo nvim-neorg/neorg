@@ -627,7 +627,7 @@ Inside the `module.config.public.keybinds` we define keymaps. The formula looks 
 If you look at the `on_event()` function, you can see we're using some magic function called `vim.schedule_wrap`. What's that? If you don't know, it just delays the execution of that function until it is safe for neovim to call. Doing it without this function will result in an error, as `on_event()` calls happen asynchronously.
 
 # Pushing our Modules to Git and Pulling them from There
-As of right now, neorg has the foundation ready, but the *actual* code that pulls from github is not implemented yet, stay tuned for that! The documentation will become bigger as features become readily available.
+Currently neorg has all the barebones ready for implementing grabbing from github, but the actual code that calls `git` is not ready yet. Should be implemented soon though! As more features get implemented, they'll become available here.
 
 ---
 

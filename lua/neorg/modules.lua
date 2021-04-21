@@ -116,10 +116,8 @@ function neorg.modules.load_module(module_name, shortened_git_address, config)
 	-- If the module can't be found, try looking for it on GitHub (currently unimplemented :P)
 	if not exists then
 
-		log.warn(("Unable to load module %s - an error occured: %s"):format(module_name, module))
-
 		if shortened_git_address then
-			-- If module isn"t found, grab it from the internet here
+
 			return false
 		end
 
