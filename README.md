@@ -6,6 +6,7 @@
 <a href="https://github.com/neovim/neovim"> ![Requires](https://img.shields.io/badge/requires-neovim%200.5%2B-green?style=flat-square&logo=neovim) </a>
 <a href="https://discord.gg/T6EgTAX7ht"> ![Discord](https://img.shields.io/badge/discord-join-7289da?style=flat-square&logo=discord) </a>
 <a href="https://paypal.me/ewaczupryna?locale.x=en_GB"> ![Paypal](https://img.shields.io/badge/support-paypal-blue?style=flat-square&logo=paypal) </a>
+<a href="https://www.buymeacoffee.com/vhyrro"> ![BuyMeACoffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-ffdd00?style=flat-square&logo=buy-me-a-coffee) </a>
 
 ![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=flat-square)
 ![Status](https://img.shields.io/badge/status-WIP-informational?style=flat-square)
@@ -77,8 +78,8 @@ Then run `:PackerSync`
 
 # WIP
 As can be seen, this plugin is a work in progress - these magical features don't come out of nowhere, you know. Despite not providing any end-user features *yet*, it does provide an incredible foundation for developers willing to spend some time writing code for the plugin:
-  - The module system; the module system is an extensible way to manage and interface with code. Modules are pay-for-what-you-use tables that can get loaded and unloaded at will. They can subscribe to events using the powerful event system and can directly communicate with each other - they can even expose their own public APIs and configuration to be edited by the user. Example modules can be found [here](lua/neorg/modules/core) and in the wiki.
-  - The event system; the event system is the way for said modules to communicate. Events can be broadcast to all subscribed modules or to individual modules as well, they can hold any sort of data you'd want to transport to another plugin, things like the current cursor position, line content etc. The choice is yours really.
+- The module system; the module system is an extensible way to manage and interface with code. Modules are pay-for-what-you-use tables that can get loaded and unloaded at will. They can subscribe to events using the powerful event system and can directly communicate with each other - they can even expose their own public APIs and configuration to be edited by the user. Example modules can be found [here](lua/neorg/modules/core) and a full tutorial for developing with modules can be found [in the CREATING_MODULES document](https://github.com/Vhyrro/neorg/blob/main/docs/CREATING_MODULES.md).
+- The event system; the event system is the way for said modules to communicate. Events can be broadcast to all subscribed modules or to individual modules as well, they can hold any sort of data you'd want to transport to another plugin, things like the current cursor position, line content etc. The choice is yours really.
 
 Note that the neorg API may (and probably will be) subject to change! I'll try to refrain from breaking changes unless absolutely necessary, and will let developers know a while beforehand so they can update their modules. The API will stabilize after neorg becomes a bit more mature, so stick with me for now!
 
@@ -91,3 +92,7 @@ I really looove contributions! That's what this whole project is about - it's a 
 Come chat with me on [discord](https://discord.gg/T6EgTAX7ht)!
 
 Also, if you love what I do and want to professionally support my work, boost development etc. drop me a few bucks will ya. Making this my job would be like a dream come true.
+
+Links for the rich lads:
+- [Buy me a coffee](https://www.buymeacoffee.com/vhyrro)
+- [Donate directly on Paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
