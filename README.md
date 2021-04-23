@@ -89,7 +89,9 @@ Note that the neorg API may (and probably will be) subject to change! I'll try t
 # Usage Questions
 A lot of people are asking about how to use neorg - so let me reinstantiate what can be seen in the [WIP](#wip) section.
 
-Since neorg is a very young project, there are currently no features *for the end user*. This mean you can't insert your favourite headings and take notes just yet. The focus as of right now is on the **core**, the very foundation neorg is built on. Without a solid core, you can't make a solid plugin, correct? A weak core would also directly impact both the longevity *and* extensiblity, and we want this plugin to live for as long as possible :P
+Since neorg is a very young project, there are currently no features *for the end user yet*. This means you can't insert your favourite headings and take notes just yet. The focus as of right now is on the **core**, the very foundation neorg is built on. Without a solid core, you can't make a solid plugin, correct? A weak core would also directly impact both the longevity *and* extensiblity, and we want this plugin to live for as long as possible :P
+
+Don't get the impression that neorg will be forever like this, this is just where we are because the project isn't fully mature yet. You can expect this plugin to do everything org-mode can (and maybe even more!).
 
 A flowchart is in the works to show exactly where we're headed, so you won't have to be confused anymore. Until then the [github project page](https://github.com/Vhyrro/neorg/projects) should suffice for the very close future.
 
