@@ -7,9 +7,11 @@
 <a href="https://discord.gg/T6EgTAX7ht"> ![Discord](https://img.shields.io/badge/discord-join-7289da?style=flat-square&logo=discord) </a>
 <a href="https://paypal.me/ewaczupryna?locale.x=en_GB"> ![Paypal](https://img.shields.io/badge/support-paypal-blue?style=flat-square&logo=paypal) </a>
 <a href="https://www.buymeacoffee.com/vhyrro"> ![BuyMeACoffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-ffdd00?style=flat-square&logo=buy-me-a-coffee) </a>
+<a href="https://patreon.com/vhyrro"> ![Patreon](https://img.shields.io/badge/support-patreon-F96854?style=flat-square&logo=patreon) </a>
 
-![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=flat-square)
-![Status](https://img.shields.io/badge/status-WIP-informational?style=flat-square)
+
+<a href="/LICENSE"> ![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=flat-square) </a>
+<a href="#wip"> ![Status](https://img.shields.io/badge/status-WIP-informational?style=flat-square) </a>
 
 </div>
 
@@ -23,6 +25,7 @@ With the introduction of lua, we *will* fight back.
 ### Table of Contents
 - [Introduction](#introduction)
 - [Installation](#installation)
+- [Questions about usage](#usage-questions)
 - [WIP Status](#wip)
 - [Check out the wiki](#consult-the-wiki)
 - [Contributing](#contributing)
@@ -83,6 +86,19 @@ As can be seen, this plugin is a work in progress - these magical features don't
 
 Note that the neorg API may (and probably will be) subject to change! I'll try to refrain from breaking changes unless absolutely necessary, and will let developers know a while beforehand so they can update their modules. The API will stabilize after neorg becomes a bit more mature, so stick with me for now!
 
+# Usage Questions
+A lot of people are asking about how to use neorg - so let me reinstantiate what can be seen in the [WIP](#wip) section.
+
+Since neorg is a very young project, there are currently no features *for the end user*. This mean you can't insert your favourite headings and take notes just yet. The focus as of right now is on the **core**, the very foundation neorg is built on. Without a solid core, you can't make a solid plugin, correct? A weak core would also directly impact both the longevity *and* extensiblity, and we want this plugin to live for as long as possible :P
+
+A flowchart is in the works to show exactly where we're headed, so you won't have to be confused anymore. Until then the [github project page](https://github.com/Vhyrro/neorg/projects) should suffice for the very close future.
+
+If there's anything you should know *for now* is that neorg (obviously) only triggers on .norg and .org files. So if you're testing your favourite module or something and nothing happens that might be a potential case.
+
+A GitHub wiki is also in the process of being made! There you will see a lot of the necessary info for how to load community-made modules etc.
+
+TL;DR - all we need is just a little more time, sorry about that :)
+
 # Consult The Wiki!
 The entire structure of neorg's core can be a bit complex, so it's definitely worth your time to read the docs! For now you can take a look at them [here](docs/README.md), but in the future the actual github wiki will be available.
 
@@ -96,3 +112,4 @@ Also, if you love what I do and want to professionally support my work, boost de
 Links for the rich lads:
 - [Buy me a coffee](https://www.buymeacoffee.com/vhyrro)
 - [Donate directly on Paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
+- [Support me on patreon!](https://patreon.com/vhyrro)
