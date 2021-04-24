@@ -7,8 +7,8 @@ What's going on behind the scenes? What has been done? Where are we heading next
 
 Table of Contents:
 - [ ] [Beginning PR stuff](#pr-stuff)
-- [ ] [Road to 0.1 release](#road-to-0.1-release)
-- [ ] [What we are planning to do after 0.1](#plans-after-0.1)
+- [ ] [Road to 0.1 release](#road-to-01-release)
+- [ ] [What we are planning to do after 0.1](#plans-after-01)
 
 Extra info:
 - [The neorg file format](#the-nff)
