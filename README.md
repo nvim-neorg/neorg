@@ -2,13 +2,11 @@
 
 # Neorg - An Organized Future
 
-
 <a href="https://github.com/neovim/neovim"> ![Requires](https://img.shields.io/badge/requires-neovim%200.5%2B-green?style=flat-square&logo=neovim) </a>
 <a href="https://discord.gg/T6EgTAX7ht"> ![Discord](https://img.shields.io/badge/discord-join-7289da?style=flat-square&logo=discord) </a>
 <a href="https://paypal.me/ewaczupryna?locale.x=en_GB"> ![Paypal](https://img.shields.io/badge/support-paypal-blue?style=flat-square&logo=paypal) </a>
 <a href="https://www.buymeacoffee.com/vhyrro"> ![BuyMeACoffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-ffdd00?style=flat-square&logo=buy-me-a-coffee) </a>
 <a href="https://patreon.com/vhyrro"> ![Patreon](https://img.shields.io/badge/support-patreon-F96854?style=flat-square&logo=patreon) </a>
-
 
 <a href="/LICENSE"> ![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=flat-square) </a>
 <a href="#wip"> ![Status](https://img.shields.io/badge/status-WIP-informational?style=flat-square) </a>
@@ -36,7 +34,7 @@ With the introduction of lua, we *will* fight back.
   - A foundation for developers to make their own extensions to the plugin and interface with other parts of user-contibuted code, known as modules (more info below)
   - A full on competitor to emacs's org-mode
  ### What this project isn't
-  - **An org-mode clone** - this project does not plan on recreating or cloning org mode in neovim. Rather, the goal of this repo is to take concepts from other organizational tools and reimagine them for the great text editor that neovim is. Expect a bit of familiarity but also a lot of changes, things tailored to the vim philosophy.
+  - **An org-mode clone** - this project does not plan on fully cloning org mode in neovim. Rather, the goal of this repo is to take concepts from other organizational tools and reimagine them for the great text editor that neovim is. Expect a bit of familiarity but also a lot of changes, things tailored to the vim philosophy.
 
 ---
 # Installation
@@ -77,6 +75,8 @@ If you're feeling lucky and want all the bleeding edge features (might require N
   end}
 ```
 
+Don't understand the above 2 code snippets? A GitHub wiki is on its way detailing all of that.
+
 Then run `:PackerSync`
 
 # WIP
@@ -89,23 +89,21 @@ Note that the neorg API may (and probably will be) subject to change! I'll try t
 # Usage Questions
 A lot of people are asking about how to use neorg - so let me reinstantiate what can be seen in the [WIP](#wip) section.
 
-Since neorg is a very young project, there are currently no features *for the end user yet*. This means you can't insert your favourite headings and take notes just yet. The focus as of right now is on the **core**, the very foundation neorg is built on. Without a solid core, you can't make a solid plugin, correct? A weak core would also directly impact both the longevity *and* extensiblity, and we want this plugin to live for as long as possible :P
+Since neorg is a very young project there are currently no features *for the end user yet*. This means you can't insert your favourite headings and take notes just yet. The focus as of right now is on the **core**, the very foundation neorg is built on. Without a solid core, you can't make a solid plugin, correct? A weak core would also directly impact both the longevity *and* extensiblity, and we want this plugin to live for as long as possible :P
 
 Don't get the impression that neorg will be forever like this, this is just where we are because the project isn't fully mature yet. You can expect this plugin to do everything org-mode can (and maybe even more!).
 
-A flowchart is in the works to show exactly where we're headed, so you won't have to be confused anymore. Until then the [github project page](https://github.com/Vhyrro/neorg/projects) should suffice for the very close future.
+**If you want a reference for the progress we have made so far**, [look at the roadmap](/docs/ROADMAP.md). Optionally you can check out the [github projects page](https://github.com/vhyrro/neorg/projects) too!
 
-If there's anything you should know *for now* is that neorg (obviously) only triggers on .norg and .org files. So if you're testing your favourite module or something and nothing happens that might be a potential case.
+If there's anything you should know *for now* is that neorg (obviously) only triggers on .norg and .org files. So if you're testing your favourite module and nothing happens that might be a potential reason.
 
-A GitHub wiki is also in the process of being made! There you will see a lot of the necessary info for how to load community-made modules etc.
-
-TL;DR - all we need is just a little more time, sorry about that :)
+**TL;DR**: check out the roadmap. Also, all we need is just a little more time, sorry about that :)
 
 # Consult The Wiki!
 The entire structure of neorg's core can be a bit complex, so it's definitely worth your time to read the docs! For now you can take a look at them [here](docs/README.md), but in the future the actual github wiki will be available.
 
 # Contributing
-I really looove contributions! That's what this whole project is about - it's a really big plugin, so any help is appreciated :heart:. Don't know what to implement? Don't worry, a [roadmap](https://github.com/Vhyrro/neorg/projects) is available (it doesn't describe *all* features to be implemented, but should give you a solid idea!).
+I really looove contributions! That's what this whole project is about - it's a really big plugin, so any help is appreciated :heart:. Don't know what to implement? Don't worry, a [roadmap](/docs/ROADMAP.md) is available. The projects are pretty big there, so if you're truly stuck then you can always ask me personally!
 
 Come chat with me on [discord](https://discord.gg/T6EgTAX7ht)!
 
