@@ -25,16 +25,16 @@ function neorg.modules.load_module_from_table(module)
 
 	log.info("Loading module with name", module.name)
 
-	-- If our module is already loaded don"t try loading it again
+	-- If our module is already loaded don't try loading it again
 	if neorg.modules.loaded_modules[module.name] then
 		log.warn("Module", module.name, "already loaded. Omitting...")
-		return false
+		return true
 	end
 
-	-- module.setup() will soon return more than just a success variable, eventually we"d like modules to expose metadata about themselves too
+	-- Invoke the setup function. This function returns whether or not the loading of the module was successful and some metadata.
 	local loaded_module = module.setup()
 
-	-- We do not expect module.setup() to ever return nil, that"s why this check is in place
+	-- We do not expect module.setup() to ever return nil, that's why this check is in place
 	if not loaded_module then
 		log.error("Module", module.name, "does not handle module loading correctly; module.load() returned nil. Omitting...")
 		return false
@@ -44,6 +44,17 @@ function neorg.modules.load_module_from_table(module)
 	if loaded_module.success == false then
 		log.info("Module", module.name, "did not load.")
 		return false
+	end
+
+	--[[
+	--	This small snippet of code creates a copy of an already loaded module with the same name.
+	--	If the module wants to replace an already loaded module then we need to create a deepcopy of that old module
+	--	in order to stop it from getting overwritten.
+	--]]
+	local module_to_replace
+
+	if loaded_module.replaces and loaded_module.replaces ~= "" then
+		module_to_replace = vim.deepcopy(neorg.modules.loaded_modules[loaded_module.replaces])
 	end
 
 	-- Add the module into the list of loaded modules
@@ -80,6 +91,42 @@ function neorg.modules.load_module_from_table(module)
 
 	end
 
+	-- After loading all our dependencies, see if we need to hotswap another module with ourselves
+	if module_to_replace then
+
+		-- If both module names don't match then we can't perform the hotswap
+		if module.name ~= module_to_replace.name then
+			log.error(("Unable to replace module %s with module - an attempt was made but module names did not match"):format(module.name, module_to_replace.name))
+
+			-- Make sure to clean up after ourselves if the module failed to load
+			neorg.modules.loaded_modules[module.name] = nil
+
+			return false
+		end
+
+		-- Whenever a module gets hotswapped, a special flag is set inside the module in order to signalize that it has been hotswapped before
+		-- If this flag has already been set before, then throw an error - there is no way for us to know which hotswapped module should take priority.
+		if module_to_replace.replaced then
+			log.error(("Unable to replace module %s - module replacement clashing detected. This error triggers when a module tries to be replaced more than two times - neorg doesn't know which replacement to prioritize."):format(module_to_replace.name))
+
+			-- Make sure to clean up after ourselves if the module failed to load
+			neorg.modules.loaded_modules[module.name] = nil
+
+			return false
+		end
+
+		-- If the replace_merge flag is set to true in the setup() return value then recursively merge the data from the
+		-- previous module into our new one. This allows for practically seamless hotswapping, as it allows you to retain the data
+		-- of the previous module.
+		if loaded_module.replace_merge then
+			vim.tbl_deep_extend("force", module, { private = module_to_replace.private, config = module_to_replace.config, public = module_to_replace.public, events = module_to_replace.events })
+		end
+
+		-- Set the special module.replaced flag to let everyone know we've been hotswapped before
+		module.replaced = true
+
+	end
+
 	log.info("Successfully loaded module", module.name)
 
 	-- Keep track of the number of loaded modules
@@ -103,7 +150,7 @@ function neorg.modules.load_module(module_name, shortened_git_address, config)
 
 	-- Don't bother loading the module from disk if it's already loaded
 	if neorg.modules.is_module_loaded(module_name) then
-		return false
+		return true
 	end
 
 	-- Attempt to require the module, does not throw an error if the module doesn't exist
@@ -115,12 +162,6 @@ function neorg.modules.load_module(module_name, shortened_git_address, config)
 
 	-- If the module can't be found, try looking for it on GitHub (currently unimplemented :P)
 	if not exists then
-
-		if shortened_git_address then
-
-			return false
-		end
-
 		return false
 	end
 
@@ -134,6 +175,38 @@ function neorg.modules.load_module(module_name, shortened_git_address, config)
 
 	-- Pass execution onto load_module_from_table() and let it handle the rest
 	return neorg.modules.load_module_from_table(module)
+
+end
+
+-- @Summary Loads a preloaded module as a dependency of another module.
+-- @Description Has the same principle of operation as load_module_from_table(), except it then sets up the parent module's "required" table, allowing the parent to access the child as if it were a dependency.
+-- @Param  module (table) - a valid table as returned by neorg.modules.create()
+-- @Param  parent_module (string or table) - if a string, then the parent is searched for in the loaded modules. If a table, then the module is treated as a valid module as returned by neorg.modules.create()
+function neorg.modules.load_module_as_dependency_from_table(module, parent_module)
+
+	if neorg.modules.load_module_from_table(module) then
+
+		if type(parent_module) == "string" then
+			neorg.modules.loaded_modules[parent_module].required[module.name] = module.public
+		elseif type(parent_module) == "table" then
+			parent_module.required[module.name] = module.public
+		end
+
+	end
+
+end
+
+-- @Summary Loads a module as a dependency of another module
+-- @Description Normally loads a module, but then sets up the parent module's "required" table, allowing the parent module to access the child as if it were a dependency.
+-- @Param  module_name (string) - a path to a module on disk. A path seperator in neorg is '.', not '/'
+-- @Param  parent_module (string) - the name of the parent module. This is the module which the dependency will be attached to.
+-- @Param  shortened_git_address (string) - for example "Vhyrro/neorg", tells neorg where to look on github if a module can't be found locally
+-- @Param  config (table) - a configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
+function neorg.modules.load_module_as_dependency(module_name, parent_module, shortened_git_address, config)
+
+	if neorg.modules.load_module(module_name, shortened_git_address, config) and neorg.modules.is_module_loaded(parent_module) then
+		neorg.modules.loaded_modules[parent_module].required[module_name] = neorg.modules.get_module_config(module_name)
+	end
 
 end
 

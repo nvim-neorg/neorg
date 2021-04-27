@@ -9,7 +9,7 @@ neorg.modules.module_base = {
 
 	-- Invoked before any initial loading happens
 	setup = function()
-		return { success = true, requires = {} }
+		return { success = true, requires = {}, replaces = nil, replace_merge = false }
 	end,
 
 	-- Invoked after the module has been configured
@@ -30,6 +30,9 @@ neorg.modules.module_base = {
 
 	-- The name of the module, note that modules beginning with core are neorg's inbuilt modules
 	name = "core.default",
+
+	-- A convenience table to place all of your private variables that you don't want to expose here.
+	private = {},
 
 	-- Every module can expose any set of information it sees fit through the public field
 	-- All functions and variables declared in this table will be visible to any other module loaded
