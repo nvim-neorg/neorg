@@ -43,39 +43,37 @@ With the introduction of lua, we *will* fight back.
 If you don't know what you're doing, just run this:
 
 ```lua
+use { 'vhyrro/neorg', config = function()
 
-  use { 'Vhyrro/neorg', config = function()
+	require('neorg').setup {}
 
-      require('neorg').setup {}
-
-  end}
+end}
 ```
 
 Otherwise:
 
 ```lua
-  use { 'Vhyrro/neorg', config = function()
-      require('neorg').setup {
-        load = {
-          ["your.module"] = { git_address = 'some/address', config = { ... } }
-        }
-      }
-  end}
+use { 'vhyrro/neorg', config = function()
+	require('neorg').setup {
+		load = {
+			["your.module"] = { git_address = 'some/address', config = { ... } }
+		}
+	}
+end}
 ```
 
 If you're feeling lucky and want all the bleeding edge features (might require Neovim HEAD):
 ```lua
-
-  use { 'Vhyrro/neorg', branch = 'unstable', config = function()
-      require('neorg').setup {
-        load = {
-          ["your.module"] = { git_address = 'some/address', config = { ... } }
-        }
-      }
-  end}
+use { 'vhyrro/neorg', branch = 'unstable', config = function()
+	require('neorg').setup {
+		load = {
+			["your.module"] = { git_address = 'some/address', config = { ... } }
+		}
+	}
+end}
 ```
 
-Don't understand the above 2 code snippets? A GitHub wiki is on its way detailing all of that.
+Don't understand the above 2 code snippets? Check out the [installation section](https://github.com/vhyrro/neorg/wiki/Installation) of the GitHub Wiki.
 
 Then run `:PackerSync`
 
@@ -100,7 +98,7 @@ If there's anything you should know *for now* is that neorg (obviously) only tri
 **TL;DR**: check out the roadmap. Also, all we need is just a little more time, sorry about that :)
 
 # Consult The Wiki!
-The entire structure of neorg's core can be a bit complex, so it's definitely worth your time to read the docs! For now you can take a look at them [here](docs/README.md), but in the future the actual github wiki will be available.
+You can take a look at all the explanations in the [official GitHub wiki](https://github.com/vhyrro/neorg)!
 
 # Contributing
 I really looove contributions! That's what this whole project is about - it's a really big plugin, so any help is appreciated :heart:. Don't know what to implement? Don't worry, a [roadmap](/docs/ROADMAP.md) is available. The projects are pretty big there, so if you're truly stuck then you can always ask me personally!

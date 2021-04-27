@@ -6,7 +6,7 @@ What's going on behind the scenes? What has been done? Where are we heading next
 </div>
 
 Table of Contents:
-- [ ] [Beginning PR stuff](#pr-stuff)
+- [x] [Beginning PR stuff](#pr-stuff) (**DONE** 2021-04-27)
 - [ ] [Road to 0.1 release](#road-to-01-release)
 - [ ] [What we are planning to do after 0.1](#plans-after-01)
 
@@ -19,9 +19,9 @@ Extra info:
 For starters, I have to set everything up in order to make the project comprehensible by the everyday user. This will include writing this very roadmap and writing the github wiki.
 
 The github wiki will consist of:
-- Detailed instructions to install and configure neorg
-- Documentation for pulling modules from github/interacting with modules
-- Documentation for existing core modules
+- [x] Detailed instructions to install and configure neorg
+- [ ] ~~Documentation for pulling modules from github/interacting with modules~~ currently unimplemented
+- [x] Documentation for existing core modules
 
 More will be added to this wiki as neorg grows larger and larger.
 
@@ -40,9 +40,11 @@ Things to be done in this release:
 	```
 	This will tell neorg to *replace* the core.neorgcmd module with this one. Should be obviously used with caution, but may prove very useful in the future for hotswapping modules with a small tradeoff in terms of stability.
 	Have no clue what the above code snippet does and want to learn? Read the [CREATING_MODULES.md document](/docs/CREATING_MODULES.md).
+- [ ] Fix a bug in `core.keybinds`, where it's currently impossible to bind a certain event to a *new* keybind.
 - [ ] Create a `core.neorgcmd` module. This module will allow the use of the `:Neorg` command and will allow other modules to define their own custom functions to be executed in this command, e.g. `:Neorg my_custom_command`. Default commands will be `:Neorg list modules` to list currently loaded modules, `:Neorg install 'github/address'` to fetch a module from a shortened remote Github address, `:Neorg update all|modules|self` to update either the neorg plugin itself *and* the modules, just the modules or just the plugin.
 - [ ] Start work on a basic specification for the .norg file format. The name of this file format will be NFF-0.1 (Neorg File Format 0.1). The community will be asked about what they think before the specification is pushed (join the [discord](https://discord.gg/T6EgTAX7ht) if you haven't already).
 - [ ] Begin implementing the norg parser module. This will be the most complex module out of all the ones that will exist in neorg, so this one will take a while. The norg parser will generate a syntax tree from the current norg file. Other modules will be able to interface with this syntax tree, and the corresponding buffer will update accordingly (both the syntax tree and the actual buffer will be in sync). This is where the heart of neorg will reside, which is why the most effort needs to be put into it in order to make it truly extensible.
+- [ ] Implement metamodules. These modules will be an easy way to `require` a large batch of modules without the user having to specify each individual module they prefer. For example, a `default` metamodule may exist in order to include all the basic modules that neorg has to efficiently edit norg files.
 - [ ] Add more API functions. These functions will just allow any module to more easily interact with the environment around them; some quality-of-life stuff.
 - [ ] After all the core stuff is out of the way, the first module to actually do organizational stuff will be born - enter `core.org.headings`. This module will handle headings and subheadings, and will work together with the `core.norg` parser to provide extra functionality. Things it will be able to do are inserting and deleting headings, changing the indentation level of a heading, having fancy icons and colours and having keybinds to make the experience more vim-like and streamlined.
 
