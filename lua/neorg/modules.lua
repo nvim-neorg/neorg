@@ -94,15 +94,8 @@ function neorg.modules.load_module_from_table(module)
 	-- After loading all our dependencies, see if we need to hotswap another module with ourselves
 	if module_to_replace then
 
-		-- If both module names don't match then we can't perform the hotswap
-		if module.name ~= module_to_replace.name then
-			log.error(("Unable to replace module %s with module - an attempt was made but module names did not match"):format(module.name, module_to_replace.name))
-
-			-- Make sure to clean up after ourselves if the module failed to load
-			neorg.modules.loaded_modules[module.name] = nil
-
-			return false
-		end
+		-- Make sure the names of both modules match
+		module.name = module_to_replace.name
 
 		-- Whenever a module gets hotswapped, a special flag is set inside the module in order to signalize that it has been hotswapped before
 		-- If this flag has already been set before, then throw an error - there is no way for us to know which hotswapped module should take priority.

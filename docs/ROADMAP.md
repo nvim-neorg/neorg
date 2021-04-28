@@ -32,7 +32,7 @@ The 0.1 release will be the equivalent of the MVP (Minimal Viable Product). This
 Here is where you will see the initial introduction of the .norg file format.
 
 Things to be done in this release:
-- [ ] Implement a new feature for the return value of the `module.setup()` function - `replaces`. Example usage:
+- [x] Implement a new feature for the return value of the `module.setup()` function - `replaces`. Example usage:
 	```lua
 		module.setup = function()
 			return { success = true, replaces = "core.neorgcmd" }
@@ -40,6 +40,8 @@ Things to be done in this release:
 	```
 	This will tell neorg to *replace* the core.neorgcmd module with this one. Should be obviously used with caution, but may prove very useful in the future for hotswapping modules with a small tradeoff in terms of stability.
 	Have no clue what the above code snippet does and want to learn? Read the [CREATING_MODULES.md document](/docs/CREATING_MODULES.md).
+
+	**DONE** (2021-04-08) - note that this addition may be unstable, and will be kept in the unstable branch for the time being.
 - [ ] Fix a bug in `core.keybinds`, where it's currently impossible to bind a certain event to a *new* keybind.
 - [ ] Create a `core.neorgcmd` module. This module will allow the use of the `:Neorg` command and will allow other modules to define their own custom functions to be executed in this command, e.g. `:Neorg my_custom_command`. Default commands will be `:Neorg list modules` to list currently loaded modules, `:Neorg install 'github/address'` to fetch a module from a shortened remote Github address, `:Neorg update all|modules|self` to update either the neorg plugin itself *and* the modules, just the modules or just the plugin.
 - [ ] Start work on a basic specification for the .norg file format. The name of this file format will be NFF-0.1 (Neorg File Format 0.1). The community will be asked about what they think before the specification is pushed (join the [discord](https://discord.gg/T6EgTAX7ht) if you haven't already).
