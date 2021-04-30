@@ -95,7 +95,7 @@ Don't get the impression that neorg will be forever like this, this is just wher
 
 If there's anything you should know *for now* is that neorg (obviously) only triggers on .norg and .org files. So if you're testing your favourite module and nothing happens that might be a potential reason.
 
-**TL;DR**: check out the roadmap. Also, all we need is just a little more time, sorry about that :)
+**TL;DR**: check out the roadmap. Also, all we need is just a little more time, sorry about that. For the latest and greatest check out the unstable branch :)
 
 # Consult The Wiki!
 You can take a look at all the explanations in the [official GitHub wiki](https://github.com/vhyrro/neorg)!
