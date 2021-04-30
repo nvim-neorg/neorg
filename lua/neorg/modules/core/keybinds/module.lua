@@ -111,14 +111,14 @@ module_keybinds.public = {
 				-- Add the new keybind
 				module_keybinds.events.defined[event_name] = neorg.events.define(module_keybinds, event_name)
 
-				module_keybinds.private.registered_keybinds[key.name] = { keybind = key.prefix and (module_keybinds.public.prefix .. name) or name, key = key }
+				module_keybinds.private.registered_keybinds[key.name] = { keybind = key.prefix and (module_keybinds.config.public.prefix .. name) or name, key = key }
 			else
 				log.trace("Adding keybind", name, "for module", module_name)
 
 				-- Otherwise just add the key to the list normally
 				local event_name = module_name .. '.' .. key.name
 				module_keybinds.events.defined[event_name] = neorg.events.define(module_keybinds, event_name)
-				module_keybinds.private.registered_keybinds[key.name] = { keybind = key.prefix and (module_keybinds.public.prefix .. name) or name, key = key }
+				module_keybinds.private.registered_keybinds[key.name] = { keybind = key.prefix and (module_keybinds.config.public.prefix .. name) or name, key = key }
 			end
 		end
 
