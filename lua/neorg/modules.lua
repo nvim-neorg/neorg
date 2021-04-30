@@ -163,7 +163,7 @@ function neorg.modules.load_module(module_name, shortened_git_address, config)
 
 	-- Load the user-defined configurations and keymaps
 	if config and not vim.tbl_isempty(config) then
-		module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
+		module.config.public = vim.tbl_deep_extend("force", config, module.config.public)
 	end
 
 	-- Pass execution onto load_module_from_table() and let it handle the rest

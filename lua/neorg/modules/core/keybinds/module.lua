@@ -13,6 +13,7 @@ USAGE:
 			["<C-s>"] = {
 				mode = "n",
 				name = "some_keymap_name",
+				prefix = false,
 				opts = { silent = false, noremap = false, expr = false }
 			}
 
@@ -51,6 +52,22 @@ module_keybinds.neorg_post_load = function()
 
 end
 
+module_keybinds.private = {
+	registered_keybinds = {},
+	key_handler = function(module_name, keybind, key)
+
+		local event_name = module_name .. '.' .. key.name
+		vim.api.nvim_set_keymap(key.mode, keybind, ":lua _neorg_module_keybinds_callback(\"" .. module_name .. "\", \"core.keybinds.events." .. event_name .. "\")<CR>", key.opts)
+
+	end
+}
+
+module_keybinds.config.public = {
+
+	prefix = "<Leader>o",
+
+}
+
 module_keybinds.public = {
 
 	-- @Summary Registers a keybind for a certain module
@@ -58,23 +75,71 @@ module_keybinds.public = {
 	-- @Param  module_name (string) - the name of a loaded module
 	register_keybinds = function(module_name)
 
+		-- Get the public module configuration, if one cannot be grabbed then exit
 		local public_module_config = neorg.modules.get_module_config(module_name)
 
 		if not public_module_config or not public_module_config.keybinds or vim.tbl_isempty(public_module_config.keybinds) then return false end
 
+		--[[
+		--	Add all the keybinds. This process does not actally register the keybinds,
+		--	but rather stores them in a list. The reason it does this is because
+		--	keybinds of the same name can be overrwritten, so we make sure all the overrwrites happen first,
+		--	then the actual registration of the keybinds can commence.
+		--]]
 		for name, key in pairs(public_module_config.keybinds) do
 
-			if module_keybinds.events.defined[name] then
-				log.warn("Unable to set keybind", name, "for module", module_name, "- the specified key is already bound to", module_keybinds.events.defined[name].name or "something else")
-			else
-				local event_name = module_name .. '.' .. key.name
-				module_keybinds.events.defined[event_name] = neorg.events.define(module_keybinds, event_name);
-				(vim.schedule_wrap(function() vim.api.nvim_set_keymap(key.mode, name, ":lua _neorg_module_keybinds_callback(\"" .. module_name .. "\", \"core.keybinds.events." .. event_name .. "\")<CR>", key.opts) end))()
+			-- Check if the key has been bound before
+			local old_keybind = module_keybinds.private.registered_keybinds[key.name]
+
+			-- If the prefix variable has not been defined, contextually set it to the default value
+			if key.prefix == nil then
+				-- If the string does not being with "<" then prepend the prefix
+				key.prefix = (name:sub(1, 1) ~= "<")
 			end
 
+			-- If it has, unbind the old key and rebind the new version
+			if old_keybind then
+
+				log.trace("Overriding keybind", old_keybind.keybind, "with new keybind", name, "for module", module_name)
+
+				-- Since the event type is supposed to look like core.keybinds.events.<module_name>.<keybind_name>, we construct it here
+				local event_name = module_name .. '.' .. key.name
+
+				-- Undefine the previously defined keybind
+				module_keybinds.events.defined[module_name .. '.' .. old_keybind.key.name] = nil
+
+				-- Add the new keybind
+				module_keybinds.events.defined[event_name] = neorg.events.define(module_keybinds, event_name)
+
+				module_keybinds.private.registered_keybinds[key.name] = { keybind = key.prefix and (module_keybinds.public.prefix .. name) or name, key = key }
+			else
+				log.trace("Adding keybind", name, "for module", module_name)
+
+				-- Otherwise just add the key to the list normally
+				local event_name = module_name .. '.' .. key.name
+				module_keybinds.events.defined[event_name] = neorg.events.define(module_keybinds, event_name)
+				module_keybinds.private.registered_keybinds[key.name] = { keybind = key.prefix and (module_keybinds.public.prefix .. name) or name, key = key }
+			end
+		end
+
+		-- Afterwards, go through all the parsed keys and actually register them
+		for _, key in pairs(module_keybinds.private.registered_keybinds) do
+			log.trace("Registering keybind", key.keybind, "for module", module_name);
+
+			(vim.schedule_wrap(function() module_keybinds.private.key_handler(module_name, key.keybind, key.key) end))()
 		end
 
 		return true
+	end,
+
+	-- @Summary Changes the inbuilt key handler
+	-- @Description The key handler gets invoked whenever a keybind needs to get assigned. By default it's just a wrapper around nvim_set_keymap()
+	-- @Param  key_handler (function(module_name, keybind, key)) - the function to be invoked
+	--		module_name (string) - the name of the module whose keybind will be bound to
+	--		keybind (string) - the actual key (e.g. <Leader>oid)
+	--		key (table) - data about the key itself; consists of name, mode and opts fields
+	set_key_handler = function(key_handler)
+		module_keybinds.private.key_handler = key_handler
 	end
 
 }
