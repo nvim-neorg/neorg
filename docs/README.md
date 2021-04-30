@@ -20,7 +20,7 @@ Oh no, did something break? See [here](/docs/CONTRIBUTING.md#reporting-a-bug-or-
 All the things you will need to know are described [right here](/docs/CONTRIBUTING.md#formatting-rules). So go ahead and make something already! :P
 
 # Creating Modules
-Now's the fun part, you gotta learn how the module system works and how to program for it! A mini walkthrough is available at [CREATING_MODULES.md](/docs/CREATING_MODULES.md)
+Now's the fun part, you gotta learn how the module system works and how to program for it! A mini walkthrough is available at [CREATING_MODULES.md](https://github.com/vhyrro/neorg/wiki/Creating-Modules)
 
 # The Future
 Want to know what's brewing up behind the scenes? Take a look at the [written roadmap](/docs/ROADMAP.md) to see where we're headed!
