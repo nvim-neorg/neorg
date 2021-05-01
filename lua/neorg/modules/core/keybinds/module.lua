@@ -93,11 +93,11 @@ module_keybinds.public = {
 
 			-- If the prefix variable has not been defined, contextually set it to the default value
 			if key.prefix == nil then
-				-- If the string does not being with "<" then prepend the prefix
+				-- If the string does not begin with "<" then prepend the prefix
 				key.prefix = (name:sub(1, 1) ~= "<")
 			end
 
-			-- If it has, unbind the old key and rebind the new version
+			-- If it has been bound before, unbind the old key and rebind the new version
 			if old_keybind then
 
 				log.trace("Overriding keybind", old_keybind.keybind, "with new keybind", name, "for module", module_name)
