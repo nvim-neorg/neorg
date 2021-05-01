@@ -79,7 +79,7 @@ Then run `:PackerSync`
 
 # WIP
 As can be seen, this plugin is a work in progress - these magical features don't come out of nowhere, you know. Despite not providing any end-user features *yet*, it does provide an incredible foundation for developers willing to spend some time writing code for the plugin:
-- The module system; the module system is an extensible way to manage and interface with code. Modules are pay-for-what-you-use tables that can get loaded and unloaded at will. They can subscribe to events using the powerful event system and can directly communicate with each other - they can even expose their own public APIs and configuration to be edited by the user. Example modules can be found [here](lua/neorg/modules/core) and a full tutorial for developing with modules can be found [in the CREATING_MODULES document](https://github.com/Vhyrro/neorg/blob/main/docs/CREATING_MODULES.md).
+- The module system; the module system is an extensible way to manage and interface with code. Modules are pay-for-what-you-use tables that can get loaded and unloaded at will. They can subscribe to events using the powerful event system and can directly communicate with each other - they can even expose their own public APIs and configuration to be edited by the user. Example modules can be found [here](/lua/neorg/modules/core) and a full tutorial for developing with modules can be found [in the wiki](https://github.com/vhyrro/neorg/wiki/Creating-Modules).
 - The event system; the event system is the way for said modules to communicate. Events can be broadcast to all subscribed modules or to individual modules as well, they can hold any sort of data you'd want to transport to another plugin, things like the current cursor position, line content etc. The choice is yours really.
 
 Note that the neorg API may (and probably will be) subject to change! I'll try to refrain from breaking changes unless absolutely necessary, and will let developers know a while beforehand so they can update their modules. The API will stabilize after neorg becomes a bit more mature, so stick with me for now!
@@ -98,7 +98,7 @@ If there's anything you should know *for now* is that neorg (obviously) only tri
 **TL;DR**: check out the roadmap. Also, all we need is just a little more time, sorry about that. For the latest and greatest check out the unstable branch :)
 
 # Consult The Wiki!
-You can take a look at all the explanations in the [official GitHub wiki](https://github.com/vhyrro/neorg)!
+You can take a look at all the explanations in the [official GitHub wiki](https://github.com/vhyrro/neorg/wiki)!
 
 # Contributing
 I really looove contributions! That's what this whole project is about - it's a really big plugin, so any help is appreciated :heart:. Don't know what to implement? Don't worry, a [roadmap](/docs/ROADMAP.md) is available. The projects are pretty big there, so if you're truly stuck then you can always ask me personally!
