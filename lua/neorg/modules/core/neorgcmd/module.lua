@@ -44,9 +44,26 @@ USAGE:
 		}
 	}
 
-WIP:
+
 	There's also another way to define your own custom commands that's a lot more automated. Such automation can be achieved
-	by putting your code in a special directory. Documentation will be added as features become available.
+	by putting your code in a special directory. That directory is in core.neorgcmd.commands. Creating your modules in this directory
+	will allow users to easily enable you as a "command module" without much hassle.
+
+	To enable a command in the commands/ directory, do this:
+
+	require('neorg').setup {
+		load = {
+			["core.neorgcmd"] = {
+				config = {
+					load = {
+						"some_neorgcmd" -- The name of a valid command
+					}
+				}
+			}
+		}
+	}
+
+	And that's it! You're good to go.
 
 TODO: Add links to wiki here too!
 
@@ -102,30 +119,31 @@ end
 module.load = function()
 	-- Define the :Neorg command with autocompletion and a requirement of at least one argument (-nargs=+)
 	vim.cmd [[ command! -nargs=+ -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd.module').public.function_callback(<f-args>) ]]
+
+	-- Loop through all the command modules we want to load and load them
+	for _, command in ipairs(module.config.public.load) do
+
+		-- If one of the command modules is "default" then load all the default modules
+		if command == "default" then
+			for _, default_command in ipairs(module.config.public.default) do
+				module.public.add_commands_from_file(default_command)
+			end
+		end
+
+	end
 end
 
 module.config.public = {
 
 	-- The table containing all the functions. This can get a tad complex so I recommend you read the wiki entry
-	functions = {
-		definitions = {
-			list = {
-				modules = {}
-			}
-		},
-		data = {
-			list = {
-				args = 1,
+	functions = {},
 
-				subcommands = {
+	load = {
+		"default"
+	},
 
-					modules = {
-						args = 0
-					}
-
-				}
-			}
-		}
+	default = {
+		-- "list.modules" UNIMPLEMENTED FULLY YET
 	}
 
 }
@@ -133,10 +151,38 @@ module.config.public = {
 module.public = {
 
 	-- @Summary Adds custom commands for core.neorgcmd to use
+	-- @Description Recursively merges the contents of the module's config.public.funtions table with core.neorgcmd's module.config.public.functions table.
+	-- @Param  module_name (string) - an absolute path to a loaded module with a module.config.public.functions table following a valid structure
+	add_commands = function(module_name)
+		local module_config = neorg.modules.get_module_config(module_name)
+
+		if not module_config or not module_config.functions then return end
+
+		module.config.public.functions = vim.tbl_deep_extend("force", module_config.functions, module.config.public.functions)
+	end,
+
+	-- @Summary Adds custom commands for core.neorgcmd to use
 	-- @Description Recursively merges the provided table with the module.config.public.functions table.
-	-- @Param  subcommands (table) - a table that follows the same structure as module.config.public.functions
-	add_commands = function(commands)
-		module.config.public.functions = vim.tbl_deep_extend("force", module.config.public.functions, commands)
+	-- @Param  functions (table) - a table that follows the module.config.public.functions structure
+	add_commands_from_table = function(functions)
+		module.config.public.functions = vim.tbl_deep_extend("force", functions, module.config.public.functions)
+	end,
+
+	-- @Summary Adds custom commands for core.neorgcmd to use
+	-- @Description Takes a relative path (e.g "list.modules") and loads it from the commands/ directory
+	-- @Param  name (string) - the relative path of the module we want to load
+	add_commands_from_file = function(name)
+		-- Attempt to require the file
+		local err, ret = pcall(require, "neorg.modules.core.neorgcmd.commands." .. name .. ".module")
+
+		-- If we've failed bail out
+		if not err then
+			log.warn("Could not load command", name, "for module core.neorgcmd - the corresponding module.lua file does not exist.")
+			return
+		end
+
+		-- Load the module from table
+		neorg.modules.load_module_from_table(ret)
 	end,
 
 	-- @Summary The callback function whenever the :Neorg command is executed
