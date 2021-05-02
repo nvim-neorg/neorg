@@ -143,7 +143,7 @@ module.config.public = {
 	},
 
 	default = {
-		-- "list.modules" UNIMPLEMENTED FULLY YET
+		"list.modules"
 	}
 
 }
