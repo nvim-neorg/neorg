@@ -1,7 +1,56 @@
 --[[
+	NEORGCMD MODULE FOR NEORG
+	This module deals with handling everything related to the :Neorg command.
+	Things like completion and dynamic function calling are what this module is all about.
+
+USAGE:
+
+	In your module.setup(), make sure to require core.neorgcmd (requires = { "core.neorgcmd" })
+	Afterwards in a function of your choice that gets called *after* core.neorgcmd gets intialized e.g. load():
+
+	module.load = function()
+		module.required["core.neorgcmd"].add_commands({
+			definitions = { -- Used for completion
+				my_command = { -- Define a command called my_command
+					my_subcommand = {} -- Define a subcommand called my_subcommand
+				}
+			},
+			data = { -- Metadata about our commands, should follow the same structure as the definitions table
+				my_command = {
+					min_args = 1, -- Tells neorgcmd that we want at least one argument for this command
+					max_args = 1, -- Tells neorgcmd we want no more than one argument
+					args = 1, -- Setting this variable instead would be the equivalent of min_args = 1 and max_args = 1
+
+					subcommands = { -- Defines subcommands
+
+						-- Repeat the definition cycle again
+						my_subcommand = {
+							args = 0, -- We don't want any arguments
+
+							-- We do not define a subcommands table here because we don't have any more subcommands
+							-- Creating an empty subcommands table will cause errors so don't bother
+						}
+					}
+				}
+			}
+		})
+	end
+
+	Afterwards, you want to subscribe to the corresponding event:
+
+	module.events.subscribed = {
+		["core.neorgcmd"] = {
+			["my_command.my_subcommand"] = true -- Events come in a fullstop-seperated format
+		}
+	}
+
+WIP:
+	There's also another way to define your own custom commands that's a lot more automated. Such automation can be achieved
+	by putting your code in a special directory. Documentation will be added as features become available.
+
+TODO: Add links to wiki here too!
 
 --]]
-
 
 require('neorg.modules.base')
 require('neorg.modules')
@@ -86,8 +135,8 @@ module.public = {
 	-- @Summary Adds custom commands for core.neorgcmd to use
 	-- @Description Recursively merges the provided table with the module.config.public.functions table.
 	-- @Param  subcommands (table) - a table that follows the same structure as module.config.public.functions
-	add_subcommands = function(subcommands)
-		module.config.public.functions = vim.tbl_deep_extend("force", module.config.public.functions, subcommands)
+	add_commands = function(commands)
+		module.config.public.functions = vim.tbl_deep_extend("force", module.config.public.functions, commands)
 	end,
 
 	-- @Summary The callback function whenever the :Neorg command is executed
