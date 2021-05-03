@@ -153,7 +153,8 @@ module.config.public = {
 	},
 
 	default = {
-		"list.modules"
+		"list.modules",
+		"install"
 	}
 
 }
