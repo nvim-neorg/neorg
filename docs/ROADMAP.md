@@ -39,7 +39,7 @@ Things to be done in this release:
 		end
 	```
 	This will tell neorg to *replace* the core.neorgcmd module with this one. Should be obviously used with caution, but may prove very useful in the future for hotswapping modules with a small tradeoff in terms of stability.
-	Have no clue what the above code snippet does and want to learn? Read the [CREATING_MODULES.md document](/docs/CREATING_MODULES.md).
+	Have no clue what the above code snippet does and want to learn? Read the [CREATING_MODULES.md document](https://github.com/vhyrro/neorg/wiki/Creating-Modules).
 
 	**DONE** (2021-04-28) - note that this addition may be unstable, and will be kept in the unstable branch for the time being.
 - [x] Fix a bug in `core.keybinds`, where it's currently impossible to bind a certain event to a *new* keybind. (**DONE** 2021-04-29)
