@@ -26,6 +26,7 @@ USAGE:
 						-- Repeat the definition cycle again
 						my_subcommand = {
 							args = 0, -- We don't want any arguments
+							name = "my.command", -- The identifying name of this command
 
 							-- We do not define a subcommands table here because we don't have any more subcommands
 							-- Creating an empty subcommands table will cause errors so don't bother
@@ -40,7 +41,7 @@ USAGE:
 
 	module.events.subscribed = {
 		["core.neorgcmd"] = {
-			["my_command.my_subcommand"] = true -- Events come in a fullstop-seperated format
+			["my.command"] = true -- Has the same name as our "name" variable had in the "data" table
 		}
 	}
 
@@ -56,7 +57,7 @@ USAGE:
 			["core.neorgcmd"] = {
 				config = {
 					load = {
-						"some_neorgcmd" -- The name of a valid command
+						"some.neorgcmd" -- The name of a valid command
 					}
 				}
 			}
@@ -65,7 +66,7 @@ USAGE:
 
 	And that's it! You're good to go.
 
-TODO: Add links to wiki here too!
+Want to find out more? Read the wiki entry! https://github.com/vhyrro/neorg/wiki/Neorg-Command
 
 --]]
 
@@ -95,7 +96,7 @@ function _neorgcmd_generate_completions(_, command)
 	local split_command = vim.split(command, " ")
 
 	-- Create a reference to the definitions table
-	local ref = neorgcmd_module.config.public.functions.definitions
+	local ref = neorgcmd_module.config.public.neorg_commands.definitions
 
 	-- If the split command contains only 2 values then don't bother with
 	-- the code below, just return all the available completions and exit
@@ -104,7 +105,7 @@ function _neorgcmd_generate_completions(_, command)
 	end
 
 	-- This is where the magic begins - recursive reference assignment
-	-- What we do here is we recursively traverse down the module.config.public.functions.definitions
+	-- What we do here is we recursively traverse down the module.config.public.neorg_commands.definitions
 	-- table and provide autocompletion based on how many commands we have typed into the :Neorg command.
 	-- If we e.g. type ":Neorg list " and then press Tab we want to traverse once down the table
 	-- and return all the contents at the first recursion level of that table.
@@ -133,10 +134,19 @@ module.load = function()
 	end
 end
 
+module.neorg_post_load = function()
+	-- Loop through every loaded module and set up all their commands
+	for _, mod in pairs(neorg.modules.loaded_modules) do
+		if mod.config.public.neorg_commands then
+			module.public.add_commands_from_table(mod.config.public.neorg_commands)
+		end
+	end
+end
+
 module.config.public = {
 
 	-- The table containing all the functions. This can get a tad complex so I recommend you read the wiki entry
-	functions = {},
+	neorg_commands = {},
 
 	load = {
 		"default"
@@ -151,21 +161,21 @@ module.config.public = {
 module.public = {
 
 	-- @Summary Adds custom commands for core.neorgcmd to use
-	-- @Description Recursively merges the contents of the module's config.public.funtions table with core.neorgcmd's module.config.public.functions table.
-	-- @Param  module_name (string) - an absolute path to a loaded module with a module.config.public.functions table following a valid structure
+	-- @Description Recursively merges the contents of the module's config.public.funtions table with core.neorgcmd's module.config.public.neorg_commands table.
+	-- @Param  module_name (string) - an absolute path to a loaded module with a module.config.public.neorg_commands table following a valid structure
 	add_commands = function(module_name)
 		local module_config = neorg.modules.get_module_config(module_name)
 
-		if not module_config or not module_config.functions then return end
+		if not module_config or not module_config.neorg_commands then return end
 
-		module.config.public.functions = vim.tbl_deep_extend("force", module_config.functions, module.config.public.functions)
+		module.config.public.neorg_commands = vim.tbl_deep_extend("force", module_config.neorg_commands, module.config.public.neorg_commands)
 	end,
 
 	-- @Summary Adds custom commands for core.neorgcmd to use
-	-- @Description Recursively merges the provided table with the module.config.public.functions table.
-	-- @Param  functions (table) - a table that follows the module.config.public.functions structure
+	-- @Description Recursively merges the provided table with the module.config.public.neorg_commands table.
+	-- @Param  functions (table) - a table that follows the module.config.public.neorg_commands structure
 	add_commands_from_table = function(functions)
-		module.config.public.functions = vim.tbl_deep_extend("force", functions, module.config.public.functions)
+		module.config.public.neorg_commands = vim.tbl_deep_extend("force", functions, module.config.public.neorg_commands)
 	end,
 
 	-- @Summary Adds custom commands for core.neorgcmd to use
@@ -197,21 +207,21 @@ module.public = {
 		--	Ok, this is where things get messy. Read the comments from the _neorgcmd_generate_completions()
 		--	function to get a decent grasp of the code below. Before you ask, yes, all these variables
 		--	here are necessary in order for the function to work. Time to explain them one by one:
-		--		ref_definitions - a reference to the module.config.public.functions.definitions table, recursive reference assignment is done here.
+		--		ref_definitions - a reference to the module.config.public.neorg_commands.definitions table, recursive reference assignment is done here.
 		--			It's used to track where we are recursively in the table. It's also used to build a valid event string and to test whether the supplied
 		--			commands and subcommands actually exist.
-		--		ref_data - a reference to the module.config.public.functions.data table. It's used to recursively enter the "subcommands" tables and
+		--		ref_data - a reference to the module.config.public.neorg_commands.data table. It's used to recursively enter the "subcommands" tables and
 		--			tell the for loop below when to bail out and stop parsing further.
 		--		ref_data_one_above - the same as ref_data, except used for a different purpose. As the name suggests, this variable is a reference to one level above ref_data.
-		--			You still with me? This variable is used to read the metadata present in the functions.data table, it doesn't instantly enter the "subcommands" table like ref_data
+		--			You still with me? This variable is used to read the metadata present in the neorg_commands.data table, it doesn't instantly enter the "subcommands" table like ref_data
 		--			does.
-		--		event_name - the current event string. Values are appended to this string as we recursively enter each table. It allows us to build a valid event string.
+		--		event_name - the current event string. Tracks the tail of the command we're executing.
 		--		current_depth - the current recursion depth. Used to track what is a command/subcommand and what are arguments.
 		--]]
-		local ref_definitions = module.config.public.functions.definitions
-		local ref_data = module.config.public.functions.data
-		local ref_data_one_above = module.config.public.functions.data
-		local event_name = "core.neorgcmd.events"
+		local ref_definitions = module.config.public.neorg_commands.definitions
+		local ref_data = module.config.public.neorg_commands.data
+		local ref_data_one_above = module.config.public.neorg_commands.data
+		local event_name = ""
 		local current_depth = 0
 
 		-- For every argument we have received do
@@ -228,8 +238,8 @@ module.public = {
 					-- Recursively assign the ref_definitions reference (equivalent of entering the table)
 					ref_definitions = ref_definitions[cmd]
 
-					-- Build the event_name string further
-					event_name = event_name .. "." .. cmd
+					-- Set the event_name string
+					event_name = ref_data_one_above.name
 
 					-- Increase the current recursion depth
 					current_depth = current_depth + 1
@@ -252,6 +262,12 @@ module.public = {
 		end
 
 		-- PARSE COMMAND METADATA (read wiki for metadata info)
+
+		-- If our event name is nil then that means the command did not have a `name` field defined
+		if not event_name then
+			log.error("Unable to execute neorg command. The command does not have a 'name' field to identify it.")
+			return
+		end
 
 		-- If we have not specified the min_args value default to 0
 		ref_data_one_above.min_args = ref_data_one_above.min_args or 0
@@ -279,14 +295,13 @@ module.public = {
 			return
 		end
 
-		-- Create a relative path from the generated absolute one
-		local relative_path = event_name:sub(("core.neorgcmd.events."):len() + 1)
-
-		-- Define the event so we can broadcast it
-		module.events.defined[relative_path] = neorg.events.define(module, relative_path)
+		-- If not already defined define our event
+		if not module.events.defined[event_name] then
+			module.events.defined[event_name] = neorg.events.define(module, event_name)
+		end
 
 		-- Broadcast the event with all the correct data and the arguments passed to our command as the contents
-		neorg.events.broadcast_event(module, neorg.events.create(module, event_name, vim.list_slice(args, #args - (#args - current_depth) + 1)))
+		neorg.events.broadcast_event(module, neorg.events.create(module, "core.neorgcmd.events." .. event_name, vim.list_slice(args, #args - (#args - current_depth) + 1)))
 	end,
 
 	-- @Summary Overwrites the completion callback function

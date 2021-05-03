@@ -38,7 +38,7 @@ With the introduction of lua, we *will* fight back.
 
 ---
 # Installation
-## Using packer
+## Using Packer
 
 If you don't know what you're doing, just run this:
 
@@ -50,30 +50,30 @@ use { 'vhyrro/neorg', config = function()
 end}
 ```
 
-Otherwise:
+If you want bleeding-edge features (may require Neovim HEAD):
+
+```lua
+use { 'vhyrro/neorg', branch = 'unstable', config = function()
+
+	require('neorg').setup {}
+
+end}
+```
+
+:exclamation: **NOTE**: Neorg does not currently support actual org mode features (see [usage questions](#usage-questions) below).
+The below code snippet is for people who are familiar with the structure of neorg.
 
 ```lua
 use { 'vhyrro/neorg', config = function()
 	require('neorg').setup {
 		load = {
-			["your.module"] = { git_address = 'some/address', config = { ... } }
+			["your.module"] = { config = { ... } }
 		}
 	}
 end}
 ```
 
-If you're feeling lucky and want all the bleeding edge features (might require Neovim HEAD):
-```lua
-use { 'vhyrro/neorg', branch = 'unstable', config = function()
-	require('neorg').setup {
-		load = {
-			["your.module"] = { git_address = 'some/address', config = { ... } }
-		}
-	}
-end}
-```
-
-Don't understand the above 2 code snippets? Check out the [installation section](https://github.com/vhyrro/neorg/wiki/Installation) of the GitHub Wiki.
+Don't understand the above code snippet? Check out the [installation section](https://github.com/vhyrro/neorg/wiki/Installation) of the GitHub Wiki.
 
 Then run `:PackerSync`
 

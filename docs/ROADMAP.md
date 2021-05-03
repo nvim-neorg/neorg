@@ -45,7 +45,7 @@ Things to be done in this release:
 - [x] Fix a bug in `core.keybinds`, where it's currently impossible to bind a certain event to a *new* keybind. (**DONE** 2021-04-29)
 - [x] Allow the default `<Leader>o` keybind to be remapped and allow the user to add a special flag in order to automatically prefix their keybind with it. (**DONE** 2021-04-31)
 - [x] Create a `core.neorgcmd` module. This module will allow the use of the `:Neorg` command and will allow other modules to define their own custom functions to be executed in this command, e.g. `:Neorg my_custom_command`. Default commands will be `:Neorg list modules` (VERY BASIC, will be remastered soon) to list currently loaded modules. More will be added in the future. (**DONE** 2021-05-02)
-- [ ] Create the wiki/docs for `core.neorgcmd`
+- [x] Create the wiki/docs for `core.neorgcmd` (**DONE** 2021-05-03)
 - [ ] Allow the installation of modules from github using `:Neorg install some/address`
 - [ ] Start work on a basic specification for the .norg file format. The name of this file format will be NFF-0.1 (Neorg File Format 0.1). The community will be asked about what they think before the specification is pushed (join the [discord](https://discord.gg/T6EgTAX7ht) if you haven't already).
 - [ ] Begin implementing the norg parser module. This will be the most complex module out of all the ones that will exist in neorg, so this one will take a while. The norg parser will generate a syntax tree from the current norg file. Other modules will be able to interface with this syntax tree, and the corresponding buffer will update accordingly (both the syntax tree and the actual buffer will be in sync). This is where the heart of neorg will reside, which is why the most effort needs to be put into it in order to make it truly extensible.
@@ -57,6 +57,7 @@ Things that might be done in this release:
 - [ ] Asynchronous module loading - on the surface this seems very trivial, but I have encountered a problem I cannot find a solution to online. The module loader uses pcall() to require the modules (in case they don't exist), but the problem is pcall just does not work asynchronously, no matter what I tried. Until a fix isn't found for this, async module loading will not be a possibility. I might be just dumb though in which case let me know how to fix it :)
 - [ ] Automatic grabbing from GitHub - if a module cannot be found when the `neorg.modules.load...()` family of functions are invoked then asynchronously grab it from GitHub then try again. This one has proven to be a bit difficult for me, as I do not have much experience with async lua yet. This feat could probably be achieved with coroutines, but I am not certain. If you do know, contact me!
 - [ ] Tangling. This feature will allow you to write your own configs in neorg, which would be a massive flex.
+- [ ] Add a module for efficiently managing and manipulating vim windows, be it splits, floating windows etc.
 
 # Plans after 0.1
 > Ok that's pretty cool, so after 0.1 I should be at least able to do some basic stuff, right? What's next though?

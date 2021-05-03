@@ -17,7 +17,7 @@ end
 
 module.config.public = {
 
-	functions = {
+	neorg_commands = {
 		definitions = {
 			list = {
 				modules = {}
@@ -30,7 +30,8 @@ module.config.public = {
 				subcommands = {
 
 					modules = {
-						args = 0
+						args = 0,
+						name = "list.modules"
 					}
 
 				}
