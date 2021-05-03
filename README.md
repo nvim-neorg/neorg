@@ -40,6 +40,8 @@ With the introduction of lua, we *will* fight back.
 # Installation
 ## Using Packer
 
+> :exclamation: Neorg requires [plenary](https://github.com/nvim-lua/plenary.nvim) to operate, make sure to install it before you install neorg.
+
 If you don't know what you're doing, just run this:
 
 ```lua
@@ -47,7 +49,7 @@ use { 'vhyrro/neorg', config = function()
 
 	require('neorg').setup {}
 
-end}
+end, requires = { 'nvim-lua/plenary.nvim' }}
 ```
 
 If you want bleeding-edge features (may require Neovim HEAD):
@@ -57,7 +59,7 @@ use { 'vhyrro/neorg', branch = 'unstable', config = function()
 
 	require('neorg').setup {}
 
-end}
+end, requires = { 'nvim-lua/plenary.nvim' }}
 ```
 
 :exclamation: **NOTE**: Neorg does not currently support actual org mode features (see [usage questions](#usage-questions) below).

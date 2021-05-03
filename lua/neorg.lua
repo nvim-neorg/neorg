@@ -59,29 +59,20 @@ function neorg.org_file_entered(module_list)
 	if not module_list then return end
 
 	-- Loop through all the modules and load them one by one
-	-- In the future this function will be async, but because of issues with pcall(...) we can't do that right now
-	for name, module in pairs(module_list) do
-		if not neorg.modules.load_module(name, module.git_address, module.config) then
-			log.error("Halting loading of modules due to error...")
-			break
+	require('plenary.async_lib.async').async(function()
+		-- Go through each defined module and load it
+		for name, module in pairs(module_list) do
+			if not neorg.modules.load_module(name, module.git_address, module.config) then
+				log.error("Halting loading of modules due to error...")
+				break
+			end
 		end
-	end
-
-	-- Even though we couldn't run that previous function asynchronously we can however run this one!
-	local async
-
-	async = vim.loop.new_async(function()
 
 		-- Goes through each loaded module and invokes neorg_post_load()
 		for _, module in pairs(neorg.modules.loaded_modules) do
 			module.neorg_post_load()
 		end
-
-		async:close()
-
-	end)
-
-	async:send()
+	end)()()
 
 end
 

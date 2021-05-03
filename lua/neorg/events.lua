@@ -140,13 +140,11 @@ function neorg.events.broadcast_event(module, event)
 	event.referrer = module.name
 	event.broadcast = true
 
-	local async
-
 	-- Asynchronously broadcast the event to all modules
-	async = vim.loop.new_async(function()
+	require('plenary.async_lib.async').async(function()
 
 		if not event.split_type then
-			log.error("Unable to broadcast event of type", event.type, "; invalid event name")
+			log.error("Unable to broadcast event of type", event.type, "- invalid event name")
 			return
 		end
 
@@ -168,10 +166,7 @@ function neorg.events.broadcast_event(module, event)
 
 		end
 
-		async:close()
-	end)
-
-	async:send()
+	end)()()
 
 end
 
