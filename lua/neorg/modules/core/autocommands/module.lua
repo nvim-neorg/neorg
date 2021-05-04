@@ -60,7 +60,9 @@ module_autocommands.public = {
 				subscribed_autocommand = true
 			end
 		end
-	end
+	end,
+
+	version = "0.9.0"
 
 }
 

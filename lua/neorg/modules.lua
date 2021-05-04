@@ -42,7 +42,7 @@ function neorg.modules.load_module_from_table(module)
 
 	-- A part of the table returned by module.setup() tells us whether or not the module initialization was successful
 	if loaded_module.success == false then
-		log.info("Module", module.name, "did not load.")
+		log.warn("Module", module.name, "did not load.")
 		return false
 	end
 
@@ -137,7 +137,7 @@ end
 -- If the module could not be found, attempt to load it off of github. This function also applies user-defined configurations and keymaps to the modules themselves.
 -- This is the recommended way of loading modules - load_module_from_table() should only really be used by neorg itself.
 -- @Param  module_name (string) - a path to a module on disk. A path seperator in neorg is '.', not '/'
--- @Param  shortened_git_address (string) - for example "Vhyrro/neorg", tells neorg where to look on github if a module can't be found locally
+-- @Param  shortened_git_address (string) - for example "vhyrro/neorg", tells neorg where to look on github if a module can't be found locally
 -- @Param  config (table) - a configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
 function neorg.modules.load_module(module_name, shortened_git_address, config)
 
@@ -193,7 +193,7 @@ end
 -- @Description Normally loads a module, but then sets up the parent module's "required" table, allowing the parent module to access the child as if it were a dependency.
 -- @Param  module_name (string) - a path to a module on disk. A path seperator in neorg is '.', not '/'
 -- @Param  parent_module (string) - the name of the parent module. This is the module which the dependency will be attached to.
--- @Param  shortened_git_address (string) - for example "Vhyrro/neorg", tells neorg where to look on github if a module can't be found locally
+-- @Param  shortened_git_address (string) - for example "vhyrro/neorg", tells neorg where to look on github if a module can't be found locally
 -- @Param  config (table) - a configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
 function neorg.modules.load_module_as_dependency(module_name, parent_module, shortened_git_address, config)
 
@@ -213,7 +213,7 @@ function neorg.modules.unload_module(module_name)
 
 	-- If not then obviously there's no point in unloading it
 	if not module then
-		log.info("Unable to unload module", module_name, "- module is not currently loaded.")
+		log.warn("Unable to unload module", module_name, "- module is not currently loaded.")
 		return false
 	end
 
@@ -232,7 +232,7 @@ end
 function neorg.modules.get_module(module_name)
 
 	if not neorg.modules.is_module_loaded(module_name) then
-		log.info("Attempt to get module with name", module_name, "failed.")
+		log.warn("Attempt to get module with name", module_name, "failed - module is not loaded.")
 		return nil
 	end
 
@@ -245,7 +245,7 @@ end
 function neorg.modules.get_module_config(module_name)
 
 	if not neorg.modules.is_module_loaded(module_name) then
-		log.info("Attempt to get module configuration with name", module_name, "failed.")
+		log.warn("Attempt to get module configuration with name", module_name, "failed - module is not loaded.")
 		return nil
 	end
 
@@ -257,4 +257,43 @@ end
 -- @Param  module_name (string) - the name of an arbitrary module
 function neorg.modules.is_module_loaded(module_name)
 	return neorg.modules.loaded_modules[module_name] ~= nil
+end
+
+-- @Summary Gets the version of a module
+-- @Description Reads the module's public table and looks for a version variable, then converts it from a string into a table, like so: { major = <number>, minor = <number>, patch = <number> }
+-- @Param  module_name (string) - the name of a valid, loaded module.
+-- @Return struct | nil (if any error occurs)
+function neorg.modules.get_module_version(module_name)
+
+	if not neorg.modules.is_module_loaded(module_name) then
+		log.warn("Attempt to get module version with name", module_name, "failed - module is not loaded.")
+		return nil
+	end
+
+	local version = neorg.modules.get_module(module_name).version
+
+	if not version then
+		log.warn("Attempt to get module version with name", module_name, "failed - version variable not present.")
+		return nil
+	end
+
+	local split_version, versions, ret = vim.split(version, ".", true), { "major", "minor", "patch" }, { major = 0, minor = 0, patch = 0 }
+
+	if #split_version > 3 then
+		log.warn("Attempt to get module version with name", module_name, "failed - too many version numbers provided. Version should follow this layout: <major>.<minor>.<patch>")
+		return nil
+	end
+
+	for i, ver in ipairs(versions) do
+		local num = tonumber(split_version[i])
+
+		if not num then
+			log.warn("Invalid version provided, string cannot be converted to integral type.")
+			return nil
+		end
+
+		ret[ver] = num
+	end
+
+	return ret
 end

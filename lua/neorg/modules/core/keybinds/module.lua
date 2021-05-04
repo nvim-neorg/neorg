@@ -140,7 +140,9 @@ module_keybinds.public = {
 	--		key (table) - data about the key itself; consists of name, mode and opts fields
 	set_key_handler = function(key_handler)
 		module_keybinds.private.key_handler = key_handler
-	end
+	end,
+
+	version = "0.0.9"
 
 }
 

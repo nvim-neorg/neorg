@@ -120,3 +120,24 @@ function neorg.modules.create(name)
 
 	return new_module
 end
+
+-- @Summary Creates a metamodule
+-- @Description Constructs a metamodule from a list of submodules. Metamodules are modules that can autoload batches of modules at once.
+-- @Param  name (string) - the name of the new metamodule. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
+-- @Param  ... (varargs) - a list of module names to load.
+function neorg.modules.create_meta(name, ...)
+
+	local module, unpacked = neorg.modules.create(name), { ... }
+
+	module.setup = function()
+		return { success = true, requires = unpacked }
+	end
+
+	module.unload = function()
+		for submodule_name, _ in module.required do
+			neorg.modules.unload_module(submodule_name)
+		end
+	end
+
+	return module
+end

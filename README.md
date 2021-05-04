@@ -47,7 +47,11 @@ If you don't know what you're doing, just run this:
 ```lua
 use { 'vhyrro/neorg', config = function()
 
-	require('neorg').setup {}
+	require('neorg').setup {
+		load = {
+			['core.defaults'] = {} -- Load all the default modules
+		}
+	}
 
 end, requires = { 'nvim-lua/plenary.nvim' }}
 ```
@@ -57,7 +61,11 @@ If you want bleeding-edge features (may require Neovim HEAD):
 ```lua
 use { 'vhyrro/neorg', branch = 'unstable', config = function()
 
-	require('neorg').setup {}
+	require('neorg').setup {
+		load = {
+			['core.defaults'] = {} -- Load all the default modules
+		}
+	}
 
 end, requires = { 'nvim-lua/plenary.nvim' }}
 ```

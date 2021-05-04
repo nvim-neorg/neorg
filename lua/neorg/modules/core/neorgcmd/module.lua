@@ -310,7 +310,9 @@ module.public = {
 	-- @Param  callback (function) - the same function format as you would receive by being called by :command -completion=customlist,v:lua.callback Neorg
 	set_completion_callback = function(callback)
 		_neorgcmd_generate_completions = callback
-	end
+	end,
+
+	version = "0.0.9"
 
 }
 
