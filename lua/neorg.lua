@@ -60,6 +60,15 @@ function neorg.org_file_entered(module_list)
 
 	-- Loop through all the modules and load them one by one
 	require('plenary.async_lib.async').async(function()
+
+		-- Create cache directory
+		vim.loop.fs_mkdir(vim.fn.stdpath("cache") .. "/neorg_community_modules", 16877) -- 0775
+
+		-- Add the community-made modules into the package path
+		for _, community_module in ipairs(vim.fn.glob(vim.fn.stdpath("cache") .. "/neorg_community_modules/*", 0, 1, 1)) do
+			package.path = package.path .. ";" .. community_module .. "/?.lua"
+		end
+
 		-- Go through each defined module and load it
 		for name, module in pairs(module_list) do
 			if not neorg.modules.load_module(name, module.git_address, module.config) then
