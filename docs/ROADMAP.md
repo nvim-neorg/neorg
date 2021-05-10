@@ -48,7 +48,7 @@ Things to be done in this release:
 - [x] Create the wiki/docs for `core.neorgcmd` (**DONE** 2021-05-03)
 - [x] Allow the installation of modules from github using `:Neorg install some/address` (**DONE** 2021-05-08)
 - [ ] Allow all community modules to be updated with `:Neorg update modules`
-- [ ] Allow the user to change the community module directory
+- [x] Allow the user to change the community module directory (**DONE** 2021-05-10)
 - [ ] Start work on a basic specification for the .norg file format. The name of this file format will be NFF-0.1 (Neorg File Format 0.1). The community will be asked about what they think before the specification is pushed (join the [discord](https://discord.gg/T6EgTAX7ht) if you haven't already).
 - [ ] Begin implementing the norg parser module. This will be the most complex module out of all the ones that will exist in neorg, so this one will take a while. The norg parser will generate a syntax tree from the current norg file. Other modules will be able to interface with this syntax tree, and the corresponding buffer will update accordingly (both the syntax tree and the actual buffer will be in sync). This is where the heart of neorg will reside, which is why the most effort needs to be put into it in order to make it truly extensible.
 - [x] Implement metamodules. These modules will be an easy way to `require` a large batch of modules without the user having to specify each individual module they prefer. For example, a `default` metamodule may exist in order to include all the basic modules that neorg has to efficiently edit norg files. (**DONE** 2021-05-04)

@@ -11,6 +11,15 @@
 <a href="/LICENSE"> ![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=flat-square) </a>
 <a href="#wip"> ![Status](https://img.shields.io/badge/status-WIP-informational?style=flat-square) </a>
 
+---
+
+[Introduction](#introduction)
+•
+[Installation](#installation)
+•
+[Usage](#usage-questions)
+•
+[Wiki](#consult-the-wiki)
 </div>
 
 ---
@@ -20,15 +29,9 @@ With the introduction of lua, we *will* fight back.
 
 ---
 
-### Table of Contents
-- [Introduction](#introduction)
-- [Installation](#installation)
-- [Questions about usage](#usage-questions)
-- [WIP Status](#wip)
-- [Check out the wiki](#consult-the-wiki)
-- [Contributing](#contributing)
-
 # Introduction
+Neorg is a plugin designed to help you manage your day-to-day life in ways you haven't thought of before. Think of this plugin as the ultimate way of making your life easier.
+
 ### What this project is, and what it isn't
   - This project is supposed to serve as an organizational tool for Neovim. It will run on the .norg file format - a revised, extensible and more computer friendly format compared to .org, all while retaining a decent amount of backwards compatibility with org (you will be able to convert between both formats).
   - A foundation for developers to make their own extensions to the plugin and interface with other parts of user-contibuted code, known as modules (more info below)
@@ -50,7 +53,10 @@ use { 'vhyrro/neorg', config = function()
 	require('neorg').setup {
 		load = {
 			['core.defaults'] = {} -- Load all the default modules
-		}
+		},
+
+		-- Tells neorg where to load community provided modules. If unspecified, this is the default
+		community_module_path = vim.fn.stdpath("cache") .. "/neorg_community_modules"
 	}
 
 end, requires = { 'nvim-lua/plenary.nvim' }}
@@ -60,13 +66,7 @@ If you want bleeding-edge features (may require Neovim HEAD):
 
 ```lua
 use { 'vhyrro/neorg', branch = 'unstable', config = function()
-
-	require('neorg').setup {
-		load = {
-			['core.defaults'] = {} -- Load all the default modules
-		}
-	}
-
+	...
 end, requires = { 'nvim-lua/plenary.nvim' }}
 ```
 
