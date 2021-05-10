@@ -9,40 +9,20 @@ neorg = {}
 require('neorg.events')
 require('neorg.modules')
 
--- Configuration template
-neorg.configuration = {
-
-	user_configuration = {
-		load = {
-			--[[
-				["name"] = { git_address = "address", config = { ... } }
-			--]]
-		},
-	},
-
-}
-
--- Grab OS info on startup
-neorg.configuration.os_info = (function()
-
-	if vim.fn.has("win32") == 1 then
-		return "windows"
-	elseif vim.fn.has("unix") == 1 then
-		return "linux"
-	elseif vim.fn.has("mac") == 1 then
-		return "mac"
-	end
-
-end)()
+local configuration = require('neorg.config')
 
 -- @Summary Sets up neorg
 -- @Description This function takes in a user configuration, parses it, initializes everything and launches neorg if inside a .norg or .org file
--- @Param  config (table) - a table that reflects the structure of neorg.configuration.user_configuration
+-- @Param  config (table) - a table that reflects the structure of configuration.user_configuration
 function neorg.setup(config)
-	neorg.configuration.user_configuration = config or {}
+	configuration.user_configuration = config or {}
 
 	-- Create a new global instance of the neorg logger
-	require('neorg.external.log').new(neorg.configuration.user_configuration.logger or log.get_default_config(), true)
+	require('neorg.external.log').new(configuration.user_configuration.logger or log.get_default_config(), true)
+
+	if not config.community_module_path then
+		configuration.user_configuration.community_module_path = vim.fn.stdpath("cache") .. "/neorg_community_modules"
+	end
 
 	-- If we are launching a .norg or .org file, fire up the modules!
 	local ext = vim.fn.expand("%:e")
@@ -61,11 +41,11 @@ function neorg.org_file_entered(module_list)
 	-- Loop through all the modules and load them one by one
 	require('plenary.async_lib.async').async(function()
 
-		-- Create cache directory
-		vim.loop.fs_mkdir(vim.fn.stdpath("cache") .. "/neorg_community_modules", 16877) -- 0775
+		-- Create community module directory
+		vim.loop.fs_mkdir(configuration.user_configuration.community_module_path, 16877) -- 0775
 
 		-- Add the community-made modules into the package path
-		for _, community_module in ipairs(vim.fn.glob(vim.fn.stdpath("cache") .. "/neorg_community_modules/*", 0, 1, 1)) do
+		for _, community_module in ipairs(vim.fn.glob(configuration.user_configuration.community_module_path .. "/*", 0, 1, 1)) do
 			package.path = package.path .. ";" .. community_module .. "/?.lua"
 		end
 
