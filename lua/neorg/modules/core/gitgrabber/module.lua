@@ -75,7 +75,6 @@ module.public = {
 
 		handle = vim.loop.spawn("git", {
 
-			-- If we are installing the module for the first time then clone the repo, else pull updates
 			args = args
 
 		}, function(error_code)

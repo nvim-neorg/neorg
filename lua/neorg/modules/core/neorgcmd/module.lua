@@ -101,7 +101,7 @@ function _neorgcmd_generate_completions(_, command)
 	-- If the split command contains only 2 values then don't bother with
 	-- the code below, just return all the available completions and exit
 	if #split_command == 2 then
-		return vim.tbl_keys(ref)
+		return vim.tbl_filter(function(key) return key:find(split_command[#split_command]) end, vim.tbl_keys(ref))
 	end
 
 	-- This is where the magic begins - recursive reference assignment
@@ -114,7 +114,7 @@ function _neorgcmd_generate_completions(_, command)
 	end
 
 	-- Return everything from ref
-	return vim.tbl_keys(ref)
+	return vim.tbl_filter(function(key) return key:find(split_command[#split_command]) end, vim.tbl_keys(ref))
 end
 
 module.load = function()
