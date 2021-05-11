@@ -113,7 +113,7 @@ function _neorgcmd_generate_completions(_, command)
 		if ref[cmd] then ref = ref[cmd] else break end
 	end
 
-	-- Return everything from ref
+	-- Return everything from ref that is a potential match
 	return vim.tbl_filter(function(key) return key:find(split_command[#split_command]) end, vim.tbl_keys(ref))
 end
 
