@@ -15,12 +15,18 @@ module.setup = function()
 	return { success = true, requires = { "core.gitgrabber" } }
 end
 
+module.load = function()
+end
+
 module.public = {
 
 	-- @Summary Updates all community-provided modules
 	-- @Description Utilizes the gitgrabber module to pull updates from github for all community modules
 	update_modules = function()
-		module.required["core.gitgrabber"].update_all()
+		-- Update all community-made modules
+		for _, community_module in ipairs(vim.fn.glob(config.user_configuration.community_module_path .. "/*", 0, 1, 1)) do
+			module.required["core.gitgrabber"].update(community_module)
+		end
 	end,
 
 	-- @Summary Installs or updates a module from github

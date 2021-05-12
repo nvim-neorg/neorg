@@ -154,7 +154,8 @@ module.config.public = {
 
 	default = {
 		"list.modules",
-		"install"
+		"install",
+		"update"
 	}
 
 }
@@ -253,11 +254,11 @@ module.public = {
 					end
 
 				else -- If we can't enter the data table then that means it's inconsistent with the definitions table
-					log.error("Unable to execute neorg command under the name", event_name .. "." .. cmd, "- the command exists but doesn't hold any valid metadata. Metadata is required for neorg to parse the command correctly, please consult the neorg wiki if you're confused.")
+					log.error("Unable to execute command :Neorg", ..., cmd, "- the command exists but doesn't hold any valid metadata. Metadata is required for neorg to parse the command correctly, please consult the neorg wiki if you're confused.")
 					return
 				end
 			else -- If we can't enter the definitions table further then that means the command we entered does not exist
-				log.error("Unable to execute neorg command under the name", event_name .. "." .. cmd, "- such a command does not exist.")
+				log.error("Unable to execute command :Neorg", ..., cmd, "- such a command does not exist.")
 				return
 			end
 		end

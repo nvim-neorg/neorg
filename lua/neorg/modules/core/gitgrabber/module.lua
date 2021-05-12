@@ -18,7 +18,7 @@ module.public = {
 	-- @Summary Track a new repo
 	-- @Description Adds a new repo to the list of tracked repos. Whenever a repo is tracked it can be easily installed and updated
 	-- @Param  repo (string) - a shortened git address like/this
-	-- @Param  location (string) - path to where store the repo
+	-- @Param  location (string) - path where to store the repo
 	track = function(repo, location)
 		module.config.private.tracked_repos[repo] = location
 	end,
@@ -26,7 +26,7 @@ module.public = {
 	-- @Summary Tracks and installs/updates a repo
 	-- @Description Adds the repo to the list of tracked repos. If the repo already exists it is updated, else it is grabbed from github and put into its respective location on disk.
 	-- @Param  repo (string) - a shortened git address like/this
-	-- @Param  location (string) - path to where store the repo
+	-- @Param  location (string) - path where to store the repo
 	-- @Param  verification (function(install_location) -> directory (string), error (string)) - function to verify whether the installed repo is valid and meets the requirements. The function returns two values, the directory which should exist in order for the repo to be considered valid and the error message in case the directory doesn't exist.
 	manage = function(repo, location, verification)
 
@@ -48,6 +48,17 @@ module.public = {
 		return true
 	end,
 
+	-- @Summary Updates a repo from a specific location
+	-- @Description Invokes the git pull command from the specified location
+	-- @Param  location (string) - path where to store the repo
+	-- @Param  verification (function(install_location) -> directory (string), error (string)) - function to verify whether the installed repo is valid and meets the requirements. The function returns two values, the directory which should exist in order for the repo to be considered valid and the error message in case the directory doesn't exist.
+	update = function(location, verification)
+		-- Split the location path
+		local split_location = vim.split(location, "/", true)
+		-- Invoke the git pull command in the specified directory
+		return module.public.invoke_git({ "null", split_location[#split_location] }, location, { "-C", location, "pull" }, verification)
+	end,
+
 	-- @Summary Updates all tracked modules
 	-- @Description Loops through all tracked repos and invokes the manage() function on them one by one
 	update_all = function()
@@ -59,7 +70,7 @@ module.public = {
 	-- @Summary Invokes the git program
 	-- @Description Calls the git program with the specified arguments and performs the verification check.
 	-- @Param  split_repo (string[2]) - if the repo we want is i.e. some/repo, then this value should be vim.split("some/repo", "/", true (string) - path to where store the repo)
-	-- @Param  location (string) - path to where store the repo
+	-- @Param  location (string) - path where to store the repo
 	-- @Param  args (table) - the table to be passed into the git command via vim.loop.spawn
 	-- @Param  verification (function(install_location) -> directory (string), error (string)) - function to verify whether the installed repo is valid and meets the requirements. The function returns two values, the directory which should exist in order for the repo to be considered valid and the error message in case the directory doesn't exist.
 	invoke_git = function(split_repo, location, args, verification)
