@@ -1,0 +1,85 @@
+@document.meta
+	title: The Neorg 0.1 File Format Spec
+	description: A draft of the 0.1 Neorg File Format (NFF-0.1) specification
+	author: Vhyrro
+end
+
+Data can be represented with the magic of `@`. In the above example we specify the document's data.
+
+* About the Neorg format
+  *** The concept
+      - The idea behind Neorg is to make org **easier**, more readable *and* extensible - all while keeping it familiar.
+      - Neorg will refrain from creating ambiguity, meaning there'll be only ***one*** way of doing things. For example, `-` means an unordered list and
+        and unordered list *only*. No need for 50 different ways of writing a list.
+      - Allow for defining static data and ways to call internal lua functions that will be able to dynamically morph the document as you go.
+
+* Keybinds
+Since this is neovim, we want keybinds to do most of the work. Good news! That's exactly what neorg's gonna do.
+By default the neorg 'prefix' is <Leader>o, meaning all keybinds defined by neorg modules will be stored here. This can be changed, of course.
+To insert a heading, you can do <Leader>oih (<Leader>o insert heading) - makes sense, right?
+You get the point, it's supposed to be intuitive. Don't like the keybinds? Don't worry - all neorg keybinds for *every* module are remappable, whether the module's creator likes it or not.
+
+* Nifty tricks
+Look mum, I can write my own name here: @document.data.author!
+Whenever this document will get rendered in another format/whenever `:Neorg show data_references` gets triggered the above value will get replaced with "Vhyrro"! Pretty neat, eh?
+
+* Future things we're gonna implement
+One of my emacs-using friends just gave me a phenomenal idea - to introduce the concept of custom modes into neorg.
+Take neovim's modal design and embrace it. Modes will primarily exist solely for isolating keybinds to different environments.
+I'll try to make it as bloat-free and simple as can be, fear not.
+
+1) Ordered lists can be done like this!
+2. Or like this! This one is up to your preference
+3) Does it break the promise we made about removing ambiguity?
+4. Nope, since here the situation is a bit different, you see
+
+Since things like 1) and 2. are way more commonly interchangeable in everyday writing we allow both as to not anger half of the human race at once.
+
+Hey look a TODO list!
+- [ ] Do something
+- [*] Do something else (partially done):
+      - [ ] Extra stuff
+      - [x] Even more stuff
+- [x] Done task
+
+* Representing tables
+@table
+	This is a neorg table; And this is data in another column
+	And this is another row of data; Etc
+end
+
+You may be thinking - what? So let me explain:
+- This is *not* how *you* will see tables. When you open your buffer you'll see them in a beautiful manner (as you'd be used to in org). You'll also edit them in a similar fashion to org.
+- This way of representing data is superior since it's really easy to parse. Additionally, it allows tables to be dynamically generated, meaning you can have your own special custom patterns for tables!
+- When you save the file, your beautified version of the table will be broken down and dismantled into the format you see above.
+- As mentioned beforehand, you can do several things like change the padding of columns and rows, borders and several other things with ease thanks to this simplified version.
+
+Neorg will also be able to fuzzy find and filter *all* types of data within the file with `telescope.nvim`, pretty neat eh?
+You'll be able to fuzzy find *only* headings, *only* content in tables, *only* code blocks, *only* todo items etc.
+
+@code
+	Generic code block
+end
+
+@code.lua
+
+	print("Hey look a code block")
+
+end
+
+@code.cpp
+
+	#include <iostream>
+
+	int main()
+	{
+		[&cout = std::cout](const char* message) -> auto { cout << message; }( "Wow look an overcomplicated print statement with lambdas and unnecessary amount of syntax sugar.\n");
+	}
+
+end
+
+@formatting.center
+	* That's it for now! [Star the project, or else...](https://github.com/vhyrro/neorg)
+end
+
+The above code snippet centers the text whenever it's about to get rendered as HTML or Markdown etc.

@@ -50,6 +50,7 @@ Things to be done in this release:
 - [x] Allow all community modules to be updated with `:Neorg update modules` (**DONE** 2021-05-12)
 - [x] Allow the user to change the community module directory (**DONE** 2021-05-10)
 - [ ] Start work on a basic specification for the .norg file format. The name of this file format will be NFF-0.1 (Neorg File Format 0.1). The community will be asked about what they think before the specification is pushed (join the [discord](https://discord.gg/T6EgTAX7ht) if you haven't already). (**IN PROGRESS**)
+- [ ] Add custom modes to neorg - take neovim's modal design and take it to its limit. Modes will be primarily used to isolate keybindings from each other, but will also allow modules to perform different tasks based on the mode.
 - [ ] Begin implementing the norg parser module. This will be the most complex module out of all the ones that will exist in neorg, so this one will take a while. The norg parser will generate a syntax tree from the current norg file. Other modules will be able to interface with this syntax tree, and the corresponding buffer will update accordingly (both the syntax tree and the actual buffer will be in sync). This is where the heart of neorg will reside, which is why the most effort needs to be put into it in order to make it truly extensible.
 - [x] Implement metamodules. These modules will be an easy way to `require` a large batch of modules without the user having to specify each individual module they prefer. For example, a `default` metamodule may exist in order to include all the basic modules that neorg has to efficiently edit norg files. (**DONE** 2021-05-04)
 - [ ] Add more API functions. These functions will just allow any module to more easily interact with the environment around them; some quality-of-life stuff.
@@ -59,7 +60,7 @@ Things that might be done in this release:
 - [x] Asynchronous module loading - on the surface this seems very trivial, but I have encountered a problem I cannot find a solution to online. The module loader uses pcall() to require the modules (in case they don't exist), but the problem is pcall just does not work asynchronously, no matter what I tried. Until a fix isn't found for this, async module loading will not be a possibility. I might be just dumb though in which case let me know how to fix it :) (**DONE** 2021-05-03 | Migrated over to plenary.nvim, all works awesome now)
 - [ ] Automatic grabbing from GitHub - if a module cannot be found when the `neorg.modules.load...()` family of functions are invoked then asynchronously grab it from GitHub then try again. This one has proven to be a bit difficult for me, as I do not have much experience with async lua yet. This feat could probably be achieved with coroutines, but I am not certain. If you do know, contact me!
 - [ ] Tangling. This feature will allow you to write your own configs in neorg, which would be a massive flex.
-- [ ] Add a module for efficiently managing and manipulating vim windows, be it splits, floating windows etc. (**IN PROGRESS**)
+- [ ] Add a module for efficiently managing and manipulating vim windows, be it splits, floating windows etc.
 
 # Plans after 0.1
 > Ok that's pretty cool, so after 0.1 I should be at least able to do some basic stuff, right? What's next though?
