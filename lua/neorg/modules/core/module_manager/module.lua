@@ -15,9 +15,6 @@ module.setup = function()
 	return { success = true, requires = { "core.gitgrabber" } }
 end
 
-module.load = function()
-end
-
 module.public = {
 
 	-- @Summary Updates all community-provided modules
