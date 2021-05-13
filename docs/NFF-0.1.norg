@@ -23,8 +23,11 @@ You get the point, it's supposed to be intuitive. Don't like the keybinds? Don't
 Look mum, I can write my own name here: @document.data.author!
 Whenever this document will get rendered in another format/whenever `:Neorg show data_references` gets triggered the above value will get replaced with "Vhyrro"! Pretty neat, eh?
 
+_This line is underlined_
+~~Based~~
+
 * Future things we're gonna implement
-One of my emacs-using friends just gave me a phenomenal idea - to introduce the concept of custom modes into neorg.
+One of my emacs-using friends (bandithedoge) just gave me a phenomenal idea - to introduce the concept of custom modes into neorg.
 Take neovim's modal design and embrace it. Modes will primarily exist solely for isolating keybinds to different environments.
 I'll try to make it as bloat-free and simple as can be, fear not.
 
@@ -73,7 +76,7 @@ end
 
 	int main()
 	{
-		[&cout = std::cout](const char* message) -> auto { cout << message; }( "Wow look an overcomplicated print statement with lambdas and unnecessary amount of syntax sugar.\n");
+		[&cout = std::cout](const char* message) -> auto { cout << message; }("Wow look an overcomplicated print statement with lambdas and unnecessary amount of syntax sugar.\n");
 	}
 
 end
