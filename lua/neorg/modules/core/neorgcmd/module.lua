@@ -134,15 +134,6 @@ module.load = function()
 	end
 end
 
-module.neorg_post_load = function()
-	-- Loop through every loaded module and set up all their commands
-	for _, mod in pairs(neorg.modules.loaded_modules) do
-		if mod.config.public.neorg_commands then
-			module.public.add_commands_from_table(mod.config.public.neorg_commands)
-		end
-	end
-end
-
 module.config.public = {
 
 	-- The table containing all the functions. This can get a tad complex so I recommend you read the wiki entry
@@ -195,6 +186,17 @@ module.public = {
 
 		-- Load the module from table
 		neorg.modules.load_module_from_table(ret)
+	end,
+
+	-- @Summary Updates autocompletion
+	-- @Description Rereads data from all modules and rebuild the list of available autocompletions and commands
+	sync = function()
+		-- Loop through every loaded module and set up all their commands
+		for _, mod in pairs(neorg.modules.loaded_modules) do
+			if mod.config.public.neorg_commands then
+				module.public.add_commands_from_table(mod.config.public.neorg_commands)
+			end
+		end
 	end,
 
 	-- @Summary The callback function whenever the :Neorg command is executed
@@ -316,5 +318,7 @@ module.public = {
 	version = "0.0.9"
 
 }
+
+module.neorg_post_load = module.public.sync
 
 return module
