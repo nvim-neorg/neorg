@@ -55,8 +55,7 @@ module_autocommands.public = {
 
 		if subscribed_autocommand ~= nil then
 			if subscribed_autocommand == false then
-				-- Change to *.org and *.norg
-				vim.cmd("autocmd " .. autocmd .. " * :lua _neorg_module_autocommand_triggered(\"core.autocommands.events." .. autocmd .. "\")")
+				vim.cmd("autocmd " .. autocmd .. " *.norg :lua _neorg_module_autocommand_triggered(\"core.autocommands.events." .. autocmd .. "\")")
 				subscribed_autocommand = true
 			end
 		end
