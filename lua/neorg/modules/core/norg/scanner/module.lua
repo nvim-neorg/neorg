@@ -55,18 +55,18 @@ module.public = {
 		-- Reset the scanner position back to 0
 		module.private.scanner_position = 0
 
-	-- @Summary Inserts a token into the buffer's token array
-	-- @Description If the token is not empty, insert it into the buffer's token array, else do nothing.
-	-- @Param  token (string) - the token to insert
+		-- @Summary Inserts a token into the buffer's token array
+		-- @Description If the token is not empty, insert it into the buffer's token array, else do nothing.
+		-- @Param  token (string) - the token to insert
 		local insert_token = function(token)
 			if token:len() == 0 then return end
 
 			table.insert(module.private.tokens[buffer_name], token)
 		end
 
-	-- @Summary Detects a token from the current scanner position
-	-- @Description Performs a test to see whether the string located at the scanner position matches the provided token.
-	-- @Param  token (string) - the token to test against
+		-- @Summary Detects a token from the current scanner position
+		-- @Description Performs a test to see whether the string located at the scanner position matches the provided token.
+		-- @Param  token (string) - the token to test against
 		local detect_token = function(token)
 			local search = module.private.buffer_contents:sub(module.private.scanner_position, module.private.scanner_position + token:len() - 1)
 
@@ -74,8 +74,9 @@ module.public = {
 				insert_token(module.private.buffer_contents:sub(previous_token_pos, module.private.scanner_position - 1))
 				insert_token(search)
 
-				module.public.next_char()
-				previous_token_pos = module.private.scanner_position + token:len() - 1
+				module.private.scanner_position = module.private.scanner_position + token:len()
+				previous_token_pos = module.private.scanner_position
+
 				return true
 			end
 
@@ -107,6 +108,22 @@ module.public = {
 
 		-- After parsing the whole document add the remainder of the document to the token list
 		insert_token(module.private.buffer_contents:sub(previous_token_pos))
+
+		-- Go through all the parsed tokens again and strip them of trailing and leading spaces
+		-- We want to preserve other forms of whitespace like tabs and newlines.
+		for i, token in ipairs(module.private.tokens[buffer_name]) do
+
+			-- If the token begins or ends with a space then trim those bits off
+			-- We do this check because vim.trim will also remove newlines and tabs from tokens,
+			-- meaning a token of value "\n" would get eaten up.
+			if token:sub(0, 1) == " " or token:sub(token:len()) == " " then
+
+				-- Modifying the token variable for some reason doesn't modify the tokens table,
+				-- so we do it the hacky way instead
+				module.private.tokens[buffer_name][i] = vim.trim(token)
+			end
+
+		end
 
 		-- Set the current_tokens pointer to the current buffer's tokens
 		module.private.current_tokens = module.private.tokens[buffer_name]
