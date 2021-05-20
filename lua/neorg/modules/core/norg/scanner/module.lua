@@ -99,6 +99,7 @@ module.public = {
 				and not detect_token("`")
 				and not detect_token("@")
 				and not detect_token("~")
+				and not detect_token("$")
 				and not detect_token("end")
 			then
 				-- If no tokens could be found for that scanner position move along
