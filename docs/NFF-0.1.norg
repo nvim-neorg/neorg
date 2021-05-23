@@ -1,10 +1,10 @@
 @document.meta
-	title: The Neorg 0.1 File Format Spec
-	description: A draft of the 0.1 Neorg File Format (NFF-0.1) specification
+	title: The Neorg 0.1 File Format "Spec"
+	description: A file showcasing some of the cool stuff norg will be able to do
 	author: Vhyrro
 end
 
-*_NOTE: This spec is incomplete and still in progress, expect some changes!_*
+*_NOTE: This showcase is incomplete and still in progress, expect some changes!_*
 
 Data can be represented with the magic of `@`. In the above data tag we specify the document's data.
 
