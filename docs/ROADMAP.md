@@ -20,7 +20,7 @@ For starters, I have to set everything up in order to make the project comprehen
 
 The github wiki will consist of:
 - [x] Detailed instructions to install and configure neorg
-- [ ] ~~Documentation for pulling modules from github/interacting with modules~~ currently unimplemented
+- [x] Documentation for pulling modules from github/interacting with modules
 - [x] Documentation for existing core modules
 
 More will be added to this wiki as neorg grows larger and larger.
