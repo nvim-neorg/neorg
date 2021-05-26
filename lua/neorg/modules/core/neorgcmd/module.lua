@@ -144,8 +144,9 @@ module.config.public = {
 	},
 
 	default = {
-		"list.modules",
-		"install",
+		"module.list",
+		"module.install",
+		"module.load",
 		"update"
 	}
 
