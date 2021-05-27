@@ -59,6 +59,10 @@ USAGE:
 			enabled = false,
 			icon = "‑"
 		},
+	},
+
+	-- The value to set `concealcursor` to (see `:h concealcursor`)
+	conceal_cursor = ""
 --]]
 
 require('neorg.modules.base')
@@ -124,7 +128,9 @@ module.config.public = {
 			enabled = false,
 			icon = "‑"
 		},
-	}
+	},
+
+	conceal_cursor = ""
 
 }
 
@@ -146,6 +152,9 @@ module.public = {
 
 			-- Enable concealing for the current buffer
 			vim.cmd [[ setlocal conceallevel=2 ]]
+
+			-- Set the concealcursor as requested
+			vim.cmd("setlocal concealcursor=" .. module.config.public.conceal_cursor)
 
 			-- Define syntax for all the concealable characters
 
