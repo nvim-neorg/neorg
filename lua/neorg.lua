@@ -1,6 +1,6 @@
 --[[
 --	ROOT NEORG FILE
---	This file is the begininng of the entire plugin. It's here that everything fires up and start pumping.
+--	This file is the begininng of the entire plugin. It's here that everything fires up and starts pumping.
 --]]
 
 neorg = {}
@@ -42,7 +42,7 @@ function neorg.org_file_entered(module_list)
 	require('plenary.async_lib.async').async(function()
 
 		-- Create community module directory
-		vim.loop.fs_mkdir(configuration.user_configuration.community_module_path, 16877) -- 0775
+		vim.loop.fs_mkdir(configuration.user_configuration.community_module_path, 16877) -- Permissions: 0775
 
 		-- Add the community-made modules into the package path
 		for _, community_module in ipairs(vim.fn.glob(configuration.user_configuration.community_module_path .. "/*", 0, 1, 1)) do

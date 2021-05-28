@@ -18,7 +18,7 @@ neorg.modules.loaded_module_count = 0
 -- The table of currently loaded modules
 neorg.modules.loaded_modules = {}
 
--- @Summary Load and enables a module
+-- @Summary Loads and enables a module
 -- @Description Loads a specified module. If the module subscribes to any events then they will be activated too.
 -- @Param  module (table) - the actual module to load
 function neorg.modules.load_module_from_table(module)
@@ -36,13 +36,13 @@ function neorg.modules.load_module_from_table(module)
 
 	-- We do not expect module.setup() to ever return nil, that's why this check is in place
 	if not loaded_module then
-		log.error("Module", module.name, "does not handle module loading correctly; module.load() returned nil. Omitting...")
+		log.error("Module", module.name, "does not handle module loading correctly; module.setup() returned nil. Omitting...")
 		return false
 	end
 
 	-- A part of the table returned by module.setup() tells us whether or not the module initialization was successful
 	if loaded_module.success == false then
-		log.warn("Module", module.name, "did not load.")
+		log.warn("Module", module.name, "did not load properly.")
 		return false
 	end
 
@@ -53,6 +53,7 @@ function neorg.modules.load_module_from_table(module)
 	--]]
 	local module_to_replace
 
+	-- If the return value of module.setup() tells us to hotswap with another module then cache the module we want to replace with
 	if loaded_module.replaces and loaded_module.replaces ~= "" then
 		module_to_replace = vim.deepcopy(neorg.modules.loaded_modules[loaded_module.replaces])
 	end
@@ -134,7 +135,7 @@ end
 
 -- @Summary Loads a module from disk
 -- @Description Unlike load_module_from_table(), which loads a module from memory, load_module() tries to find the corresponding module file on disk and loads it into memory.
--- If the module could not be found, attempt to load it off of github. This function also applies user-defined configurations and keymaps to the modules themselves.
+-- If the module cannot not be found, attempt to load it off of github (unimplemented). This function also applies user-defined configurations and keymaps to the modules themselves.
 -- This is the recommended way of loading modules - load_module_from_table() should only really be used by neorg itself.
 -- @Param  module_name (string) - a path to a module on disk. A path seperator in neorg is '.', not '/'
 -- @Param  shortened_git_address (string) - for example "vhyrro/neorg", tells neorg where to look on github if a module can't be found locally
@@ -149,9 +150,7 @@ function neorg.modules.load_module(module_name, shortened_git_address, config)
 	-- Attempt to require the module, does not throw an error if the module doesn't exist
 	local exists, module
 
-	-- (vim.schedule_wrap(function()
 	exists, module = pcall(require, "neorg.modules." .. module_name .. ".module")
-	-- end))()
 
 	-- If the module can't be found, try looking for it on GitHub (currently unimplemented :P)
 	if not exists then
@@ -159,7 +158,10 @@ function neorg.modules.load_module(module_name, shortened_git_address, config)
 	end
 
 	-- If the module is nil for some reason return false
-	if not module then return false end
+	if not module then
+		log.error("Unable to load module", module_name, "- loaded file returned nil. Be sure to return the table created by neorg.modules.create() at the end of your module.lua file!")
+		return false
+	end
 
 	-- Load the user-defined configurations and keymaps
 	if config and not vim.tbl_isempty(config) then
@@ -265,25 +267,31 @@ end
 -- @Return struct | nil (if any error occurs)
 function neorg.modules.get_module_version(module_name)
 
+	-- If the module isn't loaded then don't bother retrieving its version
 	if not neorg.modules.is_module_loaded(module_name) then
 		log.warn("Attempt to get module version with name", module_name, "failed - module is not loaded.")
 		return nil
 	end
 
+	-- Grab the version of the module
 	local version = neorg.modules.get_module(module_name).version
 
+	-- If it can't be found then error out
 	if not version then
 		log.warn("Attempt to get module version with name", module_name, "failed - version variable not present.")
 		return nil
 	end
 
+	-- Define variables that split the version up into 3 slices
 	local split_version, versions, ret = vim.split(version, ".", true), { "major", "minor", "patch" }, { major = 0, minor = 0, patch = 0 }
 
+	-- If the sliced version string has more than 3 elements error out
 	if #split_version > 3 then
 		log.warn("Attempt to get module version with name", module_name, "failed - too many version numbers provided. Version should follow this layout: <major>.<minor>.<patch>")
 		return nil
 	end
 
+	-- Loop through all the versions and check whether they are valid numbers. If they are, add them to the return table
 	for i, ver in ipairs(versions) do
 		local num = tonumber(split_version[i])
 
