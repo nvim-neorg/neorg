@@ -49,20 +49,24 @@ Things to be done in this release:
 - [x] Allow the installation of modules from github using `:Neorg install some/address` (**DONE** 2021-05-08)
 - [x] Allow all community modules to be updated with `:Neorg update modules` (**DONE** 2021-05-12)
 - [x] Allow the user to change the community module directory (**DONE** 2021-05-10)
-- [x] Start work on a basic specification for the .norg file format. The name of this file format will be NFF-0.1 (Neorg File Format 0.1). The community will be asked about what they think before the specification is pushed (join the [discord](https://discord.gg/T6EgTAX7ht) if you haven't already). (**DONE** 2021-05-12)
+- [x] Start work on a basic "specification" for the .norg file format. The name of this file format will be NFF-0.1 (Neorg File Format 0.1). The community will be asked about what they think before the specification is pushed (join the [discord](https://discord.gg/T6EgTAX7ht) if you haven't already). (**DONE** 2021-05-12)
 - [x] Add custom modes to neorg - take neovim's modal design and take it to its limit. Modes will be primarily used to isolate keybindings from each other, but will also allow modules to perform different tasks based on the mode.
+- [x] Implement metamodules. These modules will be an easy way to `require` a large batch of modules without the user having to specify each individual module they prefer. For example, a `default` metamodule may exist in order to include all the basic modules that neorg has to efficiently edit norg files. (**DONE** 2021-05-04)
+- [x] Implement a `core.norg.concealer` module - this module will make the experience much more aesthetically pleasing by using icons for bits of text rather than raw text itself (**DONE** 2021-05-28).
+- [ ] Allow todo items to be checked, unchecked and marked as pending with a keybind.
+- [ ] Extend functionality of metamodules, allow each module within the metamodule to be configured.
+- [ ] Module to manage directories where .norg files can be stored.
+- [ ] Telescope.nvim plugin to interact with above module and fuzzy find .norg files.
+- [ ] Refine and finalize the .norg spec. This spec will try to be similar to other markdown formats, but does not promise to keep everything the same. The goal is as little ambiguity and as much predictability as possible.
 - [x] Begin implementing the norg parser module. This will be the most complex module out of all the ones that will exist in neorg, so this one will take a while. The norg parser will generate a syntax tree from the current norg file. Other modules will be able to interface with this syntax tree, and the corresponding buffer will update accordingly (both the syntax tree and the actual buffer will be in sync). This is where the heart of neorg will reside, which is why the most effort needs to be put into it in order to make it truly extensible.
 	- [x] Start work on the scanner (**DONE** - the scanner is complete, however currently it is only that - a scanner. It needs to be rewritten and instead implemented as a lexer for greater flexibility.)
 	- [ ] Create the parser - the parser takes inputs from the lexer and converts it into an abstract syntax tree.
-- [x] Implement metamodules. These modules will be an easy way to `require` a large batch of modules without the user having to specify each individual module they prefer. For example, a `default` metamodule may exist in order to include all the basic modules that neorg has to efficiently edit norg files. (**DONE** 2021-05-04)
-- [ ] Add more API functions. These functions will just allow any module to more easily interact with the environment around them; some quality-of-life stuff.
-- [ ] After all the core stuff is out of the way, the first module to actually do organizational stuff will be born - enter `core.org.headings`. This module will handle headings and subheadings, and will work together with the `core.norg` parser to provide extra functionality. Things it will be able to do are inserting and deleting headings, changing the indentation level of a heading, having fancy icons and colours and having keybinds to make the experience more vim-like and streamlined.
 
 Things that might be done in this release:
 - [x] Asynchronous module loading - on the surface this seems very trivial, but I have encountered a problem I cannot find a solution to online. The module loader uses pcall() to require the modules (in case they don't exist), but the problem is pcall just does not work asynchronously, no matter what I tried. Until a fix isn't found for this, async module loading will not be a possibility. I might be just dumb though in which case let me know how to fix it :) (**DONE** 2021-05-03 | Migrated over to plenary.nvim, all works awesome now)
-- [ ] Automatic grabbing from GitHub - if a module cannot be found when the `neorg.modules.load...()` family of functions are invoked then asynchronously grab it from GitHub then try again. This one has proven to be a bit difficult for me, as I do not have much experience with async lua yet. This feat could probably be achieved with coroutines, but I am not certain. If you do know, contact me!
-- [ ] Tangling. This feature will allow you to write your own configs in neorg, which would be a massive flex.
+- [ ] Automatic grabbing from GitHub - if a module cannot be found when the `neorg.modules.load...()` family of functions are invoked then asynchronously grab it from GitHub then try again. This one has proven to be a bit difficult for me.
 - [ ] Add a module for efficiently managing and manipulating vim windows, be it splits, floating windows etc.
+- [ ] Add more API functions. These functions will just allow any module to more easily interact with the environment around them; some quality-of-life stuff.
 
 # Plans after 0.1
 > Ok that's pretty cool, so after 0.1 I should be at least able to do some basic stuff, right? What's next though?
