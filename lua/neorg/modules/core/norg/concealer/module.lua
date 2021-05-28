@@ -136,7 +136,10 @@ module.config.public = {
 
 module.public = {
 
+	-- @Summary Activates concealing for the current window
+	-- @Description Parses the user configuration and enables concealing for the current window.
 	trigger_conceal = function()
+
 		vim.schedule(function()
 
 			-- @Summary Creates a new conceal
@@ -151,10 +154,10 @@ module.public = {
 			end
 
 			-- Enable concealing for the current buffer
-			vim.cmd [[ setlocal conceallevel=2 ]]
+			vim.wo.conceallevel = 2
 
 			-- Set the concealcursor as requested
-			vim.cmd("setlocal concealcursor=" .. module.config.public.conceal_cursor)
+			vim.wo.concealcursor = module.config.public.conceal_cursor
 
 			-- Define syntax for all the concealable characters
 
@@ -175,6 +178,25 @@ module.public = {
 				create_syntax_match("NeorgTaskPending", [[ /\%\(^\s*\-\s\+\)\@<=\[\s*\*\s*\]\%\(\s\+\)\@=/ ]], module.config.public.icons.todo.pending)
 			end
 
+		end)
+
+	end,
+
+	-- @Summary Clears all the conceals that neorg has defined
+	-- @Description Uses the `:syntax clear` command to remove all active conceals
+	clear_conceal = function()
+		vim.schedule(function()
+			vim.cmd [[
+				silent! syntax clear NeorgUnorderedList
+				silent! syntax clear NeorgQuote
+				silent! syntax clear NeorgHeading1
+				silent! syntax clear NeorgHeading2
+				silent! syntax clear NeorgHeading3
+				silent! syntax clear NeorgHeading4
+				silent! syntax clear NeorgTaskDone
+				silent! syntax clear NeorgTaskUndone
+				silent! syntax clear NeorgTaskPending
+			]]
 		end)
 	end
 
