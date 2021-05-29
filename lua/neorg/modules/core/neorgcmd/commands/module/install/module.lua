@@ -1,12 +1,12 @@
 --[[
--- GitHub installer for neorg modules (WIP)
+	GitHub installer for neorg modules (WIP)
+USAGE:
+	After loading the module run `:Neorg install `
 --]]
 
 require('neorg.modules.base')
 
 local module = neorg.modules.create("core.neorgcmd.commands.install")
-
-local log = require('neorg.external.log')
 
 module.setup = function()
 	return { success = true, requires = { "core.module_manager" } }
@@ -16,12 +16,20 @@ module.config.public = {
 
 	neorg_commands = {
 		definitions = {
-			install = {}
+			module = {
+				install = {}
+			}
 		},
 		data = {
-			install = {
-				min_args = 1,
-				name = "install"
+			module = {
+				args = 1,
+
+				subcommands = {
+					install = {
+						min_args = 1,
+						name = "module.install"
+					}
+				}
 			}
 		}
 	}
@@ -44,7 +52,7 @@ end
 
 module.events.subscribed = {
 	["core.neorgcmd"] = {
-		install = true
+		["module.install"] = true
 	}
 }
 
