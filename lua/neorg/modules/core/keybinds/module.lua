@@ -27,7 +27,7 @@ USAGE:
 		broadcast = false
 	}
 
-For more info, consult the wiki entry here: <insert link when it's done>
+For more info, consult the wiki entry here: https://github.com/vhyrro/neorg/wiki/Keybinds
 
 --]]
 
