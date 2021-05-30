@@ -13,7 +13,7 @@ module.setup = function()
 	return { success = true, requires = { "core.neorgcmd" } }
 end
 
-module.config.public = {
+module.public = {
 
 	neorg_commands = {
 		definitions = {

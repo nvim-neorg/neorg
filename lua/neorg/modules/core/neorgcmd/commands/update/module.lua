@@ -10,7 +10,7 @@ module.setup = function()
 	return { success = true, requires = { "core.neorgcmd", "core.module_manager" } }
 end
 
-module.config.public = {
+module.public = {
 	neorg_commands = {
 		definitions = {
 			update = {

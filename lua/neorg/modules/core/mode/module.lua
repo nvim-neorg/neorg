@@ -30,14 +30,20 @@ local module = neorg.modules.create("core.mode")
 local log = require('neorg.external.log')
 
 module.config.public = {
-	-- All the currently defined modes
-	modes = {
-		"norg"
-	},
 
 	-- As the name suggests, stores the current and previous mode
 	current_mode = "norg",
 	previous_mode = "norg",
+
+}
+
+module.public = {
+
+
+	-- All the currently defined modes
+	modes = {
+		"norg"
+	},
 
 	-- Define command for :Neorg
 	neorg_commands = {
@@ -53,10 +59,8 @@ module.config.public = {
 				name = "set-mode"
 			}
 		}
-	}
-}
+	},
 
-module.public = {
 	-- @Summary Adds a new mode to the list of available modes
 	-- @Description This function lets the core.mode module know that a new mode should be added. This will be used in autocompletion for the :Neorg command
 	-- @Param  mode_name (string) - the name of the mode to add

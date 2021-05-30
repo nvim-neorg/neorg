@@ -5,4 +5,4 @@
 
 require('neorg.modules.base')
 
-return neorg.modules.create_meta("core.defaults", "core.neorgcmd", "core.mode", "core.norg.qol.todo_items")
+return neorg.modules.create_meta("core.defaults", "core.neorgcmd", "core.keybinds", "core.mode", "core.norg.qol.todo_items")
