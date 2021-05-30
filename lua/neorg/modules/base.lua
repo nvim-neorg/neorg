@@ -127,10 +127,30 @@ end
 -- @Param  ... (varargs) - a list of module names to load.
 function neorg.modules.create_meta(name, ...)
 
-	local module, unpacked = neorg.modules.create(name), { ... }
+	local module = neorg.modules.create(name)
+
+	module.config.public.enable = { ... }
 
 	module.setup = function()
-		return { success = true, requires = unpacked }
+		return { success = true, requires = (function()
+			-- If we haven't define any modules to disable then just return all enabled modules
+			if not module.config.public.disable then
+				return module.config.public.enable
+			end
+
+			local ret = {}
+
+			-- For every enabled module
+			for _, mod in ipairs(module.config.public.enable) do
+				-- If that module does not exist in the disable table (ie. it is enabled) then add it to the `ret` table
+				if not vim.tbl_contains(module.config.public.disable, mod) then
+					table.insert(ret, mod)
+				end
+			end
+
+			-- Return the table containing all the modules we would like to enable
+			return ret
+		end)() }
 	end
 
 	module.unload = function()
