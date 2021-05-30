@@ -54,7 +54,7 @@ Things to be done in this release:
 - [x] Implement metamodules. These modules will be an easy way to `require` a large batch of modules without the user having to specify each individual module they prefer. For example, a `default` metamodule may exist in order to include all the basic modules that neorg has to efficiently edit norg files. (**DONE** 2021-05-04)
 - [x] Implement a `core.norg.concealer` module - this module will make the experience much more aesthetically pleasing by using icons for bits of text rather than raw text itself (**DONE** 2021-05-28).
 - [x] Allow todo items to be checked, unchecked and marked as pending with a keybind. (**DONE** 2021-05-29)
-- [ ] Extend functionality of metamodules, allow each module within the metamodule to be configured.
+- [x] Extend functionality of metamodules, allow individual modules from a metamodule to be selectively disabled (**DONE** 2021-05-30).
 - [ ] Module to manage directories where .norg files can be stored.
 - [ ] Telescope.nvim plugin to interact with above module and fuzzy find .norg files.
 - [ ] Refine and finalize the .norg spec. This spec will try to be similar to other markdown formats, but does not promise to keep everything the same. The goal is as little ambiguity and as much predictability as possible.
