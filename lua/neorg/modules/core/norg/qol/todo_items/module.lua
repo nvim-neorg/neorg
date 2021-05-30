@@ -1,32 +1,29 @@
 --[[
-	Module for adding helper keybinds to todo items.
-USAGE:
-	After loading the module 3 keybinds will be activated:
-		- `gtd` -> g t(ask) d(one), marks a task as done
-		- `gtu` -> g t(ask) u(ndone), marks a task as undone
-		- `gtp` -> g t(ask) p(ending), marks a task as pending
+	Module for implementing todo lists.
 
-	These keybinds only work when within the norg mode, which is the mode that neorg launches in by default.
-	These can be rebound, obviously. If you would like your keys to be bound under <Leader>, you can configure
-	the module like so:
+    Available binds:
+    - todo.task_done
+    - todo.task_undone
+    - todo.task_pending
+    - todo.task_cycle
 
-	require('neorg').setup {
-		load = {
-			["core.norg.qol.todo_items"] = {
-				config = {
-					norg = {
-						["<Leader>td"] = {
-							mode = "n",
-							name = "todo.task_done", -- Make sure it has this name
-							opts = { noremap = true, silent = true }
-						}
+    TODO: get rid of the pattern matching stuff within the on_event() local functions once the scanner module is ready
+    TODO: use sym.states withing the on_event() local funtions once global utility functions become a thing
+    TODO: make events name processing like a domain name such as making:
 
-						-- Available `name`s are `todo.task_done`, `todo.task_undone` and `todo.task_pending`
-					}
-				}
-			}
-		}
-	}
+		["core.norg.qol.todo_items.todo.task_done"] = true,
+		["core.norg.qol.todo_items.todo.task_undone"] = true,
+		["core.norg.qol.todo_items.todo.task_pending"] = true,
+		["core.norg.qol.todo_items.todo.task_cycle"] = true
+
+    The same as:
+
+        ["core.norg.qol.todo_items.todo] = {
+            [task_done"] = true
+            [task_undone"] = true
+            [task_pending"] = true
+            [task_cycle"] = true
+        }
 --]]
 
 require('neorg.modules.base')
@@ -37,64 +34,85 @@ module.setup = function()
 	return { success = true, requires = { "core.keybinds" } }
 end
 
-module.config.public = {
-	keybinds = {
-		["norg"] = {
-			["gtd"] = {
-				mode = "n",
-				name = "todo.task_done",
-				prefix = false,
-				opts = { noremap = true, silent = true }
-			},
-			["gtu"] = {
-				mode = "n",
-				name = "todo.task_undone",
-				prefix = false,
-				opts = { noremap = true, silent = true }
-			},
-			["gtp"] = {
-				mode = "n",
-				name = "todo.task_pending",
-				prefix = false,
-				opts = { noremap = true, silent = true }
-			}
-		}
-	}
+module.config.private = {
+    sym = {
+        states = {
+            done = "x",
+            undone = " ",
+            pending = "*",
+        },
+        left_bracket = "[",
+        right_bracket = "]",
+    }
 }
 
+module.load = function()
+    -- TODO: create a utility function that takes a module name and table of binds to clean this up
+    module.required["core.keybinds"].register_callback("core.norg.qol.todo_items", "todo.task_done")
+    module.required["core.keybinds"].register_callback("core.norg.qol.todo_items", "todo.task_undone")
+    module.required["core.keybinds"].register_callback("core.norg.qol.todo_items", "todo.task_pending")
+    module.required["core.keybinds"].register_callback("core.norg.qol.todo_items", "todo.task_cycle")
+end
+
 module.on_event = function(event)
+    local sym = module.config.private.sym
 
 	if event.split_type[1] == "core.keybinds" then
 
-		local change_todo_item = function(char)
+		local set_todo_item_state = function(state)
 			local current_line = vim.api.nvim_get_current_line()
-			local str, _ = current_line:gsub("^(%s*%-%s+%[%s*)[x%*%s](%s*%]%s+)", "%1" .. char .. "%2", 1)
+			local str, _ = current_line:gsub("^(%s*%-%s+%"..sym.left_bracket.."%s*)[x%*%s](%s*%"..sym.right_bracket.."%s+)", "%1" .. state .. "%2", 1)
+			if current_line ~= str then vim.api.nvim_set_current_line(str) end
+		end
 
-			if current_line ~= str then
-				vim.api.nvim_set_current_line(str)
-			end
+		local get_todo_item_state = function()
+            local current_line = vim.api.nvim_get_current_line()
+            for s in (current_line):gmatch "%[[x%s%*]%]" do
+                return s:sub(2, 2)
+            end
+		end
+
+		local cycle_todo_item = function()
+            local states = { "x", " ", "*" }
+		    local next_state = ""
+
+		    local state = get_todo_item_state()
+
+            for i, v in ipairs(states) do
+                if (state == v) then
+                    if (i == #states) then
+                        i = 1
+                    else
+                        i = i+1
+                    end
+
+                    next_state = states[i]
+                end
+            end
+            
+            set_todo_item_state(next_state)
 		end
 
 		if event.split_type[2] == "core.norg.qol.todo_items.todo.task_done" then
-			change_todo_item("x")
+			set_todo_item_state(sym.states.done)
 		elseif event.split_type[2] == "core.norg.qol.todo_items.todo.task_undone" then
-			change_todo_item(" ")
+			set_todo_item_state(sym.states.undone)
 		elseif event.split_type[2] == "core.norg.qol.todo_items.todo.task_pending" then
-			change_todo_item("*")
+			set_todo_item_state(sym.states.pending)
+		elseif event.split_type[2] == "core.norg.qol.todo_items.todo.task_cycle" then
+			cycle_todo_item()
 		end
 
 	end
-
 end
 
 module.events.subscribed = {
-
 	["core.keybinds"] = {
 		["core.norg.qol.todo_items.todo.task_done"] = true,
 		["core.norg.qol.todo_items.todo.task_undone"] = true,
-		["core.norg.qol.todo_items.todo.task_pending"] = true
+		["core.norg.qol.todo_items.todo.task_pending"] = true,
+		["core.norg.qol.todo_items.todo.task_cycle"] = true
 	}
-
 }
 
 return module
