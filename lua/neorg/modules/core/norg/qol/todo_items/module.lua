@@ -61,35 +61,34 @@ module.on_event = function(event)
 
 		local set_todo_item_state = function(state)
 			local current_line = vim.api.nvim_get_current_line()
-			local str, _ = current_line:gsub("^(%s*%-%s+%"..sym.left_bracket.."%s*)[x%*%s](%s*%"..sym.right_bracket.."%s+)", "%1" .. state .. "%2", 1)
+			local str, _ = current_line:gsub("^(%s*%-%s+%" .. sym.left_bracket .. "%s*)[x%*%s](%s*%"..sym.right_bracket.."%s+)", "%1" .. state .. "%2", 1)
 			if current_line ~= str then vim.api.nvim_set_current_line(str) end
 		end
 
 		local get_todo_item_state = function()
-            local current_line = vim.api.nvim_get_current_line()
-            for s in (current_line):gmatch "%[[x%s%*]%]" do
-                return s:sub(2, 2)
-            end
+			return vim.api.nvim_get_current_line():match("^%s*%-%s+%" .. sym.left_bracket .. "%s*([x%*%s])%s*%"..sym.right_bracket.."%s+")
 		end
 
 		local cycle_todo_item = function()
-            local states = { "x", " ", "*" }
-		    local next_state = ""
+			local states = { " ", "*", "x" }
+			local next_state = get_todo_item_state()
 
-		    local state = get_todo_item_state()
+			if not next_state then return end
 
-            for i, v in ipairs(states) do
-                if (state == v) then
-                    if (i == #states) then
-                        i = 1
-                    else
-                        i = i+1
-                    end
+			for i, state in ipairs(states) do
+				if next_state == state then
+					if i == #states then
+						i = 1
+					else
+						i = i + 1
+					end
 
-                    next_state = states[i]
-                end
-            end
-            
+					next_state = states[i]
+
+					break
+				end
+			end
+
             set_todo_item_state(next_state)
 		end
 
