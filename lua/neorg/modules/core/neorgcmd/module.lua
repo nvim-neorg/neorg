@@ -193,6 +193,7 @@ module.public = {
 	-- @Description Rereads data from all modules and rebuild the list of available autocompletions and commands
 	sync = function()
 		-- Loop through every loaded module and set up all their commands
+		module.public.neorg_commands = {}
 		for _, mod in pairs(neorg.modules.loaded_modules) do
 			if mod.public.neorg_commands then
 				module.public.add_commands_from_table(mod.public.neorg_commands)

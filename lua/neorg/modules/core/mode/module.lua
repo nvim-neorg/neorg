@@ -8,6 +8,7 @@ USAGE:
 	To set the current mode, use the public set_mode("my-mode-name").
 	To retrieve the current mode name, use get_mode().
 	To retrieve the *previous* mode name, use get_previous_mode().
+	To retrieve *all* modes, use get_modes()
 
 	If core.neorgcmd is loaded, core.mode.public.add_mode() also updates the autocompletion for the :Neorg set-mode command,
 	which can be used by the user to switch modes.
@@ -37,13 +38,14 @@ module.config.public = {
 
 }
 
-module.public = {
-
-
+module.private = {
 	-- All the currently defined modes
 	modes = {
 		"norg"
 	},
+}
+
+module.public = {
 
 	-- Define command for :Neorg
 	neorg_commands = {
@@ -76,10 +78,10 @@ module.public = {
 		neorg.events.broadcast_event(module, neorg.events.create(module, "core.mode.events.mode_created", { current = module.config.public.current_mode, new = mode_name }))
 
 		-- Define the tables and append the new mode to the list of modes
-		table.insert(module.config.public.modes, mode_name)
-		module.config.public.neorg_commands.definitions["set-mode"][mode_name] = {}
+		table.insert(module.private.modes, mode_name)
+		module.public.neorg_commands.definitions["set-mode"][mode_name] = {}
 
-		-- If core.neorgcmd is loaded then update all autocompletion
+		-- If core.neorgcmd is loaded then update all autocompletions
 		local neorgcmd = neorg.modules.get_module("core.neorgcmd")
 
 		if neorgcmd then
@@ -114,6 +116,8 @@ module.public = {
 	-- @Summary Gets the previous mode
 	-- @Description Retrieves the mode that was set before the current one
 	get_previous_mode = function() return module.config.public.previous_mode end,
+
+	get_modes = function() return module.private.modes end,
 
 	version = "0.0.9"
 }
