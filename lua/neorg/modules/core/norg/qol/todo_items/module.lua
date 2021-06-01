@@ -9,12 +9,6 @@
 
     TODO: get rid of the pattern matching stuff within the on_event() local functions once the scanner module is ready
     TODO: use sym.states within the on_event() local funtions once global utility functions become a thing
-    TODO: make events name processing like a domain name such as making:
-
-		["core.norg.qol.todo_items.todo.task_done"] = true,
-		["core.norg.qol.todo_items.todo.task_undone"] = true,
-		["core.norg.qol.todo_items.todo.task_pending"] = true,
-		["core.norg.qol.todo_items.todo.task_cycle"] = true
 
     The same as:
 
@@ -47,11 +41,7 @@ module.config.private = {
 }
 
 module.load = function()
-    -- TODO: create a utility function that takes a module name and table of binds to clean this up
-    module.required["core.keybinds"].register_callback("core.norg.qol.todo_items", "todo.task_done")
-    module.required["core.keybinds"].register_callback("core.norg.qol.todo_items", "todo.task_undone")
-    module.required["core.keybinds"].register_callback("core.norg.qol.todo_items", "todo.task_pending")
-    module.required["core.keybinds"].register_callback("core.norg.qol.todo_items", "todo.task_cycle")
+	module.required["core.keybinds"].register_keybinds(module.name, { "todo.task_done", "todo.task_undone", "todo.task_pending", "todo.task_cycle" })
 end
 
 module.on_event = function(event)

@@ -104,12 +104,20 @@ function _neorgcmd_generate_completions(_, command)
 		return vim.tbl_filter(function(key) return key:find(split_command[#split_command]) end, vim.tbl_keys(ref))
 	end
 
+	-- Splice the command to omit the beginning :Neorg bit
+	local sliced_split_command = vim.list_slice(split_command, 2)
+
+	-- If the last element is not an empty string then add it, it serves as a terminator for neorgcmd's completion
+	if sliced_split_command[#sliced_split_command] ~= "" then
+		sliced_split_command[#sliced_split_command] = ""
+	end
+
 	-- This is where the magic begins - recursive reference assignment
 	-- What we do here is we recursively traverse down the module.public.neorg_commands.definitions
 	-- table and provide autocompletion based on how many commands we have typed into the :Neorg command.
 	-- If we e.g. type ":Neorg list " and then press Tab we want to traverse once down the table
 	-- and return all the contents at the first recursion level of that table.
-	for _, cmd in ipairs(vim.list_slice(split_command, 2)) do
+	for _, cmd in ipairs(sliced_split_command) do
 		if ref[cmd] then ref = ref[cmd] else break end
 	end
 
