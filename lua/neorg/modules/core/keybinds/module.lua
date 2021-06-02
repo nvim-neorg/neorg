@@ -1,3 +1,16 @@
+--[[
+	Module for managing keybindings with neorg mode support.
+
+Usage:
+	Register keys with core.keybinds's public register_keybind(module_name, name) and register_keybinds(module_name, name) functions.
+
+	Received events come with the type of `core.keybinds.events.<module_name>.<name>`.
+	To invoke a keybind, execute `:Neorg keybind <mode> <keybind_path>`, where <mode> is the mode that the keybind will only execute in and
+	<keybind_path> is a path like "core.norg.qol.todo_items.todo.task_done".
+
+	Keybindings must be explicitly bound by the user themselves, see https://github.com/vhyrro/neorg/wiki/Keybinds and
+	https://github.com/vhyrro/neorg/wiki/User-Keybinds for more info.
+--]]
 
 require('neorg.modules.base')
 
