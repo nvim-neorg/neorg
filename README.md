@@ -13,13 +13,18 @@
 
 ---
 
+Life Organization Tool Written in Lua
+
 [Introduction](#introduction)
 •
 [Installation](#installation)
 •
 [Usage](#usage-questions)
 •
+[Keybinds](#keybinds)
+•
 [Wiki](#consult-the-wiki)
+
 </div>
 
 ---
@@ -43,72 +48,56 @@ Neorg is a plugin designed to help you manage your day-to-day life in ways you h
 # Installation
 ## Using Packer
 
-> :exclamation: Neorg requires [plenary](https://github.com/nvim-lua/plenary.nvim) to operate, make sure to install it before you install neorg.
+> :exclamation: Neorg requires [plenary](https://github.com/nvim-lua/plenary.nvim) to operate, make sure to install it before you install Neorg.
 
 If you don't know what you're doing, just run this:
 
 ```lua
-use { 'vhyrro/neorg', config = function()
+use { 'vhyrro/neorg', requires = { 'nvim-lua/plenary.nvim' }, config = function()
 
 	require('neorg').setup {
 		load = {
-			['core.defaults'] = {} -- Load all the default modules
+			["core.defaults"] = {}, -- Load all the default modules
+			["core.norg.concealer"] = {} -- Enhances the text editing experience by using icons
 		},
 
 		-- Tells neorg where to load community provided modules. If unspecified, this is the default
 		community_module_path = vim.fn.stdpath("cache") .. "/neorg_community_modules"
 	}
 
-end, requires = { 'nvim-lua/plenary.nvim' }}
-```
-
-If you want bleeding-edge features (may require Neovim HEAD):
-
-```lua
-use { 'vhyrro/neorg', branch = 'unstable', config = function()
-	...
-end, requires = { 'nvim-lua/plenary.nvim' }}
-```
-
-:exclamation: **NOTE**: Neorg does not currently support actual org mode features (see [usage questions](#usage-questions) below).
-The below code snippet is for people who are familiar with the structure of neorg.
-
-```lua
-use { 'vhyrro/neorg', config = function()
-	require('neorg').setup {
-		load = {
-			["your.module"] = { config = { ... } }
-		}
-	}
 end}
 ```
 
-Don't understand the above code snippet? Check out the [installation section](https://github.com/vhyrro/neorg/wiki/Installation) of the GitHub Wiki.
+###### :robot: For the latest and greatest features check out the *unstable* branch
+
+Don't understand the above code snippet and want to learn more?
+Check out the [installation section](https://github.com/vhyrro/neorg/wiki/Installation) of the GitHub Wiki.
 
 Then run `:PackerSync`
 
 # WIP
-As can be seen, this plugin is a work in progress - these magical features don't come out of nowhere, you know. Despite not providing any end-user features *yet*, it does provide an incredible foundation for developers willing to spend some time writing code for the plugin:
+As can be seen, this plugin is a work in progress - these magical features don't come out of nowhere, you know. Despite only providing a few front-end features, it does provide an incredible foundation for developers willing to spend some time writing code for the plugin:
 - The module system; the module system is an extensible way to manage and interface with code. Modules are pay-for-what-you-use tables that can get loaded and unloaded at will. They can subscribe to events using the powerful event system and can directly communicate with each other - they can even expose their own public APIs and configuration to be edited by the user. Example modules can be found [here](/lua/neorg/modules/core) and a full tutorial for developing with modules can be found [in the wiki](https://github.com/vhyrro/neorg/wiki/Creating-Modules).
 - The event system; the event system is the way for said modules to communicate. Events can be broadcast to all subscribed modules or to individual modules as well, they can hold any sort of data you'd want to transport to another plugin, things like the current cursor position, line content etc. The choice is yours really.
 
-Note that the neorg API may (and probably will be) subject to change! I'll try to refrain from breaking changes unless absolutely necessary, and will let developers know a while beforehand so they can update their modules. The API will stabilize after neorg becomes a bit more mature, so stick with me for now!
+Note that the Neorg API may (and probably will) be subject to change! I'll try to refrain from breaking changes unless absolutely necessary, and will let developers know a while beforehand so they can update their modules. The API will stabilize after Neorg becomes a bit more mature, so stick with me for now!
+
+# Keybinds
+Be default Neorg does not come with any keybinds bound automatically. The recommended list of keybinds that you can just copy and paste into your own configuration can be found
+[here](https://github.com/vhyrro/neorg/wiki/User-Keybinds#keybind-megalist).
 
 # Usage Questions
-A lot of people are asking about how to use neorg - so let me reinstantiate what can be seen in the [WIP](#wip) section.
+To use Neorg, simply open up a file with the `.norg` extension and start typing! As of right now, Neorg only supports a few front-end features,
+like concealing TODO items into nice icons and toggling between different TODO states. Currently a work-in-progress specification for the Neorg File Format
+is being developed, so you can look forward to that!
 
-Since neorg is a very young project there are currently no features *for the end user yet*. This means you can't insert your favourite headings and take notes just yet. The focus as of right now is on the **core**, the very foundation neorg is built on. Without a solid core, you can't make a solid plugin, correct? A weak core would also directly impact both the longevity *and* extensiblity, and we want this plugin to live for as long as possible :P
-
-Don't get the impression that neorg will be forever like this, this is just where we are because the project isn't fully mature yet. You can expect this plugin to do everything org-mode can (and maybe even more!).
-
-**If you want a reference for the progress we have made so far**, [look at the roadmap](/docs/ROADMAP.md). Optionally you can check out the [github projects page](https://github.com/vhyrro/neorg/projects) too!
-
-If there's anything you should know *for now* is that neorg (obviously) only triggers on .norg and .org files. So if you're testing your favourite module and nothing happens that might be a potential reason.
+**If you want a reference for the progress we have made so far**, [look at the roadmap](/docs/ROADMAP.md).
 
 **TL;DR**: check out the roadmap. Also, all we need is just a little more time, sorry about that. For the latest and greatest check out the unstable branch :)
 
 # Consult The Wiki!
-You can take a look at all the explanations in the [official GitHub wiki](https://github.com/vhyrro/neorg/wiki)!
+Sometimes you may feel lost whenever you try doing something in Neorg, you can take a look at all the explanations in the [official GitHub wiki](https://github.com/vhyrro/neorg/wiki)!
+Basically everything is covered there.
 
 # Contributing
 I really looove contributions! That's what this whole project is about - it's a really big plugin, so any help is appreciated :heart:. Don't know what to implement? Don't worry, a [roadmap](/docs/ROADMAP.md) is available. The projects are pretty big there, so if you're truly stuck then you can always ask me personally!
@@ -116,8 +105,10 @@ I really looove contributions! That's what this whole project is about - it's a 
 Come chat with me on [discord](https://discord.gg/T6EgTAX7ht)!
 
 Also, if you love what I do and want to professionally support my work, boost development etc. drop me a few bucks will ya. Making this my job would be like a dream come true.
+Money will also be put towards hosting an official Neorg website and also towards future Neovim projects! I've got a really few good ideas in mind :)
 
 Links for the rich lads:
 - [Buy me a coffee](https://www.buymeacoffee.com/vhyrro)
 - [Donate directly on Paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
 - [Support me on patreon!](https://patreon.com/vhyrro)
+- [Support me on Liberapay](https://liberapay.com/Vhyrro)
