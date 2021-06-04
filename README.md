@@ -93,7 +93,8 @@ is being developed, so you can look forward to that!
 
 **If you want a reference for the progress we have made so far**, [look at the roadmap](/docs/ROADMAP.md).
 
-**TL;DR**: check out the roadmap. Also, all we need is just a little more time, sorry about that. For the latest and greatest check out the unstable branch :)
+Neorg is constantly growing and new features are being added every day. Most of them are internal features to make Neorg the most powerful plugin currently out there,
+but we haven't forgotten about you! After all the internal stuff gets done and dusted we'll be constantly working to give you everything you'd expect, and we hope you stick with us on this amazing journey!
 
 # Consult The Wiki!
 Sometimes you may feel lost whenever you try doing something in Neorg, you can take a look at all the explanations in the [official GitHub wiki](https://github.com/vhyrro/neorg/wiki)!
