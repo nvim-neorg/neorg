@@ -34,6 +34,8 @@ With the introduction of lua, we *will* fight back.
 
 ---
 
+##### Haven't seen much progress on the repo? I'm still alive! See [here](#progress).
+
 # Introduction
 Neorg is a plugin designed to help you manage your day-to-day life in ways you haven't thought of before. Think of this plugin as the ultimate way of making your life easier.
 
@@ -74,6 +76,14 @@ Don't understand the above code snippet and want to learn more?
 Check out the [installation section](https://github.com/vhyrro/neorg/wiki/Installation) of the GitHub Wiki.
 
 Then run `:PackerSync`
+
+# Progress
+There hasn't been much progress on Neorg's GitHub recently, has there? Did I die? Obviously not.
+Neorg is currently at its hardest stage - one of the final leaps we must take to have Neorg fully ready for its first true release - Neorg 0.1
+
+Current efforts are being fully geared towards creating a spec and creating a lexer + parser. Both of these tasks are insanely time consuming,
+and even after several days of work I don't think I'm even halfway there yet with the spec, let alone anything else. You may see little to no repository
+activity over the next week, maybe even two if life gets really busy - but don't worry, the project is still going and still pumping, just behind the scenes :P
 
 # WIP
 As can be seen, this plugin is a work in progress - these magical features don't come out of nowhere, you know. Despite only providing a few front-end features, it does provide an incredible foundation for developers willing to spend some time writing code for the plugin:
