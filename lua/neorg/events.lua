@@ -9,6 +9,7 @@ local log = require('neorg.external.log')
 
 require('neorg.modules')
 require('neorg.external.helpers')
+require('neorg.callbacks')
 
 neorg.events = {}
 
@@ -148,6 +149,9 @@ function neorg.events.broadcast_event(module, event)
 			return
 		end
 
+		-- Let the callback handler know of the event
+		neorg.callbacks.handle_callbacks(event)
+
 		-- Loop through all the modules
 		for _, current_module in pairs(neorg.modules.loaded_modules) do
 
@@ -192,6 +196,9 @@ function neorg.events.send_event(module, recipient, event)
 		return
 	end
 
+	-- Let the callback handler know of the event
+	neorg.callbacks.handle_callbacks(event)
+
 	-- Get the recipient module and check whether it's subscribed to our event
 	local mod = neorg.modules.loaded_modules[recipient]
 
@@ -205,6 +212,5 @@ function neorg.events.send_event(module, recipient, event)
 		end
 
 	end
-
 
 end

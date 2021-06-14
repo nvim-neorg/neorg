@@ -45,6 +45,11 @@ module.private = {
 	},
 }
 
+module.load = function()
+	-- Broadcast the initial mode_set event whenever we enter Neorg for the first time
+	neorg.events.broadcast_event(module, neorg.events.create(module, "core.mode.events.mode_set", { current = "", new = "norg" }))
+end
+
 module.public = {
 
 	-- Define command for :Neorg
@@ -74,11 +79,13 @@ module.public = {
 			return
 		end
 
+		-- Add the new mode to the list of known modes
+		table.insert(module.private.modes, mode_name)
+
 		-- Broadcast the mode_created event
 		neorg.events.broadcast_event(module, neorg.events.create(module, "core.mode.events.mode_created", { current = module.config.public.current_mode, new = mode_name }))
 
-		-- Define the tables and append the new mode to the list of modes
-		table.insert(module.private.modes, mode_name)
+		-- Define the autocompletion tables and make them include the current mode
 		module.public.neorg_commands.definitions["set-mode"][mode_name] = {}
 
 		-- If core.neorgcmd is loaded then update all autocompletions

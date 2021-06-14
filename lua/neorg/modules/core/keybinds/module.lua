@@ -13,14 +13,24 @@ Usage:
 --]]
 
 require('neorg.modules.base')
+require('neorg.modules')
 
 local module = neorg.modules.create("core.keybinds")
 
 local log = require('neorg.external.log')
 
 module.setup = function()
-	return { success = true, requires = { "core.neorgcmd", "core.mode" } }
+	return { success = true, requires = { "core.neorgcmd", "core.mode", "core.autocommands" } }
 end
+
+module.load = function()
+	module.required["core.autocommands"].enable_autocommand("BufEnter")
+	module.required["core.autocommands"].enable_autocommand("BufLeave")
+end
+
+module.private = {
+	bound_keys = {}
+}
 
 module.public = {
 
@@ -83,6 +93,63 @@ module.public = {
 		module.required["core.neorgcmd"].add_commands_from_table(module.public.neorg_commands)
 	end,
 
+	-- @Summary Rebinds all the keys defined via User Callbacks
+	bind_all = function()
+		-- Make sure to schedule the event broadcast else bugs occur
+		vim.schedule(function()
+			-- Broadcast the enable_keybinds event to any user that might have registered a User Callback for it
+			local payload
+
+			payload = {
+
+				-- @Summary Maps a Neovim keybind.
+				-- @Description Allows Neorg to manage and track mapped keys.
+				-- @Param  mode (string) - same as the mode parameter for :h nvim_buf_set_keymap
+				-- @Param  key (string) - same as the lhs parameter for :h nvim_buf_set_keymap
+				-- @Param  command (string) - same as the rhs parameter for :h nvim_buf_set_keymap
+				-- @Param  opts (table) - same as the opts parameter for :h nvim_buf_set_keymap
+				map = function(mode, key, command, opts)
+					-- Set the key for the current buffer
+					vim.api.nvim_buf_set_keymap(0, mode, key, command, opts or {})
+
+					-- Insert it into the list of tracked keys
+					table.insert(module.private.bound_keys, { mode, key })
+				end,
+
+				map_to_mode = function(mode, keys, opts)
+					if vim.tbl_isempty(keys) then return end
+
+					if module.required["core.mode"].get_mode() == mode then
+						for neovim_mode, keymaps in pairs(keys) do
+							for _, keymap in ipairs(keymaps) do
+								payload.map(neovim_mode, keymap[1], ":Neorg keybind " .. mode .. " " .. keymap[2] .. "<CR>", opts)
+							end
+						end
+					end
+				end,
+
+				-- Include the current Neorg mode in the contents
+				mode = module.required["core.mode"].get_mode()
+			}
+			neorg.events.broadcast_event(module, neorg.events.create(module, "core.keybinds.events.enable_keybinds", payload))
+		end)
+	end,
+
+	-- @Summary Unbind all currently defined keys
+	-- @Description If the user has used the map() function, as they should have, Neorg will have tracked all the currently bound keymaps.
+	--				Thanks to this function all those keys will be cleared as a result of e.g. a mode change.
+	unbind_all = function()
+		vim.schedule(function()
+			-- Loop through every currently defined keybind and unbind it
+			log.warn(module.private.bound_keys)
+			for _, mode_key_pair in ipairs(module.private.bound_keys) do
+				vim.api.nvim_buf_del_keymap(0, mode_key_pair[1], mode_key_pair[2])
+			end
+			-- Reset the bound keys table
+			module.private.bound_keys = {}
+		end)
+	end,
+
 	-- @Summary Synchronizes all autocompletions
 	-- @Description Updates the list of known modes and keybinds for easy autocompletion. Invoked automatically during neorg_post_load().
 	sync = function()
@@ -109,6 +176,7 @@ module.public = {
 module.neorg_post_load = module.public.sync
 
 module.on_event = function(event)
+
 	if event.type == "core.neorgcmd.events.core.keybinds.trigger" then
 		-- Query the current mode and the expected mode (the one passed in by the user)
 		local expected_mode = event.content[1]
@@ -128,12 +196,41 @@ module.on_event = function(event)
 		else -- Otherwise throw an error
 			log.error("Unable to trigger keybind", keybind_event_path, "- the keybind does not exist")
 		end
+	elseif event.type == "core.mode.events.mode_created" then
+		-- If a new mode has been created then resync
+		module.public.sync()
+	elseif event.type == "core.mode.events.mode_set" then
+		-- If a new mode has been set then reset all of our keybinds
+		module.public.unbind_all()
+		module.public.bind_all()
+	elseif event.type == "core.autocommands.events.bufenter" then
+		-- If we have entered a new buffer refresh all of our keys
+		module.public.unbind_all()
+		module.public.bind_all()
+	elseif event.type == "core.autocommands.events.bufleave" then
+		-- If we have just left a buffer then unbind all of our keys, we don't need them anymore
+		module.public.unbind_all()
 	end
+
 end
+
+module.events.defined = {
+	enable_keybinds = neorg.events.define(module, "enable_keybinds")
+}
 
 module.events.subscribed = {
 	["core.neorgcmd"] = {
 		["core.keybinds.trigger"] = true
+	},
+
+	["core.mode"] = {
+		mode_created = true,
+		mode_set = true
+	},
+
+	["core.autocommands"] = {
+		bufenter = true,
+		bufleave = true
 	}
 }
 
