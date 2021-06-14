@@ -116,12 +116,18 @@ module.public = {
 					table.insert(module.private.bound_keys, { mode, key })
 				end,
 
+				-- TODO: docs
 				map_to_mode = function(mode, keys, opts)
+					-- If the keys table is empty then don't bother doing any parsing
 					if vim.tbl_isempty(keys) then return end
 
+					-- If the current mode matches the desired mode then
 					if module.required["core.mode"].get_mode() == mode then
+						-- Loop through all the keybinds for a certain mode
 						for neovim_mode, keymaps in pairs(keys) do
+							-- Loop though all the keymaps in that mode
 							for _, keymap in ipairs(keymaps) do
+								-- Map the keybind and keep track of it using the map() function
 								payload.map(neovim_mode, keymap[1], ":Neorg keybind " .. mode .. " " .. keymap[2] .. "<CR>", opts)
 							end
 						end
@@ -131,6 +137,8 @@ module.public = {
 				-- Include the current Neorg mode in the contents
 				mode = module.required["core.mode"].get_mode()
 			}
+
+			-- Broadcast our event with the desired payload!
 			neorg.events.broadcast_event(module, neorg.events.create(module, "core.keybinds.events.enable_keybinds", payload))
 		end)
 	end,
@@ -141,7 +149,6 @@ module.public = {
 	unbind_all = function()
 		vim.schedule(function()
 			-- Loop through every currently defined keybind and unbind it
-			log.warn(module.private.bound_keys)
 			for _, mode_key_pair in ipairs(module.private.bound_keys) do
 				vim.api.nvim_buf_del_keymap(0, mode_key_pair[1], mode_key_pair[2])
 			end
