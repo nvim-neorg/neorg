@@ -132,6 +132,28 @@ module.public = {
 							-- Loop though all the keymaps in that mode
 							for _, keymap in ipairs(keymaps) do
 								-- Map the keybind and keep track of it using the map() function
+								payload.map(neovim_mode, keymap[1], keymap[2], opts)
+							end
+						end
+					end
+				end,
+
+				-- @Summary Maps a bunch of keys for a certain mode
+				-- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
+				-- @Param  mode (string) - the neorg mode to bind the keys on
+				-- @Param  keys (table { <neovim_mode> = { { "<key>", "<name-of-keybind>" } } }) - a table of keybinds
+				-- @Param  opts (table) - the same parameters that should be passed into vim.api.nvim_set_keymap()'s opts parameter
+				map_event_to_mode = function(mode, keys, opts)
+					-- If the keys table is empty then don't bother doing any parsing
+					if vim.tbl_isempty(keys) then return end
+
+					-- If the current mode matches the desired mode then
+					if module.required["core.mode"].get_mode() == mode then
+						-- Loop through all the keybinds for a certain mode
+						for neovim_mode, keymaps in pairs(keys) do
+							-- Loop though all the keymaps in that mode
+							for _, keymap in ipairs(keymaps) do
+								-- Map the keybind and keep track of it using the map() function
 								payload.map(neovim_mode, keymap[1], ":Neorg keybind " .. mode .. " " .. keymap[2] .. "<CR>", opts)
 							end
 						end
