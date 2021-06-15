@@ -53,20 +53,20 @@ module.on_event = function(event)
 		-- @Param  state (string) - a string of characters to replace the current todo state
 		local set_todo_item_state = function(state)
 			-- Grab the current line
-			local current_line = vim.api.nvim_get_current_line()
+			local current_line = event.line_content
 
 			-- Before you die of a heart attack, the below regex is supposed to pattern match a todo item,
 			-- for example one that looks like this: - [x] Example!
 			local str, _ = current_line:gsub("^(%s*%-%s+%" .. sym.left_bracket .. "%s*)[x%*%s](%s*%"..sym.right_bracket.."%s+)", "%1" .. state .. "%2", 1)
 
 			-- If the current line differs from what we already have then change it!
-			if current_line ~= str then vim.api.nvim_set_current_line(str) end
+			if current_line ~= str then vim.api.nvim_buf_set_lines(0, event.cursor_position[1] - 1, event.cursor_position[1], true, { str }) end
 		end
 
 		-- @Summary Gets the current todo item's state
 		-- @Description Pattern matches the current line to query the current todo item.
 		local get_todo_item_state = function()
-			return vim.api.nvim_get_current_line():match("^%s*%-%s+%" .. sym.left_bracket .. "%s*([x%*%s])%s*%" .. sym.right_bracket .. "%s+")
+			return event.line_content:match("^%s*%-%s+%" .. sym.left_bracket .. "%s*([x%*%s])%s*%" .. sym.right_bracket .. "%s+")
 		end
 
 		-- @Summary Cycles todo items

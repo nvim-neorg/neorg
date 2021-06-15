@@ -116,7 +116,11 @@ module.public = {
 					table.insert(module.private.bound_keys, { mode, key })
 				end,
 
-				-- TODO: docs
+				-- @Summary Maps a bunch of keys for a certain mode
+				-- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
+				-- @Param  mode (string) - the neorg mode to bind the keys on
+				-- @Param  keys (table { <neovim_mode> = { { "<key>", "<name-of-keybind>" } } }) - a table of keybinds
+				-- @Param  opts (table) - the same parameters that should be passed into vim.api.nvim_set_keymap()'s opts parameter
 				map_to_mode = function(mode, keys, opts)
 					-- If the keys table is empty then don't bother doing any parsing
 					if vim.tbl_isempty(keys) then return end
@@ -210,13 +214,6 @@ module.on_event = function(event)
 		-- If a new mode has been set then reset all of our keybinds
 		module.public.unbind_all()
 		module.public.bind_all()
-	elseif event.type == "core.autocommands.events.bufenter" then
-		-- If we have entered a new buffer refresh all of our keys
-		module.public.unbind_all()
-		module.public.bind_all()
-	elseif event.type == "core.autocommands.events.bufleave" then
-		-- If we have just left a buffer then unbind all of our keys, we don't need them anymore
-		module.public.unbind_all()
 	end
 
 end
