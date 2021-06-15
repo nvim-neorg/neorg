@@ -315,7 +315,7 @@ module.public = {
 		end
 
 		-- Broadcast the event with all the correct data and the arguments passed to our command as the contents
-		neorg.events.broadcast_event(module, neorg.events.create(module, "core.neorgcmd.events." .. event_name, vim.list_slice(args, #args - (#args - current_depth) + 1)))
+		neorg.events.broadcast_event(neorg.events.create(module, "core.neorgcmd.events." .. event_name, vim.list_slice(args, #args - (#args - current_depth) + 1)))
 	end,
 
 	-- @Summary Overwrites the completion callback function

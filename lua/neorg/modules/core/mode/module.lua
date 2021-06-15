@@ -47,7 +47,7 @@ module.private = {
 
 module.load = function()
 	-- Broadcast the initial mode_set event whenever we enter Neorg for the first time
-	neorg.events.broadcast_event(module, neorg.events.create(module, "core.mode.events.mode_set", { current = "", new = "norg" }))
+	neorg.events.broadcast_event(neorg.events.create(module, "core.mode.events.mode_set", { current = "", new = "norg" }))
 end
 
 module.public = {
@@ -83,7 +83,7 @@ module.public = {
 		table.insert(module.private.modes, mode_name)
 
 		-- Broadcast the mode_created event
-		neorg.events.broadcast_event(module, neorg.events.create(module, "core.mode.events.mode_created", { current = module.config.public.current_mode, new = mode_name }))
+		neorg.events.broadcast_event(neorg.events.create(module, "core.mode.events.mode_created", { current = module.config.public.current_mode, new = mode_name }))
 
 		-- Define the autocompletion tables and make them include the current mode
 		module.public.neorg_commands.definitions["set-mode"][mode_name] = {}
@@ -114,7 +114,7 @@ module.public = {
 		module.config.public.current_mode = mode_name
 
 		-- Broadcast the mode_set event to all subscribed modules
-		neorg.events.broadcast_event(module, neorg.events.create(module, "core.mode.events.mode_set", { current = module.config.public.previous_mode, new = mode_name }))
+		neorg.events.broadcast_event(neorg.events.create(module, "core.mode.events.mode_set", { current = module.config.public.previous_mode, new = mode_name }))
 	end,
 
 	-- @Summary Gets the current mode

@@ -20,12 +20,7 @@ local module = neorg.modules.create("core.keybinds")
 local log = require('neorg.external.log')
 
 module.setup = function()
-	return { success = true, requires = { "core.neorgcmd", "core.mode", "core.autocommands" } }
-end
-
-module.load = function()
-	module.required["core.autocommands"].enable_autocommand("BufEnter")
-	module.required["core.autocommands"].enable_autocommand("BufLeave")
+	return { success = true, requires = { "core.neorgcmd", "core.mode" } }
 end
 
 module.private = {
@@ -165,7 +160,7 @@ module.public = {
 			}
 
 			-- Broadcast our event with the desired payload!
-			neorg.events.broadcast_event(module, neorg.events.create(module, "core.keybinds.events.enable_keybinds", payload))
+			neorg.events.broadcast_event(neorg.events.create(module, "core.keybinds.events.enable_keybinds", payload))
 		end)
 	end,
 
@@ -225,7 +220,7 @@ module.on_event = function(event)
 
 		-- If it is defined then broadcast the event
 		if module.events.defined[keybind_event_path] then
-			neorg.events.broadcast_event(module, neorg.events.create(module, "core.keybinds.events." .. keybind_event_path))
+			neorg.events.broadcast_event(neorg.events.create(module, "core.keybinds.events." .. keybind_event_path))
 		else -- Otherwise throw an error
 			log.error("Unable to trigger keybind", keybind_event_path, "- the keybind does not exist")
 		end
@@ -253,11 +248,6 @@ module.events.subscribed = {
 		mode_created = true,
 		mode_set = true
 	},
-
-	["core.autocommands"] = {
-		bufenter = true,
-		bufleave = true
-	}
 }
 
 return module

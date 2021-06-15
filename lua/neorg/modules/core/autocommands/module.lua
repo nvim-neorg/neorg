@@ -38,7 +38,7 @@ local module_autocommands = neorg.modules.create("core.autocommands")
 -- @Description This function gets invoked whenever a core.autocommands enabled autocommand is triggered. Note that this function should be only used internally
 -- @Param  name (string) - the name of the autocommand that was just triggered
 function _neorg_module_autocommand_triggered(name)
-	neorg.events.broadcast_event(module_autocommands, neorg.events.create(module_autocommands, name))
+	neorg.events.broadcast_event(neorg.events.create(module_autocommands, name))
 end
 
 -- A convenience wrapper around neorg.events.define_event

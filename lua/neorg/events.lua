@@ -122,6 +122,15 @@ function neorg.events.create(module, type, content)
 	new_event.content = content
 	new_event.referrer = module.name
 
+	-- Override all the important values
+	new_event.split_type = neorg.events.split_event_type(type)
+	new_event.filename = vim.fn.expand("%:t")
+	new_event.filehead = vim.fn.expand("%:p:h")
+	new_event.cursor_position = vim.api.nvim_win_get_cursor(0)
+	new_event.line_content = vim.api.nvim_get_current_line()
+	new_event.referrer = module.name
+	new_event.broadcast = true
+
 	return new_event
 
 end
@@ -130,16 +139,7 @@ end
 -- @Description Sends an event to all subscribed modules. The event contains the filename, filehead, cursor position and line content as a bonus.
 -- @Param  module (table) - a reference to the module invoking the function. Used to verify the authenticity of the function call
 -- @Param  event (table) - an event, usually created by neorg.events.create()
-function neorg.events.broadcast_event(module, event)
-
-	-- Override all the important values
-	event.split_type = neorg.events.split_event_type(event.type)
-	event.filename = vim.fn.expand("%:t")
-	event.filehead = vim.fn.expand("%:p:h")
-	event.cursor_position = vim.api.nvim_win_get_cursor(0)
-	event.line_content = vim.api.nvim_get_current_line()
-	event.referrer = module.name
-	event.broadcast = true
+function neorg.events.broadcast_event(event)
 
 	-- Asynchronously broadcast the event to all modules
 	require('plenary.async_lib.async').async(function()
@@ -179,16 +179,7 @@ end
 -- @Param  module (table) - a reference to the module invoking the function. Used to verify the authenticity of the function call
 -- @Param  recipient (string) - the name of a loaded module that will be the recipient of the event
 -- @Param  event (table) - an event, usually created by neorg.events.create()
-function neorg.events.send_event(module, recipient, event)
-
-	-- Override all the important values
-	event.split_type = neorg.events.split_event_type(event.type)
-	event.filename = vim.fn.expand("%:t")
-	event.filehead = vim.fn.expand("%:p:h")
-	event.cursor_position = vim.api.nvim_win_get_cursor(0)
-	event.line_content = vim.api.nvim_get_current_line()
-	event.referrer = module.name
-	event.broadcast = false
+function neorg.events.send_event(recipient, event)
 
 	-- If the recipient is not loaded then there's no reason to send an event to it
 	if not neorg.modules.is_module_loaded(recipient) then
