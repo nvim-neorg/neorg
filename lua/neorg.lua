@@ -3,9 +3,8 @@
 --	This file is the begininng of the entire plugin. It's here that everything fires up and starts pumping.
 --]]
 
-neorg = {}
-
 -- Require the most important modules
+require('neorg.callbacks')
 require('neorg.events')
 require('neorg.modules')
 

@@ -3,6 +3,8 @@
 	User callbacks are ways for the user to directly interact with Neorg and respond on certain events.
 --]]
 
+neorg = {}
+
 neorg.callbacks = {
 	callback_list = {}
 }
