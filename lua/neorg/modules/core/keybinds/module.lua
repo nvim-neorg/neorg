@@ -42,6 +42,8 @@ module.public = {
 		},
 	},
 
+	version = "0.2",
+
 	keybinds = {},
 
 	-- @Summary Registers a new keybind

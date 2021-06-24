@@ -293,14 +293,16 @@ function neorg.modules.get_module_version(module_name)
 
 	-- Loop through all the versions and check whether they are valid numbers. If they are, add them to the return table
 	for i, ver in ipairs(versions) do
-		local num = tonumber(split_version[i])
+		if split_version[i] then
+			local num = tonumber(split_version[i])
 
-		if not num then
-			log.warn("Invalid version provided, string cannot be converted to integral type.")
-			return nil
+			if not num then
+				log.warn("Invalid version provided, string cannot be converted to integral type.")
+				return nil
+			end
+
+			ret[ver] = num
 		end
-
-		ret[ver] = num
 	end
 
 	return ret

@@ -35,7 +35,7 @@ module.public = {
 				}
 			}
 		}
-	}
+	},
 
 }
 
