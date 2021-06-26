@@ -123,7 +123,7 @@ module.public = {
 					if vim.tbl_isempty(keys) then return end
 
 					-- If the current mode matches the desired mode then
-					if module.required["core.mode"].get_mode() == mode then
+					if mode == "all" or module.required["core.mode"].get_mode() == mode then
 						-- Loop through all the keybinds for a certain mode
 						for neovim_mode, keymaps in pairs(keys) do
 							-- Loop though all the keymaps in that mode
@@ -145,7 +145,7 @@ module.public = {
 					if vim.tbl_isempty(keys) then return end
 
 					-- If the current mode matches the desired mode then
-					if module.required["core.mode"].get_mode() == mode then
+					if mode == "all" or module.required["core.mode"].get_mode() == mode then
 						-- Loop through all the keybinds for a certain mode
 						for neovim_mode, keymaps in pairs(keys) do
 							-- Loop though all the keymaps in that mode
