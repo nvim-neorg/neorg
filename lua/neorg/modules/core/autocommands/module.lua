@@ -63,7 +63,7 @@ module_autocommands.public = {
 		end
 	end,
 
-	version = "0.9.0"
+	version = "0.0.9"
 
 }
 

@@ -20,7 +20,12 @@ local module = neorg.modules.create("core.keybinds")
 local log = require('neorg.external.log')
 
 module.setup = function()
-	return { success = true, requires = { "core.neorgcmd", "core.mode" } }
+	return { success = true, requires = { "core.neorgcmd", "core.mode", "core.autocommands" } }
+end
+
+module.load = function()
+	module.required["core.autocommands"].enable_autocommand("BufEnter")
+	module.required["core.autocommands"].enable_autocommand("BufLeave")
 end
 
 module.private = {
@@ -92,8 +97,14 @@ module.public = {
 
 	-- @Summary Rebinds all the keys defined via User Callbacks
 	bind_all = function()
-		-- Make sure to schedule the event broadcast else bugs occur
+		-- Make sure to schedule this code block to prevent race conditions
 		vim.schedule(function()
+
+			-- If the table is already populated then don't populate it further
+			if not vim.tbl_isempty(module.private.bound_keys) then
+				return
+			end
+
 			-- Broadcast the enable_keybinds event to any user that might have registered a User Callback for it
 			local payload
 
@@ -107,7 +118,7 @@ module.public = {
 				-- @Param  opts (table) - same as the opts parameter for :h nvim_buf_set_keymap
 				map = function(mode, key, command, opts)
 					-- Set the key for the current buffer
-					vim.api.nvim_buf_set_keymap(0, mode, key, command, opts or {})
+					vim.api.nvim_set_keymap(mode, key, command, opts or {})
 
 					-- Insert it into the list of tracked keys
 					table.insert(module.private.bound_keys, { mode, key })
@@ -173,7 +184,7 @@ module.public = {
 		vim.schedule(function()
 			-- Loop through every currently defined keybind and unbind it
 			for _, mode_key_pair in ipairs(module.private.bound_keys) do
-				vim.api.nvim_buf_del_keymap(0, mode_key_pair[1], mode_key_pair[2])
+				vim.api.nvim_del_keymap(mode_key_pair[1], mode_key_pair[2])
 			end
 			-- Reset the bound keys table
 			module.private.bound_keys = {}
@@ -233,6 +244,12 @@ module.on_event = function(event)
 		-- If a new mode has been set then reset all of our keybinds
 		module.public.unbind_all()
 		module.public.bind_all()
+	elseif event.type == "core.autocommands.events.bufenter" then
+		-- If we have entered a buffer then rebind all keys
+		module.public.bind_all()
+	elseif event.type == "core.autocommands.events.bufleave" then
+		-- If we have left a buffer then unbind all keys
+		module.public.unbind_all()
 	end
 
 end
@@ -244,6 +261,11 @@ module.events.defined = {
 module.events.subscribed = {
 	["core.neorgcmd"] = {
 		["core.keybinds.trigger"] = true
+	},
+
+	["core.autocommands"] = {
+		bufenter = true,
+		bufleave = true
 	},
 
 	["core.mode"] = {
