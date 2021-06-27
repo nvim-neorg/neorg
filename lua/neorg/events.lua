@@ -137,7 +137,6 @@ end
 
 -- @Summary Broadcasts an event
 -- @Description Sends an event to all subscribed modules. The event contains the filename, filehead, cursor position and line content as a bonus.
--- @Param  module (table) - a reference to the module invoking the function. Used to verify the authenticity of the function call
 -- @Param  event (table) - an event, usually created by neorg.events.create()
 function neorg.events.broadcast_event(event)
 
