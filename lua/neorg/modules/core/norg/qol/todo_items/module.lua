@@ -73,7 +73,7 @@ module.on_event = function(event)
 		-- @Description Queries the todo item on the current line and cycles it between a predefined list of states
 		local cycle_todo_item = function()
 			-- Define that states and query the current state
-			local states = { " ", "*", "x" }
+			local states = { " ", "x", "*" }
 			local next_state = get_todo_item_state()
 
 			-- If the current state cannot be found (ie. the current line is not a valid todo item) then don't do anything
