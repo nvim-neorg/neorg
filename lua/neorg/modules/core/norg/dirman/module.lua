@@ -2,6 +2,36 @@
 	 Directory manager for Neorg.
 	 This module will be responsible for managing directories full of .norg files. It will provide other modules the ability to see which directories the user is in,
 	 automatically changing directories, and other API bits and bobs that will allow things like telescope.nvim integration.
+
+USAGE:
+	To use core.norg.dirman, simply load up the module in your configuration and specify the directories you want to be managed for you:
+
+	require('neorg').setup {
+		load = {
+			["core.defaults"] = {},
+			["core.norg.dirman"] = {
+				config = {
+					workspaces = {
+						my_ws = "~/neorg", -- Format: <name_of_workspace> = <path_to_workspace_root>
+						my_other_notes = "~/work/notes",
+					},
+					autodetect = true, -- Automatically detect whether you are in a workspace whenever you open a file
+					autochdir = true, -- Automatically change the directory to the current workspace's root every time
+				}
+			}
+		}
+	}
+
+	To query the current workspace, run `:Neorg workspace`. To set the workspace, run `:Neorg workspace <workspace_name>`.
+	Note that this requires core.neorgcmd to be docked into the Neorg environment and loaded.
+
+	To stop limiting yourself to a single namespace, switch to the `default` workspace, like so:
+	`:Neorg workspace default`. This will put you in your initial cwd upon launching Neovim and will no longer
+	automatically switch directories for you.
+
+REQUIRES:
+	`core.autocommands` - used to detect changes to the current working directory via DirChanged
+	`core.neorgcmd` (optional, but recommended) - used to provide frontend features for switching workspaces, rather than simply API calls
 --]]
 
 require('neorg.modules.base')
