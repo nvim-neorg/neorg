@@ -9,7 +9,7 @@ USAGE:
 	Afterwards in a function of your choice that gets called *after* core.neorgcmd gets intialized e.g. load():
 
 	module.load = function()
-		module.required["core.neorgcmd"].add_commands({
+		module.required["core.neorgcmd"].add_commands_from_table({
 			definitions = { -- Used for completion
 				my_command = { -- Define a command called my_command
 					my_subcommand = {} -- Define a subcommand called my_subcommand
@@ -201,7 +201,6 @@ module.public = {
 	-- @Description Rereads data from all modules and rebuild the list of available autocompletions and commands
 	sync = function()
 		-- Loop through every loaded module and set up all their commands
-		module.public.neorg_commands = {}
 		for _, mod in pairs(neorg.modules.loaded_modules) do
 			if mod.public.neorg_commands then
 				module.public.add_commands_from_table(mod.public.neorg_commands)

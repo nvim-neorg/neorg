@@ -49,14 +49,21 @@ module_autocommands.public = {
 	-- @Summary Enable an autocommand event
 	-- @Description By default, all autocommands are disabled for performance reasons. To enable them, use this command. If an invalid autocmd is given nothing happens.
 	-- @Param  autocmd (string) - the relative name of the autocommand to enable
-	enable_autocommand = function(autocmd)
+	-- @Param  dont_isolate (boolean) - defaults to false. Specifies whether the autocommand should run globally (*) instead of in Neorg files (*.norg)
+	enable_autocommand = function(autocmd, dont_isolate)
+		dont_isolate = dont_isolate or false
+
 		autocmd = autocmd:lower()
 		local subscribed_autocommand = module_autocommands.events.subscribed["core.autocommands"][autocmd]
 
 		if subscribed_autocommand ~= nil then
 			if subscribed_autocommand == false then
 				vim.cmd("augroup Neorg")
-				vim.cmd("autocmd " .. autocmd .. " *.norg :lua _neorg_module_autocommand_triggered(\"core.autocommands.events." .. autocmd .. "\")")
+				if dont_isolate then
+					vim.cmd("autocmd " .. autocmd .. " * :lua _neorg_module_autocommand_triggered(\"core.autocommands.events." .. autocmd .. "\")")
+				else
+					vim.cmd("autocmd " .. autocmd .. " *.norg :lua _neorg_module_autocommand_triggered(\"core.autocommands.events." .. autocmd .. "\")")
+				end
 				vim.cmd("augroup END")
 				module_autocommands.events.subscribed["core.autocommands"][autocmd] = true
 			end
