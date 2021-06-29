@@ -63,7 +63,7 @@ function _neorg_indent_expr()
 		if success then return indent_amount end
 	end
 
-	-- If no criteria was met, let neovim handle the rest
+	-- If no criteria were met, let neovim handle the rest
 	return vim.fn.indent(line_number)
 end
 
@@ -120,7 +120,7 @@ end
 
 module.on_event = function(event)
 	if event.type == "core.autocommands.events.bufenter" then
-		if vim.fn.expand("%:e") == "norg" then
+		if event.content then
 			vim.opt_local.indentexpr = "v:lua._neorg_indent_expr()"
 		end
 	end
