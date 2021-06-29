@@ -168,7 +168,16 @@ changes:
     ```
 	Marks a link to another segment of a document or to a link on the web. More about it can be read [here](#links).
 
-  - `$comment This is a comment! -> ^\s*\$[^\s]+\s*(([^\s]+\s*)*)$` - marks a carryover tag, which is essentially syntax sugar for a regular tag.
+  - ```
+  	  	$comment
+  		This is a comment!
+
+  		->
+
+  		^\s*\$[^\s]+\s*(([^\s]+\s*)*)$ 
+		.+
+  	```
+  	Marks a carryover tag, which is essentially syntax sugar for a regular tag.
   	You can read more about it [here](#carryover-tags).
 
 ### Trailing Modifiers
@@ -270,7 +279,8 @@ changes:
   because they carry over and apply only to the next paragraph. They can be denoted with a `$` token, rather than a `@` token.
   Carryover tags are most commonly used with the `comment` tag, as writing:
   ```
-	$comment This part of the document needs refactoring
+	$comment
+	This part of the document needs refactoring
 
 	* Reasons why dark chocolate is better than white chocolate
     Over the years, several people have been asking themselves...
@@ -286,7 +296,7 @@ changes:
     Over the years, several people have been asking themselves...
   ```
   Although both forms are correct. The `@` symbol for comments is only truly useful whenever you want to write mulitiline
-  comments inside of your document. Inside of a carryover tag everything after the tag till the end of the line is counted as a
+  comments that span over several paragraphs inside of your document. Inside of a carryover tag everything after the tag till the end of the line is counted as a
   parameter for that tag, as the body for that tag is the next paragraph.
 
 ##### Quirks
@@ -595,7 +605,9 @@ changes:
 	$name marker1
 	| My Special Marker
 
-	$comment Reference the marker with its custom name
+	$comment
+	Reference the marker with its custom name
+
 	I have a link to my marker right [here](#marker1).
   ```
 
@@ -634,21 +646,38 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 	It is not recommended to use the `$` equivalent for this tag.
 
 - `@comment` - simply signals a comment. Using the comment tag with the `@` symbol makes
-			   it a multiline comment, however using carryover tags allows you to supply only
-			   a single-line comment. 
+			   it a multi-paragraph comment, however using carryover tags allows you to supply only
+			   a single-paragraph comment. 
 
-<!-- Gotta love markdown formatting: -->
+<!-- Gotta love markdown formatting, I can't indent the below code block further: -->
 
-Examples:
+  Examples:
+  
+  ```
+  @comment
+  	This is a comment!
+  
+  	And it can span across multiple paragraphs too!
+  @end
+  
+  $comment
+  And this is a single-paragraph comment, because they're cool!
+  I can write as much as I like here as long as I don't termiate the paragraph.
+  ```
 
-```
-@comment
-	This is a comment!
-	And it can span across multiple lines too!
-end
+  You can also write any set of text as parameters to the comment - this can be useful to summarize or categorize
+  your comment:
 
-$comment And this is a single-line comment, because they're cool!
-```
+
+  ```
+	@comment TODO Stuff
+		Things that I should do with the below segment:
+		- Reword
+		- Format some stuff
+	@end
+  ```
+
+  The same ability (obviously) also applies with the carryover tag version.
 
 - `@table` - defines a Neorg table. Tables do not currently have the immense power of org-mode tables,
   however serve a basic function for now. They simply contain some text. Here's the format for said tables:
