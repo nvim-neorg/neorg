@@ -643,7 +643,7 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 	@end
 	```
 
-	It is not recommended to use the `$` equivalent for this tag.
+  It is not recommended to use the `$` equivalent for this tag but hey, you do you.
 
 - `@comment` - simply signals a comment. Using the comment tag with the `@` symbol makes
 			   it a multi-paragraph comment, however using carryover tags allows you to supply only
@@ -750,16 +750,26 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 - `@image format` - stores an image within the file. The content of this image should be a base64 encoded jpeg, png, svg, jfif or exif file.
   The only parameter, `format`, specifies which format the image was encoded in. Defaults to `PNG` if unspecified.
 
-- `$embed type uri` - embeds an element directly into the document, for example an image, a GIF, or any other kind of media that is supported.
+- `$embed type` - embeds an element directly into the document, for example an image, a GIF, or any other kind of media that is supported.
   The `type` parameter can be one of two values: `video` or `image`.
 
-  The `@` version of this tag is not recommended, as it would simply look like this:
+  The body symbolizes the link to the actual media to be embedded. This can be a link to a local file or to a remote resource.
+
   ```
-	@embed image /my/image
-	@end
+  $embed image
+  /my/image
   ```
-  Which is rather redundant compared to simply writing `$embed image /my/image`.
+
+  or
+
+  ```
+  @embed image
+  	/my/image
+  @end
+  ```
   The root, `/`, should be the root of the current workspace, not the root of the filesystem.
+  You'll usually find yourself using the carryover tag version since it's a lot cleaner to write.
+  Note that several URIs on several lines mean a list of media to be embedded one after the other.
 
 ### Unsupported Tags 
   If a tag is encountered that is invalid it should simply be ignored and never showed in any render of the document.
