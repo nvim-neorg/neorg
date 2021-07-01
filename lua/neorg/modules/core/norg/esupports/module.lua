@@ -120,7 +120,7 @@ end
 
 module.on_event = function(event)
 	if event.type == "core.autocommands.events.bufenter" then
-		if event.content then
+		if event.content.norg then
 			vim.opt_local.indentexpr = "v:lua._neorg_indent_expr()"
 		end
 	end

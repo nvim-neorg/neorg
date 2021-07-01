@@ -1,4 +1,8 @@
+<!-- What you are about to witness is the greatest hell. It looks good though you gotta admit -->
+
 <div align="center">
+
+<img src="res/neorg.svg" width=315>
 
 # Neorg - An Organized Future
 
@@ -15,15 +19,17 @@
 
 Life Organization Tool Written in Lua
 
-[Introduction](#introduction)
+[Introduction](#star2-introduction)
 •
-[Installation](#installation)
+[Installation](#wrench-installation)
 •
-[Usage](#usage-questions)
+[Usage](#question-usage)
 •
-[Keybinds](#keybinds)
+[Keybinds](#keyboard-keybinds)
 •
-[Wiki](#consult-the-wiki)
+[Wiki](#notebook-consult-the-wiki)
+
+[Credits: Logo by Binx](#heart-credits)
 
 </div>
 
@@ -32,94 +38,140 @@ Life Organization Tool Written in Lua
 > The pain... it won't stop. After so much oppression from other text editors, it's time we fight back.
 With the introduction of lua, we *will* fight back.
 
----
-
-##### Haven't seen much progress on the repo? I'm still alive! See [here](#progress).
-
-# Introduction
-Neorg is a plugin designed to help you manage your day-to-day life in ways you haven't thought of before. Think of this plugin as the ultimate way of making your life easier.
-
-### What this project is, and what it isn't
-  - This project is supposed to serve as an organizational tool for Neovim. It will run on the .norg file format - a revised, extensible and more computer friendly format compared to .org, all while retaining a decent amount of backwards compatibility with org (you will be able to convert between both formats).
-  - A foundation for developers to make their own extensions to the plugin and interface with other parts of user-contibuted code, known as modules (more info below)
-  - A full on competitor to emacs's org-mode
- ### What this project isn't
-  - **An org-mode clone** - this project does not plan on fully cloning org mode in neovim. Rather, the goal of this repo is to take concepts from other organizational tools and reimagine them for the great text editor that neovim is. Expect a bit of familiarity but also a lot of changes, things tailored to the vim philosophy.
+<div align="center">
 
 ---
-# Installation
-## Using Packer
 
-> :exclamation: Neorg requires [plenary](https://github.com/nvim-lua/plenary.nvim) to operate, make sure to install it before you install Neorg.
+### Manage Your Life with Neovim-inspired Keybinds
+Woah, keybinds that actually make sense. Some text editors should take notes.
 
-If you don't know what you're doing, just run this:
+<img src="res/todo_items.gif">
 
-```lua
-use { 'vhyrro/neorg', requires = { 'nvim-lua/plenary.nvim' }, config = function()
+---
 
-	require('neorg').setup {
-		load = {
-			["core.defaults"] = {}, -- Load all the default modules
-			["core.norg.concealer"] = {} -- Enhances the text editing experience by using icons
-		},
+### Jump To The Most Important Directories with Workspaces
+Teleport to your favourite locations right away.
 
-		-- Tells neorg where to load community provided modules. If unspecified, this is the default
-		community_module_path = vim.fn.stdpath("cache") .. "/neorg_community_modules"
+
+</div>
+
+<div align="center">
+<img src="res/workspaces.gif">
+<img src="res/workspaces_2.gif">
+</div>
+
+---
+
+<div align="center">
+
+### Configure Everything - Literally
+Experience the power and configurability of Neorg's backend through modules and events.
+<br>
+Select only the code you want - throw everything else away.
+
+<img src="res/configuration.gif">
+
+</div>
+
+# :star2: Introduction
+Neorg is a tool designed to reimagine organization as you know it. *Neo* - new, *org* - organization.
+Grab some coffee, start writing some notes, let your editor handle the rest.
+
+**Why do we need Neorg**? There are currently projects designed to [clone org-mode from emacs](https://github.com/kristijanhusak/orgmode.nvim),
+what is the goal of this project? Whilst those projects are amazing, it's simply not enough. We need our _own, better_ solution - one that will
+surpass _every_ other text editor. One that will give you all the bragging rights for using Neovim. Here's how we'll do it:
+- Revise the org format - Simple, very extensible, unambiguous. Will make you feel right at home. Let's be real here, org and markdown have several flaws - ambiguity (tons of it), ugly syntax and the requirement for **complex parsers**.
+  It's difficult to explain without doing some research, and I really advise educating yourself on just how bad
+  markdown can get - I swear, it's worse than JS. What if we told you it's possible to eliminate those problems completely,
+  all whilst keeping that familiar markdown feel? Enter the .norg file format, whose base spec is [almost complete](docs/NFF-0.1-spec.md).
+  The cross between all the best things from org and the best things from markdown, revised and merged into one.
+- Keybinds that _make sense_ - vim's keybind philosophy is unlike any other, and we want to keep that vibe.
+  Keys form a "language", one that you can speak, not one that you need to remember.
+- Infinite extensibility - no, that isn't a hyperbole. We mean it. Neorg is built upon an insanely modular and
+  configurable backend - keep what you need, throw away what you don't care about. Use the defaults or change 'em.
+  You are in control of what code runs and what code doesn't run.
+- Logic. Everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
+  two people asked for it.
+
+Make Neovim Great Again.
+
+# :wrench: Installation
+Installation may seem a bit daunting, however it's nothing you can't understand. If you really like to be in control,
+you can read exactly what the below code snippets do in the [wiki](https://github.com/vhyrro/neorg/wiki/Installation).
+
+- [Packer](https://github.com/wbthomason/packer.nvim):
+  ```lua
+	use {
+	    "vhyrro/neorg",
+		config = function()
+			require('neorg').setup {
+				-- Tell Neorg what modules to load
+				load = {
+					["core.defaults"] = {}, -- Load all the default modules
+					["core.norg.concealer"] = {}, -- Allows for use of icons
+					["core.norg.dirman"] = { -- Manage your directories with Neorg
+						config = {
+							workspaces = {
+								my_workspace = "~/neorg"
+							}
+						}
+					}
+				},
+
+				-- Post-init hook, executed just before neorg loads properly
+				hook = require('neorg.default_keybinds')
+			}
+		end,
 	}
+  ```
+  Afterwards resource the current file and `:PackerSync`:
 
-end}
-```
+  ![PackerSync GIF](res/packer_sync.gif)
 
-###### :robot: For the latest and greatest features check out the *unstable* branch
 
-Don't understand the above code snippet and want to learn more?
-Check out the [installation section](https://github.com/vhyrro/neorg/wiki/Installation) of the GitHub Wiki.
+Worried about lazy loading? It's very hard to do properly because of the way Neovim handles filetypes. Neorg practically lazy loads itself - it only runs when it detects a .norg extension.
+You shouldn't get any startup time hits so no worries.
 
-Then run `:PackerSync`
+##### :robot: For the latest and greatest check out the [unstable](https://github.com/vhyrro/neorg/tree/unstable) branch
 
-# Progress
-There hasn't been much progress on Neorg's GitHub recently, has there? Did I die? Obviously not.
-Neorg is currently at its hardest stage - one of the final leaps we must take to have Neorg fully ready for its first true release - Neorg 0.1
+# :question: Usage
+Simply drop into a .norg file and start typing!
 
-Current efforts are being fully geared towards creating a spec and creating a lexer + parser. Both of these tasks are insanely time consuming,
-and even after several days of work I don't think I'm even halfway there yet with the spec, let alone anything else. You may see little to no repository
-activity over the next week, maybe even two if life gets really busy - but don't worry, the project is still going and still pumping, just behind the scenes :P
+![Usage Showcase](res/usage_showcase.gif)
 
-# WIP
-As can be seen, this plugin is a work in progress - these magical features don't come out of nowhere, you know. Despite only providing a few front-end features, it does provide an incredible foundation for developers willing to spend some time writing code for the plugin:
-- The module system; the module system is an extensible way to manage and interface with code. Modules are pay-for-what-you-use tables that can get loaded and unloaded at will. They can subscribe to events using the powerful event system and can directly communicate with each other - they can even expose their own public APIs and configuration to be edited by the user. Example modules can be found [here](/lua/neorg/modules/core) and a full tutorial for developing with modules can be found [in the wiki](https://github.com/vhyrro/neorg/wiki/Creating-Modules).
-- The event system; the event system is the way for said modules to communicate. Events can be broadcast to all subscribed modules or to individual modules as well, they can hold any sort of data you'd want to transport to another plugin, things like the current cursor position, line content etc. The choice is yours really.
+You may realize that we don't have an insane amount of frontend features just yet.
+This doesn't mean the plugin isn't capable of those things, it just means we're working on them!
+We tried focusing heavily on the backend first, but now that that is almost done we are actually starting work on features just for you:
+- Telescope.nvim integration for several things
+- TreeSitter parser
+- Indentation engine based on the treesitter parser
+- Smarter todo item toggling with the TreeSitter AST
+- nvim-compe completion source
 
-Note that the Neorg API may (and probably will) be subject to change! I'll try to refrain from breaking changes unless absolutely necessary, and will let developers know a while beforehand so they can update their modules. The API will stabilize after Neorg becomes a bit more mature, so stick with me for now!
+Everything you see above will be coming soon! Here's the things we do currently support:
+- Basic indentation
+- Toggling of TODO items
+- Very configurable workspaces
 
-# Keybinds
-Be default Neorg does not come with any keybinds bound automatically. The recommended list of keybinds that you can just copy and paste into your own configuration can be found
-[here](https://github.com/vhyrro/neorg/wiki/User-Keybinds#keybind-megalist).
+It's all about the patience! We're gonna deliver all the juicy features ASAP.
+In the meantime you might be interested in reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format :D
 
-# Usage Questions
-To use Neorg, simply open up a file with the `.norg` extension and start typing! As of right now, Neorg only supports a few front-end features,
-like concealing TODO items into nice icons and toggling between different TODO states. Currently a work-in-progress specification for the Neorg File Format
-is being developed, so you can look forward to that!
+# :keyboard: Keybinds
+If you use the code snippet from the [installation section](#installation) you'll see we use 
+an inbuilt file called `neorg.default_keybinds`. You may actually want to change your keybinds though! Changing keybinds
+is a trivial task. The wiki entry for keybinds can be found [here](https://github.com/vhyrro/neorg/wiki/User-Keybinds).
+It'll tell you the ins and outs of what you need to do :)
 
-**If you want a reference for the progress we have made so far**, [look at the roadmap](/docs/ROADMAP.md).
+# :notebook: Consult The Wiki
+The wiki is the go-to place if you need answers to anything Neorg-related. Keybinds, User Callbacks, Modules, Events?
+It's all there, so we recommend you seriously go [read it](https://github.com/vhyrro/neorg/wiki)!
 
-Neorg is constantly growing and new features are being added every day. Most of them are internal features to make Neorg the most powerful plugin currently out there,
-but we haven't forgotten about you! After all the internal stuff gets done and dusted we'll be constantly working to give you everything you'd expect, and we hope you stick with us on this amazing journey!
-
-# Consult The Wiki!
-Sometimes you may feel lost whenever you try doing something in Neorg, you can take a look at all the explanations in the [official GitHub wiki](https://github.com/vhyrro/neorg/wiki)!
-Basically everything is covered there.
-
-# Contributing
-I really looove contributions! That's what this whole project is about - it's a really big plugin, so any help is appreciated :heart:. Don't know what to implement? Don't worry, a [roadmap](/docs/ROADMAP.md) is available. The projects are pretty big there, so if you're truly stuck then you can always ask me personally!
-
-Come chat with me on [discord](https://discord.gg/T6EgTAX7ht)!
-
-Also, if you love what I do and want to professionally support my work, boost development etc. drop me a few bucks will ya. Making this my job would be like a dream come true.
-Money will also be put towards hosting an official Neorg website and also towards future Neovim projects! I've got a really few good ideas in mind :)
-
-Links for the rich lads:
-- [Buy me a coffee](https://www.buymeacoffee.com/vhyrro)
-- [Donate directly on Paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
-- [Support me on patreon!](https://patreon.com/vhyrro)
-- [Support me on Liberapay](https://liberapay.com/Vhyrro)
+# :heart: Credits
+Massive shoutouts to the people who supported the project! These are:
+- Binx, for making that gorgeous logo for free!
+	- [Github](https://github.com/Binx-Codes/)
+	- [Reddit](https://www.reddit.com/u/binxatmachine)
+- bandithedoge, for recreating the logo in svg form!
+	- [Website](https://bandithedoge.com)
+	- [Github](https://github.com/bandithedoge)
+	- [YouTube](https://youtube.com/bandithedoge)

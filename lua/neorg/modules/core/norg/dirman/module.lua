@@ -120,7 +120,7 @@ module.public = {
 		end
 
 		-- Cache the current workspace
-		local current_ws = module.private.current_workspace
+		local current_ws = vim.deepcopy(module.private.current_workspace)
 		-- Set the current workspace to the new workspace object we constructed
 		module.private.current_workspace = new_workspace
 
@@ -238,8 +238,8 @@ module.public = {
 
 module.on_event = function(event)
 
-	-- If the workspace has changed and if we want to automatically change directory then
-	if event.type == "core.norg.dirman.events.workspace_changed" and module.config.public.autochdir then
+	-- If the workspace has changed then
+	if event.type == "core.norg.dirman.events.workspace_changed" then
 		-- Grab the current working directory and the current workspace
 		local new_cwd = vim.fn.getcwd()
 		local current_workspace = module.public.get_current_workspace()
@@ -277,6 +277,7 @@ module.on_event = function(event)
 
 			-- Set the workspace to the one requested
 			module.public.set_workspace(event.content[1])
+			vim.schedule(function() vim.notify("New Workspace: " .. event.content[1] .. " -> " .. ws_match) end)
 		else -- No argument supplied, simply print the current workspace
 			-- Query the current workspace
 			local current_ws = module.public.get_current_workspace()
