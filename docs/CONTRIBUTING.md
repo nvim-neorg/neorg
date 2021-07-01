@@ -22,8 +22,9 @@ Whenever something happens the way it's not supposed to, [file an issue!](https:
 
 If you're certain it's a fault of the plugin, not your configuration, in the issue please provide the following:
 - The neovim version you're running (`nvim --version`)
-- The neorg log file (you'll find it at `stdpath('data') .. 'neorg.log'`). This file will contain the necessary info for me to effectively debug. 
-- The branch of neorg you are using
+- The neorg log file (you'll find it at `stdpath('data') .. '/neorg.log'`). This file will contain the necessary info for me to effectively debug. 
+  You can run `:echo stdpath('data')` if you're unsure where that path resides.
+- The branch of Neorg you are using (unstable/main)
 - The list of modules you have loaded
 - Other plugins you are using which you think could potentially be conflicting with neorg.
 - Steps to reproduce the bug, if any - sometimes bugs get triggered only on certain configurations, which can be a pain. If you're aware that the bug requires a specific config, be sure to include that information as well!
@@ -50,11 +51,5 @@ If you're certain it's a fault of the plugin, not your configuration, in the iss
 - Try to only access neorg data through functions, not through tables (e.g. don't access parts of `neorg.modules.loaded_modules` you're not supposed to - if anything only access the public fields exposed by other modules). Use the API as much as possible.
 
 ## Adding functionality
-Whenever you are planning on extending neorg, try your best to add *all* extra functionality through modules and modules only. Make changes to the neorg core only if absolutely necessary.
+Whenever you are planning on extending neorg, try your best to add *all* extra functionality through modules and modules only. Make changes to the Neorg core only if absolutely necessary.
 When adding stuff, use lua only. `vim.cmd` in extreme cases :)
-
-### Ideas for modules if you don't have any:
-- [ ] A `core.api` module to wrap potential internal functions and add extra safety checks so they can be used by anyone.
-- [ ] A `core.norg` module to read, parse and convert .norg files into a sort of syntax tree (currently being worked on)
-- [ ] A utility module to add wrap several monotonous functions
-- [ ] A module to simplify interactions and manipulation of text, something really important for a plugin like neorg :)
