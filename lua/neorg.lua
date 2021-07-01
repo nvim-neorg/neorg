@@ -58,7 +58,11 @@ function neorg.org_file_entered(module_list)
 
 		-- Go through each defined module and load it
 		for name, module in pairs(module_list) do
-			if not neorg.modules.load_module(name, module.git_address, module.config) then
+			if not vim.tbl_isempty(module) and not module.config then
+				log.warn("Potential bug detected in", name, "- nonstandard tables found in the module definition. Did you perhaps mean to put these tables inside of the config = {} table?")
+			end
+
+			if not neorg.modules.load_module(name, module.config) then
 				log.error("Halting loading of modules due to error...")
 				break
 			end

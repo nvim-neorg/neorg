@@ -23,7 +23,6 @@ USAGE:
 	}
 
 	To query the current workspace, run `:Neorg workspace`. To set the workspace, run `:Neorg workspace <workspace_name>`.
-	Note that this requires core.neorgcmd to be docked into the Neorg environment and loaded.
 
 	To stop limiting yourself to a single namespace, switch to the `default` workspace, like so:
 	`:Neorg workspace default`. This will put you in your initial cwd upon launching Neovim and will no longer
@@ -31,7 +30,7 @@ USAGE:
 
 REQUIRES:
 	`core.autocommands` - used to detect changes to the current working directory via DirChanged
-	`core.neorgcmd` (optional, but recommended) - used to provide frontend features for switching workspaces, rather than simply API calls
+	`core.neorgcmd` - used to provide frontend features for switching workspaces, rather than simply API calls
 --]]
 
 require('neorg.modules.base')
@@ -40,7 +39,7 @@ require('neorg.modules')
 local module = neorg.modules.create("core.norg.dirman")
 
 module.setup = function()
-	return { success = true, requires = { "core.autocommands" } }
+	return { success = true, requires = { "core.autocommands", "core.neorgcmd" } }
 end
 
 module.load = function()
@@ -198,14 +197,6 @@ module.public = {
 	-- @Summary Synchronizes the module to the Neorg environment
 	-- @Description Updates completions for the :Neorg command
 	sync = function()
-		-- Grab the core.neorgcmd module
-		local neorgcmd = neorg.modules.get_module("core.neorgcmd")
-
-		-- If it is not loaded then bail!
-		if not neorgcmd then
-			return
-		end
-
 		-- Get all the workspace names
 		local workspace_names = module.public.get_workspace_names()
 
@@ -221,7 +212,7 @@ module.public = {
 		end)()
 
 		-- Add the command to core.neorgcmd so it can be used by the user!
-		neorgcmd.add_commands_from_table({
+		module.required["core.neorgcmd"].add_commands_from_table({
 			definitions = {
 				workspace = workspace_autocomplete
 			},

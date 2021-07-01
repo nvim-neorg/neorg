@@ -9,8 +9,8 @@ USAGE:
 	Afterwards in a function of your choice that gets called *after* core.neorgcmd gets intialized e.g. load():
 
 	module.load = function()
-		module.required["core.neorgcmd"].add_commands_from_table({
-			definitions = { -- Used for completion
+
+module.required["core.neorgcmd"].add_commands_from_table({ definitions = { -- Used for completion
 				my_command = { -- Define a command called my_command
 					my_subcommand = {} -- Define a subcommand called my_subcommand
 				}
@@ -150,9 +150,7 @@ module.config.public = {
 
 	default = {
 		"module.list",
-		"module.install",
 		"module.load",
-		"update"
 	}
 
 }

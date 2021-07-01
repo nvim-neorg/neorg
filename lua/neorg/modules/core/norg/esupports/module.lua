@@ -33,12 +33,12 @@ function _neorg_indent_expr()
 	local create_indent = function(match, indent)
 
 		-- Pack all the matches into this lua table
-		local matches = { line:match(match) }
+		local matches = { line:match("^(" .. match .. ")$") }
 
 		-- If we have indenting enabled and if the match is successful
-		if module.config.public.indent and matches[1] then
+		if module.config.public.indent and matches[1] and matches[1]:len() > 0 then
 			-- Invoke the callback for indenting
-			local indent_amount = indent(matches)
+			local indent_amount = indent(vim.list_slice(matches, 2))
 
 			-- If the return value of the callback is -1, make neovim automatically indent the next line
 			-- Else, use the returned indent amount to calculate a new value, one that will work with any
@@ -76,14 +76,14 @@ module.config.public = {
 
 	indent_config = {
 		todo_items = {
-			regex = "^(%s*)%-%s+%[%s*[x%*%s]%s*%]%s+.*$",
+			regex = "(%s*)%-%s+%[%s*[x*%s]%s*%]%s+.*",
 			indent = function(matches)
 				return matches[1]:len()
 			end
 		},
 
 		headings = {
-			regex = "^(%s*%*+%s+)(.*)$",
+			regex = "(%s*%*+%s+)(.*)",
 			indent = function(matches)
 				if matches[2]:len() > 0 then
 					return matches[1]:len()
@@ -94,7 +94,7 @@ module.config.public = {
 		},
 
 		quotes = {
-			regex = "^(%s*>%s+)(.*)$",
+			regex = "(%s*>%s+)(.*)",
 			indent = function(matches)
 				if matches[2]:len() > 0 then
 					return matches[1]:len()
@@ -105,7 +105,7 @@ module.config.public = {
 		},
 
 		unordered_lists = {
-			regex = "^(%s*)%-%s+.+$",
+			regex = "(%s*)%-%s+.+",
 			indent = function(matches)
 				return matches[1]:len()
 			end

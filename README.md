@@ -1,5 +1,3 @@
-<!-- What you are about to witness is the greatest hell. It looks good though you gotta admit -->
-
 <div align="center">
 
 <img src="res/neorg.svg" width=315>
@@ -101,28 +99,25 @@ you can read exactly what the below code snippets do in the [wiki](https://githu
 
 - [Packer](https://github.com/wbthomason/packer.nvim):
   ```lua
-	use {
-	    "vhyrro/neorg",
-		config = function()
-			require('neorg').setup {
-				-- Tell Neorg what modules to load
-				load = {
-					["core.defaults"] = {}, -- Load all the default modules
-					["core.norg.concealer"] = {}, -- Allows for use of icons
-					["core.norg.dirman"] = { -- Manage your directories with Neorg
-						config = {
-							workspaces = {
-								my_workspace = "~/neorg"
-							}
-						}
-					}
-				},
-
-				-- Post-init hook, executed just before neorg loads properly
-				hook = require('neorg.default_keybinds')
-			}
-		end,
-	}
+  use {
+      "vhyrro/neorg",
+      config = function()
+          require('neorg').setup {
+              -- Tell Neorg what modules to load
+              load = {
+                  ["core.defaults"] = {}, -- Load all the default modules
+                  ["core.norg.concealer"] = {}, -- Allows for use of icons
+                  ["core.norg.dirman"] = { -- Manage your directories with Neorg
+                      config = {
+                          workspaces = {
+                              my_workspace = "~/neorg"
+                          }
+                      }
+                  }
+              },
+          }
+      end,
+  }
   ```
   Afterwards resource the current file and `:PackerSync`:
 
@@ -157,10 +152,38 @@ It's all about the patience! We're gonna deliver all the juicy features ASAP.
 In the meantime you might be interested in reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format :D
 
 # :keyboard: Keybinds
-If you use the code snippet from the [installation section](#installation) you'll see we use 
-an inbuilt file called `neorg.default_keybinds`. You may actually want to change your keybinds though! Changing keybinds
-is a trivial task. The wiki entry for keybinds can be found [here](https://github.com/vhyrro/neorg/wiki/User-Keybinds).
-It'll tell you the ins and outs of what you need to do :)
+Neorg comes with no keys bound by default. If you want to use all the default keys, you may want to modify the `core.keybinds`'s configuration
+to generate them for you, here's how you would do it (note that this code snippet is an extension of the [installation](#wrench-installation) snippet):
+```lua
+use {
+    "vhyrro/neorg",
+    config = function()
+        require('neorg').setup {
+            -- Tell Neorg what modules to load
+            load = {
+                ["core.defaults"] = {}, -- Load all the default modules
+                ["core.keybinds"] = { -- Configure core.keybinds
+                    config = {
+                        default_keybinds = true, -- Generate the default keybinds
+                        neorg_leader = "<Leader>o" -- This is the default if unspecified
+                    }
+                },
+                ["core.norg.concealer"] = {}, -- Allows for use of icons
+                ["core.norg.dirman"] = { -- Manage your directories with Neorg
+                    config = {
+                        workspaces = {
+                            my_workspace = "~/neorg"
+                        }
+                    }
+                }
+            },
+        }
+    end,
+}
+```
+
+You may actually want to change your keybinds though! Changing keybinds is a rather trivial task.
+The wiki entry for keybinds can be found [here](https://github.com/vhyrro/neorg/wiki/User-Keybinds). It'll tell you the ins and outs of what you need to do :)
 
 # :notebook: Consult The Wiki
 The wiki is the go-to place if you need answers to anything Neorg-related. Keybinds, User Callbacks, Modules, Events?
