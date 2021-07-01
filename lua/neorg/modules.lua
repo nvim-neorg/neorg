@@ -138,12 +138,19 @@ end
 -- If the module cannot not be found, attempt to load it off of github (unimplemented). This function also applies user-defined configurations and keymaps to the modules themselves.
 -- This is the recommended way of loading modules - load_module_from_table() should only really be used by neorg itself.
 -- @Param  module_name (string) - a path to a module on disk. A path seperator in neorg is '.', not '/'
--- @Param  shortened_git_address (string) - for example "vhyrro/neorg", tells neorg where to look on github if a module can't be found locally
 -- @Param  config (table) - a configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
-function neorg.modules.load_module(module_name, shortened_git_address, config)
+function neorg.modules.load_module(module_name, config)
 
 	-- Don't bother loading the module from disk if it's already loaded
 	if neorg.modules.is_module_loaded(module_name) then
+		-- Grab the cached module.lua file
+		module = require("neorg.modules." .. module_name .. ".module")
+
+		-- Overwrite the user-defined configuration
+		if config and not vim.tbl_isempty(config) then
+			module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
+		end
+
 		return true
 	end
 
@@ -152,7 +159,7 @@ function neorg.modules.load_module(module_name, shortened_git_address, config)
 
 	exists, module = pcall(require, "neorg.modules." .. module_name .. ".module")
 
-	-- If the module can't be found, try looking for it on GitHub (currently unimplemented :P)
+	-- If the module doesn't exist then return false
 	if not exists then
 		return false
 	end
@@ -163,7 +170,7 @@ function neorg.modules.load_module(module_name, shortened_git_address, config)
 		return false
 	end
 
-	-- Load the user-defined configurations and keymaps
+	-- Load the user-defined configuration
 	if config and not vim.tbl_isempty(config) then
 		module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
 	end
@@ -195,11 +202,10 @@ end
 -- @Description Normally loads a module, but then sets up the parent module's "required" table, allowing the parent module to access the child as if it were a dependency.
 -- @Param  module_name (string) - a path to a module on disk. A path seperator in neorg is '.', not '/'
 -- @Param  parent_module (string) - the name of the parent module. This is the module which the dependency will be attached to.
--- @Param  shortened_git_address (string) - for example "vhyrro/neorg", tells neorg where to look on github if a module can't be found locally
 -- @Param  config (table) - a configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
-function neorg.modules.load_module_as_dependency(module_name, parent_module, shortened_git_address, config)
+function neorg.modules.load_module_as_dependency(module_name, parent_module, config)
 
-	if neorg.modules.load_module(module_name, shortened_git_address, config) and neorg.modules.is_module_loaded(parent_module) then
+	if neorg.modules.load_module(module_name, config) and neorg.modules.is_module_loaded(parent_module) then
 		neorg.modules.loaded_modules[parent_module].required[module_name] = neorg.modules.get_module_config(module_name)
 	end
 

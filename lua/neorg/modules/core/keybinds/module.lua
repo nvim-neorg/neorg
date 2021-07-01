@@ -26,10 +26,19 @@ end
 module.load = function()
 	module.required["core.autocommands"].enable_autocommand("BufEnter")
 	module.required["core.autocommands"].enable_autocommand("BufLeave")
+
+	if module.config.public.default_keybinds then
+		require('neorg.external.helpers').require(module, "default_keybinds")(module.config.public.neorg_leader)
+	end
 end
 
 module.private = {
 	bound_keys = {}
+}
+
+module.config.public = {
+	default_keybinds = false,
+	neorg_leader = "<Leader>o"
 }
 
 module.public = {
