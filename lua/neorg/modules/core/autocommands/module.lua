@@ -39,7 +39,7 @@ local module_autocommands = neorg.modules.create("core.autocommands")
 -- @Param  name (string) - the name of the autocommand that was just triggered
 -- @Param  triggered_from_norg (boolean) - if true, that means we have received this event as part of a *.norg autocommand
 function _neorg_module_autocommand_triggered(name, triggered_from_norg)
-	neorg.events.broadcast_event(neorg.events.create(module_autocommands, name, triggered_from_norg))
+	neorg.events.broadcast_event(neorg.events.create(module_autocommands, name, { norg = triggered_from_norg }))
 end
 
 -- A convenience wrapper around neorg.events.define_event
