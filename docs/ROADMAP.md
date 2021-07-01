@@ -10,9 +10,6 @@ Table of Contents:
 - [ ] [Road to 0.1 release](#road-to-01-release)
 - [ ] [What we are planning to do after 0.1](#plans-after-01)
 
-Extra info:
-- [The neorg file format](#the-nff)
-
 ---
 
 # PR Stuff
@@ -55,18 +52,20 @@ Things to be done in this release:
 - [x] Implement a `core.norg.concealer` module - this module will make the experience much more aesthetically pleasing by using icons for bits of text rather than raw text itself (**DONE** 2021-05-28).
 - [x] Allow todo items to be checked, unchecked and marked as pending with a keybind. (**DONE** 2021-05-29)
 - [x] Extend functionality of metamodules, allow individual modules from a metamodule to be selectively disabled (**DONE** 2021-05-30).
-- [ ] Module to manage directories where .norg files can be stored.
-- [ ] Telescope.nvim plugin to interact with above module and fuzzy find .norg files.
-- [ ] Refine and finalize the .norg spec. This spec will try to be similar to other markdown formats, but does not promise to keep everything the same. The goal is as little ambiguity and as much predictability as possible.
-- [x] Begin implementing the norg parser module. This will be the most complex module out of all the ones that will exist in neorg, so this one will take a while. The norg parser will generate a syntax tree from the current norg file. Other modules will be able to interface with this syntax tree, and the corresponding buffer will update accordingly (both the syntax tree and the actual buffer will be in sync). This is where the heart of neorg will reside, which is why the most effort needs to be put into it in order to make it truly extensible.
-	- [x] Start work on the scanner (**DONE** - the scanner is complete, however currently it is only that - a scanner. It needs to be rewritten and instead implemented as a lexer for greater flexibility.)
-	- [ ] Create the parser - the parser takes inputs from the lexer and converts it into an abstract syntax tree.
+- [x] Module to manage directories where .norg files can be stored (`core.norg.dirman`).
+- [x] Make fancy README
+- [x] Create the .norg spec. This spec will try to be similar to other markdown formats, but does not promise to keep everything the same. The goal is as little ambiguity and as much predictability as possible.
+- [ ] Telescope.nvim plugin to interact with `core.norg.dirman` and fuzzy find .norg files etc.
+- [ ] Implement a Treesitter parser
+	- [ ] Syntax highlight
+	- [ ] Sophisticated interaction with the AST
+	- [ ] Indentation engine
+- [ ] Create an nvim-compe completion source
 
-Things that might be done in this release:
+### Things that might be done in this release:
 - [x] Asynchronous module loading - on the surface this seems very trivial, but I have encountered a problem I cannot find a solution to online. The module loader uses pcall() to require the modules (in case they don't exist), but the problem is pcall just does not work asynchronously, no matter what I tried. Until a fix isn't found for this, async module loading will not be a possibility. I might be just dumb though in which case let me know how to fix it :) (**DONE** 2021-05-03 | Migrated over to plenary.nvim, all works awesome now)
-- [ ] Automatic grabbing from GitHub - if a module cannot be found when the `neorg.modules.load...()` family of functions are invoked then asynchronously grab it from GitHub then try again. This one has proven to be a bit difficult for me.
+- [x] Add more API functions. These functions will just allow any module to more easily interact with the environment around them; some quality-of-life stuff.
 - [ ] Add a module for efficiently managing and manipulating vim windows, be it splits, floating windows etc.
-- [ ] Add more API functions. These functions will just allow any module to more easily interact with the environment around them; some quality-of-life stuff.
 
 # Plans after 0.1
 > Ok that's pretty cool, so after 0.1 I should be at least able to do some basic stuff, right? What's next though?
@@ -77,14 +76,4 @@ First of all, yeah, after 0.1 all the main boring stuff should be out of the way
 - Make more things bound to a keybind, this is neovim damnit. Most keybinds will be bound under `<Leader>o` for "organization" by default (this main neorg leader will be able to be changed).
 - Add more features to the `:Neorg` command, like a fully-fledged module manager inside a floating window
 - Add the ability to upgrade .org documents and downgrade .norg documents to their respective formats.
-
----
-# The NFF
-### What is the Neorg File Format - why not just use the .org format?
-The Neorg File Format (`.norg`) is supposed to be a revised and more extensible alternative to the .org file format. The reason we don't use org is because their version of markdown is difficult to parse efficiently by a machine. Creating more efficient solutions in order to make neorg faster sounds like a good idea, don't you think? The .norg file format will not only be faster but also easier to customize and to build upon; it will be different under the hood, but we will try to make it a familiar experience. Expect all the basic markdown stuff to be practically the same, expect org-mode specific features to look different though.
-
-### I have a bunch of org documents, what about those?
-Don't worry, neorg will be able to convert between the two formats statically in the future. This means that neorg *won't* support org files in of themselves, but will allow you to convert them to .norg and *then* work on them. If you so please you will then be able to downgrade from .norg to org if you need the doc to be rendered automatically in GitHub or something.
-
-### How long will I have to wait until the NFF is on par with org?
-Well, that's really hard to say - the .org file format is a big beast, and this project was born very recently in terms of big projects. I can say for sure that I will work hard to give you all the features I can alongside the community, but I cannot provide a real date.
+- Add fancy UI elements for the true user experience
