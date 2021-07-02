@@ -37,6 +37,8 @@ end
 -- @Param  module_list (table) - a table that reflects the structure of neorg.configuration.user_configuration.load
 function neorg.org_file_entered(module_list)
 
+	vim.opt_local.filetype = "norg"
+
 	-- If no module list was defined, don't do anything
 	if not module_list then return end
 
