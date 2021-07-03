@@ -160,10 +160,11 @@ changes:
   	Marks a drawer, which you can read more about [here](#drawers).
 
   - ```
-    A [link](#my-link).
+    A [link](#My Link).
 
 	->
 
+	// TODO: This is out of date
 	\s*\[.*\]\((((#|\*{1,4}|\||\|{2})[\-\w]+)|((((ht|f)tp(s?))\:\/\/)?(www.|[a-zA-Z].)[a-zA-Z0-9\-\.]+\.(com|edu|gov|mil|net|org|biz|info|name|museum|us|ca|uk)(\:[0-9]+)*(\/($|[a-zA-Z0-9\.\,\;\?\'\\\+&%\$#\=~_\-]+))*))\)
     ```
 	Marks a link to another segment of a document or to a link on the web. More about it can be read [here](#links).
@@ -390,6 +391,9 @@ changes:
   There are a few elements that use single-line paragraphs, these being:
   - Heading and all types of subheadings
   - Tag and carryover tag definitions
+  - Marker definitions
+  - Drawer definitions
+  - Quotes
   
   This design decision is very logical, as writing:
   ```
