@@ -71,6 +71,8 @@ Select only the code you want - throw everything else away.
 
 </div>
 
+---
+
 <div align="center">
 
 ### TreeSitter Powered Editing
