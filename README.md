@@ -27,7 +27,7 @@ Life Organization Tool Written in Lua
 •
 [Wiki](#notebook-consult-the-wiki)
 
-[Credits: Logo by Binx](#heart-credits)
+[Credits: Logo by Binx](#green_heart-credits)
 
 </div>
 
@@ -71,6 +71,17 @@ Select only the code you want - throw everything else away.
 
 </div>
 
+<div align="center">
+
+### TreeSitter Powered Editing
+Feel more accurate edits thanks to Neorg's deeper understanding of your documents with Treesitter
+
+(CURRENTLY WIP)
+
+<img src="res/treesitter.gif">
+
+</div>
+
 # :star2: Introduction
 Neorg is a tool designed to reimagine organization as you know it. *Neo* - new, *org* - organization.
 Grab some coffee, start writing some notes, let your editor handle the rest.
@@ -90,8 +101,6 @@ surpass _every_ other text editor. One that will give you all the bragging right
   You are in control of what code runs and what code doesn't run.
 - Logic. Everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
   two people asked for it.
-
-Make Neovim Great Again.
 
 # :wrench: Installation
 Installation may seem a bit daunting, however it's nothing you can't understand. If you really like to be in control,
@@ -124,10 +133,32 @@ you can read exactly what the below code snippets do in the [wiki](https://githu
   ![PackerSync GIF](res/packer_sync.gif)
 
 
-Worried about lazy loading? It's very hard to do properly because of the way Neovim handles filetypes. Neorg practically lazy loads itself - it only runs when it detects a .norg extension.
-You shouldn't get any startup time hits so no worries.
+Worried about lazy loading? It's very hard to do properly because of the way Neovim handles filetypes. I'm planning on adding a PR with support
+for Neorg files. Neorg practically lazy loads itself - it only runs when it detects a .norg extension.
+You shouldn't get any real startup time hits.
 
 ##### :robot: For the latest and greatest check out the [unstable](https://github.com/vhyrro/neorg/tree/unstable) branch
+
+### Setting up TreeSitter
+As of right now, the TreeSitter parser is in its early stage. To install it, you want to run this code snippet before you invoke
+`require('nvim-treesitter.configs').setup()`:
+
+```lua
+local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
+
+parser_configs.norg = {
+    install_info = {
+        url = "https://github.com/vhyrro/tree-sitter-norg",
+        files = { "src/parser.c" },
+        branch = "main"
+    },
+}
+```
+The parser is **not guaranteed to work** right off the bat. In fact, you can expect no syntax highlighting for now. Why?
+Because in order for things to be supported out of the box we need to create a pull request to the [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
+repository and add support for our file format ourselves. I personally don't quite understand why they simply cannot extract the highlight queries from the parser itself, but oh well, we have to do it their way :)
+
+After the pull request gets merged we hope that everything will work as expected!
 
 # :question: Usage
 Simply drop into a .norg file and start typing!
@@ -137,15 +168,18 @@ Simply drop into a .norg file and start typing!
 You may realize that we don't have an insane amount of frontend features just yet.
 This doesn't mean the plugin isn't capable of those things, it just means we're working on them!
 We tried focusing heavily on the backend first, but now that that is almost done we are actually starting work on features just for you:
-- Telescope.nvim integration for several things
-- TreeSitter parser
-- Indentation engine based on the treesitter parser
-- Smarter todo item toggling with the TreeSitter AST
-- nvim-compe completion source
+- [ ] Telescope.nvim integration for several things
+- [ ] Support for .norg filetype detection within the Neovim Core.
+- [x] TreeSitter parser (can be found [here](https://github.com/vhyrro/tree-sitter-norg))
+	- [x] AST Generation
+	- [ ] Custom highlight support in [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) (we need to make a PR).
+	- [ ] Indentation engine based on the treesitter parser
+	- [ ] Smarter todo item toggling with the TreeSitter AST
+- [ ] nvim-compe completion source
 
 Everything you see above will be coming soon! Here's the things we do currently support:
-- Basic indentation
-- Toggling of TODO items
+- Indentation (albeit a bit too predictive :P)
+- Toggling of TODO items with keybinds
 - Very configurable workspaces
 
 It's all about the patience! We're gonna deliver all the juicy features ASAP.
@@ -186,10 +220,23 @@ You may actually want to change your keybinds though! Changing keybinds is a rat
 The wiki entry for keybinds can be found [here](https://github.com/vhyrro/neorg/wiki/User-Keybinds). It'll tell you the ins and outs of what you need to do :)
 
 # :notebook: Consult The Wiki
-The wiki is the go-to place if you need answers to anything Neorg-related. Keybinds, User Callbacks, Modules, Events?
+The wiki is the go-to place if you need answers to anything Neorg-related. Usage, Keybinds, User Callbacks, Modules, Events?
 It's all there, so we recommend you seriously go [read it](https://github.com/vhyrro/neorg/wiki)!
 
-# :heart: Credits
+# :computer: Contributing
+Contributions are always welcome and will always be welcome. You can check [CONTRIBUTING.md](docs/CONTRIBUTING.md) if you wanna find out more.
+Have a cool idea? Want to implement something, but don't know where to start? I'm always here to help! You can always create an issue or join the discord
+and chat there.
+
+# :purple_heart: Support
+Love what I do? Want to see more get done faster? Want to support future projects of mine? Any sort of support is always
+heartwarming and fuels the urge to keep going :heart:. You can support me here:
+- [Buy me a coffee!](https://buymeacoffee.com/vhyrro)
+- [Support on LiberaPay](https://liberapay.com/vhyrro)
+- [Donate directly via paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
+- [Support me on Patreon](https://patreon.com/vhyrro)
+
+# :green_heart: Credits
 Massive shoutouts to the people who supported the project! These are:
 - Binx, for making that gorgeous logo for free!
 	- [Github](https://github.com/Binx-Codes/)
