@@ -27,7 +27,7 @@ function neorg.setup(config)
 	-- If we are launching a .norg or .org file, fire up the modules!
 	local ext = vim.fn.expand("%:e")
 
-	if ext == "org" or ext == "norg" then 
+	if ext == "org" or ext == "norg" then
 		neorg.org_file_entered(config.load)
 	end
 end
