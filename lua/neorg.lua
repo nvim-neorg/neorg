@@ -16,42 +16,34 @@ local configuration = require('neorg.config')
 function neorg.setup(config)
 	configuration.user_configuration = config or {}
 
-	-- Create a new global instance of the neorg logger
-	require('neorg.external.log').new(configuration.user_configuration.logger or log.get_default_config(), true)
-
-	-- If the community module path has not been set then set it to its default location
-	if not config.community_module_path then
-		configuration.user_configuration.community_module_path = vim.fn.stdpath("cache") .. "/neorg_community_modules"
-	end
-
-	-- If we are launching a .norg or .org file, fire up the modules!
-	local ext = vim.fn.expand("%:e")
-
-	if ext == "org" or ext == "norg" then
-		neorg.org_file_entered(config.load)
+	-- If the file we have entered has a .norg extension
+	if vim.fn.expand("%:e") == "norg" then
+		-- Then set the filetype and boot up the environment
+		vim.opt_local.filetype = "norg"
+		neorg.org_file_entered()
+	else
+		-- Else listen for a BufRead event and fire up the Neorg environment then
+		vim.cmd [[ autocmd BufRead *.norg ++once :lua vim.opt_local.filetype = "norg"; require('neorg').org_file_entered() ]]
 	end
 end
 
 -- @Summary Neorg startup function
--- @Description This function gets called after setup() and loads all of the user-defined modules.
--- @Param  module_list (table) - a table that reflects the structure of neorg.configuration.user_configuration.load
-function neorg.org_file_entered(module_list)
+-- @Description This function gets called upon entering a .norg file and loads all of the user-defined modules.
+function neorg.org_file_entered()
 
-	vim.opt_local.filetype = "norg"
+	-- Extract the module list from the user configuration
+	local module_list = configuration.user_configuration and configuration.user_configuration.load or {}
 
-	-- If no module list was defined, don't do anything
-	if not module_list then return end
+	-- If we have already started Neorg or if we haven't defined any modules to load then bail
+	if neorg.configuration.started or not module_list or vim.tbl_isempty(module_list) then
+		return
+	end
+
+	-- Create a new global instance of the neorg logger
+	require('neorg.external.log').new(configuration.user_configuration.logger or log.get_default_config(), true)
 
 	-- Loop through all the modules and load them one by one
 	require('plenary.async_lib.async').async(function()
-
-		-- Create community module directory
-		vim.loop.fs_mkdir(configuration.user_configuration.community_module_path, 16877) -- Permissions: 0775
-
-		-- Add the community-made modules into the package path
-		for _, community_module in ipairs(vim.fn.glob(configuration.user_configuration.community_module_path .. "/*", 0, 1, 1)) do
-			package.path = package.path .. ";" .. community_module .. "/?.lua"
-		end
 
 		-- If the user has defined a post-load hook then execute it
 		if configuration.user_configuration.hook then
@@ -74,8 +66,11 @@ function neorg.org_file_entered(module_list)
 		for _, module in pairs(neorg.modules.loaded_modules) do
 			module.neorg_post_load()
 		end
+
 	end)()()
 
+	-- Set this variable to prevent Neorg from loading twice
+	neorg.configuration.started = true
 end
 
 return neorg
