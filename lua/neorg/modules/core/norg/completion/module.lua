@@ -434,7 +434,7 @@ module.public = {
 			options = {
 				type = "TODO",
 				pre = function()
-					local sub = vim.api.nvim_get_current_line():gsub("^(%-%s+%[%s*)%]", "%1")
+					local sub = vim.api.nvim_get_current_line():gsub("^(%s*%-%s+%[%s*)%]", "%1")
 
 					if sub then
 						vim.api.nvim_set_current_line(sub)
