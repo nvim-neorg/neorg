@@ -50,14 +50,24 @@ function neorg.org_file_entered()
 			configuration.user_configuration.hook()
 		end
 
-		-- Go through each defined module and load it
+		local configs = {}
+
+		-- Go through each defined module and grab its configuration
 		for name, module in pairs(module_list) do
+			-- If the module's data is not empty and we have not defined a config table then it probably means there's junk in there
 			if not vim.tbl_isempty(module) and not module.config then
 				log.warn("Potential bug detected in", name, "- nonstandard tables found in the module definition. Did you perhaps mean to put these tables inside of the config = {} table?")
 			end
 
-			if not neorg.modules.load_module(name, module.config) then
-				log.error("Halting loading of modules due to error...")
+			-- Apply the configuration
+			configs[name] = vim.tbl_deep_extend("force", configs[name] or {}, module.config or {})
+		end
+
+		-- After all configurations are merged proceed to actually load the modules
+		for name, _ in pairs(module_list) do
+			-- If it could not be loaded then halt
+			if not neorg.modules.load_module(name, configs[name]) then
+				log.fatal("Halting loading of modules due to error...")
 				break
 			end
 		end
