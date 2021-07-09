@@ -48,7 +48,7 @@ module.public = {
 		end
 
 		module.private.source.determine = function(_, context)
-			return module.public.determine({ input = context.input, before_char = context.before_char, line = context.before_line, column = context.col, buffer = context.bufnr, line_number = context.lnum })
+			return module.public.determine({ start_offset = context.start_offset, char = context.char, before_char = context.before_char, line = context.before_line, column = context.col, buffer = context.bufnr, line_number = context.lnum, previous_context = { line = context.prev_context.before_line, column = context.prev_context.col, start_offset = context.prev_context.start_offset } })
 		end
 
 		module.private.source.complete = function(_, context)
@@ -65,7 +65,10 @@ module.public = {
 			return {}
 		end
 
-		return { keyword_pattern_offset = context.column, trigger_character_offset = module.private.completion_cache.options.index }
+		local last_whitespace = (context.line:reverse()):find("%s")
+		last_whitespace = last_whitespace and last_whitespace - 1 or (module.private.completion_cache.options.index or 0)
+
+		return { keyword_pattern_offset = context.column - last_whitespace, trigger_character_offset = 1 }
 	end,
 
 	complete = function(context)

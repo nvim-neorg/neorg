@@ -64,7 +64,6 @@ module.public = {
 
 			-- Additional options to pass to the completion engine
 			options = {
-				index = 1,
 				type = "Tag",
 			},
 
@@ -75,7 +74,7 @@ module.public = {
 				-- The cycle continues
 				{
 					-- Define a regex (gets appended to parent's regex)
-					regex = "code%s+",
+					regex = "code%s+%w*",
 					-- No node variable, we don't need that sort of check here
 
 					-- Completions {{{
@@ -235,13 +234,11 @@ module.public = {
 						"leaf",
 						"lean",
 						"lasso",
-						"ls",
 						"less",
 						"ldif",
 						"lisp",
 						"livecodeserver",
 						"livescript",
-						"ls",
 						"lua",
 						"makefile",
 						"mk",
@@ -270,7 +267,6 @@ module.public = {
 						"nix",
 						"ocl",
 						"ocaml",
-						"ml",
 						"objectivec",
 						"mm",
 						"glsl",
@@ -346,7 +342,6 @@ module.public = {
 						"smalltalk",
 						"st",
 						"sml",
-						"ml",
 						"solidity",
 						"sol",
 						"spl",
@@ -403,7 +398,7 @@ module.public = {
 
 					-- Extra options
 					options = {
-						index = 1
+						type = "Language"
 					},
 
 					-- Don't descend any further, we've narrowed down our match
@@ -436,8 +431,13 @@ module.public = {
 		local completions = prev or module.public.completions
 
 		for _, completion_data in ipairs(completions) do
+			local ret_completions = { items = completion_data.complete, options = completion_data.options }
+
 			if completion_data.regex then
-				if context.line:match(saved .. completion_data.regex .. "$") then
+				local match = context.line:match(saved .. completion_data.regex .. "$")
+				if match then
+					ret_completions.match = match
+
 					if completion_data.node then
 						local ts = require('nvim-treesitter.ts_utils')
 
@@ -456,16 +456,16 @@ module.public = {
 
 									if not previous_node then
 										if negate then
-											return { items = completion_data.complete, options = completion_data.options }
+											return ret_completions
 										end
 
 										goto continue
 									end
 
 									if not negate and previous_node:type() == split[1] then
-										return { items = completion_data.complete, options = completion_data.options }
+										return ret_completions
 									elseif negate and previous_node:type() ~= split[1] then
-										return { items = completion_data.complete, options = completion_data.options }
+										return ret_completions
 									else
 										goto continue
 									end
@@ -473,7 +473,7 @@ module.public = {
 							else
 								if ts.get_node_at_cursor():type() == split[1] then
 									if not negate then
-										return { items = completion_data.complete, options = completion_data.options }
+										return ret_completions
 									else
 										goto continue
 									end
@@ -485,7 +485,7 @@ module.public = {
 							local previous_node = ts.get_previous_node(current_node, true, true)
 
 							if completion_data.node(current_node, previous_node, next_node, ts) == true then
-								return { items = completion_data.complete, options = completion_data.options }
+								return ret_completions
 							end
 
 							if completion_data.descend then
@@ -500,7 +500,7 @@ module.public = {
 						end
 					end
 
-					return { items = completion_data.complete, options = completion_data.options }
+					return ret_completions
 				elseif completion_data.descend then
 					local descent = module.public.complete(context, completion_data.descend, saved .. completion_data.regex)
 
