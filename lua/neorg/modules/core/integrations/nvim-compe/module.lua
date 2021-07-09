@@ -48,27 +48,37 @@ module.public = {
 		end
 
 		module.private.source.determine = function(_, context)
-			return module.public.determine({ start_offset = context.start_offset, char = context.char, before_char = context.before_char, line = context.before_line, column = context.col, buffer = context.bufnr, line_number = context.lnum, previous_context = { line = context.prev_context.before_line, column = context.prev_context.col, start_offset = context.prev_context.start_offset } })
+			return module.public.determine(context)
 		end
 
 		module.private.source.complete = function(_, context)
 			module.public.complete(context)
 		end
 
+		module.private.source.confirm = function(_, context)
+			module.public.confirm(context)
+		end
+
 		module.private.compe.register_source("neorg", module.private.source)
 	end,
 
 	determine = function(context)
-		module.private.completion_cache = module.public.invoke_completion_engine(context)
+		local abstracted_context = module.public.create_abstracted_context(context)
+
+		module.private.completion_cache = module.public.invoke_completion_engine(abstracted_context)
 
 		if vim.tbl_isempty(module.private.completion_cache.items) then
 			return {}
 		end
 
-		local last_whitespace = (context.line:reverse()):find("%s")
-		last_whitespace = last_whitespace and last_whitespace - 1 or (module.private.completion_cache.options.index or 0)
+		if module.private.completion_cache.options.pre then
+			module.private.completion_cache.options.pre(abstracted_context)
+		end
 
-		return { keyword_pattern_offset = context.column - last_whitespace, trigger_character_offset = 1 }
+		local last_whitespace = (context.before_line:reverse()):find("%s")
+		last_whitespace = last_whitespace and last_whitespace - 1 or 0
+
+		return { keyword_pattern_offset = context.col - last_whitespace + (module.private.completion_cache.options.index or 0), trigger_character_offset = 1 }
 	end,
 
 	complete = function(context)
@@ -85,9 +95,19 @@ module.public = {
 		context.callback({
 			items = completions
 		})
+	end,
+
+	confirm = function(context)
+		if module.private.completion_cache.options.post then
+			module.private.completion_cache.options.post()
+		end
 
 		module.private.completion_cache = {}
 	end,
+
+	create_abstracted_context = function(context)
+		return { start_offset = context.start_offset, char = context.char, before_char = context.before_char, line = context.before_line, column = context.col, buffer = context.bufnr, line_number = context.lnum, previous_context = { line = context.prev_context.before_line, column = context.prev_context.col, start_offset = context.prev_context.start_offset }, full_line = context.line }
+	end
 }
 
 return module
