@@ -1,6 +1,6 @@
 "@" @NeorgTagBegin
 "$" @NeorgTagBegin
-"@end" @NeorgTagEnd
+(tag_end) @NeorgTagEnd
 (tag_name) @NeorgTagName
 (tag_parameters) @NeorgTagParameters
 (tag_content) @NeorgTagContent
