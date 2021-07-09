@@ -419,8 +419,27 @@ module.public = {
 			},
 
 			options = {
-				index = 1,
 				type = "Directive"
+			}
+		},
+		{
+			regex = "^%s*%-%s+%[",
+
+			complete = {
+				"[ ] ",
+				"[*] ",
+				"[x] ",
+			},
+
+			options = {
+				type = "TODO",
+				pre = function()
+					local sub = vim.api.nvim_get_current_line():gsub("^(%-%s+%[%s*)%]", "%1")
+
+					if sub then
+						vim.api.nvim_set_current_line(sub)
+					end
+				end,
 			}
 		}
 	},
