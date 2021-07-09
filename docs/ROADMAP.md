@@ -56,9 +56,8 @@ Things to be done in this release:
 - [x] Make fancy README
 - [x] Create the .norg spec. This spec will try to be similar to other markdown formats, but does not promise to keep everything the same. The goal is as little ambiguity and as much predictability as possible.
 - [ ] Telescope.nvim plugin to interact with `core.norg.dirman` and fuzzy find .norg files etc.
-- [ ] Implement a Treesitter parser
-	- [ ] Syntax highlight
-	- [ ] Sophisticated interaction with the AST
+- [x] Implement a Treesitter parser
+	- [x] Syntax highlight
 	- [ ] Indentation engine
 - [ ] Create an nvim-compe completion source
 

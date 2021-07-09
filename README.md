@@ -156,11 +156,8 @@ parser_configs.norg = {
     },
 }
 ```
-The parser is **not guaranteed to work** right off the bat. In fact, you can expect no syntax highlighting for now. Why?
-Because in order for things to be supported out of the box we need to create a pull request to the [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
-repository and add support for our file format ourselves. I personally don't quite understand why they simply cannot extract the highlight queries from the parser itself, but oh well, we have to do it their way :)
-
-After the pull request gets merged we hope that everything will work as expected!
+Having a rare occurence where the parser doesn't work instantly? Try running `:e`.
+You'll only need to run it once in your lifetime, for some reason TS doesn't have issues after that.
 
 # :question: Usage
 Simply drop into a .norg file and start typing!
@@ -171,16 +168,16 @@ You may realize that we don't have an insane amount of frontend features just ye
 This doesn't mean the plugin isn't capable of those things, it just means we're working on them!
 We tried focusing heavily on the backend first, but now that that is almost done we are actually starting work on features just for you:
 - [ ] Telescope.nvim integration for several things
-- [ ] Support for .norg filetype detection within the Neovim Core.
+- [x] Support for .norg filetype detection from any part of the filesystem
 - [x] TreeSitter parser (can be found [here](https://github.com/vhyrro/tree-sitter-norg))
 	- [x] AST Generation
-	- [ ] Custom highlight support in [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) (we need to make a PR).
+	- [x] Custom highlight support
 	- [ ] Indentation engine based on the treesitter parser
 	- [ ] Smarter todo item toggling with the TreeSitter AST
-- [ ] nvim-compe completion source
+- [ ] nvim-compe completion source (almost complete)
 
 Everything you see above will be coming soon! Here's the things we do currently support:
-- Indentation (albeit a bit too predictive :P)
+- Indentation (a tad too predictive, will be fixed with TreeSitter)
 - Toggling of TODO items with keybinds
 - Very configurable workspaces
 
