@@ -168,18 +168,19 @@ You may realize that we don't have an insane amount of frontend features just ye
 This doesn't mean the plugin isn't capable of those things, it just means we're working on them!
 We tried focusing heavily on the backend first, but now that that is almost done we are actually starting work on features just for you:
 - [ ] Telescope.nvim integration for several things
-- [x] Support for .norg filetype detection from any part of the filesystem
 - [x] TreeSitter parser (can be found [here](https://github.com/vhyrro/tree-sitter-norg))
 	- [x] AST Generation
 	- [x] Custom highlight support
+	- [x] Custom folds (done, but not pushed yet)
+	- [x] Language injection (for code blocks)
 	- [ ] Indentation engine based on the treesitter parser
 	- [ ] Smarter todo item toggling with the TreeSitter AST
-- [ ] nvim-compe completion source (almost complete)
 
 Everything you see above will be coming soon! Here's the things we do currently support:
 - Indentation (a tad too predictive, will be fixed with TreeSitter)
 - Toggling of TODO items with keybinds
 - Very configurable workspaces
+- nvim-compe completion source (GIFs coming tomorrow)
 
 It's all about the patience! We're gonna deliver all the juicy features ASAP.
 In the meantime you might be interested in reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format :D
