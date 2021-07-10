@@ -75,10 +75,14 @@ module.public = {
 			module.private.completion_cache.options.pre(abstracted_context)
 		end
 
-		local last_whitespace = (vim.trim(context.before_line):reverse()):find("%s")
-		last_whitespace = last_whitespace and last_whitespace - 1 or 0
+		local reversed = vim.trim(context.before_line):reverse()
+		local last_whitespace = reversed:find("%s")
+		last_whitespace = last_whitespace and last_whitespace - 1 or (function()
+			local found = module.private.completion_cache.options.completion_start and reversed:find(module.private.completion_cache.options.completion_start)
+			return found and found - 1 or 0
+		end)()
 
-		return { keyword_pattern_offset = context.col - last_whitespace + (module.private.completion_cache.options.index or 0), trigger_character_offset = 1 }
+		return { keyword_pattern_offset = 0, trigger_character_offset = context.col - last_whitespace }
 	end,
 
 	complete = function(context)
