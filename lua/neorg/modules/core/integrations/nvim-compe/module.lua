@@ -75,7 +75,7 @@ module.public = {
 			module.private.completion_cache.options.pre(abstracted_context)
 		end
 
-		local last_whitespace = (context.before_line:reverse()):find("%s")
+		local last_whitespace = (vim.trim(context.before_line):reverse()):find("%s")
 		last_whitespace = last_whitespace and last_whitespace - 1 or 0
 
 		return { keyword_pattern_offset = context.col - last_whitespace + (module.private.completion_cache.options.index or 0), trigger_character_offset = 1 }
