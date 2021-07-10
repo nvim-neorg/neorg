@@ -28,6 +28,11 @@ neorg.modules.module_base = {
 	neorg_post_load = function()
 	end,
 
+	-- Internal, invoked after the module is loaded but before neorg_post_load
+	-- Primarily used by metamodules
+	_meta = function()
+	end,
+
 	-- The name of the module, note that modules beginning with core are neorg's inbuilt modules
 	name = "core.default",
 
@@ -129,10 +134,16 @@ function neorg.modules.create_meta(name, ...)
 
 	local module = neorg.modules.create(name)
 
+	require('neorg.modules')
+
 	module.config.public.enable = { ... }
 
 	module.setup = function()
-		return { success = true, requires = (function()
+		return { success = true }
+	end
+
+	module._meta = function()
+		module.config.public.enable = (function()
 			-- If we haven't define any modules to disable then just return all enabled modules
 			if not module.config.public.disable then
 				return module.config.public.enable
@@ -150,11 +161,16 @@ function neorg.modules.create_meta(name, ...)
 
 			-- Return the table containing all the modules we would like to enable
 			return ret
-		end)() }
+		end)()
+
+		-- Go through every module that we have defined in the metamodule and load it!
+		for _, mod in ipairs(module.config.public.enable) do
+			neorg.modules.load_module(mod)
+		end
 	end
 
 	module.unload = function()
-		for submodule_name, _ in module.required do
+		for submodule_name, _ in module.module.config.public.enable do
 			neorg.modules.unload_module(submodule_name)
 		end
 	end
