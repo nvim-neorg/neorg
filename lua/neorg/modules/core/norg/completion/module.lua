@@ -18,6 +18,10 @@ module.private = {
 }
 
 module.load = function()
+	if not module.config.public.engine then
+		return
+	end
+
 	if module.config.public.engine == "compe" and neorg.modules.load_module("core.integrations.nvim-compe") then
 		module.private.engine = neorg.modules.get_module("core.integrations.nvim-compe")
 	else
@@ -40,13 +44,14 @@ module.public = {
 	completions = {
 		{ -- Create a new completion
 			-- Define the regex that should match in order to proceed
-			regex = "^%s*[@$]",
+			regex = "^%s*[@$](%w*)",
 
 			-- If regex can be matched, this item then gets verified via TreeSitter's AST
-			node = function(_, previous)
+			node = function(current, previous)
+
 				-- If no previous node exists then show autocompletions
 				if not previous then
-					return true
+					return current and (current:type() ~= "translation_unit" or current:type() == "document") or false
 				end
 
 				-- If the previous node is not tag parameters or the tag name
@@ -65,6 +70,7 @@ module.public = {
 			-- Additional options to pass to the completion engine
 			options = {
 				type = "Tag",
+				completion_start = "@",
 			},
 
 			-- We might have matched the top level item, but can we match it with any
@@ -407,7 +413,7 @@ module.public = {
 			}
 		},
 		{
-			regex = "^%s*@",
+			regex = "^%s*@e?n?",
 			node = function(_, previous, next, utils)
 				if not previous then return false end
 
@@ -419,11 +425,12 @@ module.public = {
 			},
 
 			options = {
-				type = "Directive"
+				type = "Directive",
+				completion_start = "@",
 			}
 		},
 		{
-			regex = "^%s*%-%s+%[",
+			regex = "^%s*%-%s+%[([x%*%s]?)",
 
 			complete = {
 				"[ ] ",
@@ -440,6 +447,7 @@ module.public = {
 						vim.api.nvim_set_current_line(sub)
 					end
 				end,
+				completion_start = "-"
 			}
 		}
 	},
