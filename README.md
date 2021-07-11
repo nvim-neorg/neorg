@@ -182,7 +182,7 @@ Everything you see above will be coming soon! Here's the things we do currently 
 - Indentation (a tad too predictive, will be fixed with TreeSitter)
 - Toggling of TODO items with keybinds
 - Very configurable workspaces
-- nvim-compe completion source (GIFs coming tomorrow)
+- nvim-compe completion source
 
 It's all about the patience! We're gonna deliver all the juicy features ASAP.
 In the meantime you might be interested in reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format :D
