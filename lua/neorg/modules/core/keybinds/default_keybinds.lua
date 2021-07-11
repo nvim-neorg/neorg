@@ -10,7 +10,7 @@ return function(neorg_leader)
 				{ "gtu", "core.norg.qol.todo_items.todo.task_undone" },
 				{ "gtp", "core.norg.qol.todo_items.todo.task_pending" },
 				{ "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" }
-			},
+			}
 		}, { silent = true, noremap = true })
 
 	end)
