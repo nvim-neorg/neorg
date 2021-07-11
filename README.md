@@ -27,6 +27,8 @@ Life Organization Tool Written in Lua
 •
 [Wiki](#notebook-consult-the-wiki)
 
+[GIFS](#camera-extra-gifs)
+
 [Credits: Logo by Binx](#green_heart-credits)
 
 </div>
@@ -227,6 +229,26 @@ It's all there, so we recommend you seriously go [read it](https://github.com/vh
 Contributions are always welcome and will always be welcome. You can check [CONTRIBUTING.md](docs/CONTRIBUTING.md) if you wanna find out more.
 Have a cool idea? Want to implement something, but don't know where to start? I'm always here to help! You can always create an issue or join the discord
 and chat there.
+
+# :camera: Extra GIFs
+### Language Injection
+Get syntax highlighting for any language that's supported by treesitter.
+
+![Injection](res/injection.gif)
+
+### Smort Syntax
+Thanks to TreeSitter we can achieve a surprising amount of precision.
+
+![Trailing Modifier Showcas](res/trailing_modifiers.gif)
+![Comments](res/comments.gif)
+
+### Completion
+Neorg uses both TreeSitter and nvim-compe in unison to provide
+contextual completion based on your position in the syntax tree.
+
+![Completion](res/contextual_completion.gif)
+![Code Tag Completion](res/completion.gif)
+
 
 # :purple_heart: Support
 Love what I do? Want to see more get done faster? Want to support future projects of mine? Any sort of support is always

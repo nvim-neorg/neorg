@@ -458,7 +458,7 @@ module.public = {
 		local completions = prev or module.public.completions
 
 		for _, completion_data in ipairs(completions) do
-			local ret_completions = { items = completion_data.complete, options = completion_data.options }
+			local ret_completions = { items = completion_data.complete, options = completion_data.options or {} }
 
 			if completion_data.regex then
 				local match = context.line:match(saved .. completion_data.regex .. "$")
@@ -492,6 +492,25 @@ module.public = {
 									if not negate and previous_node:type() == split[1] then
 										return ret_completions
 									elseif negate and previous_node:type() ~= split[1] then
+										return ret_completions
+									else
+										goto continue
+									end
+								elseif split[2] == "next" then
+
+									local next_node = ts.get_next_node(ts.get_node_at_cursor(), true, true)
+
+									if not next_node then
+										if negate then
+											return ret_completions
+										end
+
+										goto continue
+									end
+
+									if not negate and next_node:type() == split[1] then
+										return ret_completions
+									elseif negate and next_node:type() ~= split[1] then
 										return ret_completions
 									else
 										goto continue
