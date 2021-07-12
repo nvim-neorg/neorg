@@ -169,6 +169,17 @@ parser_configs.norg = {
 Having a rare occurence where the parser doesn't work instantly? Try running `:e`.
 You'll only need to run it once in your lifetime, for some reason TS doesn't have issues after that.
 
+### Setting up Compe
+Neorg comes with a completion source that you can enable. Make sure to set `neorg` to `true` in the `source` table for nvim-compe:
+```lua
+source = {
+    path = true,
+    buffer = true,
+    <etc.>,
+    neorg = true
+}
+```
+
 # :question: Usage
 Simply drop into a .norg file and start typing!
 
