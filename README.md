@@ -47,7 +47,7 @@ With the introduction of lua, we *will* fight back.
 ### Manage Your Life with Neovim-inspired Keybinds
 Keybinds that make logical sense. Simply think, don't remember.
 
-<img src="res/todo_items.gif">
+<img src="https://user-images.githubusercontent.com/13149513/125272824-19748700-e32e-11eb-8c59-8c5c79794e5d.gif">
 
 ---
 
@@ -58,8 +58,8 @@ Teleport to your favourite locations right away.
 </div>
 
 <div align="center">
-<img src="res/workspaces.gif">
-<img src="res/workspaces_2.gif">
+<img src="https://user-images.githubusercontent.com/13149513/125272567-cf8ba100-e32d-11eb-821d-f43f768570fb.gif">
+<img src="https://user-images.githubusercontent.com/13149513/125272579-d2869180-e32d-11eb-936b-1601086d0c73.gif">
 </div>
 
 ---
@@ -71,7 +71,7 @@ Experience the power and configurability of Neorg's backend through modules and 
 <br>
 Select only the code you want - throw everything else away.
 
-<img src="res/configuration.gif">
+<img src="https://user-images.githubusercontent.com/13149513/125273662-fc8c8380-e32e-11eb-873f-b6dab3ba0c2e.gif">
 
 </div>
 
@@ -84,7 +84,7 @@ Feel more accurate edits thanks to Neorg's deeper understanding of your document
 
 (CURRENTLY WIP)
 
-<img src="res/treesitter.gif">
+<img src="https://user-images.githubusercontent.com/13149513/125273849-29d93180-e32f-11eb-97cc-32b3fe10e52a.gif">
 
 </div>
 
@@ -142,7 +142,7 @@ you can read exactly what the below code snippets do in the [wiki](https://githu
   ```
   Afterwards resource the current file and `:PackerSync`:
 
-  ![PackerSync GIF](res/packer_sync.gif)
+  ![PackerSync GIF](https://user-images.githubusercontent.com/13149513/125273068-5c365f00-e32e-11eb-95a4-b8c2c0d3b85e.gif)
 
 
 Worried about lazy loading? It's very hard to do properly because of the way Neovim handles filetypes. I'm planning on adding a PR with support
@@ -172,7 +172,7 @@ You'll only need to run it once in your lifetime, for some reason TS doesn't hav
 # :question: Usage
 Simply drop into a .norg file and start typing!
 
-![Usage Showcase](res/usage_showcase.gif)
+![Usage Showcase](https://user-images.githubusercontent.com/13149513/125274594-ef23c900-e32f-11eb-83dd-88627a038e01.gif)
 
 You may realize that we don't have an insane amount of frontend features just yet.
 This doesn't mean the plugin isn't capable of those things, it just means we're working on them!
@@ -243,20 +243,20 @@ and chat there.
 ### Language Injection
 Get syntax highlighting for any language that's supported by treesitter.
 
-![Injection](res/injection.gif)
+![Injection](https://user-images.githubusercontent.com/13149513/125274035-5f7e1a80-e32f-11eb-8de3-060b6e752185.gif)
 
 ### Smort Syntax
 Thanks to TreeSitter we can achieve a surprising amount of precision.
 
-![Trailing Modifier Showcas](res/trailing_modifiers.gif)
-![Comments](res/comments.gif)
+![Trailing Modifier Showcas](https://user-images.githubusercontent.com/13149513/125274133-79b7f880-e32f-11eb-86c3-c06f1484b685.gif)
+![Comments](https://user-images.githubusercontent.com/13149513/125274156-80467000-e32f-11eb-935c-a65460b3fc61.gif)
 
 ### Completion
 Neorg uses both TreeSitter and nvim-compe in unison to provide
 contextual completion based on your position in the syntax tree.
 
-![Completion](res/contextual_completion.gif)
-![Code Tag Completion](res/completion.gif)
+![Completion](https://user-images.githubusercontent.com/13149513/125274303-a835d380-e32f-11eb-9a75-a2a4eb421a61.gif)
+![Code Tag Completion](https://user-images.githubusercontent.com/13149513/125274336-aff57800-e32f-11eb-88e0-dfd9895d5d26.gif)
 
 
 # :purple_heart: Support
