@@ -1,3 +1,5 @@
+<!-- ttttt.txt g?? -->
+
 <div align="center">
 
 <img src="res/neorg.svg" width=315>
@@ -43,7 +45,7 @@ With the introduction of lua, we *will* fight back.
 ---
 
 ### Manage Your Life with Neovim-inspired Keybinds
-Woah, keybinds that actually make sense. Some text editors should take notes.
+Keybinds that make logical sense. Simply think, don't remember.
 
 <img src="res/todo_items.gif">
 
@@ -93,13 +95,16 @@ Grab some coffee, start writing some notes, let your editor handle the rest.
 **Why do we need Neorg**? There are currently projects designed to [clone org-mode from emacs](https://github.com/kristijanhusak/orgmode.nvim),
 what is the goal of this project? Whilst those projects are amazing, it's simply not enough. We need our _own, better_ solution - one that will
 surpass _every_ other text editor. One that will give you all the bragging rights for using Neovim. Here's how we'll do it:
-- Revise the org format - Simple, very extensible, unambiguous. Will make you feel right at home. Let's be real here, org and markdown have several flaws - ambiguity (tons of it), ugly syntax and the requirement for **complex parsers**.
-  It's difficult to explain without doing some research, and I really advise educating yourself on just how bad
-  markdown can get - I swear, it's worse than JS. What if we told you it's possible to eliminate those problems completely,
-  all whilst keeping that familiar markdown feel? Enter the .norg file format, whose base spec is [almost complete](docs/NFF-0.1-spec.md).
+- Revise the org format - Simple, very extensible, unambiguous. Will make you feel right at home. Org and markdown have several flaws, but the most
+  notable one is the requirement for **complex parsers**.
+  I really advise educating yourself on just how bad markdown can get at times;
+  what if we told you it's possible to eliminate those problems completely,
+  all whilst keeping that familiar markdown feel?
+
+  Enter the .norg file format, whose base spec is [almost complete](docs/NFF-0.1-spec.md).
   The cross between all the best things from org and the best things from markdown, revised and merged into one.
 - Keybinds that _make sense_ - vim's keybind philosophy is unlike any other, and we want to keep that vibe.
-  Keys form a "language", one that you can speak, not one that you need to remember.
+  Keys form a "language", one that you can speak, not one that you need to learn off by heart.
 - Infinite extensibility - no, that isn't a hyperbole. We mean it. Neorg is built upon an insanely modular and
   configurable backend - keep what you need, throw away what you don't care about. Use the defaults or change 'em.
   You are in control of what code runs and what code doesn't run.
@@ -109,6 +114,8 @@ surpass _every_ other text editor. One that will give you all the bragging right
 # :wrench: Installation
 Installation may seem a bit daunting, however it's nothing you can't understand. If you really like to be in control,
 you can read exactly what the below code snippets do in the [wiki](https://github.com/vhyrro/neorg/wiki/Installation).
+
+> :exclamation: Neorg requires [plenary](https://github.com/nvim-lua/plenary.nvim) to operate, so be sure to install it alongside Neorg!
 
 - [Packer](https://github.com/wbthomason/packer.nvim):
   ```lua
@@ -130,6 +137,7 @@ you can read exactly what the below code snippets do in the [wiki](https://githu
               },
           }
       end,
+      requires = "nvim-lua/plenary.nvim"
   }
   ```
   Afterwards resource the current file and `:PackerSync`:
@@ -138,7 +146,7 @@ you can read exactly what the below code snippets do in the [wiki](https://githu
 
 
 Worried about lazy loading? It's very hard to do properly because of the way Neovim handles filetypes. I'm planning on adding a PR with support
-for Neorg files. Neorg practically lazy loads itself - it only runs when it detects a .norg extension.
+for Neorg files to the Neovim core at some point. Neorg practically lazy loads itself - it only runs when it detects a .norg extension.
 You shouldn't get any real startup time hits.
 
 ##### :robot: For the latest and greatest check out the [unstable](https://github.com/vhyrro/neorg/tree/unstable) branch
@@ -215,6 +223,7 @@ use {
             },
         }
     end,
+    requires = "nvim-lua/plenary.nvim"
 }
 ```
 
