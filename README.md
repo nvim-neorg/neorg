@@ -114,8 +114,9 @@ surpass _every_ other text editor. One that will give you all the bragging right
 # :wrench: Installation
 Installation may seem a bit daunting, however it's nothing you can't understand. If you really like to be in control,
 you can read exactly what the below code snippets do in the [wiki](https://github.com/vhyrro/neorg/wiki/Installation).
+You can install through any plugin manager (it can even be vimscript plugin managers, as long as you're running Neovim version 0.5 or higher).
 
-> :exclamation: Neorg requires [plenary](https://github.com/nvim-lua/plenary.nvim) to operate, so be sure to install it alongside Neorg!
+> :exclamation: NOTE: Neorg requires [plenary](https://github.com/nvim-lua/plenary.nvim) to operate, so be sure to install it alongside Neorg!
 
 - [Packer](https://github.com/wbthomason/packer.nvim):
   ```lua
