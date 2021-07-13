@@ -28,44 +28,44 @@ module.config.public = {
 			["end"] = "+TSKeyword",
 
 			name = "+TSKeyword",
-			parameters = "+Yellow",
+			parameters = "+TSType",
 			content = "+Normal",
 			comment = "+TSComment",
 		},
 
 		heading = {
-			["1"] = "+Purple",
-			["2"] = "+Orange",
-			["3"] = "+Blue",
+			["1"] = "+TSAttribute",
+			["2"] = "+TSLabel",
+			["3"] = "+TSMath",
 			["4"] = "+TSString",
 		},
 
 		error = "+TSError",
 
 		marker = {
-			[""] = "+Orange",
+			[""] = "+TSLabel",
 			title = "+Normal",
 		},
 
 		drawer = {
-			[""] = "+Grey",
-			title = "+Blue",
+			[""] = "+TSPunctDelimiter",
+			title = "+TSMath",
 			content = "+Normal"
 		},
 
-		escapesequence = "+Yellow",
+		escapesequence = "+TSType",
 
 		todoitem = {
-			[""] = "+Aqua",
-			pendingmark = "+Yellow",
+			[""] = "+TSCharacter",
+			pendingmark = "+TSNamespace",
 			donemark = "+TSMethod",
 		},
 
-		unorderedlist = "+Grey",
+		unorderedlist = "+TSPunctDelimiter",
 
 		quote = {
-			[""] = "+Grey",
-			content = "+Grey",
+			[""] = "+TSPunctDelimiter",
+			content = "+TSPunctDelimiter",
 		},
 
 	}
