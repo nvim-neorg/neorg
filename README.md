@@ -167,6 +167,14 @@ parser_configs.norg = {
     },
 }
 ```
+Then run `:TSUpdate`. If you haven't already make sure to set `norg` as a parser in the `ensure_installed` table.
+Here's an example config, yours will probably be different:
+```lua
+require('nvim-treesitter.configs').setup {
+	ensure_installed = { "norg", "haskell", "cpp", "c", "javascript", "markdown" },
+}
+```
+
 Having a rare occurence where the parser doesn't work instantly? Try running `:e`.
 You'll only need to run it once in your lifetime, for some reason TS doesn't have issues after that.
 
