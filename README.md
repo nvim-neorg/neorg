@@ -120,32 +120,57 @@ You can install through any plugin manager (it can even be vimscript plugin mana
 
 - [Packer](https://github.com/wbthomason/packer.nvim):
   ```lua
-  use {
-      "vhyrro/neorg",
-      config = function()
-          require('neorg').setup {
-              -- Tell Neorg what modules to load
-              load = {
-                  ["core.defaults"] = {}, -- Load all the default modules
-                  ["core.norg.concealer"] = {}, -- Allows for use of icons
-                  ["core.norg.dirman"] = { -- Manage your directories with Neorg
-                      config = {
-                          workspaces = {
-                              my_workspace = "~/neorg"
-                          }
-                      }
-                  }
-              },
-          }
-      end,
-      requires = "nvim-lua/plenary.nvim"
-  }
+  use {'vhyrro/neorg', requires = 'nvim-lua/plenary.nvim'}
   ```
-  Afterwards resource the current file and `:PackerSync`:
+  Afterwards resource the current file and `:PackerSync`.
+
+  You can put the configuration directly in init.lua or in a separate configuration file that will be loaded from the main configuration:
+  ```lua
+  require('neorg').setup {
+                -- Tell Neorg what modules to load
+                load = {
+                    ["core.defaults"] = {}, -- Load all the default modules
+                    ["core.norg.concealer"] = {}, -- Allows for use of icons
+                    ["core.norg.dirman"] = { -- Manage your directories with Neorg
+                        config = {
+                            workspaces = {
+                                my_workspace = "~/neorg"
+                            }
+                        }
+                    }
+                },
+            }
+  ```
 
   ![PackerSync GIF](https://user-images.githubusercontent.com/13149513/125273068-5c365f00-e32e-11eb-95a4-b8c2c0d3b85e.gif)
 
-
+ - [vim-plug](https://github.com/junegunn/vim-plug):
+   ```vim
+   Plug 'vhyrro/neorg' | Plug 'nvim-lua/plenary.nvim'
+   ```
+   
+   Afterwards resource the current file and to install plugins`:PlugInstall`.
+   
+   You can put this initial configuration in your init.vim file:
+   ```vim
+   lua << EOF
+   require('neorg').setup {
+                -- Tell Neorg what modules to load
+                load = {
+                    ["core.defaults"] = {}, -- Load all the default modules
+                    ["core.norg.concealer"] = {}, -- Allows for use of icons
+                    ["core.norg.dirman"] = { -- Manage your directories with Neorg
+                        config = {
+                            workspaces = {
+                                my_workspace = "~/neorg"
+                            }
+                        }
+                    }
+                },
+            }
+   EOF
+   ```
+   
 Worried about lazy loading? It's very hard to do properly because of the way Neovim handles filetypes. I'm planning on adding a PR with support
 for Neorg files to the Neovim core at some point. Neorg practically lazy loads itself - it only runs when it detects a .norg extension.
 You shouldn't get any real startup time hits.
