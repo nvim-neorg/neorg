@@ -12,8 +12,8 @@ module.setup = function()
 	return { success = true, requires = { "core.highlights" } }
 end
 
-module.load = function()
-	module.required["core.highlights"].add_highlights({
+module.config.public = {
+	highlights = {
 		tag = {
 			-- The + tells neorg to link to an existing hl
 			begin = "+TSKeyword",
@@ -63,7 +63,11 @@ module.load = function()
 			content = "+TSPunctDelimiter",
 		},
 
-	})
+	}
+}
+
+module.load = function()
+	module.required["core.highlights"].add_highlights(module.config.public.highlights)
 end
 
 return module
