@@ -220,7 +220,8 @@ parser_configs.norg = {
     },
 }
 ```
-Then run `:TSUpdate`. If you haven't already make sure to set `norg` as a parser in the `ensure_installed` table.
+Then run `:TSInstall norg`.
+If you want the parser to be more persistent across different installations of your config make sure to set `norg` as a parser in the `ensure_installed` table, then run `:TSUpdate`.
 Here's an example config, yours will probably be different:
 ```lua
 require('nvim-treesitter.configs').setup {
@@ -230,6 +231,16 @@ require('nvim-treesitter.configs').setup {
 
 Having a rare occurence where the parser doesn't work instantly? Try running `:e`.
 You'll only need to run it once in your lifetime, for some reason TS doesn't have issues after that.
+
+**Still not working**? Uh oh, you're stepping on muddy territory. There are several reasons why a parser
+may not work right off the bat, however most commonly it's because of plugin loading order. Neorg needs
+`nvim-treesitter` to be up and running before it starts adding colours to highlight groups.
+With packer this can be achieved with an `after = "nvim-treesitter"` flag in your `use` call to Neorg.
+Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup. If nothing else works
+then try creating an `after/ftplugin/norg.lua` file and paste your Neorg configuration there.
+
+It's a bit hacky - it will unfortunately stay this way until we get first-class support in the `nvim-treesitter` repository.
+Sorry!
 
 ### Setting up Compe
 Neorg comes with a completion source that you can enable. Make sure to set `neorg` to `true` in the `source` table for nvim-compe:
