@@ -116,11 +116,11 @@ Installation may seem a bit daunting, however it's nothing you can't understand.
 you can read exactly what the below code snippets do in the [wiki](https://github.com/vhyrro/neorg/wiki/Installation).
 You can install through any plugin manager (it can even be vimscript plugin managers, as long as you're running Neovim version 0.5 or higher).
 
-> :exclamation: NOTE: Neorg requires [plenary](https://github.com/nvim-lua/plenary.nvim) to operate, so be sure to install it alongside Neorg!
+> :exclamation: NOTE: Neorg requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) to operate, so be sure to install it alongside Neorg!
 
 - [Packer](https://github.com/wbthomason/packer.nvim):
   ```lua
-  use {
+  use { 
       "vhyrro/neorg",
       config = function()
           require('neorg').setup {
@@ -141,14 +141,63 @@ You can install through any plugin manager (it can even be vimscript plugin mana
       requires = "nvim-lua/plenary.nvim"
   }
   ```
+
+  You can put the configuration directly in packer's `config` table (as shown above) or in a separate location within your config
+  (make sure the configuration code runs after Neorg is loaded!):
+  ```lua
+  require('neorg').setup {
+      -- Tell Neorg what modules to load
+      load = {
+          ["core.defaults"] = {}, -- Load all the default modules
+          ["core.norg.concealer"] = {}, -- Allows for use of icons
+          ["core.norg.dirman"] = { -- Manage your directories with Neorg
+              config = {
+                  workspaces = {
+                      my_workspace = "~/neorg"
+                  }
+              }
+          }
+      },
+  }
+  ```
+
+  Want to lazy load? No problem! You can use the `ft` key to load Neorg only upon entering a .norg file.
+  Here's an example:
+
+  ```lua
+  use { "vhyrro/neorg", ft = "norg", config = ... }
+  ```
+
   Afterwards resource the current file and `:PackerSync`:
 
   ![PackerSync GIF](https://user-images.githubusercontent.com/13149513/125273068-5c365f00-e32e-11eb-95a4-b8c2c0d3b85e.gif)
 
-
-Worried about lazy loading? It's very hard to do properly because of the way Neovim handles filetypes. I'm planning on adding a PR with support
-for Neorg files to the Neovim core at some point. Neorg practically lazy loads itself - it only runs when it detects a .norg extension.
-You shouldn't get any real startup time hits.
+ - [vim-plug](https://github.com/junegunn/vim-plug):
+   ```vim
+   Plug 'vhyrro/neorg' | Plug 'nvim-lua/plenary.nvim'
+   ```
+   
+   Afterwards resource the current file and to install plugins run `:PlugInstall`.
+   
+   You can put this initial configuration in your init.vim file:
+   ```vim
+   lua << EOF
+       require('neorg').setup {
+           -- Tell Neorg what modules to load
+           load = {
+               ["core.defaults"] = {}, -- Load all the default modules
+               ["core.norg.concealer"] = {}, -- Allows for use of icons
+               ["core.norg.dirman"] = { -- Manage your directories with Neorg
+                   config = {
+                       workspaces = {
+                           my_workspace = "~/neorg"
+                       }
+                   }
+               }
+           },
+       }
+   EOF
+   ```
 
 ##### :robot: For the latest and greatest check out the [unstable](https://github.com/vhyrro/neorg/tree/unstable) branch
 
