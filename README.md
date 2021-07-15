@@ -161,14 +161,18 @@ You can install through any plugin manager (it can even be vimscript plugin mana
   }
   ```
 
-  Want to lazy load? No problem! You can use the `ft` key to load Neorg only upon entering a .norg file.
+  Want to lazy load? Turns out that can be rather problematic. You can use the `ft` key to load Neorg only upon entering a .norg file.
   Here's an example:
 
   ```lua
   use { "vhyrro/neorg", ft = "norg", config = ... }
   ```
 
-  Afterwards resource the current file and `:PackerSync`:
+  However don't expect everything to work. TreeSitter highlights are known to fail, amongst other things.
+  Neorg practically lazy loads itself - only a few lines of code are run on startup, these lines check whether the current
+  extension is `.norg`, if it's not then nothing else loads. You shouldn't have to worry about performance issues.
+
+  After all of that resource the current file and `:PackerSync`:
 
   ![PackerSync GIF](https://user-images.githubusercontent.com/13149513/125273068-5c365f00-e32e-11eb-95a4-b8c2c0d3b85e.gif)
 
