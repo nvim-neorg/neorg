@@ -68,10 +68,6 @@ USAGE:
 
 	Here are the more advanced parameters you may be interested in:
 
-	force_length - sometimes an icon will take up more than a single char. Lua kind of messes up
-	certain icons and sees them as having a length of 3 (for example). This variable allows you to
-	force this length
-
 	pattern - the pattern to match. If this pattern isn't matched then the conceal isn't applied.
 
 	whitespace_index - this one is a bit funny to explain. Basically, this is the index of a capture from
@@ -109,7 +105,6 @@ module.config.public = {
 			done = {
 				enabled = true,
 				icon = "",
-				force_length = 1,
 				pattern = "^(%s*%-%s+%[%s*)x%s*%]%s+",
 				whitespace_index = 1,
 				highlight = "NeorgTodoItemDoneMark",
@@ -119,7 +114,6 @@ module.config.public = {
 			pending = {
 				enabled = true,
 				icon = "",
-				force_length = 1,
 				pattern = "^(%s*%-%s+%[%s*)%*%s*%]%s+",
 				whitespace_index = 1,
 				highlight = "NeorgTodoItemPendingMark",
@@ -129,7 +123,6 @@ module.config.public = {
 			undone = {
 				enabled = true,
 				icon = "×",
-				force_length = 1,
 				pattern = "^(%s*%-%s+%[)%s+]%s+",
 				whitespace_index = 1,
 				highlight = "TSComment",
@@ -140,7 +133,6 @@ module.config.public = {
 		quote = {
 			enabled = true,
 			icon = "∣",
-			force_length = 1,
 			pattern = "^(%s*)>%s+",
 			whitespace_index = 1,
 			highlight = "NeorgQuote",
@@ -153,7 +145,6 @@ module.config.public = {
 			level_1 = {
 				enabled = true,
 				icon = "◉",
-				force_length = 1,
 				pattern = "^(%s*)%*%s+",
 				whitespace_index = 1,
 				highlight = "NeorgHeading1",
@@ -163,7 +154,6 @@ module.config.public = {
 			level_2 = {
 				enabled = true,
 				icon = "○",
-				force_length = 1,
 				pattern = "^(%s*)%*%*%s+",
 				whitespace_index = 1,
 				highlight = "NeorgHeading2",
@@ -173,7 +163,6 @@ module.config.public = {
 			level_3 = {
 				enabled = true,
 				icon = "✿",
-				force_length = 1,
 				pattern = "^(%s*)%*%*%*%s+",
 				whitespace_index = 1,
 				highlight = "NeorgHeading3",
@@ -183,7 +172,6 @@ module.config.public = {
 			level_4 = {
 				enabled = true,
 				icon = "•",
-				force_length = 1,
 				pattern = "^(%s*)%*%*%*%*%s+",
 				whitespace_index = 1,
 				highlight = "NeorgHeading4",
@@ -194,7 +182,6 @@ module.config.public = {
 		marker = {
 			enabled = true,
 			icon = "",
-			force_length = 1,
 			pattern = "^(%s*)%|%s+",
 			whitespace_index = 1,
 			highlight = "NeorgMarker",
@@ -296,11 +283,9 @@ module.public = {
 					local whitespace_amount = match[icon_info.whitespace_index]:len()
 					-- Construct the virtual text with any potential padding
 					local full_icon = (" "):rep(icon_info.padding_before) .. icon_info.icon
-					-- Grab the icon length
-					local icon_length = (icon_info.force_length and icon_info.force_length or icon_info.icon:len())
 
 					-- Actually set the extmark for the current line with all the required metadata
-					module.public._set_extmark(full_icon, icon_info.highlight, line_number - 1, whitespace_amount, whitespace_amount + icon_length)
+					module.public._set_extmark(full_icon, icon_info.highlight, line_number - 1, whitespace_amount, whitespace_amount + vim.fn.strdisplaywidth(icon_info.icon))
 				end
 			end
 		end
