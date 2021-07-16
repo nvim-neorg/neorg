@@ -168,14 +168,14 @@ module.public = {
 
 		if not module_config or not module_config.neorg_commands then return end
 
-		module.public.neorg_commands = vim.tbl_deep_extend("force", module_config.neorg_commands, module.public.neorg_commands)
+		module.public.neorg_commands = vim.tbl_deep_extend("force", module.public.neorg_commands, module_config.neorg_commands)
 	end,
 
 	-- @Summary Adds custom commands for core.neorgcmd to use
 	-- @Description Recursively merges the provided table with the module.config.public.neorg_commands table.
 	-- @Param  functions (table) - a table that follows the module.config.public.neorg_commands structure
 	add_commands_from_table = function(functions)
-		module.public.neorg_commands = vim.tbl_deep_extend("force", functions, module.public.neorg_commands)
+		module.public.neorg_commands = vim.tbl_deep_extend("force", module.public.neorg_commands, functions)
 	end,
 
 	-- @Summary Adds custom commands for core.neorgcmd to use
