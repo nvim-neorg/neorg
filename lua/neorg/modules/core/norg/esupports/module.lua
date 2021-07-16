@@ -93,17 +93,6 @@ module.config.public = {
 			end
 		},
 
-		quotes = {
-			regex = "(%s*>%s+)(.*)",
-			indent = function(matches)
-				if matches[2]:len() > 0 then
-					return matches[1]:len()
-				else
-					return -1
-				end
-			end
-		},
-
 		unordered_lists = {
 			regex = "(%s*)%-%s+.+",
 			indent = function(matches)
