@@ -43,6 +43,11 @@ module.setup = function()
 end
 
 module.load = function()
+	-- Go through every workspace and expand special symbols like ~
+	for name, workspace_location in pairs(module.config.public.workspaces) do
+		module.config.public.workspaces[name] = vim.fn.expand(workspace_location)
+	end
+
 	-- Enable the DirChanged autocmd to detect changes to the cwd
 	module.required["core.autocommands"].enable_autocommand("DirChanged", true)
 
@@ -117,6 +122,9 @@ module.public = {
 			log.warn("Unable to set workspace to", workspace, "- that workspace does not exist")
 			return false
 		end
+
+		-- Create the workspace directory if not already present
+		vim.loop.fs_mkdir(workspace, 16877)
 
 		-- Cache the current workspace
 		local current_ws = vim.deepcopy(module.private.current_workspace)
