@@ -28,11 +28,6 @@ neorg.modules.module_base = {
 	neorg_post_load = function()
 	end,
 
-	-- Internal, invoked after the module is loaded but before neorg_post_load
-	-- Primarily used by metamodules
-	_meta = function()
-	end,
-
 	-- The name of the module, note that modules beginning with core are neorg's inbuilt modules
 	name = "core.default",
 
@@ -142,7 +137,7 @@ function neorg.modules.create_meta(name, ...)
 		return { success = true }
 	end
 
-	module._meta = function()
+	module.load = function()
 		module.config.public.enable = (function()
 			-- If we haven't define any modules to disable then just return all enabled modules
 			if not module.config.public.disable then

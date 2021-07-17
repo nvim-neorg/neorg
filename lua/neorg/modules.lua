@@ -143,14 +143,6 @@ function neorg.modules.load_module(module_name, config)
 
 	-- Don't bother loading the module from disk if it's already loaded
 	if neorg.modules.is_module_loaded(module_name) then
-		-- Grab the cached module.lua file
-		module = require("neorg.modules." .. module_name .. ".module")
-
-		-- Overwrite the user-defined configuration
-		if config and not vim.tbl_isempty(config) then
-			module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
-		end
-
 		return true
 	end
 
@@ -173,6 +165,8 @@ function neorg.modules.load_module(module_name, config)
 	-- Load the user-defined configuration
 	if config and not vim.tbl_isempty(config) then
 		module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
+	else
+		module.config.public = vim.tbl_deep_extend("force", module.config.public, require('neorg.config').modules[module_name] or {})
 	end
 
 	-- Pass execution onto load_module_from_table() and let it handle the rest
