@@ -36,28 +36,28 @@ USAGE:
 			-- Define icons for all the different heading levels
 			level_1 = {
 				enabled = true,
-				icon = "⦿"
+				icon = "◉",
 			},
 
 			level_2 = {
 				enabled = true,
-				icon = "⦾"
+				icon = "○",
 			},
 
 			level_3 = {
 				enabled = true,
-				icon = "•"
+				icon = "✿",
 			},
 
 			level_4 = {
 				enabled = true,
-				icon = "◦"
+				icon = "•",
 			},
 		},
-		list = {
-			-- Option to conceal lists, disabled by default because for some it can look weird
-			enabled = false,
-			icon = "‑"
+
+		marker = {
+			enabled = true, -- Enable the beautification of markers
+			icon = "",
 		},
 	}
 
@@ -285,7 +285,7 @@ module.public = {
 					local full_icon = (" "):rep(icon_info.padding_before) .. icon_info.icon
 
 					-- Actually set the extmark for the current line with all the required metadata
-					module.public._set_extmark(full_icon, icon_info.highlight, line_number - 1, whitespace_amount, whitespace_amount + vim.fn.strdisplaywidth(icon_info.icon))
+					module.public._set_extmark(full_icon, icon_info.highlight, line_number - 1, whitespace_amount, whitespace_amount + vim.api.nvim_strwidth(icon_info.icon))
 				end
 			end
 		end
