@@ -50,26 +50,6 @@ function neorg.org_file_entered()
 			configuration.user_configuration.hook()
 		end
 
-		--[[
-			WARNING, what you are about to witness is incredibly hard to look at.
-			I know. I seriously do. But it's the only thing I can do.
-			There are four for loops. Each one doing its own individual thing,
-			they need to be separate otherwise things will go wrong.
-			The first for loop merges *all* defined configs. This is necessary
-			because e.g. metamodules can load a module without configuration first,
-			causing bugs.
-			The second for loop actually loads all modules and makes sure they have loaded.
-			The third for loop is for metamodules. It's their signal to wake up and start loading
-			their submodules. If this function gets invoked anywhere else the configuration does not
-			get merged properly.
-			Finally, the fourth for loop handles the invocation of neorg_post_load on all modules.
-
-			But hey, on the bright side - this is all run asychronously, and so will not interfere with
-			the user's editing experience :)
-		--]]
-
-		local configs = {}
-
 		-- Go through each defined module and grab its configuration
 		for name, module in pairs(module_list) do
 			-- If the module's data is not empty and we have not defined a config table then it probably means there's junk in there
@@ -78,21 +58,16 @@ function neorg.org_file_entered()
 			end
 
 			-- Apply the configuration
-			configs[name] = vim.tbl_deep_extend("force", configs[name] or {}, module.config or {})
+			configuration.modules[name] = vim.tbl_deep_extend("force", configuration.modules[name] or {}, module.config or {})
 		end
 
 		-- After all configurations are merged proceed to actually load the modules
 		for name, _ in pairs(module_list) do
 			-- If it could not be loaded then halt
-			if not neorg.modules.load_module(name, configs[name]) then
+			if not neorg.modules.load_module(name) then
 				log.fatal("Halting loading of modules due to error...")
 				break
 			end
-		end
-
-		-- Go through each module and invoke the _meta internal function
-		for _, module in pairs(neorg.modules.loaded_modules) do
-			module._meta()
 		end
 
 		-- Goes through each loaded module and invokes neorg_post_load()

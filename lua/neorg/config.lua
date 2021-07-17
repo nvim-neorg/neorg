@@ -4,10 +4,12 @@ neorg.configuration = {
 	user_configuration = {
 		load = {
 			--[[
-				["name"] = { git_address = "address", config = { ... } }
+				["name"] = { config = { ... } }
 			--]]
 		},
 	},
+
+	modules = {}
 
 }
 
