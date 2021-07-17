@@ -247,7 +247,7 @@ module.public = {
 		local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 
 		for i, line in ipairs(lines) do
-			module.public.set_extmark(i, line)
+			module.public.set_conceal(i, line)
 		end
 	end,
 
@@ -261,14 +261,14 @@ module.public = {
 		vim.api.nvim_buf_clear_namespace(0, module.private.namespace, line_number - 1, line_number)
 
 		-- Reapply the conceals for the current line
-		module.public.set_extmark(line_number, vim.api.nvim_get_current_line())
+		module.public.set_conceal(line_number, vim.api.nvim_get_current_line())
 	end,
 
 	-- @Summary Sets a conceal for the specified line
 	-- @Description Attempts to match the current line to any valid conceal and tries applying it
 	-- @Param  line_number (number) - the line number to conceal
 	-- @Param  line (string) - the content of the line at the specified line number
-	set_extmark = function(line_number, line)
+	set_conceal = function(line_number, line)
 
 		-- Loop through every enabled icon
 		for _, icon_info in ipairs(module.private.icons) do
