@@ -9,7 +9,8 @@ return function(neorg_leader)
 				{ "gtd", "core.norg.qol.todo_items.todo.task_done" },
 				{ "gtu", "core.norg.qol.todo_items.todo.task_undone" },
 				{ "gtp", "core.norg.qol.todo_items.todo.task_pending" },
-				{ "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" }
+				{ "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" },
+				{ neorg_leader .. "nn", "core.norg.dirman.new.note" }
 			}
 		}, { silent = true, noremap = true })
 

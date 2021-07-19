@@ -17,6 +17,8 @@ USAGE:
 					},
 					autodetect = true, -- Automatically detect whether you are in a workspace whenever you open a file
 					autochdir = true, -- Automatically change the directory to the current workspace's root every time
+					index = "index.norg", -- The name of the main (root) .norg file
+					last_workspace = vim.fn.stdpath("cache") .. "/neorg_last_workspace.txt" -- The location to write and read the workspace cache file
 				}
 			}
 		}
@@ -39,7 +41,7 @@ require('neorg.modules')
 local module = neorg.modules.create("core.norg.dirman")
 
 module.setup = function()
-	return { success = true, requires = { "core.autocommands", "core.neorgcmd" } }
+	return { success = true, requires = { "core.autocommands", "core.neorgcmd", "core.keybinds", "core.ui" } }
 end
 
 module.load = function()
@@ -48,12 +50,23 @@ module.load = function()
 		module.config.public.workspaces[name] = vim.fn.expand(workspace_location)
 	end
 
+	module.required["core.keybinds"].register_keybind(module.name, "new.note")
+
 	-- Enable the DirChanged autocmd to detect changes to the cwd
 	module.required["core.autocommands"].enable_autocommand("DirChanged", true)
+
+	-- Enable the VimLeavePre autocommand to write the last workspace to disk
+	module.required["core.autocommands"].enable_autocommand("VimLeavePre", true)
 
 	-- If the user wants workspace autodetection
 	if module.config.public.autodetect then
 		module.public.update_cwd()
+	end
+
+	-- If we have loaded this module from outside of a Neorg file then try jumping
+	-- to the last cached workspace
+	if vim.fn.expand("%:e") ~= "norg" then
+		module.public.set_last_workspace()
 	end
 
 	module.public.sync()
@@ -69,6 +82,12 @@ module.config.public = {
 	autodetect = true,
 	-- Automatically change the directory to the root of the workspace every time
 	autochdir = true,
+
+	-- The name for the index file
+	index = "index.norg",
+
+	-- The location where to look for the last workspace
+	last_workspace = vim.fn.stdpath("cache") .. "/neorg_last_workspace.txt"
 }
 
 module.private = {
@@ -91,14 +110,7 @@ module.public = {
 	-- @Description If present retrieve a workspace's path by its name, else returns nil
 	-- @Param  name (string) - the name of the workspace
 	get_workspace = function(name)
-		local workspace = module.config.public.workspaces[name]
-
-		if not workspace then
-			log.warn("Unable to grab workspace with name", name, "- such a workspace has not been defined.")
-			return nil
-		end
-
-		return workspace
+		return module.config.public.workspaces[name]
 	end,
 
 	-- @Summary Retrieves the current workspace
@@ -231,6 +243,81 @@ module.public = {
 				}
 			}
 		})
+	end,
+
+	-- @Summary Creates a new Neorg file
+	-- @Description Takes in a path (can include directories) and creates a .norg file from that path
+	-- @Param  path (string) - a path to place the .norg file in
+	create_file = function(path)
+		-- Grab the current workspace's full path
+		local fullpath = module.public.get_current_workspace()[2]
+
+		-- Split the path at every /
+		local split = vim.split(vim.trim(path), "/", true)
+
+		-- If the last element is empty (i.e. if the string provided ends with '/') then trim it
+		if split[#split]:len() == 0 then
+			split = vim.list_slice(split, 0, #split - 1)
+		end
+
+		-- Go through each directory (excluding the actual file name) and create each directory individually
+		for _, element in ipairs(vim.list_slice(split, 0, #split - 1)) do
+			vim.loop.fs_mkdir(fullpath .. "/" .. element, 16877)
+			fullpath = fullpath .. "/" .. element
+		end
+
+		-- If the provided filepath ends in .norg then don't append the filetype automatically
+		-- Begin editing that newly created file
+		if vim.endswith(path, ".norg") then
+			vim.cmd("e " .. fullpath .. "/" .. split[#split] .. " | w")
+		else
+			vim.cmd("e " .. fullpath .. "/" .. split[#split] .. ".norg | w")
+		end
+	end,
+
+	-- @Summary Sets the current workspace to the last cached workspace
+	-- @Description Reads the neorg_last_workspace.txt file and loads the cached workspace from there
+	set_last_workspace = function()
+		-- Attempt to open the last workspace cache file in read-only mode
+		vim.loop.fs_open(module.config.public.last_workspace, "r", 438, function(err, fd)
+			-- Function that broadcasts to the environment that no cached workspace could be found
+			local cache_empty_notify = vim.schedule_wrap(function()
+				neorg.events.broadcast_event(neorg.events.create(module, "core.norg.dirman.events.workspace_cache_empty", module.public.get_workspaces()))
+			end)
+
+			-- If we couldn't open the cache file then notify the environment of that
+			if err then
+				cache_empty_notify()
+				return
+			end
+
+			-- Attempt to stat the file and get the file length of the cache file
+			vim.loop.fs_stat(module.config.public.last_workspace, function(serr, stat)
+				-- If we fail to do so then notify the environment of that
+				if serr then
+					cache_empty_notify()
+					return
+				end
+
+				-- Read the cache file
+				vim.loop.fs_read(fd, stat.size, 0, vim.schedule_wrap(function(rerr, read_data)
+					assert(not rerr, rerr)
+
+					-- If we have a workspace with the name present in the cache file then switch to that workspace
+					if read_data:len() > 0 and module.public.get_workspace(read_data) then
+						-- If we were successful in switching to that workspace then begin editing that workspace's index file
+						if module.public.set_workspace(read_data) then
+							vim.cmd("e " .. module.public.get_workspace(read_data) .. "/" .. module.config.public.index)
+						end
+
+						-- Close the file handle
+						vim.loop.fs_close(fd, function(cerr)
+							assert(not cerr, cerr)
+						end)
+					end
+				end))
+			end)
+		end)
 	end
 
 }
@@ -261,6 +348,19 @@ module.on_event = function(event)
 		end
 	end
 
+	-- Just before we leave Neovim make sure to cache the last workspace we were in (as long as that workspace wasn't "default")
+	if event.type == "core.autocommands.events.vimleavepre" and module.public.get_current_workspace()[1] ~= "default" then
+		-- Attempt to write the last workspace to the cache file
+		vim.loop.fs_open(module.config.public.last_workspace, "w", 438, function(err, fd)
+			assert(not err, err)
+
+			local current_workspace_name = module.public.get_current_workspace()[1]
+
+			vim.loop.fs_write(fd, current_workspace_name)
+			vim.loop.fs_close(fd)
+		end)
+	end
+
 	-- If somebody has executed the :Neorg workspace command then
 	if event.type == "core.neorgcmd.events.dirman.workspace" then
 		-- Have we supplied an argument?
@@ -276,6 +376,12 @@ module.on_event = function(event)
 
 			-- Set the workspace to the one requested
 			module.public.set_workspace(event.content[1])
+
+			-- If we're switching to a workspace that isn't the default workspace then enter the index file
+			if event.content[1] ~= "default" then
+				vim.cmd("e " .. ws_match .. "/" .. module.config.public.index)
+			end
+
 			vim.schedule(function() vim.notify("New Workspace: " .. event.content[1] .. " -> " .. ws_match) end)
 		else -- No argument supplied, simply print the current workspace
 			-- Query the current workspace
@@ -285,16 +391,26 @@ module.on_event = function(event)
 			vim.schedule(function() vim.notify("Current Workspace: " ..  current_ws[1] .. " -> " .. current_ws[2]) end)
 		end
 	end
+
+	-- If the user has executed a keybind to create a new note then create a prompt
+	if event.type == "core.keybinds.events.core.norg.dirman.new.note" and module.public.get_current_workspace()[1] ~= "default" then
+		module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
+			-- Create the file that the user has entered
+			module.public.create_file(text)
+		end, { center_x = true, center_y = true }, { width = 25, height = 1, row = 10, col = 0 })
+	end
 end
 
 module.events.defined = {
 	workspace_changed = neorg.events.define(module, "workspace_changed"),
-	workspace_added = neorg.events.define(module, "workspace_added")
+	workspace_added = neorg.events.define(module, "workspace_added"),
+	workspace_cache_empty = neorg.events.define(module, "workspace_cache_empty")
 }
 
 module.events.subscribed = {
 	["core.autocommands"] = {
-		dirchanged = true
+		dirchanged = true,
+		vimleavepre = true
 	},
 
 	["core.norg.dirman"] = {
@@ -303,6 +419,10 @@ module.events.subscribed = {
 
 	["core.neorgcmd"] = {
 		["dirman.workspace"] = true
+	},
+
+	["core.keybinds"] = {
+		["core.norg.dirman.new.note"] = true
 	}
 }
 

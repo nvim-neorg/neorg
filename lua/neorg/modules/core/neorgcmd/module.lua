@@ -151,6 +151,7 @@ module.config.public = {
 	default = {
 		"module.list",
 		"module.load",
+		"return"
 	}
 
 }

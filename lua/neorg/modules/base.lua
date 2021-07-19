@@ -16,10 +16,6 @@ neorg.modules.module_base = {
 	load = function()
 	end,
 
-	-- Invoked whenever the module is unloaded
-	unload = function()
-	end,
-
 	-- Invoked whenever an event that the module has subscribed to triggers
 	on_event = function(event)
 	end,
@@ -161,12 +157,6 @@ function neorg.modules.create_meta(name, ...)
 		-- Go through every module that we have defined in the metamodule and load it!
 		for _, mod in ipairs(module.config.public.enable) do
 			neorg.modules.load_module(mod)
-		end
-	end
-
-	module.unload = function()
-		for submodule_name, _ in module.module.config.public.enable do
-			neorg.modules.unload_module(submodule_name)
 		end
 	end
 

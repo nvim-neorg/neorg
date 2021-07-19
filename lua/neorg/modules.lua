@@ -1,6 +1,6 @@
 --[[
 --	NEORG MODULE MANAGER
---	This file is responsible for loading, unloading, calling and managing modules
+--	This file is responsible for loading, calling and managing modules
 --	Modules are internal mini-programs that execute on certain events, they build the foundation of neorg itself.
 --]]
 
@@ -203,29 +203,6 @@ function neorg.modules.load_module_as_dependency(module_name, parent_module, con
 		neorg.modules.loaded_modules[parent_module].required[module_name] = neorg.modules.get_module_config(module_name)
 	end
 
-end
-
--- @Summary Unloads a module by name
--- @Description Removes all hooks, all event subscriptions and unloads the module from memory
--- @Param module_name (string) - the name of the module to unload
-function neorg.modules.unload_module(module_name)
-
-	-- Check if the module is loaded
-	local module = neorg.modules.loaded_modules[module_name]
-
-	-- If not then obviously there's no point in unloading it
-	if not module then
-		log.warn("Unable to unload module", module_name, "- module is not currently loaded.")
-		return false
-	end
-
-	module.unload()
-
-	-- Remove the module from the loaded_modules list and decrement the counter
-	neorg.modules.loaded_modules[module_name] = nil
-	neorg.modules.loaded_module_count = neorg.modules.loaded_module_count - 1
-
-	return true
 end
 
 -- @Summary Gets the public API of a module by name
