@@ -100,6 +100,11 @@ module.config.public = {
 			end
 		},
 
+	},
+
+	folds = {
+		enabled = true,
+		foldlevel = 99
 	}
 }
 
@@ -111,6 +116,11 @@ module.on_event = function(event)
 	if event.type == "core.autocommands.events.bufenter" then
 		if event.content.norg then
 			vim.opt_local.indentexpr = "v:lua._neorg_indent_expr()"
+			if module.config.public.folds.enabled then
+				vim.opt_local.foldmethod = "expr"
+				vim.opt_local.foldexpr = "nvim_treesitter#foldexpr()"
+				vim.opt_local.foldlevel = module.config.public.folds.foldlevel
+			end
 		end
 	end
 end
