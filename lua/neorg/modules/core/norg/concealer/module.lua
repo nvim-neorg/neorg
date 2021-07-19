@@ -231,6 +231,7 @@ module.load = function()
 
 	module.required["core.autocommands"].enable_autocommand("TextChanged")
 	module.required["core.autocommands"].enable_autocommand("TextChangedI")
+
 	-- Trigger the conceals
 	module.public.trigger_conceal()
 end
@@ -244,7 +245,7 @@ module.public = {
 		module.public.clear_conceal()
 
 		-- Go through every line in the file and attempt to apply a conceal to it
-		local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+		local lines = vim.api.nvim_buf_get_lines(0, 0, -1, true)
 
 		for i, line in ipairs(lines) do
 			module.public.set_conceal(i, line)
