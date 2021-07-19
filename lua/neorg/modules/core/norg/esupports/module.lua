@@ -112,14 +112,46 @@ module.load = function()
 	module.required["core.autocommands"].enable_autocommand("BufEnter")
 end
 
+module.public = {
+	-- @Summary Creates metadata for the current file
+	-- @Description Pastes a @document.meta block at the top of the current document
+	construct_metadata = function()
+		vim.api.nvim_win_set_cursor(0, { 1, 0 })
+
+		vim.api.nvim_put({
+			"@document.meta",
+				"\ttitle: " .. vim.fn.expand("%:t:r"),
+				"\tdescription: ",
+				"\tauthor: " .. require('neorg.external.helpers').get_username(),
+				"\tcategories: ",
+				"\tcreated: " .. os.date("%F"),
+				"\tversion: " .. require('neorg.config').version,
+			"@end",
+			""
+		}, "l", false, false)
+
+		vim.opt_local.modified = false
+	end
+}
+
 module.on_event = function(event)
 	if event.type == "core.autocommands.events.bufenter" then
 		if event.content.norg then
 			vim.opt_local.indentexpr = "v:lua._neorg_indent_expr()"
+
+			-- If folds are enabled then handle them
 			if module.config.public.folds.enabled then
 				vim.opt_local.foldmethod = "expr"
 				vim.opt_local.foldexpr = "nvim_treesitter#foldexpr()"
 				vim.opt_local.foldlevel = module.config.public.folds.foldlevel
+			end
+
+			-- Look at the next non-blank line since the beginning of the file
+			local nextnonblank_location = vim.fn.nextnonblank(0)
+
+			-- If the first valid line of the document isn't an existing document.meta tag then generate it
+			if not vim.fn.getline(nextnonblank_location == 0 and 1 or nextnonblank_location):match("^%s*@%s*document%.meta%s*$") then
+				module.public.construct_metadata()
 			end
 		end
 	end

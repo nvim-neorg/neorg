@@ -9,7 +9,9 @@ neorg.configuration = {
 		},
 	},
 
-	modules = {}
+	modules = {},
+
+	version = "0.1"
 
 }
 
