@@ -14,5 +14,19 @@ return function(neorg_leader)
 			}
 		}, { silent = true, noremap = true })
 
+		content.map_to_mode("norg", {
+			n = {
+				{ neorg_leader .. "mh", ":Neorg set-mode traverse-heading<CR>" }
+			}
+		}, { silent = true, noremap = true })
+
+		content.map_to_mode("traverse-heading", {
+			n = {
+				{ "j", ":Neorg keybind traverse-heading core.integrations.treesitter.next.heading<CR>" },
+				{ "k", ":Neorg keybind traverse-heading core.integrations.treesitter.previous.heading<CR>" },
+				{ neorg_leader .. "mn", ":Neorg set-mode norg<CR>" }
+			}
+		}, { silent = true, noremap = true })
+
 	end)
 end
