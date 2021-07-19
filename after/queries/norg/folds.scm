@@ -1,4 +1,4 @@
 [
-	(tag (tag_end))
+	(tag)
 	(carryover_tag)
 ] @fold
