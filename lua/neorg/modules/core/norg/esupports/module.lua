@@ -128,7 +128,7 @@ module.public = {
 				"\tversion: " .. require('neorg.config').version,
 			"@end",
 			""
-		}, "l", false, false)
+		}, "l", false, true)
 
 		vim.opt_local.modified = false
 	end
