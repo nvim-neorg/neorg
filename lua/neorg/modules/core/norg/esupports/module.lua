@@ -16,21 +16,22 @@ require('neorg.modules.base')
 local module = neorg.modules.create("core.norg.esupports")
 
 function _neorg_indent_expr()
-	local line_number = vim.fn.prevnonblank(vim.api.nvim_win_get_cursor(0)[1] - 1)
-
-	-- If the line number above us is 0 then don't indent anything
-	if line_number == 0 then
-		return 0
-	end
-
-	-- nvim_buf_get_lines() doesn't work here for some reason :(
-	local line = vim.fn.getline(line_number)
-
 	-- @Summary Creates a new indent
 	-- @Description Sets a new set of rules that when fulfilled will indent the text properly
 	-- @Param  match (string) - a regex that should match the line above the newly placed line
 	-- @Param  indent (function(matches) -> number) - a function that should return the level of indentation in spaces for that line
-	local create_indent = function(match, indent)
+	-- @Param  current (boolean) - if true checks the current line rather than the previous non-blank line
+	local create_indent = function(match, indent, current)
+
+		local line_number = current and vim.api.nvim_win_get_cursor(0)[1] or vim.fn.prevnonblank(vim.api.nvim_win_get_cursor(0)[1] - 1)
+
+		-- If the line number above us is 0 then don't indent anything
+		if line_number == 0 then
+			return 0
+		end
+
+		-- nvim_buf_get_lines() doesn't work here for some reason :(
+		local line = vim.fn.getline(line_number)
 
 		-- Pack all the matches into this lua table
 		local matches = { line:match("^(" .. match .. ")$") }
@@ -43,7 +44,7 @@ function _neorg_indent_expr()
 			-- If the return value of the callback is -1, make neovim automatically indent the next line
 			-- Else, use the returned indent amount to calculate a new value, one that will work with any
 			-- size of tabs
-			indent_amount = indent_amount == -1 and vim.fn.indent(line) or indent_amount + (vim.fn.strdisplaywidth(line) - line:len())
+			indent_amount = indent_amount == false and vim.fn.indent(line) or indent_amount + (vim.fn.strdisplaywidth(line) - line:len())
 
 			-- Return success
 			return indent_amount, true
@@ -55,16 +56,24 @@ function _neorg_indent_expr()
 
 	local indent_amount, success
 
-	-- For every defined element in the indent configuration
-	for _, data in pairs(module.config.public.indent_config) do
+	-- First try and match all available current line checks
+	for _, data in pairs(module.config.public.indent_config.current) do
 		-- Check whether the line matches any of our criteria
-		indent_amount, success = create_indent(data.regex, data.indent)
+		indent_amount, success = create_indent(data.regex, data.indent, true)
+		-- If it does, then return that indent!
+		if success then return indent_amount end
+	end
+
+	-- Attempt to match the current indent level based on the previous nonblank line
+	for _, data in pairs(module.config.public.indent_config.previous) do
+		-- Check whether the line matches any of our criteria
+		indent_amount, success = create_indent(data.regex, data.indent, false)
 		-- If it does, then return that indent!
 		if success then return indent_amount end
 	end
 
 	-- If no criteria were met, let neovim handle the rest
-	return vim.fn.indent(line_number)
+	return vim.fn.indent(vim.api.nvim_win_get_cursor(0)[1])
 end
 
 module.setup = function()
@@ -75,31 +84,41 @@ module.config.public = {
 	indent = true,
 
 	indent_config = {
-		todo_items = {
-			regex = "(%s*)%-%s+%[%s*[x*%s]%s*%]%s+.*",
-			indent = function(matches)
-				return matches[1]:len()
-			end
-		},
-
-		headings = {
-			regex = "(%s*%*+%s+)(.*)",
-			indent = function(matches)
-				if matches[2]:len() > 0 then
-					return matches[1]:len()
-				else
+		current = {
+			heading = {
+				regex = "(%s*%*%s+)(.*)",
+				indent = function()
 					return -1
 				end
-			end
+			}
 		},
 
-		unordered_lists = {
-			regex = "(%s*)%-%s+.+",
-			indent = function(matches)
-				return matches[1]:len()
-			end
-		},
+		previous = {
+			todo_items = {
+				regex = "(%s*)%-%s+%[%s*[x*%s]%s*%]%s+.*",
+				indent = function(matches)
+					return matches[1]:len()
+				end
+			},
 
+			headings = {
+				regex = "(%s*%*+%s+)(.*)",
+				indent = function(matches)
+					if matches[2]:len() > 0 then
+						return matches[1]:len()
+					else
+						return false
+					end
+				end
+			},
+
+			unordered_lists = {
+				regex = "(%s*)%-%s+.+",
+				indent = function(matches)
+					return matches[1]:len()
+				end
+			},
+		},
 	},
 
 	folds = {
