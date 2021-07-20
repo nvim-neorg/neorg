@@ -57,19 +57,27 @@ function _neorg_indent_expr()
 	local indent_amount, success
 
 	-- First try and match all available current line checks
-	for _, data in pairs(module.config.public.indent_config.current) do
-		-- Check whether the line matches any of our criteria
-		indent_amount, success = create_indent(data.regex, data.indent, true)
-		-- If it does, then return that indent!
-		if success then return indent_amount end
+	if module.config.public.indent_config.current.enabled then
+		for _, data in pairs(module.config.public.indent_config.current) do
+			if type(data) == "table" and data.enabled then
+				-- Check whether the line matches any of our criteria
+				indent_amount, success = create_indent(data.regex, data.indent, true)
+				-- If it does, then return that indent!
+				if success then return indent_amount end
+			end
+		end
 	end
 
 	-- Attempt to match the current indent level based on the previous nonblank line
-	for _, data in pairs(module.config.public.indent_config.previous) do
-		-- Check whether the line matches any of our criteria
-		indent_amount, success = create_indent(data.regex, data.indent, false)
-		-- If it does, then return that indent!
-		if success then return indent_amount end
+	if module.config.public.indent_config.previous.enabled then
+		for _, data in pairs(module.config.public.indent_config.previous) do
+			if type(data) == "table" and data.enabled then
+				-- Check whether the line matches any of our criteria
+				indent_amount, success = create_indent(data.regex, data.indent, false)
+				-- If it does, then return that indent!
+				if success then return indent_amount end
+			end
+		end
 	end
 
 	-- If no criteria were met, let neovim handle the rest
@@ -85,7 +93,10 @@ module.config.public = {
 
 	indent_config = {
 		current = {
+			enabled = true,
+
 			heading = {
+				enabled = true,
 				regex = "(%s*%*%s+)(.*)",
 				indent = function()
 					return -1
@@ -94,7 +105,10 @@ module.config.public = {
 		},
 
 		previous = {
+			enabled = true,
+
 			todo_items = {
+				enabled = true,
 				regex = "(%s*)%-%s+%[%s*[x*%s]%s*%]%s+.*",
 				indent = function(matches)
 					return matches[1]:len()
@@ -102,6 +116,7 @@ module.config.public = {
 			},
 
 			headings = {
+				enabled = true,
 				regex = "(%s*%*+%s+)(.*)",
 				indent = function(matches)
 					if matches[2]:len() > 0 then
@@ -113,12 +128,18 @@ module.config.public = {
 			},
 
 			unordered_lists = {
+				enabled = true,
 				regex = "(%s*)%-%s+.+",
 				indent = function(matches)
 					return matches[1]:len()
 				end
 			},
 		},
+
+		realtime = {
+			enabled = true,
+
+		}
 	},
 
 	folds = {
