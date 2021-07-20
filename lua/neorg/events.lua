@@ -69,11 +69,6 @@ function neorg.events.get_event_template(module, type)
 
 	log.trace("Returning", split_type[2], "for module", split_type[1])
 
-	if module.name ~= split_type[1] then
-		log.error("Unauthorized access to event type", type, ". Module name (" .. module.name .. ") does not match", split_type[1])
-		return nil
-	end
-
 	-- Return the defined event from the specific module
 	return neorg.modules.loaded_modules[module.name].events.defined[split_type[2]]
 
@@ -108,8 +103,11 @@ end
 -- @Param  content (any) - the content of the event, can be anything from a string to a table to whatever you please
 function neorg.events.create(module, type, content)
 
+	-- Get the module that contains the event
+	local module_name = neorg.events.split_event_type(type)[1]
+
 	-- Retrieve the template from module.events.defined
-	local event_template = neorg.events.get_event_template(module, type)
+	local event_template = neorg.events.get_event_template(neorg.modules.loaded_modules[module_name] or { name = "" }, type)
 
 	if not event_template then
 		log.warn("Unable to create event of type", type, ". Returning nil...")
@@ -185,6 +183,9 @@ function neorg.events.send_event(recipient, event)
 		log.warn("Unable to send event to module", recipient, "- the module is not loaded.")
 		return
 	end
+
+	-- Set the broadcast variable to false since we're not invoking broadcast_event()
+	event.broadcast = false
 
 	-- Let the callback handler know of the event
 	neorg.callbacks.handle_callbacks(event)
