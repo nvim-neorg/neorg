@@ -352,7 +352,39 @@ neorg.utils = {
 		else
 			return ret
 		end
-	end
+	end,
+
+	get_language_shorthands = function(reverse_lookup)
+		local langs = {
+ 	 	 	["bash"] = { "sh", "zsh" },
+ 	 	 	["c_sharp"] = { "csharp", "cs" },
+ 	 	 	["clojure"] = { "clj" },
+ 	 	 	["cmake"] = { "cmake.in" },
+ 	 	 	["commonlisp"] = { "cl" },
+ 	 	 	["cpp"] = { "hpp", "cc", "hh", "c++", "h++", "cxx", "hxx" },
+ 	 	 	["dockerfile"] = { "docker" },
+ 	 	 	["erlang"] = { "erl" },
+ 	 	 	["fennel"] = { "fnl" },
+ 	 	 	["fortran"] = { "f90", "f95" },
+ 	 	 	["go"] = { "golang" },
+ 	 	 	["godot"] = { "gdscript" },
+ 	 	 	["gomod"] = { "gm" },
+ 	 	 	["haskell"] = { "hs" },
+ 	 	 	["java"] = { "jsp" },
+ 	 	 	["javascript"] = { "js", "jsx" },
+ 	 	 	["julia"] = { "julia-repl" },
+ 	 	 	["kotlin"] = { "kt" },
+ 	 	 	["python"] = { "py", "gyp" },
+ 	 	 	["ruby"] = { "rb", "gemspec", "podspec", "thor", "irb" },
+ 	 	 	["rust"] = { "rs" },
+ 	 	 	["supercollider"] = { "sc" },
+ 	 	 	["typescript"] = { "ts" },
+ 	 	 	["verilog"] = { "v" },
+ 	 	 	["yaml"] = { "yml" },
+ 	 	}
+
+		return reverse_lookup and vim.tbl_add_reverse_lookup(langs) or langs
+	end,
 }
 
 return neorg.utils
