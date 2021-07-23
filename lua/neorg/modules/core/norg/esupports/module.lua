@@ -283,12 +283,17 @@ module.on_event = function(event)
 				vim.opt_local.foldlevel = module.config.public.folds.foldlevel
 			end
 
-			-- Look at the next non-blank line since the beginning of the file
-			local nextnonblank_location = vim.fn.nextnonblank(0)
+			-- If the first tag of the document isn't an existing document.meta tag then generate it
+			local treesitter = neorg.modules.get_module("core.integrations.treesitter")
 
-			-- If the first valid line of the document isn't an existing document.meta tag then generate it
-			if not vim.fn.getline(nextnonblank_location == 0 and 1 or nextnonblank_location):match("^%s*@%s*document%.meta%s*$") then
-				module.public.construct_metadata()
+			if treesitter then
+				local document_meta_tag = vim.tbl_filter(function(node)
+					return require('nvim-treesitter.ts_utils').get_node_text(node)[1] == "@document.meta"
+				end, treesitter.get_all_nodes("tag"))
+
+				if vim.tbl_isempty(document_meta_tag) then
+					module.public.construct_metadata()
+				end
 			end
 		end
 	end
