@@ -57,16 +57,14 @@ module.public = {
 		local subscribed_autocommand = module.events.subscribed["core.autocommands"][autocmd]
 
 		if subscribed_autocommand ~= nil then
-			if subscribed_autocommand == false then
-				vim.cmd("augroup Neorg")
-				if dont_isolate then
-					vim.cmd("autocmd " .. autocmd .. " * :lua _neorg_module_autocommand_triggered(\"core.autocommands.events." .. autocmd .. "\", false)")
-				else
-					vim.cmd("autocmd " .. autocmd .. " *.norg :lua _neorg_module_autocommand_triggered(\"core.autocommands.events." .. autocmd .. "\", true)")
-				end
-				vim.cmd("augroup END")
-				module.events.subscribed["core.autocommands"][autocmd] = true
+			vim.cmd("augroup Neorg")
+			if dont_isolate then
+				vim.cmd("autocmd " .. autocmd .. " * :lua _neorg_module_autocommand_triggered(\"core.autocommands.events." .. autocmd .. "\", false)")
+			else
+				vim.cmd("autocmd " .. autocmd .. " *.norg :lua _neorg_module_autocommand_triggered(\"core.autocommands.events." .. autocmd .. "\", true)")
 			end
+			vim.cmd("augroup END")
+			module.events.subscribed["core.autocommands"][autocmd] = true
 		end
 	end,
 
