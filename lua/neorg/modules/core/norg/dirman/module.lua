@@ -15,7 +15,6 @@ USAGE:
 						my_ws = "~/neorg", -- Format: <name_of_workspace> = <path_to_workspace_root>
 						my_other_notes = "~/work/notes",
 					},
-					autodetect = true, -- Automatically detect whether you are in a workspace whenever you open a file
 					autochdir = true, -- Automatically change the directory to the current workspace's root every time
 					index = "index.norg", -- The name of the main (root) .norg file
 					last_workspace = vim.fn.stdpath("cache") .. "/neorg_last_workspace.txt" -- The location to write and read the workspace cache file
@@ -52,16 +51,15 @@ module.load = function()
 
 	module.required["core.keybinds"].register_keybind(module.name, "new.note")
 
+	module.required["core.autocommands"].enable_autocommand("BufEnter", true)
+
 	-- Enable the DirChanged autocmd to detect changes to the cwd
 	module.required["core.autocommands"].enable_autocommand("DirChanged", true)
 
 	-- Enable the VimLeavePre autocommand to write the last workspace to disk
 	module.required["core.autocommands"].enable_autocommand("VimLeavePre", true)
 
-	-- If the user wants workspace autodetection
-	if module.config.public.autodetect then
-		module.public.update_cwd()
-	end
+	module.public.update_cwd()
 
 	-- If we have loaded this module from outside of a Neorg file then try jumping
 	-- to the last cached workspace
@@ -78,8 +76,6 @@ module.config.public = {
 		default = vim.fn.getcwd()
 	},
 
-	-- Automatically detect whenever we have entered a subdirectory of a workspace
-	autodetect = true,
 	-- Automatically change the directory to the root of the workspace every time
 	autochdir = true,
 
@@ -140,6 +136,7 @@ module.public = {
 
 		-- Cache the current workspace
 		local current_ws = vim.deepcopy(module.private.current_workspace)
+
 		-- Set the current workspace to the new workspace object we constructed
 		module.private.current_workspace = new_workspace
 
@@ -166,6 +163,8 @@ module.public = {
 		-- Broadcast the workspace_added event with the newly added workspace as the content
 		neorg.events.broadcast_event(neorg.events.create(module, "core.norg.dirman.events.workspace_added", { workspace_name, workspace_path }))
 
+		module.public.sync()
+
 		return true
 	end,
 
@@ -184,7 +183,7 @@ module.public = {
 		-- Find a matching workspace
 		for workspace, location in pairs(module.config.public.workspaces) do
 			-- Expand all special symbols like ~ etc.
-			local expanded = vim.fn.expand(vim.fn.expand(location))
+			local expanded = vim.fn.expand(location)
 
 			-- If the workspace location is a parent directory of our current realcwd
 			-- or if the ws location is the same then set it as the real workspace
@@ -205,12 +204,16 @@ module.public = {
 	-- @Summary Updates the current working directory to the workspace root
 	-- @Description Uses the get_workspace_match() function to determine the root of the workspace, then changes into that directory
 	update_cwd = function()
+		module.config.public.workspaces.default = vim.fn.getcwd()
+
 		-- Get the closest workspace match
 		local ws_match = module.public.get_workspace_match()
 
 		-- If that match exists then set the workspace to it!
 		if ws_match then
 			module.public.set_workspace(ws_match)
+		else
+			module.public.set_workspace("default")
 		end
 	end,
 
@@ -332,20 +335,23 @@ module.on_event = function(event)
 
 		-- If the current working directory is not the same as the workspace root then set it
 		if current_workspace[2] ~= new_cwd then
-			vim.cmd("cd! " .. current_workspace[2])
+			vim.cmd("lcd! " .. current_workspace[2])
 		end
 	end
 
 	-- If the user has changed directories and the autochdir flag is set then
-	if event.type == "core.autocommands.events.dirchanged" and module.config.public.autochdir then
+	if event.type == "core.autocommands.events.dirchanged" then
 		-- Grab the current working directory and the current workspace
 		local new_cwd = vim.fn.getcwd()
 		local current_workspace = module.public.get_current_workspace()
 
 		-- If the current workspace is not the default and if the cwd is not the same as the workspace root then set it
-		if current_workspace[1] ~= "default" and current_workspace[2] ~= new_cwd then
-			vim.cmd("cd! " .. current_workspace[2])
+		if module.config.public.autochdir and current_workspace[1] ~= "default" and current_workspace[2] ~= new_cwd then
+			vim.cmd("lcd! " .. current_workspace[2])
+			return
 		end
+
+		module.public.update_cwd()
 	end
 
 	-- Just before we leave Neovim make sure to cache the last workspace we were in (as long as that workspace wasn't "default")
@@ -393,11 +399,15 @@ module.on_event = function(event)
 	end
 
 	-- If the user has executed a keybind to create a new note then create a prompt
-	if event.type == "core.keybinds.events.core.norg.dirman.new.note" and module.public.get_current_workspace()[1] ~= "default" then
+	if event.type == "core.keybinds.events.core.norg.dirman.new.note" then
 		module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
 			-- Create the file that the user has entered
 			module.public.create_file(text)
 		end, { center_x = true, center_y = true }, { width = 25, height = 1, row = 10, col = 0 })
+	end
+
+	if event.type == "core.autocommands.events.bufenter" and not event.content.norg then
+		module.public.update_cwd()
 	end
 end
 
@@ -410,7 +420,8 @@ module.events.defined = {
 module.events.subscribed = {
 	["core.autocommands"] = {
 		dirchanged = true,
-		vimleavepre = true
+		vimleavepre = true,
+		bufenter = true
 	},
 
 	["core.norg.dirman"] = {
