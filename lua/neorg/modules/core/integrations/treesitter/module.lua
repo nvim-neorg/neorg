@@ -191,7 +191,7 @@ module.public = {
 	-- @Summary Returns metadata for a tag
 	-- @Description Given a node this function will break down the AST elements and return the corresponding text for certain nodes
 	-- @Param  tag_node (userdata/treesitter node) - a node of type tag/carryover_tag
-	get_tag_info = function(tag_node)
+	get_tag_info = function(tag_node, check_parent)
 		if not tag_node or (tag_node:type() ~= "tag" and tag_node:type() ~= "carryover_tag") then
 			return nil
 		end
@@ -199,7 +199,17 @@ module.public = {
 		-- Grab the TreeSitter utils
 		local ts_utils = require('nvim-treesitter.ts_utils')
 
-		local leading_whitespace, resulting_name, params, content = 0, {}, {}, ""
+		local attributes = {}
+		local leading_whitespace, resulting_name, params, content = 0, {}, {}, {}
+
+		if check_parent == true or check_parent == nil then
+			local parent = tag_node:parent()
+
+			while parent:type() == "carryover_tag" do
+				table.insert(attributes, module.public.get_tag_info(parent, false))
+				parent = parent:parent()
+			end
+		end
 
 		-- Iterate over all children of the tag node
 		for child, _ in tag_node:iter_children() do
@@ -223,7 +233,7 @@ module.public = {
 
 		content = table.concat(content, "\n")
 
-		return { name = table.concat(resulting_name, "."), parameters = params, content = content:sub(2, content:len() - 1), indent_amount = leading_whitespace }
+		return { name = table.concat(resulting_name, "."), parameters = params, content = content:sub(2, content:len() - 1), indent_amount = leading_whitespace, attributes = vim.fn.reverse(attributes) }
 	end,
 
 	-- @Summary Parses data from an @ tag

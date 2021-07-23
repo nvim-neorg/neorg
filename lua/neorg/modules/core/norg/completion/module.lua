@@ -108,7 +108,7 @@ module.public = {
 			node = function(_, previous, next, utils)
 				if not previous then return false end
 
-				return (previous:type() == "tag_parameters" or previous:type() == "tag_name") and next:type() == "tag_end" and vim.tbl_isempty(utils.get_node_text(next, 0))
+				return previous:type() == "tag_parameters" or previous:type() == "tag_name"
 			end,
 
 			complete = {
