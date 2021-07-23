@@ -89,7 +89,7 @@ module.neorg_post_load = function()
 
 	for language, shorthands in pairs(langs) do
 		for _, shorthand in ipairs(shorthands) do
-			table.insert(injections, ([[(tag (tag_name) @_tagname (tag_parameters) @_language (tag_content) @content (#eq? @_language "%s") (#set! "language" "%s"))]]):format(shorthand, language))
+			table.insert(injections, ([[(tag (tag_name) @_tagname (tag_parameters) @_language (tag_content) @content (#eq? @_tagname "code") (#eq? @_language "%s") (#set! "language" "%s"))]]):format(shorthand, language))
 		end
 	end
 
@@ -154,7 +154,9 @@ module.public = {
 						table.insert(result, child)
 					else
 						-- If no match is found try descending further down the syntax tree
-						result = vim.tbl_extend("error", result, { descend(child) })
+						for _, child_node in ipairs(descend(child) or {}) do
+							table.insert(result, child_node)
+						end
 					end
 				end
 			end
@@ -197,20 +199,31 @@ module.public = {
 		-- Grab the TreeSitter utils
 		local ts_utils = require('nvim-treesitter.ts_utils')
 
-		local resulting_name, content = {}, ""
+		local leading_whitespace, resulting_name, params, content = 0, {}, {}, ""
 
 		-- Iterate over all children of the tag node
 		for child, _ in tag_node:iter_children() do
 			-- If we're dealing with the tag name then append the text of the tag_name node to this table
 			if child:type() == "tag_name" then
 				table.insert(resulting_name, ts_utils.get_node_text(child)[1])
+			elseif child:type() == "tag_parameters" then
+				table.insert(params, ts_utils.get_node_text(child)[1])
+			elseif child:type() == "leading_whitespace" then
+				leading_whitespace = ts_utils.get_node_text(child)[1]:len()
 			elseif child:type() == "tag_content" then
 				-- If we're dealing with tag content then retrieve that content
-				content = table.concat(ts_utils.get_node_text(child), "\n")
+				content = ts_utils.get_node_text(child)
 			end
 		end
 
-		return { name = table.concat(resulting_name, "."), content = content }
+		for i, line in ipairs(content) do
+			line = line:gsub("\t", (" "):rep(vim.opt_local.tabstop:get()))
+			content[i] = line:sub(leading_whitespace + 1)
+		end
+
+		content = table.concat(content, "\n")
+
+		return { name = table.concat(resulting_name, "."), parameters = params, content = content:sub(2, content:len() - 1), indent_amount = leading_whitespace }
 	end,
 
 	-- @Summary Parses data from an @ tag

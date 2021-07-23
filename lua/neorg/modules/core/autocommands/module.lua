@@ -58,9 +58,10 @@ module.public = {
 
 		if subscribed_autocommand ~= nil then
 			vim.cmd("augroup Neorg")
-			if dont_isolate then
+
+			if dont_isolate and vim.fn.exists("#Neorg#" .. autocmd .. "#*") == 0 then
 				vim.cmd("autocmd " .. autocmd .. " * :lua _neorg_module_autocommand_triggered(\"core.autocommands.events." .. autocmd .. "\", false)")
-			else
+			elseif vim.fn.exists("#Neorg#" .. autocmd .. "#*.norg") == 0 then
 				vim.cmd("autocmd " .. autocmd .. " *.norg :lua _neorg_module_autocommand_triggered(\"core.autocommands.events." .. autocmd .. "\", true)")
 			end
 			vim.cmd("augroup END")
