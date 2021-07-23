@@ -51,6 +51,7 @@ module.load = function()
 
 	module.required["core.keybinds"].register_keybind(module.name, "new.note")
 
+	-- Used to detect when we've entered a buffer with a potentially different cwd
 	module.required["core.autocommands"].enable_autocommand("BufEnter", true)
 
 	-- Enable the DirChanged autocmd to detect changes to the cwd
@@ -59,6 +60,7 @@ module.load = function()
 	-- Enable the VimLeavePre autocommand to write the last workspace to disk
 	module.required["core.autocommands"].enable_autocommand("VimLeavePre", true)
 
+	-- Try to automatically set the current working directory
 	module.public.update_cwd()
 
 	-- If we have loaded this module from outside of a Neorg file then try jumping
@@ -67,6 +69,7 @@ module.load = function()
 		module.public.set_last_workspace()
 	end
 
+	-- Synchronize core.neorgcmd autocompletions
 	module.public.sync()
 end
 
@@ -163,6 +166,7 @@ module.public = {
 		-- Broadcast the workspace_added event with the newly added workspace as the content
 		neorg.events.broadcast_event(neorg.events.create(module, "core.norg.dirman.events.workspace_added", { workspace_name, workspace_path }))
 
+		-- Sync autocompletions so the user can see the new workspace
 		module.public.sync()
 
 		return true
@@ -204,6 +208,7 @@ module.public = {
 	-- @Summary Updates the current working directory to the workspace root
 	-- @Description Uses the get_workspace_match() function to determine the root of the workspace, then changes into that directory
 	update_cwd = function()
+		-- Cache the current working directory
 		module.config.public.workspaces.default = vim.fn.getcwd()
 
 		-- Get the closest workspace match
@@ -213,6 +218,7 @@ module.public = {
 		if ws_match then
 			module.public.set_workspace(ws_match)
 		else
+			-- Otherwise try to reset the workspace to the default
 			module.public.set_workspace("default")
 		end
 	end,
@@ -351,6 +357,7 @@ module.on_event = function(event)
 			return
 		end
 
+		-- Upon changing a directory attempt to perform a match
 		module.public.update_cwd()
 	end
 
@@ -406,6 +413,7 @@ module.on_event = function(event)
 		end, { center_x = true, center_y = true }, { width = 25, height = 1, row = 10, col = 0 })
 	end
 
+	-- If we've entered a different buffer then update the cwd for that buffer's window
 	if event.type == "core.autocommands.events.bufenter" and not event.content.norg then
 		module.public.update_cwd()
 	end
