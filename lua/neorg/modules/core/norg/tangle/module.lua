@@ -90,8 +90,6 @@ module.public = {
 		end
 
 		if to == "all" then
-			log.warn(content)
-
 			for file, to_tangle in pairs(content) do
 				perform_tangle(file == "all" and document_metadata.tangle or file, to_tangle)
 			end
