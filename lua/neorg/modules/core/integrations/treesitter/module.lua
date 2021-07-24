@@ -188,6 +188,40 @@ module.public = {
 		return ret
 	end,
 
+	get_first_node_recursive = function(type)
+		local result
+
+		-- Do we need to go through each tree? lol
+		vim.treesitter.get_parser(0, "norg"):for_each_tree(function(tree)
+			-- Get the root for that tree
+			local root = tree:root()
+
+			-- @Summary Function to recursively descend down the syntax tree
+			-- @Description Recursively searches for a node of a given type
+			-- @Param  node (userdata/treesitter node) - the starting point for the search
+			local function descend(node)
+				-- Iterate over all children of the node and try to match their type
+				for child, _ in node:iter_children() do
+					if child:type() == type then
+						return child
+					else
+						-- If no match is found try descending further down the syntax tree
+						local descent = descend(child)
+						if descent then
+							return descent
+						end
+					end
+				end
+
+				return nil
+			end
+
+			result = result or descend(root)
+		end)
+
+		return result
+	end,
+
 	-- @Summary Returns metadata for a tag
 	-- @Description Given a node this function will break down the AST elements and return the corresponding text for certain nodes
 	-- @Param  tag_node (userdata/treesitter node) - a node of type tag/carryover_tag
@@ -206,7 +240,15 @@ module.public = {
 			local parent = tag_node:parent()
 
 			while parent:type() == "carryover_tag" do
-				table.insert(attributes, module.public.get_tag_info(parent, false))
+				local meta = module.public.get_tag_info(parent, false)
+
+				if vim.tbl_isempty(vim.tbl_filter(function(attribute)
+					return attribute.name == meta.name
+				end, attributes)) then
+					table.insert(attributes, meta)
+				else
+					log.warn("Two carryover tags with the same name detected, the top level tag will take precedence")
+				end
 				parent = parent:parent()
 			end
 		end
@@ -233,7 +275,9 @@ module.public = {
 
 		content = table.concat(content, "\n")
 
-		return { name = table.concat(resulting_name, "."), parameters = params, content = content:sub(2, content:len() - 1), indent_amount = leading_whitespace, attributes = vim.fn.reverse(attributes) }
+		local start_row, start_column, end_row, end_column = tag_node:range()
+
+		return { name = table.concat(resulting_name, "."), parameters = params, content = content:sub(2, content:len() - 1), indent_amount = leading_whitespace, attributes = vim.fn.reverse(attributes), start = { row = start_row, column = start_column }, ["end"] = { row = end_row, column = end_column } }
 	end,
 
 	-- @Summary Parses data from an @ tag
