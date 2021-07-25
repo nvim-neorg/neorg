@@ -101,7 +101,7 @@ function _neorgcmd_generate_completions(_, command)
 	-- If the split command contains only 2 values then don't bother with
 	-- the code below, just return all the available completions and exit
 	if #split_command == 2 then
-		return vim.tbl_filter(function(key) return key:find(split_command[#split_command]) end, vim.tbl_keys(ref))
+		return vim.tbl_filter(function(key) return key ~= "__any__" and key:find(split_command[#split_command]) end, vim.tbl_keys(ref))
 	end
 
 	-- Splice the command to omit the beginning :Neorg bit
@@ -118,11 +118,17 @@ function _neorgcmd_generate_completions(_, command)
 	-- If we e.g. type ":Neorg list " and then press Tab we want to traverse once down the table
 	-- and return all the contents at the first recursion level of that table.
 	for _, cmd in ipairs(sliced_split_command) do
-		if ref[cmd] then ref = ref[cmd] else break end
+		if ref[cmd] then
+			ref = ref[cmd]
+		elseif cmd:len() > 0 and ref.__any__ then
+			ref = ref.__any__
+		else
+			break
+		end
 	end
 
 	-- Return everything from ref that is a potential match
-	return vim.tbl_filter(function(key) return key:find(split_command[#split_command]) end, vim.tbl_keys(ref))
+	return vim.tbl_filter(function(key) return key ~= "__any__" and key:find(split_command[#split_command]) end, vim.tbl_keys(ref))
 end
 
 module.load = function()

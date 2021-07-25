@@ -71,6 +71,7 @@ module.public = {
 				"comment",
 				"unordered",
 				"code",
+				"tangle",
 			},
 
 			-- Additional options to pass to the completion engine
@@ -89,9 +90,7 @@ module.public = {
 					regex = "code%s+%w*",
 					-- No node variable, we don't need that sort of check here
 
-					-- Completions {{{
 					complete = require('neorg.external.helpers').get_language_list(true),
-					-- }}}
 
 					-- Extra options
 					options = {
@@ -100,12 +99,23 @@ module.public = {
 
 					-- Don't descend any further, we've narrowed down our match
 					descend = {}
+				},
+				{
+					regex = "tangle%s+%w*",
+
+					complete = {
+						"<none>"
+					},
+
+					options = {
+						type = "Property"
+					}
 				}
 			}
 		},
 		{
 			regex = "^%s*@e?n?",
-			node = function(_, previous, next, utils)
+			node = function(_, previous)
 				if not previous then return false end
 
 				return previous:type() == "tag_parameters" or previous:type() == "tag_name"
@@ -140,7 +150,7 @@ module.public = {
 				end,
 				completion_start = "-"
 			}
-		}
+		},
 	},
 
 	-- @Summary Provides completions to the integration engine
