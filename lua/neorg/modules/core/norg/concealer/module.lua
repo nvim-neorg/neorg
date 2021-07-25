@@ -331,7 +331,7 @@ module.on_event = function(event)
 		module.public.trigger_conceal()
 	-- If the content of a line has changed then reparse that line
 	elseif event.type == "core.autocommands.events.textchanged" or event.type == "core.autocommands.events.textchangedi" then
-		module.public.update_current_line()
+		module.public.trigger_conceal()
 	end
 end
 
