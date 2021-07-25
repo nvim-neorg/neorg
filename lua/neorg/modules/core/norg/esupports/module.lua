@@ -89,6 +89,14 @@ module.config.public = {
 					return 3
 				end
 			},
+
+			tags = {
+				enabled = true,
+				regex = "%s*@[a-z0-9]+.*",
+				indent = function()
+					return 0
+				end
+			}
 		},
 
 		previous = {
@@ -157,6 +165,14 @@ module.config.public = {
 					return 3
 				end
 			},
+
+			tags = {
+				enabled = true,
+				regex = "%s*@[a-z0-9]+.*",
+				indent = function()
+					return 0
+				end
+			}
 		}
 	},
 

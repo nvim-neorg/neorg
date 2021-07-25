@@ -15,16 +15,14 @@ end
 module.public = {
 	neorg_commands = {
 		definitions = {
-			tangle = {}
+			tangle = {
+				__any__ = require('neorg.external.helpers').get_language_list(false)
+			}
 		},
 		data = {
 			tangle = {
-				--[[
-					TODO:
-					min_args = 1,
-					max_args = 2,
-				]]
-				max_args = 1,
+				min_args = 0,
+				max_args = 2,
 				name = "tangle"
 			}
 		}
@@ -50,6 +48,12 @@ module.public = {
 				return false
 			end, meta.attributes)
 
+			for _, tangle_attribute in ipairs(tangle_attribs) do
+				if tangle_attribute.parameters[1] == "<none>" then
+					return
+				end
+			end
+
 			if meta.name == "code" and meta.parameters[1] and meta.parameters[1] == extension then
 				if not vim.tbl_isempty(tangle_attribs) then
 					if vim.fn.expand(tangle_attribs[1].parameters[1]) == to or to == "all" then
@@ -63,6 +67,8 @@ module.public = {
 			end
 		end, ts.get_all_nodes("tag"))
 
+		log.warn(content)
+
 		local content_count = vim.fn.len(vim.tbl_values(content))
 
 		if content_count == 0 or (to ~= "all" and not content[to]) then
@@ -71,7 +77,27 @@ module.public = {
 		end
 
 		local function write_to_file(location, to_write)
-			vim.loop.fs_open(location, "w", 438, function(err, fd)
+			local fullpath = vim.fn.getcwd()
+
+			-- Split the path at every /
+			local split = vim.split(vim.trim(location), "/", true)
+
+			if location:sub(0, 1) ~= "/" then
+				-- If the last element is empty (i.e. if the string provided ends with '/') then trim it
+				if split[#split]:len() == 0 then
+					split = vim.list_slice(split, 0, #split - 1)
+				end
+
+				-- Go through each directory (excluding the actual file name) and create each directory individually
+				for _, element in ipairs(vim.list_slice(split, 0, #split - 1)) do
+					if not vim.startswith(element, ".") then
+						vim.loop.fs_mkdir(fullpath .. "/" .. element, 16877)
+						fullpath = fullpath .. "/" .. element
+					end
+				end
+			end
+
+			vim.loop.fs_open(fullpath .. "/" .. split[#split], "w", 438, function(err, fd)
 				assert(not err, err)
 
 				vim.loop.fs_write(fd, to_write)
@@ -145,7 +171,7 @@ module.on_event = function(event)
 		return
 	end
 
-	module.public.tangle(filename ~= "all" and vim.fn.expand(filename) or filename, extension, parsed_metadata)
+	module.public.tangle(filename ~= "all" and filename or filename, extension, parsed_metadata)
 end
 
 module.events.subscribed = {

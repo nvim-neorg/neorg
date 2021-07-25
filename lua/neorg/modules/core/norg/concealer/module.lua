@@ -252,19 +252,6 @@ module.public = {
 		end
 	end,
 
-	-- @Summary Update conceals for the current line
-	-- @Description Clears all conceals on the current line and reapplies them
-	update_current_line = function()
-		-- Get the current line number
-		local line_number = vim.api.nvim_win_get_cursor(0)[1]
-
-		-- Clear all conceals for the current line
-		vim.api.nvim_buf_clear_namespace(0, module.private.namespace, line_number - 1, line_number)
-
-		-- Reapply the conceals for the current line
-		module.public.set_conceal(line_number, vim.api.nvim_get_current_line())
-	end,
-
 	-- @Summary Sets a conceal for the specified line
 	-- @Description Attempts to match the current line to any valid conceal and tries applying it
 	-- @Param  line_number (number) - the line number to conceal

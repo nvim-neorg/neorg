@@ -268,11 +268,6 @@ module.public = {
 			end
 		end
 
-		for i, line in ipairs(content) do
-			line = line:gsub("\t", (" "):rep(vim.opt_local.tabstop:get()))
-			content[i] = line:sub(leading_whitespace + 1)
-		end
-
 		content = table.concat(content, "\n")
 
 		local start_row, start_column, end_row, end_column = tag_node:range()
