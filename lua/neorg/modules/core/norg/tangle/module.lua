@@ -33,6 +33,8 @@ module.public = {
 
 		local content = {}
 
+		local content_count = 0
+
 		vim.tbl_map(function(node)
 			local meta = ts.get_tag_info(node)
 
@@ -64,10 +66,10 @@ module.public = {
 					content[to] = content[to] or {}
 					table.insert(content[to], meta.content)
 				end
+
+				content_count = content_count + 1
 			end
 		end, ts.get_all_nodes("tag"))
-
-		local content_count = vim.fn.len(vim.tbl_values(content))
 
 		if content_count == 0 or (to ~= "all" and not content[to]) then
 			vim.notify("No code blocks to tangle")
