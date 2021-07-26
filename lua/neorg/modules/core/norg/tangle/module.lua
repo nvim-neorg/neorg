@@ -67,8 +67,6 @@ module.public = {
 			end
 		end, ts.get_all_nodes("tag"))
 
-		log.warn(content)
-
 		local content_count = vim.fn.len(vim.tbl_values(content))
 
 		if content_count == 0 or (to ~= "all" and not content[to]) then
