@@ -93,7 +93,46 @@ module.public = {
 
 		-- Begin the descent
 		descend(module.config.public.highlights, "")
+	end,
+
+	-- NOTE: Shamelessly taken and tweaked a little from akinsho's nvim-bufferline:
+	-- https://github.com/akinsho/nvim-bufferline.lua/blob/fec44821eededceadb9cc25bc610e5114510a364/lua/bufferline/colors.lua
+	-- <3
+	get_background = function(name)
+  		-- Attempt to get the highlight
+  		local success, hl = pcall(vim.api.nvim_get_hl_by_name, name, true)
+
+  		-- If we were successful then return the background colour
+  		if success then
+      		return bit.tohex(hl.background, 6)
+  		end
+
+  		return "NONE"
+	end,
+
+	dim_color = function(colour, percent)
+		if colour == "NONE" then
+			return colour
+		end
+
+		local function hex_to_rgb(hex_colour)
+  			return tonumber(hex_colour:sub(1, 2), 16), tonumber(hex_colour:sub(3, 4), 16), tonumber(hex_colour:sub(5), 16)
+		end
+
+		local function alter(attr)
+  			return math.floor(attr * (100 - percent) / 100)
+		end
+
+  		local r, g, b = hex_to_rgb(colour)
+
+  		if not r or not g or not b then
+    		return "NONE"
+  		end
+
+  		return string.format("#%02x%02x%02x", math.min(alter(r), 255), math.min(alter(g), 255), math.min(alter(b), 255))
 	end
+
+	-- END of shamelessly ripped off akinsho code
 }
 
 module.neorg_post_load = function()
