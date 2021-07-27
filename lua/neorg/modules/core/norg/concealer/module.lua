@@ -198,8 +198,8 @@ module.config.public = {
 			["end"] = "^(%s*)@end$",
 			whitespace_index = 1,
 			full_line = true,
-			highlight = "NeorgCodeBlock",
-			highlight_method = "blend",
+			highlight = "Neorgcodeblock",
+			highlight_method = "combine",
 			padding_before = 0,
 		}
 	}
