@@ -24,8 +24,10 @@ neorg.utils = {
 		if current_os == "linux" or current_os == "mac" then
 			return os.getenv("USER")
 		elseif current_os == "windows" then
-			return os.getenv("%USERNAME%") -- This should work? lol
+			return os.getenv("username")
 		end
+
+		return ""
 	end,
 
 	-- @Summary Returns a list of languages supported by Neorg
