@@ -298,9 +298,10 @@ module.public = {
 		-- Go through all ranged icons (hacky implementation, I think I'll need to rewrite this eventually probably with treesitter)
 		for _, icon_info in ipairs(module.private.ranged_icons) do
 
-			-- @Summary Sets an extmark for the current line
+			-- @Summary Sets a ranged extmark for the current line
 			local function set_extmark_for_line()
-				module.public._set_extmark(module.private.in_range[2][2], icon_info.highlight, line_number - 1, module.private.in_range[2][1], icon_info.full_line and vim.api.nvim_strwidth(line) or module.private.in_range[2][1] + vim.api.nvim_strwidth(icon_info.icon), icon_info.full_line or false, icon_info.highlight_method or "combine")
+				local width = vim.api.nvim_strwidth
+				module.public._set_extmark(module.private.in_range[2][2], icon_info.highlight, line_number - 1, module.private.in_range[2][1] <= width(line) and module.private.in_range[2][1] or width(line), icon_info.full_line and width(line) or module.private.in_range[2][1] + width(icon_info.icon), icon_info.full_line or false, icon_info.highlight_method or "combine")
 			end
 
 			-- If the icon has the right set of metadata
