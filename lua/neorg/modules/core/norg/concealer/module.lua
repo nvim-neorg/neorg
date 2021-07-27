@@ -93,7 +93,8 @@ end
 module.private = {
 	namespace = vim.api.nvim_create_namespace("neorg_conceals"),
 	extmarks = {},
-	icons = {}
+	icons = {},
+	in_range = { false, {} }
 }
 
 module.config.public = {
@@ -189,6 +190,20 @@ module.config.public = {
 		},
 	},
 
+	ranged = {
+		tag = {
+			enabled = true,
+			icon = "",
+			begin = "^(%s*)@code.*$",
+			["end"] = "^(%s*)@end$",
+			whitespace_index = 1,
+			full_line = true,
+			highlight = "NeorgCodeBlock",
+			highlight_method = "blend",
+			padding_before = 0,
+		}
+	}
+
 }
 
 module.load = function()
@@ -225,6 +240,8 @@ module.load = function()
 
 	-- Set the module.private.icons variable to the values of the enabled icons
 	module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
+
+	module.private.ranged_icons = vim.tbl_values(get_enabled_icons(module.config.public.ranged))
 
 	-- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
 	module.required["core.autocommands"].enable_autocommand("BufEnter")
@@ -273,7 +290,44 @@ module.public = {
 					local full_icon = (" "):rep(icon_info.padding_before) .. icon_info.icon
 
 					-- Actually set the extmark for the current line with all the required metadata
-					module.public._set_extmark(full_icon, icon_info.highlight, line_number - 1, whitespace_amount, whitespace_amount + vim.api.nvim_strwidth(icon_info.icon))
+					module.public._set_extmark(full_icon, icon_info.highlight, line_number - 1, whitespace_amount, icon_info.full_line and line:len() or whitespace_amount + vim.api.nvim_strwidth(icon_info.icon), icon_info.full_line or false, icon_info.highlight_method or "combine")
+				end
+			end
+		end
+
+		-- Go through all ranged icons (hacky implementation, I think I'll need to rewrite this eventually probably with treesitter)
+		for _, icon_info in ipairs(module.private.ranged_icons) do
+
+			-- @Summary Sets an extmark for the current line
+			local function set_extmark_for_line()
+				module.public._set_extmark(module.private.in_range[2][2], icon_info.highlight, line_number - 1, module.private.in_range[2][1], icon_info.full_line and vim.api.nvim_strwidth(line) or module.private.in_range[2][1] + vim.api.nvim_strwidth(icon_info.icon), icon_info.full_line or false, icon_info.highlight_method or "combine")
+			end
+
+			-- If the icon has the right set of metadata
+			if icon_info.begin and icon_info["end"] then
+				-- If we're currently in a range then highlight the current line
+				if module.private.in_range[1] == true then
+					set_extmark_for_line()
+				end
+
+				-- Attempt to match a potential range
+				local match_begin = { line:match(icon_info.begin) }
+
+				-- If we're not already in a range and if we managed to match the current line then
+				if module.private.in_range[1] == false and not vim.tbl_isempty(match_begin) then
+					-- Grab the amount of preceding whitespace in the match
+					local whitespace_amount = match_begin[icon_info.whitespace_index]:len()
+					-- Construct the virtual text with any potential padding
+					local full_icon = (" "):rep(icon_info.padding_before) .. icon_info.icon
+
+					-- Tell Neorg that we're in a range
+					module.private.in_range = { true, { whitespace_amount, full_icon } }
+					set_extmark_for_line()
+				end
+
+				-- If we're in a range and we managed to match an end for the range then reset the in_range variable to prevent further highlighting
+				if module.private.in_range[1] == true and not vim.tbl_isempty({ line:match(icon_info["end"]) }) then
+					module.private.in_range = { false, {} }
 				end
 			end
 		end
@@ -286,7 +340,9 @@ module.public = {
 	-- @Param  line_number (number) - the line number to apply the extmark in
 	-- @Param  start_column (number) - the start column of the conceal
 	-- @Param  end_column (number) - the end column of the conceal
-	_set_extmark = function(text, highlight, line_number, start_column, end_column)
+	-- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
+	-- @Param  mode (string: "replace"/"combine"/"blend") - the highlight mode for the extmark
+	_set_extmark = function(text, highlight, line_number, start_column, end_column, whole_line, mode)
 
 		-- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
  		local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, module.private.namespace, line_number, start_column,
@@ -295,7 +351,8 @@ module.public = {
     		hl_group = highlight,
     		virt_text = { { text, highlight } },
     		virt_text_pos = "overlay",
-    		hl_mode = "combine",
+    		hl_mode = mode,
+    		hl_eol = whole_line,
   		})
 
 		-- If we have encountered an error then log it
