@@ -80,7 +80,7 @@ module.config.public = {
 	},
 
 	-- Automatically change the directory to the root of the workspace every time
-	autochdir = true,
+	autochdir = false,
 
 	-- The name for the index file
 	index = "index.norg",
