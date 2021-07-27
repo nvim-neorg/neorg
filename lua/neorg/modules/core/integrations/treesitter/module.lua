@@ -63,7 +63,7 @@ module.config.public = {
 			content = "+TSPunctDelimiter",
 		},
 
-		codeblock = "guibg=#222222"
+		codeblock = "guibg=#212121"
 
 	}
 }
