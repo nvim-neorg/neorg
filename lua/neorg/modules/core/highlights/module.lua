@@ -16,7 +16,8 @@ local module = neorg.modules.create("core.highlights")
 		highlight! link NeorgTagBegin Comment
 --]]
 module.config.public = {
-	highlights = {}
+	highlights = {},
+	dim = {}
 }
 
 module.public = {
@@ -29,35 +30,51 @@ module.public = {
 		-- @Summary Descends down a tree of highlights and applies them
 		-- @Description Recursively descends down the highlight configuration and applies every highlight accordingly
 		-- @Param  highlights (table) - the table of highlights to descend down
+		-- @Param  callback (function(hl_name, highlight, prefix) -> bool) - a callback function to be invoked for every highlight. If it returns true then we should recurse down the table tree further
 		-- @Param  prefix (string) - should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
-		descend = function(highlights, prefix)
-
+		descend = function(highlights, callback, prefix)
 			-- Loop through every highlight defined in the provided table
 			for hl_name, highlight in pairs(highlights) do
-				-- If the type of highlight we have encountered is a table
-				-- then recursively descend down it as well
-				if type(highlight) == "table" then
-					descend(highlight, hl_name)
-				else -- Our highlight is a string
-					-- Trim any potential leading and trailing whitespace
-					highlight = vim.trim(highlight)
-
-					-- Check whether we are trying to link to an existing hl group
-					-- by checking for the existence of the + sign at the front
-					local is_link = highlight:sub(1, 1) == "+"
-
-					-- If we are dealing with a link then link the highlights together (excluding the + symbol)
-					if is_link then
-						vim.cmd("highlight! link Neorg" .. prefix .. hl_name .. " " .. highlight:sub(2))
-					else -- Otherwise simply apply the highlight options the user provided
-						vim.cmd("highlight! Neorg" .. prefix .. hl_name .. " " .. highlight)
-					end
+				-- If the callback returns true then descend further down the table tree
+				if callback(hl_name, highlight, prefix) then
+					descend(highlight, callback, hl_name)
 				end
 			end
 		end
 
 		-- Begin the descent down the public highlights configuration table
-		descend(module.config.public.highlights, "")
+		descend(module.config.public.highlights, function(hl_name, highlight, prefix)
+			-- If the type of highlight we have encountered is a table
+			-- then recursively descend down it as well
+			if type(highlight) == "table" then
+				return true
+			end
+
+			-- Trim any potential leading and trailing whitespace
+			highlight = vim.trim(highlight)
+
+			-- Check whether we are trying to link to an existing hl group
+			-- by checking for the existence of the + sign at the front
+			local is_link = highlight:sub(1, 1) == "+"
+
+			-- If we are dealing with a link then link the highlights together (excluding the + symbol)
+			if is_link then
+				vim.cmd("highlight! link Neorg" .. prefix .. hl_name .. " " .. highlight:sub(2))
+			else -- Otherwise simply apply the highlight options the user provided
+				vim.cmd("highlight! Neorg" .. prefix .. hl_name .. " " .. highlight)
+			end
+		end, "")
+
+		-- Begin the descent down the dimming configuration table
+		descend(module.config.public.dim, function(hl_name, highlight, prefix)
+			-- If we don't have a percentage value then keep traversing down the table tree
+			if not highlight.percentage then
+				return true
+			end
+
+			-- Apply the dimmed highlight
+			vim.cmd("highlight! Neorg" .. prefix .. hl_name .. " " .. (highlight.affect == "background" and "guibg" or "guifg") .."=" .. module.public.dim_color(module.public.get_attribute(highlight.reference or ("Neorg" .. prefix .. hl_name), highlight.affect or "foreground"), highlight.percentage))
+		end, "")
 	end,
 
 	-- @Summary Adds a set of highlights from a table
@@ -65,6 +82,14 @@ module.public = {
 	-- @Param  highlights (table) - a table of highlights
 	add_highlights = function(highlights)
 		module.config.public.highlights = vim.tbl_deep_extend("force", module.config.public.highlights, highlights or {})
+		module.public.trigger_highlights()
+	end,
+
+	-- @Summary Adds a set of dims from a table
+	-- @Description Takes in a table of items to dim and applies the dimming to them
+	-- @Param  dim (table) - a table of items to dim
+	add_dim = function(dim)
+		module.config.public.dim = vim.tbl_deep_extend("force", module.config.public.dim, dim or {})
 		module.public.trigger_highlights()
 	end,
 
@@ -98,13 +123,15 @@ module.public = {
 	-- NOTE: Shamelessly taken and tweaked a little from akinsho's nvim-bufferline:
 	-- https://github.com/akinsho/nvim-bufferline.lua/blob/fec44821eededceadb9cc25bc610e5114510a364/lua/bufferline/colors.lua
 	-- <3
-	get_background = function(name)
+	get_attribute = function(name, attribute)
   		-- Attempt to get the highlight
   		local success, hl = pcall(vim.api.nvim_get_hl_by_name, name, true)
 
-  		-- If we were successful then return the background colour
-  		if success then
-      		return bit.tohex(hl.background, 6)
+  		-- If we were successful and if the attribute exists then return it
+  		if success and hl[attribute] then
+      		return bit.tohex(hl[attribute], 6)
+      	else -- Else log the error
+			log.error(hl)
   		end
 
   		return "NONE"
