@@ -63,18 +63,20 @@ module.config.public = {
 			content = "+TSPunctDelimiter",
 		},
 
-		codeblock = "guibg=#212121"
 
 	}
 }
 
 module.load = function()
-	module.required["core.highlights"].add_highlights(module.config.public.highlights)
 	module.required["core.mode"].add_mode("traverse-heading")
 	module.required["core.keybinds"].register_keybinds(module.name, { "next.heading", "previous.heading" })
-end
 
-module.neorg_post_load = function()
+	if not module.config.public.highlights.codeblock then
+		module.config.public.highlights.codeblock = "guibg=" .. module.required["core.highlights"].dim_color(module.required["core.highlights"].get_background("Normal"), 15)
+	end
+
+	module.required["core.highlights"].add_highlights(module.config.public.highlights)
+
 	--[[
 		The below code snippet collects all language shorthands and links them to
 		their parent language, e.g.:
