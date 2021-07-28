@@ -175,6 +175,9 @@ module.public = {
 	-- @Summary Returns the closes match from the cwd to a valid workspace
 	-- @Description If the file we opened is within a workspace directory, returns the name of the workspace, else returns nil
 	get_workspace_match = function()
+		-- Cache the current working directory
+		module.config.public.workspaces.default = vim.fn.getcwd()
+
 		-- Grab the working directory of the current open file
 		local realcwd = vim.fn.expand("%:p:h")
 
@@ -186,31 +189,30 @@ module.public = {
 
 		-- Find a matching workspace
 		for workspace, location in pairs(module.config.public.workspaces) do
-			-- Expand all special symbols like ~ etc.
-			local expanded = vim.fn.expand(location)
+			if workspace ~= "default" then
+				-- Expand all special symbols like ~ etc.
+				local expanded = vim.fn.expand(location)
 
-			-- If the workspace location is a parent directory of our current realcwd
-			-- or if the ws location is the same then set it as the real workspace
-			-- We check this last_length here because if a match is longer
-			-- than the previous one then we can say it is a much more precise
-			-- match and hence should be prioritized
-			if realcwd:find(expanded) and #expanded > last_length then
-				-- Set the result to the workspace name
-				result = workspace
-				-- Set the last_length variable to the new length
-				last_length = #expanded
+				-- If the workspace location is a parent directory of our current realcwd
+				-- or if the ws location is the same then set it as the real workspace
+				-- We check this last_length here because if a match is longer
+				-- than the previous one then we can say it is a much more precise
+				-- match and hence should be prioritized
+				if realcwd:find(expanded) and #expanded > last_length then
+					-- Set the result to the workspace name
+					result = workspace
+					-- Set the last_length variable to the new length
+					last_length = #expanded
+				end
 			end
 		end
 
-		return result:len() ~= 0 and result or nil
+		return result:len() ~= 0 and result or "default"
 	end,
 
 	-- @Summary Updates the current working directory to the workspace root
 	-- @Description Uses the get_workspace_match() function to determine the root of the workspace, then changes into that directory
 	update_cwd = function()
-		-- Cache the current working directory
-		module.config.public.workspaces.default = vim.fn.getcwd()
-
 		-- Get the closest workspace match
 		local ws_match = module.public.get_workspace_match()
 
