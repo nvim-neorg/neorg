@@ -171,7 +171,7 @@ module.public = {
 							-- Loop though all the keymaps in that mode
 							for _, keymap in ipairs(keymaps) do
 								-- Map the keybind and keep track of it using the map() function
-								payload.map(neovim_mode, keymap[1], ":Neorg keybind " .. mode .. " " .. keymap[2] .. "<CR>", opts)
+								payload.map(neovim_mode, keymap[1], "<cmd>Neorg keybind " .. mode .. " " .. keymap[2] .. "<CR>", opts)
 							end
 						end
 					end

@@ -14,9 +14,15 @@ return function(neorg_leader)
             	{ "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" },
 
             	-- Keys for managing notes
-            	{ neorg_leader .. "nn", "core.norg.dirman.new.note" }
+            	{ neorg_leader .. "nn", "core.norg.dirman.new.note" },
+
+            	{ "<C-s>", "core.integrations.telescope.find_linkable" }
 
         	},
+
+        	i = {
+				{ "<C-l>", "core.integrations.telescope.insert_link" }
+        	}
     	}, { silent = true, noremap = true })
 
     	-- Map the below keys only when traverse-heading mode is active
