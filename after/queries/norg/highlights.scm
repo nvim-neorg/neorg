@@ -5,7 +5,7 @@
 (tag_parameters) @NeorgTagParameters
 (tag_content) @NeorgTagContent
 ("@" (tag_name) @NeorgTagName (tag_parameters)? (tag_content) @NeorgTagComment (#match? @NeorgTagName "^comment$"))
-("$" (tag_name) @NeorgTagName (tag_parameters)? (paragraph) @NeorgTagComment (#match? @NeorgTagName "^comment$"))
+("$" (tag_name) @NeorgTagName (tag_parameters)? (_)+ @NeorgTagComment (#match? @NeorgTagName "^comment$"))
 
 ; Headings
 (heading1) @NeorgHeading1
@@ -33,6 +33,7 @@
 
 ; Unordered lists
 (unordered_list_prefix) @NeorgUnorderedList
+(unordered_link_list_prefix) @NeorgUnorderedLinkList
 
 ; Quotes
 (quote) @NeorgQuote

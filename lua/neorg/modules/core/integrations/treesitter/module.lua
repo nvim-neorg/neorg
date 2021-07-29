@@ -56,7 +56,10 @@ module.config.public = {
 			donemark = "+TSMethod",
 		},
 
-		unorderedlist = "+TSPunctDelimiter",
+		unordered = {
+			list = "+TSPunctDelimiter",
+			linklist = "+TSPunctDelimiter"
+		},
 
 		quote = {
 			[""] = "+TSPunctDelimiter",
@@ -298,6 +301,16 @@ module.public = {
 
 		return result
 	end,
+
+	tree_map = function(callback)
+		local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+		local root = tree:root()
+
+		for child, _ in root:iter_children() do
+			callback(child)
+		end
+	end
 }
 
 module.on_event = function(event)
