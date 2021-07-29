@@ -248,9 +248,6 @@ module.load = function()
 
 	module.required["core.autocommands"].enable_autocommand("TextChanged")
 	module.required["core.autocommands"].enable_autocommand("TextChangedI")
-
-	-- Trigger the conceals
-	module.public.trigger_conceal()
 end
 
 module.public = {

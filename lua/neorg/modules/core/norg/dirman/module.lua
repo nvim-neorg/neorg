@@ -60,9 +60,6 @@ module.load = function()
 	-- Enable the VimLeavePre autocommand to write the last workspace to disk
 	module.required["core.autocommands"].enable_autocommand("VimLeavePre", true)
 
-	-- Try to automatically set the current working directory
-	module.public.update_cwd()
-
 	-- If we have loaded this module from outside of a Neorg file then try jumping
 	-- to the last cached workspace
 	if vim.fn.expand("%:e") ~= "norg" then
@@ -318,7 +315,7 @@ module.public = {
 					if read_data:len() > 0 and module.public.get_workspace(read_data) then
 						-- If we were successful in switching to that workspace then begin editing that workspace's index file
 						if module.public.set_workspace(read_data) then
-							pcall(vim.cmd, "e " .. module.public.get_workspace(read_data) .. "/" .. module.config.public.index)
+							vim.cmd("e " .. module.public.get_workspace(read_data) .. "/" .. module.config.public.index)
 						end
 
 						-- Close the file handle
