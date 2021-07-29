@@ -153,6 +153,7 @@ function neorg.modules.load_module(module_name, config)
 
 	-- If the module doesn't exist then return false
 	if not exists then
+		log.error("Unable to load module", module_name, "-", module)
 		return false
 	end
 
