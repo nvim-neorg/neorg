@@ -318,7 +318,7 @@ module.public = {
 					if read_data:len() > 0 and module.public.get_workspace(read_data) then
 						-- If we were successful in switching to that workspace then begin editing that workspace's index file
 						if module.public.set_workspace(read_data) then
-							vim.cmd("e " .. module.public.get_workspace(read_data) .. "/" .. module.config.public.index)
+							pcall(vim.cmd, "e " .. module.public.get_workspace(read_data) .. "/" .. module.config.public.index)
 						end
 
 						-- Close the file handle
