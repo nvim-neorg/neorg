@@ -19,12 +19,11 @@ function neorg.setup(config)
 	-- If the file we have entered has a .norg extension
 	if vim.fn.expand("%:e") == "norg" then
 		-- Then set the filetype and boot up the environment
-		vim.opt_local.filetype = "norg"
 		neorg.org_file_entered()
 	else
 		-- Else listen for a BufRead event and fire up the Neorg environment then
 		vim.cmd [[
-			autocmd BufAdd *.norg ++once :lua vim.opt_local.filetype = "norg"; require('neorg').org_file_entered()
+			autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered()
 			command! -nargs=0 Neorg delcommand Neorg | lua require('neorg').org_file_entered()
 		]]
 	end
