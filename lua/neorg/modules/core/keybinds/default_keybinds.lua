@@ -16,7 +16,9 @@ return function(neorg_leader)
             	-- Keys for managing notes
             	{ neorg_leader .. "nn", "core.norg.dirman.new.note" },
 
-            	{ "<C-s>", "core.integrations.telescope.find_linkable" }
+            	{ "<C-s>", "core.integrations.telescope.find_linkable" },
+
+            	{ neorg_leader .. "toc", "core.norg.qol.toc.generate.toc" }
 
         	},
 
