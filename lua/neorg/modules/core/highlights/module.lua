@@ -130,8 +130,8 @@ module.public = {
   		-- If we were successful and if the attribute exists then return it
   		if success and hl[attribute] then
       		return bit.tohex(hl[attribute], 6)
-      	else -- Else log the error
-			log.error(hl)
+      	else -- Else log the message in a regular info() call, it's not an insanely important error
+			log.info("Unable to grab highlight for attribute", attribute, " - full error:", hl)
   		end
 
   		return "NONE"
