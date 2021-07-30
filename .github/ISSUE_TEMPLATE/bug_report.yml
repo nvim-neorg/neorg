@@ -1,0 +1,105 @@
+name: Bug Report
+title: "[BUG] "
+description: Report a problem in neorg
+labels: [bug]
+body:
+
+  - type: checkboxes
+    id: faq-prerequisite
+    attributes:
+      label: Contributions
+      options:
+        - label: I have read [contribution guidelines](https://github.com/vhyrro/neorg/blob/main/docs/CONTRIBUTING.md)
+          required: true
+
+  - type: checkboxes
+    id: latest-version
+    attributes:
+      label: Plugin Version
+      options:
+        - label: I am using the latest version of the plugin
+          required: true
+
+  - type: checkboxes
+    id: latest-neovim
+    attributes:
+      label: Neovim Version
+      options:
+        - label: I am using the latest neovim version (0.5)
+          required: true
+
+  - type: input
+    attributes:
+      label: "Neovim Version"
+      description: "`nvim --version`:"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Log Output"
+      description: "Located at `stdpath('data') .. '/neorg.log'`. You can run `:echo stdpath('data')` to find the path."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: branch
+    attributes:
+      label: "Branch"
+      description: "Neorg branch you are on."
+      options:
+        - "master"
+        - "unstable"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Loaded modules"
+      description: "List of loaded neorg modules"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Expected behavior"
+      description: "A description of the behavior you expected."
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Actual behavior"
+      description: "A description of actual behavior. May optionally include images or videos."
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Potentially conflicting plugins"
+      description: "Other plugins you are using which you think could potentially be conflicting with neorg."
+
+
+  - type: textarea
+    attributes:
+      label: "Other information"
+      description: "Other information that could be helpful with debugging."
+
+  - type: dropdown
+    id: help
+    attributes:
+      label: "Help"
+      description: "Would you be able to resolve this issue by submitting a pull request?"
+      options:
+        - "Yes"
+        - "Yes, but I don't know how to start. I would need guidance (check question below)"
+        - "No"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Implementation help"
+      description: "If you selected yes in the last question please specify in detail what you would need help with in order to implement this."
+    validations:
+      required: false
