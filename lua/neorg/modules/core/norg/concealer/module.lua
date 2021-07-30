@@ -202,6 +202,13 @@ module.config.public = {
 			highlight_method = "combine",
 			padding_before = 0,
 		}
+	},
+
+	conceals = {
+		url = true,
+		bold = true,
+		italic = true,
+		underline = true,
 	}
 
 }
@@ -254,15 +261,15 @@ module.public = {
 
 	-- @Summary Activates concealing for the current window
 	-- @Description Parses the user configuration and enables concealing for the current window.
-	trigger_conceal = function()
+	trigger_icon = function()
 		-- Clear all the conceals beforehand (so no overlaps occur)
-		module.public.clear_conceal()
+		module.public.clear_icons()
 
 		-- Go through every line in the file and attempt to apply a conceal to it
 		local lines = vim.api.nvim_buf_get_lines(0, 0, -1, true)
 
 		for i, line in ipairs(lines) do
-			module.public.set_conceal(i, line)
+			module.public.set_icon(i, line)
 		end
 	end,
 
@@ -270,7 +277,7 @@ module.public = {
 	-- @Description Attempts to match the current line to any valid conceal and tries applying it
 	-- @Param  line_number (number) - the line number to conceal
 	-- @Param  line (string) - the content of the line at the specified line number
-	set_conceal = function(line_number, line)
+	set_icon = function(line_number, line)
 
 		-- Loop through every enabled icon
 		for _, icon_info in ipairs(module.private.icons) do
@@ -361,19 +368,45 @@ module.public = {
 
 	-- @Summary Clears all the conceals that neorg has defined
 	-- @Description Simply clears the Neorg extmark namespace
-	clear_conceal = function()
+	clear_icons = function()
 		vim.api.nvim_buf_clear_namespace(0, module.private.namespace, 0, -1)
-	end
+	end,
+
+	trigger_conceals = function()
+		local conceals = module.config.public.conceals
+
+		if conceals.url then
+			vim.schedule(function()
+				vim.cmd [[
+					syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal
+					syn region NeorgConcealURL matchgroup=mkdDelimiter start="[^\\]\@=\[" skip="\\\]" end="\]\ze(" nextgroup=NeorgConcealURLValue oneline skipwhite concealends
+				]]
+			end)
+		end
+	end,
+
+	clear_conceals = function()
+		vim.cmd [[
+			silent! syn clear NeorgConcealURL
+			silent! syn clear NeorgConcealItalic
+			silent! syn clear NeorgConcealBold
+			silent! syn clear NeorgConcealUnderline
+		]]
+	end,
 
 }
 
 module.on_event = function(event)
 	-- If we have just entered a .norg buffer then apply all conceals
 	if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-		module.public.trigger_conceal()
+		module.public.trigger_icon()
+
+		if module.config.public.conceals then
+			module.public.trigger_conceals()
+		end
 	-- If the content of a line has changed then reparse that line
 	elseif event.type == "core.autocommands.events.textchanged" or event.type == "core.autocommands.events.textchangedi" then
-		module.public.trigger_conceal()
+		module.public.trigger_icon()
 	end
 end
 
