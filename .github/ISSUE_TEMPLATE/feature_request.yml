@@ -1,0 +1,38 @@
+name: Feature request
+title: "[FEATURE REQUEST] "
+description: Request an enhancement for neorg
+labels: [enhancement]
+body:
+
+  - type: checkboxes
+    id: issue-prerequisite
+    attributes:
+      label: Issues
+      options:
+        - label: I have checked [existing issues](https://github.com/vhyrro/neorg/issues?q=is%3Aissue) and there are no existing ones with the same request.
+          required: true
+
+  - type: textarea
+    attributes:
+      label: "Feature description"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: help
+    attributes:
+      label: "Help"
+      description: "Would you be able to implement this by submitting a pull request?"
+      options:
+        - "Yes"
+        - "Yes, but I don't know how to start. I would need guidance"
+        - "No"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Implementation help"
+      description: "If you selected yes in the last question please specify in detail what you would need help with in order to implement this."
+    validations:
+      required: false
