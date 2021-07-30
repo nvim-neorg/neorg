@@ -16,7 +16,12 @@ local module = neorg.modules.create("core.highlights")
 		highlight! link NeorgTagBegin Comment
 --]]
 module.config.public = {
-	highlights = {},
+	highlights = {
+		concealurl = {
+			[""] = "+TSURI",
+			value = "+TSType"
+		}
+	},
 	dim = {}
 }
 
