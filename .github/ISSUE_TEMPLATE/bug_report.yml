@@ -39,6 +39,8 @@ body:
     attributes:
       label: "Log Output"
       description: "Located at `stdpath('data') .. '/neorg.log'`. You can run `:echo stdpath('data')` to find the path."
+    validations:
+      required: true
 
   - type: dropdown
     id: branch
