@@ -2,7 +2,7 @@
 	Neorg module for managing highlight groups.
 --]]
 
-require('neorg.modules.base')
+require("neorg.modules.base")
 
 local module = neorg.modules.create("core.highlights")
 
@@ -16,159 +16,178 @@ local module = neorg.modules.create("core.highlights")
 		highlight! link NeorgTagBegin Comment
 --]]
 module.config.public = {
-	highlights = {
-		concealurl = {
-			[""] = "+TSURI",
-			value = "+TSType"
-		}
-	},
-	dim = {}
+    highlights = {
+        concealurl = {
+            [""] = "+TSURI",
+            value = "+TSType",
+        },
+    },
+    dim = {},
 }
 
 module.public = {
 
-	-- @Summary	Defines all the highlight groups for Neorg
-	-- @Description Reads the highlights configuration table and applies all defined highlights
-	trigger_highlights = function()
-		local descend
+    -- @Summary	Defines all the highlight groups for Neorg
+    -- @Description Reads the highlights configuration table and applies all defined highlights
+    trigger_highlights = function()
+        local descend
 
-		-- @Summary Descends down a tree of highlights and applies them
-		-- @Description Recursively descends down the highlight configuration and applies every highlight accordingly
-		-- @Param  highlights (table) - the table of highlights to descend down
-		-- @Param  callback (function(hl_name, highlight, prefix) -> bool) - a callback function to be invoked for every highlight. If it returns true then we should recurse down the table tree further
-		-- @Param  prefix (string) - should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
-		descend = function(highlights, callback, prefix)
-			-- Loop through every highlight defined in the provided table
-			for hl_name, highlight in pairs(highlights) do
-				-- If the callback returns true then descend further down the table tree
-				if callback(hl_name, highlight, prefix) then
-					descend(highlight, callback, hl_name)
-				end
-			end
-		end
+        -- @Summary Descends down a tree of highlights and applies them
+        -- @Description Recursively descends down the highlight configuration and applies every highlight accordingly
+        -- @Param  highlights (table) - the table of highlights to descend down
+        -- @Param  callback (function(hl_name, highlight, prefix) -> bool) - a callback function to be invoked for every highlight. If it returns true then we should recurse down the table tree further
+        -- @Param  prefix (string) - should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
+        descend = function(highlights, callback, prefix)
+            -- Loop through every highlight defined in the provided table
+            for hl_name, highlight in pairs(highlights) do
+                -- If the callback returns true then descend further down the table tree
+                if callback(hl_name, highlight, prefix) then
+                    descend(highlight, callback, hl_name)
+                end
+            end
+        end
 
-		-- Begin the descent down the public highlights configuration table
-		descend(module.config.public.highlights, function(hl_name, highlight, prefix)
-			-- If the type of highlight we have encountered is a table
-			-- then recursively descend down it as well
-			if type(highlight) == "table" then
-				return true
-			end
+        -- Begin the descent down the public highlights configuration table
+        descend(module.config.public.highlights, function(hl_name, highlight, prefix)
+            -- If the type of highlight we have encountered is a table
+            -- then recursively descend down it as well
+            if type(highlight) == "table" then
+                return true
+            end
 
-			-- Trim any potential leading and trailing whitespace
-			highlight = vim.trim(highlight)
+            -- Trim any potential leading and trailing whitespace
+            highlight = vim.trim(highlight)
 
-			-- Check whether we are trying to link to an existing hl group
-			-- by checking for the existence of the + sign at the front
-			local is_link = highlight:sub(1, 1) == "+"
+            -- Check whether we are trying to link to an existing hl group
+            -- by checking for the existence of the + sign at the front
+            local is_link = highlight:sub(1, 1) == "+"
 
-			-- If we are dealing with a link then link the highlights together (excluding the + symbol)
-			if is_link then
-				vim.cmd("highlight! link Neorg" .. prefix .. hl_name .. " " .. highlight:sub(2))
-			else -- Otherwise simply apply the highlight options the user provided
-				vim.cmd("highlight! Neorg" .. prefix .. hl_name .. " " .. highlight)
-			end
-		end, "")
+            -- If we are dealing with a link then link the highlights together (excluding the + symbol)
+            if is_link then
+                vim.cmd("highlight! link Neorg" .. prefix .. hl_name .. " " .. highlight:sub(2))
+            else -- Otherwise simply apply the highlight options the user provided
+                vim.cmd("highlight! Neorg" .. prefix .. hl_name .. " " .. highlight)
+            end
+        end, "")
 
-		-- Begin the descent down the dimming configuration table
-		descend(module.config.public.dim, function(hl_name, highlight, prefix)
-			-- If we don't have a percentage value then keep traversing down the table tree
-			if not highlight.percentage then
-				return true
-			end
+        -- Begin the descent down the dimming configuration table
+        descend(module.config.public.dim, function(hl_name, highlight, prefix)
+            -- If we don't have a percentage value then keep traversing down the table tree
+            if not highlight.percentage then
+                return true
+            end
 
-			-- Apply the dimmed highlight
-			vim.cmd("highlight! Neorg" .. prefix .. hl_name .. " " .. (highlight.affect == "background" and "guibg" or "guifg") .."=" .. module.public.dim_color(module.public.get_attribute(highlight.reference or ("Neorg" .. prefix .. hl_name), highlight.affect or "foreground"), highlight.percentage))
-		end, "")
-	end,
+            -- Apply the dimmed highlight
+            vim.cmd(
+                "highlight! Neorg"
+                    .. prefix
+                    .. hl_name
+                    .. " "
+                    .. (highlight.affect == "background" and "guibg" or "guifg")
+                    .. "="
+                    .. module.public.dim_color(
+                        module.public.get_attribute(
+                            highlight.reference or ("Neorg" .. prefix .. hl_name),
+                            highlight.affect or "foreground"
+                        ),
+                        highlight.percentage
+                    )
+            )
+        end, "")
+    end,
 
-	-- @Summary Adds a set of highlights from a table
-	-- @Description Takes in a table of highlights and applies them to the current buffer
-	-- @Param  highlights (table) - a table of highlights
-	add_highlights = function(highlights)
-		module.config.public.highlights = vim.tbl_deep_extend("force", module.config.public.highlights, highlights or {})
-		module.public.trigger_highlights()
-	end,
+    -- @Summary Adds a set of highlights from a table
+    -- @Description Takes in a table of highlights and applies them to the current buffer
+    -- @Param  highlights (table) - a table of highlights
+    add_highlights = function(highlights)
+        module.config.public.highlights = vim.tbl_deep_extend(
+            "force",
+            module.config.public.highlights,
+            highlights or {}
+        )
+        module.public.trigger_highlights()
+    end,
 
-	-- @Summary Adds a set of dims from a table
-	-- @Description Takes in a table of items to dim and applies the dimming to them
-	-- @Param  dim (table) - a table of items to dim
-	add_dim = function(dim)
-		module.config.public.dim = vim.tbl_deep_extend("force", module.config.public.dim, dim or {})
-		module.public.trigger_highlights()
-	end,
+    -- @Summary Adds a set of dims from a table
+    -- @Description Takes in a table of items to dim and applies the dimming to them
+    -- @Param  dim (table) - a table of items to dim
+    add_dim = function(dim)
+        module.config.public.dim = vim.tbl_deep_extend("force", module.config.public.dim, dim or {})
+        module.public.trigger_highlights()
+    end,
 
-	-- @Summary Clears all the highlights defined by Neorg
-	-- @Description Assigns all Neorg* highlights to `clear`
-	clear_highlights = function()
-		local descend
+    -- @Summary Clears all the highlights defined by Neorg
+    -- @Description Assigns all Neorg* highlights to `clear`
+    clear_highlights = function()
+        local descend
 
-		-- @Summary Descends down a tree of highlights and clears them
-		-- @Description Recursively descends down the highlight configuration and clears every highlight accordingly
-		-- @Param  highlights (table) - the table of highlights to descend down
-		-- @Param  prefix (string) - should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
-		descend = function(highlights, prefix)
+        -- @Summary Descends down a tree of highlights and clears them
+        -- @Description Recursively descends down the highlight configuration and clears every highlight accordingly
+        -- @Param  highlights (table) - the table of highlights to descend down
+        -- @Param  prefix (string) - should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
+        descend = function(highlights, prefix)
+            -- Loop through every defined highlight
+            for hl_name, highlight in pairs(highlights) do
+                -- If it is a table then recursively traverse down it!
+                if type(highlight) == "table" then
+                    descend(highlight, hl_name)
+                else -- Otherwise we're dealing with a string
+                    -- Hence we should clear the highlight
+                    vim.cmd("highlight! clear Neorg" .. prefix .. hl_name)
+                end
+            end
+        end
 
-			-- Loop through every defined highlight
-			for hl_name, highlight in pairs(highlights) do
-				-- If it is a table then recursively traverse down it!
-				if type(highlight) == "table" then
-					descend(highlight, hl_name)
-				else -- Otherwise we're dealing with a string
-					-- Hence we should clear the highlight
-					vim.cmd("highlight! clear Neorg" .. prefix .. hl_name)
-				end
-			end
-		end
+        -- Begin the descent
+        descend(module.config.public.highlights, "")
+    end,
 
-		-- Begin the descent
-		descend(module.config.public.highlights, "")
-	end,
+    -- NOTE: Shamelessly taken and tweaked a little from akinsho's nvim-bufferline:
+    -- https://github.com/akinsho/nvim-bufferline.lua/blob/fec44821eededceadb9cc25bc610e5114510a364/lua/bufferline/colors.lua
+    -- <3
+    get_attribute = function(name, attribute)
+        -- Attempt to get the highlight
+        local success, hl = pcall(vim.api.nvim_get_hl_by_name, name, true)
 
-	-- NOTE: Shamelessly taken and tweaked a little from akinsho's nvim-bufferline:
-	-- https://github.com/akinsho/nvim-bufferline.lua/blob/fec44821eededceadb9cc25bc610e5114510a364/lua/bufferline/colors.lua
-	-- <3
-	get_attribute = function(name, attribute)
-  		-- Attempt to get the highlight
-  		local success, hl = pcall(vim.api.nvim_get_hl_by_name, name, true)
+        -- If we were successful and if the attribute exists then return it
+        if success and hl[attribute] then
+            return bit.tohex(hl[attribute], 6)
+        else -- Else log the message in a regular info() call, it's not an insanely important error
+            log.info("Unable to grab highlight for attribute", attribute, " - full error:", hl)
+        end
 
-  		-- If we were successful and if the attribute exists then return it
-  		if success and hl[attribute] then
-      		return bit.tohex(hl[attribute], 6)
-      	else -- Else log the message in a regular info() call, it's not an insanely important error
-			log.info("Unable to grab highlight for attribute", attribute, " - full error:", hl)
-  		end
+        return "NONE"
+    end,
 
-  		return "NONE"
-	end,
+    dim_color = function(colour, percent)
+        if colour == "NONE" then
+            return colour
+        end
 
-	dim_color = function(colour, percent)
-		if colour == "NONE" then
-			return colour
-		end
+        local function hex_to_rgb(hex_colour)
+            return tonumber(hex_colour:sub(1, 2), 16),
+                tonumber(hex_colour:sub(3, 4), 16),
+                tonumber(hex_colour:sub(5), 16)
+        end
 
-		local function hex_to_rgb(hex_colour)
-  			return tonumber(hex_colour:sub(1, 2), 16), tonumber(hex_colour:sub(3, 4), 16), tonumber(hex_colour:sub(5), 16)
-		end
+        local function alter(attr)
+            return math.floor(attr * (100 - percent) / 100)
+        end
 
-		local function alter(attr)
-  			return math.floor(attr * (100 - percent) / 100)
-		end
+        local r, g, b = hex_to_rgb(colour)
 
-  		local r, g, b = hex_to_rgb(colour)
+        if not r or not g or not b then
+            return "NONE"
+        end
 
-  		if not r or not g or not b then
-    		return "NONE"
-  		end
+        return string.format("#%02x%02x%02x", math.min(alter(r), 255), math.min(alter(g), 255), math.min(alter(b), 255))
+    end,
 
-  		return string.format("#%02x%02x%02x", math.min(alter(r), 255), math.min(alter(g), 255), math.min(alter(b), 255))
-	end
-
-	-- END of shamelessly ripped off akinsho code
+    -- END of shamelessly ripped off akinsho code
 }
 
 module.neorg_post_load = function()
-	module.public.trigger_highlights()
+    module.public.trigger_highlights()
 end
 
 return module
