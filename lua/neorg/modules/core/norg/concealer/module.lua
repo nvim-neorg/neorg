@@ -1,82 +1,82 @@
 --[[
-	CONCEALER MODULE FOR NEORG.
-	This module is supposed to enhance the neorg editing experience
-	by abstracting away certain bits of text and concealing it into one easy-to-recognize
-	icon. Icons can be easily changed and every element can be disabled.
+    CONCEALER MODULE FOR NEORG.
+    This module is supposed to enhance the neorg editing experience
+    by abstracting away certain bits of text and concealing it into one easy-to-recognize
+    icon. Icons can be easily changed and every element can be disabled.
 
 USAGE:
-	This module does not come bundled by default with the core.defaults metamodule.
-	Make sure to manually enable it in neorg's setup function.
+    This module does not come bundled by default with the core.defaults metamodule.
+    Make sure to manually enable it in neorg's setup function.
 
-	The module comes with several config options, and they are listed here:
-	icons = {
-		todo = {
-			enabled = true, -- Conceal TODO items
+    The module comes with several config options, and they are listed here:
+    icons = {
+        todo = {
+            enabled = true, -- Conceal TODO items
 
-			done = {
-				enabled = true, -- Conceal whenever an item is marked as done
-				icon = ""
-			},
-			pending = {
-				enabled = true, -- Conceal whenever an item is marked as pending
-				icon = ""
-			},
-			undone = {
-				enabled = true, -- Conceal whenever an item is marked as undone
-				icon = "×"
-			}
-		},
-		quote = {
-			enabled = true, -- Conceal quotes
-			icon = "∣"
-		},
-		heading = {
-			enabled = true, -- Enable beautified headings
+            done = {
+                enabled = true, -- Conceal whenever an item is marked as done
+                icon = ""
+            },
+            pending = {
+                enabled = true, -- Conceal whenever an item is marked as pending
+                icon = ""
+            },
+            undone = {
+                enabled = true, -- Conceal whenever an item is marked as undone
+                icon = "×"
+            }
+        },
+        quote = {
+            enabled = true, -- Conceal quotes
+            icon = "∣"
+        },
+        heading = {
+            enabled = true, -- Enable beautified headings
 
-			-- Define icons for all the different heading levels
-			level_1 = {
-				enabled = true,
-				icon = "◉",
-			},
+            -- Define icons for all the different heading levels
+            level_1 = {
+                enabled = true,
+                icon = "◉",
+            },
 
-			level_2 = {
-				enabled = true,
-				icon = "○",
-			},
+            level_2 = {
+                enabled = true,
+                icon = "○",
+            },
 
-			level_3 = {
-				enabled = true,
-				icon = "✿",
-			},
+            level_3 = {
+                enabled = true,
+                icon = "✿",
+            },
 
-			level_4 = {
-				enabled = true,
-				icon = "•",
-			},
-		},
+            level_4 = {
+                enabled = true,
+                icon = "•",
+            },
+        },
 
-		marker = {
-			enabled = true, -- Enable the beautification of markers
-			icon = "",
-		},
-	}
+        marker = {
+            enabled = true, -- Enable the beautification of markers
+            icon = "",
+        },
+    }
 
-	You can also add your own custom conceals with their own custom icons, however this is a tad more complex.
+    You can also add your own custom conceals with their own custom icons, however this is a tad more complex.
 
-	Note that those are probably the configuration options that you are *going* to use.
-	There are a lot more configuration options per element than that, however.
+    Note that those are probably the configuration options that you are *going* to use.
+    There are a lot more configuration options per element than that, however.
 
-	Here are the more advanced parameters you may be interested in:
+    Here are the more advanced parameters you may be interested in:
 
-	pattern - the pattern to match. If this pattern isn't matched then the conceal isn't applied.
+    pattern - the pattern to match. If this pattern isn't matched then the conceal isn't applied.
 
-	whitespace_index - this one is a bit funny to explain. Basically, this is the index of a capture from
-	the "pattern" variable representing the leading whitespace. This whitespace is then used to calculate
-	where to place the icon. If your pattern specifies only one capture, set this to 1
+    whitespace_index - this one is a bit funny to explain. Basically, this is the index of a capture from
+    the "pattern" variable representing the leading whitespace. This whitespace is then used to calculate
+    where to place the icon. If your pattern specifies only one capture, set this to 1
 
-	highlight - the highlight to apply to the icon
+    highlight - the highlight to apply to the icon
 
-	padding_before - the amount of padding (in the form of spaces) to apply before the icon
+    padding_before - the amount of padding (in the form of spaces) to apply before the icon
 
 NOTE: When defining your own icons be sure to set *all* the above variables plus the "icon" and "enabled" variables.
       If you don't you will get errors.
@@ -186,6 +186,7 @@ module.config.public = {
             pattern = "^(%s*)%|%s+",
             whitespace_index = 1,
             highlight = "NeorgMarker",
+
             padding_before = 0,
         },
     },
@@ -389,32 +390,56 @@ module.public = {
         if conceals.url then
             vim.schedule(function()
                 vim.cmd([[
-					syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal
-					syn region NeorgConcealURL matchgroup=mkdDelimiter start="[^\\]\@=\[" skip="\\\]" end="\]\ze(" nextgroup=NeorgConcealURLValue oneline skipwhite concealends
-				]])
+                    syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal
+                    syn region NeorgConcealURL matchgroup=mkdDelimiter start="[^\\]\@=\[" skip="\\\]" end="\]\ze(" nextgroup=NeorgConcealURLValue oneline skipwhite concealends
+                ]])
+            end)
+        end
+
+        if conceals.bold then
+            vim.schedule(function()
+                vim.cmd([[
+                    syn region NeorgConcealBold matchgroup=Normal start="[[:punct:] \t\n_/]\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([[:punct:] \t\n]\)\@=" oneline concealends
+                ]])
+            end)
+        end
+
+        if conceals.italic then
+            vim.schedule(function()
+                vim.cmd([[
+                    syn region NeorgConcealItalic matchgroup=Normal start="[[:punct:] \t\n\*_]\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([[:punct:] \t\n\*_]\)\@=" oneline concealends
+                ]])
+            end)
+        end
+
+        if conceals.underline then
+            vim.schedule(function()
+                vim.cmd([[
+                    syn region NeorgConcealUnderline matchgroup=Normal start="[[:punct:] \t\n\*/]\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([[:punct:] \t\n\*/]\)\@=" oneline concealends
+                ]])
             end)
         end
     end,
 
     clear_conceals = function()
         vim.cmd([[
-			silent! syn clear NeorgConcealURL
-			silent! syn clear NeorgConcealItalic
-			silent! syn clear NeorgConcealBold
-			silent! syn clear NeorgConcealUnderline
-		]])
+            silent! syn clear NeorgConcealURL
+            silent! syn clear NeorgConcealItalic
+            silent! syn clear NeorgConcealBold
+            silent! syn clear NeorgConcealUnderline
+        ]])
     end,
 }
 
 module.on_event = function(event)
     -- If we have just entered a .norg buffer then apply all conceals
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        module.public.trigger_icon()
-
+        -- If the content of a line has changed then reparse that line
         if module.config.public.conceals then
             module.public.trigger_conceals()
         end
-        -- If the content of a line has changed then reparse that line
+
+        module.public.trigger_icon()
     elseif
         event.type == "core.autocommands.events.textchanged"
         or event.type == "core.autocommands.events.textchangedi"

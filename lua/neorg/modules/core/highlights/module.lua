@@ -21,6 +21,11 @@ module.config.public = {
             [""] = "+TSURI",
             value = "+TSType",
         },
+        conceal = {
+            bold = "cterm=bold gui=bold",
+            italic = "cterm=italic gui=italic",
+            underline = "cterm=underline gui=underline",
+        },
     },
     dim = {},
 }

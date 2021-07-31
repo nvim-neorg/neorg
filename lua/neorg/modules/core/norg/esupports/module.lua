@@ -187,8 +187,11 @@ module.config.public = {
 
 module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufEnter")
-    module.required["core.autocommands"].enable_autocommand("TextChangedI")
     module.required["core.autocommands"].enable_autocommand("BufWrite")
+
+    if module.config.public.indent_config.realtime.enabled then
+        module.required["core.autocommands"].enable_autocommand("TextChangedI")
+    end
 end
 
 module.public = {
