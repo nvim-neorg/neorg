@@ -278,17 +278,11 @@ module.public = {
 
                         -- Calculate the difference in chars from before the indentation to set the cursor
                         -- accordingly (otherwise it would get offset in weird ways)
-                        vim.api.nvim_win_set_cursor(
-                            0,
-                            {
-                                cursor_pos[1],
-                                cursor_pos[2]
-                                    + (
-                                        vim.api.nvim_strwidth(vim.api.nvim_get_current_line())
-                                        - vim.api.nvim_strwidth(line)
-                                    ),
-                            }
-                        )
+                        vim.api.nvim_win_set_cursor(0, {
+                            cursor_pos[1],
+                            cursor_pos[2]
+                                + (vim.api.nvim_strwidth(vim.api.nvim_get_current_line()) - vim.api.nvim_strwidth(line)),
+                        })
                     end
 
                     break

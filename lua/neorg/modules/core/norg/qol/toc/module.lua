@@ -31,16 +31,14 @@ module.public = {
         module.required["core.integrations.treesitter"].tree_map(function(child)
             if vim.startswith(child:type(), "heading") then
                 -- We do these weird checks here because some heading types can have a "leading_whitespace" node
-                table.insert(
-                    nodes,
-                    {
-                        child:type(),
-                        require("nvim-treesitter.ts_utils").get_node_text(
-                            child:named_child(1):type() == "paragraph_segment" and child:named_child(1)
-                                or child:named_child(2)
-                        ),
-                    }
-                )
+                table.insert(nodes, {
+                    child:type(),
+                    require("nvim-treesitter.ts_utils").get_node_text(
+                        child:named_child(1):type() == "paragraph_segment"
+                                and child:named_child(1)
+                            or child:named_child(2)
+                    ),
+                })
             end
         end)
 
