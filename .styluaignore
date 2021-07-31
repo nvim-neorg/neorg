@@ -3,3 +3,7 @@ after
 docs
 ftdetect
 res
+
+# There is a bug in stylua where it cant parse statements with `goto`, so this file is ignored until its resolved
+# https://github.com/JohnnyMorganz/StyLua/issues/229
+lua/neorg/modules/core/norg/completion/module.lua
