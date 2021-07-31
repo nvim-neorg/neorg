@@ -259,9 +259,9 @@ end
 
 module.public = {
 
-    -- @Summary Activates concealing for the current window
+    -- @Summary Activates icons for the current window
     -- @Description Parses the user configuration and enables concealing for the current window.
-    trigger_icon = function()
+    trigger_icons = function()
         -- Clear all the conceals beforehand (so no overlaps occur)
         module.public.clear_icons()
 
@@ -273,9 +273,9 @@ module.public = {
         end
     end,
 
-    -- @Summary Sets a conceal for the specified line
-    -- @Description Attempts to match the current line to any valid conceal and tries applying it
-    -- @Param  line_number (number) - the line number to conceal
+    -- @Summary Sets an icon for the specified line
+    -- @Description Attempts to match the current line to any valid icon and tries applying it
+    -- @Param  line_number (number) - the line number to test for icons
     -- @Param  line (string) - the content of the line at the specified line number
     set_icon = function(line_number, line)
         -- Loop through every enabled icon
@@ -384,6 +384,8 @@ module.public = {
         vim.api.nvim_buf_clear_namespace(0, module.private.namespace, 0, -1)
     end,
 
+    -- @Summary Triggers conceals for the current buffer
+    -- @Description Reads through the user configuration and enables concealing for the current buffer
     trigger_conceals = function()
         local conceals = module.config.public.conceals
 
@@ -421,6 +423,8 @@ module.public = {
         end
     end,
 
+    -- @Summary Clears conceals for the current buffer
+    -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
     clear_conceals = function()
         vim.cmd([[
             silent! syn clear NeorgConcealURL
@@ -439,12 +443,12 @@ module.on_event = function(event)
             module.public.trigger_conceals()
         end
 
-        module.public.trigger_icon()
+        module.public.trigger_icons()
     elseif
         event.type == "core.autocommands.events.textchanged"
         or event.type == "core.autocommands.events.textchangedi"
     then
-        module.public.trigger_icon()
+        module.public.trigger_icons()
     end
 end
 
