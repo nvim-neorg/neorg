@@ -140,7 +140,9 @@ end
 
 module.load = function()
     -- Define the :Neorg command with autocompletion and a requirement of at least one argument (-nargs=+)
-    vim.cmd([[ command! -nargs=+ -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd.module').public.function_callback(<f-args>) ]])
+    vim.cmd(
+        [[ command! -nargs=+ -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd.module').public.function_callback(<f-args>) ]]
+    )
 
     -- Loop through all the command modules we want to load and load them
     for _, command in ipairs(module.config.public.load) do

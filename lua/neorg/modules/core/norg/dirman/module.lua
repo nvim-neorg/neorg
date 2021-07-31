@@ -380,8 +380,8 @@ module.on_event = function(event)
 
     -- Just before we leave Neovim make sure to cache the last workspace we were in (as long as that workspace wasn't "default")
     if
-        event.type == "core.autocommands.events.vimleavepre" and module.public.get_current_workspace()[1]
-            ~= "default"
+        event.type == "core.autocommands.events.vimleavepre"
+        and module.public.get_current_workspace()[1] ~= "default"
     then
         -- Attempt to write the last workspace to the cache file
         vim.loop.fs_open(module.config.public.last_workspace, "w", 438, function(err, fd)
