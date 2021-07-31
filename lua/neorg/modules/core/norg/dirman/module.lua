@@ -368,7 +368,7 @@ module.on_event = function(event)
 
 			local current_workspace_name = module.public.get_current_workspace()[1]
 
-			vim.loop.fs_write(fd, current_workspace_name)
+			vim.loop.fs_write(fd, current_workspace_name, 0)
 			vim.loop.fs_close(fd)
 		end)
 	end
