@@ -1,0 +1,60 @@
+@document.meta
+	title: EXAMPLE
+	description: Example norg doc
+	author: Papa
+	categories: stuff
+	created: 2021-08-01
+	version: 0.1
+@end
+
+*Something cool that is bolded*
+
+_Something cool that is underlined_
+
+/Something cool that is italicized/
+
+~some text that is striked trough~
+
+`some text that is inline code`
+
+* Some title
+ ** Some title again
+  *** Some title again and again
+   **** Some title again and again and again
+
+- Unordered list item
+- Unordered list item
+- Unordered list item
+
+- [ ] Task not yet done 
+- [x] Task that is done 
+- [*] Task that is pending
+
+| Some text that is quite important
+
+> Some text that is a quote that someone once said
+
+This is a basic [link](#My Link)
+
+[text](#Example Heading) - a link to any element with the text example-heading
+[text](*Example Heading) - a link to a regular heading
+[text](**Example Subheading) - a link to a subheading
+[text](***Example Subsubheading) - a link to a sub-sub-heading
+[text](****Example Subsubsubheading) - a link to a sub-sub-sub-heading
+[text](|A marker) - a link to a marker
+
+$comment
+This is a comment!
+
+No parameter supplied, treated as a regular code block:
+@code
+    console.log("Wow some code.")
+@end
+
+  Parameter supplied, denotes the language via a parameter:
+@code lua
+    local message = "Some awesome lua code!"
+
+    print(message)
+@end
+
