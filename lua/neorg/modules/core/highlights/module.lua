@@ -33,8 +33,8 @@ module.config.public = {
             monospace = {
                 reference = "Normal",
                 percentage = 20,
-            }
-        }
+            },
+        },
     },
 }
 
