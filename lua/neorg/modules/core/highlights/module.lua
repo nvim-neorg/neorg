@@ -25,9 +25,17 @@ module.config.public = {
             bold = "cterm=bold gui=bold",
             italic = "cterm=italic gui=italic",
             underline = "cterm=underline gui=underline",
+            strikethrough = "cterm=strikethrough gui=strikethrough",
         },
     },
-    dim = {},
+    dim = {
+        conceal = {
+            monospace = {
+                reference = "Normal",
+                percentage = 20,
+            }
+        }
+    },
 }
 
 module.public = {
