@@ -72,6 +72,8 @@ module.public = {
 				"unordered",
 				"code",
 				"tangle",
+				"image",
+				"embed",
 			},
 
 			-- Additional options to pass to the completion engine
@@ -110,7 +112,34 @@ module.public = {
 					options = {
 						type = "Property"
 					}
-				}
+				},
+				{
+				    regex = "image%s+%w*",
+
+				    complete = {
+                        "jpeg",
+                        "png",
+                        "svg",
+                        "jfif",
+                        "exif",
+				    },
+
+				    options = {
+                        type = "Format"
+				    },
+				},
+				{
+				    regex = "embed%s+%w*",
+
+				    complete = {
+                        "video",
+                        "image",
+				    },
+
+				    options = {
+                        type = "Embed",
+				    },
+				},
 			}
 		},
 		{
