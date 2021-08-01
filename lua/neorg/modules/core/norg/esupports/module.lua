@@ -51,7 +51,7 @@ function _neorg_indent_expr()
 end
 
 module.setup = function()
-    return { success = true, requires = { "core.autocommands" } }
+    return { success = true, requires = { "core.autocommands", "core.keybinds" } }
 end
 
 module.config.public = {
@@ -192,6 +192,8 @@ module.load = function()
     if module.config.public.indent_config.realtime.enabled then
         module.required["core.autocommands"].enable_autocommand("TextChangedI")
     end
+
+    module.required["core.keybinds"].register_keybind(module.name, "goto_link")
 end
 
 module.public = {
@@ -293,6 +295,13 @@ module.public = {
             end
         end
     end,
+
+    -- Other functions go here
+
+    goto_link = function()
+        log.warn("<CR> pressed")
+    end,
+
 }
 
 module.on_event = function(event)
@@ -333,8 +342,12 @@ module.on_event = function(event)
         module.public.indent_line()
     end
 
-    if event.type == "core.autocommands.events.bufwrite" then
+    --[[ if event.type == "core.autocommands.events.bufwrite" then
         -- TODO
+    end ]]
+
+    if event.split_type[2] == module.name .. ".goto_link" then
+        module.public.goto_link()
     end
 end
 
@@ -343,6 +356,10 @@ module.events.subscribed = {
         bufenter = true,
         textchangedi = true,
         bufwrite = false,
+    },
+
+    ["core.keybinds"] = {
+        [module.name .. ".goto_link"] = true,
     },
 }
 
