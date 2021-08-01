@@ -393,10 +393,12 @@ module.public = {
 
         if conceals.url then
             vim.schedule(function()
-                vim.cmd([[
-                    syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal
-                    syn region NeorgConcealURL matchgroup=mkdDelimiter start="[^\\]\@=\[" skip="\\\]" end="\]\ze(" nextgroup=NeorgConcealURLValue oneline skipwhite concealends
-                ]])
+                vim.cmd(
+                    'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
+                )
+                vim.cmd(
+                    'syn region NeorgConcealURL matchgroup=mkdDelimiter start="[^\\\\]\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
+                )
             end)
         end
 
