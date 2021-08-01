@@ -401,7 +401,7 @@ module.public = {
         if conceals.bold then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealBold matchgroup=Normal start="[[:punct:] \t\n_/]\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([[:punct:] \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealBold matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-_\W \t\n]\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -409,7 +409,7 @@ module.public = {
         if conceals.italic then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealItalic matchgroup=Normal start="[[:punct:] \t\n\*_]\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([[:punct:] \t\n\*_]\)\@=" oneline concealends
+                    syn region NeorgConcealItalic matchgroup=Normal start="[?!:;,.<>()\[\]{}'"#%&$£\-_\W \t\n]\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -417,7 +417,7 @@ module.public = {
         if conceals.underline then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealUnderline matchgroup=Normal start="[[:punct:] \t\n\*/]\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([[:punct:] \t\n\*/]\)\@=" oneline concealends
+                    syn region NeorgConcealUnderline matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-\W \t\n]\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
