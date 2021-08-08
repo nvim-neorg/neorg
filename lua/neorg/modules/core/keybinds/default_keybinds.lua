@@ -17,6 +17,9 @@ return function(neorg_leader)
 
                 { "<C-s>", "core.integrations.telescope.find_linkable" },
 
+                -- Keys for managing GTD workflow
+                { "gtda", "core.gtd.base.add_to_inbox" },
+
                 { neorg_leader .. "toc", "core.norg.qol.toc.generate.toc" },
             },
 
