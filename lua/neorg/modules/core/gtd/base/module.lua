@@ -63,7 +63,7 @@ module.public = {
         -- Show prompt asking for input
         module.required["core.ui"].create_prompt(
             "INBOX_WINDOW",
-            "Add to inbox.norg: ",
+            "Add to inbox.norg > ",
             cb,
             {
                 center_x = true,
