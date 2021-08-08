@@ -1,3 +1,20 @@
+--[[
+    Base module for Getting Things Done methodology
+
+USAGE:
+    - To add a task to the inbox, use the public function add_task_to_inbox()
+
+REQUIRES:
+    This module requires:
+        - core.norg.dirman in order to get full path to the workspace
+        - core.keybinds (check KEYBINDS for usage)
+        - core.ui in order to ask for user input
+
+KEYBINDS:
+    - core.gtd.base.add_to_inbox: Will call the function add_task_to_inbox()
+
+--]]
+
 require("neorg.modules.base")
 require("neorg.events")
 
@@ -11,6 +28,7 @@ module.setup = function ()
 end
 
 module.config.public = {
+    -- Workspace name to use for gtd related lists
     workspace = nil
 }
 
