@@ -22,6 +22,8 @@ require("neorg.modules.base")
 require("neorg.events")
 
 local module = neorg.modules.create("core.gtd.base")
+local log = require('neorg.external.log')
+
 
 module.setup = function ()
     return {
@@ -67,13 +69,19 @@ module.load = function ()
     -- All gtd commands are start with :Neorg gtd ...
     module.required["core.neorgcmd"].add_commands_from_table({
         definitions = {
-            gtd = { capture = {} }
+            gtd = { 
+                capture = {},
+                list = { inbox = {} }
+            }
         },
         data = {
             gtd = {
                 args = 1,
                 subcommands = {
-                    capture = { args = 0, name = "gtd.capture" }
+                    capture = { args = 0, name = "gtd.capture" },
+                    list = { args = 1, name = "gtd.list", subcommands = {
+                        inbox = { args = 0, name = "gtd.list.inbox" }
+                    } }
                 }
             }
         }
@@ -87,6 +95,8 @@ module.on_event = function (event)
     if event.split_type[1] == "core.neorgcmd" then
         if event.split_type[2] == "gtd.capture" then
             module.public.add_task_to_inbox()
+        elseif event.split_type[2] == "gtd.list.inbox" then
+            log.info("Opening inbox list")
         end
     end
 end
@@ -126,7 +136,8 @@ module.events.subscribed = {
         ["core.gtd.base.add_to_inbox"] = true
     },
     ["core.neorgcmd"] = {
-        ["gtd.capture"] = true
+        ["gtd.capture"] = true,
+        ["gtd.list.inbox"] = true
     }
 }
 
