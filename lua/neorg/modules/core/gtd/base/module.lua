@@ -40,9 +40,9 @@ module.config.public = {
 module.private = {
     workspace_full_path = nil,
     default_lists = {
-        inbox = "INBOX.norg",
-        projects = "PROJECTS.norg",
-        someday = "SOMEDAY.norg"
+        inbox = "inbox.norg",
+        projects = "project.norg",
+        someday = "someday.norg"
     },
 
 -- @Summary Append text to list
