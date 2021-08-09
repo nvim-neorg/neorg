@@ -96,7 +96,10 @@ module.on_event = function (event)
         if event.split_type[2] == "gtd.capture" then
             module.public.add_task_to_inbox()
         elseif event.split_type[2] == "gtd.list.inbox" then
-            log.info("Opening inbox list")
+            module.required["core.norg.dirman"].open_file(
+                module.config.public.workspace or "default",
+                module.private.default_lists.inbox
+            )
         end
     end
 end

@@ -290,6 +290,16 @@ module.public = {
         end
     end,
 
+-- @Summary Open a Neorg file
+-- @Description Takes in a workspace name and a path for a file and opens it
+-- @Param  workspace_name (string) - the name of the workspace to use
+-- @Param  path (string) - a path to open the file (e.g directory/filename.norg)
+    open_file = function(workspace_name, path)
+        local workspace = module.public.get_workspace(workspace_name)
+        if workspace == nil then return end
+        vim.cmd("e " .. workspace .. "/" .. path .. " | w")
+    end,
+
     -- @Summary Sets the current workspace to the last cached workspace
     -- @Description Reads the neorg_last_workspace.txt file and loads the cached workspace from there
     set_last_workspace = function()
