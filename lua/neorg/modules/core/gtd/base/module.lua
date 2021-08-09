@@ -2,13 +2,16 @@
     Base module for Getting Things Done methodology
 
 USAGE:
-    - To add a task to the inbox, use the public function add_task_to_inbox()
+    - To add a task to the inbox:
+        - Use the public function add_task_to_inbox()
+        - Call the command :Neorg gtd capture
 
 REQUIRES:
     This module requires:
         - core.norg.dirman in order to get full path to the workspace
         - core.keybinds (check KEYBINDS for usage)
         - core.ui in order to ask for user input
+        - core.neorgcmd to add commands capabilities
 
 KEYBINDS:
     - core.gtd.base.add_to_inbox: Will call the function add_task_to_inbox()
@@ -23,7 +26,7 @@ local module = neorg.modules.create("core.gtd.base")
 module.setup = function ()
     return {
         success = true,
-        requires = { 'core.norg.dirman', 'core.keybinds', 'core.ui' }
+        requires = { 'core.norg.dirman', 'core.keybinds', 'core.ui', 'core.neorgcmd' }
     }
 end
 
@@ -59,11 +62,32 @@ module.load = function ()
 
     -- Register keybinds
     module.required["core.keybinds"].register_keybind(module.name, "add_to_inbox")
+
+    -- Add neorgcmd capabilities
+    -- All gtd commands are start with :Neorg gtd ...
+    module.required["core.neorgcmd"].add_commands_from_table({
+        definitions = {
+            gtd = { capture = {} }
+        },
+        data = {
+            gtd = {
+                args = 1,
+                subcommands = {
+                    capture = { args = 0, name = "gtd.capture" }
+                }
+            }
+        }
+    })
 end
 
 module.on_event = function (event)
     if event.split_type[2] == "core.gtd.base.add_to_inbox" then
         module.public.add_task_to_inbox()
+    end
+    if event.split_type[1] == "core.neorgcmd" then
+        if event.split_type[2] == "gtd.capture" then
+            module.public.add_task_to_inbox()
+        end
     end
 end
 
@@ -100,6 +124,9 @@ module.public = {
 module.events.subscribed = {
     ["core.keybinds"] = {
         ["core.gtd.base.add_to_inbox"] = true
+    },
+    ["core.neorgcmd"] = {
+        ["gtd.capture"] = true
     }
 }
 
