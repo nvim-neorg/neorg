@@ -183,6 +183,9 @@ module.config.public = {
         enabled = true,
         foldlevel = 99,
     },
+
+    goto_links = true,
+    generate_meta_tags = true,
 }
 
 module.load = function()
@@ -296,10 +299,48 @@ module.public = {
         end
     end,
 
-    -- Other functions go here
+    locate_link = function()
+        local treesitter = neorg.modules.get_module("core.integrations.treesitter")
+
+        if treesitter then
+            local link_info = treesitter.get_link_info()
+
+            if not link_info then
+                return nil
+            end
+
+            do
+                local function slice(text, open, close)
+                    return ({ text:gsub("^%" .. open .. "(.+)%" .. close .. "$", "%1") })[1]
+                end
+
+                link_info.text = slice(link_info.text, "[", "]")
+                link_info.location = slice(link_info.location, "([%*%#]+", ")")
+            end
+
+            local files = {}
+
+            -- TODO: Mini lexing function
+
+            local utility = {
+                
+            }
+
+            local locators = {
+                link_end_generic = function(tree, utility)
+
+                end
+            }
+        end
+    end,
 
     goto_link = function()
-        log.warn("<CR> pressed")
+        local link = module.public.locate_link()
+
+        if link then
+            log.info("Unable to locate link under cursor, ignoring request :(")
+            return
+        end
     end,
 
 }
@@ -318,18 +359,20 @@ module.on_event = function(event)
                 vim.opt_local.foldlevel = module.config.public.folds.foldlevel
             end
 
-            -- If the first tag of the document isn't an existing document.meta tag then generate it
-            local treesitter = neorg.modules.get_module("core.integrations.treesitter")
+            if module.config.public.generate_meta_tags then
+                -- If the first tag of the document isn't an existing document.meta tag then generate it
+                local treesitter = neorg.modules.get_module("core.integrations.treesitter")
 
-            if treesitter then
-                local document_meta_tag = vim.tbl_filter(function(node)
-                    return require("nvim-treesitter.ts_utils").get_node_text(node)[1] == "@document.meta"
-                end, treesitter.get_all_nodes(
-                    "tag"
-                ))
+                if treesitter then
+                    local document_meta_tag = vim.tbl_filter(function(node)
+                        return require("nvim-treesitter.ts_utils").get_node_text(node)[1] == "@document.meta"
+                    end, treesitter.get_all_nodes(
+                        "tag"
+                    ))
 
-                if vim.tbl_isempty(document_meta_tag) then
-                    module.public.construct_metadata()
+                    if vim.tbl_isempty(document_meta_tag) then
+                        module.public.construct_metadata()
+                    end
                 end
             end
         end
@@ -346,7 +389,7 @@ module.on_event = function(event)
         -- TODO
     end ]]
 
-    if event.split_type[2] == module.name .. ".goto_link" then
+    if event.split_type[2] == module.name .. ".goto_link" and module.config.public.goto_links then
         module.public.goto_link()
     end
 end

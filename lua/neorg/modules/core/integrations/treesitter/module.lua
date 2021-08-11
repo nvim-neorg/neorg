@@ -76,6 +76,8 @@ module.config.public = {
             affect = "background",
         },
     },
+
+    generate_shorthands = true,
 }
 
 module.load = function()
@@ -95,27 +97,29 @@ module.load = function()
 		Injections are generated dynamically
 	--]]
 
-    local injections = {}
+    if module.config.public.generate_shorthands then
+        local injections = {}
 
-    local langs = require("neorg.external.helpers").get_language_shorthands(false)
+        local langs = require("neorg.external.helpers").get_language_shorthands(false)
 
-    for language, shorthands in pairs(langs) do
-        for _, shorthand in ipairs(shorthands) do
-            table.insert(
-                injections,
-                (
-                    [[(tag (tag_name) @_tagname (tag_parameters) @_language (tag_content) @content (#eq? @_tagname "code") (#eq? @_language "%s") (#set! "language" "%s"))]]
-                ):format(shorthand, language)
-            )
+        for language, shorthands in pairs(langs) do
+            for _, shorthand in ipairs(shorthands) do
+                table.insert(
+                    injections,
+                    (
+                        [[(tag (tag_name) @_tagname (tag_parameters) @%s (tag_content) @content (#eq? @_tagname "code") (#eq? @%s "%s"))]]
+                    ):format(language, language, shorthand)
+                )
+            end
         end
+
+        table.insert(
+            injections,
+            [[(tag (tag_name) @_tagname (tag_parameters) @language (tag_content) @content (#eq? @_tagname "code") (#not-eq? @language "norg"))]]
+        )
+
+        vim.treesitter.set_query("norg", "injections", table.concat(injections, "\n"))
     end
-
-    table.insert(
-        injections,
-        [[(tag (tag_name) @_tagname (tag_parameters) @language (tag_content) @content (#eq? @_tagname "code") (#not-eq? @language "norg"))]]
-    )
-
-    vim.treesitter.set_query("norg", "injections", table.concat(injections, "\n"))
 end
 
 module.public = {
@@ -320,6 +324,8 @@ module.public = {
         return result
     end,
 
+    -- @Summary Invokes a callback for every element of the current tree
+    -- @Param  callback (function(node)) - the callback to invoke
     tree_map = function(callback)
         local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
 
@@ -327,6 +333,29 @@ module.public = {
 
         for child, _ in root:iter_children() do
             callback(child)
+        end
+    end,
+
+    get_link_info = function()
+        local ts = require('nvim-treesitter.ts_utils') 
+        local node = ts.get_node_at_cursor(0)
+
+        if not node then
+            return nil
+        end
+
+        local parent = node:parent()
+
+        if not parent then
+            return nil
+        end
+
+        if parent:type() == "link" and parent:named_child_count() > 1 then
+            return {
+                text = ts.get_node_text(parent:named_child(0))[1],
+                location = ts.get_node_text(parent:named_child(1))[1],
+                type = parent:named_child(1):type(),
+            }
         end
     end,
 }
