@@ -366,7 +366,7 @@ module.public = {
                 else
                     while scanner.lookahead() do
                         if scanner.lookahead() == ":" then
-                            if scanner.current() == '\\' then
+                            if scanner.current() == "\\" then
                                 scanner.skip()
                             elseif not scanner.current() then
                                 scanner.skip()
@@ -389,22 +389,102 @@ module.public = {
                 files[#files] = slice(files[#files], "[%*%#%|]+(.+)")
             end
 
+            local function generic_heading_find(tree, destinations, utility, level)
+                local result = nil
+
+                utility.ts.tree_map_rec(function(child)
+                    if not result and child:type() == "heading" .. tostring(level) then
+                        local title = child:named_child(1)
+
+                        if
+                            utility.strip(destinations[#destinations])
+                            == utility.strip(utility.get_text_as_one(title):sub(1, -2))
+                        then
+                            result = utility.get_position(title)
+                        end
+                    end
+                end, tree)
+
+                return result
+            end
+
             local locators = {
                 link_end_heading1_reference = function(tree, destinations, utility)
+                    return generic_heading_find(tree, destinations, utility, 1)
+                end,
+
+                link_end_heading2_reference = function(tree, destinations, utility)
+                    return generic_heading_find(tree, destinations, utility, 2)
+                end,
+
+                link_end_heading3_reference = function(tree, destinations, utility)
+                    return generic_heading_find(tree, destinations, utility, 3)
+                end,
+
+                link_end_heading4_reference = function(tree, destinations, utility)
+                    return generic_heading_find(tree, destinations, utility, 4)
+                end,
+
+                link_end_heading5_reference = function(tree, destinations, utility)
+                    return generic_heading_find(tree, destinations, utility, 5)
+                end,
+
+                link_end_heading6_reference = function(tree, destinations, utility)
+                    return generic_heading_find(tree, destinations, utility, 6)
+                end,
+
+                link_end_marker_reference = function(tree, destinations, utility)
+                    local result = nil
+
+                    utility.ts.tree_map(function(child)
+                        if not result and child:type() == "marker" then
+                            local marker_title = child:named_child(1)
+
+                            if
+                                utility.strip(destinations[#destinations])
+                                == utility.strip(utility.get_text_as_one(marker_title):sub(1, -2))
+                            then
+                                result = utility.get_position(marker_title)
+                            end
+                        end
+                    end, tree)
+
+                    return result
+                end,
+
+                link_end_generic = function(tree, destinations, utility)
                     local result = nil
 
                     utility.ts.tree_map_rec(function(child)
-                        if not result and child:type() == "heading1" then
+                        if
+                            not result
+                            and vim.tbl_contains(
+                                {
+                                    "heading1",
+                                    "heading2",
+                                    "heading3",
+                                    "heading4",
+                                    "heading5",
+                                    "heading6",
+                                    "marker",
+                                    "drawer",
+                                },
+                                child:type()
+                            )
+                        then
                             local title = child:named_child(1)
 
-                            if utility.strip(destinations[#destinations]) == utility.strip(utility.get_text_as_one(title):sub(1, -2)) then
+                            if
+                                utility.strip(destinations[#destinations])
+                                == utility.strip(utility.get_text_as_one(title):sub(1, -2))
+                            then
                                 result = utility.get_position(title)
                             end
                         end
                     end, tree)
 
                     return result
-                end
+                end,
             }
 
             local utility = {
@@ -416,7 +496,7 @@ module.public = {
                         row_start = rs,
                         column_start = cs,
                         row_end = re,
-                        column_end = ce
+                        column_end = ce,
                     }
                 end,
 
@@ -425,7 +505,7 @@ module.public = {
                 end,
 
                 get_text_as_one = function(node)
-                    local ts = require('nvim-treesitter.ts_utils')
+                    local ts = require("nvim-treesitter.ts_utils")
                     return table.concat(ts.get_node_text(node), "\n")
                 end,
             }
@@ -457,7 +537,6 @@ module.public = {
 
         vim.api.nvim_win_set_cursor(0, { link.row_start + 1, link.column_start })
     end,
-
 }
 
 module.on_event = function(event)
