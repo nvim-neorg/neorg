@@ -355,7 +355,7 @@ module.public = {
     end,
 
     get_link_info = function()
-        local ts = require('nvim-treesitter.ts_utils') 
+        local ts = require("nvim-treesitter.ts_utils")
         local node = ts.get_node_at_cursor(0)
 
         if not node then
