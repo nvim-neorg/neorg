@@ -309,38 +309,153 @@ module.public = {
                 return nil
             end
 
-            do
-                local function slice(text, open, close)
-                    return ({ text:gsub("^%" .. open .. "(.+)%" .. close .. "$", "%1") })[1]
-                end
-
-                link_info.text = slice(link_info.text, "[", "]")
-                link_info.location = slice(link_info.location, "([%*%#]+", ")")
-            end
-
             local files = {}
 
-            -- TODO: Mini lexing function
+            do
+                local function slice(text, regex)
+                    return ({ text:gsub("^" .. regex .. "$", "%1") })[1]
+                end
 
-            local utility = {
-                
-            }
+                link_info.text = slice(link_info.text, "%[(.+)%]")
+                link_info.location = slice(link_info.location, "%((.*[%*%#%|]+.+)%)")
+
+                -- TODO: Maybe extract mini lexer into a module?
+
+                local position, buffer = 0, ""
+
+                local scanner = {
+                    current = function()
+                        if position == 0 then
+                            return nil
+                        end
+                        return link_info.location:sub(position, position)
+                    end,
+
+                    lookahead = function()
+                        if position + 1 > link_info.location:len() then
+                            return nil
+                        end
+                        return link_info.location:sub(position + 1, position + 1)
+                    end,
+
+                    backtrack = function(amount)
+                        position = position - amount
+                    end,
+
+                    advance = function()
+                        buffer = buffer .. link_info.location:sub(position, position)
+                        position = position + 1
+                    end,
+
+                    skip = function()
+                        position = position + 1
+                    end,
+
+                    mark_end = function()
+                        if buffer:len() ~= 0 then
+                            table.insert(files, buffer)
+                            buffer = ""
+                        end
+                    end,
+                }
+
+                if scanner.lookahead() ~= ":" then
+                    while scanner.lookahead() do
+                        scanner.advance()
+                    end
+                else
+                    while scanner.lookahead() do
+                        if scanner.lookahead() == ":" then
+                            if scanner.current() == '\\' then
+                                scanner.skip()
+                            elseif not scanner.current() then
+                                scanner.skip()
+                                scanner.skip()
+                                scanner.mark_end()
+                            else
+                                scanner.advance()
+                                scanner.mark_end()
+                                scanner.skip()
+                            end
+                        end
+
+                        scanner.advance()
+                    end
+                end
+
+                scanner.advance()
+                scanner.mark_end()
+
+                files[#files] = slice(files[#files], "[%*%#%|]+(.+)")
+            end
 
             local locators = {
-                link_end_generic = function(tree, utility)
+                link_end_heading1_reference = function(tree, destinations, utility)
+                    local result = nil
 
+                    utility.ts.tree_map_rec(function(child)
+                        if not result and child:type() == "heading1" then
+                            local title = child:named_child(1)
+
+                            if utility.strip(destinations[#destinations]) == utility.strip(utility.get_text_as_one(title):sub(1, -2)) then
+                                result = utility.get_position(title)
+                            end
+                        end
+                    end, tree)
+
+                    return result
                 end
             }
+
+            local utility = {
+                ts = neorg.modules.get_module("core.integrations.treesitter") or {},
+
+                get_position = function(node)
+                    local rs, cs, re, ce = node:range()
+                    return {
+                        row_start = rs,
+                        column_start = cs,
+                        row_end = re,
+                        column_end = ce
+                    }
+                end,
+
+                strip = function(str)
+                    return ({ str:lower():gsub("\\([^\\])", "%1"):gsub("%s", "") })[1]
+                end,
+
+                get_text_as_one = function(node)
+                    local ts = require('nvim-treesitter.ts_utils')
+                    return table.concat(ts.get_node_text(node), "\n")
+                end,
+            }
+
+            if #files == 1 then -- Search only in current file
+                local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+                if not tree then
+                    return
+                end
+
+                if not locators[link_info.type] then
+                    log.error("Uh oh sussy baka something did a fucky wucky and the current feature isn't supported") -- TODO: please don't let this get merged
+                    return
+                end
+
+                return locators[link_info.type](tree, files, utility)
+            end
         end
     end,
 
     goto_link = function()
         local link = module.public.locate_link()
 
-        if link then
+        if not link then
             log.info("Unable to locate link under cursor, ignoring request :(")
             return
         end
+
+        vim.api.nvim_win_set_cursor(0, { link.row_start + 1, link.column_start })
     end,
 
 }

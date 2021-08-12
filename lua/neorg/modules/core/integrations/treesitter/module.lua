@@ -326,14 +326,32 @@ module.public = {
 
     -- @Summary Invokes a callback for every element of the current tree
     -- @Param  callback (function(node)) - the callback to invoke
-    tree_map = function(callback)
-        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+    -- TODO: docs
+    tree_map = function(callback, ts_tree)
+        local tree = ts_tree or vim.treesitter.get_parser(0, "norg"):parse()[1]
 
         local root = tree:root()
 
         for child, _ in root:iter_children() do
             callback(child)
         end
+    end,
+
+    tree_map_rec = function(callback, ts_tree)
+        local tree = ts_tree or vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+        local root = tree:root()
+
+        local descend
+
+        descend = function(start)
+            for child, _ in start:iter_children() do
+                callback(child)
+                descend(child)
+            end
+        end
+
+        descend(root)
     end,
 
     get_link_info = function()
