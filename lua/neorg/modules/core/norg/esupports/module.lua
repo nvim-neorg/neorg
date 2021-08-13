@@ -317,7 +317,7 @@ module.public = {
                 end
 
                 link_info.text = slice(link_info.text, "%[(.+)%]")
-                link_info.location = slice(link_info.location, "%((.*[%*%#%|]+.+)%)")
+                link_info.location = slice(link_info.location, "%((.*[%*%#%|]*.+)%)")
 
                 -- TODO: Maybe extract mini lexer into a module?
 
@@ -458,19 +458,16 @@ module.public = {
                     utility.ts.tree_map_rec(function(child)
                         if
                             not result
-                            and vim.tbl_contains(
-                                {
-                                    "heading1",
-                                    "heading2",
-                                    "heading3",
-                                    "heading4",
-                                    "heading5",
-                                    "heading6",
-                                    "marker",
-                                    "drawer",
-                                },
-                                child:type()
-                            )
+                            and vim.tbl_contains({
+                                "heading1",
+                                "heading2",
+                                "heading3",
+                                "heading4",
+                                "heading5",
+                                "heading6",
+                                "marker",
+                                "drawer",
+                            }, child:type())
                         then
                             local title = child:named_child(1)
 
@@ -484,6 +481,11 @@ module.public = {
                     end, tree)
 
                     return result
+                end,
+
+                link_end_url = function(_, destinations, utility)
+                    vim.cmd("silent !open " .. vim.fn.fnameescape(destinations[#destinations]))
+                    return utility.get_position(require("nvim-treesitter.ts_utils").get_node_at_cursor())
                 end,
             }
 
