@@ -156,7 +156,7 @@ module.public = {
 
             local contexts_output = ""
             local project_output = ""
-            local task_output = text:match('^[^@+$]*') -- Everything before $, @, or +
+            local task_output = "- [ ] " .. text:match('^[^@+$]*') -- Everything before $, @, or +
 
             if #projects ~= 0 then
                 project_output = "* " .. projects[1] .. "\n"
