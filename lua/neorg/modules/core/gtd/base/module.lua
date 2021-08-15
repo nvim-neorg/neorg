@@ -72,6 +72,49 @@ module.private = {
         return vim.tbl_extend("force", found_projects_multiple_words, found_projects_single_word)
     end,
 
+-- @Summary Find all due dates in a string
+-- @Description Retrieve all due dates (e.g $due:2w) and output to a table
+-- @Param  text (string) the text to find due dates
+    find_due_dates = function (text)
+        local pattern = "$due:[%d-%w]+"
+        return module.private.parse_content(text, pattern, 5)
+    end,
+
+-- @Summary Convert a date from text to YY-MM-dd format
+-- @Description If the date is a quick capture (like 2w, 10d, 4m), it will convert to a standardized date
+-- Supported formats ($ treated as number):
+--   - $d: days from now (e.g 2d is 2 days from now)
+--   - $w: weeks from now (e.g 2w is 2 weeks from now)
+--   - $m: months from now (e.g 2m is 2 months from now)
+--   - tomorrow: tomorrow's date
+--   - today: today's date
+--   The format for date is YY-mm-dd
+-- @Param  text (string) the text to use
+    date_converter = function (text)
+        -- Get today's date
+        local now = os.date("%Y-%m-%d")
+        local y,m,d = now:match("(%d+)-(%d+)-(%d+)")
+
+        -- Cases for converting quick dates to full dates (e.g 1w is one week from now)
+        local converted_date
+        local patterns = { weeks = "[%d]+w", days = "[%d]+d", months = "[%d]+m" }
+        local days_matched = text:match(patterns.days)
+        local weeks_matched = text:match(patterns.weeks)
+        local months_matched = text:match(patterns.months)
+        if text == "tomorrow" then
+           converted_date = os.time{year = y, month = m, day = d + 1 }
+        elseif text == "today" then
+            return now
+        elseif weeks_matched ~= nil then
+            converted_date = os.time{year = y, month = m, day = d + 7 * weeks_matched:sub(1,-2)}
+        elseif days_matched ~= nil then
+            converted_date = os.time {year = y, month = m, day = d + days_matched:sub(1,-2) }
+        elseif months_matched ~= nil then
+            converted_date = os.time {year = y, month = m + months_matched:sub(1,-2), day = d }
+        else return text end
+        return os.date("%Y-%m-%d", converted_date)
+    end,
+
 -- @Summary Parse content from text with a specific pattern
 -- @Description Will try to use the pattern to return a table of elements that match the pattern
 -- @Param  text (string)
@@ -85,7 +128,7 @@ module.private = {
             table.insert(content, w:sub(size_delimiter_left + 1, (#w - _size_delimiter_right) or -1))
         end
         return content
-    end
+    end,
 }
 
 module.load = function ()
@@ -146,28 +189,33 @@ module.public = {
         local cb = function (text)
             local contexts = module.private.find_contexts(text)
             local projects = module.private.find_projects(text)
+            local due_dates = module.private.find_due_dates(text)
             log.info("Contexts: ", contexts)
             log.info("Project: ", projects)
+            log.info("Due dates: ", due_dates)
 
-            if #projects > 1 then
-                log.error("Please specify max 1 project")
-                return
-            end
+            if #projects > 1 then log.error("Please specify max 1 project") return end
+            if #due_dates > 1 then log.error("Please specify max 1 due date") return end
 
             local contexts_output = ""
             local project_output = ""
-            local task_output = "- [ ] " .. text:match('^[^@+$]*') -- Everything before $, @, or +
+            local due_date_output = ""
+            local task_output = "- [ ] " .. text:match('^[^@+$]*') .. "\n" -- Everything before $, @, or +
 
             if #projects ~= 0 then
                 project_output = "* " .. projects[1] .. "\n"
             end
 
             if #contexts ~= 0 then
-                test = {}
                 contexts_output = "** " .. table.concat(contexts, " ") .. "\n" -- Iterate through contexts
             end
 
-            local output = project_output .. contexts_output .. task_output
+            if #due_dates ~= 0 then
+                due_date_output = "$due:" .. module.private.date_converter(due_dates[1]) .. "\n"
+            end
+
+
+            local output = project_output .. contexts_output .. due_date_output .. task_output
             module.private.add_to_list(
                 module.config.public.default_lists.inbox,
                 output
