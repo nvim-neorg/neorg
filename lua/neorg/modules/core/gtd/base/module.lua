@@ -177,20 +177,17 @@ module.public = {
     add_task_to_inbox = function ()
         -- Define a callback (for prompt) to add the task to the inbox list
         local cb = function (text)
-            local contexts = module.private.find_syntaxes(text, module.private.syntax.context)
-            local projects_single = module.private.find_syntaxes(text, module.private.syntax.project_single_word)
-            local projects_multiple = module.private.find_syntaxes(text, module.private.syntax.project_multiple_words)
-            local projects = vim.tbl_extend("force", projects_single, projects_multiple)
-            local due_dates = module.private.find_syntaxes(text, module.private.syntax.due)
-            local start_dates = module.private.find_syntaxes(text, module.private.syntax.start)
-            log.info("Contexts: ", contexts)
-            log.info("Project: ", projects)
-            log.info("Due dates: ", due_dates)
-            log.info("Start dates: ", start_dates)
+            local results = {}
+            for name, syntax in pairs(module.private.syntax) do
+              results[name] = module.private.find_syntaxes(text, syntax)
+              log.info(results)
+            end
+            results.projects = vim.tbl_extend("force", results.project_single_word, results.project_multiple_words)
+            log.info(results)
 
-            if #projects > 1 then log.error("Please specify max 1 project") return end
-            if #due_dates > 1 then log.error("Please specify max 1 due date") return end
-            if #start_dates > 1 then log.error("Please specify max 1 start date") return end
+            if #results.projects > 1 then log.error("Please specify max 1 project") return end
+            if #results.due> 1 then log.error("Please specify max 1 due date") return end
+            if #results.start > 1 then log.error("Please specify max 1 start date") return end
 
             local contexts_output = ""
             local project_output = ""
@@ -198,20 +195,20 @@ module.public = {
             local start_date_output = ""
             local task_output = "- [ ] " .. text:match('^[^@+$]*') .. "\n" -- Everything before $, @, or +
 
-            if #projects ~= 0 then
-                project_output = "* " .. projects[1] .. "\n"
+            if #results.projects ~= 0 then
+                project_output = "* " .. results.projects[1] .. "\n"
             end
 
-            if #contexts ~= 0 then
-                contexts_output = "** " .. table.concat(contexts, " ") .. "\n" -- Iterate through contexts
+            if #results.context ~= 0 then
+                contexts_output = "** " .. table.concat(results.context, " ") .. "\n" -- Iterate through contexts
             end
 
-            if #due_dates ~= 0 then
-                due_date_output = "$due:" .. module.private.date_converter(due_dates[1]) .. "\n"
+            if #results.due ~= 0 then
+                due_date_output = "$due:" .. module.private.date_converter(results.due[1]) .. "\n"
             end
 
-            if #start_dates ~= 0 then
-                start_date_output = "$start:" .. module.private.date_converter(start_dates[1]) .. "\n"
+            if #results.start ~= 0 then
+                start_date_output = "$start:" .. module.private.date_converter(results.start[1]) .. "\n"
             end
 
 
