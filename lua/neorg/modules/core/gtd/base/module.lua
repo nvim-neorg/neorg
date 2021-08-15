@@ -41,6 +41,13 @@ module.config.public = {
 
 module.private = {
     workspace_full_path = nil,
+    syntax = {
+        context = { prefix = "@", pattern = "@[%w%d]+" },
+        project_single_word = { prefix = "+" , pattern = '+[%w%d]+' },
+        project_multiple_words = { prefix = '+"' , pattern = '+"[%w%d%s]+"', suffix = '"' },
+        due = { prefix = "$due:", pattern = "$due:[%d-%w]+" },
+        start = { prefix = "$start:", pattern = "$start:[%d-%w]+" }
+    },
 
 ---@Summary Append text to list
 ---@Description Append the text to the specified list (defined in config.public.default_lists)
@@ -53,31 +60,14 @@ module.private = {
         fn:close()
     end,
 
--- @Summary Find all contexts in a string
--- @Description Retrieve all contexts (e.g @home) and output to a table
--- @Param  text (string) the text to find contexts
-    find_contexts = function (text)
-        local pattern = "@[%w%d]+"
-        return module.private.parse_content(text, pattern, 1)
-    end,
-
--- @Summary Find all projects in a string
--- @Description Retrieve all projects (e.g +"This is a Project" or +Project) and output to a table
--- @Param  text (string) the text to find projects
-    find_projects = function (text)
-        local pattern1 = '+[%w%d]+' -- e.g +Project
-        local pattern2 = '+"[%w%d%s]+"' -- e.g +"This is a project"
-        local found_projects_single_word = module.private.parse_content(text, pattern1, 1)
-        local found_projects_multiple_words = module.private.parse_content(text, pattern2, 2, 1)
-        return vim.tbl_extend("force", found_projects_multiple_words, found_projects_single_word)
-    end,
-
--- @Summary Find all due dates in a string
--- @Description Retrieve all due dates (e.g $due:2w) and output to a table
--- @Param  text (string) the text to find due dates
-    find_due_dates = function (text)
-        local pattern = "$due:[%d-%w]+"
-        return module.private.parse_content(text, pattern, 5)
+-- @Summary Find the specified syntax defined in module.private.syntax
+-- @Description Return a table containing the found elements belonging to the specified syntax in a text
+-- @Param  text (string) the text to find in
+-- @Param  syntax_type (module.private.syntax)
+    find_syntaxes = function (text, syntax_type)
+        local suffix_len
+        if syntax_type.suffix then suffix_len = #syntax_type.suffix end
+        return module.private.parse_content(text, syntax_type.pattern, #syntax_type.prefix, suffix_len or nil)
     end,
 
 -- @Summary Convert a date from text to YY-MM-dd format
@@ -143,7 +133,7 @@ module.load = function ()
     -- All gtd commands are start with :Neorg gtd ...
     module.required["core.neorgcmd"].add_commands_from_table({
         definitions = {
-            gtd = { 
+            gtd = {
                 capture = {},
                 list = { inbox = {} }
             }
@@ -180,26 +170,32 @@ module.on_event = function (event)
 end
 
 module.public = {
-    version = "0.1",
+    version = "0.2",
 
 -- @Summary Add user task to inbox
 -- @Description Show prompt asking for user input and append the task to the inbox
     add_task_to_inbox = function ()
         -- Define a callback (for prompt) to add the task to the inbox list
         local cb = function (text)
-            local contexts = module.private.find_contexts(text)
-            local projects = module.private.find_projects(text)
-            local due_dates = module.private.find_due_dates(text)
+            local contexts = module.private.find_syntaxes(text, module.private.syntax.context)
+            local projects_single = module.private.find_syntaxes(text, module.private.syntax.project_single_word)
+            local projects_multiple = module.private.find_syntaxes(text, module.private.syntax.project_multiple_words)
+            local projects = vim.tbl_extend("force", projects_single, projects_multiple)
+            local due_dates = module.private.find_syntaxes(text, module.private.syntax.due)
+            local start_dates = module.private.find_syntaxes(text, module.private.syntax.start)
             log.info("Contexts: ", contexts)
             log.info("Project: ", projects)
             log.info("Due dates: ", due_dates)
+            log.info("Start dates: ", start_dates)
 
             if #projects > 1 then log.error("Please specify max 1 project") return end
             if #due_dates > 1 then log.error("Please specify max 1 due date") return end
+            if #start_dates > 1 then log.error("Please specify max 1 start date") return end
 
             local contexts_output = ""
             local project_output = ""
             local due_date_output = ""
+            local start_date_output = ""
             local task_output = "- [ ] " .. text:match('^[^@+$]*') .. "\n" -- Everything before $, @, or +
 
             if #projects ~= 0 then
@@ -214,8 +210,12 @@ module.public = {
                 due_date_output = "$due:" .. module.private.date_converter(due_dates[1]) .. "\n"
             end
 
+            if #start_dates ~= 0 then
+                start_date_output = "$start:" .. module.private.date_converter(start_dates[1]) .. "\n"
+            end
 
-            local output = project_output .. contexts_output .. due_date_output .. task_output
+
+            local output = project_output .. contexts_output .. due_date_output .. start_date_output .. task_output
             module.private.add_to_list(
                 module.config.public.default_lists.inbox,
                 output
