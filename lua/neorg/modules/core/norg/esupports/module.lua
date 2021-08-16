@@ -51,7 +51,7 @@ function _neorg_indent_expr()
 end
 
 module.setup = function()
-    return { success = true, requires = { "core.autocommands", "core.keybinds" } }
+    return { success = true, requires = { "core.autocommands", "core.keybinds", "core.norg.dirman" } }
 end
 
 module.config.public = {
@@ -389,18 +389,15 @@ module.public = {
                 files[#files] = slice(files[#files], "[%*%#%|]+(.+)")
             end
 
-            local function generic_heading_find(tree, destinations, utility, level)
+            local function generic_heading_find(tree, destination, utility, level)
                 local result = nil
 
                 utility.ts.tree_map_rec(function(child)
                     if not result and child:type() == "heading" .. tostring(level) then
                         local title = child:named_child(1)
 
-                        if
-                            utility.strip(destinations[#destinations])
-                            == utility.strip(utility.get_text_as_one(title):sub(1, -2))
-                        then
-                            result = utility.get_position(title)
+                        if utility.strip(destination) == utility.strip(utility.get_text_as_one(title):sub(1, -2)) then
+                            result = utility.ts.get_node_range(title)
                         end
                     end
                 end, tree)
@@ -409,31 +406,31 @@ module.public = {
             end
 
             local locators = {
-                link_end_heading1_reference = function(tree, destinations, utility)
-                    return generic_heading_find(tree, destinations, utility, 1)
+                link_end_heading1_reference = function(tree, destination, utility)
+                    return generic_heading_find(tree, destination, utility, 1)
                 end,
 
-                link_end_heading2_reference = function(tree, destinations, utility)
-                    return generic_heading_find(tree, destinations, utility, 2)
+                link_end_heading2_reference = function(tree, destination, utility)
+                    return generic_heading_find(tree, destination, utility, 2)
                 end,
 
-                link_end_heading3_reference = function(tree, destinations, utility)
-                    return generic_heading_find(tree, destinations, utility, 3)
+                link_end_heading3_reference = function(tree, destination, utility)
+                    return generic_heading_find(tree, destination, utility, 3)
                 end,
 
-                link_end_heading4_reference = function(tree, destinations, utility)
-                    return generic_heading_find(tree, destinations, utility, 4)
+                link_end_heading4_reference = function(tree, destination, utility)
+                    return generic_heading_find(tree, destination, utility, 4)
                 end,
 
-                link_end_heading5_reference = function(tree, destinations, utility)
-                    return generic_heading_find(tree, destinations, utility, 5)
+                link_end_heading5_reference = function(tree, destination, utility)
+                    return generic_heading_find(tree, destination, utility, 5)
                 end,
 
-                link_end_heading6_reference = function(tree, destinations, utility)
-                    return generic_heading_find(tree, destinations, utility, 6)
+                link_end_heading6_reference = function(tree, destination, utility)
+                    return generic_heading_find(tree, destination, utility, 6)
                 end,
 
-                link_end_marker_reference = function(tree, destinations, utility)
+                link_end_marker_reference = function(tree, destination, utility)
                     local result = nil
 
                     utility.ts.tree_map(function(child)
@@ -441,10 +438,10 @@ module.public = {
                             local marker_title = child:named_child(1)
 
                             if
-                                utility.strip(destinations[#destinations])
+                                utility.strip(destination)
                                 == utility.strip(utility.get_text_as_one(marker_title):sub(1, -2))
                             then
-                                result = utility.get_position(marker_title)
+                                result = utility.ts.get_node_range(marker_title)
                             end
                         end
                     end, tree)
@@ -452,7 +449,7 @@ module.public = {
                     return result
                 end,
 
-                link_end_generic = function(tree, destinations, utility)
+                link_end_generic = function(tree, destination, utility)
                     local result = nil
 
                     utility.ts.tree_map_rec(function(child)
@@ -472,10 +469,10 @@ module.public = {
                             local title = child:named_child(1)
 
                             if
-                                utility.strip(destinations[#destinations])
+                                utility.strip(destination)
                                 == utility.strip(utility.get_text_as_one(title):sub(1, -2))
                             then
-                                result = utility.get_position(title)
+                                result = utility.ts.get_node_range(title)
                             end
                         end
                     end, tree)
@@ -483,27 +480,17 @@ module.public = {
                     return result
                 end,
 
-                link_end_url = function(_, destinations, utility)
-                    vim.cmd("silent !open " .. vim.fn.fnameescape(destinations[#destinations]))
-                    return utility.get_position(require("nvim-treesitter.ts_utils").get_node_at_cursor())
+                link_end_url = function(_, destination, utility)
+                    vim.cmd("silent !open " .. vim.fn.fnameescape(destination))
+                    return utility.ts.get_node_range(require("nvim-treesitter.ts_utils").get_node_at_cursor())
                 end,
             }
 
             local utility = {
                 ts = neorg.modules.get_module("core.integrations.treesitter") or {},
 
-                get_position = function(node)
-                    local rs, cs, re, ce = node:range()
-                    return {
-                        row_start = rs,
-                        column_start = cs,
-                        row_end = re,
-                        column_end = ce,
-                    }
-                end,
-
                 strip = function(str)
-                    return ({ str:lower():gsub("\\([^\\])", "%1"):gsub("%s", "") })[1]
+                    return ({ str:lower():gsub("\\([^\\])", "%1"):gsub("[%s:]", "") })[1]
                 end,
 
                 get_text_as_one = function(node)
@@ -525,6 +512,64 @@ module.public = {
                 end
 
                 return locators[link_info.type](tree, files[#files], utility)
+            else
+                local found = false
+
+                for _, file in ipairs(vim.list_slice(files, 0, #files - 1)) do
+                    if found then
+                        break
+                    end
+
+                    file = module.required["core.norg.dirman"].get_current_workspace()[2] .. "/" .. file .. ".norg"
+
+                    -- Attempt to open the last workspace cache file in read-only mode
+                    vim.loop.fs_open(file, "r", 438, function(err, fd)
+                        assert(not err, err)
+
+                        -- Attempt to stat the file and get the file length of the cache file
+                        vim.loop.fs_stat(file, function(serr, stat)
+                            assert(not serr, serr)
+
+                            vim.loop.fs_read(
+                                fd,
+                                stat.size,
+                                0,
+                                vim.schedule_wrap(function(rerr, read_data)
+                                    assert(not rerr, rerr)
+
+                                    vim.loop.fs_close(fd)
+
+                                    local buf = vim.api.nvim_create_buf(false, true)
+
+                                    vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(read_data, "\n", true))
+
+                                    local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
+
+                                    if not tree then
+                                        return
+                                    end
+
+                                    if not locators[link_info.type] then
+                                        log.error(
+                                            "Uh oh sussy baka something did a fucky wucky and the current feature isn't supported"
+                                        ) -- TODO: please don't let this get merged
+                                        return
+                                    end
+
+                                    local location = locators[link_info.type](tree, files[#files], utility)
+
+                                    vim.api.nvim_buf_delete(buf, { force = true })
+
+                                    if location then
+                                        found = true
+                                        log.warn("found at", location)
+                                        return
+                                    end
+                                end)
+                            )
+                        end)
+                    end)
+                end
             end
         end
     end,
