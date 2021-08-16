@@ -277,14 +277,19 @@ module.public = {
             local ts = neorg.modules.get_module("core.integrations.treesitter")
 
             if not ts then
-                log.warn("TreeSitter integration module not loaded - Neorg requires this module to be loaded for code block dimming")
+                log.warn(
+                    "TreeSitter integration module not loaded - Neorg requires this module to be loaded for code block dimming"
+                )
                 return
             end
 
-            local query = vim.treesitter.parse_query("norg", [[(
+            local query = vim.treesitter.parse_query(
+                "norg",
+                [[(
                  (tag (tag_name) @_name) @tag
                  (#eq? @_name "code")
-            )]])
+            )]]
+            )
 
             for id, node in query:iter_captures(tree:root(), 0) do
                 local id_name = query.captures[id]
@@ -298,7 +303,8 @@ module.public = {
                         local leading_whitespace = node:named_child(0)
                         if leading_whitespace:type() == "leading_whitespace" then
                             local leading_whitespace_range = ts.get_node_range(leading_whitespace)
-                            whitespace_length = leading_whitespace_range.column_end - leading_whitespace_range.column_start
+                            whitespace_length = leading_whitespace_range.column_end
+                                - leading_whitespace_range.column_start
                         end
                     end
 

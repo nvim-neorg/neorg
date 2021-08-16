@@ -381,7 +381,6 @@ module.public = {
             column_end = ce,
         }
     end,
-
 }
 
 module.on_event = function(event)
