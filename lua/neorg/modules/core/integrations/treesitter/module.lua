@@ -376,6 +376,17 @@ module.public = {
             }
         end
     end,
+
+    -- Gets the range of a given node
+    get_node_range = function(node)
+        local rs, cs, re, ce = node:range()
+        return {
+            row_start = rs,
+            column_start = cs,
+            row_end = re,
+            column_end = ce,
+        }
+    end,
 }
 
 module.on_event = function(event)
