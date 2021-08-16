@@ -524,7 +524,7 @@ module.public = {
                     return
                 end
 
-                return locators[link_info.type](tree, files, utility)
+                return locators[link_info.type](tree, files[#files], utility)
             end
         end
     end,
