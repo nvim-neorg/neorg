@@ -515,8 +515,6 @@ module.public = {
 
                 return locators[link_info.type](tree, files[#files], utility)
             else
-                local found = nil
-
                 for _, file in ipairs(vim.list_slice(files, 0, #files - 1)) do
                     if vim.startswith(file, "/") then
                         file = module.required["core.norg.dirman"].get_current_workspace()[2] .. file
@@ -558,24 +556,17 @@ module.public = {
                         return
                     end
 
-                    utility.buf = buf
-
-                    local location = locators[link_info.type](tree, files[#files], utility)
+                    local location = locators[link_info.type](tree, files[#files], vim.tbl_extend("force", utility, { buf = buf }))
 
                     vim.api.nvim_buf_delete(buf, { force = true })
 
                     if location then
-                        found = { file, location }
-                        break
-                    end
-                end
+                        if file ~= vim.fn.expand("%:p") then
+                            vim.cmd("e " .. file)
+                        end
 
-                if found then
-                    if found[1] ~= vim.fn.expand("%:p") then
-                        vim.cmd("e " .. found[1])
+                        return location
                     end
-
-                    return found[2]
                 end
             end
         end
