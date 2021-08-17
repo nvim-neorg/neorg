@@ -19,7 +19,7 @@
 (ERROR) @TSError
 
 ; Markers and Drawers
-(marker (paragraph_segment) @NeorgMarkerTitle) @NeorgMarker
+(marker (marker_prefix) @NeorgMarker (paragraph_segment) @NeorgMarkerTitle)
 ; (drawer) @NeorgDrawer
 ; (drawer (paragraph_segment) @NeorgDrawerTitle)
 ; (drawer_content) @NeorgDrawerContent

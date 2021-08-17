@@ -396,7 +396,7 @@ module.public = {
                     if not result and child:type() == "heading" .. tostring(level) then
                         local title = child:named_child(1)
 
-                        if utility.strip(destination) == utility.strip(utility.get_text_as_one(title):sub(1, -2)) then
+                        if utility.strip(destination) == utility.strip(utility:get_text_as_one(title):sub(1, -2)) then
                             result = utility.ts.get_node_range(title)
                         end
                     end
@@ -439,7 +439,7 @@ module.public = {
 
                             if
                                 utility.strip(destination)
-                                == utility.strip(utility.get_text_as_one(marker_title):sub(1, -2))
+                                == utility.strip(utility:get_text_as_one(marker_title):sub(1, -2))
                             then
                                 result = utility.ts.get_node_range(marker_title)
                             end
@@ -470,7 +470,7 @@ module.public = {
 
                             if
                                 utility.strip(destination)
-                                == utility.strip(utility.get_text_as_one(title):sub(1, -2))
+                                == utility.strip(utility:get_text_as_one(title):sub(1, -2))
                             then
                                 result = utility.ts.get_node_range(title)
                             end
@@ -487,15 +487,17 @@ module.public = {
             }
 
             local utility = {
+                buf = 0,
+
                 ts = neorg.modules.get_module("core.integrations.treesitter") or {},
 
                 strip = function(str)
-                    return ({ str:lower():gsub("\\([^\\])", "%1"):gsub("[%s:]", "") })[1]
+                    return ({ str:lower():gsub("\\([^\\])", "%1"):gsub("%s", "") })[1]
                 end,
 
-                get_text_as_one = function(node)
+                get_text_as_one = function(self, node)
                     local ts = require("nvim-treesitter.ts_utils")
-                    return table.concat(ts.get_node_text(node), "\n")
+                    return table.concat(ts.get_node_text(node, self.buf), "\n")
                 end,
             }
 
@@ -513,62 +515,67 @@ module.public = {
 
                 return locators[link_info.type](tree, files[#files], utility)
             else
-                local found = false
+                local found = nil
 
                 for _, file in ipairs(vim.list_slice(files, 0, #files - 1)) do
-                    if found then
-                        break
+                    if vim.startswith(file, "/") then
+                        file = module.required["core.norg.dirman"].get_current_workspace()[2] .. file
+                    else
+                        file = vim.fn.expand("%:p:h") .. "/" .. file
                     end
 
-                    file = module.required["core.norg.dirman"].get_current_workspace()[2] .. "/" .. file .. ".norg"
+                    if not vim.endswith(file, ".norg") then
+                        file = file .. ".norg"
+                    end
 
                     -- Attempt to open the last workspace cache file in read-only mode
-                    vim.loop.fs_open(file, "r", 438, function(err, fd)
-                        assert(not err, err)
+                    local fd = vim.loop.fs_open(file, "r", 438)
+                    assert(fd, "Unable to open file: " .. file)
 
-                        -- Attempt to stat the file and get the file length of the cache file
-                        vim.loop.fs_stat(file, function(serr, stat)
-                            assert(not serr, serr)
+                    -- Attempt to stat the file and get the file length of the cache file
+                    local stat = vim.loop.fs_stat(file)
+                    assert(stat, "Unable to stat file: " .. file)
 
-                            vim.loop.fs_read(
-                                fd,
-                                stat.size,
-                                0,
-                                vim.schedule_wrap(function(rerr, read_data)
-                                    assert(not rerr, rerr)
+                    local read_data = vim.loop.fs_read(fd, stat.size, 0)
+                    assert(read_data, "Unable to read data from file: " .. file)
 
-                                    vim.loop.fs_close(fd)
+                    vim.loop.fs_close(fd)
 
-                                    local buf = vim.api.nvim_create_buf(false, true)
+                    local buf = vim.api.nvim_create_buf(false, true)
 
-                                    vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(read_data, "\n", true))
+                    vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(read_data, "\n", true))
 
-                                    local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
+                    local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
 
-                                    if not tree then
-                                        return
-                                    end
+                    if not tree then
+                        return
+                    end
 
-                                    if not locators[link_info.type] then
-                                        log.error(
-                                            "Uh oh sussy baka something did a fucky wucky and the current feature isn't supported"
-                                        ) -- TODO: please don't let this get merged
-                                        return
-                                    end
+                    if not locators[link_info.type] then
+                        log.error(
+                            "Uh oh sussy baka something did a fucky wucky and the current feature isn't supported"
+                        ) -- TODO: please don't let this get merged
+                        return
+                    end
 
-                                    local location = locators[link_info.type](tree, files[#files], utility)
+                    utility.buf = buf
 
-                                    vim.api.nvim_buf_delete(buf, { force = true })
+                    local location = locators[link_info.type](tree, files[#files], utility)
 
-                                    if location then
-                                        found = true
-                                        log.warn("found at", location)
-                                        return
-                                    end
-                                end)
-                            )
-                        end)
-                    end)
+                    vim.api.nvim_buf_delete(buf, { force = true })
+
+                    if location then
+                        found = { file, location }
+                        break
+                    end
+                end
+
+                if found then
+                    if found[1] ~= vim.fn.expand("%:p") then
+                        vim.cmd("e " .. found[1])
+                    end
+
+                    return found[2]
                 end
             end
         end
@@ -627,7 +634,7 @@ module.on_event = function(event)
     end
 
     --[[ if event.type == "core.autocommands.events.bufwrite" then
-        -- TODO
+-- TODO
     end ]]
 
     if event.split_type[2] == module.name .. ".goto_link" and module.config.public.goto_links then
