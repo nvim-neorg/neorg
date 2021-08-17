@@ -321,70 +321,100 @@ module.public = {
 
                 -- TODO: Maybe extract mini lexer into a module?
 
-                local position, buffer = 0, ""
-
                 local scanner = {
-                    current = function()
-                        if position == 0 then
+                    position = 0,
+                    buffer = "",
+
+                    current = function(self)
+                        if self.position == 0 then
                             return nil
                         end
-                        return link_info.location:sub(position, position)
+                        return link_info.location:sub(self.position, self.position)
                     end,
 
-                    lookahead = function()
-                        if position + 1 > link_info.location:len() then
+                    lookahead = function(self, count)
+                        count = count or 1
+
+                        if self.position + count > link_info.location:len() then
                             return nil
                         end
-                        return link_info.location:sub(position + 1, position + 1)
+
+                        return link_info.location:sub(self.position + count, self.position + count)
                     end,
 
-                    backtrack = function(amount)
-                        position = position - amount
-                    end,
+                    lookbehind = function(self, count)
+                        count = count or 1
 
-                    advance = function()
-                        buffer = buffer .. link_info.location:sub(position, position)
-                        position = position + 1
-                    end,
-
-                    skip = function()
-                        position = position + 1
-                    end,
-
-                    mark_end = function()
-                        if buffer:len() ~= 0 then
-                            table.insert(files, buffer)
-                            buffer = ""
+                        if self.position - count < 0 then
+                            return nil
                         end
+
+                        return link_info.location:sub(self.position - count, self.position - count)
+                    end,
+
+                    backtrack = function(self, amount)
+                        self.position = self.position - amount
+                    end,
+
+                    advance = function(self)
+                        self.buffer = self.buffer .. link_info.location:sub(self.position, self.position)
+                        self.position = self.position + 1
+                    end,
+
+                    skip = function(self)
+                        self.position = self.position + 1
+                    end,
+
+                    mark_end = function(self)
+                        if self.buffer:len() ~= 0 then
+                            table.insert(files, self.buffer)
+                            self.buffer = ""
+                        end
+                    end,
+
+                    halt = function(self, mark_end, continue_till_end)
+                        if mark_end then
+                            self:mark_end()
+                        end
+
+                        if continue_till_end then
+                            self.buffer = link_info.location:sub(self.position + 1)
+                            self:mark_end()
+                        end
+
+                        self.position = link_info.location:len() + 1
                     end,
                 }
 
-                if scanner.lookahead() ~= ":" then
-                    while scanner.lookahead() do
-                        scanner.advance()
-                    end
+                if scanner:lookahead() ~= ":" then
+                    scanner:halt(false, true)
                 else
-                    while scanner.lookahead() do
-                        if scanner.lookahead() == ":" then
-                            if scanner.current() == "\\" then
-                                scanner.skip()
-                            elseif not scanner.current() then
-                                scanner.skip()
-                                scanner.skip()
-                                scanner.mark_end()
+                    while scanner:lookahead() do
+                        if
+                            vim.tbl_contains({ "|", "*", "#" }, scanner:lookbehind())
+                            and scanner:lookbehind(2) == ":"
+                        then
+                            scanner:backtrack(2)
+                            scanner:halt(false, true)
+                        elseif scanner:lookahead() == ":" then
+                            if scanner:current() == "\\" then
+                                scanner:advance()
+                            elseif not scanner:current() then
+                                scanner:skip()
+                                scanner:skip()
+                                scanner:mark_end()
                             else
-                                scanner.advance()
-                                scanner.mark_end()
-                                scanner.skip()
+                                scanner:advance()
+                                scanner:mark_end()
+                                scanner:skip()
                             end
                         end
 
-                        scanner.advance()
+                        scanner:advance()
                     end
                 end
 
-                scanner.advance()
-                scanner.mark_end()
+                scanner:mark_end()
 
                 files[#files] = slice(files[#files], "[%*%#%|]+(.+)")
             end
@@ -509,7 +539,7 @@ module.public = {
                 end
 
                 if not locators[link_info.type] then
-                    log.error("Uh oh sussy baka something did a fucky wucky and the current feature isn't supported") -- TODO: please don't let this get merged
+                    log.error("Locator not present for link type:", link_info.type)
                     return
                 end
 
@@ -528,14 +558,20 @@ module.public = {
 
                     -- Attempt to open the last workspace cache file in read-only mode
                     local fd = vim.loop.fs_open(file, "r", 438)
-                    assert(fd, "Unable to open file: " .. file)
+                    if not fd then
+                        return nil
+                    end
 
                     -- Attempt to stat the file and get the file length of the cache file
                     local stat = vim.loop.fs_stat(file)
-                    assert(stat, "Unable to stat file: " .. file)
+                    if not stat then
+                        return nil
+                    end
 
                     local read_data = vim.loop.fs_read(fd, stat.size, 0)
-                    assert(read_data, "Unable to read data from file: " .. file)
+                    if not read_data then
+                        return nil
+                    end
 
                     vim.loop.fs_close(fd)
 
@@ -550,13 +586,15 @@ module.public = {
                     end
 
                     if not locators[link_info.type] then
-                        log.error(
-                            "Uh oh sussy baka something did a fucky wucky and the current feature isn't supported"
-                        ) -- TODO: please don't let this get merged
+                        log.error("Locator not present for link type:", link_info.type)
                         return
                     end
 
-                    local location = locators[link_info.type](tree, files[#files], vim.tbl_extend("force", utility, { buf = buf }))
+                    local location = locators[link_info.type](
+                        tree,
+                        files[#files],
+                        vim.tbl_extend("force", utility, { buf = buf })
+                    )
 
                     vim.api.nvim_buf_delete(buf, { force = true })
 
