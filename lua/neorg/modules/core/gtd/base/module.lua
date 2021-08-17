@@ -47,10 +47,7 @@ module.private = {
         project_multiple_words = { prefix = '+"', pattern = '+"[%w%d%s]+"', suffix = '"' },
         due = { prefix = "$due:", pattern = "$due:[%d-%w]+" },
         start = { prefix = "$start:", pattern = "$start:[%d-%w]+" },
-<<<<<<< HEAD
-=======
         note = { prefix = '$note:"', pattern = '$note:"[%w%d%s]+"', suffix = '"' }
->>>>>>> a204d5ef0d75e29230423346ae34594678c076a2
     },
 
     ---@Summary Append text to list
@@ -134,7 +131,9 @@ module.private = {
 module.load = function()
     -- Get workspace for gtd files and save full path in private
     local workspace = module.config.public.workspace
+    log.info(workspace)
     module.private.workspace_full_path = module.required["core.norg.dirman"].get_workspace(workspace)
+    log.info(module.private.workspace_full_path)
 
     -- Register keybinds
     module.required["core.keybinds"].register_keybind(module.name, "add_to_inbox")
