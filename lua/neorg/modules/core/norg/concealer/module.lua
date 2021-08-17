@@ -195,13 +195,10 @@ module.config.public = {
         tag = {
             enabled = true,
             icon = "",
-            begin = "^(%s*)@code.*$",
-            ["end"] = "^(%s*)@end$",
-            whitespace_index = 1,
+            node = "tag",
             full_line = true,
             highlight = "Neorgcodeblock",
-            highlight_method = "combine",
-            padding_before = 0,
+            highlight_method = "blend",
         },
     },
 
@@ -273,6 +270,50 @@ module.public = {
         for i, line in ipairs(lines) do
             module.public.set_icon(i, line)
         end
+
+        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+        if tree then
+            local ts = neorg.modules.get_module("core.integrations.treesitter")
+
+            if not ts then
+                log.warn(
+                    "TreeSitter integration module not loaded - Neorg requires this module to be loaded for code block dimming"
+                )
+                return
+            end
+
+            local query = vim.treesitter.parse_query(
+                "norg",
+                [[(
+                 (tag (tag_name) @_name) @tag
+                 (#eq? @_name "code")
+            )]]
+            )
+
+            for id, node in query:iter_captures(tree:root(), 0) do
+                local id_name = query.captures[id]
+
+                if id_name == "tag" then
+                    local range = ts.get_node_range(node)
+
+                    local whitespace_length = 0
+
+                    do
+                        local leading_whitespace = node:named_child(0)
+                        if leading_whitespace:type() == "leading_whitespace" then
+                            local leading_whitespace_range = ts.get_node_range(leading_whitespace)
+                            whitespace_length = leading_whitespace_range.column_end
+                                - leading_whitespace_range.column_start
+                        end
+                    end
+
+                    for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
+                        module.public._set_extmark(nil, "NeorgCodeBlock", i, i + 1, whitespace_length, 0, true, "blend")
+                    end
+                end
+            end
+        end
     end,
 
     -- @Summary Sets an icon for the specified line
@@ -299,56 +340,12 @@ module.public = {
                         full_icon,
                         icon_info.highlight,
                         line_number - 1,
+                        line_number - 1,
                         whitespace_amount,
                         icon_info.full_line and line:len() or whitespace_amount + vim.api.nvim_strwidth(icon_info.icon),
                         icon_info.full_line or false,
                         icon_info.highlight_method or "combine"
                     )
-                end
-            end
-        end
-
-        -- Go through all ranged icons (hacky implementation, I think I'll need to rewrite this eventually probably with treesitter)
-        for _, icon_info in ipairs(module.private.ranged_icons) do
-            -- @Summary Sets a ranged extmark for the current line
-            local function set_extmark_for_line()
-                local width = vim.api.nvim_strwidth
-                module.public._set_extmark(
-                    module.private.in_range[2][2],
-                    icon_info.highlight,
-                    line_number - 1,
-                    module.private.in_range[2][1] <= width(line) and module.private.in_range[2][1] or width(line),
-                    icon_info.full_line and width(line) or module.private.in_range[2][1] + width(icon_info.icon),
-                    icon_info.full_line or false,
-                    icon_info.highlight_method or "combine"
-                )
-            end
-
-            -- If the icon has the right set of metadata
-            if icon_info.begin and icon_info["end"] then
-                -- If we're currently in a range then highlight the current line
-                if module.private.in_range[1] == true then
-                    set_extmark_for_line()
-                end
-
-                -- Attempt to match a potential range
-                local match_begin = { line:match(icon_info.begin) }
-
-                -- If we're not already in a range and if we managed to match the current line then
-                if module.private.in_range[1] == false and not vim.tbl_isempty(match_begin) then
-                    -- Grab the amount of preceding whitespace in the match
-                    local whitespace_amount = match_begin[icon_info.whitespace_index]:len()
-                    -- Construct the virtual text with any potential padding
-                    local full_icon = (" "):rep(icon_info.padding_before) .. icon_info.icon
-
-                    -- Tell Neorg that we're in a range
-                    module.private.in_range = { true, { whitespace_amount, full_icon } }
-                    set_extmark_for_line()
-                end
-
-                -- If we're in a range and we managed to match an end for the range then reset the in_range variable to prevent further highlighting
-                if module.private.in_range[1] == true and not vim.tbl_isempty({ line:match(icon_info["end"]) }) then
-                    module.private.in_range = { false, {} }
                 end
             end
         end
@@ -359,16 +356,18 @@ module.public = {
     -- @Param  text (string) - the virtual text to overlay (usually the icon)
     -- @Param  highlight (string) - the name of a highlight to use for the icon
     -- @Param  line_number (number) - the line number to apply the extmark in
+    -- @Param  end_line (number) - the last line number to apply the extmark to (useful if you want an extmark to exist for more than one line)
     -- @Param  start_column (number) - the start column of the conceal
     -- @Param  end_column (number) - the end column of the conceal
     -- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
     -- @Param  mode (string: "replace"/"combine"/"blend") - the highlight mode for the extmark
-    _set_extmark = function(text, highlight, line_number, start_column, end_column, whole_line, mode)
+    _set_extmark = function(text, highlight, line_number, end_line, start_column, end_column, whole_line, mode)
         -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
         local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, module.private.namespace, line_number, start_column, {
             end_col = end_column,
             hl_group = highlight,
-            virt_text = { { text, highlight } },
+            end_line = end_line,
+            virt_text = text and { { text, highlight } } or {},
             virt_text_pos = "overlay",
             hl_mode = mode,
             hl_eol = whole_line,
