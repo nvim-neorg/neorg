@@ -47,6 +47,10 @@ module.private = {
         project_multiple_words = { prefix = '+"', pattern = '+"[%w%d%s]+"', suffix = '"' },
         due = { prefix = "$due:", pattern = "$due:[%d-%w]+" },
         start = { prefix = "$start:", pattern = "$start:[%d-%w]+" },
+<<<<<<< HEAD
+=======
+        note = { prefix = '$note:"', pattern = '$note:"[%w%d%s]+"', suffix = '"' }
+>>>>>>> a204d5ef0d75e29230423346ae34594678c076a2
     },
 
     ---@Summary Append text to list
@@ -188,8 +192,7 @@ module.public = {
         local cb = function(text)
             local results = {}
             for name, syntax in pairs(module.private.syntax) do
-                results[name] = module.private.find_syntaxes(text, syntax)
-                log.info(results)
+              results[name] = module.private.find_syntaxes(text, syntax)
             end
             results.projects = vim.tbl_extend("force", results.project_single_word, results.project_multiple_words)
             log.info(results)
@@ -211,7 +214,8 @@ module.public = {
             local project_output = ""
             local due_date_output = ""
             local start_date_output = ""
-            local task_output = "- [ ] " .. text:match("^[^@+$]*") .. "\n" -- Everything before $, @, or +
+            local note_date_output =""
+            local task_output = "- [ ] " .. text:match('^[^@+$]*') .. "\n" -- Everything before $, @, or +
 
             if #results.projects ~= 0 then
                 project_output = "* " .. results.projects[1] .. "\n"
@@ -229,8 +233,16 @@ module.public = {
                 start_date_output = "$start:" .. module.private.date_converter(results.start[1]) .. "\n"
             end
 
-            local output = project_output .. contexts_output .. due_date_output .. start_date_output .. task_output
-            module.private.add_to_list(module.config.public.default_lists.inbox, output)
+            if #results.note ~= 0 then
+                note_date_output = "$note:" .. results.note[1] .. "\n"
+            end
+
+
+            local output = project_output .. contexts_output .. due_date_output .. start_date_output .. note_date_output .. task_output
+            module.private.add_to_list(
+                module.config.public.default_lists.inbox,
+                output
+            )
 
             log.info("Added " .. task_output .. "to " .. module.private.workspace_full_path)
         end
