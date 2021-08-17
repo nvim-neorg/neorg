@@ -320,6 +320,7 @@ module.public = {
         return result
     end,
 
+    -- TODO: Add docs
     tree_map = function(callback)
         local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
 
@@ -328,6 +329,57 @@ module.public = {
         for child, _ in root:iter_children() do
             callback(child)
         end
+    end,
+
+    tree_map_rec = function(callback, ts_tree)
+        local tree = ts_tree or vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+        local root = tree:root()
+
+        local descend
+
+        descend = function(start)
+            for child, _ in start:iter_children() do
+                callback(child)
+                descend(child)
+            end
+        end
+
+        descend(root)
+    end,
+
+    get_link_info = function()
+        local ts = require("nvim-treesitter.ts_utils")
+        local node = ts.get_node_at_cursor(0)
+
+        if not node then
+            return nil
+        end
+
+        local parent = node:parent()
+
+        if not parent then
+            return nil
+        end
+
+        if parent:type() == "link" and parent:named_child_count() > 1 then
+            return {
+                text = ts.get_node_text(parent:named_child(0))[1],
+                location = ts.get_node_text(parent:named_child(1))[1],
+                type = parent:named_child(1):type(),
+            }
+        end
+    end,
+
+    -- Gets the range of a given node
+    get_node_range = function(node)
+        local rs, cs, re, ce = node:range()
+        return {
+            row_start = rs,
+            column_start = cs,
+            row_end = re,
+            column_end = ce,
+        }
     end,
 }
 
