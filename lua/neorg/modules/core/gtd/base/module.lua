@@ -46,7 +46,8 @@ module.private = {
         project_single_word = { prefix = "+" , pattern = '+[%w%d]+' },
         project_multiple_words = { prefix = '+"' , pattern = '+"[%w%d%s]+"', suffix = '"' },
         due = { prefix = "$due:", pattern = "$due:[%d-%w]+" },
-        start = { prefix = "$start:", pattern = "$start:[%d-%w]+" }
+        start = { prefix = "$start:", pattern = "$start:[%d-%w]+" },
+        note = { prefix = '$note:"', pattern = '$note:"[%w%d%s]+"', suffix = '"' }
     },
 
 ---@Summary Append text to list
@@ -180,7 +181,6 @@ module.public = {
             local results = {}
             for name, syntax in pairs(module.private.syntax) do
               results[name] = module.private.find_syntaxes(text, syntax)
-              log.info(results)
             end
             results.projects = vim.tbl_extend("force", results.project_single_word, results.project_multiple_words)
             log.info(results)
@@ -193,6 +193,7 @@ module.public = {
             local project_output = ""
             local due_date_output = ""
             local start_date_output = ""
+            local note_date_output =""
             local task_output = "- [ ] " .. text:match('^[^@+$]*') .. "\n" -- Everything before $, @, or +
 
             if #results.projects ~= 0 then
@@ -211,8 +212,12 @@ module.public = {
                 start_date_output = "$start:" .. module.private.date_converter(results.start[1]) .. "\n"
             end
 
+            if #results.note ~= 0 then
+                note_date_output = "$note:" .. results.note[1] .. "\n"
+            end
 
-            local output = project_output .. contexts_output .. due_date_output .. start_date_output .. task_output
+
+            local output = project_output .. contexts_output .. due_date_output .. start_date_output .. note_date_output .. task_output
             module.private.add_to_list(
                 module.config.public.default_lists.inbox,
                 output
