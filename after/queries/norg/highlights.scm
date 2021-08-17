@@ -4,8 +4,8 @@
 (tag_name) @NeorgTagName
 (tag_parameters) @NeorgTagParameters
 (tag_content) @NeorgTagContent
-("@" (tag_name) @NeorgTagName (tag_parameters)? (tag_content) @NeorgTagComment (#match? @NeorgTagName "^comment$"))
-("$" (tag_name) @NeorgTagName (tag_parameters)? (_)+ @NeorgTagComment (#match? @NeorgTagName "^comment$"))
+("@" (tag_name) @NeorgTagName (tag_parameters)? (tag_content) @NeorgTagComment (#eq? @NeorgTagName "comment"))
+; ("$" (tag_name) @NeorgTagName (tag_parameters)? (_)+ @NeorgTagComment (#eq? @NeorgTagName "comment"))
 
 ; Headings
 (heading1) @NeorgHeading1
