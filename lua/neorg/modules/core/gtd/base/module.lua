@@ -261,10 +261,10 @@ module.on_event = function(event)
                                 flags = {
                                     f = "Final command",
                                     a = "Also final command",
-                                }
-                            }
-                        }
-                    }
+                                },
+                            },
+                        },
+                    },
                 },
             }, function(choices, final_choice)
                 log.warn(choices, final_choice)
