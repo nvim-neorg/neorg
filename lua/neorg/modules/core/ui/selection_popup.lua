@@ -4,7 +4,6 @@
 
 return function(module)
     return {
-
         create_selection = function(name, config, callback)
             vim.validate({
                 name = { name, "string" },
@@ -16,8 +15,8 @@ return function(module)
             local buf = module.public.create_split("selection/" .. name, config.buffer_options)
 
             ---Displays all possible keys the user can press
-            ---@param  title string the title of the keybinds
-            ---@param  flags table the list of flags to display
+            ---@param title string the title of the keybinds
+            ---@param flags table the list of flags to display
             local function display_values(title, flags)
                 -- Remove any already present extmarks
                 vim.api.nvim_buf_clear_namespace(buf, module.private.namespace, 0, -1)
@@ -43,19 +42,21 @@ return function(module)
                     for keybind, value in pairs(flags) do
                         local keybind_element = {}
 
-                        -- TODO: Make these highlight groups configurable
-                        table.insert(keybind_element, { keybind, "TSType" })
-                        table.insert(keybind_element, { " -> ", "Normal" })
+                        table.insert(keybind_element, { keybind, "NeorgSelectionWindowKey" })
+                        table.insert(keybind_element, { " -> ", "NeorgSelectionWindowArrow" })
 
                         -- If we're dealing with a table element then query its name and display it with a custom highlight
                         if type(value) == "table" then
-                            table.insert(keybind_element, { value.name or "No description", "TSAnnotation" })
+                            table.insert(
+                                keybind_element,
+                                { value.name or "No description", "NeorgSelectionWindowNestedKeyName" }
+                            )
                         elseif type(value) == "string" then -- If we're dealing with a string then just display it
-                            table.insert(keybind_element, { value, "TSMath" })
+                            table.insert(keybind_element, { value, "NeorgSelectionWindowKeyName" })
                         else
                             -- If we're dealing with something else then try to rescue the situation by stringifying whatever
                             -- the hell the user tried to provide
-                            table.insert(keybind_element, { tostring(value), "TSMath" })
+                            table.insert(keybind_element, { tostring(value), "NeorgSelectionWindowKeyName" })
                         end
 
                         -- Insert this keybind element into the result, creating a table that looks like { { { text, highlight } } }
@@ -138,7 +139,10 @@ return function(module)
                         end
 
                         -- Redraw the new flags
-                        display_values(location[input].name ~= "No description" and location[input].name or name, location[input].flags)
+                        display_values(
+                            location[input].name ~= "No description" and location[input].name or name,
+                            location[input].flags
+                        )
                         -- Recursively traverse down the table tree
                         location = location[input].flags
                     end
@@ -148,7 +152,6 @@ return function(module)
             -- After all is done delete the buffer
             vim.api.nvim_buf_delete(buf, { force = true })
         end,
-
 
         ---Creates a new horizontal split at the bottom of the screen
         ---@param  name string the name of the buffer contained within the split (will have neorg:// prepended to it)

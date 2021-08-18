@@ -27,6 +27,14 @@ module.config.public = {
             underline = "cterm=underline gui=underline",
             strikethrough = "cterm=strikethrough gui=strikethrough",
         },
+
+        selectionwindow = {
+            heading = "+TSAnnotation",
+            arrow = "+Normal",
+            key = "+TSNamespace",
+            keyname = "+TSMath",
+            nestedkeyname = "+TSString",
+        },
     },
     dim = {
         conceal = {
