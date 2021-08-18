@@ -42,12 +42,12 @@ module.config.public = {
 module.private = {
     workspace_full_path = nil,
     syntax = {
-        context = { prefix = "@", pattern = "@[%w%d]+" },
-        project_single_word = { prefix = "+", pattern = "+[%w%d]+" },
-        project_multiple_words = { prefix = '+"', pattern = '+"[%w%d%s]+"', suffix = '"' },
-        due = { prefix = "$due:", pattern = "$due:[%d-%w]+" },
-        start = { prefix = "$start:", pattern = "$start:[%d-%w]+" },
-        note = { prefix = '$note:"', pattern = '$note:"[%w%d%s]+"', suffix = '"' },
+        project = { prefix = '+"', pattern = '+"[%w%d%s]+"', suffix = '"', output = "* " , priority = 1, unique = true},
+        context = { prefix = "@", pattern = "@[%w%d]+" , output = "** ", priority = 2},
+        due = { prefix = "$due:", pattern = "$due:[%d-%w]+", output = "$due:", is_date = true, priority = 3, unique = true},
+        start = { prefix = "$start:", pattern = "$start:[%d-%w]+", output = "$start:", is_date = true, priority = 4, unique = true},
+        note = { prefix = '$note:"', pattern = '$note:"[%w%d%s]+"', suffix = '"', output = "$note:", priority = 5, unique = true},
+        task = { pattern = '^[^@+$]*', single_capture = true, output = "- [ ] ", priority = 6, unique = true},
     },
 
     ---@Summary Append text to list
@@ -72,7 +72,34 @@ module.private = {
         if syntax_type.suffix then
             suffix_len = #syntax_type.suffix
         end
-        return module.private.parse_content(text, syntax_type.pattern, #syntax_type.prefix, suffix_len or nil)
+        if syntax_type.prefix then 
+            prefix_len = #syntax_type.prefix
+        end
+        return module.private.parse_content(text, syntax_type.pattern, prefix_len or nil, suffix_len or nil, syntax_type.single_capture)
+    end,
+
+    -- @Summary Parse content from text with a specific pattern
+    -- @Description Will try to use the pattern to return a table of elements that match the pattern
+    -- @Param  text (string)
+    -- @Param  pattern (string)
+    -- @Param  size_delimiter (string) the delimiter size before the actual content (e.g $due:2w has size of 5, which is $due:)
+    parse_content = function(text, pattern, size_delimiter_left, size_delimiter_right, single_capture)
+        local _size_delimiter_right = size_delimiter_right or 0
+        local _size_delimiter_left = size_delimiter_left or -1
+        local capture
+        local content = {}
+        if single_capture ~= nil then
+            capture = text:match(pattern)
+            if #capture ~= 0 then
+                table.insert(content, capture)
+            end
+        else
+            capture = text:gmatch(pattern)
+            for w in capture do
+                table.insert(content, w:sub(_size_delimiter_left + 1, (#w - _size_delimiter_right) or -1))
+            end
+        end
+        return content
     end,
 
     -- @Summary Convert a date from text to YY-MM-dd format
@@ -112,20 +139,20 @@ module.private = {
         return os.date("%Y-%m-%d", converted_date)
     end,
 
-    -- @Summary Parse content from text with a specific pattern
-    -- @Description Will try to use the pattern to return a table of elements that match the pattern
-    -- @Param  text (string)
-    -- @Param  pattern (string)
-    -- @Param  size_delimiter (string) the delimiter size before the actual content (e.g $due:2w has size of 5, which is $due:)
-    parse_content = function(text, pattern, size_delimiter_left, size_delimiter_right)
-        local _size_delimiter_right = size_delimiter_right or 0
-        local capture = text:gmatch(pattern)
-        local content = {}
-        for w in capture do
-            table.insert(content, w:sub(size_delimiter_left + 1, (#w - _size_delimiter_right) or -1))
+    ---Use the table_output in order to arrange the syntax field as a string
+    ---@param syntax_type table one of the syntaxes of module.private.syntax
+    ---@param tbl_output table the table to arrange
+    ---@return string output the formatted output
+    output_formatter = function (syntax_type, tbl_output)
+        local text
+        if syntax_type.is_date then
+            text = module.private.date_converter(tbl_output[1])
+        else
+            text = table.concat(tbl_output, " ")
         end
-        return content
-    end,
+        local output = syntax_type.output .. text .. "\n"
+        return output
+    end
 }
 
 module.load = function()
@@ -206,69 +233,34 @@ module.public = {
         -- Define a callback (for prompt) to add the task to the inbox list
         local cb = function(text, actions)
             local results = {}
+            -- Add found_syntaxes to results and check for uniqueness
             for name, syntax in pairs(module.private.syntax) do
                 results[name] = module.private.find_syntaxes(text, syntax)
+                if syntax.unique == true and #results[name] > 1 then
+                    log.error ("Please specify max 1 " .. name)
+                    actions.close()
+                    return
+                end
             end
 
-            results.projects = vim.tbl_extend("force", results.project_single_word, results.project_multiple_words)
-            log.info(results)
-
-            if #results.projects > 1 then
-                log.error("Please specify max 1 project")
-                -- NOTE: maybe we don't actually want to close the buffer here?
-                -- We could instead keep the buffer open to give the user another chance
-                actions.close()
-                return
+            -- Format each found syntax and rearrange priority
+            local output_table = {}
+            for syntax, content in pairs(results) do
+                if #content ~= 0 then
+                    local priority = module.private.syntax[syntax].priority
+                    local formatted_content = module.private.output_formatter(module.private.syntax[syntax], content)
+                    table.insert(output_table, priority, formatted_content)
+                end
             end
 
-            if #results.due > 1 then
-                log.error("Please specify max 1 due date")
-                actions.close()
-                return
+            -- Output each syntax node
+            local output = ""
+            for _,value in pairs(output_table) do
+                output = output .. value
             end
 
-            if #results.start > 1 then
-                log.error("Please specify max 1 start date")
-                actions.close()
-                return
-            end
-
-            local contexts_output = ""
-            local project_output = ""
-            local due_date_output = ""
-            local start_date_output = ""
-            local note_date_output = ""
-            local task_output = "- [ ] " .. text:match("^[^@+$]*") .. "\n" -- Everything before $, @, or +
-
-            if #results.projects ~= 0 then
-                project_output = "* " .. results.projects[1] .. "\n"
-            end
-
-            if #results.context ~= 0 then
-                contexts_output = "** " .. table.concat(results.context, " ") .. "\n" -- Iterate through contexts
-            end
-
-            if #results.due ~= 0 then
-                due_date_output = "$due:" .. module.private.date_converter(results.due[1]) .. "\n"
-            end
-
-            if #results.start ~= 0 then
-                start_date_output = "$start:" .. module.private.date_converter(results.start[1]) .. "\n"
-            end
-
-            if #results.note ~= 0 then
-                note_date_output = "$note:" .. results.note[1] .. "\n"
-            end
-
-            local output = project_output
-                .. contexts_output
-                .. due_date_output
-                .. start_date_output
-                .. note_date_output
-                .. task_output
             module.private.add_to_list(module.config.public.default_lists.inbox, output)
-
-            log.info("Added " .. task_output .. "to " .. module.private.workspace_full_path)
+            log.info("Added task to " .. module.private.workspace_full_path)
             actions.close()
         end
 
