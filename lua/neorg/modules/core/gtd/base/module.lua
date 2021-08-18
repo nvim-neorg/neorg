@@ -41,6 +41,16 @@ module.config.public = {
 
 module.private = {
     workspace_full_path = nil,
+
+    -- The syntax to use for gtd.
+    -- Model: [syntax_name] = { syntax }
+    -- It is fully customizable, with the parameters below:
+    -- prefix: the prefix of the syntax_type
+    -- suffix: (optional) the suffix of the syntax_type
+    -- pattern: the pattern to use to find all occurences of the syntax_type
+    -- output: the output written in .norg file
+    -- priority: priority of the syntax in the .norg file (1 will be the first to be added)
+    -- unique: (optional, default false) raises an error if we accept only one occurence of it
     syntax = {
         project = { prefix = '+"', pattern = '+"[%w%d%s]+"', suffix = '"', output = "* " , priority = 1, unique = true},
         context = { prefix = "@", pattern = "@[%w%d]+" , output = "** ", priority = 2},
