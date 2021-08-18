@@ -44,45 +44,44 @@ function neorg.org_file_entered()
     require("neorg.external.log").new(configuration.user_configuration.logger or log.get_default_config(), true)
 
     -- Loop through all the modules and load them one by one
-    require("plenary.async_lib.async").async(function()
-        -- If the user has defined a post-load hook then execute it
-        if configuration.user_configuration.hook then
-            configuration.user_configuration.hook()
-        end
+    --
+    -- If the user has defined a post-load hook then execute it
+    if configuration.user_configuration.hook then
+        configuration.user_configuration.hook()
+    end
 
-        -- Go through each defined module and grab its configuration
-        for name, module in pairs(module_list) do
-            -- If the module's data is not empty and we have not defined a config table then it probably means there's junk in there
-            if not vim.tbl_isempty(module) and not module.config then
-                log.warn(
-                    "Potential bug detected in",
-                    name,
-                    "- nonstandard tables found in the module definition. Did you perhaps mean to put these tables inside of the config = {} table?"
-                )
-            end
-
-            -- Apply the configuration
-            configuration.modules[name] = vim.tbl_deep_extend(
-                "force",
-                configuration.modules[name] or {},
-                module.config or {}
+    -- Go through each defined module and grab its configuration
+    for name, module in pairs(module_list) do
+        -- If the module's data is not empty and we have not defined a config table then it probably means there's junk in there
+        if not vim.tbl_isempty(module) and not module.config then
+            log.warn(
+                "Potential bug detected in",
+                name,
+                "- nonstandard tables found in the module definition. Did you perhaps mean to put these tables inside of the config = {} table?"
             )
         end
 
-        -- After all configurations are merged proceed to actually load the modules
-        for name, _ in pairs(module_list) do
-            -- If it could not be loaded then halt
-            if not neorg.modules.load_module(name) then
-                log.fatal("Halting loading of modules due to error...")
-                break
-            end
-        end
+        -- Apply the configuration
+        configuration.modules[name] = vim.tbl_deep_extend(
+            "force",
+            configuration.modules[name] or {},
+            module.config or {}
+        )
+    end
 
-        -- Goes through each loaded module and invokes neorg_post_load()
-        for _, module in pairs(neorg.modules.loaded_modules) do
-            module.neorg_post_load()
+    -- After all configurations are merged proceed to actually load the modules
+    for name, _ in pairs(module_list) do
+        -- If it could not be loaded then halt
+        if not neorg.modules.load_module(name) then
+            log.fatal("Halting loading of modules due to error...")
+            break
         end
-    end)()()
+    end
+
+    -- Goes through each loaded module and invokes neorg_post_load()
+    for _, module in pairs(neorg.modules.loaded_modules) do
+        module.neorg_post_load()
+    end
 
     -- Set this variable to prevent Neorg from loading twice
     neorg.configuration.started = true
