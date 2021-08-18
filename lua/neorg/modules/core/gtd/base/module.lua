@@ -52,12 +52,33 @@ module.private = {
     -- priority: priority of the syntax in the .norg file (1 will be the first to be added)
     -- unique: (optional, default false) raises an error if we accept only one occurence of it
     syntax = {
-        project = { prefix = '+"', pattern = '+"[%w%d%s]+"', suffix = '"', output = "* " , priority = 1, unique = true},
-        context = { prefix = "@", pattern = "@[%w%d]+" , output = "** ", priority = 2},
-        due = { prefix = "$due:", pattern = "$due:[%d-%w]+", output = "$due:", is_date = true, priority = 3, unique = true},
-        start = { prefix = "$start:", pattern = "$start:[%d-%w]+", output = "$start:", is_date = true, priority = 4, unique = true},
-        note = { prefix = '$note:"', pattern = '$note:"[%w%d%s]+"', suffix = '"', output = "$note:", priority = 5, unique = true},
-        task = { pattern = '^[^@+$]*', single_capture = true, output = "- [ ] ", priority = 6, unique = true},
+        project = { prefix = '+"', pattern = '+"[%w%d%s]+"', suffix = '"', output = "* ", priority = 1, unique = true },
+        context = { prefix = "@", pattern = "@[%w%d]+", output = "** ", priority = 2 },
+        due = {
+            prefix = "$due:",
+            pattern = "$due:[%d-%w]+",
+            output = "$due:",
+            is_date = true,
+            priority = 3,
+            unique = true,
+        },
+        start = {
+            prefix = "$start:",
+            pattern = "$start:[%d-%w]+",
+            output = "$start:",
+            is_date = true,
+            priority = 4,
+            unique = true,
+        },
+        note = {
+            prefix = '$note:"',
+            pattern = '$note:"[%w%d%s]+"',
+            suffix = '"',
+            output = "$note:",
+            priority = 5,
+            unique = true,
+        },
+        task = { pattern = "^[^@+$]*", single_capture = true, output = "- [ ] ", priority = 6, unique = true },
     },
 
     ---@Summary Append text to list
@@ -82,10 +103,16 @@ module.private = {
         if syntax_type.suffix then
             suffix_len = #syntax_type.suffix
         end
-        if syntax_type.prefix then 
+        if syntax_type.prefix then
             prefix_len = #syntax_type.prefix
         end
-        return module.private.parse_content(text, syntax_type.pattern, prefix_len or nil, suffix_len or nil, syntax_type.single_capture)
+        return module.private.parse_content(
+            text,
+            syntax_type.pattern,
+            prefix_len or nil,
+            suffix_len or nil,
+            syntax_type.single_capture
+        )
     end,
 
     -- @Summary Parse content from text with a specific pattern
@@ -153,7 +180,7 @@ module.private = {
     ---@param syntax_type table one of the syntaxes of module.private.syntax
     ---@param tbl_output table the table to arrange
     ---@return string output the formatted output
-    output_formatter = function (syntax_type, tbl_output)
+    output_formatter = function(syntax_type, tbl_output)
         local text
         if syntax_type.is_date then
             text = module.private.date_converter(tbl_output[1])
@@ -162,7 +189,7 @@ module.private = {
         end
         local output = syntax_type.output .. text .. "\n"
         return output
-    end
+    end,
 }
 
 module.load = function()
@@ -222,14 +249,17 @@ module.on_event = function(event)
         elseif event.split_type[2] == "gtd.select_date" then
             module.required["core.ui"].create_selection("Select a date", {
                 flags = {
-                    t = {
-                        name = "Schedule task for tomorrow",
-                    },
+                    t = "Schedule task for tomorrow",
                     w = {
                         name = "Schedule task for next week",
+                        flags = {
+                            s = "Hello",
+                        },
                     },
                 },
-            })
+            }, function(choices)
+                log.warn(choices)
+            end)
         end
     end
 end
@@ -247,7 +277,7 @@ module.public = {
             for name, syntax in pairs(module.private.syntax) do
                 results[name] = module.private.find_syntaxes(text, syntax)
                 if syntax.unique == true and #results[name] > 1 then
-                    log.error ("Please specify max 1 " .. name)
+                    log.error("Please specify max 1 " .. name)
                     actions.close()
                     return
                 end
@@ -265,7 +295,7 @@ module.public = {
 
             -- Output each syntax node
             local output = ""
-            for _,value in pairs(output_table) do
+            for _, value in pairs(output_table) do
                 output = output .. value
             end
 
