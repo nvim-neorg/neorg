@@ -250,15 +250,23 @@ module.on_event = function(event)
             module.required["core.ui"].create_selection("Select a date", {
                 flags = {
                     t = "Schedule task for tomorrow",
-                    w = {
-                        name = "Schedule task for next week",
+                    w = "Schedule task for next week",
+                    n = {
+                        name = "Nested command (just for testing)",
                         flags = {
-                            s = "Hello",
-                        },
-                    },
+                            m = "Special command",
+                            n = {
+                                name = "More nested commands",
+                                flags = {
+                                    f = "Final command",
+                                    a = "Also final command",
+                                }
+                            }
+                        }
+                    }
                 },
-            }, function(choices)
-                log.warn(choices)
+            }, function(choices, final_choice)
+                log.warn(choices, final_choice)
             end)
         end
     end
