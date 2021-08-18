@@ -200,7 +200,11 @@ module.public = {
         vim.schedule(function()
             -- Loop through every currently defined keybind and unbind it
             for _, mode_key_pair in ipairs(module.private.bound_keys) do
-                vim.api.nvim_del_keymap(mode_key_pair[1], mode_key_pair[2])
+                local ok, error = pcall(vim.api.nvim_del_keymap, mode_key_pair[1], mode_key_pair[2])
+
+                if not ok then
+                    log.info("Failed to unset a certain key with error:", error)
+                end
             end
             -- Reset the bound keys table
             module.private.bound_keys = {}
