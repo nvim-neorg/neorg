@@ -1,4 +1,4 @@
-return function (module)
+return function(module)
     return {
 
         -- @Summary Add user task to inbox
@@ -22,7 +22,10 @@ return function (module)
                 for syntax, content in pairs(results) do
                     if #content ~= 0 then
                         local priority = module.private.syntax[syntax].priority
-                        local formatted_content = module.private.output_formatter(module.private.syntax[syntax], content)
+                        local formatted_content = module.private.output_formatter(
+                            module.private.syntax[syntax],
+                            content
+                        )
                         table.insert(output_table, priority, formatted_content)
                     end
                 end
@@ -43,11 +46,11 @@ return function (module)
                 center_x = true,
                 center_y = true,
             }, {
-                    width = 60,
-                    height = 1,
-                    row = 3,
-                    col = 0,
-                })
+                width = 60,
+                height = 1,
+                row = 3,
+                col = 0,
+            })
         end,
     }
 end

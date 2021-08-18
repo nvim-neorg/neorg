@@ -126,8 +126,12 @@ return function(module)
                     -- If the next key we're going to traverse down is a string that means
                     -- we've reached the end of our parsing, there's nothing more to traverse down:
                     if type(location[input]) == "string" then
+                        -- Since we're at the end of the parsing stage delete the buffer before invoking the callback
+                        vim.api.nvim_buf_delete(buf, { force = true })
+
                         -- Invoke the user callback with all the necessary data and break
                         callback(result, { char = input, name = location[input] })
+
                         break
                     else -- Otherwise we must be dealing with a table
                         -- If there is no flags variable then we should error out
@@ -135,6 +139,9 @@ return function(module)
                             log.error(
                                 'Malformed input provided to create_selection: expected a "flags" variable in subtable'
                             )
+
+                            -- Delete the buffer, we don't need it anymore
+                            vim.api.nvim_buf_delete(buf, { force = true })
                             break
                         end
 
@@ -148,9 +155,6 @@ return function(module)
                     end
                 end
             end
-
-            -- After all is done delete the buffer
-            vim.api.nvim_buf_delete(buf, { force = true })
         end,
 
         ---Creates a new horizontal split at the bottom of the screen
@@ -164,17 +168,18 @@ return function(module)
 
             vim.cmd("below new")
 
-            local buf = vim.api.nvim_get_current_buf()
+            local buf = vim.api.nvim_create_buf(false, false)
 
             local default_options = {
-                modified = false,
-                buflisted = false,
                 swapfile = false,
                 bufhidden = "hide",
                 buftype = "nofile",
             }
 
             vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
+
+            vim.api.nvim_win_set_buf(0, buf)
+
             -- Merge the user provided options with the default options and apply them to the new buffer
             module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
 

@@ -257,18 +257,16 @@ module.on_event = function(event)
                         },
                     },
                 },
-            }, 
-                function(choices)
-                    if choices[1] == "a" then
-                        module.public.add_task_to_inbox()
-                    elseif choices[1] == "l" and choices[2] == "i" then
-                        module.required["core.norg.dirman"].open_file(
-                            module.config.public.workspace,
-                            module.config.public.default_lists.inbox
-                        )
-                    end
+            }, function(choices)
+                if choices[1] == "a" then
+                    module.public.add_task_to_inbox()
+                elseif choices[1] == "l" and choices[2] == "i" then
+                    module.required["core.norg.dirman"].open_file(
+                        module.config.public.workspace,
+                        module.config.public.default_lists.inbox
+                    )
                 end
-            )
+            end)
         end
     end
 end
