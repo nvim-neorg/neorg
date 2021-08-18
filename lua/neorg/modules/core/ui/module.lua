@@ -12,22 +12,6 @@ module.private = {
     namespace = vim.api.nvim_create_namespace("core.ui"),
 }
 
-module.neorg_post_load = function()
-    --[[ module.public.create_selection(
-        "Select a date",
-        {
-            flags = {
-                t = {
-                    name = "Reschedule task for tomorrow",
-                },
-                w = {
-                    name = "Reschedule task for next week",
-                },
-            },
-        }
-    ) ]]
-end
-
 module.public = {
     -- @Summary Gets the current size of the window
     -- @Description Returns a table in the form of { width, height } containing the width and height of the current window

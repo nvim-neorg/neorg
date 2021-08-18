@@ -47,7 +47,7 @@ module.private = {
         project_multiple_words = { prefix = '+"', pattern = '+"[%w%d%s]+"', suffix = '"' },
         due = { prefix = "$due:", pattern = "$due:[%d-%w]+" },
         start = { prefix = "$start:", pattern = "$start:[%d-%w]+" },
-        note = { prefix = '$note:"', pattern = '$note:"[%w%d%s]+"', suffix = '"' }
+        note = { prefix = '$note:"', pattern = '$note:"[%w%d%s]+"', suffix = '"' },
     },
 
     ---@Summary Append text to list
@@ -139,12 +139,14 @@ module.load = function()
     module.required["core.keybinds"].register_keybind(module.name, "add_to_inbox")
 
     -- Add neorgcmd capabilities
-    -- All gtd commands are start with :Neorg gtd ...
+    -- All gtd commands start with :Neorg gtd ...
     module.required["core.neorgcmd"].add_commands_from_table({
         definitions = {
             gtd = {
                 capture = {},
                 list = { inbox = {} },
+                -- NOTE: This is just temporary, it's easier to set up than a fully fledged keybind lol
+                select_date = {},
             },
         },
         data = {
@@ -159,6 +161,8 @@ module.load = function()
                             inbox = { args = 0, name = "gtd.list.inbox" },
                         },
                     },
+                    -- NOTE: Temporary
+                    select_date = { args = 0, name = "gtd.select_date" },
                 },
             },
         },
@@ -177,6 +181,18 @@ module.on_event = function(event)
                 module.config.public.workspace,
                 module.config.public.default_lists.inbox
             )
+            -- NOTE: Temporary
+        elseif event.split_type[2] == "gtd.select_date" then
+            module.required["core.ui"].create_selection("Select a date", {
+                flags = {
+                    t = {
+                        name = "Schedule task for tomorrow",
+                    },
+                    w = {
+                        name = "Schedule task for next week",
+                    },
+                },
+            })
         end
     end
 end
@@ -188,24 +204,32 @@ module.public = {
     -- @Description Show prompt asking for user input and append the task to the inbox
     add_task_to_inbox = function()
         -- Define a callback (for prompt) to add the task to the inbox list
-        local cb = function(text)
+        local cb = function(text, actions)
             local results = {}
             for name, syntax in pairs(module.private.syntax) do
-              results[name] = module.private.find_syntaxes(text, syntax)
+                results[name] = module.private.find_syntaxes(text, syntax)
             end
+
             results.projects = vim.tbl_extend("force", results.project_single_word, results.project_multiple_words)
             log.info(results)
 
             if #results.projects > 1 then
                 log.error("Please specify max 1 project")
+                -- NOTE: maybe we don't actually want to close the buffer here?
+                -- We could instead keep the buffer open to give the user another chance
+                actions.close()
                 return
             end
+
             if #results.due > 1 then
                 log.error("Please specify max 1 due date")
+                actions.close()
                 return
             end
+
             if #results.start > 1 then
                 log.error("Please specify max 1 start date")
+                actions.close()
                 return
             end
 
@@ -213,8 +237,8 @@ module.public = {
             local project_output = ""
             local due_date_output = ""
             local start_date_output = ""
-            local note_date_output =""
-            local task_output = "- [ ] " .. text:match('^[^@+$]*') .. "\n" -- Everything before $, @, or +
+            local note_date_output = ""
+            local task_output = "- [ ] " .. text:match("^[^@+$]*") .. "\n" -- Everything before $, @, or +
 
             if #results.projects ~= 0 then
                 project_output = "* " .. results.projects[1] .. "\n"
@@ -236,14 +260,16 @@ module.public = {
                 note_date_output = "$note:" .. results.note[1] .. "\n"
             end
 
-
-            local output = project_output .. contexts_output .. due_date_output .. start_date_output .. note_date_output .. task_output
-            module.private.add_to_list(
-                module.config.public.default_lists.inbox,
-                output
-            )
+            local output = project_output
+                .. contexts_output
+                .. due_date_output
+                .. start_date_output
+                .. note_date_output
+                .. task_output
+            module.private.add_to_list(module.config.public.default_lists.inbox, output)
 
             log.info("Added " .. task_output .. "to " .. module.private.workspace_full_path)
+            actions.close()
         end
 
         -- Show prompt asking for input
@@ -253,7 +279,7 @@ module.public = {
         }, {
             width = 60,
             height = 1,
-            row = 0,
+            row = 3,
             col = 0,
         })
     end,
@@ -266,6 +292,8 @@ module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["gtd.capture"] = true,
         ["gtd.list.inbox"] = true,
+        -- NOTE: Temporary
+        ["gtd.select_date"] = true,
     },
 }
 

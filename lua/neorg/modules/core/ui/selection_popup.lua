@@ -54,7 +54,6 @@ return function(module)
             end)()
 
             for i, virt_text in ipairs(text_for_current) do
-                log.warn(virt_text)
                 vim.api.nvim_buf_set_extmark(buf, module.private.namespace, i - 1, 0, {
                     virt_text = virt_text,
                     virt_text_pos = "overlay",
@@ -74,7 +73,7 @@ return function(module)
                 callback = { callback, "function", true },
             })
 
-            vim.cmd("noautocmd split neorg://" .. name)
+            vim.cmd("split neorg://" .. name)
 
             local buf = vim.fn.bufnr("neorg://" .. name)
 
@@ -82,20 +81,19 @@ return function(module)
                 return buf
             end
 
-            vim.api.nvim_set_current_buf(buf)
-
             local default_options = {
                 modified = false,
                 modifiable = false,
+                buflisted = false,
             }
 
             if callback then
                 callback(buf)
             end
 
-            vim.schedule(function()
-                module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
-            end)
+            vim.api.nvim_win_set_buf(0, buf)
+
+            module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
 
             return buf
         end,
