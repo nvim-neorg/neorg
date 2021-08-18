@@ -2,6 +2,8 @@
     Base module for Getting Things Done methodology
 
 USAGE:
+    - Quick actions for gtd stuff:
+        - Call the command :Neorg gtd quick_actions
     - To add a task to the inbox:
         - Use the public function add_task_to_inbox()
         - Call the command :Neorg gtd capture
@@ -210,8 +212,7 @@ module.load = function()
             gtd = {
                 capture = {},
                 list = { inbox = {} },
-                -- NOTE: This is just temporary, it's easier to set up than a fully fledged keybind lol
-                select_date = {},
+                quick_actions = {},
             },
         },
         data = {
@@ -226,8 +227,7 @@ module.load = function()
                             inbox = { args = 0, name = "gtd.list.inbox" },
                         },
                     },
-                    -- NOTE: Temporary
-                    select_date = { args = 0, name = "gtd.select_date" },
+                    quick_actions = { args = 0, name = "gtd.quick_actions" },
                 },
             },
         },
@@ -246,29 +246,29 @@ module.on_event = function(event)
                 module.config.public.workspace,
                 module.config.public.default_lists.inbox
             )
-            -- NOTE: Temporary
-        elseif event.split_type[2] == "gtd.select_date" then
-            module.required["core.ui"].create_selection("Select a date", {
+        elseif event.split_type[2] == "gtd.quick_actions" then
+            module.required["core.ui"].create_selection("Quick actions", {
                 flags = {
-                    t = "Schedule task for tomorrow",
-                    w = "Schedule task for next week",
-                    n = {
-                        name = "Nested command (just for testing)",
+                    a = "Add a task to inbox",
+                    l = {
+                        name = "List files",
                         flags = {
-                            m = "Special command",
-                            n = {
-                                name = "More nested commands",
-                                flags = {
-                                    f = "Final command",
-                                    a = "Also final command",
-                                },
-                            },
+                            i = "Inbox",
                         },
                     },
                 },
-            }, function(choices, final_choice)
-                log.warn(choices, final_choice)
-            end)
+            }, 
+                function(choices)
+                    if choices[1] == "a" then
+                        module.public.add_task_to_inbox()
+                    elseif choices[1] == "l" and choices[2] == "i" then
+                        module.required["core.norg.dirman"].open_file(
+                            module.config.public.workspace,
+                            module.config.public.default_lists.inbox
+                        )
+                    end
+                end
+            )
         end
     end
 end
@@ -284,8 +284,7 @@ module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["gtd.capture"] = true,
         ["gtd.list.inbox"] = true,
-        -- NOTE: Temporary
-        ["gtd.select_date"] = true,
+        ["gtd.quick_actions"] = true,
     },
 }
 
