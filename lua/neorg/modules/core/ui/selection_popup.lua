@@ -137,7 +137,7 @@ return function(module)
             -- Keep querying input and traverse down the table according to the description above:
             while location do
                 -- Query the next input
-                local input = vim.fn.getcharstr()
+                local input = string.char(vim.fn.getchar())
 
                 -- If the entered char was an <Esc> key then bail
                 if input == "" then
