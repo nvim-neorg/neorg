@@ -40,6 +40,18 @@ return function(module)
 
                     -- Loop through all flags and display them accordingly:
                     for keybind, value in pairs(flags) do
+                        -- A key can only consist of one char, enforce this rule here:
+                        if keybind:len() > 1 then
+                            log.error(
+                                "Malformed input in selection_popup '"
+                                    .. name
+                                    .. "' at parameter '"
+                                    .. keybind
+                                    .. "'. Key cannot be more than one character"
+                            )
+                            return nil
+                        end
+
                         local keybind_element = {}
 
                         table.insert(keybind_element, { keybind, "NeorgSelectionWindowKey" })
@@ -67,6 +79,11 @@ return function(module)
                     return result
                 end)()
 
+                if not text_for_current or vim.tbl_isempty(text_for_current) then
+                    log.info("At '" .. name .. "' - no keys provided, exiting selection popup prematurely")
+                    return false
+                end
+
                 -- Go through each "line" that the generator function created and try to set the extmark for that line
                 for i, virt_text in ipairs(text_for_current) do
                     vim.api.nvim_buf_set_extmark(buf, module.private.namespace, i - 1, 0, {
@@ -78,10 +95,14 @@ return function(module)
                 -- For some reason creating a buffer and then quickly polling for input causes the polling to happen first
                 -- It seems that lazy redrawing is the culprit here, and so we force redraw in order to display the buffer!
                 vim.cmd("redraw!")
+
+                return true
             end
 
             -- Display all the values for the top-level flags
-            display_values(name, config.flags)
+            if not display_values(name, config.flags) then
+                return
+            end
 
             local location, result = config.flags, {}
 
@@ -118,7 +139,14 @@ return function(module)
                 -- Query the next input
                 local input = vim.fn.getcharstr()
 
-                -- If thatk key has been defined then
+                -- If the entered char was an <Esc> key then bail
+                if input == "" then
+                    -- Delete the buffer and break out of the loop
+                    vim.api.nvim_buf_delete(buf, { force = true })
+                    break
+                end
+
+                -- If that key has been defined then
                 if location[input] then
                     -- Add the current keypress to the list of provided inputs
                     table.insert(result, input)
@@ -146,10 +174,16 @@ return function(module)
                         end
 
                         -- Redraw the new flags
-                        display_values(
-                            location[input].name ~= "No description" and location[input].name or name,
-                            location[input].flags
-                        )
+                        if
+                            not display_values(
+                                location[input].name ~= "No description" and location[input].name or name,
+                                location[input].flags
+                            )
+                        then
+                            -- Delete the buffer, we don't need it anymore
+                            vim.api.nvim_buf_delete(buf, { force = true })
+                            break
+                        end
                         -- Recursively traverse down the table tree
                         location = location[input].flags
                     end
