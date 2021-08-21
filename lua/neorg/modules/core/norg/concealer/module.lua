@@ -361,6 +361,7 @@ module.public = {
     -- @Param  text (string) - the virtual text to overlay (usually the icon)
     -- @Param  highlight (string) - the name of a highlight to use for the icon
     -- @Param  line_number (number) - the line number to apply the extmark in
+    -- @Param  end_line (number) - the last line number to apply the extmark to (useful if you want an extmark to exist for more than one line)
     -- @Param  start_column (number) - the start column of the conceal
     -- @Param  end_column (number) - the end column of the conceal
     -- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
