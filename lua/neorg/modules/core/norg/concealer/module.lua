@@ -292,7 +292,7 @@ module.public = {
                 )]]
             )
 
-            if not ok then
+            if not ok or not query then
                 return
             end
 

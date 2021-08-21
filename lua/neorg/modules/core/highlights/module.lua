@@ -55,7 +55,7 @@ module.public = {
             for hl_name, highlight in pairs(highlights) do
                 -- If the callback returns true then descend further down the table tree
                 if callback(hl_name, highlight, prefix) then
-                    descend(highlight, callback, hl_name)
+                    descend(highlight, callback, prefix .. hl_name)
                 end
             end
         end
