@@ -137,24 +137,47 @@ module.config.public = {
             },
         },
 
-        unorderedlist = {
-            ["1"] = {
-                [""] = "+TSPunctDelimiter",
+        unordered = {
+            list = {
+                ["1"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
+                ["2"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
+                ["3"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
+                ["4"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
+                ["5"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
+                ["6"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
             },
-            ["2"] = {
-                [""] = "+TSPunctDelimiter",
-            },
-            ["3"] = {
-                [""] = "+TSPunctDelimiter",
-            },
-            ["4"] = {
-                [""] = "+TSPunctDelimiter",
-            },
-            ["5"] = {
-                [""] = "+TSPunctDelimiter",
-            },
-            ["6"] = {
-                [""] = "+TSPunctDelimiter",
+
+            link = {
+                ["1"] = {
+                    [""] = "+NeorgUnorderedList1",
+                },
+                ["2"] = {
+                    [""] = "+NeorgUnorderedList2",
+                },
+                ["3"] = {
+                    [""] = "+NeorgUnorderedList3",
+                },
+                ["4"] = {
+                    [""] = "+NeorgUnorderedList4",
+                },
+                ["5"] = {
+                    [""] = "+NeorgUnorderedList5",
+                },
+                ["6"] = {
+                    [""] = "+NeorgUnorderedList6",
+                },
             },
         },
 

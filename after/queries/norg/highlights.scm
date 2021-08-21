@@ -115,6 +115,14 @@
 (unordered_list5 (unordered_list5_prefix) @NeorgUnorderedList5 content: (paragraph) @NeorgUnorderedList5Content)
 (unordered_list6 (unordered_list6_prefix) @NeorgUnorderedList6 content: (paragraph) @NeorgUnorderedList6Content)
 
+; Unordered links
+(unordered_link1 ("_prefix") @NeorgUnorderedLink1 location: (link) @NeorgUnorderedLink1Location)
+(unordered_link2 ("_prefix") @NeorgUnorderedLink2 location: (link) @NeorgUnorderedLink2Location)
+(unordered_link3 ("_prefix") @NeorgUnorderedLink3 location: (link) @NeorgUnorderedLink3Location)
+(unordered_link4 ("_prefix") @NeorgUnorderedLink4 location: (link) @NeorgUnorderedLink4Location)
+(unordered_link5 ("_prefix") @NeorgUnorderedLink5 location: (link) @NeorgUnorderedLink5Location)
+(unordered_link6 ("_prefix") @NeorgUnorderedLink6 location: (link) @NeorgUnorderedLink6Location)
+
 ; Quotes
 (quote1 (quote1_prefix) @NeorgQuote1 content: (paragraph_segment) @NeorgQuote1Content)
 (quote2 (quote2_prefix) @NeorgQuote2 content: (paragraph_segment) @NeorgQuote2Content)
