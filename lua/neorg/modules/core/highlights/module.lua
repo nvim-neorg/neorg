@@ -38,6 +38,14 @@ module.config.public = {
     },
 }
 
+module.setup = function()
+    return { success = true, requires = { "core.autocommands" } }
+end
+
+module.load = function()
+    module.required["core.autocommands"].enable_autocommand("ColorScheme", true)
+end
+
 module.public = {
 
     -- @Summary	Defines all the highlight groups for Neorg
@@ -197,6 +205,18 @@ module.public = {
     end,
 
     -- END of shamelessly ripped off akinsho code
+}
+
+module.on_event = function(event)
+    if event.type == "core.autocommands.events.colorscheme" then
+        module.public.trigger_highlights()
+    end
+end
+
+module.events.subscribed = {
+    ["core.autocommands"] = {
+        colorscheme = true,
+    },
 }
 
 module.neorg_post_load = function()
