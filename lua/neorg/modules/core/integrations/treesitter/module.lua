@@ -22,17 +22,51 @@ module.config.public = {
             -- Example: ["end"] = "guifg=#93042b",
             ["end"] = "+TSKeyword",
 
-            name = "+TSKeyword",
-            parameters = "+TSType",
+            name = {
+                [""] = "+Normal",
+                word = "+TSKeyword",
+            },
+
+            parameter = "+TSType",
             content = "+Normal",
-            comment = "+TSComment",
+        },
+
+        carryovertag = {
+            begin = "+TSLabel",
+
+            name = {
+                [""] = "+Normal",
+                word = "+TSLabel",
+            },
+
+            parameter = "+TSString",
         },
 
         heading = {
-            ["1"] = "+TSAttribute",
-            ["2"] = "+TSLabel",
-            ["3"] = "+TSMath",
-            ["4"] = "+TSString",
+            ["1"] = {
+                title = "+TSAttribute",
+                prefix = "+TSAttribute",
+            },
+            ["2"] = {
+                title = "+TSLabel",
+                prefix = "+TSLabel",
+            },
+            ["3"] = {
+                title = "+TSMath",
+                prefix = "+TSMath",
+            },
+            ["4"] = {
+                title = "+TSString",
+                prefix = "+TSString",
+            },
+            ["5"] = {
+                title = "+TSLabel",
+                prefix = "+TSLabel",
+            },
+            ["6"] = {
+                title = "+TSMath",
+                prefix = "+TSMath",
+            },
         },
 
         error = "+TSError",
@@ -44,6 +78,8 @@ module.config.public = {
 
         drawer = {
             [""] = "+TSPunctDelimiter",
+            ["end"] = "+TSPunctDelimiter",
+
             title = "+TSMath",
             content = "+Normal",
         },
@@ -51,22 +87,113 @@ module.config.public = {
         escapesequence = "+TSType",
 
         todoitem = {
-            [""] = "+TSCharacter",
-            pendingmark = "+TSNamespace",
-            donemark = "+TSMethod",
+            ["1"] = {
+                [""] = "+NeorgUnorderedList1",
+
+                bracket = "+TSString",
+
+                pending = "+TSNamespace",
+                done = "+TSMethod",
+            },
+            ["2"] = {
+                [""] = "+NeorgUnorderedList2",
+
+                bracket = "+TSString",
+
+                pending = "+TSNamespace",
+                done = "+TSMethod",
+            },
+            ["3"] = {
+                [""] = "+NeorgUnorderedList3",
+
+                bracket = "+TSString",
+
+                pending = "+TSNamespace",
+                done = "+TSMethod",
+            },
+            ["4"] = {
+                [""] = "+NeorgUnorderedList4",
+
+                bracket = "+TSString",
+
+                pending = "+TSNamespace",
+                done = "+TSMethod",
+            },
+            ["5"] = {
+                [""] = "+NeorgUnorderedList5",
+
+                bracket = "+TSString",
+
+                pending = "+TSNamespace",
+                done = "+TSMethod",
+            },
+            ["6"] = {
+                [""] = "+NeorgUnorderedList6",
+
+                bracket = "+TSString",
+
+                pending = "+TSNamespace",
+                done = "+TSMethod",
+            },
         },
 
-        unordered = {
-            list = "+TSPunctDelimiter",
-            linklist = "+TSPunctDelimiter",
+        unorderedlist = {
+            ["1"] = {
+                [""] = "+TSPunctDelimiter",
+            },
+            ["2"] = {
+                [""] = "+TSPunctDelimiter",
+            },
+            ["3"] = {
+                [""] = "+TSPunctDelimiter",
+            },
+            ["4"] = {
+                [""] = "+TSPunctDelimiter",
+            },
+            ["5"] = {
+                [""] = "+TSPunctDelimiter",
+            },
+            ["6"] = {
+                [""] = "+TSPunctDelimiter",
+            },
         },
 
         quote = {
-            [""] = "+TSPunctDelimiter",
-            content = "+TSPunctDelimiter",
+            ["1"] = {
+                [""] = "+TSPunctDelimiter",
+                content = "+TSPunctDelimiter",
+            },
+            ["2"] = {
+                [""] = "+TSPunctDelimiter",
+                content = "+TSPunctDelimiter",
+            },
+            ["3"] = {
+                [""] = "+TSPunctDelimiter",
+                content = "+TSPunctDelimiter",
+            },
+            ["4"] = {
+                [""] = "+TSPunctDelimiter",
+                content = "+TSPunctDelimiter",
+            },
+            ["5"] = {
+                [""] = "+TSPunctDelimiter",
+                content = "+TSPunctDelimiter",
+            },
+            ["6"] = {
+                [""] = "+TSPunctDelimiter",
+                content = "+TSPunctDelimiter",
+            },
         },
 
-        codeblock = "+Normal",
+        insertion = {
+            [""] = "cterm=bold gui=bold",
+            prefix = "+TSPunctDelimiter",
+            item = "+TSNamespace",
+            parameters = "+TSPunctDelimiter",
+        },
+
+        strongparagraphdelimiter = "+TSPunctDelimiter",
+        weakparagraphdelimiter = "+TSPunctDelimiter",
     },
 
     dim = {
@@ -107,7 +234,7 @@ module.load = function()
                 table.insert(
                     injections,
                     (
-                        [[(tag (tag_name) @_tagname (tag_parameters) @%s (tag_content) @content (#eq? @_tagname "code") (#eq? @%s "%s"))]]
+                        [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @%s) (ranged_tag_content) @content (#eq? @_tagname "code") (#eq? @%s "%s"))]]
                     ):format(language, language, shorthand)
                 )
             end
@@ -115,7 +242,7 @@ module.load = function()
 
         table.insert(
             injections,
-            [[(tag (tag_name) @_tagname (tag_parameters) @language (tag_content) @content (#eq? @_tagname "code") (#not-eq? @language "norg"))]]
+            [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @language) (ranged_tag_content) @content (#eq? @_tagname "code") (#not-eq? @language "norg"))]]
         )
 
         vim.treesitter.set_query("norg", "injections", table.concat(injections, "\n"))

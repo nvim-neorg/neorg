@@ -1,42 +1,131 @@
-; "@" @NeorgTagBegin
-; "$" @NeorgTagBegin
-; (tag_end) @NeorgTagEnd
-; (tag_name) @NeorgTagName
-; (tag_parameters) @NeorgTagParameters
-; (tag_content) @NeorgTagContent
-; ("@" (tag_name) @NeorgTagName (tag_parameters)? (tag_content) @NeorgTagComment (#match? @NeorgTagName "^comment$"))
-; ("$" (tag_name) @NeorgTagName (tag_parameters)? (_)+ @NeorgTagComment (#match? @NeorgTagName "^comment$"))
+
+(ranged_tag ("_prefix") @NeorgTagBegin
+	name: (tag_name [(word) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
+	(tag_parameters parameter: (word) @NeorgTagParameter)? @NeorgTagParameters
+	content: (ranged_tag_content)? @NeorgTagContent
+	(ranged_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)) @NeorgTag
+
+; TODO: Make the content of @comment darker
+
+(carryover_tag_set (carryover_tag ("_prefix" @NeorgCarryoverTagBegin) (tag_name (word) @NeorgCarryoverTagNameWord) @NeorgCarryoverTagName (tag_parameters parameter: (word) @NeorgCarryoverTagParameter)? @NeorgCarryoverTagParameters) @NeorgCarryoverTag
+	target: (_)+ @NeorgCarryoverTagTarget)
 
 ; Headings
-(heading1 title: (paragraph_segment) @NeorgHeading1) 
-(heading2 title: (paragraph_segment) @NeorgHeading2) 
-(heading3 title: (paragraph_segment) @NeorgHeading3) 
-(heading4 title: (paragraph_segment) @NeorgHeading4) 
-(heading5 title: (paragraph_segment) @NeorgHeading5) 
-(heading6 title: (paragraph_segment) @NeorgHeading6) 
+(heading1 (heading1_prefix) @NeorgHeading1Prefix title: (paragraph_segment) @NeorgHeading1Title) @NeorgHeading1
+(heading2 (heading2_prefix) @NeorgHeading2Prefix title: (paragraph_segment) @NeorgHeading2Title) @NeorgHeading2
+(heading3 (heading3_prefix) @NeorgHeading3Prefix title: (paragraph_segment) @NeorgHeading3Title) @NeorgHeading3
+(heading4 (heading4_prefix) @NeorgHeading4Prefix title: (paragraph_segment) @NeorgHeading4Title) @NeorgHeading4
+(heading5 (heading5_prefix) @NeorgHeading5Prefix title: (paragraph_segment) @NeorgHeading5Title) @NeorgHeading5
+(heading6 (heading6_prefix) @NeorgHeading6Prefix title: (paragraph_segment) @NeorgHeading6Title) @NeorgHeading6
 
 ; Display errors
-(ERROR) @TSError
+(ERROR) @NeorgError
 
 ; Markers and Drawers
 (marker (marker_prefix) @NeorgMarker (paragraph_segment) @NeorgMarkerTitle)
-; (drawer) @NeorgDrawer
-; (drawer (paragraph_segment) @NeorgDrawerTitle)
-; (drawer_content) @NeorgDrawerContent
+(drawer ("_prefix") @NeorgDrawer title: (paragraph_segment) @NeorgDrawerTitle content: (_)* @NeorgDrawerContent end: (drawer_suffix) @NeorgDrawerEnd)
 
 ; Escape sequences (\char)
 (escape_sequence) @NeorgEscapeSequence
 
 ; Todo Items
-(todo_item ("_prefix") @NeorgTodoItem)
-(todo_item ("_suffix") @NeorgTodoItem)
-(todo_item_pending) @NeorgTodoItemPendingMark
-(todo_item_done) @NeorgTodoItemDoneMark
+(todo_item1
+	(unordered_list1_prefix) @NeorgTodoItem1
+	("_prefix") @NeorgTodoItem1Bracket
+	state:
+		[
+			(todo_item_undone) @NeorgTodoItem1Undone
+			(todo_item_pending) @NeorgTodoItem1Pending
+			(todo_item_done) @NeorgTodoItem1Done
+		]
+	("_suffix") @NeorgTodoItem1Bracket
+	content:
+		(paragraph) @NeorgTodoItem1Content)
+
+(todo_item2
+	(unordered_list2_prefix) @NeorgTodoItem2
+	("_prefix") @NeorgTodoItem2Bracket
+	state:
+		[
+			(todo_item_undone) @NeorgTodoItem2Undone
+			(todo_item_pending) @NeorgTodoItem2Pending
+			(todo_item_done) @NeorgTodoItem2Done
+		]
+	("_suffix") @NeorgTodoItem2Bracket
+	content:
+		(paragraph) @NeorgTodoItem2Content)
+
+(todo_item3
+	(unordered_list3_prefix) @NeorgTodoItem3
+	("_prefix") @NeorgTodoItem3Bracket
+	state:
+		[
+			(todo_item_undone) @NeorgTodoItem3Undone
+			(todo_item_pending) @NeorgTodoItem3Pending
+			(todo_item_done) @NeorgTodoItem3Done
+		]
+	("_suffix") @NeorgTodoItem3Bracket
+	content:
+		(paragraph) @NeorgTodoItem3Content)
+
+(todo_item4
+	(unordered_list4_prefix) @NeorgTodoItem4
+	("_prefix") @NeorgTodoItem4Bracket
+	state:
+		[
+			(todo_item_undone) @NeorgTodoItem4Undone
+			(todo_item_pending) @NeorgTodoItem4Pending
+			(todo_item_done) @NeorgTodoItem4Done
+		]
+	("_suffix") @NeorgTodoItem4Bracket
+	content:
+		(paragraph) @NeorgTodoItem4Content)
+
+(todo_item5
+	(unordered_list5_prefix) @NeorgTodoItem5
+	("_prefix") @NeorgTodoItem5Bracket
+	state:
+		[
+			(todo_item_undone) @NeorgTodoItem5Undone
+			(todo_item_pending) @NeorgTodoItem5Pending
+			(todo_item_done) @NeorgTodoItem5Done
+		]
+	("_suffix") @NeorgTodoItem5Bracket
+	content:
+		(paragraph) @NeorgTodoItem5Content)
+
+(todo_item6
+	(unordered_list6_prefix) @NeorgTodoItem6
+	("_prefix") @NeorgTodoItem6Bracket
+	state:
+		[
+			(todo_item_undone) @NeorgTodoItem6Undone
+			(todo_item_pending) @NeorgTodoItem6Pending
+			(todo_item_done) @NeorgTodoItem6Done
+		]
+	("_suffix") @NeorgTodoItem6Bracket
+	content:
+		(paragraph) @NeorgTodoItem6Content)
 
 ; Unordered lists
-(unordered_list_prefix) @NeorgUnorderedList
-(unordered_link ("_prefix") @NeorgUnorderedLinkList)
+(unordered_list1 (unordered_list1_prefix) @NeorgUnorderedList1 content: (paragraph) @NeorgUnorderedList1Content)
+(unordered_list2 (unordered_list2_prefix) @NeorgUnorderedList2 content: (paragraph) @NeorgUnorderedList2Content)
+(unordered_list3 (unordered_list3_prefix) @NeorgUnorderedList3 content: (paragraph) @NeorgUnorderedList3Content)
+(unordered_list4 (unordered_list4_prefix) @NeorgUnorderedList4 content: (paragraph) @NeorgUnorderedList4Content)
+(unordered_list5 (unordered_list5_prefix) @NeorgUnorderedList5 content: (paragraph) @NeorgUnorderedList5Content)
+(unordered_list6 (unordered_list6_prefix) @NeorgUnorderedList6 content: (paragraph) @NeorgUnorderedList6Content)
 
 ; Quotes
-(quote) @NeorgQuote
-(quote (paragraph_segment) @NeorgQuoteContent)
+(quote1 (quote1_prefix) @NeorgQuote1 content: (paragraph_segment) @NeorgQuote1Content)
+(quote2 (quote2_prefix) @NeorgQuote2 content: (paragraph_segment) @NeorgQuote2Content)
+(quote3 (quote3_prefix) @NeorgQuote3 content: (paragraph_segment) @NeorgQuote3Content)
+(quote4 (quote4_prefix) @NeorgQuote4 content: (paragraph_segment) @NeorgQuote4Content)
+(quote5 (quote5_prefix) @NeorgQuote5 content: (paragraph_segment) @NeorgQuote5Content)
+(quote6 (quote6_prefix) @NeorgQuote6 content: (paragraph_segment) @NeorgQuote6Content)
+
+; Insertion
+(insertion ("_prefix") @NeorgInsertionPrefix item: (word) @NeorgInsertionItem parameters: (paragraph_segment)? @NeorgInsertionParameters) @NeorgInsertion
+
+; Paragraph Delimiters
+(strong_paragraph_delimiter) @NeorgStrongParagraphDelimiter
+(weak_paragraph_delimiter) @NeorgWeakParagraphDelimiter
