@@ -42,7 +42,11 @@ return function(module)
             -- Create a callback to be invoked on prompt confirmation
             vim.fn.prompt_setcallback(buf, function(content)
                 if content:len() > 0 then
-                    callback(content)
+                    callback(content, {
+                        close = function(opts)
+                            vim.api.nvim_buf_delete(buf, opts or { force = true })
+                        end,
+                    })
                 end
             end)
 

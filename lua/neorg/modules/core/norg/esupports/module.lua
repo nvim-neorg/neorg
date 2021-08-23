@@ -185,6 +185,7 @@ module.config.public = {
     },
 
     goto_links = true,
+    fuzzing_threshold = 2,
     generate_meta_tags = true,
 }
 
@@ -299,17 +300,26 @@ module.public = {
         end
     end,
 
-    locate_link = function()
+    locate_link = function(force_type, locators, multi_file_eval)
         local treesitter = neorg.modules.get_module("core.integrations.treesitter")
+        local result = {
+            is_under_link = false,
+            link_location = nil,
+            link_info = {},
+        }
 
         if treesitter then
             local link_info = treesitter.get_link_info()
 
             if not link_info then
-                return nil
+                return result
+            else
+                result.is_under_link = true
+                result.link_info = link_info
             end
 
             local files = {}
+            local link_type = force_type and force_type or link_info.type
 
             do
                 local function slice(text, regex)
@@ -419,7 +429,290 @@ module.public = {
                 files[#files] = slice(files[#files], "[%*%#%|]+(.+)")
             end
 
-            local function generic_heading_find(tree, destination, utility, level)
+            local utility = {
+                buf = 0,
+
+                ts = neorg.modules.get_module("core.integrations.treesitter") or {},
+
+                strip = function(str)
+                    return ({ str:lower():gsub("\\([^\\])", "%1"):gsub("%s+", "") })[1]
+                end,
+
+                get_text_as_one = function(self, node)
+                    local ts = require("nvim-treesitter.ts_utils")
+                    return table.concat(ts.get_node_text(node, self.buf), "\n")
+                end,
+            }
+
+            if #files == 1 then -- Search only in current file
+                local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+                if not tree then
+                    return result
+                end
+
+                if not locators[link_type] then
+                    log.error("Locator not present for link type:", link_type)
+                    return result
+                end
+
+                result.link_location = locators[link_type](tree, files[#files], utility)
+                return result
+            else
+                if multi_file_eval then
+                    return multi_file_eval(files, locators, link_type, utility, result)
+                else
+                    for _, file in ipairs(vim.list_slice(files, 0, #files - 1)) do
+                        if vim.startswith(file, "/") then
+                            file = module.required["core.norg.dirman"].get_current_workspace()[2] .. file
+                        else
+                            file = vim.fn.expand("%:p:h") .. "/" .. file
+                        end
+
+                        if not vim.endswith(file, ".norg") then
+                            file = file .. ".norg"
+                        end
+
+                        -- Attempt to open the last workspace cache file in read-only mode
+                        local fd = vim.loop.fs_open(file, "r", 438)
+                        if not fd then
+                            return result
+                        end
+
+                        -- Attempt to stat the file and get the file length of the cache file
+                        local stat = vim.loop.fs_stat(file)
+                        if not stat then
+                            return result
+                        end
+
+                        local read_data = vim.loop.fs_read(fd, stat.size, 0)
+                        if not read_data then
+                            return result
+                        end
+
+                        vim.loop.fs_close(fd)
+
+                        local buf = vim.api.nvim_create_buf(false, true)
+
+                        vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(read_data, "\n", true))
+
+                        local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
+
+                        if not tree then
+                            return result
+                        end
+
+                        if not locators[link_type] then
+                            log.error("Locator not present for link type:", link_type)
+                            return result
+                        end
+
+                        result.link_location = locators[link_type](
+                            tree,
+                            files[#files],
+                            vim.tbl_extend("force", utility, { buf = buf })
+                        )
+
+                        vim.api.nvim_buf_delete(buf, { force = true })
+
+                        result.link_info.file = file
+
+                        if result.link_location then
+                            return result
+                        end
+                    end
+
+                    return result
+                end
+            end
+        end
+    end,
+
+    goto_link = function()
+        local link = module.public.locate_link(nil, module.public.locators.strict)
+
+        if link and not link.link_location then
+            if not link.is_under_link then
+                log.trace("No link found under cursor at position:", vim.api.nvim_win_get_cursor(0)[1])
+                return
+            end
+
+            local ui = neorg.modules.get_module("core.ui")
+
+            if not ui then
+                return
+            end
+
+            ui.create_selection("Link not found - what do we do now?", {
+                flags = {
+                    { "General actions:", "TSComment" },
+                    { "n", "Nothing" },
+                    {
+                        "f",
+                        {
+                            display = "Attempt to fix the link",
+                            name = "Fixing method",
+                            flags = {
+                                { "f", "Fuzzy fixing (search for any element)" },
+                                { "s", "Strict fixing (search for element of the link type)" },
+                            },
+                        },
+                    },
+                    {},
+                    { "Locations:", "TSComment" },
+                    { "a", "Place above parent node" },
+                    { "A", "Place at the top of the document" },
+                    { "b", "Place below parent node" },
+                    { "B", "Place at the bottom of the document" },
+                    {},
+                    { "Custom:", "TSComment" },
+                    {
+                        "c",
+                        {
+                            name = "Enter insert-linkable mode with the following restraints",
+                            display = "Custom Placement",
+                            flags = {
+                                { "h", "Traverse the document by heading" },
+                                { "f", "Traverse the document freely" },
+                            },
+                        },
+                    },
+                },
+            }, function(result, _)
+                if #result == 1 then
+                    local selected_value = result[1]
+
+                    if selected_value == "n" then
+                        return
+                    end
+                else
+                    if result[1] == "f" then
+                        local fixed_link = module.public.locate_link(
+                            result[2] == "f" and "link_end_generic" or nil,
+                            module.public.locators.fuzzy,
+                            function(files, locators, link_type, utility, callback_result)
+                                local best_matches = {}
+
+                                for _, file in ipairs(vim.list_slice(files, 0, #files - 1)) do
+                                    if vim.startswith(file, "/") then
+                                        file = module.required["core.norg.dirman"].get_current_workspace()[2] .. file
+                                    else
+                                        file = vim.fn.expand("%:p:h") .. "/" .. file
+                                    end
+
+                                    if not vim.endswith(file, ".norg") then
+                                        file = file .. ".norg"
+                                    end
+
+                                    -- Attempt to open the last workspace cache file in read-only mode
+                                    local fd = vim.loop.fs_open(file, "r", 438)
+                                    if not fd then
+                                        return callback_result
+                                    end
+
+                                    -- Attempt to stat the file and get the file length of the cache file
+                                    local stat = vim.loop.fs_stat(file)
+                                    if not stat then
+                                        return callback_result
+                                    end
+
+                                    local read_data = vim.loop.fs_read(fd, stat.size, 0)
+                                    if not read_data then
+                                        return callback_result
+                                    end
+
+                                    vim.loop.fs_close(fd)
+
+                                    local buf = vim.api.nvim_create_buf(false, true)
+
+                                    vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(read_data, "\n", true))
+
+                                    local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
+
+                                    if not tree then
+                                        return callback_result
+                                    end
+
+                                    if not locators[link_type] then
+                                        log.error("Locator not present for link type:", link_type)
+                                        return callback_result
+                                    end
+
+                                    table.insert(
+                                        best_matches,
+                                        {
+                                            locators[link_type](
+                                                tree,
+                                                files[#files],
+                                                vim.tbl_extend("force", utility, { buf = buf })
+                                            ),
+                                            file,
+                                        }
+                                    )
+
+                                    vim.api.nvim_buf_delete(buf, { force = true })
+                                end
+
+                                table.sort(best_matches, function(lhs, rhs)
+                                    return lhs[1].similarity < rhs[1].similarity
+                                end)
+
+                                callback_result.link_location = best_matches[1][1]
+                                callback_result.link_info.file = best_matches[1][2]
+
+                                return callback_result
+                            end
+                        )
+
+                        local function from_type_to_link_identifier(type)
+                            if vim.startswith(type, "heading") then
+                                local start = ("heading"):len()
+                                return ("*"):rep(tonumber(type:sub(start + 1, start + 1)))
+                            elseif type == "marker" then
+                                return "|"
+                            elseif type == "drawer" then
+                                return "||"
+                            else
+                                return "#"
+                            end
+                        end
+
+                        if fixed_link.link_location then
+                            vim.api.nvim_buf_set_text(
+                                0,
+                                link.link_info.range.row_start,
+                                link.link_info.range.column_start,
+                                link.link_info.range.row_end,
+                                link.link_info.range.column_end,
+                                {
+                                    "[" .. fixed_link.link_info.text .. "](" .. (fixed_link.link_info.location:match(
+                                        "(:.*:)[%*%#%|]+"
+                                    ) or "") .. from_type_to_link_identifier(
+                                        fixed_link.link_location.type
+                                    ) .. fixed_link.link_location.text .. ")",
+                                }
+                            )
+                            return
+                        end
+                    end
+                end
+            end)
+
+            return
+        end
+
+        if link then
+            if link.link_info.file and vim.fn.expand("%:p") ~= link.link_info.file then
+                vim.cmd("e " .. link.link_info.file)
+            end
+
+            vim.api.nvim_win_set_cursor(0, { link.link_location.row_start + 1, link.link_location.column_start })
+        end
+    end,
+
+    locators = {
+        strict = {
+            generic_heading_find = function(tree, destination, utility, level)
                 local result = nil
 
                 utility.ts.tree_map_rec(function(child)
@@ -433,193 +726,275 @@ module.public = {
                 end, tree)
 
                 return result
-            end
+            end,
 
-            local locators = {
-                link_end_heading1_reference = function(tree, destination, utility)
-                    return generic_heading_find(tree, destination, utility, 1)
-                end,
+            link_end_heading1_reference = function(tree, destination, utility)
+                return module.public.locators.strict.generic_heading_find(tree, destination, utility, 1)
+            end,
 
-                link_end_heading2_reference = function(tree, destination, utility)
-                    return generic_heading_find(tree, destination, utility, 2)
-                end,
+            link_end_heading2_reference = function(tree, destination, utility)
+                return module.public.locators.strict.generic_heading_find(tree, destination, utility, 2)
+            end,
 
-                link_end_heading3_reference = function(tree, destination, utility)
-                    return generic_heading_find(tree, destination, utility, 3)
-                end,
+            link_end_heading3_reference = function(tree, destination, utility)
+                return module.public.locators.strict.generic_heading_find(tree, destination, utility, 3)
+            end,
 
-                link_end_heading4_reference = function(tree, destination, utility)
-                    return generic_heading_find(tree, destination, utility, 4)
-                end,
+            link_end_heading4_reference = function(tree, destination, utility)
+                return module.public.locators.strict.generic_heading_find(tree, destination, utility, 4)
+            end,
 
-                link_end_heading5_reference = function(tree, destination, utility)
-                    return generic_heading_find(tree, destination, utility, 5)
-                end,
+            link_end_heading5_reference = function(tree, destination, utility)
+                return module.public.locators.strict.generic_heading_find(tree, destination, utility, 5)
+            end,
 
-                link_end_heading6_reference = function(tree, destination, utility)
-                    return generic_heading_find(tree, destination, utility, 6)
-                end,
+            link_end_heading6_reference = function(tree, destination, utility)
+                return module.public.locators.strict.generic_heading_find(tree, destination, utility, 6)
+            end,
 
-                link_end_marker_reference = function(tree, destination, utility)
-                    local result = nil
+            link_end_marker_reference = function(tree, destination, utility)
+                local result = nil
 
-                    utility.ts.tree_map(function(child)
-                        if not result and child:type() == "marker" then
-                            local marker_title = child:named_child(1)
+                utility.ts.tree_map(function(child)
+                    if not result and child:type() == "marker" then
+                        local marker_title = child:named_child(1)
 
-                            if
-                                utility.strip(destination)
-                                == utility.strip(utility:get_text_as_one(marker_title):sub(1, -2))
-                            then
-                                result = utility.ts.get_node_range(marker_title)
-                            end
-                        end
-                    end, tree)
-
-                    return result
-                end,
-
-                link_end_generic = function(tree, destination, utility)
-                    local result = nil
-
-                    utility.ts.tree_map_rec(function(child)
                         if
-                            not result
-                            and vim.tbl_contains({
-                                "heading1",
-                                "heading2",
-                                "heading3",
-                                "heading4",
-                                "heading5",
-                                "heading6",
-                                "marker",
-                                "drawer",
-                            }, child:type())
+                            utility.strip(destination)
+                            == utility.strip(utility:get_text_as_one(marker_title):sub(1, -2))
                         then
-                            local title = child:named_child(1)
-
-                            if
-                                utility.strip(destination)
-                                == utility.strip(utility:get_text_as_one(title):sub(1, -2))
-                            then
-                                result = utility.ts.get_node_range(title)
-                            end
+                            result = utility.ts.get_node_range(marker_title)
                         end
-                    end, tree)
+                    end
+                end, tree)
 
-                    return result
-                end,
+                return result
+            end,
 
-                link_end_url = function(_, destination, utility)
-                    vim.cmd("silent !open " .. vim.fn.fnameescape(destination))
-                    return utility.ts.get_node_range(require("nvim-treesitter.ts_utils").get_node_at_cursor())
-                end,
-            }
+            link_end_drawer_reference = function(tree, destination, utility)
+                local result = nil
 
-            local utility = {
-                buf = 0,
+                utility.ts.tree_map_rec(function(child)
+                    if not result and child:type() == "drawer" then
+                        local drawer_title = child:named_child(1)
 
-                ts = neorg.modules.get_module("core.integrations.treesitter") or {},
+                        if
+                            utility.strip(destination)
+                            == utility.strip(utility:get_text_as_one(drawer_title):sub(1, -2))
+                        then
+                            result = utility.ts.get_node_range(drawer_title)
+                        end
+                    end
+                end, tree)
 
-                strip = function(str)
-                    return ({ str:lower():gsub("\\([^\\])", "%1"):gsub("%s", "") })[1]
-                end,
+                return result
+            end,
 
-                get_text_as_one = function(self, node)
-                    local ts = require("nvim-treesitter.ts_utils")
-                    return table.concat(ts.get_node_text(node, self.buf), "\n")
-                end,
-            }
+            link_end_generic = function(tree, destination, utility)
+                local result = nil
 
-            if #files == 1 then -- Search only in current file
-                local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+                utility.ts.tree_map_rec(function(child)
+                    if
+                        not result
+                        and vim.tbl_contains({
+                            "heading1",
+                            "heading2",
+                            "heading3",
+                            "heading4",
+                            "heading5",
+                            "heading6",
+                            "marker",
+                            "drawer",
+                        }, child:type())
+                    then
+                        local title = child:named_child(1)
 
-                if not tree then
-                    return
+                        if utility.strip(destination) == utility.strip(utility:get_text_as_one(title):sub(1, -2)) then
+                            result = utility.ts.get_node_range(title)
+                            result.type = child:type()
+                        end
+                    end
+                end, tree)
+
+                return result
+            end,
+
+            link_end_url = function(_, destination, utility)
+                vim.cmd("silent !open " .. vim.fn.fnameescape(destination))
+                return utility.ts.get_node_range(require("nvim-treesitter.ts_utils").get_node_at_cursor())
+            end,
+        },
+
+        fuzzy = {
+            get_similarity = function(lhs, rhs)
+                -- Damerau-levenshtein implementation
+                -- NOTE: Taken from https://gist.github.com/Badgerati/3261142
+                -- Thank you to whoever made this, you saved me tonnes of effort
+                local len1 = string.len(lhs)
+                local len2 = string.len(rhs)
+                local matrix = {}
+                local cost = 0
+
+                -- quick cut-offs to save time
+                if len1 == 0 then
+                    return len2
+                elseif len2 == 0 then
+                    return len1
+                elseif lhs == rhs then
+                    return 0
                 end
 
-                if not locators[link_info.type] then
-                    log.error("Locator not present for link type:", link_info.type)
-                    return
+                -- initialise the base matrix values
+                for i = 0, len1, 1 do
+                    matrix[i] = {}
+                    matrix[i][0] = i
+                end
+                for j = 0, len2, 1 do
+                    matrix[0][j] = j
                 end
 
-                return locators[link_info.type](tree, files[#files], utility)
-            else
-                for _, file in ipairs(vim.list_slice(files, 0, #files - 1)) do
-                    if vim.startswith(file, "/") then
-                        file = module.required["core.norg.dirman"].get_current_workspace()[2] .. file
-                    else
-                        file = vim.fn.expand("%:p:h") .. "/" .. file
-                    end
-
-                    if not vim.endswith(file, ".norg") then
-                        file = file .. ".norg"
-                    end
-
-                    -- Attempt to open the last workspace cache file in read-only mode
-                    local fd = vim.loop.fs_open(file, "r", 438)
-                    if not fd then
-                        return nil
-                    end
-
-                    -- Attempt to stat the file and get the file length of the cache file
-                    local stat = vim.loop.fs_stat(file)
-                    if not stat then
-                        return nil
-                    end
-
-                    local read_data = vim.loop.fs_read(fd, stat.size, 0)
-                    if not read_data then
-                        return nil
-                    end
-
-                    vim.loop.fs_close(fd)
-
-                    local buf = vim.api.nvim_create_buf(false, true)
-
-                    vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(read_data, "\n", true))
-
-                    local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
-
-                    if not tree then
-                        return
-                    end
-
-                    if not locators[link_info.type] then
-                        log.error("Locator not present for link type:", link_info.type)
-                        return
-                    end
-
-                    local location = locators[link_info.type](
-                        tree,
-                        files[#files],
-                        vim.tbl_extend("force", utility, { buf = buf })
-                    )
-
-                    vim.api.nvim_buf_delete(buf, { force = true })
-
-                    if location then
-                        if file ~= vim.fn.expand("%:p") then
-                            vim.cmd("e " .. file)
+                -- actual Levenshtein algorithm
+                for i = 1, len1, 1 do
+                    for j = 1, len2, 1 do
+                        if lhs:byte(i) == rhs:byte(j) then
+                            cost = 0
+                        else
+                            cost = 1
                         end
 
-                        return location
+                        matrix[i][j] = math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost)
                     end
                 end
-            end
-        end
-    end,
 
-    goto_link = function()
-        local link = module.public.locate_link()
+                -- Return the last value mixed with our custom similarity checking function
+                -- Is it the most efficient? No! It's supposed to be accurate!
+                return matrix[len1][len2]
+                    / (function()
+                        local ret = 1
+                        local pattern = ".*"
 
-        if not link then
-            log.info("Unable to locate link under cursor, ignoring request :(")
-            return
-        end
+                        while rhs:sub(ret, ret) == lhs:sub(ret, ret) do
+                            ret = ret + 3
+                        end
 
-        vim.api.nvim_win_set_cursor(0, { link.row_start + 1, link.column_start })
-    end,
+                        local lhs_escaped = lhs:gsub("\\(\\)?", "%%%1")
+
+                        for i = 1, len1, 1 do
+                            local char = lhs_escaped:sub(i, i)
+                            pattern = pattern .. char .. "?"
+                        end
+
+                        local match = ({ rhs:match(pattern) })[1]
+
+                        if match then
+                            ret = ret + match:len()
+                        end
+
+                        return ret
+                    end)()
+            end,
+
+            fuzzy_find = function(type, tree, destination, utility)
+                local results = {}
+
+                utility.ts.tree_map_rec(function(child)
+                    if type == child:type() then
+                        local title = utility:get_text_as_one(child:named_child(1)):sub(1, -2)
+
+                        local similarity = module.public.locators.fuzzy.get_similarity(
+                            utility.strip(destination),
+                            utility.strip(title)
+                        )
+
+                        table.insert(results, { similarity, child, title })
+                    end
+                end, tree)
+
+                table.sort(results, function(lhs, rhs)
+                    return lhs[1] < rhs[1]
+                end)
+
+                local result = utility.ts.get_node_range(results[1][2])
+                result.type = results[1][2]:type()
+                result.text = results[1][3]
+                result.similarity = results[1][1]
+
+                return results[1][1] < module.config.public.fuzzing_threshold and result
+            end,
+
+            link_end_heading1_reference = function(tree, destination, utility)
+                return module.public.locators.fuzzy.fuzzy_find("heading1", tree, destination, utility)
+            end,
+
+            link_end_heading2_reference = function(tree, destination, utility)
+                return module.public.locators.fuzzy.fuzzy_find("heading2", tree, destination, utility)
+            end,
+
+            link_end_heading3_reference = function(tree, destination, utility)
+                return module.public.locators.fuzzy.fuzzy_find("heading3", tree, destination, utility)
+            end,
+
+            link_end_heading4_reference = function(tree, destination, utility)
+                return module.public.locators.fuzzy.fuzzy_find("heading4", tree, destination, utility)
+            end,
+
+            link_end_heading5_reference = function(tree, destination, utility)
+                return module.public.locators.fuzzy.fuzzy_find("heading5", tree, destination, utility)
+            end,
+
+            link_end_heading6_reference = function(tree, destination, utility)
+                return module.public.locators.fuzzy.fuzzy_find("heading6", tree, destination, utility)
+            end,
+
+            link_end_marker_reference = function(tree, destination, utility)
+                return module.public.locators.fuzzy.fuzzy_find("marker", tree, destination, utility)
+            end,
+
+            link_end_drawer_reference = function(tree, destination, utility)
+                return module.public.locators.fuzzy.fuzzy_find("drawer", tree, destination, utility)
+            end,
+
+            link_end_generic = function(tree, destination, utility)
+                local results = {}
+
+                utility.ts.tree_map_rec(function(child)
+                    if
+                        vim.tbl_contains({
+                            "heading1",
+                            "heading2",
+                            "heading3",
+                            "heading4",
+                            "heading5",
+                            "heading6",
+                            "marker",
+                            "drawer",
+                        }, child:type())
+                    then
+                        local title = utility:get_text_as_one(child:named_child(1)):sub(1, -2)
+
+                        local similarity = module.public.locators.fuzzy.get_similarity(
+                            utility.strip(destination),
+                            utility.strip(title)
+                        )
+
+                        table.insert(results, { similarity, child, title })
+                    end
+                end, tree)
+
+                -- TODO: Allow selection when multiple locations have the same similarity
+                table.sort(results, function(lhs, rhs)
+                    return lhs[1] < rhs[1]
+                end)
+
+                local result = utility.ts.get_node_range(results[1][2])
+                result.type = results[1][2]:type()
+                result.text = results[1][3]
+                result.similarity = results[1][1]
+
+                return results[1][1] < module.config.public.fuzzing_threshold and result
+            end,
+        },
+    },
 }
 
 module.on_event = function(event)

@@ -523,6 +523,7 @@ module.public = {
                 text = ts.get_node_text(parent:named_child(0))[1],
                 location = ts.get_node_text(parent:named_child(1))[1],
                 type = parent:named_child(1):type(),
+                range = module.public.get_node_range(parent),
             }
         end
     end,
