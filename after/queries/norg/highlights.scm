@@ -23,7 +23,7 @@
 
 ; Markers and Drawers
 (marker (marker_prefix) @NeorgMarker (paragraph_segment) @NeorgMarkerTitle)
-(drawer ("_prefix") @NeorgDrawer title: (paragraph_segment) @NeorgDrawerTitle content: (_)* @NeorgDrawerContent end: (drawer_suffix) @NeorgDrawerEnd)
+(drawer (drawer_prefix) @NeorgDrawer title: (paragraph_segment) @NeorgDrawerTitle content: (_)* @NeorgDrawerContent end: (drawer_suffix) @NeorgDrawerEnd)
 
 ; Escape sequences (\char)
 (escape_sequence) @NeorgEscapeSequence
@@ -116,12 +116,12 @@
 (unordered_list6 (unordered_list6_prefix) @NeorgUnorderedList6 content: (paragraph) @NeorgUnorderedList6Content)
 
 ; Unordered links
-(unordered_link1 ("_prefix") @NeorgUnorderedLink1 location: (link) @NeorgUnorderedLink1Location)
-(unordered_link2 ("_prefix") @NeorgUnorderedLink2 location: (link) @NeorgUnorderedLink2Location)
-(unordered_link3 ("_prefix") @NeorgUnorderedLink3 location: (link) @NeorgUnorderedLink3Location)
-(unordered_link4 ("_prefix") @NeorgUnorderedLink4 location: (link) @NeorgUnorderedLink4Location)
-(unordered_link5 ("_prefix") @NeorgUnorderedLink5 location: (link) @NeorgUnorderedLink5Location)
-(unordered_link6 ("_prefix") @NeorgUnorderedLink6 location: (link) @NeorgUnorderedLink6Location)
+(unordered_link1 (unordered_link1_prefix) @NeorgUnorderedLink1 location: (link) @NeorgUnorderedLink1Location)
+(unordered_link2 (unordered_link2_prefix) @NeorgUnorderedLink2 location: (link) @NeorgUnorderedLink2Location)
+(unordered_link3 (unordered_link3_prefix) @NeorgUnorderedLink3 location: (link) @NeorgUnorderedLink3Location)
+(unordered_link4 (unordered_link4_prefix) @NeorgUnorderedLink4 location: (link) @NeorgUnorderedLink4Location)
+(unordered_link5 (unordered_link5_prefix) @NeorgUnorderedLink5 location: (link) @NeorgUnorderedLink5Location)
+(unordered_link6 (unordered_link6_prefix) @NeorgUnorderedLink6 location: (link) @NeorgUnorderedLink6Location)
 
 ; Quotes
 (quote1 (quote1_prefix) @NeorgQuote1 content: (paragraph_segment) @NeorgQuote1Content)
@@ -132,7 +132,7 @@
 (quote6 (quote6_prefix) @NeorgQuote6 content: (paragraph_segment) @NeorgQuote6Content)
 
 ; Insertion
-(insertion ("_prefix") @NeorgInsertionPrefix item: (word) @NeorgInsertionItem parameters: (paragraph_segment)? @NeorgInsertionParameters) @NeorgInsertion
+(insertion (insertion_prefix) @NeorgInsertionPrefix item: (word) @NeorgInsertionItem parameters: (paragraph_segment)? @NeorgInsertionParameters) @NeorgInsertion
 
 ; Paragraph Delimiters
 (strong_paragraph_delimiter) @NeorgStrongParagraphDelimiter

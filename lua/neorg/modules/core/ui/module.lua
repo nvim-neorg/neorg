@@ -9,6 +9,7 @@ local utils = require("neorg.external.helpers")
 
 module.private = {
     windows = {},
+    namespace = vim.api.nvim_create_namespace("core.ui"),
 }
 
 module.public = {
@@ -69,8 +70,15 @@ module.public = {
         -- Reset the window ID to nil so it can be reused again
         module.private.windows[name] = nil
     end,
+
+    apply_buffer_options = function(buf, option_list)
+        for option_name, value in pairs(option_list or {}) do
+            vim.api.nvim_buf_set_option(buf, option_name, value)
+        end
+    end,
 }
 
 module.public = vim.tbl_extend("error", module.public, utils.require(module, "text_popup")(module))
+module.public = vim.tbl_extend("error", module.public, utils.require(module, "selection_popup")(module))
 
 return module
