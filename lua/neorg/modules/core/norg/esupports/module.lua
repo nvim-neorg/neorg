@@ -607,6 +607,15 @@ module.public = {
                     end
                 end
 
+                local ts = neorg.modules.get_module("core.integrations.treesitter")
+
+                if not ts then
+                    log.error(
+                        "Unable to perform operations on the syntax tree, treesitter integrations module not loaded"
+                    )
+                    return
+                end
+
                 if #result == 1 then
                     local selected_value = result[1]
 
@@ -630,15 +639,6 @@ module.public = {
                             link_node = link_node:parent()
                         end
 
-                        local ts = neorg.modules.get_module("core.integrations.treesitter")
-
-                        if not ts then
-                            log.error(
-                                "Unable to perform operations on the syntax tree, treesitter integrations module not loaded"
-                            )
-                            return
-                        end
-
                         local range = ts.get_node_range(link_node)
 
                         if selected_value == "a" then
@@ -648,6 +648,51 @@ module.public = {
                             })
                         else
                             local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
+
+                            if line:match("%S") then
+                                vim.fn.append(range.row_end, {
+                                    "",
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                    "",
+                                })
+                            else
+                                vim.fn.append(range.row_end, {
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                    "",
+                                })
+                            end
+                        end
+                    elseif vim.tbl_contains({ "A", "B" }, selected_value) then
+                        local document_tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+                        if not document_tree then
+                            log.error("Unable to parse current document, what a bummer")
+                            return
+                        end
+
+                        local document = document_tree:root()
+                        local range = ts.get_node_range(
+                            document:named_child(math.max(1, document:named_child_count() - 1))
+                        )
+
+                        if selected_value == "A" then
+                            local line = vim.api.nvim_buf_get_lines(0, range.row_start - 1, range.row_start, true)[1]
+
+                            if line:match("%S") then
+                                vim.fn.append(range.row_start, {
+                                    "",
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                    "",
+                                })
+                            else
+                                vim.fn.append(range.row_start, {
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                    "",
+                                })
+                            end
+                        elseif selected_value == "B" then
+                            local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
+                            log.warn(line)
 
                             if line:match("%S") then
                                 vim.fn.append(range.row_end, {
