@@ -531,6 +531,14 @@ module.public = {
 
     -- Gets the range of a given node
     get_node_range = function(node)
+        if not node then
+        	return {
+        		row_start = 0,
+        		column_start = 0,
+        		row_end = 0,
+        		column_end = 0,
+        	}
+        end
         local rs, cs, re, ce = node:range()
         return {
             row_start = rs,
