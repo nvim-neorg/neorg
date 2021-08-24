@@ -581,6 +581,7 @@ module.public = {
                                 { "f", "Traverse the document freely" },
                             },
                         },
+                        true
                     },
                 },
             }, function(result, _)
