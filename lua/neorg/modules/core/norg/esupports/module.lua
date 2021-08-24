@@ -51,7 +51,7 @@ function _neorg_indent_expr()
 end
 
 module.setup = function()
-    return { success = true, requires = { "core.autocommands", "core.keybinds", "core.norg.dirman" } }
+    return { success = true, requires = { "core.autocommands", "core.keybinds", "core.norg.dirman", "core.scanner" } }
 end
 
 module.config.public = {
@@ -329,72 +329,9 @@ module.public = {
                 link_info.text = slice(link_info.text, "%[(.+)%]")
                 link_info.location = slice(link_info.location, "%((.*[%*%#%|]*.+)%)")
 
-                -- TODO: Maybe extract mini lexer into a module?
+				local scanner = module.required["core.scanner"]
 
-                local scanner = {
-                    position = 0,
-                    buffer = "",
-
-                    current = function(self)
-                        if self.position == 0 then
-                            return nil
-                        end
-                        return link_info.location:sub(self.position, self.position)
-                    end,
-
-                    lookahead = function(self, count)
-                        count = count or 1
-
-                        if self.position + count > link_info.location:len() then
-                            return nil
-                        end
-
-                        return link_info.location:sub(self.position + count, self.position + count)
-                    end,
-
-                    lookbehind = function(self, count)
-                        count = count or 1
-
-                        if self.position - count < 0 then
-                            return nil
-                        end
-
-                        return link_info.location:sub(self.position - count, self.position - count)
-                    end,
-
-                    backtrack = function(self, amount)
-                        self.position = self.position - amount
-                    end,
-
-                    advance = function(self)
-                        self.buffer = self.buffer .. link_info.location:sub(self.position, self.position)
-                        self.position = self.position + 1
-                    end,
-
-                    skip = function(self)
-                        self.position = self.position + 1
-                    end,
-
-                    mark_end = function(self)
-                        if self.buffer:len() ~= 0 then
-                            table.insert(files, self.buffer)
-                            self.buffer = ""
-                        end
-                    end,
-
-                    halt = function(self, mark_end, continue_till_end)
-                        if mark_end then
-                            self:mark_end()
-                        end
-
-                        if continue_till_end then
-                            self.buffer = link_info.location:sub(self.position + 1)
-                            self:mark_end()
-                        end
-
-                        self.position = link_info.location:len() + 1
-                    end,
-                }
+				scanner:initialize_new(link_info.location)
 
                 if scanner:lookahead() ~= ":" then
                     scanner:halt(false, true)
@@ -425,6 +362,8 @@ module.public = {
                 end
 
                 scanner:mark_end()
+
+				files = scanner:end_session()
 
                 link_info.fileless_location = files[#files]
                 files[#files] = slice(files[#files], "[%*%#%|]+(.+)")
@@ -531,14 +470,21 @@ module.public = {
         end
     end,
 
+    --- Locates a link present under the cursor and jumps to it
+    --- Optionally provides actions that can be performed when a link cannot be found
     goto_link = function()
+        -- First, grab the location of our link
         local link = module.public.locate_link(nil, module.public.locators.strict)
 
+		-- If there were no internal errors but no location was given then
         if link and not link.link_location then
+        	-- If we were never under a link to begin with simply bail
             if not link.is_under_link then
                 log.trace("No link found under cursor at position:", vim.api.nvim_win_get_cursor(0)[1])
                 return
             end
+
+			-- Otherwise it means the destination could not be found, prompt the user with what to do next
 
             local ui = neorg.modules.get_module("core.ui")
 
@@ -546,8 +492,10 @@ module.public = {
                 return
             end
 
+			-- This variable will be true if we're searching for a destination in a file other than the current file
             local searching_in_foreign_file = link.link_info.file and link.link_info.file ~= vim.fn.expand("%:p")
 
+			-- Actually prompt the user
             ui.create_selection("Link not found - what do we do now?", {
                 flags = {
                     { "General actions:", "TSComment" },
@@ -581,10 +529,14 @@ module.public = {
                                 { "f", "Traverse the document freely" },
                             },
                         },
+                        -- This currently isn't supported and so is greyed out
                         true,
                     },
                 },
             }, function(result, _)
+                --- Converts a node type (like "heading1" or "marker") into a char
+                --- representation ("*"/"|" etc.)
+                --- @param type string a node type
                 local function from_type_to_link_identifier(type)
                     if vim.startswith(type, "heading") then
                         local start = ("heading"):len()
@@ -598,6 +550,8 @@ module.public = {
                     end
                 end
 
+                --- Returns the type of node we should search for from a link type
+                --- @param link_type string the type of link we're dealing with
                 local function extract_node_type(link_type)
                     if vim.startswith(link_type, "link_end_heading") then
                         local start = ("link_end_heading"):len()
@@ -623,18 +577,25 @@ module.public = {
                 if #result == 1 then
                     local selected_value = result[1]
 
+                    -- If the user chose to "do nothing" then do nothing :)
                     if selected_value == "n" then
                         return
+                    -- If the user has pressed one of "a" or "b" (above/below) then
                     elseif vim.tbl_contains({ "a", "b" }, selected_value) then
+                        -- Extract the type of node we should start searching for
                         local to_search = extract_node_type(link.link_info.type)
 
+						-- If the returned value was any (aka we were dealing with a generic #link)
+						-- then bail, we can't possibly create a linkable if we don't know its type
                         if to_search == "any" then
                             vim.notify("Cannot create a linkable from ambiguous type '#'!", 4)
                             return
                         end
 
+                        -- Extract the link node
                         local link_node = link.link_info.node
 
+                        -- Keep searching for a potential parent node
                         while
                             link_node:type() ~= to_search
                             and link_node:parent():type() ~= "document_content"
@@ -645,6 +606,8 @@ module.public = {
 
                         local range = ts.get_node_range(link_node)
 
+						-- Here is where we be a bit more narrow, depending on the selected value insert
+						-- the text at different locations
                         if selected_value == "a" then
                             vim.fn.append(range.row_start, {
                                 (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
@@ -653,6 +616,7 @@ module.public = {
                         else
                             local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
 
+							-- If the line has non-whitespace characters then insert an extra newline before the linkable
                             if line:match("%S") then
                                 vim.fn.append(range.row_end, {
                                     "",
@@ -666,7 +630,9 @@ module.public = {
                                 })
                             end
                         end
+                    -- Else if we pressed one of { A, B }
                     elseif vim.tbl_contains({ "A", "B" }, selected_value) then
+                    	-- If we're dealing with a foreign file then open that up first
                         if link.link_info.file and link.link_info.file:len() > 0 then
                             vim.cmd("e " .. link.link_info.file)
                         end
