@@ -47,13 +47,10 @@ return function(module)
 
                         -- A key can only consist of one char, enforce this rule here:
                         if keybind:len() ~= 1 then
-                            table.insert(
-                                result,
-                                {
-                                    keybind:len() == 0 and " " or keybind,
-                                    data[3] and "TSStrike" or (value or "TSPunctDelimiter"),
-                                }
-                            )
+                            table.insert(result, {
+                                keybind:len() == 0 and " " or keybind,
+                                data[3] and "TSStrike" or (value or "TSPunctDelimiter"),
+                            })
                         else
                             local keybind_element = {}
 
