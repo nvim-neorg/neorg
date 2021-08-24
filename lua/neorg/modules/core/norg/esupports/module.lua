@@ -1152,13 +1152,18 @@ module.on_event = function(event)
                 local treesitter = neorg.modules.get_module("core.integrations.treesitter")
 
                 if treesitter then
-                    local document_meta_tag = vim.tbl_filter(function(node)
-                        return require("nvim-treesitter.ts_utils").get_node_text(node)[1] == "@document.meta"
-                    end, treesitter.get_all_nodes(
-                        "tag"
-                    ))
+                	-- Try and query a ranged tag with the name document.meta
+					local query = vim.treesitter.parse_query("norg", [[
+						(foreplay
+							(ranged_tag
+						  	  (tag_name) @name
+						  	  (#eq? @name "document.meta")
+							)
+						)
+					]])
 
-                    if vim.tbl_isempty(document_meta_tag) then
+					-- If we have not found such a tag then we need to generate one!
+                    if not ({ query:iter_matches(vim.treesitter.get_parser(0, "norg"):parse()[1]:root(), 0)() })[2] then
                         module.public.construct_metadata()
                     end
                 end
