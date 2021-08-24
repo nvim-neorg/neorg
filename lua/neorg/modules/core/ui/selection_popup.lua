@@ -237,6 +237,7 @@ return function(module)
             }
 
             vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
+            vim.api.nvim_win_set_buf(0, buf)
 
             -- Merge the user provided options with the default options and apply them to the new buffer
             module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
