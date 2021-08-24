@@ -49,26 +49,29 @@ return function(module)
                         if keybind:len() ~= 1 then
                             table.insert(
                                 result,
-                                { keybind:len() == 0 and " " or keybind, data[3] and "TSStrike" or (value or "TSPunctDelimiter") }
+                                {
+                                    keybind:len() == 0 and " " or keybind,
+                                    data[3] and "TSStrike" or (value or "TSPunctDelimiter"),
+                                }
                             )
                         else
                             local keybind_element = {}
 
-							local highlights = {
-								key = "NeorgSelectionWindowKey",
-								key_name = "NeorgSelectionWindowKeyName",
-								arrow = "NeorgSelectionWindowArrow",
-								nested_key_name = "NeorgSelectionWindowNestedKeyName"
-							}
+                            local highlights = {
+                                key = "NeorgSelectionWindowKey",
+                                key_name = "NeorgSelectionWindowKeyName",
+                                arrow = "NeorgSelectionWindowArrow",
+                                nested_key_name = "NeorgSelectionWindowNestedKeyName",
+                            }
 
-							if data[3] then
-								highlights = {
-									key = "TSStrike",
-									key_name = "TSStrike",
-									arrow = "TSStrike",
-									nested_key_name = "TSStrike",
-								}
-							end
+                            if data[3] then
+                                highlights = {
+                                    key = "TSStrike",
+                                    key_name = "TSStrike",
+                                    arrow = "TSStrike",
+                                    nested_key_name = "TSStrike",
+                                }
+                            end
 
                             table.insert(keybind_element, { keybind, highlights.key })
                             table.insert(keybind_element, { " -> ", highlights.arrow })
@@ -253,8 +256,8 @@ return function(module)
             vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
             vim.api.nvim_win_set_buf(0, buf)
 
-			vim.api.nvim_win_set_option(0, "number", false)
-			vim.api.nvim_win_set_option(0, "relativenumber", false)
+            vim.api.nvim_win_set_option(0, "number", false)
+            vim.api.nvim_win_set_option(0, "relativenumber", false)
 
             -- Merge the user provided options with the default options and apply them to the new buffer
             module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))

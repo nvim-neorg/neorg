@@ -462,7 +462,7 @@ module.public = {
                 if multi_file_eval then
                     return multi_file_eval(files, locators, link_type, utility, result)
                 else
-					result.link_info.file = ""
+                    result.link_info.file = ""
 
                     for _, file in ipairs(vim.list_slice(files, 0, #files - 1)) do
                         if vim.startswith(file, "/") then
@@ -545,7 +545,7 @@ module.public = {
                 return
             end
 
-			local searching_in_foreign_file = link.link_info.file and link.link_info.file ~= vim.fn.expand("%:p")
+            local searching_in_foreign_file = link.link_info.file and link.link_info.file ~= vim.fn.expand("%:p")
 
             ui.create_selection("Link not found - what do we do now?", {
                 flags = {
@@ -647,19 +647,19 @@ module.public = {
                                 "",
                             })
                         else
-							local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
+                            local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
 
-							if line:match("%S") then
-                            	vim.fn.append(range.row_end, {
-                                	"",
-                                	(" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                	"",
-                            	})
+                            if line:match("%S") then
+                                vim.fn.append(range.row_end, {
+                                    "",
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                    "",
+                                })
                             else
-                            	vim.fn.append(range.row_end, {
-                                	(" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                	"",
-                            	})
+                                vim.fn.append(range.row_end, {
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                    "",
+                                })
                             end
                         end
                     end
@@ -940,9 +940,9 @@ module.public = {
                         local lhs_escaped = lhs:gsub("\\(\\)?", "%%%1")
 
                         for i = 1, len1, 1 do
-							if lhs:sub(i, i) == rhs:sub(i, i) then
-								ret = ret + 3
-							end
+                            if lhs:sub(i, i) == rhs:sub(i, i) then
+                                ret = ret + 3
+                            end
 
                             local char = lhs_escaped:sub(i, i)
                             pattern = pattern .. char .. "?"
