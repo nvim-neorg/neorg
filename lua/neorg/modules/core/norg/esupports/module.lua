@@ -185,7 +185,7 @@ module.config.public = {
     },
 
     goto_links = true,
-    fuzzing_threshold = 2,
+    fuzzing_threshold = 1,
     generate_meta_tags = true,
 }
 
@@ -579,11 +579,75 @@ module.public = {
                     },
                 },
             }, function(result, _)
+                local function from_type_to_link_identifier(type)
+                    if vim.startswith(type, "heading") then
+                        local start = ("heading"):len()
+                        return ("*"):rep(tonumber(type:sub(start + 1, start + 1)))
+                    elseif type == "marker" then
+                        return "|"
+                    elseif type == "drawer" then
+                        return "||"
+                    else
+                        return "#"
+                    end
+                end
+
+                local function extract_node_type(link_type)
+                    if vim.startswith(link_type, "link_end_heading") then
+                        local start = ("link_end_heading"):len()
+                        return "heading" .. link_type:sub(start + 1, start + 1)
+                    elseif link_type:find("drawer") then
+                        return "drawer"
+                    else
+                        return "any"
+                    end
+                end
+
                 if #result == 1 then
                     local selected_value = result[1]
 
                     if selected_value == "n" then
                         return
+                    elseif vim.tbl_contains({ "a", "b" }, selected_value) then
+                        local to_search = extract_node_type(link.link_info.type)
+
+                        if to_search == "any" then
+                            vim.notify("Cannot create a linkable from ambiguous type '#'!", 4)
+                            return
+                        end
+
+                        local link_node = link.link_info.node
+
+                        while
+                            link_node:type() ~= to_search
+                            and link_node:type() ~= "document"
+                            and link_node:type() ~= "marker"
+                        do
+                            link_node = link_node:parent()
+                        end
+
+                        local ts = neorg.modules.get_module("core.integrations.treesitter")
+
+                        if not ts then
+                            log.error(
+                                "Unable to perform operations on the syntax tree, treesitter integrations module not loaded"
+                            )
+                            return
+                        end
+
+                        local range = ts.get_node_range(link_node)
+
+                        if selected_value == "a" then
+                            vim.fn.append(range.row_start, {
+                                (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                "",
+                            })
+                        else
+                            vim.fn.append(range.row_end, {
+                                (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                "",
+                            })
+                        end
                     end
                 else
                     if result[1] == "f" then
@@ -638,17 +702,14 @@ module.public = {
                                         return callback_result
                                     end
 
-                                    table.insert(
-                                        best_matches,
-                                        {
-                                            locators[link_type](
-                                                tree,
-                                                files[#files],
-                                                vim.tbl_extend("force", utility, { buf = buf })
-                                            ),
-                                            file,
-                                        }
-                                    )
+                                    table.insert(best_matches, {
+                                        locators[link_type](
+                                            tree,
+                                            files[#files],
+                                            vim.tbl_extend("force", utility, { buf = buf })
+                                        ),
+                                        file,
+                                    })
 
                                     vim.api.nvim_buf_delete(buf, { force = true })
                                 end
@@ -663,19 +724,6 @@ module.public = {
                                 return callback_result
                             end
                         )
-
-                        local function from_type_to_link_identifier(type)
-                            if vim.startswith(type, "heading") then
-                                local start = ("heading"):len()
-                                return ("*"):rep(tonumber(type:sub(start + 1, start + 1)))
-                            elseif type == "marker" then
-                                return "|"
-                            elseif type == "drawer" then
-                                return "||"
-                            else
-                                return "#"
-                            end
-                        end
 
                         if fixed_link.link_location then
                             vim.api.nvim_buf_set_text(
@@ -693,6 +741,8 @@ module.public = {
                                 }
                             )
                             return
+                        else
+                            vim.notify("Sorry, Neorg couldn't fix that link :(")
                         end
                     end
                 end
