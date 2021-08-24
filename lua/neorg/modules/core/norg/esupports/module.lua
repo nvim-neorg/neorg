@@ -462,6 +462,8 @@ module.public = {
                 if multi_file_eval then
                     return multi_file_eval(files, locators, link_type, utility, result)
                 else
+					result.link_info.file = ""
+
                     for _, file in ipairs(vim.list_slice(files, 0, #files - 1)) do
                         if vim.startswith(file, "/") then
                             file = module.required["core.norg.dirman"].get_current_workspace()[2] .. file
@@ -543,6 +545,8 @@ module.public = {
                 return
             end
 
+			local searching_in_foreign_file = link.link_info.file and link.link_info.file ~= vim.fn.expand("%:p")
+
             ui.create_selection("Link not found - what do we do now?", {
                 flags = {
                     { "General actions:", "TSComment" },
@@ -560,9 +564,9 @@ module.public = {
                     },
                     {},
                     { "Locations:", "TSComment" },
-                    { "a", "Place above parent node" },
+                    { "a", "Place above parent node", searching_in_foreign_file },
                     { "A", "Place at the top of the document" },
-                    { "b", "Place below parent node" },
+                    { "b", "Place below parent node", searching_in_foreign_file },
                     { "B", "Place at the bottom of the document" },
                     {},
                     { "Custom:", "TSComment" },
@@ -620,7 +624,7 @@ module.public = {
 
                         while
                             link_node:type() ~= to_search
-                            and link_node:type() ~= "document"
+                            and link_node:parent():type() ~= "document"
                             and link_node:type() ~= "marker"
                         do
                             link_node = link_node:parent()
@@ -643,10 +647,20 @@ module.public = {
                                 "",
                             })
                         else
-                            vim.fn.append(range.row_end, {
-                                (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                "",
-                            })
+							local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
+
+							if line:match("%S") then
+                            	vim.fn.append(range.row_end, {
+                                	"",
+                                	(" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                	"",
+                            	})
+                            else
+                            	vim.fn.append(range.row_end, {
+                                	(" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                	"",
+                            	})
+                            end
                         end
                     end
                 else
@@ -923,13 +937,13 @@ module.public = {
                         local ret = 1
                         local pattern = ".*"
 
-                        while rhs:sub(ret, ret) == lhs:sub(ret, ret) do
-                            ret = ret + 3
-                        end
-
                         local lhs_escaped = lhs:gsub("\\(\\)?", "%%%1")
 
                         for i = 1, len1, 1 do
+							if lhs:sub(i, i) == rhs:sub(i, i) then
+								ret = ret + 3
+							end
+
                             local char = lhs_escaped:sub(i, i)
                             pattern = pattern .. char .. "?"
                         end

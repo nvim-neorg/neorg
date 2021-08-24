@@ -49,26 +49,42 @@ return function(module)
                         if keybind:len() ~= 1 then
                             table.insert(
                                 result,
-                                { keybind:len() == 0 and " " or keybind, value or "TSPunctDelimiter", data[3] or false }
+                                { keybind:len() == 0 and " " or keybind, data[3] and "TSStrike" or (value or "TSPunctDelimiter") }
                             )
                         else
                             local keybind_element = {}
 
-                            table.insert(keybind_element, { keybind, "NeorgSelectionWindowKey" })
-                            table.insert(keybind_element, { " -> ", "NeorgSelectionWindowArrow" })
+							local highlights = {
+								key = "NeorgSelectionWindowKey",
+								key_name = "NeorgSelectionWindowKeyName",
+								arrow = "NeorgSelectionWindowArrow",
+								nested_key_name = "NeorgSelectionWindowNestedKeyName"
+							}
+
+							if data[3] then
+								highlights = {
+									key = "TSStrike",
+									key_name = "TSStrike",
+									arrow = "TSStrike",
+									nested_key_name = "TSStrike",
+								}
+							end
+
+                            table.insert(keybind_element, { keybind, highlights.key })
+                            table.insert(keybind_element, { " -> ", highlights.arrow })
 
                             -- If we're dealing with a table element then query its name and display it with a custom highlight
                             if type(value) == "table" then
                                 table.insert(keybind_element, {
                                     "+" .. (value.display and value.display or (value.name or "No description")),
-                                    "NeorgSelectionWindowNestedKeyName",
+                                    highlights.nested_key_name,
                                 })
                             elseif type(value) == "string" then -- If we're dealing with a string then just display it
-                                table.insert(keybind_element, { value, "NeorgSelectionWindowKeyName" })
+                                table.insert(keybind_element, { value, highlights.key_name })
                             else
                                 -- If we're dealing with something else then try to rescue the situation by stringifying whatever
                                 -- the hell the user tried to provide
-                                table.insert(keybind_element, { tostring(value), "NeorgSelectionWindowKeyName" })
+                                table.insert(keybind_element, { tostring(value), highlights.key_name })
                             end
 
                             -- Insert this keybind element into the result, creating a table that looks like { { { text, highlight } } }
@@ -92,8 +108,6 @@ return function(module)
                             hl_group = virt_text[2],
                             virt_text = { { virt_text[1], virt_text[2] } },
                             virt_text_pos = "overlay",
-                            hl_eol = virt_text[3],
-                            end_col = virt_text[3] and 1 or nil,
                         })
                     else
                         vim.api.nvim_buf_set_extmark(buf, module.private.namespace, i - 1, 0, {
@@ -172,8 +186,8 @@ return function(module)
 
                 data = data and data[1]
 
-                -- If that key has been defined then
-                if data and not vim.tbl_isempty(data) then
+                -- If that key has been defined and it is enabled then
+                if data and not vim.tbl_isempty(data) and not data[3] then
                     -- Add the current keypress to the list of provided inputs
                     table.insert(result, input)
 
@@ -238,6 +252,9 @@ return function(module)
 
             vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
             vim.api.nvim_win_set_buf(0, buf)
+
+			vim.api.nvim_win_set_option(0, "number", false)
+			vim.api.nvim_win_set_option(0, "relativenumber", false)
 
             -- Merge the user provided options with the default options and apply them to the new buffer
             module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
