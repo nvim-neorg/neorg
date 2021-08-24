@@ -18,8 +18,6 @@ return function(neorg_leader)
                 { "<CR>", "core.norg.esupports.goto_link" },
 
                 { "<C-s>", "core.integrations.telescope.find_linkable" },
-
-                { neorg_leader .. "toc", "core.norg.qol.toc.generate.toc" },
             },
 
             i = {

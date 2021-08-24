@@ -581,7 +581,7 @@ module.public = {
                                 { "f", "Traverse the document freely" },
                             },
                         },
-                        true
+                        true,
                     },
                 },
             }, function(result, _)
@@ -605,7 +605,7 @@ module.public = {
                     elseif link_type:find("drawer") then
                         return "drawer"
                     elseif link_type:find("marker") then
-						return "marker"
+                        return "marker"
                     else
                         return "any"
                     end
@@ -683,31 +683,25 @@ module.public = {
                             document:named_child(document:named_child_count() == 1 and 0 or 1)
                         )
 
-						-- TODO: Add support for selecting which file to place the link in if multiple files are given
+                        -- TODO: Add support for selecting which file to place the link in if multiple files are given
                         if selected_value == "A" then
                             local line
 
                             if document:named_child_count() == 1 then
-								line = vim.api.nvim_buf_get_lines(0, 0, 1, true)[1]
-							else
-                            	line = vim.api.nvim_buf_get_lines(0, range.row_start - 1, range.row_start, true)[1]
+                                line = vim.api.nvim_buf_get_lines(0, 0, 1, true)[1]
+                            else
+                                line = vim.api.nvim_buf_get_lines(0, range.row_start - 1, range.row_start, true)[1]
                             end
 
                             if range.row_start > 0 and line:match("%S") then
                                 vim.fn.append(range.row_start, {
                                     "",
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub(
-                                        "^([%#%*%|]+)",
-                                        "%1 "
-                                    ),
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
                                     "",
                                 })
                             else
                                 vim.fn.append(range.row_start, {
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub(
-                                        "^([%#%*%|]+)",
-                                        "%1 "
-                                    ),
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
                                     "",
                                 })
                             end
@@ -717,25 +711,19 @@ module.public = {
                             if line:match("%S") then
                                 vim.fn.append(range.row_end, {
                                     "",
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub(
-                                        "^([%#%*%|]+)",
-                                        "%1 "
-                                    ),
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
                                     "",
                                 })
                             else
                                 vim.fn.append(range.row_end, {
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub(
-                                        "^([%#%*%|]+)",
-                                        "%1 "
-                                    ),
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
                                     "",
                                 })
                             end
                         end
                     end
 
-					vim.cmd("w")
+                    vim.cmd("w")
                 else
                     if result[1] == "f" then
                         local fixed_link = module.public.locate_link(
@@ -1153,17 +1141,20 @@ module.on_event = function(event)
                 local treesitter = neorg.modules.get_module("core.integrations.treesitter")
 
                 if treesitter then
-                	-- Try and query a ranged tag with the name document.meta
-					local query = vim.treesitter.parse_query("norg", [[
+                    -- Try and query a ranged tag with the name document.meta
+                    local query = vim.treesitter.parse_query(
+                        "norg",
+                        [[
 						(foreplay
 							(ranged_tag
 						  	  (tag_name) @name
 						  	  (#eq? @name "document.meta")
 							)
 						)
-					]])
+					]]
+                    )
 
-					-- If we have not found such a tag then we need to generate one!
+                    -- If we have not found such a tag then we need to generate one!
                     if not ({ query:iter_matches(vim.treesitter.get_parser(0, "norg"):parse()[1]:root(), 0)() })[2] then
                         module.public.construct_metadata()
                     end
