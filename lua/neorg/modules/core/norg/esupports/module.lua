@@ -426,6 +426,7 @@ module.public = {
 
                 scanner:mark_end()
 
+                link_info.fileless_location = files[#files]
                 files[#files] = slice(files[#files], "[%*%#%|]+(.+)")
             end
 
@@ -602,6 +603,8 @@ module.public = {
                         return "heading" .. link_type:sub(start + 1, start + 1)
                     elseif link_type:find("drawer") then
                         return "drawer"
+                    elseif link_type:find("marker") then
+						return "marker"
                     else
                         return "any"
                     end
@@ -642,20 +645,10 @@ module.public = {
                         local range = ts.get_node_range(link_node)
 
                         if selected_value == "a" then
-                            local line = vim.api.nvim_buf_get_lines(0, range.row_start - 1, range.row_start, true)[1]
-
-                        	if range.row_start > 0 and line:match("%S") then
-                            	vim.fn.append(range.row_start, {
-                                	"",
-                                	(" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                	"",
-                            	})
-                            else
-                            	vim.fn.append(range.row_start, {
-                                	(" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                	"",
-                            	})
-                            end
+                            vim.fn.append(range.row_start, {
+                                (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                "",
+                            })
                         else
                             local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
 
@@ -703,7 +696,7 @@ module.public = {
                                 vim.fn.append(range.row_start, {
                                     "",
                                     (" "):rep(range.column_start) .. link.link_info.location:gsub(
-                                        "^.*([%#%*%|]+)",
+                                        "^([%#%*%|]+)",
                                         "%1 "
                                     ),
                                     "",
@@ -711,7 +704,7 @@ module.public = {
                             else
                                 vim.fn.append(range.row_start, {
                                     (" "):rep(range.column_start) .. link.link_info.location:gsub(
-                                        "^.*([%#%*%|]+)",
+                                        "^([%#%*%|]+)",
                                         "%1 "
                                     ),
                                     "",
@@ -724,7 +717,7 @@ module.public = {
                                 vim.fn.append(range.row_end, {
                                     "",
                                     (" "):rep(range.column_start) .. link.link_info.location:gsub(
-                                        "^.*([%#%*%|]+)",
+                                        "^([%#%*%|]+)",
                                         "%1 "
                                     ),
                                     "",
@@ -732,7 +725,7 @@ module.public = {
                             else
                                 vim.fn.append(range.row_end, {
                                     (" "):rep(range.column_start) .. link.link_info.location:gsub(
-                                        ".*([%#%*%|]+)",
+                                        "^([%#%*%|]+)",
                                         "%1 "
                                     ),
                                     "",
@@ -898,7 +891,7 @@ module.public = {
             link_end_marker_reference = function(tree, destination, utility)
                 local result = nil
 
-                utility.ts.tree_map(function(child)
+                utility.ts.tree_map_rec(function(child)
                     if not result and child:type() == "marker" then
                         local marker_title = child:named_child(1)
 
