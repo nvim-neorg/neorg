@@ -633,7 +633,7 @@ module.public = {
 
                         while
                             link_node:type() ~= to_search
-                            and link_node:parent():type() ~= "document"
+                            and link_node:parent():type() ~= "document_content"
                             and link_node:type() ~= "marker"
                         do
                             link_node = link_node:parent()
@@ -642,10 +642,20 @@ module.public = {
                         local range = ts.get_node_range(link_node)
 
                         if selected_value == "a" then
-                            vim.fn.append(range.row_start, {
-                                (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                "",
-                            })
+                            local line = vim.api.nvim_buf_get_lines(0, range.row_start - 1, range.row_start, true)[1]
+
+                        	if range.row_start > 0 and line:match("%S") then
+                            	vim.fn.append(range.row_start, {
+                                	"",
+                                	(" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                	"",
+                            	})
+                            else
+                            	vim.fn.append(range.row_start, {
+                                	(" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                	"",
+                            	})
+                            end
                         else
                             local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
 
@@ -663,6 +673,10 @@ module.public = {
                             end
                         end
                     elseif vim.tbl_contains({ "A", "B" }, selected_value) then
+                        if link.link_info.file and link.link_info.file:len() > 0 then
+                            vim.cmd("e " .. link.link_info.file)
+                        end
+
                         local document_tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
 
                         if not document_tree then
@@ -672,42 +686,62 @@ module.public = {
 
                         local document = document_tree:root()
                         local range = ts.get_node_range(
-                            document:named_child(math.max(1, document:named_child_count() - 1))
+                            document:named_child(document:named_child_count() == 1 and 0 or 1)
                         )
 
+						-- TODO: Add support for selecting which file to place the link in if multiple files are given
                         if selected_value == "A" then
-                            local line = vim.api.nvim_buf_get_lines(0, range.row_start - 1, range.row_start, true)[1]
+                            local line
 
-                            if line:match("%S") then
+                            if document:named_child_count() == 1 then
+								line = vim.api.nvim_buf_get_lines(0, 0, 1, true)[1]
+							else
+                            	line = vim.api.nvim_buf_get_lines(0, range.row_start - 1, range.row_start, true)[1]
+                            end
+
+                            if range.row_start > 0 and line:match("%S") then
                                 vim.fn.append(range.row_start, {
                                     "",
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub(
+                                        "^.*([%#%*%|]+)",
+                                        "%1 "
+                                    ),
                                     "",
                                 })
                             else
                                 vim.fn.append(range.row_start, {
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub(
+                                        "^.*([%#%*%|]+)",
+                                        "%1 "
+                                    ),
                                     "",
                                 })
                             end
                         elseif selected_value == "B" then
                             local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
-                            log.warn(line)
 
                             if line:match("%S") then
                                 vim.fn.append(range.row_end, {
                                     "",
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub(
+                                        "^.*([%#%*%|]+)",
+                                        "%1 "
+                                    ),
                                     "",
                                 })
                             else
                                 vim.fn.append(range.row_end, {
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                    (" "):rep(range.column_start) .. link.link_info.location:gsub(
+                                        ".*([%#%*%|]+)",
+                                        "%1 "
+                                    ),
                                     "",
                                 })
                             end
                         end
                     end
+
+					vim.cmd("w")
                 else
                     if result[1] == "f" then
                         local fixed_link = module.public.locate_link(
