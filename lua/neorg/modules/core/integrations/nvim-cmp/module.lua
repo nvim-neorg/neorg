@@ -23,6 +23,16 @@ end
 
 module.public = {
     create_source = function()
+        module.private.completion_item_mapping = {
+            Directive = module.private.cmp.lsp.CompletionItemKind.Keyword,
+            Tag = module.private.cmp.lsp.CompletionItemKind.Keyword,
+            Language = module.private.cmp.lsp.CompletionItemKind.Property,
+            TODO = module.private.cmp.lsp.CompletionItemKind.Event,
+            Property = module.private.cmp.lsp.CompletionItemKind.Property,
+            Format = module.private.cmp.lsp.CompletionItemKind.Property,
+            Embed = module.private.cmp.lsp.CompletionItemKind.Property,
+        }
+
         module.private.source.new = function()
             return setmetatable({}, { __index = module.private.source })
         end
@@ -39,7 +49,11 @@ module.public = {
             local completions = vim.deepcopy(completion_cache.items)
 
             for index, element in ipairs(completions) do
-                completions[index] = { word = element, label = element, kind = completion_cache.options.type }
+                completions[index] = {
+                    word = element,
+                    label = element,
+                    kind = module.private.completion_item_mapping[completion_cache.options.type],
+                }
             end
 
             callback(completions)
