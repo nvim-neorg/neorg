@@ -93,6 +93,22 @@ module.config.public = {
                 end,
             },
 
+            heading5 = {
+                enabled = true,
+                regex = "(%s*%*%*%*%*%*%s+)(.*)",
+                indent = function()
+                    return 4
+                end,
+            },
+
+			heading6 = {
+				enabled = true,
+				regex = "(%s*%*%*%*%*%*%*+%s+)(.*)",
+				indent = function()
+					return 5
+				end,
+			},
+
             tags = {
                 enabled = true,
                 regex = "%s*@[a-z0-9]+.*",
@@ -169,11 +185,19 @@ module.config.public = {
                 end,
             },
 
-            tags = {
+            heading5 = {
                 enabled = true,
-                regex = "%s*@[a-z0-9]+.*",
+                regex = "%s*%*%*%*%*%*%s+(.*)",
                 indent = function()
-                    return 0
+                    return 4
+                end,
+            },
+
+            heading6 = {
+                enabled = true,
+                regex = "%s*%*%*%*%*%*(%*+)%s+(.*)",
+                indent = function(matches)
+                    return 5 + matches[1]:len()
                 end,
             },
         },
