@@ -101,13 +101,13 @@ module.config.public = {
                 end,
             },
 
-			heading6 = {
-				enabled = true,
-				regex = "(%s*%*%*%*%*%*%*+%s+)(.*)",
-				indent = function()
-					return 5
-				end,
-			},
+            heading6 = {
+                enabled = true,
+                regex = "(%s*%*%*%*%*%*%*+%s+)(.*)",
+                indent = function()
+                    return 5
+                end,
+            },
 
             tags = {
                 enabled = true,
@@ -353,9 +353,9 @@ module.public = {
                 link_info.text = slice(link_info.text, "%[(.+)%]")
                 link_info.location = slice(link_info.location, "%((.*[%*%#%|]*.+)%)")
 
-				local scanner = module.required["core.scanner"]
+                local scanner = module.required["core.scanner"]
 
-				scanner:initialize_new(link_info.location)
+                scanner:initialize_new(link_info.location)
 
                 if scanner:lookahead() ~= ":" then
                     scanner:halt(false, true)
@@ -387,7 +387,7 @@ module.public = {
 
                 scanner:mark_end()
 
-				files = scanner:end_session()
+                files = scanner:end_session()
 
                 link_info.fileless_location = files[#files]
                 files[#files] = slice(files[#files], "[%*%#%|]+(.+)")
@@ -500,15 +500,15 @@ module.public = {
         -- First, grab the location of our link
         local link = module.public.locate_link(nil, module.public.locators.strict)
 
-		-- If there were no internal errors but no location was given then
+        -- If there were no internal errors but no location was given then
         if link and not link.link_location then
-        	-- If we were never under a link to begin with simply bail
+            -- If we were never under a link to begin with simply bail
             if not link.is_under_link then
                 log.trace("No link found under cursor at position:", vim.api.nvim_win_get_cursor(0)[1])
                 return
             end
 
-			-- Otherwise it means the destination could not be found, prompt the user with what to do next
+            -- Otherwise it means the destination could not be found, prompt the user with what to do next
 
             local ui = neorg.modules.get_module("core.ui")
 
@@ -516,10 +516,10 @@ module.public = {
                 return
             end
 
-			-- This variable will be true if we're searching for a destination in a file other than the current file
+            -- This variable will be true if we're searching for a destination in a file other than the current file
             local searching_in_foreign_file = link.link_info.file and link.link_info.file ~= vim.fn.expand("%:p")
 
-			-- Actually prompt the user
+            -- Actually prompt the user
             ui.create_selection("Link not found - what do we do now?", {
                 flags = {
                     { "General actions:", "TSComment" },
@@ -604,13 +604,13 @@ module.public = {
                     -- If the user chose to "do nothing" then do nothing :)
                     if selected_value == "n" then
                         return
-                    -- If the user has pressed one of "a" or "b" (above/below) then
+                        -- If the user has pressed one of "a" or "b" (above/below) then
                     elseif vim.tbl_contains({ "a", "b" }, selected_value) then
                         -- Extract the type of node we should start searching for
                         local to_search = extract_node_type(link.link_info.type)
 
-						-- If the returned value was any (aka we were dealing with a generic #link)
-						-- then bail, we can't possibly create a linkable if we don't know its type
+                        -- If the returned value was any (aka we were dealing with a generic #link)
+                        -- then bail, we can't possibly create a linkable if we don't know its type
                         if to_search == "any" then
                             vim.notify("Cannot create a linkable from ambiguous type '#'!", 4)
                             return
@@ -630,8 +630,8 @@ module.public = {
 
                         local range = ts.get_node_range(link_node)
 
-						-- Here is where we be a bit more narrow, depending on the selected value insert
-						-- the text at different locations
+                        -- Here is where we be a bit more narrow, depending on the selected value insert
+                        -- the text at different locations
                         if selected_value == "a" then
                             vim.fn.append(range.row_start, {
                                 (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
@@ -640,7 +640,7 @@ module.public = {
                         else
                             local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
 
-							-- If the line has non-whitespace characters then insert an extra newline before the linkable
+                            -- If the line has non-whitespace characters then insert an extra newline before the linkable
                             if line:match("%S") then
                                 vim.fn.append(range.row_end, {
                                     "",
@@ -654,9 +654,9 @@ module.public = {
                                 })
                             end
                         end
-                    -- Else if we pressed one of { A, B }
+                        -- Else if we pressed one of { A, B }
                     elseif vim.tbl_contains({ "A", "B" }, selected_value) then
-                    	-- If we're dealing with a foreign file then open that up first
+                        -- If we're dealing with a foreign file then open that up first
                         if link.link_info.file and link.link_info.file:len() > 0 then
                             vim.cmd("e " .. link.link_info.file)
                         end

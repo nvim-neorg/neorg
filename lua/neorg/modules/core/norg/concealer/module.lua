@@ -196,7 +196,6 @@ module.config.public = {
                 highlight = "NeorgHeading6",
                 padding_before = 5,
             },
-
         },
 
         marker = {
@@ -309,10 +308,19 @@ module.public = {
                     local range = ts.get_node_range(node)
 
                     for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
-						local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
+                        local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
 
-						if line and line:len() >= range.column_start then
-                        	module.public._set_extmark(nil, "NeorgCodeBlock", i, i + 1, range.column_start, nil, true, "blend")
+                        if line and line:len() >= range.column_start then
+                            module.public._set_extmark(
+                                nil,
+                                "NeorgCodeBlock",
+                                i,
+                                i + 1,
+                                range.column_start,
+                                nil,
+                                true,
+                                "blend"
+                            )
                         end
                     end
                 end
