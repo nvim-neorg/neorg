@@ -106,7 +106,7 @@ module.config.public = {
             done = {
                 enabled = true,
                 icon = "",
-                pattern = "^(%s*%-%s+%[%s*)x%s*%]%s+",
+                pattern = "^(%s*%-+%s+%[%s*)x%s*%]%s+",
                 whitespace_index = 1,
                 highlight = "NeorgTodoItemDoneMark",
                 padding_before = 0,
@@ -115,7 +115,7 @@ module.config.public = {
             pending = {
                 enabled = true,
                 icon = "",
-                pattern = "^(%s*%-%s+%[%s*)%*%s*%]%s+",
+                pattern = "^(%s*%-+%s+%[%s*)%*%s*%]%s+",
                 whitespace_index = 1,
                 highlight = "NeorgTodoItemPendingMark",
                 padding_before = 0,
@@ -124,7 +124,7 @@ module.config.public = {
             undone = {
                 enabled = true,
                 icon = "×",
-                pattern = "^(%s*%-%s+%[)%s+]%s+",
+                pattern = "^(%s*%-+%s+%[)%s+]%s+",
                 whitespace_index = 1,
                 highlight = "TSComment",
                 padding_before = 0,
@@ -134,7 +134,7 @@ module.config.public = {
         quote = {
             enabled = true,
             icon = "∣",
-            pattern = "^(%s*)>%s+",
+            pattern = "^(%s*)>+%s+",
             whitespace_index = 1,
             highlight = "NeorgQuote",
             padding_before = 0,
@@ -172,12 +172,31 @@ module.config.public = {
 
             level_4 = {
                 enabled = true,
-                icon = "•",
+                icon = "▶",
                 pattern = "^(%s*)%*%*%*%*%s+",
                 whitespace_index = 1,
                 highlight = "NeorgHeading4",
                 padding_before = 3,
             },
+
+            level_5 = {
+                enabled = true,
+                icon = "•",
+                pattern = "^(%s*)%*%*%*%*%*%s+",
+                whitespace_index = 1,
+                highlight = "NeorgHeading5",
+                padding_before = 4,
+            },
+
+            level_6 = {
+                enabled = true,
+                icon = "⤷",
+                pattern = "^(%s*)%*%*%*%*%*%*%s+",
+                whitespace_index = 1,
+                highlight = "NeorgHeading6",
+                padding_before = 5,
+            },
+
         },
 
         marker = {
@@ -188,17 +207,6 @@ module.config.public = {
             highlight = "NeorgMarker",
 
             padding_before = 0,
-        },
-    },
-
-    ranged = {
-        tag = {
-            enabled = true,
-            icon = "",
-            node = "tag",
-            full_line = true,
-            highlight = "Neorgcodeblock",
-            highlight_method = "blend",
         },
     },
 
@@ -246,8 +254,6 @@ module.load = function()
 
     -- Set the module.private.icons variable to the values of the enabled icons
     module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
-
-    module.private.ranged_icons = vim.tbl_values(get_enabled_icons(module.config.public.ranged))
 
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
