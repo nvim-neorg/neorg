@@ -3,25 +3,25 @@
 --	This module is a very basic implementation of a scanner that can be used anywhere TS can't be used :)
 --]]
 
-require('neorg.modules.base')
+require("neorg.modules.base")
 
 local module = neorg.modules.create("core.scanner")
 
 module.public = {
-	initialize_new = function(self, source)
-		self.source = source
-	end,
+    initialize_new = function(self, source)
+        self.source = source
+    end,
 
-	end_session = function(self)
-		local tokens = self.tokens
+    end_session = function(self)
+        local tokens = self.tokens
 
-		self.position = 0
-		self.buffer = ""
-		self.source = ""
-		self.tokens = {}
+        self.position = 0
+        self.buffer = ""
+        self.source = ""
+        self.tokens = {}
 
-		return tokens
-	end,
+        return tokens
+    end,
 
     position = 0,
     buffer = "",
