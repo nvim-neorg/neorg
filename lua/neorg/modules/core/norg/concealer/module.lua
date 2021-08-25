@@ -287,7 +287,7 @@ module.public = {
                 vim.treesitter.parse_query,
                 "norg",
                 [[(
-                     (tag (tag_name) @_name) @tag
+                     (ranged_tag (tag_name) @_name) @tag
                      (#eq? @_name "code")
                 )]]
             )
@@ -302,19 +302,8 @@ module.public = {
                 if id_name == "tag" then
                     local range = ts.get_node_range(node)
 
-                    local whitespace_length = 0
-
-                    do
-                        local leading_whitespace = node:named_child(0)
-                        if leading_whitespace:type() == "leading_whitespace" then
-                            local leading_whitespace_range = ts.get_node_range(leading_whitespace)
-                            whitespace_length = leading_whitespace_range.column_end
-                                - leading_whitespace_range.column_start
-                        end
-                    end
-
                     for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
-                        module.public._set_extmark(nil, "NeorgCodeBlock", i, i + 1, whitespace_length, 0, true, "blend")
+                        module.public._set_extmark(nil, "NeorgCodeBlock", i, i + 1, range.column_start, 0, true, "blend")
                     end
                 end
             end
