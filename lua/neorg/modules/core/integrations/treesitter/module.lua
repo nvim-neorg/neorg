@@ -90,50 +90,44 @@ module.config.public = {
             ["1"] = {
                 [""] = "+NeorgUnorderedList1",
 
-                bracket = "+TSString",
-
+                undone = "+TSPunctDelimiter",
                 pending = "+TSNamespace",
-                done = "+TSMethod",
+                done = "+TSString",
             },
             ["2"] = {
                 [""] = "+NeorgUnorderedList2",
 
-                bracket = "+TSString",
-
+                undone = "+TSPunctDelimiter",
                 pending = "+TSNamespace",
-                done = "+TSMethod",
+                done = "+TSString",
             },
             ["3"] = {
                 [""] = "+NeorgUnorderedList3",
 
-                bracket = "+TSString",
-
+                undone = "+TSPunctDelimiter",
                 pending = "+TSNamespace",
-                done = "+TSMethod",
+                done = "+TSString",
             },
             ["4"] = {
                 [""] = "+NeorgUnorderedList4",
 
-                bracket = "+TSString",
-
+                undone = "+TSPunctDelimiter",
                 pending = "+TSNamespace",
-                done = "+TSMethod",
+                done = "+TSString",
             },
             ["5"] = {
                 [""] = "+NeorgUnorderedList5",
 
-                bracket = "+TSString",
-
+                undone = "+TSPunctDelimiter",
                 pending = "+TSNamespace",
-                done = "+TSMethod",
+                done = "+TSString",
             },
             ["6"] = {
                 [""] = "+NeorgUnorderedList6",
 
-                bracket = "+TSString",
-
+                undone = "+TSPunctDelimiter",
                 pending = "+TSNamespace",
-                done = "+TSMethod",
+                done = "+TSString",
             },
         },
 
