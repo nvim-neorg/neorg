@@ -49,7 +49,7 @@ module.public = {
             return { "@", "-", "[", " ", "." }
         end
 
-        module.private.cmp.register_source("norg", module.private.source)
+        module.private.cmp.register_source("neorg", module.private.source)
     end,
 
     create_abstracted_context = function(request)

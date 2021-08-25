@@ -10,7 +10,7 @@ local module = neorg.modules.create("core.norg.completion")
 
 module.config.public = {
 	-- We currently only support compe
-	engine = "compe",
+	engine = nil,
 	name = "[Neorg]",
 }
 
@@ -21,12 +21,12 @@ module.private = {
 module.load = function()
 	-- If we have not defined an engine then bail
 	if not module.config.public.engine then
-		log.warn("No engine specified, aborting...")
+		log.trace("No engine specified, aborting...")
 		return
 	end
 
 	-- If our engine is compe then attempt to load the integration module for nvim-compe
-	if module.config.public.engine == "compe" and neorg.modules.load_module("core.integrations.nvim-compe") then
+	if module.config.public.engine == "nvim-compe" and neorg.modules.load_module("core.integrations.nvim-compe") then
 		module.private.engine = neorg.modules.get_module("core.integrations.nvim-compe")
 	elseif module.config.public.engine == "nvim-cmp" and neorg.modules.load_module("core.integrations.nvim-cmp") then
 		module.private.engine = neorg.modules.get_module("core.integrations.nvim-cmp")
