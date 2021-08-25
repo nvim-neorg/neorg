@@ -31,79 +31,67 @@
 ; Todo Items
 (todo_item1
 	(unordered_list1_prefix) @NeorgTodoItem1
-	("_prefix") @NeorgTodoItem1Bracket
 	state:
 		[
 			(todo_item_undone) @NeorgTodoItem1Undone
 			(todo_item_pending) @NeorgTodoItem1Pending
 			(todo_item_done) @NeorgTodoItem1Done
 		]
-	("_suffix") @NeorgTodoItem1Bracket
 	content:
 		(paragraph) @NeorgTodoItem1Content)
 
 (todo_item2
 	(unordered_list2_prefix) @NeorgTodoItem2
-	("_prefix") @NeorgTodoItem2Bracket
 	state:
 		[
 			(todo_item_undone) @NeorgTodoItem2Undone
 			(todo_item_pending) @NeorgTodoItem2Pending
 			(todo_item_done) @NeorgTodoItem2Done
 		]
-	("_suffix") @NeorgTodoItem2Bracket
 	content:
 		(paragraph) @NeorgTodoItem2Content)
 
 (todo_item3
 	(unordered_list3_prefix) @NeorgTodoItem3
-	("_prefix") @NeorgTodoItem3Bracket
 	state:
 		[
 			(todo_item_undone) @NeorgTodoItem3Undone
 			(todo_item_pending) @NeorgTodoItem3Pending
 			(todo_item_done) @NeorgTodoItem3Done
 		]
-	("_suffix") @NeorgTodoItem3Bracket
 	content:
 		(paragraph) @NeorgTodoItem3Content)
 
 (todo_item4
 	(unordered_list4_prefix) @NeorgTodoItem4
-	("_prefix") @NeorgTodoItem4Bracket
 	state:
 		[
 			(todo_item_undone) @NeorgTodoItem4Undone
 			(todo_item_pending) @NeorgTodoItem4Pending
 			(todo_item_done) @NeorgTodoItem4Done
 		]
-	("_suffix") @NeorgTodoItem4Bracket
 	content:
 		(paragraph) @NeorgTodoItem4Content)
 
 (todo_item5
 	(unordered_list5_prefix) @NeorgTodoItem5
-	("_prefix") @NeorgTodoItem5Bracket
 	state:
 		[
 			(todo_item_undone) @NeorgTodoItem5Undone
 			(todo_item_pending) @NeorgTodoItem5Pending
 			(todo_item_done) @NeorgTodoItem5Done
 		]
-	("_suffix") @NeorgTodoItem5Bracket
 	content:
 		(paragraph) @NeorgTodoItem5Content)
 
 (todo_item6
 	(unordered_list6_prefix) @NeorgTodoItem6
-	("_prefix") @NeorgTodoItem6Bracket
 	state:
 		[
 			(todo_item_undone) @NeorgTodoItem6Undone
 			(todo_item_pending) @NeorgTodoItem6Pending
 			(todo_item_done) @NeorgTodoItem6Done
 		]
-	("_suffix") @NeorgTodoItem6Bracket
 	content:
 		(paragraph) @NeorgTodoItem6Content)
 
