@@ -71,11 +71,12 @@ module.public = {
 			complete = {
 				"table",
 				"comment",
-				"unordered",
+				"ordered",
 				"code",
-				"tangle",
 				"image",
 				"embed",
+				"name",
+				"document",
 			},
 
 			-- Additional options to pass to the completion engine
@@ -89,6 +90,19 @@ module.public = {
 			-- the line.
 			descend = {
 				-- The cycle continues
+				{
+					regex = "document%.%w*",
+
+					complete = {
+						"meta",
+					},
+
+					options = {
+						type = "Tag",
+					},
+
+					descend = {},
+				},
 				{
 					-- Define a regex (gets appended to parent's regex)
 					regex = "code%s+%w*",
