@@ -175,6 +175,50 @@ module.config.public = {
             },
         },
 
+        ordered = {
+            list = {
+                ["1"] = {
+                    [""] = "+TSException",
+                },
+                ["2"] = {
+                    [""] = "+TSException",
+                },
+                ["3"] = {
+                    [""] = "+TSException",
+                },
+                ["4"] = {
+                    [""] = "+TSException",
+                },
+                ["5"] = {
+                    [""] = "+TSException",
+                },
+                ["6"] = {
+                    [""] = "+TSException",
+                },
+            },
+
+            link = {
+                ["1"] = {
+                    [""] = "+NeorgOrderedList1",
+                },
+                ["2"] = {
+                    [""] = "+NeorgOrderedList2",
+                },
+                ["3"] = {
+                    [""] = "+NeorgOrderedList3",
+                },
+                ["4"] = {
+                    [""] = "+NeorgOrderedList4",
+                },
+                ["5"] = {
+                    [""] = "+NeorgOrderedList5",
+                },
+                ["6"] = {
+                    [""] = "+NeorgOrderedList6",
+                },
+            },
+        },
+
         quote = {
             ["1"] = {
                 [""] = "+TSPunctDelimiter",

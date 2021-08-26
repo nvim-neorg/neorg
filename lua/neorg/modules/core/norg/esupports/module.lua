@@ -670,7 +670,7 @@ module.public = {
 
                         local document = document_tree:root()
 
-						-- Get the range of the document content (skip the foreplay)
+                        -- Get the range of the document content (skip the foreplay)
                         local range = ts.get_node_range(
                             document:named_child(document:named_child_count() == 1 and 0 or 1)
                         )
@@ -679,16 +679,16 @@ module.public = {
                         if selected_value == "A" then
                             local line
 
-							-- Depending on whether we have foreplay or not place the linkable at either the start of the file
-							-- or at the start of the document content
+                            -- Depending on whether we have foreplay or not place the linkable at either the start of the file
+                            -- or at the start of the document content
                             if document:named_child_count() == 1 then
                                 line = vim.api.nvim_buf_get_lines(0, 0, 1, true)[1]
                             else
                                 line = vim.api.nvim_buf_get_lines(0, range.row_start - 1, range.row_start, true)[1]
                             end
 
-							-- If we're not at the start of the document and the current line has a non-whitespace character
-							-- then prepend an extra newline (\n)
+                            -- If we're not at the start of the document and the current line has a non-whitespace character
+                            -- then prepend an extra newline (\n)
                             if range.row_start > 0 and line:match("%S") then
                                 vim.fn.append(range.row_start, {
                                     "",
@@ -704,8 +704,8 @@ module.public = {
                         elseif selected_value == "B" then
                             local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
 
-							-- Same as above, if the line has a non-whitespace character
-							-- then prepend an extra newline
+                            -- Same as above, if the line has a non-whitespace character
+                            -- then prepend an extra newline
                             if line:match("%S") then
                                 vim.fn.append(range.row_end, {
                                     "",
