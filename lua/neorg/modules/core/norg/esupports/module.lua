@@ -943,7 +943,7 @@ module.public = {
             end,
 
             link_end_url = function(_, destination, utility)
-                vim.cmd("silent !open " .. vim.fn.fnameescape(destination))
+                vim.cmd("silent !xdg-open " .. vim.fn.fnameescape(destination))
                 return utility.ts.get_node_range(require("nvim-treesitter.ts_utils").get_node_at_cursor())
             end,
         },
