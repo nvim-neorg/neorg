@@ -13,6 +13,5 @@ return neorg.modules.create_meta(
     "core.norg.qol.todo_items",
     "core.norg.esupports",
     "core.integrations.treesitter",
-    "core.norg.completion",
     "core.norg.qol.toc"
 )
