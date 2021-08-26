@@ -14,125 +14,125 @@ end
 
 module.config.public = {
     highlights = {
-        tag = {
+        Tag = {
             -- The + tells neorg to link to an existing hl
-            begin = "+TSKeyword",
+            Begin = "+TSKeyword",
 
             -- Supply any arguments you would to :highlight here
             -- Example: ["end"] = "guifg=#93042b",
-            ["end"] = "+TSKeyword",
+            ["End"] = "+TSKeyword",
 
-            name = {
+            Name = {
                 [""] = "+Normal",
-                word = "+TSKeyword",
+                Word = "+TSKeyword",
             },
 
-            parameter = "+TSType",
-            content = "+Normal",
+            Parameter = "+TSType",
+            Content = "+Normal",
         },
 
-        carryovertag = {
-            begin = "+TSLabel",
+        CarryoverTag = {
+            Begin = "+TSLabel",
 
-            name = {
+            Name = {
                 [""] = "+Normal",
-                word = "+TSLabel",
+                Word = "+TSLabel",
             },
 
-            parameter = "+TSString",
+            Parameter = "+TSString",
         },
 
-        heading = {
+        Heading = {
             ["1"] = {
-                title = "+TSAttribute",
-                prefix = "+TSAttribute",
+                Title = "+TSAttribute",
+                Prefix = "+TSAttribute",
             },
             ["2"] = {
-                title = "+TSLabel",
-                prefix = "+TSLabel",
+                Title = "+TSLabel",
+                Prefix = "+TSLabel",
             },
             ["3"] = {
-                title = "+TSMath",
-                prefix = "+TSMath",
+                Title = "+TSMath",
+                Prefix = "+TSMath",
             },
             ["4"] = {
-                title = "+TSString",
-                prefix = "+TSString",
+                Title = "+TSString",
+                Prefix = "+TSString",
             },
             ["5"] = {
-                title = "+TSLabel",
-                prefix = "+TSLabel",
+                Title = "+TSLabel",
+                Prefix = "+TSLabel",
             },
             ["6"] = {
-                title = "+TSMath",
-                prefix = "+TSMath",
+                Title = "+TSMath",
+                Prefix = "+TSMath",
             },
         },
 
-        error = "+TSError",
+        Error = "+TSError",
 
-        marker = {
+        Marker = {
             [""] = "+TSLabel",
-            title = "+Normal",
+            Title = "+Normal",
         },
 
-        drawer = {
+        Drawer = {
             [""] = "+TSPunctDelimiter",
-            ["end"] = "+TSPunctDelimiter",
+            ["End"] = "+TSPunctDelimiter",
 
-            title = "+TSMath",
-            content = "+Normal",
+            Title = "+TSMath",
+            Content = "+Normal",
         },
 
-        escapesequence = "+TSType",
+        EscapeSequence = "+TSType",
 
-        todoitem = {
+        TodoItem = {
             ["1"] = {
                 [""] = "+NeorgUnorderedList1",
 
-                undone = "+TSPunctDelimiter",
-                pending = "+TSNamespace",
-                done = "+TSString",
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
             },
             ["2"] = {
                 [""] = "+NeorgUnorderedList2",
 
-                undone = "+TSPunctDelimiter",
-                pending = "+TSNamespace",
-                done = "+TSString",
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
             },
             ["3"] = {
                 [""] = "+NeorgUnorderedList3",
 
-                undone = "+TSPunctDelimiter",
-                pending = "+TSNamespace",
-                done = "+TSString",
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
             },
             ["4"] = {
                 [""] = "+NeorgUnorderedList4",
 
-                undone = "+TSPunctDelimiter",
-                pending = "+TSNamespace",
-                done = "+TSString",
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
             },
             ["5"] = {
                 [""] = "+NeorgUnorderedList5",
 
-                undone = "+TSPunctDelimiter",
-                pending = "+TSNamespace",
-                done = "+TSString",
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
             },
             ["6"] = {
                 [""] = "+NeorgUnorderedList6",
 
-                undone = "+TSPunctDelimiter",
-                pending = "+TSNamespace",
-                done = "+TSString",
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
             },
         },
 
-        unordered = {
-            list = {
+        Unordered = {
+            List = {
                 ["1"] = {
                     [""] = "+TSPunctDelimiter",
                 },
@@ -153,7 +153,7 @@ module.config.public = {
                 },
             },
 
-            link = {
+            Link = {
                 ["1"] = {
                     [""] = "+NeorgUnorderedList1",
                 },
@@ -175,8 +175,8 @@ module.config.public = {
             },
         },
 
-        ordered = {
-            list = {
+        Ordered = {
+            List = {
                 ["1"] = {
                     [""] = "+TSRepeat",
                 },
@@ -197,7 +197,7 @@ module.config.public = {
                 },
             },
 
-            link = {
+            Link = {
                 ["1"] = {
                     [""] = "+NeorgOrderedList1",
                 },
@@ -219,46 +219,46 @@ module.config.public = {
             },
         },
 
-        quote = {
+        Quote = {
             ["1"] = {
                 [""] = "+TSPunctDelimiter",
-                content = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
             },
             ["2"] = {
                 [""] = "+TSPunctDelimiter",
-                content = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
             },
             ["3"] = {
                 [""] = "+TSPunctDelimiter",
-                content = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
             },
             ["4"] = {
                 [""] = "+TSPunctDelimiter",
-                content = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
             },
             ["5"] = {
                 [""] = "+TSPunctDelimiter",
-                content = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
             },
             ["6"] = {
                 [""] = "+TSPunctDelimiter",
-                content = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
             },
         },
 
-        insertion = {
+        Insertion = {
             [""] = "cterm=bold gui=bold",
-            prefix = "+TSPunctDelimiter",
-            item = "+TSNamespace",
-            parameters = "+TSPunctDelimiter",
+            Prefix = "+TSPunctDelimiter",
+            Item = "+TSNamespace",
+            Parameters = "+TSPunctDelimiter",
         },
 
-        strongparagraphdelimiter = "+TSPunctDelimiter",
-        weakparagraphdelimiter = "+TSPunctDelimiter",
+        StrongParagraphDelimiter = "+TSPunctDelimiter",
+        WeakParagraphDelimiter = "+TSPunctDelimiter",
     },
 
     dim = {
-        codeblock = {
+        CodeBlock = {
             reference = "Normal",
             percentage = 15,
             affect = "background",

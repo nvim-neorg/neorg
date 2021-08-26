@@ -17,28 +17,28 @@ local module = neorg.modules.create("core.highlights")
 --]]
 module.config.public = {
     highlights = {
-        concealurl = {
+        ConcealURL = {
             [""] = "+TSURI",
-            value = "+TSType",
+            Value = "+TSType",
         },
-        conceal = {
-            bold = "cterm=bold gui=bold",
-            italic = "cterm=italic gui=italic",
-            underline = "cterm=underline gui=underline",
-            strikethrough = "cterm=strikethrough gui=strikethrough",
+        Conceal = {
+            Bold = "cterm=bold gui=bold",
+            Italic = "cterm=italic gui=italic",
+            Underline = "cterm=underline gui=underline",
+            Strikethrough = "cterm=strikethrough gui=strikethrough",
         },
 
-        selectionwindow = {
-            heading = "+TSAnnotation",
-            arrow = "+Normal",
-            key = "+TSNamespace",
-            keyname = "+TSMath",
-            nestedkeyname = "+TSString",
+        SelectionWindow = {
+            Heading = "+TSAnnotation",
+            Arrow = "+Normal",
+            Key = "+TSNamespace",
+            Keyname = "+TSMath",
+            Nestedkeyname = "+TSString",
         },
     },
     dim = {
-        conceal = {
-            monospace = {
+        Conceal = {
+            Monospace = {
                 reference = "Normal",
                 percentage = 20,
             },
