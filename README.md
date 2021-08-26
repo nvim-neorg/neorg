@@ -248,7 +248,9 @@ to communicate with the Neorg core. By default no engine is specified. To specif
 
 ```lua
 ["core.norg.completion"] = {
-	engine = "nvim-compe" | "nvim-cmp" -- We current support nvim-compe and nvim-cmp only
+	config = {
+		engine = "nvim-compe" | "nvim-cmp" -- We current support nvim-compe and nvim-cmp only
+	}
 }
 ```
 
