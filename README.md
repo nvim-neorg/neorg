@@ -242,8 +242,18 @@ then try creating an `after/ftplugin/norg.lua` file and paste your Neorg configu
 It's a bit hacky - it will unfortunately stay this way until we get first-class support in the `nvim-treesitter` repository.
 Sorry!
 
-### Setting up Compe
-Neorg comes with a completion source that you can enable. Make sure to set `neorg` to `true` in the `source` table for nvim-compe:
+### Setting up a Completion Engine
+Neorg comes with its own API for completion. Users can then write integration modules to allow different plugins like `nvim-compe` and `nvim-cmp`
+to communicate with the Neorg core. By default no engine is specified. To specify one, make sure to configure `core.norg.completion`:
+
+```lua
+["core.norg.completion"] = {
+	engine = "nvim-compe" | "nvim-cmp" -- We current support nvim-compe and nvim-cmp only
+}
+```
+
+#### Compe
+Make sure to set `neorg` to `true` in the `source` table for nvim-compe:
 ```lua
 source = {
     path = true,
@@ -252,6 +262,17 @@ source = {
     neorg = true
 }
 ```
+
+#### Cmp
+Make sure to enable the `neorg` completion source in the cmp sources table:
+```lua
+sources = {
+	...
+	{ name = "neorg" }
+}
+```
+
+And that's it!
 
 # :question: Usage
 Simply drop into a .norg file and start typing!
