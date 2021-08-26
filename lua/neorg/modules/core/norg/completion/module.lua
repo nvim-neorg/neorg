@@ -21,7 +21,7 @@ module.private = {
 module.load = function()
 	-- If we have not defined an engine then bail
 	if not module.config.public.engine then
-		log.trace("No engine specified, aborting...")
+		log.error("No engine specified, aborting...")
 		return
 	end
 
