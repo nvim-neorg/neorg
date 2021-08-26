@@ -943,7 +943,13 @@ module.public = {
             end,
 
             link_end_url = function(_, destination, utility)
-                vim.cmd("silent !xdg-open " .. vim.fn.fnameescape(destination))
+                if neorg.configuration.os_info == "linux" then
+                	vim.cmd("silent !xdg-open " .. vim.fn.fnameescape(destination))
+                elseif neorg.configuration.os_info == "mac" then
+                	vim.cmd("silent !open " .. vim.fn.fnameescape(destination))
+                else
+                	vim.cmd("silent !start " .. vim.fn.fnameescape(destination))
+                end
                 return utility.ts.get_node_range(require("nvim-treesitter.ts_utils").get_node_at_cursor())
             end,
         },
