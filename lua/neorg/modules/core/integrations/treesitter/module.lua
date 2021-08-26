@@ -178,22 +178,22 @@ module.config.public = {
         ordered = {
             list = {
                 ["1"] = {
-                    [""] = "+TSException",
+                    [""] = "+TSRepeat",
                 },
                 ["2"] = {
-                    [""] = "+TSException",
+                    [""] = "+TSRepeat",
                 },
                 ["3"] = {
-                    [""] = "+TSException",
+                    [""] = "+TSRepeat",
                 },
                 ["4"] = {
-                    [""] = "+TSException",
+                    [""] = "+TSRepeat",
                 },
                 ["5"] = {
-                    [""] = "+TSException",
+                    [""] = "+TSRepeat",
                 },
                 ["6"] = {
-                    [""] = "+TSException",
+                    [""] = "+TSRepeat",
                 },
             },
 
