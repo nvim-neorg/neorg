@@ -103,6 +103,14 @@
 (unordered_list5 (unordered_list5_prefix) @NeorgUnorderedList5 content: (paragraph) @NeorgUnorderedList5Content)
 (unordered_list6 (unordered_list6_prefix) @NeorgUnorderedList6 content: (paragraph) @NeorgUnorderedList6Content)
 
+; Ordered lists
+(ordered_list1 (ordered_list1_prefix) @NeorgOrderedList1 content: (paragraph) @NeorgOrderedList1Content)
+(ordered_list2 (ordered_list2_prefix) @NeorgOrderedList2 content: (paragraph) @NeorgOrderedList2Content)
+(ordered_list3 (ordered_list3_prefix) @NeorgOrderedList3 content: (paragraph) @NeorgOrderedList3Content)
+(ordered_list4 (ordered_list4_prefix) @NeorgOrderedList4 content: (paragraph) @NeorgOrderedList4Content)
+(ordered_list5 (ordered_list5_prefix) @NeorgOrderedList5 content: (paragraph) @NeorgOrderedList5Content)
+(ordered_list6 (ordered_list6_prefix) @NeorgOrderedList6 content: (paragraph) @NeorgOrderedList6Content)
+
 ; Unordered links
 (unordered_link1 (unordered_link1_prefix) @NeorgUnorderedLink1 location: (link) @NeorgUnorderedLink1Location)
 (unordered_link2 (unordered_link2_prefix) @NeorgUnorderedLink2 location: (link) @NeorgUnorderedLink2Location)
@@ -110,6 +118,14 @@
 (unordered_link4 (unordered_link4_prefix) @NeorgUnorderedLink4 location: (link) @NeorgUnorderedLink4Location)
 (unordered_link5 (unordered_link5_prefix) @NeorgUnorderedLink5 location: (link) @NeorgUnorderedLink5Location)
 (unordered_link6 (unordered_link6_prefix) @NeorgUnorderedLink6 location: (link) @NeorgUnorderedLink6Location)
+
+; Ordered links
+(ordered_link1 (ordered_link1_prefix) @NeorgOrderedLink1 location: (link) @NeorgOrderedLink1Location)
+(ordered_link2 (ordered_link2_prefix) @NeorgOrderedLink2 location: (link) @NeorgOrderedLink2Location)
+(ordered_link3 (ordered_link3_prefix) @NeorgOrderedLink3 location: (link) @NeorgOrderedLink3Location)
+(ordered_link4 (ordered_link4_prefix) @NeorgOrderedLink4 location: (link) @NeorgOrderedLink4Location)
+(ordered_link5 (ordered_link5_prefix) @NeorgOrderedLink5 location: (link) @NeorgOrderedLink5Location)
+(ordered_link6 (ordered_link6_prefix) @NeorgOrderedLink6 location: (link) @NeorgOrderedLink6Location)
 
 ; Quotes
 (quote1 (quote1_prefix) @NeorgQuote1 content: (paragraph_segment) @NeorgQuote1Content)
