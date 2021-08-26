@@ -8,8 +8,20 @@ require("neorg.modules.base")
 
 local module = neorg.modules.create("core.integrations.treesitter")
 
+module.private = {
+    ts_utils = nil
+}
+
 module.setup = function()
     return { success = true, requires = { "core.highlights", "core.mode", "core.keybinds" } }
+end
+
+module.load = function()
+    local sucess, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
+
+    assert(success, "Unable to load nvim-treesitter.ts_utils :(")
+
+    module.private.ts_utils = ts_utils
 end
 
 module.config.public = {
@@ -311,6 +323,10 @@ module.load = function()
 end
 
 module.public = {
+    get_ts_utils = function()
+        return module.private.ts_utils
+    end,
+
     goto_next_heading = function()
         -- Currently we have this crappy solution because I don't know enough treesitter
         -- If you do know how to hop between TS nodes then please make a PR <3 (or at least tell me)
@@ -443,7 +459,7 @@ module.public = {
         end
 
         -- Grab the TreeSitter utils
-        local ts_utils = require("nvim-treesitter.ts_utils")
+        local ts_utils = module.public.get_ts_utils()
 
         local attributes = {}
         local leading_whitespace, resulting_name, params, content = 0, {}, {}, {}
@@ -543,7 +559,7 @@ module.public = {
     end,
 
     get_link_info = function()
-        local ts = require("nvim-treesitter.ts_utils")
+        local ts = module.public.get_ts_utils()
         local node = ts.get_node_at_cursor(0)
 
         if not node then

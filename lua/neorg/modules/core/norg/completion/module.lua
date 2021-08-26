@@ -15,7 +15,8 @@ module.config.public = {
 }
 
 module.private = {
-	engine = nil
+	engine = nil,
+	treesitter_integration = nil,
 }
 
 module.load = function()
@@ -24,6 +25,17 @@ module.load = function()
 		log.error("No engine specified, aborting...")
 		return
 	end
+
+        if neorg.modules.load_module("core.integrations.treesitter") then
+            module.private.treesitter_integration = neorg.modules.get_module("core.integrations.treesitter")
+        else
+            log.error("Unable to load completion module because the treesitter integration is unavailable.")
+            return
+        end
+        if not module.private.treesitter_integration then
+            log.error("The completion requires the treesitter integration :(")
+            return
+        end
 
 	-- If our engine is compe then attempt to load the integration module for nvim-compe
 	if module.config.public.engine == "nvim-compe" and neorg.modules.load_module("core.integrations.nvim-compe") then
@@ -228,7 +240,7 @@ module.public = {
 					-- If the completion data has a node variable then attempt to match the current node too!
 					if completion_data.node then
 						-- Grab the treesitter utilities
-						local ts = require('nvim-treesitter.ts_utils')
+						local ts = module.private.treesitter_integration.public.get_ts_utils()
 
 						-- If the type of completion data we're dealing with is a string then attempt to parse it
 						if type(completion_data.node) == "string" then
