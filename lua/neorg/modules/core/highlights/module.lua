@@ -17,15 +17,23 @@ local module = neorg.modules.create("core.highlights")
 --]]
 module.config.public = {
     highlights = {
-        concealurl = {
+        ConcealURL = {
             [""] = "+TSURI",
-            value = "+TSType",
+            Value = "+TSType",
         },
-        conceal = {
-            bold = "cterm=bold gui=bold",
-            italic = "cterm=italic gui=italic",
-            underline = "cterm=underline gui=underline",
-            strikethrough = "cterm=strikethrough gui=strikethrough",
+        Conceal = {
+            Bold = "cterm=bold gui=bold",
+            Italic = "cterm=italic gui=italic",
+            Underline = "cterm=underline gui=underline",
+            Strikethrough = "cterm=strikethrough gui=strikethrough",
+        },
+
+        SelectionWindow = {
+            Heading = "+TSAnnotation",
+            Arrow = "+Normal",
+            Key = "+TSNamespace",
+            Keyname = "+TSMath",
+            Nestedkeyname = "+TSString",
         },
 
         selectionwindow = {
@@ -37,8 +45,8 @@ module.config.public = {
         },
     },
     dim = {
-        conceal = {
-            monospace = {
+        Conceal = {
+            Monospace = {
                 reference = "Normal",
                 percentage = 20,
             },
@@ -71,7 +79,7 @@ module.public = {
             for hl_name, highlight in pairs(highlights) do
                 -- If the callback returns true then descend further down the table tree
                 if callback(hl_name, highlight, prefix) then
-                    descend(highlight, callback, hl_name)
+                    descend(highlight, callback, prefix .. hl_name)
                 end
             end
         end

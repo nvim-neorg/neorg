@@ -215,7 +215,7 @@ local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
 parser_configs.norg = {
     install_info = {
         url = "https://github.com/vhyrro/tree-sitter-norg",
-        files = { "src/parser.c" },
+        files = { "src/parser.c", "src/scanner.cc" },
         branch = "main"
     },
 }
@@ -248,7 +248,9 @@ to communicate with the Neorg core. By default no engine is specified. To specif
 
 ```lua
 ["core.norg.completion"] = {
-	engine = "nvim-compe" | "nvim-cmp" -- We current support nvim-compe and nvim-cmp only
+	config = {
+		engine = "nvim-compe" | "nvim-cmp" -- We current support nvim-compe and nvim-cmp only
+	}
 }
 ```
 
