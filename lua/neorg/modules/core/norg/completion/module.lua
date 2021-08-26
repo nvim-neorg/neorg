@@ -21,7 +21,7 @@ module.private = {
 module.load = function()
 	-- If we have not defined an engine then bail
 	if not module.config.public.engine then
-		log.trace("No engine specified, aborting...")
+		log.error("No engine specified, aborting...")
 		return
 	end
 
@@ -71,11 +71,12 @@ module.public = {
 			complete = {
 				"table",
 				"comment",
-				"unordered",
+				"ordered",
 				"code",
-				"tangle",
 				"image",
 				"embed",
+				"name",
+				"document",
 			},
 
 			-- Additional options to pass to the completion engine
@@ -89,6 +90,19 @@ module.public = {
 			-- the line.
 			descend = {
 				-- The cycle continues
+				{
+					regex = "document%.%w*",
+
+					complete = {
+						"meta",
+					},
+
+					options = {
+						type = "Tag",
+					},
+
+					descend = {},
+				},
 				{
 					-- Define a regex (gets appended to parent's regex)
 					regex = "code%s+%w*",
@@ -162,7 +176,7 @@ module.public = {
 			}
 		},
 		{
-			regex = "^%s*%-%s+%[([x%*%s]?)",
+			regex = "^%s*%-+%s+%[([x%*%s]?)",
 
 			complete = {
 				"[ ] ",
@@ -173,7 +187,7 @@ module.public = {
 			options = {
 				type = "TODO",
 				pre = function()
-					local sub = vim.api.nvim_get_current_line():gsub("^(%s*%-%s+%[%s*)%]", "%1")
+					local sub = vim.api.nvim_get_current_line():gsub("^(%s*%-+%s+%[%s*)%]", "%1")
 
 					if sub then
 						vim.api.nvim_set_current_line(sub)

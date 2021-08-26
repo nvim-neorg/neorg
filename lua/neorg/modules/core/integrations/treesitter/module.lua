@@ -14,68 +14,258 @@ end
 
 module.config.public = {
     highlights = {
-        tag = {
+        Tag = {
             -- The + tells neorg to link to an existing hl
-            begin = "+TSKeyword",
+            Begin = "+TSKeyword",
 
             -- Supply any arguments you would to :highlight here
             -- Example: ["end"] = "guifg=#93042b",
-            ["end"] = "+TSKeyword",
+            ["End"] = "+TSKeyword",
 
-            name = "+TSKeyword",
-            parameters = "+TSType",
-            content = "+Normal",
-            comment = "+TSComment",
+            Name = {
+                [""] = "+Normal",
+                Word = "+TSKeyword",
+            },
+
+            Parameter = "+TSType",
+            Content = "+Normal",
         },
 
-        heading = {
-            ["1"] = "+TSAttribute",
-            ["2"] = "+TSLabel",
-            ["3"] = "+TSMath",
-            ["4"] = "+TSString",
+        CarryoverTag = {
+            Begin = "+TSLabel",
+
+            Name = {
+                [""] = "+Normal",
+                Word = "+TSLabel",
+            },
+
+            Parameter = "+TSString",
         },
 
-        error = "+TSError",
+        Heading = {
+            ["1"] = {
+                Title = "+TSAttribute",
+                Prefix = "+TSAttribute",
+            },
+            ["2"] = {
+                Title = "+TSLabel",
+                Prefix = "+TSLabel",
+            },
+            ["3"] = {
+                Title = "+TSMath",
+                Prefix = "+TSMath",
+            },
+            ["4"] = {
+                Title = "+TSString",
+                Prefix = "+TSString",
+            },
+            ["5"] = {
+                Title = "+TSLabel",
+                Prefix = "+TSLabel",
+            },
+            ["6"] = {
+                Title = "+TSMath",
+                Prefix = "+TSMath",
+            },
+        },
 
-        marker = {
+        Error = "+TSError",
+
+        Marker = {
             [""] = "+TSLabel",
-            title = "+Normal",
+            Title = "+Normal",
         },
 
-        drawer = {
+        Drawer = {
             [""] = "+TSPunctDelimiter",
-            title = "+TSMath",
-            content = "+Normal",
+            ["End"] = "+TSPunctDelimiter",
+
+            Title = "+TSMath",
+            Content = "+Normal",
         },
 
-        escapesequence = "+TSType",
+        EscapeSequence = "+TSType",
 
-        todoitem = {
-            [""] = "+TSCharacter",
-            pendingmark = "+TSNamespace",
-            donemark = "+TSMethod",
+        TodoItem = {
+            ["1"] = {
+                [""] = "+NeorgUnorderedList1",
+
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
+            },
+            ["2"] = {
+                [""] = "+NeorgUnorderedList2",
+
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
+            },
+            ["3"] = {
+                [""] = "+NeorgUnorderedList3",
+
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
+            },
+            ["4"] = {
+                [""] = "+NeorgUnorderedList4",
+
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
+            },
+            ["5"] = {
+                [""] = "+NeorgUnorderedList5",
+
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
+            },
+            ["6"] = {
+                [""] = "+NeorgUnorderedList6",
+
+                Undone = "+TSPunctDelimiter",
+                Pending = "+TSNamespace",
+                Done = "+TSString",
+            },
         },
 
-        unordered = {
-            list = "+TSPunctDelimiter",
-            linklist = "+TSPunctDelimiter",
+        Unordered = {
+            List = {
+                ["1"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
+                ["2"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
+                ["3"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
+                ["4"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
+                ["5"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
+                ["6"] = {
+                    [""] = "+TSPunctDelimiter",
+                },
+            },
+
+            Link = {
+                ["1"] = {
+                    [""] = "+NeorgUnorderedList1",
+                },
+                ["2"] = {
+                    [""] = "+NeorgUnorderedList2",
+                },
+                ["3"] = {
+                    [""] = "+NeorgUnorderedList3",
+                },
+                ["4"] = {
+                    [""] = "+NeorgUnorderedList4",
+                },
+                ["5"] = {
+                    [""] = "+NeorgUnorderedList5",
+                },
+                ["6"] = {
+                    [""] = "+NeorgUnorderedList6",
+                },
+            },
         },
 
-        quote = {
-            [""] = "+TSPunctDelimiter",
-            content = "+TSPunctDelimiter",
+        Ordered = {
+            List = {
+                ["1"] = {
+                    [""] = "+TSRepeat",
+                },
+                ["2"] = {
+                    [""] = "+TSRepeat",
+                },
+                ["3"] = {
+                    [""] = "+TSRepeat",
+                },
+                ["4"] = {
+                    [""] = "+TSRepeat",
+                },
+                ["5"] = {
+                    [""] = "+TSRepeat",
+                },
+                ["6"] = {
+                    [""] = "+TSRepeat",
+                },
+            },
+
+            Link = {
+                ["1"] = {
+                    [""] = "+NeorgOrderedList1",
+                },
+                ["2"] = {
+                    [""] = "+NeorgOrderedList2",
+                },
+                ["3"] = {
+                    [""] = "+NeorgOrderedList3",
+                },
+                ["4"] = {
+                    [""] = "+NeorgOrderedList4",
+                },
+                ["5"] = {
+                    [""] = "+NeorgOrderedList5",
+                },
+                ["6"] = {
+                    [""] = "+NeorgOrderedList6",
+                },
+            },
         },
 
-        codeblock = "+Normal",
+        Quote = {
+            ["1"] = {
+                [""] = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
+            },
+            ["2"] = {
+                [""] = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
+            },
+            ["3"] = {
+                [""] = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
+            },
+            ["4"] = {
+                [""] = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
+            },
+            ["5"] = {
+                [""] = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
+            },
+            ["6"] = {
+                [""] = "+TSPunctDelimiter",
+                Content = "+TSPunctDelimiter",
+            },
+        },
+
+        Insertion = {
+            [""] = "cterm=bold gui=bold",
+            Prefix = "+TSPunctDelimiter",
+            Item = "+TSNamespace",
+            Parameters = "+TSPunctDelimiter",
+        },
+
+        StrongParagraphDelimiter = "+TSPunctDelimiter",
+        WeakParagraphDelimiter = "+TSPunctDelimiter",
     },
 
     dim = {
-        codeblock = {
+        CodeBlock = {
             reference = "Normal",
             percentage = 15,
             affect = "background",
         },
     },
+
+    generate_shorthands = true,
 }
 
 module.load = function()
@@ -95,27 +285,29 @@ module.load = function()
 		Injections are generated dynamically
 	--]]
 
-    local injections = {}
+    if module.config.public.generate_shorthands then
+        local injections = {}
 
-    local langs = require("neorg.external.helpers").get_language_shorthands(false)
+        local langs = require("neorg.external.helpers").get_language_shorthands(false)
 
-    for language, shorthands in pairs(langs) do
-        for _, shorthand in ipairs(shorthands) do
-            table.insert(
-                injections,
-                (
-                    [[(tag (tag_name) @_tagname (tag_parameters) @_language (tag_content) @content (#eq? @_tagname "code") (#eq? @_language "%s") (#set! "language" "%s"))]]
-                ):format(shorthand, language)
-            )
+        for language, shorthands in pairs(langs) do
+            for _, shorthand in ipairs(shorthands) do
+                table.insert(
+                    injections,
+                    (
+                        [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @%s) (ranged_tag_content) @content (#eq? @_tagname "code") (#eq? @%s "%s"))]]
+                    ):format(language, language, shorthand)
+                )
+            end
         end
+
+        table.insert(
+            injections,
+            [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @language) (ranged_tag_content) @content (#eq? @_tagname "code") (#not-eq? @language "norg"))]]
+        )
+
+        vim.treesitter.set_query("norg", "injections", table.concat(injections, "\n"))
     end
-
-    table.insert(
-        injections,
-        [[(tag (tag_name) @_tagname (tag_parameters) @language (tag_content) @content (#eq? @_tagname "code") (#not-eq? @language "norg"))]]
-    )
-
-    vim.treesitter.set_query("norg", "injections", table.concat(injections, "\n"))
 end
 
 module.public = {
@@ -320,9 +512,11 @@ module.public = {
         return result
     end,
 
-    -- TODO: Add docs
-    tree_map = function(callback)
-        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+    -- @Summary Invokes a callback for every element of the current tree
+    -- @Param  callback (function(node)) - the callback to invoke
+    -- TODO: docs
+    tree_map = function(callback, ts_tree)
+        local tree = ts_tree or vim.treesitter.get_parser(0, "norg"):parse()[1]
 
         local root = tree:root()
 
@@ -367,12 +561,22 @@ module.public = {
                 text = ts.get_node_text(parent:named_child(0))[1],
                 location = ts.get_node_text(parent:named_child(1))[1],
                 type = parent:named_child(1):type(),
+                range = module.public.get_node_range(parent),
+                node = parent,
             }
         end
     end,
 
     -- Gets the range of a given node
     get_node_range = function(node)
+        if not node then
+            return {
+                row_start = 0,
+                column_start = 0,
+                row_end = 0,
+                column_end = 0,
+            }
+        end
         local rs, cs, re, ce = node:range()
         return {
             row_start = rs,

@@ -14,6 +14,8 @@ return function(module)
             -- Create a new horizontal split, we'll be placing our UI elements here
             local buf = module.public.create_split("selection/" .. name, config.buffer_options)
 
+            vim.notify("Press <Esc> to quit the window")
+
             ---Displays all possible keys the user can press
             ---@param title string the title of the keybinds
             ---@param flags table the list of flags to display
@@ -27,7 +29,7 @@ return function(module)
                     0,
                     -1,
                     false,
-                    vim.split(("\n"):rep(#vim.tbl_keys(flags) + 1), "\n", true)
+                    vim.split((" \n"):rep(#vim.tbl_keys(flags) + 1), "\n", true)
                 )
 
                 -- Convert our table format into one that Neovim's extmarks API can understand
@@ -39,41 +41,56 @@ return function(module)
                     }
 
                     -- Loop through all flags and display them accordingly:
-                    for keybind, value in pairs(flags) do
+                    for _, data in ipairs(flags) do
+                        local keybind = data[1] or ""
+                        local value = data[2]
+
                         -- A key can only consist of one char, enforce this rule here:
-                        if keybind:len() > 1 then
-                            log.error(
-                                "Malformed input in selection_popup '"
-                                    .. name
-                                    .. "' at parameter '"
-                                    .. keybind
-                                    .. "'. Key cannot be more than one character"
-                            )
-                            return nil
-                        end
-
-                        local keybind_element = {}
-
-                        table.insert(keybind_element, { keybind, "NeorgSelectionWindowKey" })
-                        table.insert(keybind_element, { " -> ", "NeorgSelectionWindowArrow" })
-
-                        -- If we're dealing with a table element then query its name and display it with a custom highlight
-                        if type(value) == "table" then
-                            table.insert(
-                                keybind_element,
-                                { value.name or "No description", "NeorgSelectionWindowNestedKeyName" }
-                            )
-                        elseif type(value) == "string" then -- If we're dealing with a string then just display it
-                            table.insert(keybind_element, { value, "NeorgSelectionWindowKeyName" })
+                        if keybind:len() ~= 1 then
+                            table.insert(result, {
+                                keybind:len() == 0 and " " or keybind,
+                                data[3] and "TSStrike" or (value or "TSPunctDelimiter"),
+                            })
                         else
-                            -- If we're dealing with something else then try to rescue the situation by stringifying whatever
-                            -- the hell the user tried to provide
-                            table.insert(keybind_element, { tostring(value), "NeorgSelectionWindowKeyName" })
-                        end
+                            local keybind_element = {}
 
-                        -- Insert this keybind element into the result, creating a table that looks like { { { text, highlight } } }
-                        -- Every top-level table element should be displayed on a new line
-                        table.insert(result, keybind_element)
+                            local highlights = {
+                                key = "NeorgSelectionWindowKey",
+                                key_name = "NeorgSelectionWindowKeyName",
+                                arrow = "NeorgSelectionWindowArrow",
+                                nested_key_name = "NeorgSelectionWindowNestedKeyName",
+                            }
+
+                            if data[3] then
+                                highlights = {
+                                    key = "TSStrike",
+                                    key_name = "TSStrike",
+                                    arrow = "TSStrike",
+                                    nested_key_name = "TSStrike",
+                                }
+                            end
+
+                            table.insert(keybind_element, { keybind, highlights.key })
+                            table.insert(keybind_element, { " -> ", highlights.arrow })
+
+                            -- If we're dealing with a table element then query its name and display it with a custom highlight
+                            if type(value) == "table" then
+                                table.insert(keybind_element, {
+                                    "+" .. (value.display and value.display or (value.name or "No description")),
+                                    highlights.nested_key_name,
+                                })
+                            elseif type(value) == "string" then -- If we're dealing with a string then just display it
+                                table.insert(keybind_element, { value, highlights.key_name })
+                            else
+                                -- If we're dealing with something else then try to rescue the situation by stringifying whatever
+                                -- the hell the user tried to provide
+                                table.insert(keybind_element, { tostring(value), highlights.key_name })
+                            end
+
+                            -- Insert this keybind element into the result, creating a table that looks like { { { text, highlight } } }
+                            -- Every top-level table element should be displayed on a new line
+                            table.insert(result, keybind_element)
+                        end
                     end
 
                     return result
@@ -86,10 +103,18 @@ return function(module)
 
                 -- Go through each "line" that the generator function created and try to set the extmark for that line
                 for i, virt_text in ipairs(text_for_current) do
-                    vim.api.nvim_buf_set_extmark(buf, module.private.namespace, i - 1, 0, {
-                        virt_text = virt_text,
-                        virt_text_pos = "overlay",
-                    })
+                    if type(virt_text[1]) == "string" then
+                        vim.api.nvim_buf_set_extmark(buf, module.private.namespace, i - 1, 0, {
+                            hl_group = virt_text[2],
+                            virt_text = { { virt_text[1], virt_text[2] } },
+                            virt_text_pos = "overlay",
+                        })
+                    else
+                        vim.api.nvim_buf_set_extmark(buf, module.private.namespace, i - 1, 0, {
+                            virt_text = virt_text,
+                            virt_text_pos = "overlay",
+                        })
+                    end
                 end
 
                 -- For some reason creating a buffer and then quickly polling for input causes the polling to happen first
@@ -106,6 +131,7 @@ return function(module)
 
             local location, result = config.flags, {}
 
+            -- TODO: Remake documentation
             -- Loop through all flags
             --
             -- A flag table may look like this:
@@ -138,7 +164,14 @@ return function(module)
             while location do
                 -- Query the next input (NOTE: we do getchar() rather than getcharstr() in order
                 -- to maintain better compatibility)
-                local input = string.char(vim.fn.getchar())
+                local input, char = "", vim.fn.getchar()
+
+                if type(char) == "number" then
+                    input = string.char(char)
+                    -- TODO: Maybe add support for <BS>?
+                    --[[ elseif type(char) == "string" then
+                	input = char ]]
+                end
 
                 -- If the entered char was an <Esc> key then bail
                 if input == "" then
@@ -147,24 +180,32 @@ return function(module)
                     break
                 end
 
-                -- If that key has been defined then
-                if location[input] then
+                local data = vim.tbl_filter(function(data)
+                    return data[1] and data[1]:len() == 1 and data[1] ~= "\n" and data[1] == input
+                end, location)
+
+                data = data and data[1]
+
+                -- If that key has been defined and it is enabled then
+                if data and not vim.tbl_isempty(data) and not data[3] then
                     -- Add the current keypress to the list of provided inputs
                     table.insert(result, input)
 
+                    -- TODO: Docs
+
                     -- If the next key we're going to traverse down is a string that means
                     -- we've reached the end of our parsing, there's nothing more to traverse down:
-                    if type(location[input]) == "string" then
+                    if type(data[2]) == "string" then
                         -- Since we're at the end of the parsing stage delete the buffer before invoking the callback
                         vim.api.nvim_buf_delete(buf, { force = true })
 
                         -- Invoke the user callback with all the necessary data and break
-                        callback(result, { char = input, name = location[input] })
+                        callback(result, { char = input, name = data[2] })
 
                         break
                     else -- Otherwise we must be dealing with a table
                         -- If there is no flags variable then we should error out
-                        if not location[input].flags then
+                        if not data[2].flags then
                             log.error(
                                 'Malformed input provided to create_selection: expected a "flags" variable in subtable'
                             )
@@ -176,17 +217,14 @@ return function(module)
 
                         -- Redraw the new flags
                         if
-                            not display_values(
-                                location[input].name ~= "No description" and location[input].name or name,
-                                location[input].flags
-                            )
+                            not display_values(data[2].name ~= "No description" and data[2].name or name, data[2].flags)
                         then
                             -- Delete the buffer, we don't need it anymore
                             vim.api.nvim_buf_delete(buf, { force = true })
                             break
                         end
                         -- Recursively traverse down the table tree
-                        location = location[input].flags
+                        location = data[2].flags
                     end
                 end
             end
@@ -203,17 +241,20 @@ return function(module)
 
             vim.cmd("below new")
 
-            local buf = vim.api.nvim_create_buf(false, false)
+            local buf = vim.api.nvim_win_get_buf(0)
 
             local default_options = {
                 swapfile = false,
                 bufhidden = "hide",
                 buftype = "nofile",
+                buflisted = false,
             }
 
             vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
-
             vim.api.nvim_win_set_buf(0, buf)
+
+            vim.api.nvim_win_set_option(0, "number", false)
+            vim.api.nvim_win_set_option(0, "relativenumber", false)
 
             -- Merge the user provided options with the default options and apply them to the new buffer
             module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
