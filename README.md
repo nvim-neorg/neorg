@@ -220,6 +220,9 @@ parser_configs.norg = {
     },
 }
 ```
+
+This is lua code; for eg to run the above code snippet in an empty file from vim, wrap it in `lua << EOF **code-snippet** EOF` and re-source this file.
+
 Then run `:TSInstall norg`.
 If you want the parser to be more persistent across different installations of your config make sure to set `norg` as a parser in the `ensure_installed` table, then run `:TSUpdate`.
 Here's an example config, yours will probably be different:
