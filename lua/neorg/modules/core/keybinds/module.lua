@@ -258,10 +258,10 @@ module.on_event = function(event)
         -- If a new mode has been set then reset all of our keybinds
         module.public.unbind_all()
         module.public.bind_all()
-    elseif event.type == "core.autocommands.events.bufenter" then
+    elseif event.type == "core.autocommands.events.bufenter" and event.content.norg then
         -- If we have entered a buffer then rebind all keys
         module.public.bind_all()
-    elseif event.type == "core.autocommands.events.bufleave" then
+    elseif event.type == "core.autocommands.events.bufleave" and event.content.norg then
         -- If we have left a buffer then unbind all keys
         module.public.unbind_all()
     end

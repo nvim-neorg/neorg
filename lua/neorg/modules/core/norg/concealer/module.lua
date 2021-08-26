@@ -440,7 +440,7 @@ module.public = {
         if conceals.strikethrough then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealStrikethrough matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-\W \t\n]\@<=\~\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=\~\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealStrikethrough matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-\W \t\n]\@<=\-\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
