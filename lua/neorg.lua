@@ -21,7 +21,7 @@ function neorg.setup(config)
         -- Then set the filetype and boot up the environment
         neorg.org_file_entered()
     else
-        -- Else listen for a BufRead event and fire up the Neorg environment then
+        -- Else listen for a BufRead event and fire up the Neorg environment
         vim.cmd([[
 			autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered()
 			command! -nargs=0 Neorg delcommand Neorg | lua require('neorg').org_file_entered()

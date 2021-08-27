@@ -16,12 +16,14 @@ neorg.configuration = {
 
 -- Grab OS info on startup
 neorg.configuration.os_info = (function()
-    if vim.fn.has("win32") == 1 then
+    local os = vim.loop.os_uname().sysname:lower()
+
+    if os:find("windows_nt") then
         return "windows"
-    elseif vim.fn.has("unix") == 1 then
-        return "linux"
-    elseif vim.fn.has("mac") == 1 then
+    elseif os == "darwin" then
         return "mac"
+    elseif os == "linux" then
+        return "linux"
     end
 end)()
 
