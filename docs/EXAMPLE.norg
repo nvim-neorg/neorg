@@ -1,60 +1,218 @@
 @document.meta
 	title: EXAMPLE
 	description: Example norg doc
-	author: Papa
-	categories: stuff
-	created: 2021-08-01
+	author: The Neorg-community
+	categories: docs
+	created: 2021-08-27
 	version: 0.1
 @end
 
-*Something cool that is bolded*
+= TOC
 
-_Something cool that is underlined_
+* The `.norg` file-format
+  If you find the [spec](https://github.com/vhyrro/neorg/blob/main/docs/NFF-0.1-spec.md)
+  too long and want to jump-start your Neorg skills, you've come to the right place!
 
-/Something cool that is italicized/
+ ** Basic Markup
+    Here is how you can do very basic markup. First you see it raw, then rendered:
+    - \*bold\*: *bold*
+    - \/italic\/: /italic/
+    - \_underline\_: _underline_
+    - \-strikethrough\-: -strikethrough-
+    - \|spoiler\|: |spoiler|
+    - \`inline code\`: `inline code`
+    - \^superscript\^: ^superscript^
+    - \,subscript\,: ,subscript,
 
-~some text that is striked trough~
+    This also immediately shows you how to escape a special character using the backslash, \\.
 
-`some text that is inline code`
+ ** Things which you can nest
+    Neorg generally does *NOT* care about indentation! 🎉
+    Thus, nesting is done via repeating modifiers like you are used to it from Markdown headings.
+    Note, that this allows you to start at an arbitrary nesting level if you so desire!
 
-* Some title
- ** Some title again
-  *** Some title again and again
-   **** Some title again and again and again
+  *** Unordered lists
+        - Unordered list level 1
+        -- Unordered list level 2
+        --- Unordered list level 3
+        ---- Unordered list level 4
+        ----- Unordered list level 5
+        ------ Unordered list level 6
 
-- Unordered list item
-- Unordered list item
-- Unordered list item
+  *** Ordered lists
+        ~ Ordered list level 1
+        ~~ Ordered list level 2
+        ~~~ Ordered list level 3
+        ~~~~ Ordered list level 4
+        ~~~~~ Ordered list level 5
+        ~~~~~~ Ordered list level 6
 
-- [ ] Task not yet done 
-- [x] Task that is done 
-- [*] Task that is pending
+  *** Tasks
+        - [ ] Undone Task
+        - [*] Pending Task
+        - [x] Done Task
 
-| Some text that is quite important
+        You can also nest tasks:
+        -- [ ] Nested task level 2
+        --- [ ] Nested task level 3
+        ---- [ ] Nested task level 4
+        ----- [ ] Nested task level 5
+        ------ [ ] Nested task level 6
 
-> Some text that is a quote that someone once said
+  *** Quotes
+      > 1. level quote
+      >> 2. level quote
+      >>> 3. level quote
+      >>>> 4. level quote
+      >>>>> 5. level quote
+      >>>>>> 6. level quote
 
-This is a basic [link](#My Link)
+  *** Headings
+      You already saw headings up to the third out of six levels. I assume by now you know how they
+      work. But now...
 
-[text](#Example Heading) - a link to any element with the text example-heading
-[text](*Example Heading) - a link to a regular heading
-[text](**Example Subheading) - a link to a subheading
-[text](***Example Subsubheading) - a link to a sub-sub-heading
-[text](****Example Subsubsubheading) - a link to a sub-sub-sub-heading
-[text](|A marker) - a link to a marker
+   **** ... prepare to have your mind blown!
+        Because here is something very special and unique to Neorg:
 
-$comment
-This is a comment!
+    ***** Indentation reversion
+          As you would expect, this paragraph belongs to the fifth level heading.
 
-No parameter supplied, treated as a regular code block:
-@code
-    console.log("Wow some code.")
-@end
+      ****** Final heading level
+             And this paragraph belongs to the sixth level. But by using the following modifier:
+             ---
 
-  Parameter supplied, denotes the language via a parameter:
-@code lua
-    local message = "Some awesome lua code!"
+          We can move this text to the fifth level again! 🤯
+          ---
 
-    print(message)
-@end
+        So using 3 or more `-` signs not followed by anything, you move *one* level backwards in the
+        indentation.
 
+===
+
+And using 3 or more `=` signs will drop you right back to the root level!
+
+ ** Links
+    We borrow the basic link syntax from markdown: `[link text](link source)`
+    Here are some example which also show you a special list kind for links:
+
+    -> [arbitrary heading link](#links)
+    --> [heading level 1](*The `.norg` file-format)
+    -> [some marker](|some marker)
+    -> [some drawer](||some drawer)
+
+    These links will be ordered:
+    ~> [shameless plug](https://github.com/vhyrro/taurivim)
+    ~> [shameless plug](https://github.com/danymat/neogen)
+
+    You can link to objects in other files like so:
+    `[link text](file:#location)`
+    `[link text](file:other_file:#location)`
+
+ ** Markers
+    You can mark specific locations in your file with markers:
+    | some marker
+
+ ** Drawers
+    Drawers are a concept you may know from org-mode. They allow you to hide text:
+    || some drawer
+    My very important secret... 🤫
+    ||
+
+ ** Data Tags
+    Neorg supports a number of tags. The general format is:
+    @data possible parameters
+    contents
+    @end
+
+  *** Carryover
+      There is also an infectious carryover variant which allows shorter syntax. Its format is:
+      `$data possible parameters`, which will apply the `data` tag *only* to the following
+      paragraph.
+
+  *** Comments
+      $comment
+      This is a comment.
+      This is also still a comment because the paragraph has not ended, yet.
+
+      The double line break ended the paragraph so this is no longer part of the comment.
+
+  *** Name
+      $name foreplay
+      > The foreplay is called that way because it's a preliminary introduction to the document
+      > tells the parser how the rest of the document will play out: fore, play.
+      > Makes sense, right? - Vhyrro
+
+      This quote now has a /name/!
+
+  *** List ordering
+      You can affect ordered lists and specify their /start/, /step/ and /spacing/ values (all of
+      them default to 1).
+
+      $ordered 2 2 2
+      ~ First entry
+      ~ Second entry
+
+      This will render as:
+      @code
+      2. First entry
+
+      4. Second entry
+      @end
+
+  *** Tables
+      @table
+      Column 1 | Column 2
+      -
+      This is in a new row | which got separated by a horizontal line
+      And check this out: I can span the columns!
+      @end
+
+      Tables will become OP in the future!
+
+  *** Code Blocks
+      @code
+      console.log("But I want syntax highlighting...")
+      @end
+
+      @code lua
+      console.log("Thank you!")
+      @end
+
+  *** Media
+      You can embed images directly in base64 format like so:
+      @image png svg jpeg jfif exif
+      -- base64-encoded image data
+      @end
+      Obviously you need to pick one of the available formats.
+
+      You can embed external image or video files like so:
+      @embed image
+      https://github.com/vhyrro/neorg/blob/main/res/neorg.svg
+      @end
+
+ ** Advanced markup
+    There are some more advanced markup features:
+
+  *** The Link modifier
+      If you want to mark-up text which is not surrounded by punctuation or whitespace, you need to
+      use the *link* modifier, `:`, like so:
+
+      W:*h*:y w:/oul/:d a:_nyon_:e w:-an-:t to do t:`hi`:s?
+
+  *** Object continuation
+      The `~` trailing modifier causes the line break to be ignored. This allows you to do things
+      like this:
+
+   **** This is a super duper long heading which I am so proud of and I absolutely cannot shorten~
+        to fit onto a single line
+
+  *** Insertions
+      These are dynamically expended objects which you can add to your document's
+      [foreplay](#foreplay). Continue reading to find out where to find them.
+
+  *** Foreplay
+      If you read the quote above, you already heard this before. The /foreplay/ is located at the
+      beginning of your document. It can contain ranged tags ([data tags](#data tags) which are not
+      written in their [carryover](#carryover) syntax), insertions and an arbitrary number of empty
+      lines. Most importantly is the `document.meta` tag which we skipped over previously. You can
+      find an example of it at the top of this file.
