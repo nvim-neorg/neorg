@@ -51,7 +51,16 @@ function _neorg_indent_expr()
 end
 
 module.setup = function()
-    return { success = true, requires = { "core.autocommands", "core.keybinds", "core.norg.dirman", "core.scanner", "core.integrations.treesitter" } }
+    return {
+        success = true,
+        requires = {
+            "core.autocommands",
+            "core.keybinds",
+            "core.norg.dirman",
+            "core.scanner",
+            "core.integrations.treesitter",
+        },
+    }
 end
 
 module.config.public = {
