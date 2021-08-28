@@ -235,7 +235,7 @@ module.public = {
 					-- If the completion data has a node variable then attempt to match the current node too!
 					if completion_data.node then
 						-- Grab the treesitter utilities
-						local ts = module.private.treesitter_integration.public.get_ts_utils()
+						local ts = module.private.treesitter_integration.get_ts_utils()
 
 						-- If the type of completion data we're dealing with is a string then attempt to parse it
 						if type(completion_data.node) == "string" then

@@ -403,7 +403,7 @@ module.public = {
                 end,
 
                 get_text_as_one = function(self, node)
-                    return table.concat(ts.public.get_ts_utils().get_node_text(node, self.buf), "\n")
+                    return table.concat(ts.get_ts_utils().get_node_text(node, self.buf), "\n")
                 end,
             }
 
@@ -949,7 +949,7 @@ module.public = {
                 else
                     vim.cmd("silent !start " .. vim.fn.fnameescape(destination))
                 end
-                return utility.ts.get_node_range(utility.ts.public.get_ts_utils().get_node_at_cursor())
+                return utility.ts.get_node_range(utility.ts.get_ts_utils().get_node_at_cursor())
             end,
         },
 
