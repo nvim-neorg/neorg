@@ -9,7 +9,7 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.integrations.treesitter")
 
 module.private = {
-    ts_utils = nil
+    ts_utils = nil,
 }
 
 module.setup = function()
@@ -17,7 +17,7 @@ module.setup = function()
 end
 
 module.load = function()
-    local sucess, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
+    local success, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
 
     assert(success, "Unable to load nvim-treesitter.ts_utils :(")
 
@@ -458,9 +458,6 @@ module.public = {
             return nil
         end
 
-        -- Grab the TreeSitter utils
-        local ts_utils = module.public.get_ts_utils()
-
         local attributes = {}
         local leading_whitespace, resulting_name, params, content = 0, {}, {}, {}
 
@@ -487,14 +484,14 @@ module.public = {
         for child, _ in tag_node:iter_children() do
             -- If we're dealing with the tag name then append the text of the tag_name node to this table
             if child:type() == "tag_name" then
-                table.insert(resulting_name, ts_utils.get_node_text(child)[1])
+                table.insert(resulting_name, module.private.ts_utils.get_node_text(child)[1])
             elseif child:type() == "tag_parameters" then
-                table.insert(params, ts_utils.get_node_text(child)[1])
+                table.insert(params, module.private.ts_utils.get_node_text(child)[1])
             elseif child:type() == "leading_whitespace" then
-                leading_whitespace = ts_utils.get_node_text(child)[1]:len()
+                leading_whitespace = module.private.ts_utils.get_node_text(child)[1]:len()
             elseif child:type() == "tag_content" then
                 -- If we're dealing with tag content then retrieve that content
-                content = ts_utils.get_node_text(child)
+                content = module.private.ts_utils.get_node_text(child)
             end
         end
 
@@ -559,8 +556,7 @@ module.public = {
     end,
 
     get_link_info = function()
-        local ts = module.public.get_ts_utils()
-        local node = ts.get_node_at_cursor(0)
+        local node = module.private.ts_utils.get_node_at_cursor(0)
 
         if not node then
             return nil
@@ -574,8 +570,8 @@ module.public = {
 
         if parent:type() == "link" and parent:named_child_count() > 1 then
             return {
-                text = ts.get_node_text(parent:named_child(0))[1],
-                location = ts.get_node_text(parent:named_child(1))[1],
+                text = module.private.ts_utils.get_node_text(parent:named_child(0))[1],
+                location = module.private.ts_utils.get_node_text(parent:named_child(1))[1],
                 type = parent:named_child(1):type(),
                 range = module.public.get_node_range(parent),
                 node = parent,
