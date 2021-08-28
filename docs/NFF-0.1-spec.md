@@ -38,7 +38,7 @@ whenever two consecutive newlines are encountered, or whenever a paragraph-break
 if the current paragraph was a single-line paragraph.
 More information about modifiers and detached modifiers can be found below.
 - Punctuation - punctuation is any character that controls the intonation, flow or meaning of a sentence. Additional
-punctuation marks are those that represent e.g. currencies. Currently punctuation is defined as `?!:;,.<>()[]{}'"/#%&$£-`,
+punctuation marks are those that represent e.g. currencies. Currently punctuation is defined as `?!:;,.<>()[]{}'"/#%&$£€-`,
 where each individual character denotes a valid punctuation mark. This list will grow with newer specifications.
 - Modifiers - modifiers are characters or sequences of characters that change the way a segment of text **within a paragraph** is displayed.
 This can be the `*` modifier, which makes some text bold, the `/` modifier, which makes text italic, and so on. Every modifier
