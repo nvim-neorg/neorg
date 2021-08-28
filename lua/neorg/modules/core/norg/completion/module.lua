@@ -26,12 +26,7 @@ module.load = function()
 		return
 	end
 
-        if neorg.modules.load_module("core.integrations.treesitter") then
-            module.private.treesitter_integration = neorg.modules.get_module("core.integrations.treesitter")
-        else
-            log.error("Unable to load completion module because the treesitter integration is unavailable.")
-            return
-        end
+        module.private.treesitter_integration = neorg.modules.get_module("core.integrations.treesitter")
         if not module.private.treesitter_integration then
             log.error("The completion requires the treesitter integration :(")
             return
