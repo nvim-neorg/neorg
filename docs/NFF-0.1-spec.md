@@ -131,6 +131,7 @@ changes:
   - `_some text_` - marks text as underline
   - `-some text-` - marks text as ~~strikethrough~~.
   - `^some text^` - superscript
+  - `,some text,` - subscript
   - `|some text|` - spoilers
   - \`some text\` - inline code block (verbatim)
 
