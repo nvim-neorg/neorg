@@ -14,21 +14,18 @@ module.config.public = {
     name = "[Neorg]",
 }
 
+module.setup = function()
+	return { success = true, requires = { "core.integrations.treesitter" } }
+end
+
 module.private = {
-    engine = nil,
-    treesitter_integration = nil,
+    engine = nil
 }
 
 module.load = function()
     -- If we have not defined an engine then bail
     if not module.config.public.engine then
         log.error("No engine specified, aborting...")
-        return
-    end
-
-    module.private.treesitter_integration = neorg.modules.get_module("core.integrations.treesitter")
-    if not module.private.treesitter_integration then
-        log.error("The completion requires the treesitter integration :(")
         return
     end
 
@@ -235,7 +232,7 @@ complete = function(context, prev, saved)
                 -- If the completion data has a node variable then attempt to match the current node too!
                 if completion_data.node then
                     -- Grab the treesitter utilities
-                    local ts = module.private.treesitter_integration.get_ts_utils()
+                    local ts = module.required["core.integrations.treesitter"].get_ts_utils()
 
                     -- If the type of completion data we're dealing with is a string then attempt to parse it
                     if type(completion_data.node) == "string" then
