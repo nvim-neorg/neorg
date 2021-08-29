@@ -49,8 +49,6 @@ module.public = {
                 snippets = snippets .. (i ~= #snippets_base and ",\n" or "\n")
             end
             snippets = snippets .. "}"
-            vim.notify(snippets, "info", "vim-vsnip")
-            vim.notify(snippets_file, "info", "vim-snip")
             local file = io.open(snippets_file, "w")
             io.output(file)
             io.write(snippets)
