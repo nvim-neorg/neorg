@@ -13,6 +13,7 @@ module.private = {
 }
 
 module.private.engine_map.luasnip = "core.integrations.luasnip"
+module.private.engine_map.vsnip = "core.integrations.vim-vsnip"
 
 module.load = function()
     local module_path = module.private.engine_map[module.config.public.engine]
