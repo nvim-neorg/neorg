@@ -412,7 +412,7 @@ module.public = {
                 end,
 
                 get_text_as_one = function(self, node)
-                    return table.concat(ts.get_ts_utils().get_node_text(node, self.buf), "\n")
+                    return table.concat(self.ts.get_ts_utils().get_node_text(node, self.buf), "\n")
                 end,
             }
 
