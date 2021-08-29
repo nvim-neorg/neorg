@@ -387,6 +387,14 @@ neorg.utils = {
 
         return reverse_lookup and vim.tbl_add_reverse_lookup(langs) or langs
     end,
+
+    get_package_path = function()
+        -- Path to this source file, removing the leading '@'
+        local source = string.sub(debug.getinfo(1, "S").source, 2)
+
+        -- Path to the package root
+        return vim.fn.fnamemodify(source, ":p:h:h:h:h")
+    end,
 }
 
 return neorg.utils
