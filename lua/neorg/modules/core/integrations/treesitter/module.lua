@@ -16,14 +16,6 @@ module.setup = function()
     return { success = true, requires = { "core.highlights", "core.mode", "core.keybinds" } }
 end
 
-module.load = function()
-    local success, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
-
-    assert(success, "Unable to load nvim-treesitter.ts_utils :(")
-
-    module.private.ts_utils = ts_utils
-end
-
 module.config.public = {
     highlights = {
         Tag = {
@@ -281,6 +273,12 @@ module.config.public = {
 }
 
 module.load = function()
+    local success, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
+
+    assert(success, "Unable to load nvim-treesitter.ts_utils :(")
+
+    module.private.ts_utils = ts_utils
+
     module.required["core.mode"].add_mode("traverse-heading")
     module.required["core.keybinds"].register_keybinds(module.name, { "next.heading", "previous.heading" })
 
