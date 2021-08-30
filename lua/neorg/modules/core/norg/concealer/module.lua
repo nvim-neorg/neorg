@@ -28,7 +28,7 @@ USAGE:
         },
         quote = {
             enabled = true, -- Conceal quotes
-            icon = "∣"
+            icon = "│"
         },
         heading = {
             enabled = true, -- Enable beautified headings
@@ -133,7 +133,7 @@ module.config.public = {
 
         quote = {
             enabled = true,
-            icon = "∣",
+            icon = "│",
             pattern = "^(%s*)>+%s+",
             whitespace_index = 1,
             highlight = "NeorgQuote",
