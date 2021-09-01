@@ -249,11 +249,14 @@ module.on_event = function(event)
         elseif event.split_type[2] == "gtd.quick_actions" then
             module.required["core.ui"].create_selection("Quick actions", {
                 flags = {
-                    a = "Add a task to inbox",
-                    l = {
-                        name = "List files",
-                        flags = {
-                            i = "Inbox",
+                    { "a", "Add a task to inbox" },
+                    {
+                        "l",
+                        {
+                            name = "List files",
+                            flags = {
+                                { "i", "Inbox" },
+                            },
                         },
                     },
                 },
