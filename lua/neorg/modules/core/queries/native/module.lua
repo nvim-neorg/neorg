@@ -51,7 +51,7 @@ module.public = {
     --- @param nodes table
     --- @param bufnr number
     --- @return table
-    extract_nodes = function (nodes, bufnr)
+    extract_nodes = function(nodes, bufnr)
         local res = {}
 
         for _, node in pairs(nodes) do
@@ -59,7 +59,7 @@ module.public = {
             table.insert(res, extracted)
         end
         return res
-    end
+    end,
 }
 
 module.private = {
