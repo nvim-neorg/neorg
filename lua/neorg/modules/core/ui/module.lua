@@ -71,10 +71,45 @@ module.public = {
         module.private.windows[name] = nil
     end,
 
+    --- Applies a set of options to a buffer
+    --- @param buf number the buffer number to apply the options to
+    --- @param option_list table a table of option = value pairs
     apply_buffer_options = function(buf, option_list)
         for option_name, value in pairs(option_list or {}) do
             vim.api.nvim_buf_set_option(buf, option_name, value)
         end
+    end,
+
+    --- Creates a new horizontal split at the bottom of the screen
+    --- @param  name string the name of the buffer contained within the split (will have neorg:// prepended to it)
+    --- @param  config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
+    create_split = function(name, config)
+        vim.validate({
+            name = { name, "string" },
+            config = { config, "table", true },
+        })
+
+        vim.cmd("below new")
+
+        local buf = vim.api.nvim_win_get_buf(0)
+
+        local default_options = {
+            swapfile = false,
+            bufhidden = "hide",
+            buftype = "nofile",
+            buflisted = false,
+        }
+
+        vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
+        vim.api.nvim_win_set_buf(0, buf)
+
+        vim.api.nvim_win_set_option(0, "number", false)
+        vim.api.nvim_win_set_option(0, "relativenumber", false)
+
+        -- Merge the user provided options with the default options and apply them to the new buffer
+        module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
+
+        return buf
     end,
 }
 
