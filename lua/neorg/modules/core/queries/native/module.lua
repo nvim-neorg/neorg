@@ -1,6 +1,7 @@
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.queries.native")
+local ts_utils = require("nvim-treesitter.ts_utils")
 
 module.setup = function()
     return { sucess = true, requires = { "core.norg.dirman" } }
@@ -25,18 +26,19 @@ module.load = function()
             },
         },
     }
-    local res = module.public.query_from_file("index.norg", "gtd", tree)
-    log.warn(res)
+    local bufnr = module.required["core.norg.dirman"].get_file_bufnr("index.norg", "gtd")
+    local res = module.public.query_nodes_from_buf(tree, bufnr)
+    local extracted = module.public.extract_nodes(res, bufnr)
+    log.warn(extracted)
 end
 
 module.public = {
-    --- Use a `tree` to query all required nodes from a `file` in a `workspace`
-    --- @param file string
-    --- @param workspace string
+    --- Use a `tree` to query all required nodes from a `bufnr`
     --- @param tree table
+    --- @param bufnr number
     --- @return table
-    query_from_file = function(file, workspace, tree)
-        local root_node = module.private.get_file_root_node(file, workspace)
+    query_nodes_from_buf = function(tree, bufnr)
+        local root_node = module.private.get_buf_root_node(bufnr)
         if not root_node then
             return
         end
@@ -44,20 +46,27 @@ module.public = {
         local res = module.private.query_from_tree(root_node, tree)
         return res
     end,
+
+    --- Exrtact content from `nodes`
+    --- @param nodes table
+    --- @param bufnr number
+    --- @return table
+    extract_nodes = function (nodes, bufnr)
+        local res = {}
+
+        for _, node in pairs(nodes) do
+            local extracted = ts_utils.get_node_text(node, bufnr)[1]
+            table.insert(res, extracted)
+        end
+        return res
+    end
 }
 
 module.private = {
-    --- Get the root node from a `file` in a neorg `workspace`
-    --- @param file string
-    --- @param workspace_name string
+    --- Get the root node from a `bufnr`
+    --- @param bufnr number
     --- @return userdata
-    get_file_root_node = function(file, workspace_name)
-        local bufnr = module.required["core.norg.dirman"].get_file_bufnr(file, workspace_name)
-
-        if not bufnr then
-            return
-        end
-
+    get_buf_root_node = function(bufnr)
         local parser = vim.treesitter.get_parser(bufnr, "norg")
         local tstree = parser:parse()[1]
         return tstree:root()
