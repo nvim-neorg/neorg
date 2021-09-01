@@ -359,36 +359,36 @@ module.public = {
             end)
         end)
     end,
-    
+
     --- Checks for file existence inside a `workspace`, by supplying a relative path in `filepath`
     --- @param filepath string
     --- @param workspace_name string
-    file_exists = function (filepath, workspace_name)
+    file_exists = function(filepath, workspace_name)
         local workspace = module.public.get_workspace(workspace_name)
         if workspace == nil then
             return
         end
 
         local f = io.open(workspace .. "/" .. filepath, "r")
-        
+
         if f ~= nil then
-           f:close()
-           return true
+            f:close()
+            return true
         else
             return false
         end
     end,
 
-    --- Get file (with a specific `mode`) for a file specified by `file_path` in `workspace`.
+    --- Get the bufnr for a `file_path` in specified `workspace`
     --- @param file_path string
     --- @param workspace_name string
-    --- @param mode string
-    get_fd = function (file_path, workspace_name, mode)
+    get_file_bufnr = function(file_path, workspace_name)
         if module.public.file_exists(file_path, workspace_name) then
             local workspace = module.public.get_workspace(workspace_name)
-            return io.open(workspace .. "/" .. file_path, mode)
+            local uri = vim.uri_from_fname(workspace .. "/" .. file_path)
+            return vim.uri_to_bufnr(uri)
         end
-    end
+    end,
 }
 
 module.on_event = function(event)
