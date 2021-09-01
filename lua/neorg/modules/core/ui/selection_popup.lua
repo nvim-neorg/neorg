@@ -170,7 +170,7 @@ return function(module)
                     input = string.char(char)
                     -- TODO: Maybe add support for <BS>?
                     --[[ elseif type(char) == "string" then
-                	input = char ]]
+                    input = char ]]
                 end
 
                 -- If the entered char was an <Esc> key then bail
@@ -230,9 +230,10 @@ return function(module)
             end
         end,
 
-        ---Creates a new horizontal split at the bottom of the screen
-        ---@param  name string the name of the buffer contained within the split (will have neorg:// prepended to it)
-        ---@param  config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
+        --- Creates a new horizontal split at the bottom of the screen
+        --- @param name string the name of the buffer (will have neorg:// prepended to it)
+        --- @param config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
+        --- @return buffer the buffer that was created in the split
         create_split = function(name, config)
             vim.validate({
                 name = { name, "string" },
@@ -255,6 +256,49 @@ return function(module)
 
             vim.api.nvim_win_set_option(0, "number", false)
             vim.api.nvim_win_set_option(0, "relativenumber", false)
+
+            -- Merge the user provided options with the default options and apply them to the new buffer
+            module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
+
+            return buf
+        end,
+
+        --- Creates a new vertical split
+        --- @param name string the name of the buffer
+        --- @param config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
+        --- @param left boolean if true will spawn the vertical split on the left (default is right)
+        --- @return buffer the buffer of the vertical split
+        create_vsplit = function(name, config, left)
+            vim.validate({
+                name = { name, "string" },
+                config = { config, "table" },
+                left = { left, "boolean", true },
+            })
+
+            left = left or false
+
+            vim.cmd("vsplit")
+
+            if left then
+                vim.cmd("wincmd H")
+            end
+
+            local buf = vim.api.nvim_create_buf(false, true)
+
+            local default_options = {
+                swapfile = false,
+                bufhidden = "hide",
+                buftype = "nofile",
+                buflisted = false,
+            }
+
+            vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
+            vim.api.nvim_win_set_buf(0, buf)
+
+            vim.api.nvim_win_set_option(0, "number", false)
+            vim.api.nvim_win_set_option(0, "relativenumber", false)
+
+            vim.api.nvim_win_set_buf(0, buf)
 
             -- Merge the user provided options with the default options and apply them to the new buffer
             module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
