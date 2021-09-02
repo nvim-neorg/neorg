@@ -90,7 +90,7 @@ module.private = {
     matching_nodes = function(parent, tree)
         local res = {}
         local where = tree.where
-        local matched_query = module.private.matching_query(parent, tree.query)
+        local matched_query = module.private.matching_query(parent, tree.query, { recursive = tree.recursive })
 
         if not where then
             return matched_query
@@ -111,7 +111,8 @@ module.private = {
     --- @param parent userdata
     --- @param query table
     --- @return table
-    matching_query = function(parent, query)
+    matching_query = function(parent, query, opts)
+        opts = opts or {}
         local res = {}
 
         if #query < 2 then
@@ -132,6 +133,11 @@ module.private = {
                     table.insert(res, node)
                 end
             end
+
+            if opts.recursive then
+                local found = module.private.matching_query(node, query, { recursive = true })
+                vim.list_extend(res, found)
+            end
         end
 
         return res
@@ -142,7 +148,7 @@ module.private = {
     --- @param where table
     --- @return boolean
     predicate_where = function(parent, where)
-        if not where then
+        if not where or #where == 0 then
             return true
         end
 
