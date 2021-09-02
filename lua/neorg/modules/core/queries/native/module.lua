@@ -160,6 +160,7 @@ module.private = {
             return true
         end
 
+        -- Where statements requesting children nodes from parent node
         for node in parent:iter_children() do
             if where[1] == "child_exists" then
                 if node:type() == where[2] then
