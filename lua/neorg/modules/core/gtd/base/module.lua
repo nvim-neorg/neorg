@@ -14,6 +14,7 @@ REQUIRES:
         - core.keybinds (check KEYBINDS for usage)
         - core.ui in order to ask for user input
         - core.neorgcmd to add commands capabilities
+        - core.queries.native to fetch content from norg files
 
 KEYBINDS:
     - core.gtd.base.add_to_inbox: Will call the function add_task_to_inbox()
@@ -30,7 +31,7 @@ local log = require("neorg.external.log")
 module.setup = function()
     return {
         success = true,
-        requires = { "core.norg.dirman", "core.keybinds", "core.ui", "core.neorgcmd" },
+        requires = { "core.norg.dirman", "core.keybinds", "core.ui", "core.neorgcmd", "core.queries.native" },
     }
 end
 
@@ -41,6 +42,13 @@ module.config.public = {
         inbox = "inbox.norg",
     },
 }
+
+module.public = {
+    version = "0.1",
+}
+
+module.public = vim.tbl_extend("error", module.public, utils.require(module, "add_to_inbox")(module))
+module.public = vim.tbl_extend("error", module.public, utils.require(module, "gtd_queries")(module))
 
 module.private = {
     workspace_full_path = nil,
@@ -259,6 +267,10 @@ module.on_event = function(event)
                             },
                         },
                     },
+                    {},
+                    { "Test Queries (index.norg) file", "TSComment" },
+                    { "p", "Projects" },
+                    { "t", "Tasks", true },
                 },
             }, function(choices)
                 if choices[1] == "a" then
@@ -268,15 +280,14 @@ module.on_event = function(event)
                         module.config.public.workspace,
                         module.config.public.default_lists.inbox
                     )
+                elseif choices[1] == "p" then
+                    local projects = module.public.get_projects("index.norg")
+                    log.info(projects)
                 end
             end)
         end
     end
 end
-
-module.public = {
-    version = "0.1",
-}
 
 module.events.subscribed = {
     ["core.keybinds"] = {
@@ -288,7 +299,5 @@ module.events.subscribed = {
         ["gtd.quick_actions"] = true,
     },
 }
-
-module.public = vim.tbl_extend("error", module.public, utils.require(module, "add_to_inbox")(module))
 
 return module
