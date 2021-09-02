@@ -18,7 +18,7 @@ module.load = function()
                         {
                             query = { "all", "generic_list" },
                             subtree = {
-                                { query = { "all", "todo_item1" } },
+                                { query = { "all", "todo_item1" }, where = { "child_exists", "todo_item_pending" }},
                             },
                         },
                     },
@@ -47,7 +47,7 @@ module.public = {
         return res
     end,
 
-    --- Exrtact content from `nodes`
+    --- Extract content from `nodes` from a `bufnr`
     --- @param nodes table
     --- @param bufnr number
     --- @return table
@@ -82,7 +82,7 @@ module.private = {
         local res = results or {}
 
         for _, subtree in pairs(tree) do
-            local matched = module.private.matching_query(parent, subtree.query)
+            local matched = module.private.matching_nodes(parent, subtree)
 
             -- We extract matching nodes that doesn't have subtree
             if not subtree.subtree then
@@ -94,6 +94,29 @@ module.private = {
                 end
             end
         end
+        return res
+    end,
+
+    --- Returns a list of child nodes (from `parent`) that matches a `tree`
+    --- @param parent userdata
+    --- @param tree table
+    --- @return table
+    matching_nodes = function (parent, tree)
+        local res = {}
+        local where = tree.where
+        local matched_query = module.private.matching_query(parent, tree.query)
+
+        if not where then
+            return matched_query
+        else
+            for _,matched in pairs(matched_query) do
+                local matched_where = module.private.predicate_where(matched, where)
+                if matched_where then
+                    table.insert(res, matched)
+                end
+            end
+        end
+
         return res
     end,
 
@@ -127,6 +150,26 @@ module.private = {
 
         return res
     end,
+
+    --- Checks if `parent` node matches a `where` query and returns a predicate accordingly
+    --- @param parent userdata
+    --- @param where table
+    --- @return boolean
+    predicate_where = function (parent, where)
+        if not where then
+            return true
+        end
+
+        for node in parent:iter_children() do
+            if where[1] == "child_exists" then
+                if node:type() == where[2] then
+                    return true
+                end
+            end
+        end
+
+        return false
+    end
 }
 
 return module
