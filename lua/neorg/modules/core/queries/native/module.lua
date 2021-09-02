@@ -1,36 +1,22 @@
+--[[
+    Module for requesting content from files in a workspace
+
+USAGE:
+    - To create a query:
+        1. Get a bufnr for a specific file:
+            local bufnr = module.required["core.norg.dirman"].get_file_bufnr("index.norg", "gtd")
+        2. Extract matching nodes following a tree table
+            local res = module.public.query_nodes_from_buf(tree, bufnr)
+        3. Extract content from extracted nodes
+            local extracted = module.public.extract_nodes(res, bufnr)
+        4. Profit !
+
+--]]
+
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.queries.native")
 local ts_utils = require("nvim-treesitter.ts_utils")
-
-module.setup = function()
-    return { sucess = true, requires = { "core.norg.dirman" } }
-end
-
-module.load = function()
-    local tree = {
-        {
-            query = { "first", "document_content" },
-            subtree = {
-                {
-                    query = { "all", "heading1" },
-                    subtree = {
-                        {
-                            query = { "all", "generic_list" },
-                            subtree = {
-                                { query = { "all", "todo_item1" }, where = { "child_exists", "todo_item_pending" }},
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    }
-    local bufnr = module.required["core.norg.dirman"].get_file_bufnr("index.norg", "gtd")
-    local res = module.public.query_nodes_from_buf(tree, bufnr)
-    local extracted = module.public.extract_nodes(res, bufnr)
-    log.warn(extracted)
-end
 
 module.public = {
     --- Use a `tree` to query all required nodes from a `bufnr`
