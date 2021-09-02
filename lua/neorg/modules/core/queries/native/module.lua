@@ -6,9 +6,9 @@ USAGE:
         1. Get a bufnr for a specific file:
             local bufnr = module.required["core.norg.dirman"].get_file_bufnr("index.norg", "gtd")
         2. Extract matching nodes following a tree table
-            local res = module.public.query_nodes_from_buf(tree, bufnr)
+            local res = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
         3. Extract content from extracted nodes
-            local extracted = module.public.extract_nodes(res, bufnr)
+            local extracted = module.required["core.queries.native"].extract_nodes(res, bufnr)
         4. Profit !
 
 --]]
@@ -87,7 +87,7 @@ module.private = {
     --- @param parent userdata
     --- @param tree table
     --- @return table
-    matching_nodes = function (parent, tree)
+    matching_nodes = function(parent, tree)
         local res = {}
         local where = tree.where
         local matched_query = module.private.matching_query(parent, tree.query)
@@ -95,7 +95,7 @@ module.private = {
         if not where then
             return matched_query
         else
-            for _,matched in pairs(matched_query) do
+            for _, matched in pairs(matched_query) do
                 local matched_where = module.private.predicate_where(matched, where)
                 if matched_where then
                     table.insert(res, matched)
@@ -141,7 +141,7 @@ module.private = {
     --- @param parent userdata
     --- @param where table
     --- @return boolean
-    predicate_where = function (parent, where)
+    predicate_where = function(parent, where)
         if not where then
             return true
         end
@@ -156,7 +156,7 @@ module.private = {
         end
 
         return false
-    end
+    end,
 }
 
 return module
