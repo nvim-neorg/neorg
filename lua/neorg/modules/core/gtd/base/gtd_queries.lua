@@ -14,7 +14,7 @@ return function(module)
                     },
                 },
             }
-            local bufnr = module.required["core.norg.dirman"].get_file_bufnr(filename, module.config.public.workspace)
+            local bufnr = module.required["core.norg.dirman"].get_file_bufnr(module.private.workspace_full_path .. "/" .. filename)
             local res = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
             local extracted = module.required["core.queries.native"].extract_nodes(res, bufnr)
             return extracted
@@ -48,7 +48,7 @@ return function(module)
                     },
                 },
             }
-            local bufnr = module.required["core.norg.dirman"].get_file_bufnr(filename, module.config.public.workspace)
+            local bufnr = module.required["core.norg.dirman"].get_file_bufnr(module.private.workspace_full_path .. "/" .. filename)
             local res = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
             local extracted = module.required["core.queries.native"].extract_nodes(res, bufnr)
             return extracted

@@ -38,6 +38,7 @@ require("neorg.modules.base")
 require("neorg.modules")
 
 local module = neorg.modules.create("core.norg.dirman")
+local scan = require("plenary.scandir")
 
 module.setup = function()
     return { success = true, requires = { "core.autocommands", "core.neorgcmd", "core.keybinds", "core.ui" } }
@@ -360,16 +361,10 @@ module.public = {
         end)
     end,
 
-    --- Checks for file existence inside a `workspace`, by supplying a relative path in `filepath`
+    --- Checks for file existence by supplying a full path in `filepath`
     --- @param filepath string
-    --- @param workspace_name string
-    file_exists = function(filepath, workspace_name)
-        local workspace = module.public.get_workspace(workspace_name)
-        if workspace == nil then
-            return
-        end
-
-        local f = io.open(workspace .. "/" .. filepath, "r")
+    file_exists = function(filepath) 
+        local f = io.open(filepath, "r")
 
         if f ~= nil then
             f:close()
@@ -379,16 +374,37 @@ module.public = {
         end
     end,
 
-    --- Get the bufnr for a `file_path` in specified `workspace`
-    --- @param file_path string
-    --- @param workspace_name string
-    get_file_bufnr = function(file_path, workspace_name)
-        if module.public.file_exists(file_path, workspace_name) then
-            local workspace = module.public.get_workspace(workspace_name)
-            local uri = vim.uri_from_fname(workspace .. "/" .. file_path)
+    --- Get the bufnr for a `filepath` (full path)
+    --- @param filepath string
+    get_file_bufnr = function(filepath)
+        if module.public.file_exists(filepath) then
+            local uri = vim.uri_from_fname(filepath)
             return vim.uri_to_bufnr(uri)
         end
     end,
+
+    --- Returns a list of all files relative path from a `workspace_name`
+    --- @param workspace_name string
+    --- @return table
+    get_norg_files = function (workspace_name)
+        local res = {}
+        local workspace = module.public.get_workspace(workspace_name)
+        if workspace == nil then
+            return
+        end
+
+        local scanned_dir = scan.scan_dir(workspace)
+        
+        for _, file in pairs(scanned_dir) do
+            local remove_dir = string.gsub(file, workspace .. "/", "")
+
+            if string.find(remove_dir, ".norg$") then
+                table.insert(res, remove_dir)
+            end
+        end
+
+        return res
+    end
 }
 
 module.on_event = function(event)
