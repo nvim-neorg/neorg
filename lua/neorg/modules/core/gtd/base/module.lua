@@ -48,7 +48,6 @@ module.public = {
 }
 
 module.public = vim.tbl_extend("error", module.public, utils.require(module, "add_to_inbox")(module))
-module.public = vim.tbl_extend("error", module.public, utils.require(module, "gtd_queries")(module))
 
 module.private = {
     workspace_full_path = nil,
@@ -203,6 +202,8 @@ module.private = {
     end,
 }
 
+module.private = vim.tbl_extend("error", module.private, utils.require(module, "gtd_queries")(module))
+
 module.load = function()
     -- Get workspace for gtd files and save full path in private
     local workspace = module.config.public.workspace
@@ -270,7 +271,17 @@ module.on_event = function(event)
                     {},
                     { "Test Queries (index.norg) file", "TSComment" },
                     { "p", "Projects" },
-                    { "t", "Tasks", true },
+                    {
+                        "t",
+                        {
+                            name = "Tasks",
+                            flags = {
+                                { "d", "Done" },
+                                { "p", "Pending" },
+                                { "u", "Undone" },
+                            },
+                        },
+                    },
                 },
             }, function(choices)
                 if choices[1] == "a" then
@@ -281,8 +292,18 @@ module.on_event = function(event)
                         module.config.public.default_lists.inbox
                     )
                 elseif choices[1] == "p" then
-                    local projects = module.public.get_projects("index.norg")
+                    local projects = module.private.get_projects("index.norg")
                     log.info(projects)
+                elseif choices[1] == "t" then
+                    local tasks
+                    if choices[2] == "d" then
+                        tasks = module.private.get_tasks("index.norg", { state = "done", recursive = true })
+                    elseif choices[2] == "u" then
+                        tasks = module.private.get_tasks("index.norg", { state = "undone", recursive = true })
+                    elseif choices[2] == "p" then
+                        tasks = module.private.get_tasks("index.norg", { state = "pending", recursive = true })
+                    end
+                    log.warn(tasks)
                 end
             end)
         end
