@@ -78,7 +78,21 @@ module.private = {
         local res = results or {}
 
         for _, subtree in pairs(tree) do
-            local matched = module.private.matching_nodes(parent, subtree)
+            local matched, how_to_fix = module.private.matching_nodes(parent, subtree)
+
+            if type(matched) == "string" then
+                log.error(
+                    "Oh no! There's been an error in the query. It seems that we've received some malformed input at one of the subtrees present in parent node of type",
+                    parent:type()
+                )
+                log.error("Here's the error message:", matched)
+
+                if how_to_fix then
+                    log.warn("To fix the issue:", vim.trim(how_to_fix))
+                end
+
+                return
+            end
 
             -- We extract matching nodes that doesn't have subtree
             if not subtree.subtree then
@@ -88,10 +102,16 @@ module.private = {
             else
                 for _, node in pairs(matched) do
                     local nodes = module.private.query_from_tree(node, subtree.subtree, bufnr, res)
+
+                    if not nodes then
+                        return {}
+                    end
+
                     res = vim.tbl_extend("force", res, nodes)
                 end
             end
         end
+
         return res
     end,
 
@@ -102,7 +122,15 @@ module.private = {
     matching_nodes = function(parent, tree)
         local res = {}
         local where = tree.where
-        local matched_query = module.private.matching_query(parent, tree.query, { recursive = tree.recursive })
+        local matched_query, how_to_fix = module.private.matching_query(
+            parent,
+            tree.query,
+            { recursive = tree.recursive }
+        )
+
+        if type(matched_query) == "string" then
+            return matched_query, how_to_fix
+        end
 
         if not where then
             return matched_query
@@ -127,9 +155,42 @@ module.private = {
         opts = opts or {}
         local res = {}
 
-        if #query < 2 then
-            return
+        -- DISPLAY ERROR MESSAGES
+
+        if not query then
+            return "No 'queries' value present in the query object!",
+                [[
+Be sure to supply a query parameter, one that looks as such:
+{
+    query = { "all", "heading1" }, -- You can use any node type here
+}
+            ]]
         end
+
+        if vim.fn.len(query) < 2 then
+            return "Not enough queries supplied! Expected at least 2 but got " .. tostring(#query),
+                ([[
+Be sure to supply a second parameter, that being the type of node you would like to operate on.
+You should change your line to something like:
+{
+    query = { "%s", "heading1" }
+}
+Instead.
+            ]]):format(query[1] or "all")
+        end
+
+        if not vim.tbl_contains({ "all", "first", "match" }, query[1]) then
+            return "Syntax error: " .. query[1] .. " is not a valid node operation.",
+                ([[
+Use a supported node operation. Neorg currently supports "all", "first" and "match".
+With that in mind, you can do something like this (for example):
+{
+    query = { "all", "%s" }
+}
+            ]]):format(query[2])
+        end
+
+        -------------------------
 
         for node in parent:iter_children() do
             if node:type() == query[2] then
