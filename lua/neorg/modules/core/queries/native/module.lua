@@ -39,23 +39,23 @@ module.public = {
     extract_nodes = function(nodes)
         local res = {}
 
-        for _, node in pairs(nodes) do
-            local extracted = ts_utils.get_node_text(node[1], node[2])[1]
-            table.insert(res, extracted)
+        for _, node in ipairs(nodes) do
+            local extracted = ts_utils.get_node_text(node[1], node[2])
+            table.insert(res, extracted[1])
         end
         return res
     end,
 
-    find_parent_node = function (node, node_type)
+    find_parent_node = function(node, node_type)
         local parent = node[1]:parent()
         while parent do
-           if parent:type() == node_type then
-            break
-           end
-           parent = parent:parent()
+            if parent:type() == node_type then
+                break
+            end
+            parent = parent:parent()
         end
         return { parent, node[2] }
-    end
+    end,
 }
 
 module.private = {
@@ -82,7 +82,7 @@ module.private = {
 
             -- We extract matching nodes that doesn't have subtree
             if not subtree.subtree then
-                for _,v in pairs(matched) do
+                for _, v in pairs(matched) do
                     table.insert(res, { v, bufnr })
                 end
             else
