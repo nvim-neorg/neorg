@@ -19,7 +19,8 @@ local module = neorg.modules.create("core.queries.native")
 local ts_utils = require("nvim-treesitter.ts_utils")
 
 module.public = {
-    --- Use a `tree` to query all required nodes from a `bufnr`
+
+    --- Use a `tree` to query all required nodes from a `bufnr`. Returns a list of nodes of type { node, bufnr }
     --- @param tree table
     --- @param bufnr number
     --- @return table
@@ -29,7 +30,7 @@ module.public = {
             return
         end
 
-        local res = module.private.query_from_tree(root_node, tree, bufnr)
+        local res = module.public.query_from_tree(root_node, tree, bufnr)
         return res
     end,
 
@@ -46,6 +47,11 @@ module.public = {
         return res
     end,
 
+    --- Find the first parent `node` that match `node_type`. Returns a node of type { node, bufnr }
+    --- `node` must be of type { node, bufnr }
+    --- @param node table
+    --- @param node_type string
+    --- @return table
     find_parent_node = function(node, node_type)
         local parent = node[1]:parent()
         while parent do
@@ -56,16 +62,33 @@ module.public = {
         end
         return { parent, node[2] }
     end,
-}
 
-module.private = {
-    --- Get the root node from a `bufnr`
-    --- @param bufnr number
-    --- @return userdata
-    get_buf_root_node = function(bufnr)
-        local parser = vim.treesitter.get_parser(bufnr, "norg")
-        local tstree = parser:parse()[1]
-        return tstree:root()
+    --- Finds the first sibling `node` (type { node, bufnr } ) that match `node_type`. Returns a node of type { node, bufnr }
+    --- @param node table
+    --- @param node_type string
+    --- @param opts table
+    ---   - opts.where (table):     if provided will try the where stateement supplied
+    --- @return table
+    find_sibling_node = function(node, node_type, opts)
+        opts = opts or {}
+        local parent = node[1]:parent()
+
+        if not parent or parent:child_count() == 1 then
+            return { nil, node[2] }
+        end
+
+        for child in parent:iter_children() do
+            if child:type() == node_type then
+                if opts.where and module.private.predicate_where(child, opts.where, { bufnr = node[2] }) then
+                    return { child, node[2] }
+                end
+                if not opts.where then
+                    return { child, node[2] }
+                end
+            end
+        end
+
+        return { nil, node[2] }
     end,
 
     --- Recursively generates results from a `parent` node, following a `tree` table
@@ -101,7 +124,7 @@ module.private = {
                 end
             else
                 for _, node in pairs(matched) do
-                    local nodes = module.private.query_from_tree(node, subtree.subtree, bufnr, res)
+                    local nodes = module.public.query_from_tree(node, subtree.subtree, bufnr, res)
 
                     if not nodes then
                         return {}
@@ -113,6 +136,17 @@ module.private = {
         end
 
         return res
+    end,
+}
+
+module.private = {
+    --- Get the root node from a `bufnr`
+    --- @param bufnr number
+    --- @return userdata
+    get_buf_root_node = function(bufnr)
+        local parser = vim.treesitter.get_parser(bufnr, "norg")
+        local tstree = parser:parse()[1]
+        return tstree:root()
     end,
 
     --- Returns a list of child nodes (from `parent`) that matches a `tree`
@@ -150,11 +184,14 @@ module.private = {
     --- @see First implementation in: https://github.com/danymat/neogen/blob/main/lua/neogen/utilities/nodes.lua
     --- @param parent userdata
     --- @param query table
+    --- @param opts table
+    ---   - opts.recursive (bool):      if true will recursively find the matching query
     --- @return table
     matching_query = function(parent, query, opts)
         opts = opts or {}
         local res = {}
 
+        -- TODO Error when query is not a table
         -- DISPLAY ERROR MESSAGES
 
         if not query then
@@ -219,8 +256,12 @@ With that in mind, you can do something like this (for example):
     --- Checks if `parent` node matches a `where` query and returns a predicate accordingly
     --- @param parent userdata
     --- @param where table
+    --- @param opts table
+    ---   - opts.bufnr (number):    used in where[1] == "child_name" (in order to get the node's content)
     --- @return boolean
-    predicate_where = function(parent, where)
+    predicate_where = function(parent, where, opts)
+        opts = opts or {}
+
         if not where or #where == 0 then
             return true
         end
@@ -229,6 +270,12 @@ With that in mind, you can do something like this (for example):
         for node in parent:iter_children() do
             if where[1] == "child_exists" then
                 if node:type() == where[2] then
+                    return true
+                end
+            end
+
+            if where[1] == "child_name" then
+                if node:type() == where[2] and ts_utils.get_node_text(node, opts.bufnr)[1] == where[3] then
                     return true
                 end
             end
