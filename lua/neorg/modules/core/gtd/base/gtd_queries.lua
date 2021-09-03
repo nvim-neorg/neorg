@@ -197,7 +197,13 @@ return function(module)
 
                         table.insert(res[extracted_context], node)
                     end
+                else
+                    if not res["_"] then
+                        res["_"] = {}
+                    end
+                    table.insert(res["_"], node)
                 end
+
             end
 
             if opts.extract == false then
