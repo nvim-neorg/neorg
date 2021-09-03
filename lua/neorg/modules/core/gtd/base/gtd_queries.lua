@@ -2,7 +2,8 @@ return function(module)
     return {
         --- Get a table of all projects in workspace
         --- @param opts table
-        ---   - opts.filename (string):   will restrict the search only for the filename provided
+        ---   - opts.filename (string):     will restrict the search only for the filename provided
+        ---   - opts.extract (bool):        if false will return the nodes instead of the extracted content
         --- @return table
         get_projects = function(opts)
             opts = opts or {}
@@ -15,6 +16,7 @@ return function(module)
                     subtree = {
                         {
                             query = { "all", "heading1" },
+                            recursive = true,
                             subtree = {
                                 { query = { "all", "paragraph_segment" } },
                             },
@@ -36,8 +38,13 @@ return function(module)
 
             for _, bufnr in pairs(bufnrs) do
                 local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
-                local extracted = module.required["core.queries.native"].extract_nodes(nodes, bufnr)
-                vim.list_extend(res, extracted)
+
+                if opts.extract == false then
+                    vim.list_extend(res, nodes)
+                else
+                    local extracted = module.required["core.queries.native"].extract_nodes(nodes, bufnr)
+                    vim.list_extend(res, extracted)
+                end
             end
 
             return res
@@ -53,8 +60,9 @@ return function(module)
         --- Get a table of all tasks in current `state` in workspace
         --- @param state string
         --- @param opts table
-        ---   - opts.filename (string):   will restrict the search only for the filename provided
-        ---   - opts.recursive (bool):   if true will search todos recursively in the AST
+        ---   - opts.filename (string):     will restrict the search only for the filename provided
+        ---   - opts.recursive (bool):      if true will search todos recursively in the AST
+        ---   - opts.extract (bool):        if false will return the nodes instead of the extracted content
         --- @return table
         get_tasks = function(state, opts)
             opts = opts or {}
@@ -100,10 +108,14 @@ return function(module)
 
             for _, bufnr in pairs(bufnrs) do
                 local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
-                local extracted = module.required["core.queries.native"].extract_nodes(nodes, bufnr)
-                vim.list_extend(res, extracted)
-            end
 
+                if opts.extract == false then
+                    vim.list_extend(res, nodes)
+                else
+                    local extracted = module.required["core.queries.native"].extract_nodes(nodes, bufnr)
+                    vim.list_extend(res, extracted)
+                end
+            end
             return res
         end,
     }
