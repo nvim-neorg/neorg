@@ -363,7 +363,7 @@ module.public = {
 
     --- Checks for file existence by supplying a full path in `filepath`
     --- @param filepath string
-    file_exists = function(filepath) 
+    file_exists = function(filepath)
         local f = io.open(filepath, "r")
 
         if f ~= nil then
@@ -386,7 +386,7 @@ module.public = {
     --- Returns a list of all files relative path from a `workspace_name`
     --- @param workspace_name string
     --- @return table
-    get_norg_files = function (workspace_name)
+    get_norg_files = function(workspace_name)
         local res = {}
         local workspace = module.public.get_workspace(workspace_name)
         if workspace == nil then
@@ -394,7 +394,7 @@ module.public = {
         end
 
         local scanned_dir = scan.scan_dir(workspace)
-        
+
         for _, file in pairs(scanned_dir) do
             local remove_dir = string.gsub(file, workspace .. "/", "")
 
@@ -404,7 +404,7 @@ module.public = {
         end
 
         return res
-    end
+    end,
 }
 
 module.on_event = function(event)

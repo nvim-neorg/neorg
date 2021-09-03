@@ -292,16 +292,16 @@ module.on_event = function(event)
                         module.config.public.default_lists.inbox
                     )
                 elseif choices[1] == "p" then
-                    local projects = module.private.get_projects("index.norg")
+                    local projects = module.private.get_projects()
                     log.info(projects)
                 elseif choices[1] == "t" then
                     local tasks
                     if choices[2] == "d" then
-                        tasks = module.private.get_tasks("index.norg", { state = "done", recursive = true })
+                        tasks = module.private.get_tasks("done", { recursive = true })
                     elseif choices[2] == "u" then
-                        tasks = module.private.get_tasks("index.norg", { state = "undone", recursive = true })
+                        tasks = module.private.get_tasks("undone", { recursive = true })
                     elseif choices[2] == "p" then
-                        tasks = module.private.get_tasks("index.norg", { state = "pending", recursive = true })
+                        tasks = module.private.get_tasks("pending", { recursive = true })
                     end
                     log.warn(tasks)
                 end
