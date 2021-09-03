@@ -70,7 +70,7 @@ return function(module)
             local bufnrs = {}
             local res = {}
 
-            if opts.state then
+            if state then
                 where_statement = { "child_exists", "todo_item_" .. state }
             end
 
@@ -116,6 +116,34 @@ return function(module)
                     vim.list_extend(res, extracted)
                 end
             end
+            return res
+        end,
+
+        sort_by_project = function(nodes, opts)
+            opts = opts or {}
+            local res = {}
+            for _, node in pairs(nodes) do
+                local project = module.required["core.queries.native"].find_parent_node(node, "heading1")
+                if project[1] then
+                    local extracted = module.required["core.queries.native"].extract_nodes({ project })
+                    if not res[extracted[1]] then
+                        res[extracted[1]] = {}
+                    end
+                    table.insert(res[extracted[1]], node)
+                else
+                    if not res["_"] then
+                        res["_"] = {}
+                    end
+                    table.insert(res["_"], node)
+                end
+            end
+
+            if opts.extract == false then
+                return res
+            end
+
+            res = vim.tbl_map(module.required["core.queries.native"].extract_nodes, res)
+
             return res
         end,
     }

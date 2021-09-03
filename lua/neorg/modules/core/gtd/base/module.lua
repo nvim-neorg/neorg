@@ -299,9 +299,11 @@ module.on_event = function(event)
                     if choices[2] == "d" then
                         tasks = module.private.get_tasks("done", { recursive = true })
                     elseif choices[2] == "u" then
-                        tasks = module.private.get_tasks("undone", { recursive = true })
+                        tasks = module.private.get_tasks("undone", { recursive = true, extract = false })
+                        tasks = module.private.sort_by_project(tasks)
                     elseif choices[2] == "p" then
-                        tasks = module.private.get_tasks("pending", { recursive = true })
+                        tasks = module.private.get_tasks("pending", { recursive = true, extract = false })
+                        tasks = module.private.sort_by_project(tasks)
                     end
                     log.warn(tasks)
                 end
