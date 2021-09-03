@@ -276,9 +276,42 @@ module.on_event = function(event)
                         {
                             name = "Tasks",
                             flags = {
-                                { "d", "Done" },
-                                { "p", "Pending" },
-                                { "u", "Undone" },
+                                {
+                                    "d",
+                                    {
+                                        name = "Done",
+                                        flags = {
+                                            { "Sort by", "TSComment" },
+                                            { "p", "Projects" },
+                                            { "c", "Contexts" },
+                                            { "n", "No sort" },
+                                        },
+                                    },
+                                },
+                                {
+                                    "p",
+                                    {
+                                        name = "Pending",
+                                        flags = {
+                                            { "Sort by", "TSComment" },
+                                            { "p", "Projects" },
+                                            { "c", "Contexts" },
+                                            { "n", "No sort" },
+                                        },
+                                    },
+                                },
+                                {
+                                    "u",
+                                    {
+                                        name = "Undone",
+                                        flags = {
+                                            { "Sort by", "TSComment" },
+                                            { "p", "Projects" },
+                                            { "c", "Contexts" },
+                                            { "n", "No sort" },
+                                        },
+                                    },
+                                },
                             },
                         },
                     },
@@ -297,13 +330,26 @@ module.on_event = function(event)
                 elseif choices[1] == "t" then
                     local tasks
                     if choices[2] == "d" then
-                        tasks = module.private.get_tasks("done", { recursive = true })
+                        tasks = module.private.get_tasks("done", { recursive = true, extract = false })
+                        if choices[3] == "p" then
+                            tasks = module.private.sort_by_project(tasks)
+                        elseif choices[3] == "c" then
+                            tasks = module.private.sort_by_context(tasks)
+                        end
                     elseif choices[2] == "u" then
                         tasks = module.private.get_tasks("undone", { recursive = true, extract = false })
-                        tasks = module.private.sort_by_project(tasks)
+                        if choices[3] == "p" then
+                            tasks = module.private.sort_by_project(tasks)
+                        elseif choices[3] == "c" then
+                            tasks = module.private.sort_by_context(tasks)
+                        end
                     elseif choices[2] == "p" then
                         tasks = module.private.get_tasks("pending", { recursive = true, extract = false })
-                        tasks = module.private.sort_by_project(tasks)
+                        if choices[3] == "p" then
+                            tasks = module.private.sort_by_project(tasks)
+                        elseif choices[3] == "c" then
+                            tasks = module.private.sort_by_context(tasks)
+                        end
                     end
                     log.warn(tasks)
                 end
