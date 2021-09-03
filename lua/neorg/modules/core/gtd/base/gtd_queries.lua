@@ -42,7 +42,7 @@ return function(module)
                 if opts.extract == false then
                     vim.list_extend(res, nodes)
                 else
-                    local extracted = module.required["core.queries.native"].extract_nodes(nodes, bufnr)
+                    local extracted = module.required["core.queries.native"].extract_nodes(nodes)
                     vim.list_extend(res, extracted)
                 end
             end
@@ -112,7 +112,7 @@ return function(module)
                 if opts.extract == false then
                     vim.list_extend(res, nodes)
                 else
-                    local extracted = module.required["core.queries.native"].extract_nodes(nodes, bufnr)
+                    local extracted = module.required["core.queries.native"].extract_nodes(nodes)
                     vim.list_extend(res, extracted)
                 end
             end

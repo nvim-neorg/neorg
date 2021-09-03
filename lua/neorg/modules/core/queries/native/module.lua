@@ -29,23 +29,33 @@ module.public = {
             return
         end
 
-        local res = module.private.query_from_tree(root_node, tree)
+        local res = module.private.query_from_tree(root_node, tree, bufnr)
         return res
     end,
 
-    --- Extract content from `nodes` from a `bufnr`
+    --- Extract content from `nodes` of type { node, bufnr }
     --- @param nodes table
-    --- @param bufnr number
     --- @return table
-    extract_nodes = function(nodes, bufnr)
+    extract_nodes = function(nodes)
         local res = {}
 
         for _, node in pairs(nodes) do
-            local extracted = ts_utils.get_node_text(node, bufnr)[1]
+            local extracted = ts_utils.get_node_text(node[1], node[2])[1]
             table.insert(res, extracted)
         end
         return res
     end,
+
+    find_parent_node = function (node, node_type)
+        local parent = node[1]:parent()
+        while parent do
+           if parent:type() == node_type then
+            break
+           end
+           parent = parent:parent()
+        end
+        return { parent, node[2] }
+    end
 }
 
 module.private = {
@@ -64,7 +74,7 @@ module.private = {
     --- @param tree table
     --- @param results table|nil
     --- @return table
-    query_from_tree = function(parent, tree, results)
+    query_from_tree = function(parent, tree, bufnr, results)
         local res = results or {}
 
         for _, subtree in pairs(tree) do
@@ -72,11 +82,13 @@ module.private = {
 
             -- We extract matching nodes that doesn't have subtree
             if not subtree.subtree then
-                res = vim.list_extend(res, matched)
+                for _,v in pairs(matched) do
+                    table.insert(res, { v, bufnr })
+                end
             else
                 for _, node in pairs(matched) do
-                    local nodes = module.private.query_from_tree(node, subtree.subtree, res)
-                    res = vim.tbl_deep_extend("force", res, nodes)
+                    local nodes = module.private.query_from_tree(node, subtree.subtree, bufnr, res)
+                    res = vim.tbl_extend("force", res, nodes)
                 end
             end
         end
