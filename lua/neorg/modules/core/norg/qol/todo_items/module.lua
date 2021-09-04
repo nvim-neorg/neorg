@@ -60,7 +60,7 @@ module.on_event = function(event)
             -- Before you die of a heart attack, the below regex is supposed to pattern match a todo item,
             -- for example one that looks like this: - [x] Example!
             local str, _ = current_line:gsub(
-                "^(%s*%-%s+%" .. sym.left_bracket .. "%s*)[x%*%s](%s*%" .. sym.right_bracket .. "%s+)",
+                "^(%s*%-+%s+%" .. sym.left_bracket .. "%s*)[x%*%s](%s*%" .. sym.right_bracket .. "%s+)",
                 "%1" .. state .. "%2",
                 1
             )
@@ -75,7 +75,7 @@ module.on_event = function(event)
         -- @Description Pattern matches the current line to query the current todo item.
         local get_todo_item_state = function()
             return event.line_content:match(
-                "^%s*%-%s+%" .. sym.left_bracket .. "%s*([x%*%s])%s*%" .. sym.right_bracket .. "%s+"
+                "^%s*%-+%s+%" .. sym.left_bracket .. "%s*([x%*%s])%s*%" .. sym.right_bracket .. "%s+"
             )
         end
 
