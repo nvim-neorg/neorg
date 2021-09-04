@@ -51,7 +51,16 @@ function _neorg_indent_expr()
 end
 
 module.setup = function()
-    return { success = true, requires = { "core.autocommands", "core.keybinds", "core.norg.dirman", "core.scanner" } }
+    return {
+        success = true,
+        requires = {
+            "core.autocommands",
+            "core.keybinds",
+            "core.norg.dirman",
+            "core.scanner",
+            "core.integrations.treesitter",
+        },
+    }
 end
 
 module.config.public = {
@@ -403,8 +412,7 @@ module.public = {
                 end,
 
                 get_text_as_one = function(self, node)
-                    local ts = require("nvim-treesitter.ts_utils")
-                    return table.concat(ts.get_node_text(node, self.buf), "\n")
+                    return table.concat(self.ts.get_ts_utils().get_node_text(node, self.buf), "\n")
                 end,
             }
 
@@ -944,13 +952,13 @@ module.public = {
 
             link_end_url = function(_, destination, utility)
                 if neorg.configuration.os_info == "linux" then
-                    vim.cmd("silent !xdg-open " .. vim.fn.fnameescape(destination))
+                    vim.cmd('silent !xdg-open "' .. vim.fn.fnameescape(destination) .. '"')
                 elseif neorg.configuration.os_info == "mac" then
-                    vim.cmd("silent !open " .. vim.fn.fnameescape(destination))
+                    vim.cmd('silent !open "' .. vim.fn.fnameescape(destination) .. '"')
                 else
-                    vim.cmd("silent !start " .. vim.fn.fnameescape(destination))
+                    vim.cmd('silent !start "' .. vim.fn.fnameescape(destination) .. '"')
                 end
-                return utility.ts.get_node_range(require("nvim-treesitter.ts_utils").get_node_at_cursor())
+                return utility.ts.get_node_range(utility.ts.get_ts_utils().get_node_at_cursor())
             end,
         },
 
