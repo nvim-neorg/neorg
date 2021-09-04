@@ -334,42 +334,33 @@ module.on_event = function(event)
                 elseif choices[1] == "t" then
                     local tasks
                     if choices[2] == "d" then
-                        tasks = module.private.get_tasks(
-                            "done",
-                            {
-                                recursive = true,
-                                extract = false,
-                                exclude_files = { default_lists.inbox, default_lists.someday },
-                            }
-                        )
+                        tasks = module.private.get_tasks("done", {
+                            recursive = true,
+                            extract = false,
+                            exclude_files = { default_lists.inbox, default_lists.someday },
+                        })
                         if choices[3] == "p" then
                             tasks = module.private.sort_by_project(tasks)
                         elseif choices[3] == "c" then
                             tasks = module.private.sort_by_context(tasks)
                         end
                     elseif choices[2] == "u" then
-                        tasks = module.private.get_tasks(
-                            "undone",
-                            {
-                                recursive = true,
-                                extract = false,
-                                exclude_files = { default_lists.inbox, default_lists.someday },
-                            }
-                        )
+                        tasks = module.private.get_tasks("undone", {
+                            recursive = true,
+                            extract = false,
+                            exclude_files = { default_lists.inbox, default_lists.someday },
+                        })
                         if choices[3] == "p" then
                             tasks = module.private.sort_by_project(tasks)
                         elseif choices[3] == "c" then
                             tasks = module.private.sort_by_context(tasks)
                         end
                     elseif choices[2] == "p" then
-                        tasks = module.private.get_tasks(
-                            "pending",
-                            {
-                                recursive = true,
-                                extract = false,
-                                exclude_files = { default_lists.inbox, default_lists.someday },
-                            }
-                        )
+                        tasks = module.private.get_tasks("pending", {
+                            recursive = true,
+                            extract = false,
+                            exclude_files = { default_lists.inbox, default_lists.someday },
+                        })
                         if choices[3] == "p" then
                             tasks = module.private.sort_by_project(tasks)
                         elseif choices[3] == "c" then
