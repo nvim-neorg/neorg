@@ -101,7 +101,7 @@ module.public = {
         local res = results or {}
 
         for _, subtree in pairs(tree) do
-            local matched, how_to_fix = module.private.matching_nodes(parent, subtree)
+            local matched, how_to_fix = module.private.matching_nodes(parent, subtree, bufnr)
 
             if type(matched) == "string" then
                 log.error(
@@ -153,7 +153,7 @@ module.private = {
     --- @param parent userdata
     --- @param tree table
     --- @return table
-    matching_nodes = function(parent, tree)
+    matching_nodes = function(parent, tree, bufnr)
         local res = {}
         local where = tree.where
         local matched_query, how_to_fix = module.private.matching_query(
@@ -170,7 +170,7 @@ module.private = {
             return matched_query
         else
             for _, matched in pairs(matched_query) do
-                local matched_where = module.private.predicate_where(matched, where)
+                local matched_where = module.private.predicate_where(matched, where, { bufnr = bufnr })
                 if matched_where then
                     table.insert(res, matched)
                 end
