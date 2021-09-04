@@ -28,7 +28,7 @@ USAGE:
         },
         quote = {
             enabled = true, -- Conceal quotes
-            icon = "∣"
+            icon = "│"
         },
         heading = {
             enabled = true, -- Enable beautified headings
@@ -106,7 +106,7 @@ module.config.public = {
             done = {
                 enabled = true,
                 icon = "",
-                pattern = "^(%s*%-%s+%[%s*)x%s*%]%s+",
+                pattern = "^(%s*%-+%s+%[%s*)x%s*%]%s+",
                 whitespace_index = 1,
                 highlight = "NeorgTodoItemDoneMark",
                 padding_before = 0,
@@ -115,7 +115,7 @@ module.config.public = {
             pending = {
                 enabled = true,
                 icon = "",
-                pattern = "^(%s*%-%s+%[%s*)%*%s*%]%s+",
+                pattern = "^(%s*%-+%s+%[%s*)%*%s*%]%s+",
                 whitespace_index = 1,
                 highlight = "NeorgTodoItemPendingMark",
                 padding_before = 0,
@@ -124,7 +124,7 @@ module.config.public = {
             undone = {
                 enabled = true,
                 icon = "×",
-                pattern = "^(%s*%-%s+%[)%s+]%s+",
+                pattern = "^(%s*%-+%s+%[)%s+]%s+",
                 whitespace_index = 1,
                 highlight = "TSComment",
                 padding_before = 0,
@@ -133,8 +133,8 @@ module.config.public = {
 
         quote = {
             enabled = true,
-            icon = "∣",
-            pattern = "^(%s*)>%s+",
+            icon = "│",
+            pattern = "^(%s*)>+%s+",
             whitespace_index = 1,
             highlight = "NeorgQuote",
             padding_before = 0,
@@ -172,11 +172,29 @@ module.config.public = {
 
             level_4 = {
                 enabled = true,
-                icon = "•",
+                icon = "▶",
                 pattern = "^(%s*)%*%*%*%*%s+",
                 whitespace_index = 1,
                 highlight = "NeorgHeading4",
                 padding_before = 3,
+            },
+
+            level_5 = {
+                enabled = true,
+                icon = "•",
+                pattern = "^(%s*)%*%*%*%*%*%s+",
+                whitespace_index = 1,
+                highlight = "NeorgHeading5",
+                padding_before = 4,
+            },
+
+            level_6 = {
+                enabled = true,
+                icon = "⤷",
+                pattern = "^(%s*)%*%*%*%*%*%*%s+",
+                whitespace_index = 1,
+                highlight = "NeorgHeading6",
+                padding_before = 5,
             },
         },
 
@@ -188,17 +206,6 @@ module.config.public = {
             highlight = "NeorgMarker",
 
             padding_before = 0,
-        },
-    },
-
-    ranged = {
-        tag = {
-            enabled = true,
-            icon = "",
-            node = "tag",
-            full_line = true,
-            highlight = "Neorgcodeblock",
-            highlight_method = "blend",
         },
     },
 
@@ -247,8 +254,6 @@ module.load = function()
     -- Set the module.private.icons variable to the values of the enabled icons
     module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
 
-    module.private.ranged_icons = vim.tbl_values(get_enabled_icons(module.config.public.ranged))
-
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
 
@@ -283,13 +288,18 @@ module.public = {
                 return
             end
 
-            local query = vim.treesitter.parse_query(
+            local ok, query = pcall(
+                vim.treesitter.parse_query,
                 "norg",
                 [[(
-                 (tag (tag_name) @_name) @tag
-                 (#eq? @_name "code")
-            )]]
+                     (ranged_tag (tag_name) @_name) @tag
+                     (#eq? @_name "code")
+                )]]
             )
+
+            if not ok or not query then
+                return
+            end
 
             for id, node in query:iter_captures(tree:root(), 0) do
                 local id_name = query.captures[id]
@@ -297,19 +307,21 @@ module.public = {
                 if id_name == "tag" then
                     local range = ts.get_node_range(node)
 
-                    local whitespace_length = 0
-
-                    do
-                        local leading_whitespace = node:named_child(0)
-                        if leading_whitespace:type() == "leading_whitespace" then
-                            local leading_whitespace_range = ts.get_node_range(leading_whitespace)
-                            whitespace_length = leading_whitespace_range.column_end
-                                - leading_whitespace_range.column_start
-                        end
-                    end
-
                     for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
-                        module.public._set_extmark(nil, "NeorgCodeBlock", i, i + 1, whitespace_length, 0, true, "blend")
+                        local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
+
+                        if line and line:len() >= range.column_start then
+                            module.public._set_extmark(
+                                nil,
+                                "NeorgCodeBlock",
+                                i,
+                                i + 1,
+                                range.column_start,
+                                nil,
+                                true,
+                                "blend"
+                            )
+                        end
                     end
                 end
             end
@@ -367,7 +379,7 @@ module.public = {
             end_col = end_column,
             hl_group = highlight,
             end_line = end_line,
-            virt_text = text and { { text, highlight } } or {},
+            virt_text = text and { { text, highlight } } or nil,
             virt_text_pos = "overlay",
             hl_mode = mode,
             hl_eol = whole_line,
@@ -396,7 +408,7 @@ module.public = {
                     'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
                 )
                 vim.cmd(
-                    'syn region NeorgConcealURL matchgroup=mkdDelimiter start="[^\\\\]\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
+                    'syn region NeorgConcealURL matchgroup=mkdDelimiter start="\\([^\\\\]\\|\\_^\\)\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
                 )
             end)
         end
@@ -404,7 +416,7 @@ module.public = {
         if conceals.bold then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealBold matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-_\~\W \t\n]\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~\W \t\n]\&[^\\]\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -412,7 +424,7 @@ module.public = {
         if conceals.italic then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealItalic matchgroup=Normal start="[?!:;,.<>()\[\]{}'"#%&$£\-_~\W \t\n]\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_~\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"#%&$£€\-_\~\W \t\n]\&[^\\]\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_~\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -420,7 +432,7 @@ module.public = {
         if conceals.underline then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealUnderline matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-\~\W \t\n]\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-\~\W \t\n]\&[^\\]\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -428,7 +440,7 @@ module.public = {
         if conceals.strikethrough then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealStrikethrough matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-\W \t\n]\@<=\~\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=\~\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~\W \t\n]\&[^\\]\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -436,7 +448,7 @@ module.public = {
         if conceals.monospace then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealMonospace matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-\W \t\n]\@<=`\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~\W \t\n]\&[^\\]\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -457,7 +469,6 @@ module.public = {
 module.on_event = function(event)
     -- If we have just entered a .norg buffer then apply all conceals
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        -- If the content of a line has changed then reparse that line
         if module.config.public.conceals then
             module.public.trigger_conceals()
         end
@@ -467,6 +478,7 @@ module.on_event = function(event)
         event.type == "core.autocommands.events.textchanged"
         or event.type == "core.autocommands.events.textchangedi"
     then
+        -- If the content of a line has changed then reparse the file
         module.public.trigger_icons()
     end
 end
