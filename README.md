@@ -47,7 +47,7 @@ With the introduction of lua, we *will* fight back.
 ### Manage Your Life with Neovim-inspired Keybinds
 Keybinds that make logical sense. Simply think, don't remember.
 
-<img src="https://user-images.githubusercontent.com/13149513/125272824-19748700-e32e-11eb-8c59-8c5c79794e5d.gif">
+<img src="https://user-images.githubusercontent.com/76052559/132091379-845bf06d-7516-4c28-b32d-77b9734a44fe.gif">
 
 ---
 
@@ -82,9 +82,7 @@ Select only the code you want - throw everything else away.
 ### TreeSitter Powered Editing
 Feel more accurate edits thanks to Neorg's deeper understanding of your documents with Treesitter
 
-(CURRENTLY WIP)
-
-<img src="https://user-images.githubusercontent.com/13149513/125273849-29d93180-e32f-11eb-97cc-32b3fe10e52a.gif">
+<img src="https://user-images.githubusercontent.com/76052559/132091729-6814a796-21a9-43af-a8f1-df7f44d1928b.gif">
 
 </div>
 
@@ -110,6 +108,8 @@ surpass _every_ other text editor. One that will give you all the bragging right
   You are in control of what code runs and what code doesn't run.
 - Logic. Everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
   two people asked for it.
+
+###### _IMPORTANT_: Neorg is *alpha* software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and keeping docs up-to-date would be very painful.
 
 # :wrench: Installation
 Installation may seem a bit daunting, however it's nothing you can't understand. If you really like to be in control,
@@ -215,7 +215,7 @@ local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
 parser_configs.norg = {
     install_info = {
         url = "https://github.com/vhyrro/tree-sitter-norg",
-        files = { "src/parser.c" },
+        files = { "src/parser.c", "src/scanner.cc" },
         branch = "main"
     },
 }
@@ -242,8 +242,20 @@ then try creating an `after/ftplugin/norg.lua` file and paste your Neorg configu
 It's a bit hacky - it will unfortunately stay this way until we get first-class support in the `nvim-treesitter` repository.
 Sorry!
 
-### Setting up Compe
-Neorg comes with a completion source that you can enable. Make sure to set `neorg` to `true` in the `source` table for nvim-compe:
+### Setting up a Completion Engine
+Neorg comes with its own API for completion. Users can then write integration modules to allow different plugins like `nvim-compe` and `nvim-cmp`
+to communicate with the Neorg core. By default no engine is specified. To specify one, make sure to configure `core.norg.completion`:
+
+```lua
+["core.norg.completion"] = {
+	config = {
+		engine = "nvim-compe" | "nvim-cmp" -- We current support nvim-compe and nvim-cmp only
+	}
+}
+```
+
+#### Compe
+Make sure to set `neorg` to `true` in the `source` table for nvim-compe:
 ```lua
 source = {
     path = true,
@@ -253,6 +265,17 @@ source = {
 }
 ```
 
+#### Cmp
+Make sure to enable the `neorg` completion source in the cmp sources table:
+```lua
+sources = {
+	...
+	{ name = "neorg" }
+}
+```
+
+And that's it!
+
 # :question: Usage
 Simply drop into a .norg file and start typing!
 
@@ -261,23 +284,22 @@ Simply drop into a .norg file and start typing!
 You may realize that we don't have an insane amount of frontend features just yet.
 This doesn't mean the plugin isn't capable of those things, it just means we're working on them!
 We tried focusing heavily on the backend first, but now that that is almost done we are actually starting work on features just for you:
-- [ ] Telescope.nvim integration for several things
+- [x] Telescope.nvim integration for several things (see https://github.com/vhyrro/neorg-telescope)
 - [x] TreeSitter parser (can be found [here](https://github.com/vhyrro/tree-sitter-norg))
 	- [x] AST Generation
 	- [x] Custom highlight support
-	- [x] Custom folds (done, but not pushed yet)
+	- [x] Custom folds
 	- [x] Language injection (for code blocks)
-	- [ ] Indentation engine based on the treesitter parser
 	- [ ] Smarter todo item toggling with the TreeSitter AST
-
-Everything you see above will be coming soon! Here's the things we do currently support:
-- Indentation (a tad too predictive, will be fixed with TreeSitter)
-- Toggling of TODO items with keybinds
-- Very configurable workspaces
-- nvim-compe completion source
 
 It's all about the patience! We're gonna deliver all the juicy features ASAP.
 In the meantime you might be interested in reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format :D
+
+Here are some things we *are* working on:
+- Fully fledged GTD workflow (with @Danymat)
+- Dynamically displaying and interacting with a Table of Contents (with @mrossinek)
+- Better parsing of markup (bold, italic etc.)
+- Overhauled indentation engine
 
 # :keyboard: Keybinds
 Neorg comes with no keys bound by default. If you want to use all the default keys, you may want to modify the `core.keybinds`'s configuration
