@@ -277,6 +277,7 @@ module.on_event = function(event)
                             name = "Tasks",
                             flags = {
                                 { "t", "Today tasks" },
+                                { "w", "Waiting for" },
                                 {
                                     "d",
                                     {
@@ -319,6 +320,7 @@ module.on_event = function(event)
                 },
             }, function(choices)
                 local default_lists = module.config.public.default_lists
+
                 if choices[1] == "a" then
                     module.public.add_task_to_inbox()
                 elseif choices[1] == "l" and choices[2] == "i" then
@@ -340,6 +342,12 @@ module.on_event = function(event)
                             exclude_files = { default_lists.inbox },
                         })
                         tasks = module.private.filter_today(tasks)
+                    elseif choices[2] == "w" then
+                        tasks = module.private.get_tasks(
+                            "undone",
+                            { recursive = true, extract = false, exclude_files = { default_lists.inbox } }
+                        )
+                        tasks = module.private.filter_waiting_for(tasks)
                     elseif choices[2] == "d" then
                         tasks = module.private.get_tasks("done", {
                             recursive = true,
