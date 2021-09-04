@@ -277,6 +277,7 @@ module.on_event = function(event)
                         {
                             name = "Tasks",
                             flags = {
+                                { "t", "Today tasks" },
                                 {
                                     "d",
                                     {
@@ -333,7 +334,14 @@ module.on_event = function(event)
                     log.info(projects)
                 elseif choices[1] == "t" then
                     local tasks
-                    if choices[2] == "d" then
+                    if choices[2] == "t" then
+                        tasks = module.private.get_tasks("undone", {
+                            recursive = true,
+                            extract = false,
+                            exclude_files = { default_lists.inbox, default_lists.someday },
+                        })
+                        tasks = module.private.filter_today(tasks)
+                    elseif choices[2] == "d" then
                         tasks = module.private.get_tasks("done", {
                             recursive = true,
                             extract = false,
