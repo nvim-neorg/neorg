@@ -282,5 +282,62 @@ return function(module)
             local today_tasks = module.required["core.queries.native"].extract_nodes(nodes_by_context[today_tag])
             return today_tasks
         end,
+
+        --- Filter tasks `nodes` with waiting fors
+        --- @param nodes table
+        --- @param opts table
+        ---   - opts.extract (bool):        if false will return the nodes instead of the extracted content
+        --- @return table
+        filter_waiting_for = function(nodes, opts)
+            opts = opts or {}
+            local res = {}
+            local waiting_for_tag = "waiting.for"
+
+            for _, node in pairs(nodes) do
+                -- Find the first parent node that match carryover_tag_set
+                local tags_node = module.required["core.queries.native"].find_parent_node(node, "carryover_tag_set")
+
+                local tree = {
+                    {
+                        query = { "all", "carryover_tag" },
+                        where = { "child_content", "tag_name", waiting_for_tag },
+                        subtree = {
+                            {
+                                query = { "all", "tag_parameters" },
+                                subtree = {
+                                    { query = { "all", "word" } },
+                                },
+                            },
+                        },
+                    },
+                }
+
+                local waiting_fors = module.required["core.queries.native"].query_from_tree(
+                    tags_node[1],
+                    tree,
+                    tags_node[2]
+                )
+
+                if #waiting_fors ~= 0 then
+                    local extracted = module.required["core.queries.native"].extract_nodes(waiting_fors)
+
+                    for _, extracted_context in pairs(extracted) do
+                        if not res[extracted_context] then
+                            res[extracted_context] = {}
+                        end
+
+                        table.insert(res[extracted_context], node)
+                    end
+                end
+            end
+
+            if opts.extract == false then
+                return res
+            end
+
+            res = vim.tbl_map(module.required["core.queries.native"].extract_nodes, res)
+
+            return res
+        end,
     }
 end

@@ -475,8 +475,8 @@ module.on_event = function(event)
 
         module.public.trigger_icons()
     elseif
-        event.type == "core.autocommands.events.textchanged" or event.type
-            == "core.autocommands.events.textchangedi"
+        event.type == "core.autocommands.events.textchanged"
+        or event.type == "core.autocommands.events.textchangedi"
     then
         -- If the content of a line has changed then reparse the file
         module.public.trigger_icons()
