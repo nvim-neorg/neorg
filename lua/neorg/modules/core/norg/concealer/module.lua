@@ -476,8 +476,8 @@ module.on_event = function(event)
 
         module.public.trigger_icons()
     elseif
-        event.type == "core.autocommands.events.textchanged"
-        or event.type == "core.autocommands.events.textchangedi"
+        event.type == "core.autocommands.events.textchanged" or event.type
+            == "core.autocommands.events.textchangedi"
     then
         module.public.trigger_icons()
     end

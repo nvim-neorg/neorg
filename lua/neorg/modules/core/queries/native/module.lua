@@ -257,7 +257,7 @@ With that in mind, you can do something like this (for example):
     --- @param parent userdata
     --- @param where table
     --- @param opts table
-    ---   - opts.bufnr (number):    used in where[1] == "child_name" (in order to get the node's content)
+    ---   - opts.bufnr (number):    used in where[1] == "child_content" (in order to get the node's content)
     --- @return boolean
     predicate_where = function(parent, where, opts)
         opts = opts or {}
@@ -274,7 +274,7 @@ With that in mind, you can do something like this (for example):
                 end
             end
 
-            if where[1] == "child_name" then
+            if where[1] == "child_content" then
                 if node:type() == where[2] and ts_utils.get_node_text(node, opts.bufnr)[1] == where[3] then
                     return true
                 end
