@@ -247,5 +247,28 @@ return function(module)
 
             return res
         end,
+
+        --- Filter `nodes` by today tasks
+        --- @param nodes userdata
+        --- @param opts table
+        ---   - opts.extract (bool):        if false will return the nodes instead of the extracted content
+        --- @return table
+        filter_today = function (nodes, opts)
+            opts = opts or {}
+            local today_tag = "today"
+            local nodes_by_context = module.private.sort_by_context(nodes, { extract = false })
+
+            if not nodes_by_context[today_tag] then
+                nodes_by_context[today_tag] = {}
+            end
+
+            if opts.extract == false then
+                return nodes_by_context[today_tag]
+            end
+
+            local today_tasks = module.required["core.queries.native"].extract_nodes(nodes_by_context[today_tag])
+            return today_tasks
+            
+        end
     }
 end
