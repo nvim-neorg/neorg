@@ -25,7 +25,7 @@ body:
     attributes:
       label: Neovim Version
       options:
-        - label: I am using the latest neovim version (0.5)
+        - label: I am using either 0.5 stable or the latest compiled 0.6 version
           required: true
 
   - type: input
@@ -40,7 +40,7 @@ body:
       label: "Log Output"
       description: "Located at `stdpath('data') .. '/neorg.log'`. You can run `:echo stdpath('data')` to find the path."
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: branch
@@ -95,7 +95,7 @@ body:
         - "Yes, but I don't know how to start. I would need guidance (check question below)"
         - "No"
     validations:
-      required: true
+      required: false
 
   - type: textarea
     attributes:
