@@ -40,7 +40,6 @@ module.config.public = {
     workspace = "default",
     default_lists = {
         inbox = "inbox.norg",
-        someday = "someday.norg",
     },
 }
 
@@ -329,7 +328,7 @@ module.on_event = function(event)
                     )
                 elseif choices[1] == "p" then
                     local projects = module.private.get_projects({
-                        exclude_files = { default_lists.inbox, default_lists.someday },
+                        exclude_files = { default_lists.inbox },
                     })
                     log.info(projects)
                 elseif choices[1] == "t" then
@@ -338,14 +337,14 @@ module.on_event = function(event)
                         tasks = module.private.get_tasks("undone", {
                             recursive = true,
                             extract = false,
-                            exclude_files = { default_lists.inbox, default_lists.someday },
+                            exclude_files = { default_lists.inbox },
                         })
                         tasks = module.private.filter_today(tasks)
                     elseif choices[2] == "d" then
                         tasks = module.private.get_tasks("done", {
                             recursive = true,
                             extract = false,
-                            exclude_files = { default_lists.inbox, default_lists.someday },
+                            exclude_files = { default_lists.inbox },
                         })
                         if choices[3] == "p" then
                             tasks = module.private.sort_by_project(tasks)
@@ -356,7 +355,7 @@ module.on_event = function(event)
                         tasks = module.private.get_tasks("undone", {
                             recursive = true,
                             extract = false,
-                            exclude_files = { default_lists.inbox, default_lists.someday },
+                            exclude_files = { default_lists.inbox },
                         })
                         if choices[3] == "p" then
                             tasks = module.private.sort_by_project(tasks)
@@ -367,7 +366,7 @@ module.on_event = function(event)
                         tasks = module.private.get_tasks("pending", {
                             recursive = true,
                             extract = false,
-                            exclude_files = { default_lists.inbox, default_lists.someday },
+                            exclude_files = { default_lists.inbox },
                         })
                         if choices[3] == "p" then
                             tasks = module.private.sort_by_project(tasks)
