@@ -160,7 +160,15 @@ return function(module)
             for _, node in pairs(nodes) do
                 local project = module.required["core.queries.native"].find_parent_node(node, "heading1")
                 if project[1] then
-                    local extracted = module.required["core.queries.native"].extract_nodes({ project })
+                    local tree = {
+                        { query = { "all", "paragraph_segment" } },
+                    }
+                    local project_content = module.required["core.queries.native"].query_from_tree(
+                        project[1],
+                        tree,
+                        project[2]
+                    )
+                    local extracted = module.required["core.queries.native"].extract_nodes(project_content)
                     if not res[extracted[1]] then
                         res[extracted[1]] = {}
                     end
