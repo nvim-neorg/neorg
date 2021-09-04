@@ -28,7 +28,7 @@ USAGE:
         },
         quote = {
             enabled = true, -- Conceal quotes
-            icon = "∣"
+            icon = "│"
         },
         heading = {
             enabled = true, -- Enable beautified headings
@@ -133,7 +133,7 @@ module.config.public = {
 
         quote = {
             enabled = true,
-            icon = "∣",
+            icon = "│",
             pattern = "^(%s*)>+%s+",
             whitespace_index = 1,
             highlight = "NeorgQuote",
@@ -408,7 +408,7 @@ module.public = {
                     'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
                 )
                 vim.cmd(
-                    'syn region NeorgConcealURL matchgroup=mkdDelimiter start="[^\\\\]\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
+                    'syn region NeorgConcealURL matchgroup=mkdDelimiter start="\\([^\\\\]\\|\\_^\\)\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
                 )
             end)
         end
@@ -416,7 +416,7 @@ module.public = {
         if conceals.bold then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealBold matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-_\~\W \t\n]\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~\W \t\n]\&[^\\]\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -424,7 +424,7 @@ module.public = {
         if conceals.italic then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealItalic matchgroup=Normal start="[?!:;,.<>()\[\]{}'"#%&$£\-_~\W \t\n]\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_~\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"#%&$£€\-_\~\W \t\n]\&[^\\]\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_~\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -432,7 +432,7 @@ module.public = {
         if conceals.underline then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealUnderline matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-\~\W \t\n]\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-\~\W \t\n]\&[^\\]\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -440,7 +440,7 @@ module.public = {
         if conceals.strikethrough then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealStrikethrough matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-\W \t\n]\@<=\-\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~\W \t\n]\&[^\\]\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -448,7 +448,7 @@ module.public = {
         if conceals.monospace then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealMonospace matchgroup=Normal start="[?!:;,.<>()\[\]{}'"/#%&$£\-\W \t\n]\@<=`\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~\W \t\n]\&[^\\]\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -469,7 +469,6 @@ module.public = {
 module.on_event = function(event)
     -- If we have just entered a .norg buffer then apply all conceals
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        -- If the content of a line has changed then reparse that line
         if module.config.public.conceals then
             module.public.trigger_conceals()
         end
@@ -479,6 +478,7 @@ module.on_event = function(event)
         event.type == "core.autocommands.events.textchanged" or event.type
             == "core.autocommands.events.textchangedi"
     then
+        -- If the content of a line has changed then reparse the file
         module.public.trigger_icons()
     end
 end
