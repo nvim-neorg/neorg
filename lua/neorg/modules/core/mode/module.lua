@@ -44,13 +44,6 @@ module.private = {
     },
 }
 
-module.load = function()
-    -- Broadcast the initial mode_set event whenever we enter Neorg for the first time
-    neorg.events.broadcast_event(
-        neorg.events.create(module, "core.mode.events.mode_set", { current = "", new = "norg" })
-    )
-end
-
 module.public = {
 
     -- Define command for :Neorg
