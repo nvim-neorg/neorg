@@ -469,7 +469,6 @@ module.public = {
 module.on_event = function(event)
     -- If we have just entered a .norg buffer then apply all conceals
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        -- If the content of a line has changed then reparse that line
         if module.config.public.conceals then
             module.public.trigger_conceals()
         end
@@ -479,6 +478,7 @@ module.on_event = function(event)
         event.type == "core.autocommands.events.textchanged"
         or event.type == "core.autocommands.events.textchangedi"
     then
+        -- If the content of a line has changed then reparse the file
         module.public.trigger_icons()
     end
 end
