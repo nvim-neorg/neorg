@@ -40,6 +40,7 @@ module.config.public = {
     workspace = "default",
     default_lists = {
         inbox = "inbox.norg",
+        someday = "someday.norg",
     },
 }
 
@@ -317,6 +318,7 @@ module.on_event = function(event)
                     },
                 },
             }, function(choices)
+                local default_lists = module.config.public.default_lists
                 if choices[1] == "a" then
                     module.public.add_task_to_inbox()
                 elseif choices[1] == "l" and choices[2] == "i" then
@@ -325,26 +327,49 @@ module.on_event = function(event)
                         module.config.public.default_lists.inbox
                     )
                 elseif choices[1] == "p" then
-                    local projects = module.private.get_projects()
+                    local projects = module.private.get_projects({
+                        exclude_files = { default_lists.inbox, default_lists.someday },
+                    })
                     log.info(projects)
                 elseif choices[1] == "t" then
                     local tasks
                     if choices[2] == "d" then
-                        tasks = module.private.get_tasks("done", { recursive = true, extract = false })
+                        tasks = module.private.get_tasks(
+                            "done",
+                            {
+                                recursive = true,
+                                extract = false,
+                                exclude_files = { default_lists.inbox, default_lists.someday },
+                            }
+                        )
                         if choices[3] == "p" then
                             tasks = module.private.sort_by_project(tasks)
                         elseif choices[3] == "c" then
                             tasks = module.private.sort_by_context(tasks)
                         end
                     elseif choices[2] == "u" then
-                        tasks = module.private.get_tasks("undone", { recursive = true, extract = false })
+                        tasks = module.private.get_tasks(
+                            "undone",
+                            {
+                                recursive = true,
+                                extract = false,
+                                exclude_files = { default_lists.inbox, default_lists.someday },
+                            }
+                        )
                         if choices[3] == "p" then
                             tasks = module.private.sort_by_project(tasks)
                         elseif choices[3] == "c" then
                             tasks = module.private.sort_by_context(tasks)
                         end
                     elseif choices[2] == "p" then
-                        tasks = module.private.get_tasks("pending", { recursive = true, extract = false })
+                        tasks = module.private.get_tasks(
+                            "pending",
+                            {
+                                recursive = true,
+                                extract = false,
+                                exclude_files = { default_lists.inbox, default_lists.someday },
+                            }
+                        )
                         if choices[3] == "p" then
                             tasks = module.private.sort_by_project(tasks)
                         elseif choices[3] == "c" then

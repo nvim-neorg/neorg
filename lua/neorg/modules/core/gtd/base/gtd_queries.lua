@@ -4,6 +4,7 @@ return function(module)
         --- @param opts table
         ---   - opts.filename (string):     will restrict the search only for the filename provided
         ---   - opts.extract (bool):        if false will return the nodes instead of the extracted content
+        ---   - opts.exclude_files (table):     will exclude files from workspace in querying information
         --- @return table
         get_projects = function(opts)
             opts = opts or {}
@@ -30,6 +31,13 @@ return function(module)
                 table.insert(bufnrs, bufnr)
             else
                 local files = module.required["core.norg.dirman"].get_norg_files(module.config.public.workspace)
+
+                if opts.exclude_files then
+                    for _, excluded_file in pairs(opts.exclude_files) do
+                        files = module.private.remove_from_table(files, excluded_file)
+                    end
+                end
+
                 for _, file in pairs(files) do
                     local bufnr = module.private.get_bufnr_from_file(file)
                     table.insert(bufnrs, bufnr)
@@ -63,9 +71,10 @@ return function(module)
         --- Get a table of all tasks in current `state` in workspace
         --- @param state string
         --- @param opts table
-        ---   - opts.filename (string):     will restrict the search only for the filename provided
-        ---   - opts.recursive (bool):      if true will search todos recursively in the AST
-        ---   - opts.extract (bool):        if false will return the nodes instead of the extracted content
+        ---   - opts.filename (string):         will restrict the search only for the filename provided
+        ---   - opts.recursive (bool):          if true will search todos recursively in the AST
+        ---   - opts.extract (bool):            if false will return the nodes instead of the extracted content
+        ---   - opts.exclude_files (table):     will exclude files from workspace in querying information
         --- @return table
         get_tasks = function(state, opts)
             opts = opts or {}
@@ -103,6 +112,13 @@ return function(module)
                 table.insert(bufnrs, bufnr)
             else
                 local files = module.required["core.norg.dirman"].get_norg_files(module.config.public.workspace)
+
+                if opts.exclude_files then
+                    for _, excluded_file in pairs(opts.exclude_files) do
+                        files = module.private.remove_from_table(files, excluded_file)
+                    end
+                end
+
                 for _, file in pairs(files) do
                     local bufnr = module.private.get_bufnr_from_file(file)
                     table.insert(bufnrs, bufnr)
@@ -120,6 +136,16 @@ return function(module)
                 end
             end
             return res
+        end,
+
+        remove_from_table = function(t, el)
+            for i, v in ipairs(t) do
+                if v == el then
+                    local removed = table.remove(t, i)
+                    break
+                end
+            end
+            return t
         end,
 
         --- Sort `nodes` by projects.
@@ -203,7 +229,6 @@ return function(module)
                     end
                     table.insert(res["_"], node)
                 end
-
             end
 
             if opts.extract == false then
