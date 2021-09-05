@@ -1,10 +1,10 @@
-return function (module)
+return function(module)
     return {
-        display_today_tasks = function (tasks)
+        display_today_tasks = function(tasks)
             local name = "Today's Tasks"
             local res = {
                 "* " .. name,
-                ""
+                "",
             }
             for _, task in ipairs(tasks) do
                 table.insert(res, "- " .. task)
@@ -14,7 +14,7 @@ return function (module)
             vim.api.nvim_buf_set_option(buf, "modifiable", false)
         end,
 
-        display_waiting_for = function (tasks)
+        display_waiting_for = function(tasks)
             local name = "Waiting For Tasks"
             local res = {
                 "* " .. name,
@@ -23,7 +23,7 @@ return function (module)
 
             for waiting_for_name, waiting_for_tasks in pairs(tasks) do
                 table.insert(res, "** " .. waiting_for_name)
-                for _,t in pairs(waiting_for_tasks) do
+                for _, t in pairs(waiting_for_tasks) do
                     table.insert(res, "- " .. t)
                 end
                 table.insert(res, "")
@@ -34,16 +34,16 @@ return function (module)
             vim.api.nvim_buf_set_option(buf, "modifiable", false)
         end,
 
-        display_contexts = function (tasks)
+        display_contexts = function(tasks)
             local name = "Contexts"
             local res = {
                 "* " .. name,
-                ""
+                "",
             }
 
             for context, context_tasks in pairs(tasks) do
                 table.insert(res, "** " .. context)
-                for _,t in pairs(context_tasks) do
+                for _, t in pairs(context_tasks) do
                     table.insert(res, "- " .. t)
                 end
                 table.insert(res, "")
@@ -52,6 +52,6 @@ return function (module)
             local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
             vim.api.nvim_buf_set_option(buf, "modifiable", false)
-        end
+        end,
     }
 end

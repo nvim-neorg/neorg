@@ -203,7 +203,6 @@ module.private = {
     end,
 }
 
-
 module.load = function()
     -- Get workspace for gtd files and save full path in private
     local workspace = module.config.public.workspace
@@ -280,7 +279,7 @@ module.on_event = function(event)
                                 { "c", "contexts" },
                                 { "w", "Waiting for" },
                                 { "d", "Due tasks" },
-                                { "s", "Start tasks" }
+                                { "s", "Start tasks" },
                             },
                         },
                     },
