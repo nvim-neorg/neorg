@@ -110,6 +110,7 @@ module.private = {
     -- @Param  syntax_type (module.private.syntax)
     find_syntaxes = function(text, syntax_type)
         local suffix_len
+        local prefix_len
         if syntax_type.suffix then
             suffix_len = #syntax_type.suffix
         end
@@ -202,7 +203,6 @@ module.private = {
     end,
 }
 
-module.private = vim.tbl_extend("error", module.private, utils.require(module, "gtd_queries")(module))
 
 module.load = function()
     -- Get workspace for gtd files and save full path in private
@@ -278,42 +278,8 @@ module.on_event = function(event)
                             flags = {
                                 { "t", "Today tasks" },
                                 { "w", "Waiting for" },
-                                {
-                                    "d",
-                                    {
-                                        name = "Done",
-                                        flags = {
-                                            { "Sort by", "TSComment" },
-                                            { "p", "Projects" },
-                                            { "c", "Contexts" },
-                                            { "n", "No sort" },
-                                        },
-                                    },
-                                },
-                                {
-                                    "p",
-                                    {
-                                        name = "Pending",
-                                        flags = {
-                                            { "Sort by", "TSComment" },
-                                            { "p", "Projects" },
-                                            { "c", "Contexts" },
-                                            { "n", "No sort" },
-                                        },
-                                    },
-                                },
-                                {
-                                    "u",
-                                    {
-                                        name = "Undone",
-                                        flags = {
-                                            { "Sort by", "TSComment" },
-                                            { "p", "Projects" },
-                                            { "c", "Contexts" },
-                                            { "n", "No sort" },
-                                        },
-                                    },
-                                },
+                                { "d", "Due tasks" },
+                                { "s", "Start tasks" }
                             },
                         },
                     },
@@ -342,45 +308,26 @@ module.on_event = function(event)
                             exclude_files = { default_lists.inbox },
                         })
                         tasks = module.private.filter_today(tasks)
+                        module.private.display_today_tasks(tasks)
                     elseif choices[2] == "w" then
                         tasks = module.private.get_tasks(
                             "undone",
                             { recursive = true, extract = false, exclude_files = { default_lists.inbox } }
                         )
-                        tasks = module.private.filter_waiting_for(tasks)
+                        tasks = module.private.filter_tags(tasks, "waiting.for")
+                        module.private.display_waiting_for(tasks)
+                    elseif choices[2] == "s" then
+                        tasks = module.private.get_tasks(
+                            "undone",
+                            { recursive = true, extract = false, exclude_files = { default_lists.inbox } }
+                        )
+                        tasks = module.private.filter_tags(tasks, "time.start")
                     elseif choices[2] == "d" then
-                        tasks = module.private.get_tasks("done", {
-                            recursive = true,
-                            extract = false,
-                            exclude_files = { default_lists.inbox },
-                        })
-                        if choices[3] == "p" then
-                            tasks = module.private.sort_by_project(tasks)
-                        elseif choices[3] == "c" then
-                            tasks = module.private.sort_by_context(tasks)
-                        end
-                    elseif choices[2] == "u" then
-                        tasks = module.private.get_tasks("undone", {
-                            recursive = true,
-                            extract = false,
-                            exclude_files = { default_lists.inbox },
-                        })
-                        if choices[3] == "p" then
-                            tasks = module.private.sort_by_project(tasks)
-                        elseif choices[3] == "c" then
-                            tasks = module.private.sort_by_context(tasks)
-                        end
-                    elseif choices[2] == "p" then
-                        tasks = module.private.get_tasks("pending", {
-                            recursive = true,
-                            extract = false,
-                            exclude_files = { default_lists.inbox },
-                        })
-                        if choices[3] == "p" then
-                            tasks = module.private.sort_by_project(tasks)
-                        elseif choices[3] == "c" then
-                            tasks = module.private.sort_by_context(tasks)
-                        end
+                        tasks = module.private.get_tasks(
+                            "undone",
+                            { recursive = true, extract = false, exclude_files = { default_lists.inbox } }
+                        )
+                        tasks = module.private.filter_tags(tasks, "time.due")
                     end
                     log.warn(tasks)
                 end
@@ -399,5 +346,8 @@ module.events.subscribed = {
         ["gtd.quick_actions"] = true,
     },
 }
+
+module.private = vim.tbl_extend("error", module.private, utils.require(module, "gtd_queries")(module))
+module.private = vim.tbl_extend("error", module.private, utils.require(module, "displayers")(module))
 
 return module
