@@ -279,6 +279,3 @@ This is not in an AOF
       - Opening a particular project view
       - Opening a particular context view (or next actions)
       - Doing a weekly review
-
-$comment
-vim:tw=100:ts=8:noet:ft=norg:norl:
