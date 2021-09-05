@@ -35,14 +35,6 @@ module.config.public = {
             Keyname = "+TSMath",
             Nestedkeyname = "+TSString",
         },
-
-        selectionwindow = {
-            heading = "+TSAnnotation",
-            arrow = "+Normal",
-            key = "+TSNamespace",
-            keyname = "+TSMath",
-            nestedkeyname = "+TSString",
-        },
     },
     dim = {
         Conceal = {
