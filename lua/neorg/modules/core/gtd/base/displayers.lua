@@ -30,6 +30,25 @@ return function (module)
 
             local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
+        end,
+
+        display_contexts = function (tasks)
+            local name = "Contexts"
+            local res = {
+                "* " .. name,
+                ""
+            }
+
+            for context, context_tasks in pairs(tasks) do
+                table.insert(res, "** " .. context)
+                for _,t in pairs(context_tasks) do
+                    table.insert(res, "- " .. t)
+                end
+                table.insert(res, "")
+            end
+
+            local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
+            vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
         end
     }
 end

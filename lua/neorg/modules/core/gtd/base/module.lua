@@ -277,6 +277,7 @@ module.on_event = function(event)
                             name = "Tasks",
                             flags = {
                                 { "t", "Today tasks" },
+                                { "c", "contexts" },
                                 { "w", "Waiting for" },
                                 { "d", "Due tasks" },
                                 { "s", "Start tasks" }
@@ -328,6 +329,13 @@ module.on_event = function(event)
                             { recursive = true, extract = false, exclude_files = { default_lists.inbox } }
                         )
                         tasks = module.private.filter_tags(tasks, "time.due")
+                    elseif choices[2] == "c" then
+                        tasks = module.private.get_tasks(
+                            "undone",
+                            { recursive = true, extract = false, exclude_files = { default_lists.inbox } }
+                        )
+                        tasks = module.private.sort_by_context(tasks)
+                        module.private.display_contexts(tasks)
                     end
                     log.warn(tasks)
                 end
