@@ -13,6 +13,18 @@ module.private = {
 }
 
 module.public = {
+    -- TODO: Remove this. This is just a showcase
+    -- THOUGHT: Maybe add a table to bind custom keys? :thonk:
+    test_display = function()
+        module.public.create_display("Test Display", "nosplit", {
+            { "Hello World!", "TSAnnotation" },
+            {},
+            { "This is just a ", nil, false },
+            { "test", "TSEmphasis", false },
+            { " to show the power of the display!", nil, false }
+        })
+    end,
+
     -- @Summary Gets the current size of the window
     -- @Description Returns a table in the form of { width, height } containing the width and height of the current window
     -- @Param  half (boolean) - if true returns a position that could be considered the center of the window
@@ -81,8 +93,9 @@ module.public = {
     end,
 
     --- Creates a new horizontal split at the bottom of the screen
-    --- @param  name string the name of the buffer contained within the split (will have neorg:// prepended to it)
-    --- @param  config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
+    --- @param name string the name of the buffer (will have neorg:// prepended to it)
+    --- @param config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
+    --- @return buffer the buffer that was created in the split
     create_split = function(name, config)
         vim.validate({
             name = { name, "string" },
@@ -110,6 +123,118 @@ module.public = {
         module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
 
         return buf
+    end,
+
+    --- Creates a new vertical split
+    --- @param name string the name of the buffer
+    --- @param config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
+    --- @param left boolean if true will spawn the vertical split on the left (default is right)
+    --- @return buffer the buffer of the vertical split
+    create_vsplit = function(name, config, left)
+        vim.validate({
+            name = { name, "string" },
+            config = { config, "table" },
+            left = { left, "boolean", true },
+        })
+
+        left = left or false
+
+        vim.cmd("vsplit")
+
+        if left then
+            vim.cmd("wincmd H")
+        end
+
+        local buf = vim.api.nvim_create_buf(false, true)
+
+        local default_options = {
+            swapfile = false,
+            bufhidden = "hide",
+            buftype = "nofile",
+            buflisted = false,
+        }
+
+        vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
+        vim.api.nvim_win_set_buf(0, buf)
+
+        vim.api.nvim_win_set_option(0, "number", false)
+        vim.api.nvim_win_set_option(0, "relativenumber", false)
+
+        vim.api.nvim_win_set_buf(0, buf)
+
+        -- Merge the user provided options with the default options and apply them to the new buffer
+        module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
+
+        return buf
+    end,
+
+    --- Creates a new display in which you can place organized data
+    --- @param split_type string "vsplitl"|"vsplitr"|"split" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
+    --- @param content table a table of content
+    create_display = function(name, split_type, content)
+        if not vim.tbl_contains({ "nosplit", "vsplitl", "vsplitr", "split" }, split_type) then
+            log.error("Unable to create display. Expected one of 'vsplitl', 'vsplitr', 'split' or 'nosplit', got", split_type, "instead.")
+            return
+        end
+
+        local namespace = vim.api.nvim_create_namespace("neorg://display/" .. name)
+
+        local buf = (function()
+            name = "display/" .. name
+
+            if split_type == "vsplitl" then
+                return module.public.create_vsplit(name, {}, true)
+            elseif split_type == "vsplitr" then
+                return module.public.create_vsplit(name, {}, false)
+            elseif split_type == "split" then
+                return module.public.create_split(name, {})
+            else
+                local buf = vim.api.nvim_create_buf(true, true)
+                vim.api.nvim_buf_set_name(buf, name)
+                return buf
+            end
+        end)()
+
+        vim.api.nvim_win_set_buf(0, buf)
+
+        local length = vim.fn.len(vim.tbl_filter(function(elem) return vim.tbl_isempty(elem) or (elem[3] == nil and true or elem[3]) end, content))
+
+        vim.api.nvim_buf_set_lines(buf, 0, length, false,
+                vim.split((" \n"):rep(length), "\n", true))
+
+        local line_number = 1
+        local buffer = {}
+
+        for i, text_info in ipairs(content) do
+            if not vim.tbl_isempty(text_info) then
+                local newline = text_info[3] == nil and true or text_info[3]
+
+                table.insert(buffer, { text_info[1], text_info[2] or "Normal" })
+
+                if i == #content or newline then
+                    vim.api.nvim_buf_set_extmark(0, namespace, line_number - 1, 0, {
+                        virt_text_pos = "overlay",
+                        virt_text = buffer,
+                    })
+                    buffer = {}
+                    line_number = line_number + 1
+                end
+            else
+                line_number = line_number + 1
+            end
+        end
+
+        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+        vim.api.nvim_win_set_option(0, "cursorline", true)
+
+        local cached_virtualedit = vim.opt.virtualedit:get()
+        vim.opt.virtualedit = "all"
+
+        vim.cmd(([[
+            autocmd BufLeave,BufDelete <buffer=%s> set virtualedit=%s | silent! bd %s
+        ]]):format(buf, cached_virtualedit[1], buf))
+
+        return { buffer = buf, namespace = namespace }
     end,
 }
 
