@@ -952,12 +952,13 @@ module.public = {
 
             link_end_url = function(_, destination, utility)
                 if neorg.configuration.os_info == "linux" then
-                    vim.cmd("silent !xdg-open " .. vim.fn.fnameescape(destination))
+                    vim.cmd('silent !xdg-open "' .. vim.fn.fnameescape(destination) .. '"')
                 elseif neorg.configuration.os_info == "mac" then
-                    vim.cmd("silent !open " .. vim.fn.fnameescape(destination))
+                    vim.cmd('silent !open "' .. vim.fn.fnameescape(destination) .. '"')
                 else
-                    vim.cmd("silent !start " .. vim.fn.fnameescape(destination))
+                    vim.cmd('silent !start "' .. vim.fn.fnameescape(destination) .. '"')
                 end
+
                 return utility.ts.get_node_range(utility.ts.get_ts_utils().get_node_at_cursor())
             end,
         },
