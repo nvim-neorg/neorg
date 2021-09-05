@@ -19,19 +19,20 @@ function neorg.setup(config)
     -- If the file we have entered has a .norg extension
     if vim.fn.expand("%:e") == "norg" then
         -- Then set the filetype and boot up the environment
-        neorg.org_file_entered()
+        neorg.org_file_entered(false)
     else
         -- Else listen for a BufRead event and fire up the Neorg environment
         vim.cmd([[
-			autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered()
-			command! -nargs=0 Neorg delcommand Neorg | lua require('neorg').org_file_entered()
+			autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered(false)
+			command! -nargs=0 Neorg delcommand Neorg | lua require('neorg').org_file_entered(true)
 		]])
     end
 end
 
 -- @Summary Neorg startup function
 -- @Description This function gets called upon entering a .norg file and loads all of the user-defined modules.
-function neorg.org_file_entered()
+-- @Param manual (boolean) - if true then the environment was kickstarted manually by the user
+function neorg.org_file_entered(manual)
     -- Extract the module list from the user configuration
     local module_list = configuration.user_configuration and configuration.user_configuration.load or {}
 
@@ -47,8 +48,10 @@ function neorg.org_file_entered()
     --
     -- If the user has defined a post-load hook then execute it
     if configuration.user_configuration.hook then
-        configuration.user_configuration.hook()
+        configuration.user_configuration.hook(manual)
     end
+
+    neorg.configuration.manual = manual
 
     -- Go through each defined module and grab its configuration
     for name, module in pairs(module_list) do

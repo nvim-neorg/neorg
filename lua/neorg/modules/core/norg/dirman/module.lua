@@ -63,7 +63,7 @@ module.load = function()
 
     -- If we have loaded this module from outside of a Neorg file then try jumping
     -- to the last cached workspace
-    if vim.fn.expand("%:e") ~= "norg" then
+    if neorg.configuration.manual then
         module.public.set_last_workspace()
     end
 

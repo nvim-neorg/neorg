@@ -10,6 +10,7 @@ neorg.configuration = {
     },
 
     modules = {},
+    manual = nil,
 
     version = "0.1",
 }
