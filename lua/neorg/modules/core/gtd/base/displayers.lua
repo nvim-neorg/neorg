@@ -11,6 +11,7 @@ return function (module)
             end
             local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
+            vim.api.nvim_buf_set_option(buf, "modifiable", false)
         end,
 
         display_waiting_for = function (tasks)
@@ -30,6 +31,7 @@ return function (module)
 
             local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
+            vim.api.nvim_buf_set_option(buf, "modifiable", false)
         end,
 
         display_contexts = function (tasks)
@@ -49,6 +51,7 @@ return function (module)
 
             local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
+            vim.api.nvim_buf_set_option(buf, "modifiable", false)
         end
     }
 end
