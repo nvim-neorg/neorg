@@ -167,7 +167,11 @@ module.public = {
     --- @param content table a table of content
     create_display = function(name, split_type, content)
         if not vim.tbl_contains({ "nosplit", "vsplitl", "vsplitr", "split" }, split_type) then
-            log.error("Unable to create display. Expected one of 'vsplitl', 'vsplitr', 'split' or 'nosplit', got", split_type, "instead.")
+            log.error(
+                "Unable to create display. Expected one of 'vsplitl', 'vsplitr', 'split' or 'nosplit', got",
+                split_type,
+                "instead."
+            )
             return
         end
 
@@ -191,10 +195,11 @@ module.public = {
 
         vim.api.nvim_win_set_buf(0, buf)
 
-        local length = vim.fn.len(vim.tbl_filter(function(elem) return vim.tbl_isempty(elem) or (elem[3] == nil and true or elem[3]) end, content))
+        local length = vim.fn.len(vim.tbl_filter(function(elem)
+            return vim.tbl_isempty(elem) or (elem[3] == nil and true or elem[3])
+        end, content))
 
-        vim.api.nvim_buf_set_lines(buf, 0, length, false,
-                vim.split(("\n"):rep(length), "\n", true))
+        vim.api.nvim_buf_set_lines(buf, 0, length, false, vim.split(("\n"):rep(length), "\n", true))
 
         local line_number = 1
         local buffer = {}
@@ -241,11 +246,15 @@ module.public = {
         vim.validate({
             name = { name, "string" },
             split_type = { split_type, "string" },
-            config = { config, "table", true }
+            config = { config, "table", true },
         })
 
         if not vim.tbl_contains({ "nosplit", "vsplitl", "vsplitr", "split" }, split_type) then
-            log.error("Unable to create display. Expected one of 'vsplitl', 'vsplitr', 'split' or 'nosplit', got", split_type, "instead.")
+            log.error(
+                "Unable to create display. Expected one of 'vsplitl', 'vsplitr', 'split' or 'nosplit', got",
+                split_type,
+                "instead."
+            )
             return
         end
 
