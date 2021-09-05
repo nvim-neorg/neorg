@@ -7,8 +7,23 @@
 
 ; TODO: Make the content of @comment darker
 
-(carryover_tag_set (carryover_tag ("_prefix" @NeorgCarryoverTagBegin) (tag_name (word) @NeorgCarryoverTagNameWord) @NeorgCarryoverTagName (tag_parameters parameter: (word) @NeorgCarryoverTagParameter)? @NeorgCarryoverTagParameters) @NeorgCarryoverTag
-	target: (_)+ @NeorgCarryoverTagTarget)
+(carryover_tag_set
+    (carryover_tag
+        ("_prefix" @NeorgCarryoverTagBegin)
+        name:
+            (tag_name
+                [
+                    (word) @NeorgCarryoverTagNameWord
+                    ("_delimiter") @NeorgCarryoverTagNameDelimiter
+                ]+
+            ) @NeorgCarryoverTagName
+        (tag_parameters
+            parameter: (word) @NeorgCarryoverTagParameter
+        )? @NeorgCarryoverTagParameters
+    ) @NeorgCarryoverTag
+
+	target: (_)+ @NeorgCarryoverTagTarget
+)
 
 ; Headings
 (heading1 (heading1_prefix) @NeorgHeading1Prefix title: (paragraph_segment) @NeorgHeading1Title) @NeorgHeading1
