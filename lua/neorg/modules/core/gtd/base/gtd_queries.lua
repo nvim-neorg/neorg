@@ -283,15 +283,14 @@ return function(module)
             return today_tasks
         end,
 
-        --- Filter tasks `nodes` with waiting fors
+        --- Filter tasks `nodes` with `tag_name`
         --- @param nodes table
         --- @param opts table
         ---   - opts.extract (bool):        if false will return the nodes instead of the extracted content
         --- @return table
-        filter_waiting_for = function(nodes, opts)
+        filter_tags = function(nodes, tag_name, opts)
             opts = opts or {}
             local res = {}
-            local waiting_for_tag = "waiting.for"
 
             for _, node in pairs(nodes) do
                 -- Find the first parent node that match carryover_tag_set
@@ -300,7 +299,7 @@ return function(module)
                 local tree = {
                     {
                         query = { "all", "carryover_tag" },
-                        where = { "child_content", "tag_name", waiting_for_tag },
+                        where = { "child_content", "tag_name", tag_name },
                         subtree = {
                             {
                                 query = { "all", "tag_parameters" },
@@ -312,14 +311,14 @@ return function(module)
                     },
                 }
 
-                local waiting_fors = module.required["core.queries.native"].query_from_tree(
+                local found_tags = module.required["core.queries.native"].query_from_tree(
                     tags_node[1],
                     tree,
                     tags_node[2]
                 )
 
-                if #waiting_fors ~= 0 then
-                    local extracted = module.required["core.queries.native"].extract_nodes(waiting_fors)
+                if #found_tags ~= 0 then
+                    local extracted = module.required["core.queries.native"].extract_nodes(found_tags)
 
                     for _, extracted_context in pairs(extracted) do
                         if not res[extracted_context] then
