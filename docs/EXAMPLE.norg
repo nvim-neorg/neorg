@@ -105,8 +105,8 @@ And using 3 or more `=` signs will drop you right back to the root level!
     ~> [shameless plug](https://github.com/danymat/neogen)
 
     You can link to objects in other files like so:
-    `[link text](file:#location)`
-    `[link text](file:other_file:#location)`
+    `[link text](:file:#location)`
+    `[link text](:file:other_file:#location)`
 
  ** Markers
     You can mark specific locations in your file with markers:
