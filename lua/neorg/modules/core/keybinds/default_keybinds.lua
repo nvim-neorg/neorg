@@ -17,6 +17,9 @@ return function(neorg_leader)
 
                 { "<CR>", "core.norg.esupports.goto_link" },
 
+                -- Keys for managing GTD workflow
+                { "gtda", "core.gtd.base.add_to_inbox" },
+
                 { "<C-s>", "core.integrations.telescope.find_linkable" },
             },
 
