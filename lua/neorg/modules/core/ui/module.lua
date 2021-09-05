@@ -200,7 +200,7 @@ module.public = {
         local length = vim.fn.len(vim.tbl_filter(function(elem) return vim.tbl_isempty(elem) or (elem[3] == nil and true or elem[3]) end, content))
 
         vim.api.nvim_buf_set_lines(buf, 0, length, false,
-                vim.split((" \n"):rep(length), "\n", true))
+                vim.split(("\n"):rep(length), "\n", true))
 
         local line_number = 1
         local buffer = {}
@@ -224,8 +224,10 @@ module.public = {
             end
         end
 
+        vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
+        vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
+
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
-        vim.api.nvim_win_set_option(0, "cursorline", true)
 
         local cached_virtualedit = vim.opt.virtualedit:get()
         vim.opt.virtualedit = "all"
