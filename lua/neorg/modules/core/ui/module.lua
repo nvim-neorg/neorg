@@ -16,13 +16,7 @@ module.public = {
     -- TODO: Remove this. This is just a showcase
     -- THOUGHT: Maybe add a table to bind custom keys? :thonk:
     test_display = function()
-        module.public.create_display("Test Display", "nosplit", {
-            { "Hello World!", "TSAnnotation" },
-            {},
-            { "This is just a ", nil, false },
-            { "test", "TSEmphasis", false },
-            { " to show the power of the display!", nil, false }
-        })
+        module.public.create_norg_buffer("Test Buffer", "vsplitl")
     end,
 
     -- @Summary Gets the current size of the window
@@ -169,7 +163,7 @@ module.public = {
     end,
 
     --- Creates a new display in which you can place organized data
-    --- @param split_type string "vsplitl"|"vsplitr"|"split" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
+    --- @param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
     --- @param content table a table of content
     create_display = function(name, split_type, content)
         if not vim.tbl_contains({ "nosplit", "vsplitl", "vsplitr", "split" }, split_type) then
@@ -233,10 +227,57 @@ module.public = {
         vim.opt.virtualedit = "all"
 
         vim.cmd(([[
-            autocmd BufLeave,BufDelete <buffer=%s> set virtualedit=%s | silent! bd %s
-        ]]):format(buf, cached_virtualedit[1], buf))
+            autocmd BufLeave,BufDelete <buffer=%s> set virtualedit=%s | silent! bd! %s
+        ]]):format(buf, cached_virtualedit[1] or "", buf))
 
         return { buffer = buf, namespace = namespace }
+    end,
+
+    --- Creates a new Neorg buffer in a split or in the main window
+    --- @param name string the name of the buffer *without* the .norg extension
+    --- @param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
+    --- @param config table a table of { option = value } pairs that set buffer-local options for the created Neorg buffer
+    create_norg_buffer = function(name, split_type, config)
+        vim.validate({
+            name = { name, "string" },
+            split_type = { split_type, "string" },
+            config = { config, "table", true }
+        })
+
+        if not vim.tbl_contains({ "nosplit", "vsplitl", "vsplitr", "split" }, split_type) then
+            log.error("Unable to create display. Expected one of 'vsplitl', 'vsplitr', 'split' or 'nosplit', got", split_type, "instead.")
+            return
+        end
+
+        local buf = (function()
+            name = "buffer/" .. name .. ".norg"
+
+            if split_type == "vsplitl" then
+                return module.public.create_vsplit(name, {}, true)
+            elseif split_type == "vsplitr" then
+                return module.public.create_vsplit(name, {}, false)
+            elseif split_type == "split" then
+                return module.public.create_split(name, {})
+            else
+                local buf = vim.api.nvim_create_buf(true, true)
+                vim.api.nvim_buf_set_name(buf, name)
+                return buf
+            end
+        end)()
+
+        vim.api.nvim_win_set_buf(0, buf)
+        vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
+        vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
+
+        module.public.apply_buffer_options(buf, config or {})
+
+        -- Refresh the buffer forcefully and set up autocommands
+        vim.cmd(([[
+            edit
+            autocmd BufDelete,BufLeave,BufUnload <buffer=%s> silent! bd! %s
+        ]]):format(buf, buf))
+
+        return buf
     end,
 }
 
