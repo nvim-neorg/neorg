@@ -19,19 +19,20 @@ function neorg.setup(config)
     -- If the file we have entered has a .norg extension
     if vim.fn.expand("%:e") == "norg" then
         -- Then set the filetype and boot up the environment
-        neorg.org_file_entered()
+        neorg.org_file_entered(false)
     else
         -- Else listen for a BufRead event and fire up the Neorg environment
         vim.cmd([[
-			autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered()
-			command! -nargs=0 Neorg delcommand Neorg | lua require('neorg').org_file_entered()
+			autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered(false)
+			command! -nargs=0 Neorg delcommand Neorg | lua require('neorg').org_file_entered(true)
 		]])
     end
 end
 
 -- @Summary Neorg startup function
 -- @Description This function gets called upon entering a .norg file and loads all of the user-defined modules.
-function neorg.org_file_entered()
+-- @Param manual (boolean) - if true then the environment was kickstarted manually by the user
+function neorg.org_file_entered(manual)
     -- Extract the module list from the user configuration
     local module_list = configuration.user_configuration and configuration.user_configuration.load or {}
 
@@ -44,45 +45,46 @@ function neorg.org_file_entered()
     require("neorg.external.log").new(configuration.user_configuration.logger or log.get_default_config(), true)
 
     -- Loop through all the modules and load them one by one
-    require("plenary.async_lib.async").async(function()
-        -- If the user has defined a post-load hook then execute it
-        if configuration.user_configuration.hook then
-            configuration.user_configuration.hook()
-        end
+    --
+    -- If the user has defined a post-load hook then execute it
+    if configuration.user_configuration.hook then
+        configuration.user_configuration.hook(manual)
+    end
 
-        -- Go through each defined module and grab its configuration
-        for name, module in pairs(module_list) do
-            -- If the module's data is not empty and we have not defined a config table then it probably means there's junk in there
-            if not vim.tbl_isempty(module) and not module.config then
-                log.warn(
-                    "Potential bug detected in",
-                    name,
-                    "- nonstandard tables found in the module definition. Did you perhaps mean to put these tables inside of the config = {} table?"
-                )
-            end
+    neorg.configuration.manual = manual
 
-            -- Apply the configuration
-            configuration.modules[name] = vim.tbl_deep_extend(
-                "force",
-                configuration.modules[name] or {},
-                module.config or {}
+    -- Go through each defined module and grab its configuration
+    for name, module in pairs(module_list) do
+        -- If the module's data is not empty and we have not defined a config table then it probably means there's junk in there
+        if not vim.tbl_isempty(module) and not module.config then
+            log.warn(
+                "Potential bug detected in",
+                name,
+                "- nonstandard tables found in the module definition. Did you perhaps mean to put these tables inside of the config = {} table?"
             )
         end
 
-        -- After all configurations are merged proceed to actually load the modules
-        for name, _ in pairs(module_list) do
-            -- If it could not be loaded then halt
-            if not neorg.modules.load_module(name) then
-                log.fatal("Halting loading of modules due to error...")
-                break
-            end
-        end
+        -- Apply the configuration
+        configuration.modules[name] = vim.tbl_deep_extend(
+            "force",
+            configuration.modules[name] or {},
+            module.config or {}
+        )
+    end
 
-        -- Goes through each loaded module and invokes neorg_post_load()
-        for _, module in pairs(neorg.modules.loaded_modules) do
-            module.neorg_post_load()
+    -- After all configurations are merged proceed to actually load the modules
+    for name, _ in pairs(module_list) do
+        -- If it could not be loaded then halt
+        if not neorg.modules.load_module(name) then
+            log.fatal("Halting loading of modules due to error...")
+            break
         end
-    end)()()
+    end
+
+    -- Goes through each loaded module and invokes neorg_post_load()
+    for _, module in pairs(neorg.modules.loaded_modules) do
+        module.neorg_post_load()
+    end
 
     -- Set this variable to prevent Neorg from loading twice
     neorg.configuration.started = true
