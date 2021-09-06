@@ -6,16 +6,17 @@ return function(module)
                 "* " .. name,
                 "",
             }
-            local today_task = function(task)
+            local today_task = function (task)
                 if not task.contexts then
                     return false
                 end
-                return vim.tbl_contains(task.contexts, "today")
+               return vim.tbl_contains(task.contexts, "today")
+
             end
 
             local today_tasks = vim.tbl_filter(today_task, tasks)
 
-            for _, t in pairs(today_tasks) do
+            for _,t in pairs(today_tasks) do
                 local content = "- " .. t.content
                 table.insert(res, content)
             end
@@ -34,9 +35,9 @@ return function(module)
             local waiting_for_tasks = module.private.sort_by("waiting_for", tasks)
             waiting_for_tasks["_"] = nil
 
-            for w, w_tasks in pairs(waiting_for_tasks) do
+            for w,w_tasks in pairs(waiting_for_tasks) do
                 table.insert(res, "** " .. w)
-                for _, t in pairs(w_tasks) do
+                for _,t in pairs(w_tasks) do
                     local content = "- " .. t.content
                     table.insert(res, content)
                 end
@@ -57,7 +58,7 @@ return function(module)
 
             local contexts_tasks = module.private.sort_by("contexts", tasks)
 
-            for context, c_tasks in pairs(contexts_tasks) do
+            for context,c_tasks in pairs(contexts_tasks) do
                 table.insert(res, "** " .. context)
                 for _, t in pairs(c_tasks) do
                     table.insert(res, "- " .. t.content)
