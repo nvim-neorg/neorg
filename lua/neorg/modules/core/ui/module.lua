@@ -14,9 +14,35 @@ module.private = {
 
 module.public = {
     -- TODO: Remove this. This is just a showcase
-    -- THOUGHT: Maybe add a table to bind custom keys? :thonk:
     test_display = function()
-        module.public.create_norg_buffer("Test Buffer", "vsplitl")
+        module.public.create_multi_selection("Test Stuff", {
+            flags = {
+                { "This is a Test", "TSAnnotation" },
+                {},
+                {
+                    "a",
+                    {
+                        name = "Other stuff",
+                        flags = {
+                            { "Very funny" },
+                            { "t", "Things" },
+                        },
+                    },
+                },
+                {
+                    "b",
+                    {
+                        name = "Another test",
+                        flags = {
+                            { "a", "One" },
+                            { "b", "One" },
+                        },
+                    },
+                },
+            },
+        }, function(selection)
+            log.warn(selection)
+        end)
     end,
 
     -- @Summary Gets the current size of the window
