@@ -131,6 +131,9 @@ return function(module)
             return res
         end,
 
+        --- Add metadatas to a list of `task_nodes`
+        --- @param task_nodes table
+        --- @return table
         add_metadata = function(task_nodes)
             local res = {}
 
@@ -152,6 +155,9 @@ return function(module)
             return res
         end,
 
+        --- Get task content from a task table
+        --- @param task table
+        --- @return string
         get_task_content = function(task)
             local tree = {
                 { query = { "first", "paragraph" } },
@@ -170,6 +176,9 @@ return function(module)
             return extracted[1]
         end,
 
+        --- Get project from `task` if there is one
+        --- @param task table
+        --- @return string
         get_task_project = function(task)
             local project_node = module.required["core.queries.native"].find_parent_node(
                 { task.task_node, task.bufnr },
@@ -194,7 +203,11 @@ return function(module)
             return extracted[1]
         end,
 
-        get_task_tag = function(tag_name, task, opts)
+        --- Get a list of content for a specific `tag_name` in a `task` node
+        --- @param tag_name string
+        --- @param task table
+        --- @return table
+        get_task_tag = function(tag_name, task)
             if not vim.tbl_contains({ "time.due", "time.start", "contexts", "waiting.for" }, tag_name) then
                 log.error("Please specify time.due|time.start|contexts|waiting.for in get_task_date function")
                 return
@@ -238,6 +251,10 @@ return function(module)
             return extracted
         end,
 
+        --- Remove `el` from table `t`
+        --- @param t table
+        --- @param el any
+        --- @return table
         remove_from_table = function(t, el)
             for i, v in ipairs(t) do
                 if v == el then
@@ -248,6 +265,11 @@ return function(module)
             return t
         end,
 
+        --- Sort `tasks` list by specified `sorter`
+        --- Current sorters: waiting_for, contexts, project
+        --- @param sorter string
+        --- @param tasks table
+        --- @return table
         sort_by = function(sorter, tasks)
             if not vim.tbl_contains({ "waiting_for", "contexts", "project" }, sorter) then
                 log.error("Please provide a correct sorter.")
