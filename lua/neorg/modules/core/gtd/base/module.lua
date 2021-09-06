@@ -317,7 +317,7 @@ module.on_event = function(event)
                     elseif choices[2] == "d" then
                         tasks = module.private.add_metadata(tasks)
                     elseif choices[2] == "c" then
-                        module.private.display_contexts(tasks)
+                        module.private.display_contexts(tasks, { exclude = { "someday" } })
                     end
                 end
             end)

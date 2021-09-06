@@ -48,7 +48,12 @@ return function(module)
             vim.api.nvim_buf_set_option(buf, "modifiable", false)
         end,
 
-        display_contexts = function(tasks)
+        --- Display contexts view for `tasks`
+        --- @param tasks table
+        --- @param opts table
+        ---   - opts.exclude (table):   exclude all specified contexts from the view
+        display_contexts = function(tasks, opts)
+            opts = opts or {}
             local name = "Contexts"
             local res = {
                 "* " .. name,
@@ -56,6 +61,12 @@ return function(module)
             }
 
             local contexts_tasks = module.private.sort_by("contexts", tasks)
+
+            if opts.exclude then
+                for _, c in pairs(opts.exclude) do
+                    contexts_tasks[c] = nil
+                end
+            end
 
             for context, c_tasks in pairs(contexts_tasks) do
                 local inserted_context = "** " .. context
