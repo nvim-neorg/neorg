@@ -203,7 +203,6 @@ module.private = {
     end,
 }
 
-
 module.load = function()
     -- Get workspace for gtd files and save full path in private
     local workspace = module.config.public.workspace
@@ -280,10 +279,11 @@ module.on_event = function(event)
                                 { "c", "contexts" },
                                 { "w", "Waiting for" },
                                 { "d", "Due tasks" },
-                                { "s", "Start tasks" }
+                                { "s", "Start tasks" },
                             },
                         },
                     },
+                    { "x", "TESTING" },
                 },
             }, function(choices)
                 local default_lists = module.config.public.default_lists
@@ -300,44 +300,25 @@ module.on_event = function(event)
                         exclude_files = { default_lists.inbox },
                     })
                     log.info(projects)
+                elseif choices[1] == "x" then
+                    local tasks = module.private.get_tasks("undone", { exclude_files = { default_lists.inbox } })
+                    module.private.add_metadata(tasks)
                 elseif choices[1] == "t" then
-                    local tasks
+                    local tasks = module.private.get_tasks("undone", {
+                        exclude_files = { default_lists.inbox },
+                    })
+                    tasks = module.private.add_metadata(tasks)
                     if choices[2] == "t" then
-                        tasks = module.private.get_tasks("undone", {
-                            recursive = true,
-                            extract = false,
-                            exclude_files = { default_lists.inbox },
-                        })
-                        tasks = module.private.filter_today(tasks)
                         module.private.display_today_tasks(tasks)
                     elseif choices[2] == "w" then
-                        tasks = module.private.get_tasks(
-                            "undone",
-                            { recursive = true, extract = false, exclude_files = { default_lists.inbox } }
-                        )
-                        tasks = module.private.filter_tags(tasks, "waiting.for")
                         module.private.display_waiting_for(tasks)
                     elseif choices[2] == "s" then
-                        tasks = module.private.get_tasks(
-                            "undone",
-                            { recursive = true, extract = false, exclude_files = { default_lists.inbox } }
-                        )
-                        tasks = module.private.filter_tags(tasks, "time.start")
+                        tasks = module.private.add_metadata(tasks)
                     elseif choices[2] == "d" then
-                        tasks = module.private.get_tasks(
-                            "undone",
-                            { recursive = true, extract = false, exclude_files = { default_lists.inbox } }
-                        )
-                        tasks = module.private.filter_tags(tasks, "time.due")
+                        tasks = module.private.add_metadata(tasks)
                     elseif choices[2] == "c" then
-                        tasks = module.private.get_tasks(
-                            "undone",
-                            { recursive = true, extract = false, exclude_files = { default_lists.inbox } }
-                        )
-                        tasks = module.private.sort_by_context(tasks)
                         module.private.display_contexts(tasks)
                     end
-                    log.warn(tasks)
                 end
             end)
         end
