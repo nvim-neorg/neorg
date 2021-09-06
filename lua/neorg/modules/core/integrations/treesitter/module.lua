@@ -225,27 +225,27 @@ module.config.public = {
 
         Quote = {
             ["1"] = {
-                [""] = "+TSPunctDelimiter",
+                [""] = "+Blue",
                 Content = "+TSPunctDelimiter",
             },
             ["2"] = {
-                [""] = "+TSPunctDelimiter",
+                [""] = "+Yellow",
                 Content = "+TSPunctDelimiter",
             },
             ["3"] = {
-                [""] = "+TSPunctDelimiter",
+                [""] = "+Red",
                 Content = "+TSPunctDelimiter",
             },
             ["4"] = {
-                [""] = "+TSPunctDelimiter",
+                [""] = "+Green",
                 Content = "+TSPunctDelimiter",
             },
             ["5"] = {
-                [""] = "+TSPunctDelimiter",
+                [""] = "+Orange",
                 Content = "+TSPunctDelimiter",
             },
             ["6"] = {
-                [""] = "+TSPunctDelimiter",
+                [""] = "+Purple",
                 Content = "+TSPunctDelimiter",
             },
         },
