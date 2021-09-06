@@ -270,12 +270,14 @@ return function(module)
         --- @param sorter string
         --- @param tasks table
         --- @return table
-        sort_by = function(sorter, tasks)
+        sort_by = function(sorter, tasks, opts)
+            opts = opts or {}
             if not vim.tbl_contains({ "waiting_for", "contexts", "project" }, sorter) then
                 log.error("Please provide a correct sorter.")
                 return
             end
             local res = {}
+            res["_"] = {}
 
             local insert = function(t, k, v)
                 if not t[k] then
@@ -296,6 +298,10 @@ return function(module)
                         insert(res, t[sorter], t)
                     end
                 end
+            end
+
+            if #res["_"] == 0 then
+                res["_"] = nil
             end
 
             return res
