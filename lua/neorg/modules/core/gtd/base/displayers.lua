@@ -58,7 +58,11 @@ return function(module)
             local contexts_tasks = module.private.sort_by("contexts", tasks)
 
             for context, c_tasks in pairs(contexts_tasks) do
-                table.insert(res, "** " .. context)
+                local inserted_context = "** " .. context
+                if context == "_" then
+                    inserted_context = "** /(No contexts)/"
+                end
+                table.insert(res, inserted_context)
                 for _, t in pairs(c_tasks) do
                     table.insert(res, "- " .. t.content)
                 end
