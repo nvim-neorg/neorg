@@ -133,11 +133,60 @@ module.config.public = {
 
         quote = {
             enabled = true,
-            icon = "│",
-            pattern = "^(%s*)>+%s+",
-            whitespace_index = 1,
-            highlight = "NeorgQuote",
-            padding_before = 0,
+
+            level_1 = {
+                enabled = true,
+                icon = "│",
+                pattern = "^(%s*)>(>*)%s+",
+                whitespace_index = 1,
+                highlight = "NeorgQuote1",
+                padding_before = 0,
+            },
+
+            level_2 = {
+                enabled = true,
+                icon = "│",
+                pattern = "^(%s*>)>(>*)%s+",
+                whitespace_index = 1,
+                highlight = "NeorgQuote2",
+                padding_before = 0,
+            },
+
+            level_3 = {
+                enabled = true,
+                icon = "│",
+                pattern = "^(%s*>>)>(>*)%s+",
+                whitespace_index = 1,
+                highlight = "NeorgQuote3",
+                padding_before = 0,
+            },
+
+            level_4 = {
+                enabled = true,
+                icon = "│",
+                pattern = "^(%s*>>>)>(>*)%s+",
+                whitespace_index = 1,
+                highlight = "NeorgQuote4",
+                padding_before = 0,
+            },
+
+            level_5 = {
+                enabled = true,
+                icon = "│",
+                pattern = "^(%s*>>>>)>(>?)%s+",
+                whitespace_index = 1,
+                highlight = "NeorgQuote5",
+                padding_before = 0,
+            },
+
+            level_6 = {
+                enabled = true,
+                icon = "│",
+                pattern = "^(%s*>>>>>)>%s+",
+                whitespace_index = 1,
+                highlight = "NeorgQuote6",
+                padding_before = 0,
+            },
         },
 
         heading = {
@@ -204,7 +253,6 @@ module.config.public = {
             pattern = "^(%s*)%|%s+",
             whitespace_index = 1,
             highlight = "NeorgMarker",
-
             padding_before = 0,
         },
     },
