@@ -41,6 +41,7 @@ module.config.public = {
     default_lists = {
         inbox = "inbox.norg",
     },
+    exclude = {}
 }
 
 module.public = {
@@ -301,11 +302,11 @@ module.on_event = function(event)
                     })
                     log.info(projects)
                 elseif choices[1] == "x" then
-                    local tasks = module.private.get_tasks("undone", { exclude_files = { default_lists.inbox } })
+                    local tasks = module.private.get_tasks("undone", { exclude_files = module.config.public.exclude })
                     module.private.add_metadata(tasks)
                 elseif choices[1] == "t" then
                     local tasks = module.private.get_tasks("undone", {
-                        exclude_files = { default_lists.inbox },
+                        exclude_files = module.config.public.exclude,
                     })
                     tasks = module.private.add_metadata(tasks)
                     if choices[2] == "t" then
