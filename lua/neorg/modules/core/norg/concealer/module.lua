@@ -134,7 +134,7 @@ module.config.public = {
         quote = {
             enabled = true,
 
-            quote_level_1 = {
+            level_1 = {
                 enabled = true,
                 icon = "│",
                 pattern = "^(%s*)>(>*)%s+",
@@ -143,7 +143,7 @@ module.config.public = {
                 padding_before = 0,
             },
 
-            quote_level_2 = {
+            level_2 = {
                 enabled = true,
                 icon = "│",
                 pattern = "^(%s*>)>(>*)%s+",
@@ -152,7 +152,7 @@ module.config.public = {
                 padding_before = 0,
             },
 
-            quote_level_3 = {
+            level_3 = {
                 enabled = true,
                 icon = "│",
                 pattern = "^(%s*>>)>(>*)%s+",
@@ -161,7 +161,7 @@ module.config.public = {
                 padding_before = 0,
             },
 
-            quote_level_4 = {
+            level_4 = {
                 enabled = true,
                 icon = "│",
                 pattern = "^(%s*>>>)>(>*)%s+",
@@ -170,7 +170,7 @@ module.config.public = {
                 padding_before = 0,
             },
 
-            quote_level_5 = {
+            level_5 = {
                 enabled = true,
                 icon = "│",
                 pattern = "^(%s*>>>>)>(>?)%s+",
@@ -179,7 +179,7 @@ module.config.public = {
                 padding_before = 0,
             },
 
-            quote_level_6 = {
+            level_6 = {
                 enabled = true,
                 icon = "│",
                 pattern = "^(%s*>>>>>)>%s+",
