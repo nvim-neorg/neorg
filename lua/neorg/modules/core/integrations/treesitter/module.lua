@@ -237,8 +237,8 @@ module.config.public = {
                 Content = "+Green",
             },
             ["6"] = {
-                [""] = "+Grey",
-                Content = "+Grey",
+                [""] = "+Brown",
+                Content = "+Brown",
             },
         },
 
