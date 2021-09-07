@@ -56,7 +56,7 @@ module.public = {
     completions = {
         { -- Create a new completion
         -- Define the regex that should match in order to proceed
-        regex = "^%s*[@$](%w*)",
+        regex = "^%s*@(%w*)",
 
         -- If regex can be matched, this item then gets verified via TreeSitter's AST
         node = function(current, previous)
@@ -74,8 +74,6 @@ module.public = {
         -- The actual elements to show if the above tests were true
         complete = {
             "table",
-            "comment",
-            "ordered",
             "code",
             "image",
             "embed",
@@ -161,6 +159,21 @@ module.public = {
                 },
             },
         }
+    },
+    {
+        regex = "^%s*%$(%w*)",
+
+        complete = {
+            "comment",
+            "ordered",
+        },
+
+
+        options = {
+            type = "Tag",
+        },
+
+        descend = {},
     },
     {
         regex = "^%s*@e?n?",

@@ -98,7 +98,6 @@ And using 3 or more `=` signs will drop you right back to the root level!
     -> [arbitrary heading link](#links)
     --> [heading level 1](*The `.norg` file-format)
     -> [some marker](|some marker)
-    -> [some drawer](||some drawer)
 
     These links will be ordered:
     ~> [shameless plug](https://github.com/vhyrro/taurivim)
@@ -111,12 +110,6 @@ And using 3 or more `=` signs will drop you right back to the root level!
  ** Markers
     You can mark specific locations in your file with markers:
     | some marker
-
- ** Drawers
-    Drawers are a concept you may know from org-mode. They allow you to hide text:
-    || some drawer
-    My very important secret... 🤫
-    ||
 
  ** Data Tags
     Neorg supports a number of tags. The general format is:
@@ -174,7 +167,7 @@ And using 3 or more `=` signs will drop you right back to the root level!
       console.log("But I want syntax highlighting...")
       @end
 
-      @code lua
+      @code javascript
       console.log("Thank you!")
       @end
 

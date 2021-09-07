@@ -263,7 +263,8 @@ module.config.public = {
         italic = true,
         underline = true,
         strikethrough = true,
-        monospace = true,
+        verbatim = true,
+        trailing = true,
     },
 }
 
@@ -272,7 +273,10 @@ module.load = function()
 
     -- @Summary Returns all the enabled icons from a table
     -- @Param  tbl (table) - the table to parse
-    get_enabled_icons = function(tbl)
+    -- @Param rec_name (string) - should not be set manually. Is used for Neorg to have information about all other previous recursions
+    get_enabled_icons = function(tbl, rec_name)
+        rec_name = rec_name or ""
+
         -- Create a result that we will return at the end of the function
         local result = {}
 
@@ -287,11 +291,11 @@ module.load = function()
             if type(icons) == "table" and icons.enabled then
                 -- If we have defined an icon value then add that icon to the result
                 if icons.icon then
-                    result[name] = icons
+                    result[rec_name .. name] = icons
                 else
                     -- If we don't have an icon variable then we need to descend further down the lua table.
                     -- To do this we recursively call this very function and merge the results into the result table
-                    result = vim.tbl_deep_extend("force", result, get_enabled_icons(icons))
+                    result = vim.tbl_deep_extend("force", result, get_enabled_icons(icons, rec_name .. name))
                 end
             end
         end
@@ -493,10 +497,18 @@ module.public = {
             end)
         end
 
-        if conceals.monospace then
+        if conceals.verbatim then
             vim.schedule(function()
                 vim.cmd([[
                     syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~\W \t\n]\&[^\\]\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                ]])
+            end)
+        end
+
+        if conceals.trailing then
+            vim.schedule(function()
+                vim.cmd([[
+                    syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
                 ]])
             end)
         end
