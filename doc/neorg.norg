@@ -167,7 +167,7 @@ And using 3 or more `=` signs will drop you right back to the root level!
       console.log("But I want syntax highlighting...")
       @end
 
-      @code lua
+      @code javascript
       console.log("Thank you!")
       @end
 
