@@ -9,7 +9,6 @@ neorg-headings	neorg.norg	/  *** Headings
 neorg-indentation-reversal	neorg.norg	/    ***** Indentation reversion
 neorg-links	neorg.norg	/ ** Links
 neorg-markers	neorg.norg	/ ** Markers
-neorg-drawers	neorg.norg	/ ** Drawers
 neorg-data-tags	neorg.norg	/ ** Data Tags
 neorg-carryover-tags	neorg.norg	/  *** Carryover
 neorg-comments	neorg.norg	/  *** Comments

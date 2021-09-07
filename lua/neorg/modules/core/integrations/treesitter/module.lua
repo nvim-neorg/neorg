@@ -80,14 +80,6 @@ module.config.public = {
             Title = "+Normal",
         },
 
-        Drawer = {
-            [""] = "+TSPunctDelimiter",
-            ["End"] = "+TSPunctDelimiter",
-
-            Title = "+TSMath",
-            Content = "+Normal",
-        },
-
         EscapeSequence = "+TSType",
 
         TodoItem = {

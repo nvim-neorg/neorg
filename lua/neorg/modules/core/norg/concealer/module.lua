@@ -215,7 +215,8 @@ module.config.public = {
         italic = true,
         underline = true,
         strikethrough = true,
-        monospace = true,
+        verbatim = true,
+        trailing = true,
     },
 }
 
@@ -445,10 +446,18 @@ module.public = {
             end)
         end
 
-        if conceals.monospace then
+        if conceals.verbatim then
             vim.schedule(function()
                 vim.cmd([[
                     syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~\W \t\n]\&[^\\]\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                ]])
+            end)
+        end
+
+        if conceals.trailing then
+            vim.schedule(function()
+                vim.cmd([[
+                    syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
                 ]])
             end)
         end
