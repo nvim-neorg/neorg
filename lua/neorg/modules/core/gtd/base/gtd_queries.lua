@@ -223,7 +223,7 @@ return function(module)
 
             local tree = {
                 {
-                    query = { "first", "carryover_tag" },
+                    query = { "all", "carryover_tag" },
                     where = { "child_content", "tag_name", tag_name },
                     subtree = {
                         {
