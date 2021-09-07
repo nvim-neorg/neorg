@@ -221,24 +221,24 @@ module.config.public = {
                 Content = "+TSPunctDelimiter",
             },
             ["2"] = {
-                [""] = "+TSPunctDelimiter",
-                Content = "+TSPunctDelimiter",
+                [""] = "+Blue",
+                Content = "+Blue",
             },
             ["3"] = {
-                [""] = "+TSPunctDelimiter",
-                Content = "+TSPunctDelimiter",
+                [""] = "+Yellow",
+                Content = "+Yellow",
             },
             ["4"] = {
-                [""] = "+TSPunctDelimiter",
-                Content = "+TSPunctDelimiter",
+                [""] = "+Red",
+                Content = "+Red",
             },
             ["5"] = {
-                [""] = "+TSPunctDelimiter",
-                Content = "+TSPunctDelimiter",
+                [""] = "+Green",
+                Content = "+Green",
             },
             ["6"] = {
-                [""] = "+TSPunctDelimiter",
-                Content = "+TSPunctDelimiter",
+                [""] = "+Brown",
+                Content = "+Brown",
             },
         },
 
