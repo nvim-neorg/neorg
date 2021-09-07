@@ -26,7 +26,6 @@ some small changes.
 		- [The first segment](#the-first-segment)
 		- [The second segment](#the-second-segment)
 	- [Markers](#markers)
-	- [Drawers](#drawers)
 - [Data tags](#data-tags)
 	- [Unsupported tags](#unsupported-tags)
 
@@ -165,19 +164,6 @@ changes:
 	^\s*\@end\s*$
   	```
   	Marks a data tag, which you can read more about [here](#defining-data).
-
-  - ```
-    || My drawer!
-		<content>
-    ||
-
-	->
-
-	^\s*\|{2}\s+.+$
-		.*
-	^\s*\|{2}\s*$
-  	```
-  	Marks a drawer, which you can read more about [here](#drawers).
 
   - ```
     A [link](#My Link).
@@ -432,7 +418,6 @@ changes:
   - Heading and all types of subheadings
   - Tag and carryover tag definitions
   - Marker definitions
-  - Drawer definitions
   - Quotes
 
   This design decision is very logical, as writing:
@@ -609,10 +594,6 @@ changes:
 
 	| A marker
 
-	|| A drawer
-		With some content
-	||
-
 	[text](https://github.com/vhyrro/neorg) - a regular domain name/hyperlink to a website
 	[text](#Example Heading) - a link to any element with the text example-heading
 
@@ -624,7 +605,6 @@ changes:
 		[text](*****Example Subsubsubsubheading) - a link to a subsubsubsubheading
 		[text](******Example Subsubsubsubsubheading) - a link to a subsubsubsubsubheading
 		[text](|A marker) - a link to a marker
-		[text](||A drawer) - a link to a drawer
   ```
 
   Neorg uses the first set of non-alphanumeric characters to determine what type of element it should link to.
@@ -694,19 +674,6 @@ changes:
 
 	I have a link to my marker right [here](#marker1).
   ```
-
-### Drawers
-  Drawers are designed on the same principles as org mode's `drawers` are. It allows you to categorize a bit of text
-  and hide it away at any given moment. The syntax for drawers is as follows:
-  ```
-	I really want to be able to hide this bit of text, if only there was a way for me to do that:
-
-	|| My hidden text
-   	   I want to collapse this text!
-	||
-  ```
-
-  As with everything else, using the `$name` carryover tag will allow you to reference the drawer with a custom name.
 
 ### Indentation
 One of our design goals when developing this format was "focus on the text, not the outcome". Whilst most markdownesque languages
