@@ -36,9 +36,8 @@
 ; Display errors
 (ERROR) @NeorgError
 
-; Markers and Drawers
+; Markers
 (marker (marker_prefix) @NeorgMarker (paragraph_segment) @NeorgMarkerTitle)
-(drawer (drawer_prefix) @NeorgDrawer title: (paragraph_segment) @NeorgDrawerTitle content: (_)* @NeorgDrawerContent end: (drawer_suffix) @NeorgDrawerEnd)
 
 ; Escape sequences (\char)
 (escape_sequence) @NeorgEscapeSequence
