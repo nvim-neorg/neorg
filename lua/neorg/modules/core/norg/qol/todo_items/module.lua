@@ -14,11 +14,6 @@
             ["task_pending"] = true
             ["task_cycle"] = true
         }
-
-    ISSUES:
-        - The parent element should be marked as pending if one of the children is pending
-        - Editing the text doesn't update anything, only using the keybinds does (make this realtime thing configurable)
-        - Toggling between items
 --]]
 
 require("neorg.modules.base")
@@ -176,7 +171,7 @@ module.public = {
                 end
             end
         end
-    end
+    end,
 }
 
 module.on_event = function(event)
@@ -199,9 +194,9 @@ module.on_event = function(event)
             module.public.make_all(node_at_cursor, "pending", "*")
         end
     elseif vim.startswith(event.type, "core.autocommands.events.textchanged") then
-       -- if module.public.get_list_item_from_cursor() then
-       --     module.public.update_parent(0)
-       -- end
+        -- if module.public.get_list_item_from_cursor() then
+        --     module.public.update_parent(0)
+        -- end
     end
 end
 
@@ -216,7 +211,7 @@ module.events.subscribed = {
     ["core.autocommands"] = {
         textchanged = true,
         textchangedi = true,
-    }
+    },
 }
 
 return module
