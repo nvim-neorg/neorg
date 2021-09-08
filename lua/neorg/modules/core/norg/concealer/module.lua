@@ -265,6 +265,7 @@ module.config.public = {
         strikethrough = true,
         verbatim = true,
         trailing = true,
+        link = true,
     },
 }
 
@@ -512,6 +513,14 @@ module.public = {
                 ]])
             end)
         end
+
+        if conceals.link then
+            vim.schedule(function()
+                vim.cmd([[
+                    syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
+                ]])
+            end)
+        end
     end,
 
     -- @Summary Clears conceals for the current buffer
@@ -522,6 +531,7 @@ module.public = {
             silent! syn clear NeorgConcealItalic
             silent! syn clear NeorgConcealBold
             silent! syn clear NeorgConcealUnderline
+            silent! syn clear NeorgConcealLink
         ]])
     end,
 }
