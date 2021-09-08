@@ -41,7 +41,7 @@ module.config.public = {
     default_lists = {
         inbox = "inbox.norg",
     },
-    exclude = {}
+    exclude = {},
 }
 
 module.public = {
