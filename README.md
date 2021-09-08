@@ -113,7 +113,7 @@ surpass _every_ other text editor. One that will give you all the bragging right
 
 # :wrench: Installation
 Installation may seem a bit daunting, however it's nothing you can't understand. If you really like to be in control,
-you can read exactly what the below code snippets do in the [wiki](https://github.com/vhyrro/neorg/wiki/Installation).
+you can read exactly what the below code snippets do in the [wiki](https://github.com/nvim-neorg/neorg/wiki/Installation).
 You can install through any plugin manager (it can even be vimscript plugin managers, as long as you're running Neovim version 0.5 or higher).
 
 > :exclamation: NOTE: Neorg requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) to operate, so be sure to install it alongside Neorg!
@@ -121,7 +121,7 @@ You can install through any plugin manager (it can even be vimscript plugin mana
 - [Packer](https://github.com/wbthomason/packer.nvim):
   ```lua
   use { 
-      "vhyrro/neorg",
+      "nvim-neorg/neorg",
       config = function()
           require('neorg').setup {
               -- Tell Neorg what modules to load
@@ -165,7 +165,7 @@ You can install through any plugin manager (it can even be vimscript plugin mana
   Here's an example:
 
   ```lua
-  use { "vhyrro/neorg", ft = "norg", config = ... }
+  use { "nvim-neorg/neorg", ft = "norg", config = ... }
   ```
 
   However don't expect everything to work. TreeSitter highlights are known to fail, amongst other things.
@@ -178,7 +178,7 @@ You can install through any plugin manager (it can even be vimscript plugin mana
 
  - [vim-plug](https://github.com/junegunn/vim-plug):
    ```vim
-   Plug 'vhyrro/neorg' | Plug 'nvim-lua/plenary.nvim'
+   Plug 'nvim-neorg/neorg' | Plug 'nvim-lua/plenary.nvim'
    ```
    
    Afterwards resource the current file and to install plugins run `:PlugInstall`.
@@ -203,7 +203,7 @@ You can install through any plugin manager (it can even be vimscript plugin mana
    EOF
    ```
 
-##### :robot: For the latest and greatest check out the [unstable](https://github.com/vhyrro/neorg/tree/unstable) branch
+##### :robot: For the latest and greatest check out the [unstable](https://github.com/nvim-neorg/neorg/tree/unstable) branch
 
 ### Setting up TreeSitter
 As of right now, the TreeSitter parser is in its early stage. To install it, you want to run this code snippet before you invoke
@@ -214,7 +214,7 @@ local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
 
 parser_configs.norg = {
     install_info = {
-        url = "https://github.com/vhyrro/tree-sitter-norg",
+        url = "https://github.com/nvim-neorg/tree-sitter-norg",
         files = { "src/parser.c", "src/scanner.cc" },
         branch = "main"
     },
@@ -284,8 +284,8 @@ Simply drop into a .norg file and start typing!
 You may realize that we don't have an insane amount of frontend features just yet.
 This doesn't mean the plugin isn't capable of those things, it just means we're working on them!
 We tried focusing heavily on the backend first, but now that that is almost done we are actually starting work on features just for you:
-- [x] Telescope.nvim integration for several things (see https://github.com/vhyrro/neorg-telescope)
-- [x] TreeSitter parser (can be found [here](https://github.com/vhyrro/tree-sitter-norg))
+- [x] Telescope.nvim integration for several things (see https://github.com/nvim-neorg/neorg-telescope)
+- [x] TreeSitter parser (can be found [here](https://github.com/nvim-neorg/tree-sitter-norg))
 	- [x] AST Generation
 	- [x] Custom highlight support
 	- [x] Custom folds
@@ -306,7 +306,7 @@ Neorg comes with no keys bound by default. If you want to use all the default ke
 to generate them for you, here's how you would do it (note that this code snippet is an extension of the [installation](#wrench-installation) snippet):
 ```lua
 use {
-    "vhyrro/neorg",
+    "nvim-neorg/neorg",
     config = function()
         require('neorg').setup {
             -- Tell Neorg what modules to load
@@ -334,11 +334,11 @@ use {
 ```
 
 You may actually want to change your keybinds though! Changing keybinds is a rather trivial task.
-The wiki entry for keybinds can be found [here](https://github.com/vhyrro/neorg/wiki/User-Keybinds). It'll tell you the ins and outs of what you need to do :)
+The wiki entry for keybinds can be found [here](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds). It'll tell you the ins and outs of what you need to do :)
 
 # :notebook: Consult The Wiki
 The wiki is the go-to place if you need answers to anything Neorg-related. Usage, Keybinds, User Callbacks, Modules, Events?
-It's all there, so we recommend you seriously go [read it](https://github.com/vhyrro/neorg/wiki)!
+It's all there, so we recommend you seriously go [read it](https://github.com/nvim-neorg/neorg/wiki)!
 
 # :computer: Contributing
 Contributions are always welcome and will always be welcome. You can check [CONTRIBUTING.md](docs/CONTRIBUTING.md) if you wanna find out more.
