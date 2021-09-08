@@ -575,8 +575,6 @@ module.public = {
                         return ("*"):rep(tonumber(type:sub(start + 1, start + 1)))
                     elseif type == "marker" then
                         return "|"
-                    elseif type == "drawer" then
-                        return "||"
                     else
                         return "#"
                     end
@@ -588,8 +586,6 @@ module.public = {
                     if vim.startswith(link_type, "link_end_heading") then
                         local start = ("link_end_heading"):len()
                         return "heading" .. link_type:sub(start + 1, start + 1)
-                    elseif link_type:find("drawer") then
-                        return "drawer"
                     elseif link_type:find("marker") then
                         return "marker"
                     else
@@ -902,25 +898,6 @@ module.public = {
                 return result
             end,
 
-            link_end_drawer_reference = function(tree, destination, utility)
-                local result = nil
-
-                utility.ts.tree_map_rec(function(child)
-                    if not result and child:type() == "drawer" then
-                        local drawer_title = child:named_child(1)
-
-                        if
-                            utility.strip(destination)
-                            == utility.strip(utility:get_text_as_one(drawer_title):sub(1, -2))
-                        then
-                            result = utility.ts.get_node_range(drawer_title)
-                        end
-                    end
-                end, tree)
-
-                return result
-            end,
-
             link_end_generic = function(tree, destination, utility)
                 local result = nil
 
@@ -935,7 +912,6 @@ module.public = {
                             "heading5",
                             "heading6",
                             "marker",
-                            "drawer",
                         }, child:type())
                     then
                         local title = child:named_child(1)
@@ -1088,10 +1064,6 @@ module.public = {
                 return module.public.locators.fuzzy.fuzzy_find("marker", tree, destination, utility)
             end,
 
-            link_end_drawer_reference = function(tree, destination, utility)
-                return module.public.locators.fuzzy.fuzzy_find("drawer", tree, destination, utility)
-            end,
-
             link_end_generic = function(tree, destination, utility)
                 local results = {}
 
@@ -1105,7 +1077,6 @@ module.public = {
                             "heading5",
                             "heading6",
                             "marker",
-                            "drawer",
                         }, child:type())
                     then
                         local title = utility:get_text_as_one(child:named_child(1)):sub(1, -2)
