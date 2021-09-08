@@ -22,3 +22,15 @@ neorg-link-modifier	neorg.norg	/  *** The Link modifier
 neorg-continuation	neorg.norg	/  *** Object continuation
 neorg-insertions	neorg.norg	/  *** Insertions
 neorg-foreplay	neorg.norg	/  *** Foreplay
+neorg-gtd	gtd.norg	/* GTD in Neorg
+neorg-gtd-format	gtd.norg	/ ** Format
+neorg-gtd-format-tasks	gtd.norg	/  *** Task format
+neorg-gtd-organisation	gtd.norg	/  *** Top-level organization
+neorg-gtd-projects	gtd.norg	/  *** Projects management
+neorg-gtd-aof	gtd.norg	/  *** Area Of Focus
+neorg-gtd-structuree	gtd.norg	/ ** GTD structure for neorg
+neorg-gtd-capture	gtd.norg	/  *** Capture
+neorg-gtd-clarify	gtd.norg	/  *** Clarify
+neorg-gtd-organize	gtd.norg	/  *** Organize
+neorg-gtd-reflect	gtd.norg	/  *** Reflect
+neorg-gtd-engage	gtd.norg	/  *** Engage
