@@ -528,9 +528,13 @@ module.public = {
     clear_conceals = function()
         vim.cmd([[
             silent! syn clear NeorgConcealURL
+            silent! syn clear NeorgConcealURLValue
             silent! syn clear NeorgConcealItalic
             silent! syn clear NeorgConcealBold
             silent! syn clear NeorgConcealUnderline
+            silent! syn clear NeorgConcealMonospace
+            silent! syn clear NeorgConcealStrikethrough
+            silent! syn clear NeorgConcealTrailing
             silent! syn clear NeorgConcealLink
         ]])
     end,
