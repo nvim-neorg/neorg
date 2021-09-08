@@ -290,25 +290,29 @@ module.load = function()
     if module.config.public.generate_shorthands then
         local injections = {}
 
-        local langs = require("neorg.external.helpers").get_language_shorthands(false)
+        -- TEMPORARILY COMMENTED OUT
+        -- This sort of language shorthand stuff does not actually work (seemingly because there are too many queries for TS to parse?)
+        -- We'll be removing this until further notice
+        -- local langs = require("neorg.external.helpers").get_language_shorthands(false)
 
-        for language, shorthands in pairs(langs) do
-            for _, shorthand in ipairs(shorthands) do
-                table.insert(
-                    injections,
-                    (
-                        [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @%s) (ranged_tag_content) @content (#eq? @_tagname "code") (#eq? @%s "%s"))]]
-                    ):format(language, language, shorthand)
-                )
-            end
-        end
+        --
+        -- for language, shorthands in pairs(langs) do
+        --     for _, shorthand in ipairs(shorthands) do
+        --         table.insert(
+        --             injections,
+        --             (
+        --                 [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @_language) (ranged_tag_content) @%s (#eq? @_tagname "code") (#eq? @_language "%s"))]]
+        --             ):format(language, shorthand)
+        --         )
+        --     end
+        -- end
 
-        table.insert(
-            injections,
-            [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @language) (ranged_tag_content) @content (#eq? @_tagname "code") (#not-eq? @language "norg"))]]
-        )
+        -- table.insert(
+        --     injections,
+        --     [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @language) (ranged_tag_content) @content (#eq? @_tagname "code"))]]
+        -- )
 
-        vim.treesitter.set_query("norg", "injections", table.concat(injections, "\n"))
+        -- vim.treesitter.set_query("norg", "injections", table.concat(injections, "\n"))
     end
 end
 
