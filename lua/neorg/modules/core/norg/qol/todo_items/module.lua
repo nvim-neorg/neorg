@@ -16,7 +16,7 @@
         }
 
     ISSUES:
-        - The parent element should be marked as pending if all children are also pending (?)
+        - The parent element should be marked as pending if one of the children is pending
         - Editing the text doesn't update anything, only using the keybinds does (make this realtime thing configurable)
         - Toggling between items
 --]]
