@@ -442,11 +442,20 @@ changes:
   This is the only modifier that does not fall into any of the 4 categories of modifiers (attached, detached, trailing and delimiting). The `:`
   symbol is marked the **link modifier**. It exists to link different "categories" of text together.
   The rules for the link modifier are a twist on the rules of the attached modifier, meaning a link modifier must form a pair.
-  [//]: # "TODO: discuss limitations of link modifier as defined below."
-  [//]: # "NOTE: this is mostly a temporary marker to allow me to easily place a review comment on Github."
-  An opening link modifier must be prefixed by a non-whitespace character and must be followed by an attached modifier or by whitespace (if at the end of a word).
-  Note that the link modifier is **not** an attached modifier, so chaining them like `::<attached modifier>` will simply result in the first colon
-  being treated as punctuation. A closing link modifier may only be prefixed with an attached modifier. The syntactical equivalent of markdown's `so*me*thing` will look as such: `so:*me*:thing`.
+  The opening link modifier must be immediately followed by an attached modifier.
+  Accordingly, the closing link modifier must be immediately preceded by one.
+  Note that the link modifier is **not** an attached modifier, so chaining
+  them like `::<attached modifier>` will simply result in the first colon being
+  treated as punctuation.
+  There are no other constraints on the placement of link modifiers.
+  Let's give some quick examples comparing with Markdown:
+
+| Markdown       | Neorg            |
+|----------------|------------------|
+| `so*me*thing`  | `so:*me*:thing`  |
+| `*im*possible` | `:*im*:possible` |
+| `can*not*`     | `can:*not*:`     |
+
   At first it looks weird, doesn't it? Hah.
   We believe that since you will find yourself injecting modifiers into a word rather infrequently it is worth trading some
   extra characters for infinitely more syntactical stability in the file format. Want to do something like `t**his black** magic`? You also can,
