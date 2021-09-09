@@ -47,20 +47,28 @@ module.public = {
         return res
     end,
 
-    --- Find the first parent `node` that match `node_type`. Returns a node of type { node, bufnr }
+    --- Find the parent `node` that match `node_type`. Returns a node of type { node, bufnr }.
+    --- If `opts.multiple`, returns a table of parent nodes that mached `node_type`
     --- `node` must be of type { node, bufnr }
     --- @param node table
     --- @param node_type string
+    --- @param opts table
+    ---   - opts.multiple (bool):  if true, will return all recursive parent nodes that match `node_type`
     --- @return table
-    find_parent_node = function(node, node_type)
+    find_parent_node = function(node, node_type, opts)
+        opts = opts or {}
+        local res = {}
         local parent = node[1]:parent()
         while parent do
             if parent:type() == node_type then
-                break
+                table.insert(res, { parent, node[2] })
+                if not opts.multiple then
+                    return res[1]
+                end
             end
             parent = parent:parent()
         end
-        return { parent, node[2] }
+        return res
     end,
 
     --- Finds the first sibling `node` (type { node, bufnr } ) that match `node_type`. Returns a node of type { node, bufnr }

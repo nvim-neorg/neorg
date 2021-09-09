@@ -206,9 +206,10 @@ return function(module)
 
             local tags_node = module.required["core.queries.native"].find_parent_node(
                 { task.task_node, task.bufnr },
-                "carryover_tag_set"
+                "carryover_tag_set",
+                { multiple = true }
             )
-            if not tags_node[1] then
+            if #tags_node == 0 then
                 return nil
             end
 
@@ -227,17 +228,17 @@ return function(module)
                 },
             }
 
-            local tag_content_nodes = module.required["core.queries.native"].query_from_tree(
-                tags_node[1],
-                tree,
-                tags_node[2]
-            )
+            local extracted = {}
+            for _, node in pairs(tags_node) do
+                local tag_content_nodes = module.required["core.queries.native"].query_from_tree(node[1], tree, node[2])
 
-            if #tag_content_nodes == 0 then
-                return nil
+                if #tag_content_nodes == 0 then
+                    return nil
+                end
+
+                local res = module.required["core.queries.native"].extract_nodes(tag_content_nodes)
+                extracted = vim.tbl_extend("keep", extracted, res)
             end
-
-            local extracted = module.required["core.queries.native"].extract_nodes(tag_content_nodes)
 
             return extracted
         end,
