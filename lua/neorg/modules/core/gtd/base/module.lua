@@ -279,16 +279,13 @@ module.on_event = function(event)
                                 { "t", "Today tasks" },
                                 { "c", "contexts" },
                                 { "w", "Waiting for" },
-                                { "d", "Due tasks" },
-                                { "s", "Start tasks" },
+                                { "d", "Due tasks", true },
+                                { "s", "Start tasks", true },
                             },
                         },
                     },
-                    { "x", "TESTING" },
                 },
             }, function(choices)
-                local default_lists = module.config.public.default_lists
-
                 if choices[1] == "a" then
                     module.public.add_task_to_inbox()
                 elseif choices[1] == "l" and choices[2] == "i" then
@@ -298,12 +295,9 @@ module.on_event = function(event)
                     )
                 elseif choices[1] == "p" then
                     local projects = module.private.get_projects({
-                        exclude_files = { default_lists.inbox },
+                        exclude_files = module.config.public.exclude,
                     })
                     log.info(projects)
-                elseif choices[1] == "x" then
-                    local tasks = module.private.get_tasks("undone", { exclude_files = module.config.public.exclude })
-                    module.private.add_metadata(tasks)
                 elseif choices[1] == "t" then
                     local tasks = module.private.get_tasks("undone", {
                         exclude_files = module.config.public.exclude,
@@ -315,8 +309,10 @@ module.on_event = function(event)
                         module.private.display_waiting_for(tasks)
                     elseif choices[2] == "s" then
                         tasks = module.private.add_metadata(tasks)
+                        log.warn(tasks)
                     elseif choices[2] == "d" then
                         tasks = module.private.add_metadata(tasks)
+                        log.warn(tasks)
                     elseif choices[2] == "c" then
                         module.private.display_contexts(tasks, { exclude = { "someday" } })
                     end
