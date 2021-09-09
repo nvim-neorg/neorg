@@ -238,10 +238,10 @@ return function(module)
 
                 local res = module.required["core.queries.native"].extract_nodes(tag_content_nodes)
 
-                for _,res_tag in pairs(res) do
-                   if not vim.tbl_contains(extracted, res_tag) then
-                       table.insert(extracted, res_tag)
-                   end
+                for _, res_tag in pairs(res) do
+                    if not vim.tbl_contains(extracted, res_tag) then
+                        table.insert(extracted, res_tag)
+                    end
                 end
             end
 
