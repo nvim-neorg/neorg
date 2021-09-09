@@ -314,7 +314,7 @@ module.on_event = function(event)
                         tasks = module.private.add_metadata(tasks)
                         log.warn(tasks)
                     elseif choices[2] == "c" then
-                        module.private.display_contexts(tasks, { exclude = { "someday" } })
+                        module.private.display_contexts(tasks, { exclude = { "someday" }, priority = { "_" } })
                     end
                 end
             end)
