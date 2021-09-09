@@ -277,7 +277,6 @@ return function(module)
                 return
             end
             local res = {}
-            res["_"] = {}
 
             local insert = function(t, k, v)
                 if not t[k] then
@@ -298,10 +297,6 @@ return function(module)
                         insert(res, t[sorter], t)
                     end
                 end
-            end
-
-            if #res["_"] == 0 then
-                res["_"] = nil
             end
 
             return res

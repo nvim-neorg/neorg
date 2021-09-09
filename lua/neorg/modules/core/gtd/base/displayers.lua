@@ -52,6 +52,7 @@ return function(module)
         --- @param tasks table
         --- @param opts table
         ---   - opts.exclude (table):   exclude all specified contexts from the view
+        ---   - opts.priority (table):  will prioritize in the display the contexts specified (order in priority contexts not guaranteed)
         display_contexts = function(tasks, opts)
             opts = opts or {}
             local name = "Contexts"
@@ -68,7 +69,17 @@ return function(module)
                 end
             end
 
-            for context, c_tasks in pairs(contexts_tasks) do
+            -- Sort tasks with opts.priority
+            local contexts = vim.tbl_keys(contexts_tasks)
+            if opts.priority then
+                local contexts_sorter = function(a, _)
+                    return vim.tbl_contains(opts.priority, a)
+                end
+                table.sort(contexts, contexts_sorter)
+            end
+
+            for _, context in ipairs(contexts) do
+                local c_tasks = contexts_tasks[context]
                 local inserted_context = "** " .. context
                 if context == "_" then
                     inserted_context = "** /(No contexts)/"
