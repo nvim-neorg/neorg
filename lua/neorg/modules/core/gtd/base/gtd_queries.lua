@@ -68,21 +68,15 @@ return function(module)
             return bufnr
         end,
 
-        --- Get a table of all tasks in current `state` in workspace
-        --- @param state string
+        --- Get a table of all tasks in current workspace
         --- @param opts table
         ---   - opts.filename (string):         will restrict the search only for the filename provided
         ---   - opts.exclude_files (table):     will exclude files from workspace in querying information
         --- @return table
-        get_tasks = function(state, opts)
+        get_tasks = function(opts)
             opts = opts or {}
-            local where_statement = {}
             local bufnrs = {}
             local res = {}
-
-            if state then
-                where_statement = { "child_exists", "todo_item_" .. state }
-            end
 
             local tree = {
                 {
@@ -94,10 +88,6 @@ return function(module)
                             subtree = {
                                 {
                                     query = { "all", "todo_item1" },
-                                    where = where_statement,
-                                    --subtree = {
-                                    --{ query = { "first", "paragraph" } },
-                                    --},
                                 },
                             },
                         },
@@ -148,6 +138,7 @@ return function(module)
                 task.start = module.private.get_task_tag("time.start", task)
                 task.due = module.private.get_task_tag("time.due", task)
                 task.waiting_for = module.private.get_task_tag("waiting.for", task)
+                task.state = module.private.get_task_state(task)
 
                 table.insert(res, task)
             end
@@ -249,6 +240,30 @@ return function(module)
             local extracted = module.required["core.queries.native"].extract_nodes(tag_content_nodes)
 
             return extracted
+        end,
+
+        --- Retrieve the state of the `task`
+        --- @param task table
+        --- @return string
+        get_task_state = function(task)
+            local tree = {
+                { query = { "all", "todo_item_done" } },
+                { query = { "all", "todo_item_undone" } },
+                { query = { "all", "todo_item_pending" } },
+            }
+
+            local task_state_nodes = module.required["core.queries.native"].query_from_tree(
+                task.task_node,
+                tree,
+                task.bufnr
+            )
+
+            if #task_state_nodes ~= 1 then
+                log.error("This task does not contain any state !")
+            end
+
+            local state = task_state_nodes[1][1]:type()
+            return string.gsub(state, "todo_item_", "")
         end,
 
         --- Remove `el` from table `t`

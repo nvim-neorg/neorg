@@ -10,7 +10,8 @@ return function(module)
                 if not task.contexts then
                     return false
                 end
-                return vim.tbl_contains(task.contexts, "today")
+                local today_state = (task.state ~= "done")
+                return vim.tbl_contains(task.contexts, "today") and today_state
             end
 
             local today_tasks = vim.tbl_filter(today_task, tasks)
@@ -31,8 +32,14 @@ return function(module)
                 "* " .. name,
                 "",
             }
+
+            local filter_state = function(t)
+                return t.state ~= "done"
+            end
+            tasks = vim.tbl_filter(filter_state, tasks)
+
             local waiting_for_tasks = module.private.sort_by("waiting_for", tasks)
-            waiting_for_tasks["_"] = nil
+            waiting_for_tasks["_"] = nil -- remove all tasks that does not have waiting for tag
 
             for w, w_tasks in pairs(waiting_for_tasks) do
                 table.insert(res, "** " .. w)
@@ -60,6 +67,11 @@ return function(module)
                 "* " .. name,
                 "",
             }
+
+            local filter_state = function(t)
+                return t.state ~= "done"
+            end
+            tasks = vim.tbl_filter(filter_state, tasks)
 
             local contexts_tasks = module.private.sort_by("contexts", tasks)
 
