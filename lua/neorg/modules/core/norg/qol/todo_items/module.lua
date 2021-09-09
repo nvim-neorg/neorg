@@ -34,6 +34,14 @@ module.load = function()
     -- module.required["core.autocommands"].enable_autocommand("TextChangedI")
 end
 
+module.config.public = {
+    order = {
+        { "undone", " " },
+        { "done", "x" },
+        { "pending", "*" },
+    },
+}
+
 module.public = {
     --- Updates the parent todo item for the current todo item if it exists
     --- @param recursion_level number the index of the parent to change. The higher the number the more the code will traverse up the syntax tree.
@@ -115,25 +123,31 @@ module.public = {
         return node_at_cursor
     end,
 
+    --- Returns the type of a todo item (either "done", "pending" or "undone")
+    --- @param todo_node userdata the todo node to extract the data from
+    --- @return string one of "done", "pending" or "undone" or an empty string if an error occurred
+    get_todo_item_type = function(todo_node)
+        if not todo_node then
+            return ""
+        end
+
+        local todo_type = todo_node:named_child(1):type()
+
+        return todo_type and todo_type:sub(string.len("todo_item_") + 1) or ""
+    end,
+
     --- Converts the current node and all its children to a certain type
     --- @param node userdata the node to modify
     --- @param todo_item_type string one of "done", "pending" or "undone"
     --- @param char string the character to place within the square brackets of the todo item (one of "x", "*" or " ")
     make_all = function(node, todo_item_type, char)
-        --- Returns the type of a todo item (either "done", "pending" or "undone")
-        local function get_todo_item_type(todo_node)
-            local todo_type = todo_node:named_child(1):type()
-
-            return todo_type and todo_type:sub(string.len("todo_item_") + 1) or ""
-        end
-
         if not node then
             return
         end
 
         local range = module.required["core.integrations.treesitter"].get_node_range(node)
         local position = range.row_start
-        local type = get_todo_item_type(node)
+        local type = module.public.get_todo_item_type(node)
 
         -- If the type of the current todo item differs from the one we want to change to then
         -- We do this because we don't want to be unnecessarily modifying a line that doesn't need changing
@@ -178,20 +192,39 @@ module.on_event = function(event)
     local todo_str = "core.norg.qol.todo_items.todo."
 
     if event.split_type[1] == "core.keybinds" then
-        local node_at_cursor = module.public.get_list_item_from_cursor()
+        local todo_item_at_cursor = module.public.get_list_item_from_cursor()
 
-        if not node_at_cursor then
+        if not todo_item_at_cursor then
             return
         end
 
         if event.split_type[2] == todo_str .. "task_done" then
-            module.public.make_all(node_at_cursor, "done", "x")
+            module.public.make_all(todo_item_at_cursor, "done", "x")
             module.public.update_parent(0)
         elseif event.split_type[2] == todo_str .. "task_undone" then
-            module.public.make_all(node_at_cursor, "undone", " ")
+            module.public.make_all(todo_item_at_cursor, "undone", " ")
             module.public.update_parent(0)
         elseif event.split_type[2] == todo_str .. "task_pending" then
-            module.public.make_all(node_at_cursor, "pending", "*")
+            module.public.make_all(todo_item_at_cursor, "pending", "*")
+        else
+            local todo_item_type = module.public.get_todo_item_type(todo_item_at_cursor)
+            local types = module.config.public.order
+
+            local function get_index(type_list, item_type)
+                for i, element in ipairs(type_list) do
+                    if element[1] == item_type then
+                        if i >= #type_list then
+                            return 1
+                        else
+                            return i + 1
+                        end
+                    end
+                end
+            end
+
+            local next = types[get_index(types, todo_item_type)]
+
+            module.public.make_all(todo_item_at_cursor, next[1], next[2])
         end
     elseif vim.startswith(event.type, "core.autocommands.events.textchanged") then
         -- if module.public.get_list_item_from_cursor() then
