@@ -45,6 +45,10 @@ return function(module)
             end)
         end,
 
+        --- Insert formatted `content` in `t`, with `prefix` before it. Mutates `t` !
+        --- @param t table
+        --- @param content string|table
+        --- @param prefix string
         insert_content = function(t, content, prefix)
             if not content then
                 return
