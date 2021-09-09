@@ -62,14 +62,18 @@ module.public = {
             return
         end
 
-        local done_item_count = 0
+        local done_item_count, pending_item_count = 0, 0
         local counter = 0
 
         -- Go through all the children of the current todo item node and count the amount of "done" children
         for node in list_node_at_cursor:iter_children() do
             if vim.startswith(node:type(), "todo_item") then
-                if node:type():match("todo_item%d") and node:named_child(1):type() == "todo_item_done" then
-                    done_item_count = done_item_count + 1
+                if node:type():match("todo_item%d") then
+                    if node:named_child(1):type() == "todo_item_done" then
+                        done_item_count = done_item_count + 1
+                    elseif node:named_child(1):type() == "todo_item_pending" then
+                        pending_item_count = pending_item_count + 1
+                    end
                 end
 
                 counter = counter + 1
@@ -78,6 +82,7 @@ module.public = {
 
         -- [[
         --  Compare the counter to the amount of done items.
+        --  If we have even one pending item then set the resulting char to `*`
         --  If the counter is the same as the done item count then that means all items are complete and we should display a done item in the parent.
         --  If the done item count is 0 then no task has been completed and we should set an undone item as the parent.
         --  If all other checks fail and the done item count is less than the total number of todo items then set a pending item.
@@ -85,7 +90,9 @@ module.public = {
 
         local resulting_char = ""
 
-        if (counter - 1) == done_item_count then
+        if pending_item_count > 0 then
+            resulting_char = "*"
+        elseif (counter - 1) == done_item_count then
             resulting_char = "x"
         elseif done_item_count == 0 then
             resulting_char = " "
@@ -204,12 +211,14 @@ module.on_event = function(event)
         elseif event.split_type[2] == todo_str .. "task_undone" then
             module.public.make_all(todo_item_at_cursor, "undone", " ")
             module.public.update_parent(0)
-        elseif event.split_type[2] == todo_str .. "task_pending" then
+        elseif event.split_type[2] == todo_str .. "task_pending" and todo_item_at_cursor:named_child_count() <= 3 then
             module.public.make_all(todo_item_at_cursor, "pending", "*")
-        else
+            module.public.update_parent(0)
+        elseif event.split_type[2] == todo_str .. "task_cycle" then
             local todo_item_type = module.public.get_todo_item_type(todo_item_at_cursor)
             local types = module.config.public.order
 
+            -- TODO: Docs
             local function get_index(type_list, item_type)
                 for i, element in ipairs(type_list) do
                     if element[1] == item_type then
@@ -222,7 +231,17 @@ module.on_event = function(event)
                 end
             end
 
-            local next = types[get_index(types, todo_item_type)]
+            local index = get_index(types, todo_item_type)
+
+            local next = types[index]
+
+            if todo_item_at_cursor:named_child_count() > 3 then
+                if (index + 1) >= #types then
+                    next = types[#types - index + 1]
+                else
+                    next = types[index + 1]
+                end
+            end
 
             module.public.make_all(todo_item_at_cursor, next[1], next[2])
             module.public.update_parent(0)
