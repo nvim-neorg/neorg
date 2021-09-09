@@ -294,10 +294,10 @@ module.on_event = function(event)
                         module.config.public.default_lists.inbox
                     )
                 elseif choices[1] == "p" then
-                    local projects = module.private.get_projects({
-                        exclude_files = module.config.public.exclude,
-                    })
-                    log.info(projects)
+                    local tasks = module.private.get_tasks({ exclude_files = module.config.public.exclude })
+                    local projects = module.private.get_projects({ exclude_files = module.config.public.exclude })
+                    tasks = module.private.add_metadata(tasks)
+                    module.private.display_projects(tasks, projects, { priority = { "_" }})
                 elseif choices[1] == "t" then
                     local tasks = module.private.get_tasks({ exclude_files = module.config.public.exclude })
                     tasks = module.private.add_metadata(tasks)
