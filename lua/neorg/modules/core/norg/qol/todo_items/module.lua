@@ -225,6 +225,7 @@ module.on_event = function(event)
             local next = types[get_index(types, todo_item_type)]
 
             module.public.make_all(todo_item_at_cursor, next[1], next[2])
+            module.public.update_parent(0)
         end
     elseif vim.startswith(event.type, "core.autocommands.events.textchanged") then
         -- if module.public.get_list_item_from_cursor() then
