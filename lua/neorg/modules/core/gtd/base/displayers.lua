@@ -113,12 +113,12 @@ return function(module)
         --- @param projects table
         --- @param opts table
         ---   - opts.priority (table):  will prioritize in the display the projects specified (order in prioritized projects not guaranteed)
-        display_projects = function (tasks, projects, opts)
+        display_projects = function(tasks, projects, opts)
             opts = opts or {}
             local name = "Projects"
             local res = {
                 "* " .. name,
-                ""
+                "",
             }
             table.insert(projects, "_")
             local projects_tasks = module.private.sort_by("project", tasks)
@@ -131,36 +131,41 @@ return function(module)
                 table.sort(projects, projects_sorter)
             end
 
-            for _,project in ipairs(projects) do
+            for _, project in ipairs(projects) do
                 local tasks_project = projects_tasks[project] or {}
 
-                local completed = vim.tbl_filter(function (t) return t.state == "done" end, tasks_project)
+                local completed = vim.tbl_filter(function(t)
+                    return t.state == "done"
+                end, tasks_project)
 
                 if project ~= "_" then
                     table.insert(res, "** " .. project .. " (" .. #completed .. "/" .. #tasks_project .. " done)")
 
-                    local percent_completed = (function ()
+                    local percent_completed = (function()
                         if #tasks_project == 0 then
                             return 0
                         end
-                        return math.floor(#completed*100/#tasks_project)
+                        return math.floor(#completed * 100 / #tasks_project)
                     end)()
 
-                    local completed_over_10 = math.floor(percent_completed/10)
-                    local percent_completed_visual = "[" .. string.rep("=", completed_over_10) .. string.rep(" ", 10 - completed_over_10) .. "]"
+                    local completed_over_10 = math.floor(percent_completed / 10)
+                    local percent_completed_visual = "["
+                        .. string.rep("=", completed_over_10)
+                        .. string.rep(" ", 10 - completed_over_10)
+                        .. "]"
                     table.insert(res, "   " .. percent_completed_visual .. " " .. percent_completed .. "% done")
-
                 elseif project == "_" and #tasks_project ~= 0 then
-                    local undone = vim.tbl_filter(function (a,_) return a.state ~= "done" end, tasks_project)
+                    local undone = vim.tbl_filter(function(a, _)
+                        return a.state ~= "done"
+                    end, tasks_project)
                     table.insert(res, "- /" .. #undone .. " tasks don't have a project assigned/")
                 end
                 table.insert(res, "")
-
             end
 
             local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
             vim.api.nvim_buf_set_option(buf, "modifiable", false)
-        end
+        end,
     }
 end
