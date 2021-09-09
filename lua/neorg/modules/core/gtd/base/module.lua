@@ -299,9 +299,7 @@ module.on_event = function(event)
                     })
                     log.info(projects)
                 elseif choices[1] == "t" then
-                    local tasks = module.private.get_tasks("undone", {
-                        exclude_files = module.config.public.exclude,
-                    })
+                    local tasks = module.private.get_tasks({ exclude_files = module.config.public.exclude })
                     tasks = module.private.add_metadata(tasks)
                     if choices[2] == "t" then
                         module.private.display_today_tasks(tasks)
