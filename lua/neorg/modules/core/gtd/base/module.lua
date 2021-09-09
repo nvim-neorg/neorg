@@ -331,7 +331,7 @@ module.events.subscribed = {
     },
 }
 
-module.private = vim.tbl_extend("error", module.private, utils.require(module, "gtd_queries")(module))
+module.private = vim.tbl_extend("error", module.private, utils.require(module, "retrievers")(module))
 module.private = vim.tbl_extend("error", module.private, utils.require(module, "displayers")(module))
 
 return module
