@@ -75,6 +75,11 @@ module.config.public = {
 
         Error = "+TSError",
 
+        Bold = "+TSStrong",
+        Italic = "+TSEmphasis",
+        Underline = "+TSUnderline",
+        Strikethrough = "+TSStrike",
+
         Marker = {
             [""] = "+TSLabel",
             Title = "+Normal",

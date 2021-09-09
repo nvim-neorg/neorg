@@ -36,6 +36,12 @@
 ; Display errors
 (ERROR) @NeorgError
 
+; Basic Markup
+(bold) @text.strong
+(italic) @text.emphasis
+(underline) @text.underline
+(strikethrough) @text.strike
+
 ; Markers
 (marker (marker_prefix) @NeorgMarker (paragraph_segment) @NeorgMarkerTitle)
 

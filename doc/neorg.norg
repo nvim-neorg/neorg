@@ -26,6 +26,15 @@
 
     This also immediately shows you how to escape a special character using the backslash, \\.
 
+  *** Nesting multiple markups
+      This also works like you would it expect it to:
+      - *This is bold with an _underlined_ word in the middle*
+      - /This italics sentence contains -something strick through-/
+      - etc.
+
+      If you want to get more advanced with modifiers placed in the middle of words like t:_hi_:s be
+      sure to check out the [advanced markup](#Advanced Markup) section.
+
  ** Things which you can nest
     Neorg generally does *NOT* care about indentation! 🎉
     Thus, nesting is done via repeating modifiers like you are used to it from Markdown headings.

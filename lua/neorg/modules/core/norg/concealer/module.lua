@@ -466,10 +466,17 @@ module.public = {
             end)
         end
 
+        -- TODO: make all these syntax regions `transparent`
+        -- currently, the TS parser only recognizes non-nested attached modifiers.
+        -- Once it can detect nested markup by itself, it will handle the
+        -- highlighting for us. Until then, we are limited to a two-level
+        -- nesting of basic markup (first level given by TS, second level by the
+        -- syntax region statements below). By making them `transparent` in the
+        -- future, TS will be able to provide all levels.
         if conceals.bold then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=NeorgItalic,NeorgUnderline,NeorgStrikethrough,NeorgConcealMonospace oneline concealends
                 ]])
             end)
         end
@@ -477,7 +484,7 @@ module.public = {
         if conceals.italic then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=NeorgBold,NeorgUnderline,NeorgStrikethrough,NeorgConcealMonospace oneline concealends
                 ]])
             end)
         end
@@ -485,7 +492,7 @@ module.public = {
         if conceals.underline then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=NeorgBold,NeorgItalic,NeorgStrikethrough,NeorgConcealMonospace oneline concealends
                 ]])
             end)
         end
@@ -493,7 +500,7 @@ module.public = {
         if conceals.strikethrough then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                    syn region NeorgStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=NeorgBold,NeorgItalic,NeorgUnderline,NeorgConcealMonospace oneline concealends
                 ]])
             end)
         end
@@ -517,7 +524,7 @@ module.public = {
         if conceals.link then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
+                    syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgBold,NeorgItalic,NeorgUnderline,NeorgStrikethrough,NeorgConcealMonospace oneline concealends transparent
                 ]])
             end)
         end
@@ -529,11 +536,11 @@ module.public = {
         vim.cmd([[
             silent! syn clear NeorgConcealURL
             silent! syn clear NeorgConcealURLValue
-            silent! syn clear NeorgConcealItalic
-            silent! syn clear NeorgConcealBold
-            silent! syn clear NeorgConcealUnderline
+            silent! syn clear NeorgItalic
+            silent! syn clear NeorgBold
+            silent! syn clear NeorgUnderline
             silent! syn clear NeorgConcealMonospace
-            silent! syn clear NeorgConcealStrikethrough
+            silent! syn clear NeorgStrikethrough
             silent! syn clear NeorgConcealTrailing
             silent! syn clear NeorgConcealLink
         ]])
