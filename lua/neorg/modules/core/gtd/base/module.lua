@@ -270,7 +270,7 @@ module.on_event = function(event)
                     },
                     {},
                     { "Test Queries (index.norg) file", "TSComment" },
-                    --{ "x", "testing" },
+                    { "x", "testing" },
                     { "p", "Projects" },
                     {
                         "t",
@@ -313,6 +313,14 @@ module.on_event = function(event)
                         module.private.display_contexts(tasks, { exclude = { "someday" }, priority = { "_" } })
                     end
                 elseif choices[1] == "x" then
+                    local end_row, bufnr = module.private.get_end_document_content("index.norg")
+                    module.private.create("project",{
+                    content = "This is a test",
+                    contexts = { "today", "someday" },
+                    start = "2021-12-22",
+                    due = "2021-12-23",
+                    waiting_for = { "vhyrro" },
+                        }, bufnr, end_row)
                 end
             end)
         end
