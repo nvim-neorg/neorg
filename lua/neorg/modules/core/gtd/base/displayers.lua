@@ -120,7 +120,9 @@ return function(module)
                 "* " .. name,
                 "",
             }
-            projects = vim.tbl_map(function (p) return p.content end, projects)
+            projects = vim.tbl_map(function(p)
+                return p.content
+            end, projects)
 
             table.insert(projects, "_")
             local projects_tasks = module.private.sort_by("project", tasks)
@@ -176,14 +178,14 @@ return function(module)
         --- Removes duplicates items from table `t`
         --- @param t table
         --- @return table
-        remove_duplicates = function (t)
+        remove_duplicates = function(t)
             local res = {}
-            for _,v in ipairs(t) do
+            for _, v in ipairs(t) do
                 if not vim.tbl_contains(res, v) then
                     table.insert(res, v)
                 end
             end
             return res
-        end
+        end,
     }
 end
