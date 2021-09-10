@@ -18,6 +18,9 @@ return function(neorg_leader)
                 { "<CR>", "core.norg.esupports.goto_link" },
 
                 { "<C-s>", "core.integrations.telescope.find_linkable" },
+
+                { "<M-k>", "core.norg.manoeuvre.item_up" },
+                { "<M-j>", "core.norg.manoeuvre.item_down" },
             },
 
             i = {
