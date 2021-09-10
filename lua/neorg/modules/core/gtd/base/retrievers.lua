@@ -1,99 +1,52 @@
 return function(module)
     return {
-        --- Get a table of all projects in workspace
+        --- Get a table of all `type` in workspace
+        --- @param type string
         --- @param opts table
         ---   - opts.filename (string):     will restrict the search only for the filename provided
-        ---   - opts.extract (bool):        if false will return the nodes instead of the extracted content
         ---   - opts.exclude_files (table):     will exclude files from workspace in querying information
         --- @return table
-        get_projects = function(opts)
+        get = function(type, opts)
+            if not vim.tbl_contains({ "projects", "tasks"}, type) then
+                log.error("You can only retrieve projects and tasks. Asked: " .. type)
+                return
+            end
+
             opts = opts or {}
             local bufnrs = {}
             local res = {}
-
-            local tree = {
-                {
-                    query = { "first", "document_content" },
-                    subtree = {
-                        {
-                            query = { "all", "heading1" },
-                            recursive = true,
-                            subtree = {
-                                { query = { "all", "paragraph_segment" } },
+            local tree
+            if type == "projects" then
+                tree = {
+                    {
+                        query = { "first", "document_content" },
+                        subtree = {
+                            {
+                                query = { "all", "heading1" },
+                                recursive = true,
                             },
                         },
                     },
-                },
             }
-
-            if opts.filename then
-                local bufnr = module.private.get_bufnr_from_file(opts.filename)
-                table.insert(bufnrs, bufnr)
-            else
-                local files = module.required["core.norg.dirman"].get_norg_files(module.config.public.workspace)
-
-                if opts.exclude_files then
-                    for _, excluded_file in pairs(opts.exclude_files) do
-                        files = module.private.remove_from_table(files, excluded_file)
-                    end
-                end
-
-                for _, file in pairs(files) do
-                    local bufnr = module.private.get_bufnr_from_file(file)
-                    table.insert(bufnrs, bufnr)
-                end
-            end
-
-            for _, bufnr in pairs(bufnrs) do
-                local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
-
-                if opts.extract == false then
-                    vim.list_extend(res, nodes)
-                else
-                    local extracted = module.required["core.queries.native"].extract_nodes(nodes)
-                    vim.list_extend(res, extracted)
-                end
-            end
-
-            return res
-        end,
-
-        --- Gets a bufnr from a relative `file` path
-        --- @param file string
-        --- @return number
-        get_bufnr_from_file = function(file)
-            local bufnr = module.required["core.norg.dirman"].get_file_bufnr(
-                module.private.workspace_full_path .. "/" .. file
-            )
-            return bufnr
-        end,
-
-        --- Get a table of all tasks in current workspace
-        --- @param opts table
-        ---   - opts.filename (string):         will restrict the search only for the filename provided
-        ---   - opts.exclude_files (table):     will exclude files from workspace in querying information
-        --- @return table
-        get_tasks = function(opts)
-            opts = opts or {}
-            local bufnrs = {}
-            local res = {}
-
-            local tree = {
-                {
-                    query = { "first", "document_content" },
-                    subtree = {
-                        {
-                            query = { "all", "generic_list" },
-                            recursive = true,
-                            subtree = {
-                                {
-                                    query = { "all", "todo_item1" },
+            elseif type == "tasks" then
+                tree = {
+                    {
+                        query = { "first", "document_content" },
+                        subtree = {
+                            {
+                                query = { "all", "generic_list" },
+                                recursive = true,
+                                subtree = {
+                                    {
+                                        query = { "all", "todo_item1" },
+                                    },
                                 },
                             },
                         },
                     },
-                },
-            }
+                }
+
+            end
 
             if opts.filename then
                 local bufnr = module.private.get_bufnr_from_file(opts.filename)
@@ -121,49 +74,76 @@ return function(module)
             return res
         end,
 
-        --- Add metadatas to a list of `task_nodes`
-        --- @param task_nodes table
+        --- Gets a bufnr from a relative `file` path
+        --- @param file string
+        --- @return number
+        get_bufnr_from_file = function(file)
+            local bufnr = module.required["core.norg.dirman"].get_file_bufnr(
+                module.private.workspace_full_path .. "/" .. file
+            )
+            return bufnr
+        end,
+
+        --- Add metadatas to a list of `nodes`
+        --- @param nodes table
+        --- @param type string
         --- @return table
-        add_metadata = function(task_nodes)
+        add_metadata = function(nodes, type)
             local res = {}
 
-            for _, task_node in pairs(task_nodes) do
-                local task = {}
-                task.task_node = task_node[1]
-                task.bufnr = task_node[2]
+            if not vim.tbl_contains({ "task", "project"}, type) then
+                log.error("Unknown type")
+                return
+            end
+            for _, node in pairs(nodes) do
+                local exported = {}
+                exported.node = node[1]
+                exported.bufnr = node[2]
 
-                task.content = module.private.get_task_content(task)
-                task.project = module.private.get_task_project(task)
-                task.contexts = module.private.get_task_tag("contexts", task)
-                task.start = module.private.get_task_tag("time.start", task)
-                task.due = module.private.get_task_tag("time.due", task)
-                task.waiting_for = module.private.get_task_tag("waiting.for", task)
-                task.state = module.private.get_task_state(task)
+                exported.content = module.private.get_content(exported, type)
 
-                table.insert(res, task)
+                if type == "task" then
+                    exported.project = module.private.get_task_project(exported)
+                    exported.state = module.private.get_task_state(exported)
+                end
+
+                exported.contexts = module.private.get_tag("contexts", exported)
+                exported.start = module.private.get_tag("time.start", exported)
+                exported.due = module.private.get_tag("time.due", exported)
+                exported.waiting_for = module.private.get_tag("waiting.for", exported)
+
+                table.insert(res, exported)
             end
 
             return res
         end,
 
-        --- Get task content from a task table
-        --- @param task table
+        --- Gets content from a `node` table
+        --- @param node table
+        --- @param type string
         --- @return string
-        get_task_content = function(task)
-            local tree = {
-                { query = { "first", "paragraph" } },
-            }
-            local task_content = module.required["core.queries.native"].query_from_tree(
-                task.task_node,
+        get_content = function(node, type)
+            local tree = {}
+            if type == "project" then
+                table.insert(tree, { query = { "first", "paragraph_segment" }})
+            elseif type == "task" then
+                table.insert(tree, { query = { "first", "paragraph" }})
+            else
+                log.error("Unknown type")
+                return
+            end
+
+            local content = module.required["core.queries.native"].query_from_tree(
+                node.node,
                 tree,
-                task.bufnr
+                node.bufnr
             )
 
-            if #task_content == 0 then
+            if #content == 0 then
                 return {}
             end
 
-            local extracted = module.required["core.queries.native"].extract_nodes(task_content)
+            local extracted = module.required["core.queries.native"].extract_nodes(content)
             return extracted[1]
         end,
 
@@ -172,7 +152,7 @@ return function(module)
         --- @return string
         get_task_project = function(task)
             local project_node = module.required["core.queries.native"].find_parent_node(
-                { task.task_node, task.bufnr },
+                { task.node, task.bufnr },
                 "heading1"
             )
 
@@ -194,18 +174,18 @@ return function(module)
             return extracted[1]
         end,
 
-        --- Get a list of content for a specific `tag_name` in a `task` node
+        --- Get a list of content for a specific `tag_name` in a `node`
         --- @param tag_name string
-        --- @param task table
+        --- @param node table
         --- @return table
-        get_task_tag = function(tag_name, task)
+        get_tag = function(tag_name, node)
             if not vim.tbl_contains({ "time.due", "time.start", "contexts", "waiting.for" }, tag_name) then
                 log.error("Please specify time.due|time.start|contexts|waiting.for in get_task_date function")
                 return
             end
 
             local tags_node = module.required["core.queries.native"].find_parent_node(
-                { task.task_node, task.bufnr },
+                { node.node, node.bufnr },
                 "carryover_tag_set",
                 { multiple = true }
             )
@@ -229,8 +209,8 @@ return function(module)
             }
 
             local extracted = {}
-            for _, node in pairs(tags_node) do
-                local tag_content_nodes = module.required["core.queries.native"].query_from_tree(node[1], tree, node[2])
+            for _, _node in pairs(tags_node) do
+                local tag_content_nodes = module.required["core.queries.native"].query_from_tree(_node[1], tree, _node[2])
 
                 if #tag_content_nodes == 0 then
                     return nil
@@ -259,7 +239,7 @@ return function(module)
             }
 
             local task_state_nodes = module.required["core.queries.native"].query_from_tree(
-                task.task_node,
+                task.node,
                 tree,
                 task.bufnr
             )

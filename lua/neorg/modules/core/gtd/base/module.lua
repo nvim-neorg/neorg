@@ -287,6 +287,10 @@ module.on_event = function(event)
                     },
                 },
             }, function(choices)
+                local tasks = module.private.get("tasks", { exclude_files = module.config.public.exclude })
+                local projects = module.private.get("projects", { exclude_files = module.config.public.exclude })
+                tasks = module.private.add_metadata(tasks, "task")
+                projects = module.private.add_metadata(projects, "project")
                 if choices[1] == "a" then
                     module.public.add_task_to_inbox()
                 elseif choices[1] == "l" and choices[2] == "i" then
@@ -295,22 +299,15 @@ module.on_event = function(event)
                         module.config.public.default_lists.inbox
                     )
                 elseif choices[1] == "p" then
-                    local tasks = module.private.get_tasks({ exclude_files = module.config.public.exclude })
-                    local projects = module.private.get_projects({ exclude_files = module.config.public.exclude })
-                    tasks = module.private.add_metadata(tasks)
                     module.private.display_projects(tasks, projects, { priority = { "_" } })
                 elseif choices[1] == "t" then
-                    local tasks = module.private.get_tasks({ exclude_files = module.config.public.exclude })
-                    tasks = module.private.add_metadata(tasks)
                     if choices[2] == "t" then
                         module.private.display_today_tasks(tasks)
                     elseif choices[2] == "w" then
                         module.private.display_waiting_for(tasks)
                     elseif choices[2] == "s" then
-                        tasks = module.private.add_metadata(tasks)
                         log.warn(tasks)
                     elseif choices[2] == "d" then
-                        tasks = module.private.add_metadata(tasks)
                         log.warn(tasks)
                     elseif choices[2] == "c" then
                         module.private.display_contexts(tasks, { exclude = { "someday" }, priority = { "_" } })
