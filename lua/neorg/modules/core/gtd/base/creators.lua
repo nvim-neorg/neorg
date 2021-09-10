@@ -1,5 +1,3 @@
-local ts_utils = require("nvim-treesitter.ts_utils")
-
 return function(module)
     return {
         --- Creates a new project from the `project` table and insert it in `bufnr` at `location`
@@ -42,6 +40,7 @@ return function(module)
         --- @param project table
         --- @return number
         get_end_project = function(project)
+            local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
             local _, _, end_row, _ = ts_utils.get_node_range(project.node)
             return end_row
         end,
@@ -74,6 +73,7 @@ return function(module)
                 log.error("File " .. file .. " is not from gtd workspace")
                 return
             end
+            local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
             local bufnr = module.private.get_bufnr_from_file(file)
             local tree = {
