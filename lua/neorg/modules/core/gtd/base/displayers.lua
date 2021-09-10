@@ -120,6 +120,8 @@ return function(module)
                 "* " .. name,
                 "",
             }
+            projects = vim.tbl_map(function (p) return p.content end, projects)
+
             table.insert(projects, "_")
             local projects_tasks = module.private.sort_by("project", tasks)
 
