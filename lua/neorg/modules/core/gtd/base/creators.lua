@@ -6,6 +6,7 @@ return function(module)
         --- @param type string
         --- @param node table
         --- @param bufnr number
+        --- @param location number
         ---   - project.content (string):         Mandatory field. It's the project name
         ---   - project.contexts (string[]):      Contexts names
         ---   - project.start (string):           Start date
@@ -37,10 +38,13 @@ return function(module)
             end)
         end,
 
-        --- Creates a new task from `task` table and insert it
-        --- @param task table
-        --- @param opts table
-        create_task = function(task, opts) end,
+        --- Returns the end of the `project`
+        --- @param project table
+        --- @return number
+        get_end_project = function(project)
+            local _, _, end_row, _ = ts_utils.get_node_range(project.node)
+            return end_row
+        end,
 
         --- Insert formatted `content` in `t`, with `prefix` before it. Mutates `t` !
         --- @param t table
