@@ -29,9 +29,6 @@ module.load = function()
         module.name,
         { "todo.task_done", "todo.task_undone", "todo.task_pending", "todo.task_cycle" }
     )
-
-    -- module.required["core.autocommands"].enable_autocommand("TextChanged")
-    -- module.required["core.autocommands"].enable_autocommand("TextChangedI")
 end
 
 module.config.public = {
@@ -246,10 +243,6 @@ module.on_event = function(event)
             module.public.make_all(todo_item_at_cursor, next[1], next[2])
             module.public.update_parent(0)
         end
-    elseif vim.startswith(event.type, "core.autocommands.events.textchanged") then
-        -- if module.public.get_list_item_from_cursor() then
-        --     module.public.update_parent(0)
-        -- end
     end
 end
 
