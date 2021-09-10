@@ -32,6 +32,10 @@
       - /This italics sentence contains -something struck through-/
       - etc.
 
+      ⚠️  When nesting markup inside of verbatim text, it will not be highlighed, because.. well, its
+      verbatim 😉
+      This allows you to to write `This is how you format *bold* and /italic/ text.`
+
       If you want to get more advanced with modifiers placed in the middle of words like t:_hi_:s be
       sure to check out the [advanced markup](#Advanced Markup) section.
 
