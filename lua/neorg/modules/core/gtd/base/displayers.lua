@@ -125,6 +125,9 @@ return function(module)
             table.insert(projects, "_")
             local projects_tasks = module.private.sort_by("project", tasks)
 
+            -- Remove duplicates in projects
+            projects = module.private.remove_duplicates(projects)
+
             -- Sort tasks with opts.priority
             if opts.priority then
                 local projects_sorter = function(a, _)
@@ -169,5 +172,18 @@ return function(module)
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
             vim.api.nvim_buf_set_option(buf, "modifiable", false)
         end,
+
+        --- Removes duplicates items from table `t`
+        --- @param t table
+        --- @return table
+        remove_duplicates = function (t)
+            local res = {}
+            for _,v in ipairs(t) do
+                if not vim.tbl_contains(res, v) then
+                    table.insert(res, v)
+                end
+            end
+            return res
+        end
     }
 end
