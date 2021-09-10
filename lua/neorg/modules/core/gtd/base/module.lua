@@ -15,6 +15,7 @@ REQUIRES:
         - core.ui in order to ask for user input
         - core.neorgcmd to add commands capabilities
         - core.queries.native to fetch content from norg files
+        - core.integrations.treesitter to use ts_utils
 
 KEYBINDS:
     - core.gtd.base.add_to_inbox: Will call the function add_task_to_inbox()
@@ -31,7 +32,14 @@ local log = require("neorg.external.log")
 module.setup = function()
     return {
         success = true,
-        requires = { "core.norg.dirman", "core.keybinds", "core.ui", "core.neorgcmd", "core.queries.native" },
+        requires = {
+            "core.norg.dirman",
+            "core.keybinds",
+            "core.ui",
+            "core.neorgcmd",
+            "core.queries.native",
+            "core.integrations.treesitter",
+        },
     }
 end
 
