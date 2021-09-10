@@ -7,7 +7,7 @@ return function(module)
         ---   - opts.exclude_files (table):     will exclude files from workspace in querying information
         --- @return table
         get = function(type, opts)
-            if not vim.tbl_contains({ "projects", "tasks"}, type) then
+            if not vim.tbl_contains({ "projects", "tasks" }, type) then
                 log.error("You can only retrieve projects and tasks. Asked: " .. type)
                 return
             end
@@ -27,7 +27,7 @@ return function(module)
                             },
                         },
                     },
-            }
+                }
             elseif type == "tasks" then
                 tree = {
                     {
@@ -45,7 +45,6 @@ return function(module)
                         },
                     },
                 }
-
             end
 
             if opts.filename then
@@ -91,7 +90,7 @@ return function(module)
         add_metadata = function(nodes, type)
             local res = {}
 
-            if not vim.tbl_contains({ "task", "project"}, type) then
+            if not vim.tbl_contains({ "task", "project" }, type) then
                 log.error("Unknown type")
                 return
             end
@@ -125,19 +124,15 @@ return function(module)
         get_content = function(node, type)
             local tree = {}
             if type == "project" then
-                table.insert(tree, { query = { "first", "paragraph_segment" }})
+                table.insert(tree, { query = { "first", "paragraph_segment" } })
             elseif type == "task" then
-                table.insert(tree, { query = { "first", "paragraph" }})
+                table.insert(tree, { query = { "first", "paragraph" } })
             else
                 log.error("Unknown type")
                 return
             end
 
-            local content = module.required["core.queries.native"].query_from_tree(
-                node.node,
-                tree,
-                node.bufnr
-            )
+            local content = module.required["core.queries.native"].query_from_tree(node.node, tree, node.bufnr)
 
             if #content == 0 then
                 return {}
@@ -210,7 +205,11 @@ return function(module)
 
             local extracted = {}
             for _, _node in pairs(tags_node) do
-                local tag_content_nodes = module.required["core.queries.native"].query_from_tree(_node[1], tree, _node[2])
+                local tag_content_nodes = module.required["core.queries.native"].query_from_tree(
+                    _node[1],
+                    tree,
+                    _node[2]
+                )
 
                 if #tag_content_nodes == 0 then
                     return nil
@@ -238,11 +237,7 @@ return function(module)
                 { query = { "all", "todo_item_pending" } },
             }
 
-            local task_state_nodes = module.required["core.queries.native"].query_from_tree(
-                task.node,
-                tree,
-                task.bufnr
-            )
+            local task_state_nodes = module.required["core.queries.native"].query_from_tree(task.node, tree, task.bufnr)
 
             if #task_state_nodes ~= 1 then
                 log.error("This task does not contain any state !")
