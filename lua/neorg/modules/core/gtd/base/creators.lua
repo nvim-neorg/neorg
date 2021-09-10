@@ -31,7 +31,7 @@ return function(module)
             module.private.insert_content(res, node.waiting_for, "$waiting.for")
             module.private.insert_content(res, node.content, type == "project" and "*" or "- [ ]")
 
-            vim.api.nvim_buf_set_lines(bufnr, location, location + #res, false, res)
+            vim.api.nvim_buf_set_lines(bufnr, location, location, false, res)
             vim.api.nvim_buf_call(bufnr, function()
                 vim.cmd([[ write ]])
             end)
