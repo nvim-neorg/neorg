@@ -21,6 +21,9 @@ return function(neorg_leader)
                 { "gtda", "core.gtd.base.add_to_inbox" },
 
                 { "<C-s>", "core.integrations.telescope.find_linkable" },
+
+                { "<M-k>", "core.norg.manoeuvre.item_up" },
+                { "<M-j>", "core.norg.manoeuvre.item_down" },
             },
 
             i = {
