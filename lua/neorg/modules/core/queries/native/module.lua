@@ -16,7 +16,13 @@ USAGE:
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.queries.native")
-local ts_utils = require("nvim-treesitter.ts_utils")
+
+module.setup = function ()
+    return {
+        success = true,
+        requires = { "core.integrations.treesitter" }
+    }
+end
 
 module.public = {
 
@@ -39,6 +45,7 @@ module.public = {
     --- @return table
     extract_nodes = function(nodes)
         local res = {}
+        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         for _, node in ipairs(nodes) do
             local extracted = ts_utils.get_node_text(node[1], node[2])
@@ -269,6 +276,7 @@ With that in mind, you can do something like this (for example):
     --- @return boolean
     predicate_where = function(parent, where, opts)
         opts = opts or {}
+        local ts_utils = require("nvim-treesitter.ts_utils")
 
         if not where or #where == 0 then
             return true
