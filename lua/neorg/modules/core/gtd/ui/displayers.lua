@@ -171,7 +171,6 @@ return function(module)
                     table.insert(res, "")
                 end
 
-                P(module.required["core.ui"])
                 local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
                 vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
                 vim.api.nvim_buf_set_option(buf, "modifiable", false)
