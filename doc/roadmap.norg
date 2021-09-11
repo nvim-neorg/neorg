@@ -89,3 +89,6 @@ For a better viewing experience, we recommend reading it opening it from `:h neo
     - [ ] Add more features to the `:Neorg` command, like a fully-fledged module manager inside a floating window
     - [ ] Add the ability to upgrade .org documents and downgrade .norg documents to their respective formats.
     - [ ] Add fancy UI elements for the true user experience
+
+$comment
+vim:tw=100:ts=8:noet:ft=norg:norl:
