@@ -17,10 +17,10 @@ require("neorg.modules.base")
 
 local module = neorg.modules.create("core.queries.native")
 
-module.setup = function ()
+module.setup = function()
     return {
         success = true,
-        requires = { "core.integrations.treesitter" }
+        requires = { "core.integrations.treesitter" },
     }
 end
 
