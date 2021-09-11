@@ -16,5 +16,6 @@ end
 
 module = utils.require(module, "displayers")
 module = utils.require(module, "add_to_inbox")
+module = utils.require(module, "selection_popups")
 
 return module
