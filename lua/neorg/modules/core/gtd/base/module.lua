@@ -1,24 +1,28 @@
 --[[
     Base module for Getting Things Done methodology
+    It's here where the keybinds and commands are created in order to interact with GTD stuff
 
 USAGE:
     - Quick actions for gtd stuff:
         - Call the command :Neorg gtd quick_actions
     - To add a task to the inbox:
-        - Use the public function add_task_to_inbox()
         - Call the command :Neorg gtd capture
 
 REQUIRES:
     This module requires:
-        - core.norg.dirman in order to get full path to the workspace
-        - core.keybinds (check KEYBINDS for usage)
-        - core.gtd.ui for gtd UI components
-        - core.neorgcmd to add commands capabilities
-        - core.queries.native to fetch content from norg files
-        - core.integrations.treesitter to use ts_utils
+        - core.norg.dirman      in order to get full path to the workspace
+        - core.keybinds         (check KEYBINDS for usage)
+        - core.gtd.ui           for gtd UI components
+        - core.neorgcmd         to add commands capabilities
+        - core.gtd.queries      to use custom gtd queries
 
 KEYBINDS:
     - core.gtd.base.add_to_inbox: Will call the function add_task_to_inbox()
+
+COMMANDS:
+    - Neorg gtd list ...        to list ... files
+    - Neorg gtd capture         to show a quick capture UI
+    - Neorg gtd quick_actions   to show the quick actions popup
 
 --]]
 
