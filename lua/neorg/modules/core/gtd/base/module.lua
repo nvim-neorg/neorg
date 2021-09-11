@@ -141,8 +141,14 @@ module.on_event = function(event)
                     },
                 },
             }, function(choices)
-                local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = module.config.public.exclude })
-                local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = module.config.public.exclude })
+                local tasks = module.required["core.gtd.queries"].get(
+                    "tasks",
+                    { exclude_files = module.config.public.exclude }
+                )
+                local projects = module.required["core.gtd.queries"].get(
+                    "projects",
+                    { exclude_files = module.config.public.exclude }
+                )
                 tasks = module.required["core.gtd.queries"].add_metadata(tasks, "task")
                 projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
