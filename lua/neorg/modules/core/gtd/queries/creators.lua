@@ -36,9 +36,7 @@ return function(module)
                     vim.cmd([[ write ]])
                 end)
             end,
-        },
 
-        private = {
             --- Returns the end of the `project`
             --- @param project table
             --- @return number
@@ -48,6 +46,31 @@ return function(module)
                 return end_row
             end,
 
+            --- Returns the end of the document content position of a `file` and the `file` bufnr
+            --- @param file string
+            --- @return number
+            get_end_document_content = function(file)
+                local config = neorg.modules.get_module_config("core.gtd.base")
+                local files = module.required["core.norg.dirman"].get_norg_files(config.workspace)
+                if not vim.tbl_contains(files, file) then
+                    log.error("File " .. file .. " is not from gtd workspace")
+                    return
+                end
+                local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+
+                local bufnr = module.private.get_bufnr_from_file(file)
+                local tree = {
+                    { query = { "first", "document_content" } },
+                }
+                local document = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)[1]
+
+                local _, _, end_row, _ = ts_utils.get_node_range(document[1])
+
+                return end_row, bufnr
+            end,
+        },
+
+        private = {
             --- Insert formatted `content` in `t`, with `prefix` before it. Mutates `t` !
             --- @param t table
             --- @param content string|table
@@ -65,28 +88,6 @@ return function(module)
                     end
                     table.insert(t, inserted)
                 end
-            end,
-
-            --- Returns the end of the document content position of a `file` and the `file` bufnr
-            --- @param file string
-            --- @return number
-            get_end_document_content = function(file)
-                local files = module.required["core.norg.dirman"].get_norg_files(module.config.public.workspace)
-                if not vim.tbl_contains(files, file) then
-                    log.error("File " .. file .. " is not from gtd workspace")
-                    return
-                end
-                local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-
-                local bufnr = module.private.get_bufnr_from_file(file)
-                local tree = {
-                    { query = { "first", "document_content" } },
-                }
-                local document = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)[1]
-
-                local _, _, end_row, _ = ts_utils.get_node_range(document[1])
-
-                return end_row, bufnr
             end,
         },
     }

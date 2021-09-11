@@ -52,7 +52,8 @@ return function(module)
                     local bufnr = module.private.get_bufnr_from_file(opts.filename)
                     table.insert(bufnrs, bufnr)
                 else
-                    local files = module.required["core.norg.dirman"].get_norg_files(module.config.public.workspace)
+                    local configs = neorg.modules.get_module_config("core.gtd.base")
+                    local files = module.required["core.norg.dirman"].get_norg_files(configs.workspace)
 
                     if opts.exclude_files then
                         for _, excluded_file in pairs(opts.exclude_files) do
@@ -151,8 +152,10 @@ return function(module)
             --- @param file string
             --- @return number
             get_bufnr_from_file = function(file)
+                local configs = neorg.modules.get_module_config("core.gtd.base")
+                local workspace = module.required["core.norg.dirman"].get_workspace(configs.workspace)
                 local bufnr = module.required["core.norg.dirman"].get_file_bufnr(
-                    module.private.workspace_full_path .. "/" .. file
+                    workspace .. "/" .. file
                 )
                 return bufnr
             end,

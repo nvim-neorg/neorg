@@ -35,10 +35,10 @@ module.setup = function()
         requires = {
             "core.norg.dirman",
             "core.keybinds",
+            "core.gtd.ui",
             "core.ui",
+            "core.gtd.queries",
             "core.neorgcmd",
-            "core.queries.native",
-            "core.integrations.treesitter",
         },
     }
 end
@@ -57,7 +57,7 @@ module.public = {
 }
 
 module.private = {
-    workspace_full_path = nil,
+    workspace_full_path = "",
 }
 
 module.load = function()
@@ -141,10 +141,10 @@ module.on_event = function(event)
                     },
                 },
             }, function(choices)
-                local tasks = module.public.get("tasks", { exclude_files = module.config.public.exclude })
-                local projects = module.public.get("projects", { exclude_files = module.config.public.exclude })
-                tasks = module.public.add_metadata(tasks, "task")
-                projects = module.public.add_metadata(projects, "project")
+                local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = module.config.public.exclude })
+                local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = module.config.public.exclude })
+                tasks = module.required["core.gtd.queries"].add_metadata(tasks, "task")
+                projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
                 if choices[1] == "a" then
                     module.required["core.gtd.ui"].add_task_to_inbox()
@@ -171,8 +171,8 @@ module.on_event = function(event)
                         )
                     end
                 elseif choices[1] == "x" then
-                    local end_row, bufnr = module.private.get_end_document_content("index.norg")
-                    module.private.create("project", {
+                    local end_row, bufnr = module.required["core.gtd.queries"].get_end_document_content("index.norg")
+                    module.required["core.gtd.queries"].create("project", {
                         content = "This is a test",
                         contexts = { "today", "someday" },
                         start = "2021-12-22",
@@ -195,8 +195,5 @@ module.events.subscribed = {
         ["gtd.quick_actions"] = true,
     },
 }
-
-module = utils.require(module, "retrievers")
-module = utils.require(module, "creators")
 
 return module
