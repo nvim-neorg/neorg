@@ -1,6 +1,6 @@
 return function(module)
     return {
-        private = {
+        public = {
             --- Creates a new project from the `project` table and insert it in `bufnr` at `location`
             --- @param type string
             --- @param node table
@@ -36,7 +36,9 @@ return function(module)
                     vim.cmd([[ write ]])
                 end)
             end,
+        },
 
+        private = {
             --- Returns the end of the `project`
             --- @param project table
             --- @return number

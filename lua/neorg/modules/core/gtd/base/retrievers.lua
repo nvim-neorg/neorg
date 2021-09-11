@@ -1,6 +1,6 @@
 return function(module)
     return {
-        private = {
+        public = {
             --- Get a table of all `type` in workspace
             --- @param type string
             --- @param opts table
@@ -74,16 +74,6 @@ return function(module)
                 return res
             end,
 
-            --- Gets a bufnr from a relative `file` path
-            --- @param file string
-            --- @return number
-            get_bufnr_from_file = function(file)
-                local bufnr = module.required["core.norg.dirman"].get_file_bufnr(
-                    module.private.workspace_full_path .. "/" .. file
-                )
-                return bufnr
-            end,
-
             --- Add metadatas to a list of `nodes`
             --- @param nodes table
             --- @param type string
@@ -116,6 +106,55 @@ return function(module)
                 end
 
                 return res
+            end,
+
+            --- Sort `tasks` list by specified `sorter`
+            --- Current sorters: waiting_for, contexts, project
+            --- @param sorter string
+            --- @param tasks table
+            --- @return table
+            sort_by = function(sorter, tasks, opts)
+                opts = opts or {}
+                if not vim.tbl_contains({ "waiting_for", "contexts", "project" }, sorter) then
+                    log.error("Please provide a correct sorter.")
+                    return
+                end
+                local res = {}
+
+                local insert = function(t, k, v)
+                    if not t[k] then
+                        t[k] = {}
+                    end
+                    table.insert(t[k], v)
+                end
+
+                for _, t in pairs(tasks) do
+                    if not t[sorter] then
+                        insert(res, "_", t)
+                    else
+                        if type(t[sorter]) == "table" then
+                            for _, s in pairs(t[sorter]) do
+                                insert(res, s, t)
+                            end
+                        elseif type(t[sorter]) == "string" then
+                            insert(res, t[sorter], t)
+                        end
+                    end
+                end
+
+                return res
+            end,
+        },
+
+        private = {
+            --- Gets a bufnr from a relative `file` path
+            --- @param file string
+            --- @return number
+            get_bufnr_from_file = function(file)
+                local bufnr = module.required["core.norg.dirman"].get_file_bufnr(
+                    module.private.workspace_full_path .. "/" .. file
+                )
+                return bufnr
             end,
 
             --- Gets content from a `node` table
@@ -264,43 +303,6 @@ return function(module)
                     end
                 end
                 return t
-            end,
-
-            --- Sort `tasks` list by specified `sorter`
-            --- Current sorters: waiting_for, contexts, project
-            --- @param sorter string
-            --- @param tasks table
-            --- @return table
-            sort_by = function(sorter, tasks, opts)
-                opts = opts or {}
-                if not vim.tbl_contains({ "waiting_for", "contexts", "project" }, sorter) then
-                    log.error("Please provide a correct sorter.")
-                    return
-                end
-                local res = {}
-
-                local insert = function(t, k, v)
-                    if not t[k] then
-                        t[k] = {}
-                    end
-                    table.insert(t[k], v)
-                end
-
-                for _, t in pairs(tasks) do
-                    if not t[sorter] then
-                        insert(res, "_", t)
-                    else
-                        if type(t[sorter]) == "table" then
-                            for _, s in pairs(t[sorter]) do
-                                insert(res, s, t)
-                            end
-                        elseif type(t[sorter]) == "string" then
-                            insert(res, t[sorter], t)
-                        end
-                    end
-                end
-
-                return res
             end,
         },
     }

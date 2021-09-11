@@ -1,6 +1,6 @@
 return function(module)
     return {
-        private = {
+        public = {
             display_today_tasks = function(tasks)
                 local name = "Today's Tasks"
                 local res = {
@@ -39,7 +39,7 @@ return function(module)
                 end
                 tasks = vim.tbl_filter(filter_state, tasks)
 
-                local waiting_for_tasks = module.private.sort_by("waiting_for", tasks)
+                local waiting_for_tasks = module.required["core.gtd.base"].sort_by("waiting_for", tasks)
                 waiting_for_tasks["_"] = nil -- remove all tasks that does not have waiting for tag
 
                 for w, w_tasks in pairs(waiting_for_tasks) do
@@ -74,7 +74,7 @@ return function(module)
                 end
                 tasks = vim.tbl_filter(filter_state, tasks)
 
-                local contexts_tasks = module.private.sort_by("contexts", tasks)
+                local contexts_tasks = module.required["core.gtd.base"].sort_by("contexts", tasks)
 
                 if opts.exclude then
                     for _, c in pairs(opts.exclude) do
@@ -126,7 +126,7 @@ return function(module)
                 end, projects)
 
                 table.insert(projects, "_")
-                local projects_tasks = module.private.sort_by("project", tasks)
+                local projects_tasks = module.required["core.gtd.base"].sort_by("project", tasks)
 
                 -- Remove duplicates in projects
                 projects = module.private.remove_duplicates(projects)
@@ -175,7 +175,9 @@ return function(module)
                 vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
                 vim.api.nvim_buf_set_option(buf, "modifiable", false)
             end,
+        },
 
+        private = {
             --- Removes duplicates items from table `t`
             --- @param t table
             --- @return table
