@@ -154,9 +154,7 @@ return function(module)
             get_bufnr_from_file = function(file)
                 local configs = neorg.modules.get_module_config("core.gtd.base")
                 local workspace = module.required["core.norg.dirman"].get_workspace(configs.workspace)
-                local bufnr = module.required["core.norg.dirman"].get_file_bufnr(
-                    workspace .. "/" .. file
-                )
+                local bufnr = module.required["core.norg.dirman"].get_file_bufnr(workspace .. "/" .. file)
                 return bufnr
             end,
 
