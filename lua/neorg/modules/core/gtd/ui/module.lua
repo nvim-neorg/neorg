@@ -1,3 +1,28 @@
+--[[
+    UI GTD components
+
+REQUIRES:
+    - core.ui                       to use ui stuff
+    - core.norg.dirman              for file operations
+    - core.gtd.queries              to use gtd queries
+
+SUBMODULES:
+    * DISPLAYERS:
+        UI components to display gtd's useful data
+        - display_today_tasks
+        - display_waiting_for
+        - display_contexts
+        - display_projects
+
+    * ADD_TO_INBOX:
+        UI prompt to add a task in inbox file
+        - add_task_to_inbox
+    * SELECTION_POPUPS:
+        UI components that use selection popups
+        - show_quick_actions
+
+--]]
+
 require("neorg.modules.base")
 local utils = require("neorg.external.helpers")
 
