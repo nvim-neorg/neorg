@@ -56,8 +56,6 @@ module.public = {
     version = "0.1",
 }
 
-module.public = vim.tbl_extend("error", module.public, utils.require(module, "add_to_inbox")(module))
-
 module.private = {
     workspace_full_path = nil,
 
@@ -346,8 +344,10 @@ module.events.subscribed = {
     },
 }
 
-module.private = vim.tbl_extend("error", module.private, utils.require(module, "retrievers")(module))
-module.private = vim.tbl_extend("error", module.private, utils.require(module, "displayers")(module))
-module.private = vim.tbl_extend("error", module.private, utils.require(module, "creators")(module))
+module = utils.require(module, "add_to_inbox")
+module = utils.require(module, "retrievers")
+module = utils.require(module, "displayers")
+module = utils.require(module, "add_to_inbox")
+module = utils.require(module, "creators")
 
 return module
