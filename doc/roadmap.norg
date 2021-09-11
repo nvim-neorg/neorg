@@ -9,10 +9,10 @@
 
 * The Neorg Roadmap
 What's going on behind the scenes? What has been done? Where are we heading next? It's all described here.
-For a better confort viewing this file, we recommend reading it opening it from `:h neorg-roadmap`.
+For a better viewing experience, we recommend reading it opening it from `:h neorg-roadmap`.
 
  ** PR Stuff
-    For starters, I have to set everything up in order to make the project comprehensible by the everyday user. This will include writing this very roadmap and writing the github wiki.
+    For starters, everything must be set up in order to make the project comprehensible by the everyday user. This will include writing this very roadmap and writing the github wiki.
     
     The github wiki will consist of:
     - [x] Detailed instructions to install and configure neorg
@@ -67,22 +67,23 @@ For a better confort viewing this file, we recommend reading it opening it from 
         - [x] Allow all community modules to be updated with `:Neorg update modules`
         - [x] Allow the user to change the community module directory
 
+        *NOTE:* This integration was scrapped in favour of utilizing your Neovim plugin manager. We shouldn't be doing the heavy lifting.
+
    **** Documentation 
         - [x] Start working on a basic "specification" for the .norg file format. The name of this file format will be NFF-0.1 (Neorg File Format 0.1). The community will be asked about what they think before the specification is pushed (join the [discord](https://discord.gg/T6EgTAX7ht) if you haven't already).
         - [x] Make fancy README
         - [x] Create the .norg spec. This spec will try to be similar to other markdown formats, but does not promise to keep everything the same. The goal is as little ambiguity and as much predictability as possible.
 
    **** GTD (Getting things done) integration
-        - [x] Create a full GTD specifications
-        - [x] Create `gtd.base` module to query all tasks and projects informations from a gtd workspace
-        - [x] Aggregate and display tasks and projects by context, due dates, projects, etc 
-        - [*] Quick Capture popup: create a task/project and add informations to it
+        - [x] Create a full GTD specification
+        - [x] Create a `gtd.base` module. This will allow us to query all tasks and project information from a GTD workspace.
+        - [x] Aggregate and display tasks and projects by context, due dates, etc 
+        - [*] Quick Capture popup: create a task/project and add metadata to it
         - [ ] Quick Modify popup: modify a task/project already in the workspace
 
  ** Plans after 0.1
     > Ok that's pretty cool, so after 0.1 I should be at least able to do some basic stuff, right? What's next though?
 
-    - [ ] Add the concept of notes and note management. Each note will be its own .norg file. Also add a personal diary to store notes on a day-by-day basis and "quick notes", where you can press a keybind and quickly jot down a nice idea you might have had; you'll be able to sort through it later.
     - [ ] Add more literate programming features
     - [ ] Make more things bound to a keybind, this is neovim damnit. Most keybinds will be bound under `<Leader>o` for "organization" by default (this main neorg leader will be able to be changed).
     - [ ] Add more features to the `:Neorg` command, like a fully-fledged module manager inside a floating window
