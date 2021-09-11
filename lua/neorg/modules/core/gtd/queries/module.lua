@@ -1,20 +1,22 @@
+
 require("neorg.modules.base")
+local module = neorg.modules.create("core.gtd.queries")
 local utils = require("neorg.external.helpers")
 
-local module = neorg.modules.create("core.gtd.ui")
 
 module.setup = function()
     return {
         success = true,
         requires = {
-            "core.ui",
             "core.norg.dirman",
-            "core.gtd.queries",
+            "core.queries.native",
+            "core.integrations.treesitter"
         },
     }
 end
 
-module = utils.require(module, "displayers")
-module = utils.require(module, "add_to_inbox")
+
+module = utils.require(module, "retrievers")
+module = utils.require(module, "creators")
 
 return module
