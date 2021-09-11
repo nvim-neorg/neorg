@@ -245,8 +245,12 @@ module.config.public = {
         Insertion = {
             [""] = "cterm=bold gui=bold",
             Prefix = "+TSPunctDelimiter",
+            Variable = {
+                [""] = "+TSString",
+                Value = "+TSPunctDelimiter",
+            },
             Item = "+TSNamespace",
-            Parameters = "+TSPunctDelimiter",
+            Parameters = "+TSComment",
         },
 
         StrongParagraphDelimiter = "+TSPunctDelimiter",
