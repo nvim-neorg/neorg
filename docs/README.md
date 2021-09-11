@@ -24,4 +24,4 @@ Now's the fun part, you gotta learn how the module system works and how to progr
 in the wiki.
 
 # The Future
-Want to know what's brewing up behind the scenes? Take a look at the [written roadmap](/docs/ROADMAP.md) to see where we're headed!
+Want to know what's brewing up behind the scenes? Take a look at the [written roadmap](/doc/roadmap.norg) (or do `:h neorg-roadmap` in neovim) to see where we're headed!
