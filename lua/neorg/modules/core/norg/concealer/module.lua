@@ -476,12 +476,16 @@ module.public = {
         if conceals.bold then
             vim.schedule(function()
                 vim.cmd([[
+                    syn region NeorgBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=NeorgItalic,NeorgUnderline,NeorgStrikethrough,NeorgConcealMonospace oneline concealends
+                ]])
             end)
         end
 
         if conceals.italic then
             vim.schedule(function()
                 vim.cmd([[
+                    syn region NeorgItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=NeorgBold,NeorgUnderline,NeorgStrikethrough,NeorgConcealMonospace oneline concealends
+                ]])
             end)
         end
 
