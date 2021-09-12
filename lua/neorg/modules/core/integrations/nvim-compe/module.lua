@@ -19,7 +19,10 @@ module.load = function()
     -- Code to test the existence of nvim-compe
     local success, compe = pcall(require, "compe")
 
-    assert(success, "nvim-compe not found, aborting...")
+    if not success then
+        log.fatal("nvim-compe not found, aborting...")
+        return
+    end
 
     module.private.compe = compe
 end
