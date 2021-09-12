@@ -28,7 +28,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufLeave")
 
     if module.config.public.default_keybinds then
-        require("neorg.external.helpers").require(module, "default_keybinds")(module.config.public.neorg_leader)
+        require("neorg.external.helpers").require(module, "default_keybinds").public.generate_keybinds()
     end
 end
 

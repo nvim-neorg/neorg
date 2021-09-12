@@ -156,7 +156,8 @@
 (quote6 (quote6_prefix) @NeorgQuote6 content: (paragraph_segment) @NeorgQuote6Content)
 
 ; Insertion
-(insertion (insertion_prefix) @NeorgInsertionPrefix item: (word) @NeorgInsertionItem parameters: (paragraph_segment)? @NeorgInsertionParameters) @NeorgInsertion
+(insertion (insertion_prefix) @NeorgInsertionPrefix item: (word) @NeorgInsertionVariable parameters: (paragraph_segment)? @NeorgInsertionVariableValue) @NeorgInsertion
+(insertion (insertion_prefix) @NeorgInsertionPrefix item: (capitalized_word) @NeorgInsertionItem parameters: (paragraph_segment)? @NeorgInsertionParameters) @NeorgInsertion
 
 ; Paragraph Delimiters
 (strong_paragraph_delimiter) @NeorgStrongParagraphDelimiter
