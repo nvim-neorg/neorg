@@ -9,7 +9,9 @@ neorg.utils = {
     -- @Param  module (table) - the module creator's module
     -- @Param  filename (string) - a path to the file
     require = function(module, filename)
-        return vim.tbl_deep_extend("force", module, require("neorg.modules." .. module.name .. "." .. filename)(module))
+        -- TODO: Explain this
+        local new_module = vim.tbl_deep_extend("keep", module, require("neorg.modules." .. module.name .. "." .. filename)(module))
+        return vim.tbl_deep_extend("keep", module, require("neorg.modules." .. module.name .. "." .. filename)(new_module))
     end,
 
     -- @Summary Gets the current system username
