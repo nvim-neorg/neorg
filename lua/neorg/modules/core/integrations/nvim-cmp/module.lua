@@ -16,7 +16,10 @@ module.private = {
 module.load = function()
     local success, cmp = pcall(require, "cmp")
 
-    assert(success, "nvim-cmp not found, aborting...")
+    if not success then
+        log.fatal("nvim-cmp not found, aborting...")
+        return
+    end
 
     module.private.cmp = cmp
 end

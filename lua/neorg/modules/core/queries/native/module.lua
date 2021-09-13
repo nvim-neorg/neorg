@@ -1,16 +1,15 @@
 --[[
-    Module for requesting content from files in a workspace
+    Module for requesting content from files in a workspace using treesitter
 
-USAGE:
-    - To create a query:
-        1. Get a bufnr for a specific file:
-            local bufnr = module.required["core.norg.dirman"].get_file_bufnr("index.norg", "gtd")
-        2. Extract matching nodes following a tree table
-            local res = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
-        3. Extract content from extracted nodes
-            local extracted = module.required["core.queries.native"].extract_nodes(res, bufnr)
-        4. Profit !
+REQUIRES:
+    - core.integrations.treesitter  for treesitter purposes
 
+EXPOSES:
+    - query_nodes_from_buf      query nodes from a file
+    - query_from_tree           query nodes specified by a tree table
+    - extract_nodes             extract nodes contents
+    - find_parent_node          find a parent node recursively
+    - find_sibling_node         find sibling nodes that match a query from a specified node
 --]]
 
 require("neorg.modules.base")

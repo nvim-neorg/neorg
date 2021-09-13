@@ -934,6 +934,7 @@ module.public = {
                 else
                     vim.cmd('silent !start "' .. vim.fn.fnameescape(destination) .. '"')
                 end
+
                 return utility.ts.get_node_range(utility.ts.get_ts_utils().get_node_at_cursor())
             end,
         },
