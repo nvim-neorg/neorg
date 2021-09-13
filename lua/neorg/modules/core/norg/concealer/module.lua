@@ -363,6 +363,10 @@ module.public = {
                     for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
                         local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
 
+                        if line:len() < range.column_start then
+                            vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
+                        end
+
                         if line and line:len() >= range.column_start then
                             module.public._set_extmark(
                                 nil,
