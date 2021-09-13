@@ -9,9 +9,9 @@
 
 | Last changes:
 - 19/08/2021:
---> [Top-level organization](#Top-level organization): Added `reference` folder spec
+-- [Top-level organization](#Top-level organization): Added `reference` folder spec
 - 22/08/2021:
---> [Task format](#Task format):
+-- [Task format](#Task format):
 --- Removed task grouping by metadatas
 --- deleted the mandatory `last_review` field
 --- changed the notes format in a task
@@ -21,8 +21,8 @@
 --- Added [Working with dates](#Working with dates)
 --- Removed notes specification
 --- Added special tags for waiting-for and someday
---> [Top-level organization](#Top-level organization): Changed top-level organization with new files specs
---> [Projects management](#Projects management):
+-- [Top-level organization](#Top-level organization): Changed top-level organization with new files specs
+-- [Projects management](#Projects management):
 --- Added specs for projects
 --- Changed syntax
 
@@ -100,6 +100,7 @@
       [Projects](#Project) are represented via [headings](:neorg:#headings) like so:
 
       @code norg
+      
           $contexts §context_name§ §context_name§ ...
           $time.start §date§
           $time.due §date§
@@ -112,10 +113,10 @@
       @code norg
       * This is a project
       - [ ] This is a task inside a project
-
+      
       * This is another project
       - [ ] This is a task inside the other project
-
+      
       * This is a very large project
        ** This is a heading for the project
           - [ ] This is a task
@@ -142,21 +143,21 @@
 
       @code norg
       | This is an AOF
-
+      
       * This is a project
       - [ ] This is a task inside a project
-
+      
       * This is another project
       - [ ] This is a task inside the other project
-
+      
       * This is a very large project
        ** This is a heading for the project
           - [ ] This is a task
        ** This is another heading for the project
           - [ ] This is a task
-
+      
       | _
-
+      
       This is not in an AOF
       @end
 
