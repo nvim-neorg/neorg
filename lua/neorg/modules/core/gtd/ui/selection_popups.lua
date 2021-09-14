@@ -49,7 +49,7 @@ return function(module)
                         module.public.display_projects(tasks, projects, { priority = { "_" } })
                     elseif choices[1] == "t" then
                         if choices[2] == "t" then
-                            module.public.display_today_tasks(tasks)
+                            module.public.display_today_tasks(tasks, { exclude = { "someday" }})
                         elseif choices[2] == "w" then
                             module.public.display_waiting_for(tasks)
                         elseif choices[2] == "s" then
@@ -76,3 +76,5 @@ return function(module)
         },
     }
 end
+
+
