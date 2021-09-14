@@ -18,7 +18,8 @@ module.public = {
         module.public.begin_selection("Test Selection")
             :title("Hello World!")
             :blank()
-            :switch("--test", {
+            :text("Switches:", "TSUnderline")
+            :switch("--test", "a test switch", {
                 callback = function(enabled, key)
                     log.warn(
                         "The switch got flipped to the",
@@ -27,8 +28,11 @@ module.public = {
                     )
                 end,
 
-                highlight_enabled = "TSAnnotation",
-                highlight_disabled = "TSComment",
+                highlights = {
+                    enabled = "TSAnnotation",
+                    disabled = "TSComment",
+                    delimiter = "TSMath",
+                },
             })
             :finish(module.public.create_split("Test Selection"), {
                 renderer = {

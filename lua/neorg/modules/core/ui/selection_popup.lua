@@ -22,9 +22,7 @@ return function(module)
             selection_builder_template = {
                 selection = {},
 
-                title = function(builder, title, highlight)
-                    highlight = highlight or "TSTitle"
-
+                text = function(builder, title, highlight)
                     local renderable_title = title
 
                     if type(title) == "string" then
@@ -56,7 +54,11 @@ return function(module)
                     return builder
                 end,
 
-                switch = function(builder, switch_name, configuration)
+                title = function(builder, text, highlight)
+                    return builder:text(text, highlight or "TSTitle")
+                end,
+
+                switch = function(builder, switch_name, description, configuration)
                     table.insert(builder.selection, {
                         type = "switch",
                         enabled = false,
@@ -70,7 +72,17 @@ return function(module)
                             renderer:render({
                                 {
                                     switch_name,
-                                    self.enabled and configuration.highlight_enabled or configuration.highlight_disabled,
+                                    self.enabled
+                                            and configuration.highlights.enabled
+                                        or configuration.highlights.disabled,
+                                },
+                                {
+                                    configuration.delimiter or renderer.configuration.tab,
+                                    configuration.highlights.delimiter or "Normal",
+                                },
+                                {
+                                    description or "no description",
+                                    configuration.highlights.description or "TSString",
                                 },
                             })
                         end,
@@ -129,7 +141,9 @@ return function(module)
                 line = 0,
                 buffer = 0,
                 allocated_lines = 0,
-                configuration = {},
+                configuration = {
+                    tab = " ",
+                },
 
                 reset = function(self, buffer, configuration)
                     self.line = 0
@@ -158,7 +172,7 @@ return function(module)
 
                     vim.api.nvim_buf_set_extmark(self.buffer, self.configuration.namespace, self.line, 0, {
                         virt_text_pos = "overlay",
-                        virt_text = args
+                        virt_text = args,
                     })
 
                     self.line = self.line + 1
@@ -187,9 +201,7 @@ return function(module)
                 template.finish = function(builder, buffer, configuration)
                     local renderer = vim.deepcopy(module.public.renderer_template)
 
-                    -- TODO: Override renderer configuration
-
-                    renderer:reset(buffer, configuration)
+                    renderer:reset(buffer, configuration.renderer)
 
                     for _, item in ipairs(builder.selection) do
                         local keys_to_bind = item:setup(renderer)
