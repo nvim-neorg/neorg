@@ -1,7 +1,12 @@
 return function(module)
     return {
         public = {
-            display_today_tasks = function(tasks)
+            --- Display today view for `tasks`, grouped by contexts
+            --- @param tasks table
+            --- @param opts table
+            ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
+            display_today_tasks = function(tasks, opts)
+                opts = opts or {}
                 local name = "Today's Tasks"
                 local res = {
                     "* " .. name,
@@ -15,7 +20,25 @@ return function(module)
                     return vim.tbl_contains(task.contexts, "today") and today_state
                 end
 
+                -- Remove tasks that contains any of the excluded contexts
+                if opts.exclude then
+                    local exclude_tasks = function(t)
+                        if not t.contexts then
+                            return true
+                        end
+
+                        for _, c in pairs(t.contexts) do
+                            if vim.tbl_contains(opts.exclude, c) then
+                                return false
+                            end
+                        end
+                        return true
+                    end
+                    tasks = vim.tbl_filter(exclude_tasks, tasks)
+                end
+
                 local contexts_tasks = module.required["core.gtd.queries"].sort_by("contexts", tasks)
+
                 local contexts = vim.tbl_keys(contexts_tasks)
                 contexts = vim.tbl_filter(function(c)
                     return c ~= "today"
@@ -70,7 +93,7 @@ return function(module)
             --- Display contexts view for `tasks`
             --- @param tasks table
             --- @param opts table
-            ---   - opts.exclude (table):   exclude all specified contexts from the view
+            ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
             ---   - opts.priority (table):  will prioritize in the display the contexts specified (order in priority contexts not guaranteed)
             display_contexts = function(tasks, opts)
                 opts = opts or {}
@@ -85,13 +108,24 @@ return function(module)
                 end
                 tasks = vim.tbl_filter(filter_state, tasks)
 
-                local contexts_tasks = module.required["core.gtd.queries"].sort_by("contexts", tasks)
-
+                -- Remove tasks that contains any of the excluded contexts
                 if opts.exclude then
-                    for _, c in pairs(opts.exclude) do
-                        contexts_tasks[c] = nil
+                    local exclude_tasks = function(t)
+                        if not t.contexts then
+                            return true
+                        end
+
+                        for _, c in pairs(t.contexts) do
+                            if vim.tbl_contains(opts.exclude, c) then
+                                return false
+                            end
+                        end
+                        return true
                     end
+                    tasks = vim.tbl_filter(exclude_tasks, tasks)
                 end
+
+                local contexts_tasks = module.required["core.gtd.queries"].sort_by("contexts", tasks)
 
                 -- Sort tasks with opts.priority
                 local contexts = vim.tbl_keys(contexts_tasks)
