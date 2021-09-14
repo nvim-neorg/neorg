@@ -28,8 +28,24 @@ module.public = {
                     )
                 end,
 
+                keys = {
+                    "-t",
+                },
+
                 highlights = {
                     enabled = "TSAnnotation",
+                    disabled = "TSComment",
+                    delimiter = "TSMath",
+                },
+            })
+            :switch("--another-test", "just another test switch", {
+                keys = {
+                    "-a",
+                    "--a",
+                },
+
+                highlights = {
+                    enabled = "TSType",
                     disabled = "TSComment",
                     delimiter = "TSMath",
                 },
