@@ -15,13 +15,24 @@ return function(module)
                     return vim.tbl_contains(task.contexts, "today") and today_state
                 end
 
-                local today_tasks = vim.tbl_filter(today_task, tasks)
+                local contexts_tasks = module.required["core.gtd.queries"].sort_by("contexts", tasks)
+                local contexts = vim.tbl_keys(contexts_tasks)
+                contexts = vim.tbl_filter(function(c)
+                    return c ~= "today"
+                end, contexts)
 
-                for _, t in pairs(today_tasks) do
-                    local content = "- " .. t.content
-                    table.insert(res, content)
+                for _, c in ipairs(contexts) do
+                    local today_tasks = vim.tbl_filter(today_task, contexts_tasks[c])
+                    if #today_tasks > 0 then
+                        table.insert(res, "* " .. c)
+
+                        for _, t in pairs(today_tasks) do
+                            local content = "- " .. t.content
+                            table.insert(res, content)
+                        end
+                        table.insert(res, "")
+                    end
                 end
-
                 local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
                 vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
                 vim.api.nvim_buf_set_option(buf, "modifiable", false)
