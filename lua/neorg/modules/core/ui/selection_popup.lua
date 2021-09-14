@@ -18,9 +18,18 @@
 
 return function(module)
     return {
+        private = {
+            selection_popups = {},
+        },
+
         public = {
             selection_builder_template = {
                 selection = {},
+                renderer = {},
+
+                attach_renderer = function(self, renderer)
+                    self.renderer = renderer
+                end,
 
                 text = function(builder, title, highlight)
                     local renderable_title = title
@@ -36,18 +45,18 @@ return function(module)
                     end
 
                     table.insert(builder.selection, {
-                        type = "title",
+                        type = "text",
 
-                        setup = function(self, renderer)
-                            renderer:allocate_lines(vim.fn.len(renderable_title))
+                        setup = function(_)
+                            builder.renderer:allocate_lines(vim.fn.len(renderable_title))
                         end,
 
-                        render = function(self, renderer)
-                            renderer:render(renderable_title)
+                        render = function(_)
+                            builder.renderer:render(renderable_title)
                         end,
 
-                        clean = function(self, renderer)
-                            renderer:clean_line()
+                        clean = function(_)
+                            builder.renderer:clean_line()
                         end,
                     })
 
@@ -63,13 +72,15 @@ return function(module)
                         type = "switch",
                         enabled = false,
 
-                        setup = function(self, renderer)
-                            renderer:allocate_lines(1)
-                            return configuration.keys
+                        setup = function(_)
+                            builder.renderer:allocate_lines(1)
+                            return {
+                                keys = configuration.keys,
+                            }
                         end,
 
-                        render = function(self, renderer)
-                            renderer:render({
+                        render = function(self)
+                            builder.renderer:render({
                                 {
                                     switch_name,
                                     self.enabled
@@ -77,7 +88,7 @@ return function(module)
                                         or configuration.highlights.disabled,
                                 },
                                 {
-                                    configuration.delimiter or renderer.configuration.tab,
+                                    configuration.delimiter or builder.renderer.configuration.tab,
                                     configuration.highlights.delimiter or "Normal",
                                 },
                                 {
@@ -87,18 +98,18 @@ return function(module)
                             })
                         end,
 
-                        clean = function(self, renderer)
-                            renderer:clean_line()
+                        clean = function(_)
+                            builder.renderer:clean_line()
                         end,
 
                         trigger = function(self, key)
                             self.enabled = not self.enabled
                             if configuration.callback then
-                                configuration.callback(key, self.enabled)
+                                configuration.callback(self.enabled, key)
                             end
                         end,
 
-                        done = function(self, data)
+                        done = function(_, data)
                             configuration.done(data)
                         end,
                     })
@@ -112,20 +123,30 @@ return function(module)
                     table.insert(builder.selection, {
                         type = "newlines",
 
-                        setup = function(self, renderer)
-                            renderer:allocate_lines(count)
+                        setup = function(_)
+                            builder.renderer:allocate_lines(count)
                         end,
 
-                        render = function(self, renderer)
-                            renderer:next_line(count)
+                        render = function(_)
+                            builder.renderer:next_line(count)
                         end,
 
-                        clean = function(self, renderer)
-                            renderer:clean_line()
+                        clean = function(_)
+                            builder.renderer:clean_line()
                         end,
                     })
 
                     return builder
+                end,
+
+                trigger = function(self, id, key, line)
+                    if self.selection[id] and self.selection[id].trigger then
+                        local item = self.selection[id]
+                        item:trigger(key)
+                        self.renderer.line = line
+                        item:clean(self.renderer)
+                        item:render(self.renderer)
+                    end
                 end,
 
                 finish = function(builder, buffer, configuration)
@@ -164,6 +185,10 @@ return function(module)
                     vim.api.nvim_buf_set_lines(self.buffer, 0, self.allocated_lines, false, lines)
                 end,
 
+                clean_line = function(self)
+                    vim.api.nvim_buf_clear_namespace(self.buffer, self.configuration.namespace, self.line, self.line)
+                end,
+
                 render = function(self, args)
                     if self.line >= self.allocated_lines then
                         log.error("TODO Error")
@@ -195,7 +220,16 @@ return function(module)
                 end,
             },
 
-            begin_selection = function(_)
+            get_selection_popup = function(name)
+                return module.private.selection_popups[name] or {}
+            end,
+
+            begin_selection = function(name)
+                if module.private.selection_popups[name] then
+                    log.error("TODO: Error")
+                    return {}
+                end
+
                 local template = vim.deepcopy(module.public.selection_builder_template)
 
                 template.finish = function(builder, buffer, configuration)
@@ -204,13 +238,32 @@ return function(module)
                     local renderer = vim.deepcopy(module.public.renderer_template)
 
                     renderer:reset(buffer, configuration.renderer)
+                    template:attach_renderer(renderer)
 
-                    for _, item in ipairs(builder.selection) do
-                        local keys_to_bind = item:setup(renderer)
+                    for id, item in ipairs(builder.selection) do
+                        local metadata = item:setup(renderer)
 
-                        for _, key in ipairs(keys_to_bind or {}) do
-                            log.warn("Setting key", key)
-                            -- vim.api.nvim_buf_set_keymap(buffer, "n", key, "")
+                        if metadata then
+                            for _, key in ipairs(metadata.keys or {}) do
+                                vim.api.nvim_buf_set_keymap(
+                                    buffer,
+                                    "n",
+                                    key,
+                                    string.format(
+                                        ":lua neorg.modules.get_module('%s').get_selection_popup('%s'):trigger(%s, '%s', %s)<CR>",
+                                        module.name,
+                                        name,
+                                        id,
+                                        key,
+                                        renderer.allocated_lines - 1
+                                    ),
+                                    {
+                                        nowait = true,
+                                        noremap = true,
+                                        silent = true,
+                                    }
+                                )
+                            end
                         end
                     end
 
@@ -219,7 +272,11 @@ return function(module)
                     for _, item in ipairs(builder.selection) do
                         item:render(renderer)
                     end
+
+                    -- vim.cmd("autocmd BufLeave,BufDelete,BufUnload <buffer=" .. tostring(buffer) .. "> :lua vim.api.nvim_buf_delete(" .. tostring(buffer) .. ", { force = true });")
                 end
+
+                module.private.selection_popups[name] = template
 
                 return template
             end,
