@@ -15,34 +15,26 @@ module.private = {
 module.public = {
     -- TODO: Remove this. This is just a showcase
     test_display = function()
-        module.public.create_multi_selection("Test Stuff", {
-            flags = {
-                { "This is a Test", "TSAnnotation" },
-                {},
-                {
-                    "a",
-                    {
-                        name = "Other stuff",
-                        flags = {
-                            { "Very funny" },
-                            { "t", "Things" },
-                        },
-                    },
+        module.public.begin_selection("Test Selection")
+            :title("Hello World!")
+            :blank()
+            :switch("--test", {
+                callback = function(enabled, key)
+                    log.warn(
+                        "The switch got flipped to the",
+                        enabled and "enabled" or "disabled",
+                        "state through '" .. key .. "'."
+                    )
+                end,
+
+                highlight_enabled = "TSAnnotation",
+                highlight_disabled = "TSComment",
+            })
+            :finish(module.public.create_split("Test Selection"), {
+                renderer = {
+                    tab = "    ",
                 },
-                {
-                    "b",
-                    {
-                        name = "Another test",
-                        flags = {
-                            { "a", "One" },
-                            { "b", "One" },
-                        },
-                    },
-                },
-            },
-        }, function(selection)
-            log.warn(selection)
-        end)
+            })
     end,
 
     -- @Summary Gets the current size of the window
