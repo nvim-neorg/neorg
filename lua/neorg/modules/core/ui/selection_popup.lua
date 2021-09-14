@@ -142,7 +142,7 @@ return function(module)
                 buffer = 0,
                 allocated_lines = 0,
                 configuration = {
-                    tab = " ",
+                    tab = "  ",
                 },
 
                 reset = function(self, buffer, configuration)
@@ -150,7 +150,7 @@ return function(module)
                     self.buffer = buffer
                     self.configuration = vim.tbl_deep_extend("force", self.configuration, configuration or {})
 
-                    if not configuration.namespace then
+                    if not configuration or not configuration.namespace then
                         self.configuration.namespace = vim.api.nvim_create_namespace(tostring(buffer))
                     end
                 end,
@@ -199,6 +199,8 @@ return function(module)
                 local template = vim.deepcopy(module.public.selection_builder_template)
 
                 template.finish = function(builder, buffer, configuration)
+                    configuration = configuration or {}
+
                     local renderer = vim.deepcopy(module.public.renderer_template)
 
                     renderer:reset(buffer, configuration.renderer)

@@ -34,11 +34,7 @@ module.public = {
                     delimiter = "TSMath",
                 },
             })
-            :finish(module.public.create_split("Test Selection"), {
-                renderer = {
-                    tab = "    ",
-                },
-            })
+            :finish(module.public.create_split("Test Selection"))
     end,
 
     -- @Summary Gets the current size of the window
