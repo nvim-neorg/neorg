@@ -26,8 +26,8 @@ return function(module)
                                     { "t", "Today tasks" },
                                     { "c", "contexts" },
                                     { "w", "Waiting for" },
+                                    { "s", "Someday" },
                                     { "d", "Due tasks", true },
-                                    { "s", "Start tasks", true },
                                 },
                             },
                         },
@@ -49,11 +49,11 @@ return function(module)
                         module.public.display_projects(tasks, projects, { priority = { "_" } })
                     elseif choices[1] == "t" then
                         if choices[2] == "t" then
-                            module.public.display_today_tasks(tasks, { exclude = { "someday" }})
+                            module.public.display_today_tasks(tasks, { exclude = { "someday" } })
                         elseif choices[2] == "w" then
                             module.public.display_waiting_for(tasks)
                         elseif choices[2] == "s" then
-                            log.warn(tasks)
+                            module.public.display_someday(tasks)
                         elseif choices[2] == "d" then
                             log.warn(tasks)
                         elseif choices[2] == "c" then
@@ -76,5 +76,3 @@ return function(module)
         },
     }
 end
-
-

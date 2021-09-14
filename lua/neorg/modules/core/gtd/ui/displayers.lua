@@ -47,7 +47,7 @@ return function(module)
                 for _, c in ipairs(contexts) do
                     local today_tasks = vim.tbl_filter(today_task, contexts_tasks[c])
                     if #today_tasks > 0 then
-                        table.insert(res, "* " .. c)
+                        table.insert(res, "** " .. c)
 
                         for _, t in pairs(today_tasks) do
                             local content = "- " .. t.content
@@ -214,6 +214,46 @@ return function(module)
                         table.insert(res, "- /" .. #undone .. " tasks don't have a project assigned/")
                     end
                     table.insert(res, "")
+                end
+
+                local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
+                vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
+                vim.api.nvim_buf_set_option(buf, "modifiable", false)
+            end,
+
+            display_someday = function(tasks)
+                local name = "Someday Tasks"
+                local res = {
+                    "* " .. name,
+                    "",
+                }
+                local someday_task = function(task)
+                    if not task.contexts then
+                        return false
+                    end
+                    return task.state ~= "done" and vim.tbl_contains(task.contexts, "someday")
+                end
+
+                local someday_tasks = vim.tbl_filter(someday_task, tasks)
+
+                if #someday_tasks ~= 0 then
+                    for _, t in pairs(someday_tasks) do
+                        local inserted = "- " .. t.content
+                        if #t.contexts ~= 0 then
+
+                            local remove_someday = vim.tbl_filter(function(t)
+                                return t ~= "someday"
+                            end, t.contexts)
+
+                            if #remove_someday >= 1 then
+                                remove_someday = vim.tbl_map(function(c)
+                                    return "`" .. c .. "`"
+                                end, remove_someday)
+                                inserted = inserted .. " (" .. table.concat(remove_someday, ",") .. ")"
+                            end
+                        end
+                        table.insert(res, inserted)
+                    end
                 end
 
                 local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
