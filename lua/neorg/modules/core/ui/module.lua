@@ -20,22 +20,9 @@ module.public = {
             :blank()
             :text("Switches:", "TSUnderline")
             :switch("--test", "a test switch", {
-                callback = function(enabled, key)
-                    log.warn(
-                        "The switch got flipped to the",
-                        enabled and "enabled" or "disabled",
-                        "state through '" .. key .. "'."
-                    )
-                end,
-
                 keys = {
                     "-t",
-                },
-
-                highlights = {
-                    enabled = "TSAnnotation",
-                    disabled = "TSComment",
-                    delimiter = "TSMath",
+                    "--t",
                 },
             })
             :switch("--another-test", "just another test switch", {
@@ -43,14 +30,12 @@ module.public = {
                     "-a",
                     "--a",
                 },
-
-                highlights = {
-                    enabled = "TSType",
-                    disabled = "TSComment",
-                    delimiter = "TSMath",
+            })
+            :finish(module.public.create_split("Test Selection"), {
+                switch = {
+                    enabled = true,
                 },
             })
-            :finish(module.public.create_split("Test Selection"))
     end,
 
     -- @Summary Gets the current size of the window
