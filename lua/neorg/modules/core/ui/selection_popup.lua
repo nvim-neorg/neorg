@@ -76,7 +76,26 @@ return function(module)
                 end,
 
                 title = function(builder, text, highlight)
-                    return builder:text(text, highlight or "TSTitle")
+                    return builder:add({
+                        type = "title",
+                        configuration = {
+                            highlight = "TSTitle",
+                        },
+
+                        setup = function(_)
+                            builder.renderer:allocate_lines(1)
+                        end,
+
+                        render = function(self)
+                            builder.renderer:render({ { text, self.configuration.highlight } })
+                        end,
+
+                        clean = function(_)
+                            builder.renderer:clean_line()
+                        end,
+                    }, {
+                        highlight = highlight,
+                    })
                 end,
 
                 switch = function(builder, switch_name, description, configuration)
@@ -243,7 +262,7 @@ return function(module)
                 module.private.selection_popups[name] = nil
             end,
 
-            begin_selection = function(name)
+            begin_selection = function(name, global_configuration)
                 local template = vim.deepcopy(module.public.selection_builder_template)
 
                 if not module.private.selection_popups[name] then
@@ -256,6 +275,23 @@ return function(module)
                     end
                 end
 
+                template.add = function(builder, item, configuration)
+                    item.configuration = item.configuration
+                            and vim.tbl_deep_extend(
+                                "force",
+                                item.configuration,
+                                global_configuration[item.type] or {},
+                                configuration or {}
+                            )
+                        or {}
+
+                    log.warn(item.type, item.configuration)
+
+                    table.insert(builder.selection, item)
+
+                    return builder
+                end
+
                 template.finish = function(builder, buffer, configuration)
                     configuration = configuration or {}
 
@@ -265,14 +301,6 @@ return function(module)
                     template:attach_renderer(renderer)
 
                     for id, item in ipairs(builder.selection) do
-                        item.configuration = item.configuration
-                                and vim.tbl_deep_extend(
-                                    "force",
-                                    item.configuration,
-                                    configuration[item.type] or {}
-                                )
-                            or {}
-
                         local metadata = item:setup(renderer)
 
                         if metadata then
