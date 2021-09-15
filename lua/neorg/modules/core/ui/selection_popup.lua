@@ -27,8 +27,22 @@ return function(module)
                 selection = {},
                 renderer = {},
 
-                attach_renderer = function(self, renderer)
-                    self.renderer = renderer
+                attach_renderer = function(builder, renderer)
+                    builder.renderer = renderer
+                end,
+
+                add = function(builder, item, configuration)
+                    item.configuration = item.configuration
+                            and vim.tbl_deep_extend(
+                                "force",
+                                item.configuration,
+                                configuration or {}
+                            )
+                        or {}
+
+                    table.insert(builder.selection, item)
+
+                    return builder
                 end,
 
                 text = function(builder, title, highlight)
@@ -44,7 +58,7 @@ return function(module)
                         end
                     end
 
-                    table.insert(builder.selection, {
+                    return builder:add({
                         type = "text",
 
                         setup = function(_)
@@ -59,8 +73,6 @@ return function(module)
                             builder.renderer:clean_line()
                         end,
                     })
-
-                    return builder
                 end,
 
                 title = function(builder, text, highlight)
@@ -68,14 +80,21 @@ return function(module)
                 end,
 
                 switch = function(builder, switch_name, description, configuration)
-                    table.insert(builder.selection, {
+                    return builder:add({
                         type = "switch",
-                        enabled = false,
+                        configuration = {
+                            enabled = false,
+                            highlights = {
+                                enabled = "TSAnnotation",
+                                disabled = "TSComment",
+                                delimiter = "TSMath",
+                            },
+                        },
 
-                        setup = function(_)
+                        setup = function(self)
                             builder.renderer:allocate_lines(1)
                             return {
-                                keys = configuration.keys,
+                                keys = self.configuration.keys,
                             }
                         end,
 
@@ -83,17 +102,17 @@ return function(module)
                             builder.renderer:render({
                                 {
                                     switch_name,
-                                    self.enabled
-                                            and configuration.highlights.enabled
-                                        or configuration.highlights.disabled,
+                                    self.configuration.enabled
+                                            and self.configuration.highlights.enabled
+                                        or self.configuration.highlights.disabled,
                                 },
                                 {
-                                    configuration.delimiter or builder.renderer.configuration.tab,
-                                    configuration.highlights.delimiter or "Normal",
+                                    self.configuration.delimiter or builder.renderer.configuration.tab,
+                                    self.configuration.highlights.delimiter or "Normal",
                                 },
                                 {
                                     description or "no description",
-                                    configuration.highlights.description or "TSString",
+                                    self.configuration.highlights.description or "TSString",
                                 },
                             })
                         end,
@@ -103,24 +122,22 @@ return function(module)
                         end,
 
                         trigger = function(self, key)
-                            self.enabled = not self.enabled
-                            if configuration.callback then
-                                configuration.callback(self.enabled, key)
+                            self.configuration.enabled = not self.configuration.enabled
+                            if self.configuration.callback then
+                                self.configuration.callback(self.enabled, key)
                             end
                         end,
 
-                        done = function(_, data)
-                            configuration.done(data)
+                        done = function(self, data)
+                            self.configuration.done(data)
                         end,
-                    })
-
-                    return builder
+                    }, configuration)
                 end,
 
                 blank = function(builder, count)
                     count = count or 1
 
-                    table.insert(builder.selection, {
+                    return builder:add({
                         type = "newlines",
 
                         setup = function(_)
@@ -135,8 +152,6 @@ return function(module)
                             builder.renderer:clean_line()
                         end,
                     })
-
-                    return builder
                 end,
 
                 trigger = function(self, id, key, line)
@@ -224,13 +239,22 @@ return function(module)
                 return module.private.selection_popups[name] or {}
             end,
 
-            begin_selection = function(name)
-                if module.private.selection_popups[name] then
-                    log.error("TODO: Error")
-                    return {}
-                end
+            remove_selection_popup = function(name)
+                module.private.selection_popups[name] = nil
+            end,
 
+            begin_selection = function(name)
                 local template = vim.deepcopy(module.public.selection_builder_template)
+
+                if not module.private.selection_popups[name] then
+                    template.finish = function(_, _, _)
+                        log.error(
+                            "Unable to create selection with name",
+                            name,
+                            "- such a selection popup window already exists! Make sure to close the other popup before trying to make a new one."
+                        )
+                    end
+                end
 
                 template.finish = function(builder, buffer, configuration)
                     configuration = configuration or {}
@@ -241,6 +265,14 @@ return function(module)
                     template:attach_renderer(renderer)
 
                     for id, item in ipairs(builder.selection) do
+                        item.configuration = item.configuration
+                                and vim.tbl_deep_extend(
+                                    "force",
+                                    item.configuration,
+                                    configuration[item.type] or {}
+                                )
+                            or {}
+
                         local metadata = item:setup(renderer)
 
                         if metadata then
@@ -273,7 +305,14 @@ return function(module)
                         item:render(renderer)
                     end
 
-                    -- vim.cmd("autocmd BufLeave,BufDelete,BufUnload <buffer=" .. tostring(buffer) .. "> :lua vim.api.nvim_buf_delete(" .. tostring(buffer) .. ", { force = true });")
+                    vim.cmd(
+                        string.format(
+                            "autocmd BufLeave,BufDelete,BufUnload <buffer=%s> :bd! | :lua neorg.modules.get_module('%s').remove_selection_popup('%s')",
+                            buffer,
+                            module.name,
+                            name
+                        )
+                    )
                 end
 
                 module.private.selection_popups[name] = template
