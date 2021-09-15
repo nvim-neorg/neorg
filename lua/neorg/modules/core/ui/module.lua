@@ -15,7 +15,11 @@ module.private = {
 module.public = {
     -- TODO: Remove this. This is just a showcase
     test_display = function()
-        module.public.begin_selection("Test Selection")
+        module.public.begin_selection("Test Selection", {
+            title = {
+                highlight = "TSUnderline",
+            },
+        })
             :title("Hello World!")
             :blank()
             :text("Switches:", "TSUnderline")
@@ -31,11 +35,10 @@ module.public = {
                     "--a",
                 },
             })
-            :finish(module.public.create_split("Test Selection"), {
-                switch = {
-                    enabled = true,
-                },
-            })
+            :blank(2)
+            :title("Other Stuff")
+            :switch("--bruh", "moment")
+            :finish(module.public.create_split("Test Selection"))
     end,
 
     -- @Summary Gets the current size of the window
