@@ -285,8 +285,6 @@ return function(module)
                             )
                         or {}
 
-                    log.warn(item.type, item.configuration)
-
                     table.insert(builder.selection, item)
 
                     return builder
