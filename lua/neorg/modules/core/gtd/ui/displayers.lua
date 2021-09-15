@@ -103,9 +103,11 @@ return function(module)
                     "",
                 }
 
+                -- Keep undone tasks and not waiting for ones
                 local filter_state = function(t)
-                    return t.state ~= "done"
+                    return t.state ~= "done" and not t.waiting_for
                 end
+
                 tasks = vim.tbl_filter(filter_state, tasks)
 
                 -- Remove tasks that contains any of the excluded contexts
@@ -126,6 +128,7 @@ return function(module)
                 end
 
                 local contexts_tasks = module.required["core.gtd.queries"].sort_by("contexts", tasks)
+                contexts_tasks["today"] = nil -- Remove "today" context
 
                 -- Sort tasks with opts.priority
                 local contexts = vim.tbl_keys(contexts_tasks)
@@ -240,7 +243,6 @@ return function(module)
                     for _, t in pairs(someday_tasks) do
                         local inserted = "- " .. t.content
                         if #t.contexts ~= 0 then
-
                             local remove_someday = vim.tbl_filter(function(t)
                                 return t ~= "someday"
                             end, t.contexts)
