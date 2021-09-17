@@ -341,6 +341,53 @@ module.public = {
         -- Clear all the conceals beforehand (so no overlaps occur)
         module.public.clear_icons()
 
+        -- TODO: Comment
+        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+        if tree then
+            local ok, query = pcall(
+                vim.treesitter.parse_query,
+                "norg",
+                [[(
+                    (ranged_tag (tag_name) @_name) @tag
+                    (#eq? @_name "code")
+                )]]
+            )
+
+            if not ok or not query then
+                return
+            end
+
+            for id, node in query:iter_captures(tree:root(), 0) do
+                local id_name = query.captures[id]
+
+                if id_name == "tag" then
+                    local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+                    for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
+                        local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
+
+                        if vim.bo.modifiable and line:len() < range.column_start then
+                            vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
+                        end
+
+                        if line and line:len() >= range.column_start then
+                            module.public._set_extmark(
+                                nil,
+                                "NeorgCodeBlock",
+                                i,
+                                i + 1,
+                                range.column_start,
+                                nil,
+                                true,
+                                "blend"
+                            )
+                        end
+                    end
+                end
+            end
+        end
+
         -- Get the root node of the document (required to iterate over query captures)
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
 
@@ -460,7 +507,7 @@ module.public = {
         if conceals.bold then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -468,7 +515,7 @@ module.public = {
         if conceals.italic then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -476,7 +523,7 @@ module.public = {
         if conceals.underline then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\|^\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\|^\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -484,7 +531,7 @@ module.public = {
         if conceals.strikethrough then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -492,7 +539,7 @@ module.public = {
         if conceals.verbatim then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
                 ]])
             end)
         end
@@ -500,7 +547,7 @@ module.public = {
         if conceals.trailing then
             vim.schedule(function()
                 vim.cmd([[
-                    syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
+                syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
                 ]])
             end)
         end
@@ -508,7 +555,7 @@ module.public = {
         if conceals.link then
             vim.schedule(function()
                 vim.cmd([[
-                    syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
+                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
                 ]])
             end)
         end
@@ -518,15 +565,15 @@ module.public = {
     -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
     clear_conceals = function()
         vim.cmd([[
-            silent! syn clear NeorgConcealURL
-            silent! syn clear NeorgConcealURLValue
-            silent! syn clear NeorgConcealItalic
-            silent! syn clear NeorgConcealBold
-            silent! syn clear NeorgConcealUnderline
-            silent! syn clear NeorgConcealMonospace
-            silent! syn clear NeorgConcealStrikethrough
-            silent! syn clear NeorgConcealTrailing
-            silent! syn clear NeorgConcealLink
+        silent! syn clear NeorgConcealURL
+        silent! syn clear NeorgConcealURLValue
+        silent! syn clear NeorgConcealItalic
+        silent! syn clear NeorgConcealBold
+        silent! syn clear NeorgConcealUnderline
+        silent! syn clear NeorgConcealMonospace
+        silent! syn clear NeorgConcealStrikethrough
+        silent! syn clear NeorgConcealTrailing
+        silent! syn clear NeorgConcealLink
         ]])
     end,
 }
