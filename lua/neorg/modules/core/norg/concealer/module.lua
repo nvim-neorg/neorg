@@ -341,47 +341,59 @@ module.public = {
         -- Clear all the conceals beforehand (so no overlaps occur)
         module.public.clear_icons()
 
-        -- TODO: Comment
+        -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
 
+        -- If the tree is valid then attempt to perform the query
         if tree then
-            local ok, query = pcall(
-                vim.treesitter.parse_query,
-                "norg",
-                [[(
-                    (ranged_tag (tag_name) @_name) @tag
-                    (#eq? @_name "code")
-                )]]
-            )
+            do
+                -- Query all code blocks
+                local ok, query = pcall(
+                    vim.treesitter.parse_query,
+                    "norg",
+                    [[(
+                        (ranged_tag (tag_name) @_name) @tag
+                        (#eq? @_name "code")
+                    )]]
+                )
 
-            if not ok or not query then
-                return
-            end
+                -- If something went wrong then go bye bye
+                if not ok or not query then
+                    return
+                end
 
-            for id, node in query:iter_captures(tree:root(), 0) do
-                local id_name = query.captures[id]
+                -- Go through every found capture
+                for id, node in query:iter_captures(tree:root(), 0) do
+                    local id_name = query.captures[id]
 
-                if id_name == "tag" then
-                    local range = module.required["core.integrations.treesitter"].get_node_range(node)
+                    -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                    if id_name == "tag" then
+                        -- Get the range of the code block
+                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
-                    for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
-                        local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
+                        -- Go through every line in the code block and give it a magical highlight
+                        for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
+                            local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
 
-                        if vim.bo.modifiable and line:len() < range.column_start then
-                            vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
-                        end
+                            -- If our buffer is modifiable or if our line is too short then try to fill in the line
+                            -- (this fixes broken syntax highlights automatically)
+                            if vim.bo.modifiable and line:len() < range.column_start then
+                                vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
+                            end
 
-                        if line and line:len() >= range.column_start then
-                            module.public._set_extmark(
-                                nil,
-                                "NeorgCodeBlock",
-                                i,
-                                i + 1,
-                                range.column_start,
-                                nil,
-                                true,
-                                "blend"
-                            )
+                            -- If our line is valid and it's not too short then apply the dimmed highlight
+                            if line and line:len() >= range.column_start then
+                                module.public._set_extmark(
+                                    nil,
+                                    "NeorgCodeBlock",
+                                    i,
+                                    i + 1,
+                                    range.column_start,
+                                    nil,
+                                    true,
+                                    "blend"
+                                )
+                            end
                         end
                     end
                 end
