@@ -1,4 +1,3 @@
-
 (ranged_tag ("_prefix") @NeorgTagBegin
 	name: (tag_name [(word) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
 	(tag_parameters parameter: (word) @NeorgTagParameter)? @NeorgTagParameters
