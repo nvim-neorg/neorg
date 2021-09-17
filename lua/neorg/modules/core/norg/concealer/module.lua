@@ -121,7 +121,7 @@ module.config.public = {
                 extract = function(content)
                     local column = content:find("*")
                     return column and column - 1
-                end
+                end,
             },
 
             undone = {
@@ -132,7 +132,7 @@ module.config.public = {
                 extract = function(content)
                     local match = content:match("%s+")
                     return match and math.floor((match:len() + 1) / 2)
-                end
+                end,
             },
         },
 
@@ -154,7 +154,7 @@ module.config.public = {
                 render = function(self)
                     return {
                         { self.icon, module.config.public.icons.quote.level_1.highlight },
-                        { self.icon, self.highlight }
+                        { self.icon, self.highlight },
                     }
                 end,
             },
@@ -168,7 +168,7 @@ module.config.public = {
                     return {
                         { self.icon, module.config.public.icons.quote.level_1.highlight },
                         { self.icon, module.config.public.icons.quote.level_2.highlight },
-                        { self.icon, self.highlight }
+                        { self.icon, self.highlight },
                     }
                 end,
             },
@@ -183,7 +183,7 @@ module.config.public = {
                         { self.icon, module.config.public.icons.quote.level_1.highlight },
                         { self.icon, module.config.public.icons.quote.level_2.highlight },
                         { self.icon, module.config.public.icons.quote.level_3.highlight },
-                        { self.icon, self.highlight }
+                        { self.icon, self.highlight },
                     }
                 end,
             },
@@ -199,7 +199,7 @@ module.config.public = {
                         { self.icon, module.config.public.icons.quote.level_2.highlight },
                         { self.icon, module.config.public.icons.quote.level_3.highlight },
                         { self.icon, module.config.public.icons.quote.level_4.highlight },
-                        { self.icon, self.highlight }
+                        { self.icon, self.highlight },
                     }
                 end,
             },
@@ -216,7 +216,7 @@ module.config.public = {
                         { self.icon, module.config.public.icons.quote.level_3.highlight },
                         { self.icon, module.config.public.icons.quote.level_4.highlight },
                         { self.icon, module.config.public.icons.quote.level_5.highlight },
-                        { self.icon, self.highlight }
+                        { self.icon, self.highlight },
                     }
                 end,
             },
@@ -375,14 +375,31 @@ module.public = {
                     -- This is primarily used in nested quotes
                     -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
                     if not icon_data.render then
-                        module.public._set_extmark(icon_data.icon, icon_data.highlight, range.row_start, range.row_end, range.column_start + offset, range.column_end, false, "combine")
+                        module.public._set_extmark(
+                            icon_data.icon,
+                            icon_data.highlight,
+                            range.row_start,
+                            range.row_end,
+                            range.column_start + offset,
+                            range.column_end,
+                            false,
+                            "combine"
+                        )
                     else
-                        module.public._set_extmark(icon_data:render(text), icon_data.highlight, range.row_start, range.row_end, range.column_start + offset, range.column_end, false, "combine")
+                        module.public._set_extmark(
+                            icon_data:render(text),
+                            icon_data.highlight,
+                            range.row_start,
+                            range.row_end,
+                            range.column_start + offset,
+                            range.column_end,
+                            false,
+                            "combine"
+                        )
                     end
                 end
             end
         end
-
     end,
 
     -- @Summary Sets an extmark in the buffer
