@@ -26,9 +26,15 @@ return function(module)
             selection_builder_template = {
                 selection = {},
                 renderer = {},
+                actions = {},
+                data = {},
 
                 attach_renderer = function(builder, renderer)
                     builder.renderer = renderer
+                end,
+
+                map_actions = function(builder, actions)
+                    builder.actions = vim.tbl_deep_extend("force", builder.actions, actions)
                 end,
 
                 add = function(builder, item, configuration)
@@ -148,7 +154,9 @@ return function(module)
                         end,
 
                         done = function(self, data)
-                            self.configuration.done(data)
+                            if self.configuration.done then
+                                self.configuration.done(data)
+                            end
                         end,
                     }, configuration)
                 end,
@@ -173,13 +181,94 @@ return function(module)
                     })
                 end,
 
+                flag = function(builder, flag, description, configuration)
+                    return builder:add({
+                        type = "flag",
+                        configuration = {
+                            highlights = {
+                                key = "NeorgSelectionWindowKey",
+                                description = "NeorgSelectionWindowKeyname",
+                                delimiter = "NeorgSelectionWindowArrow",
+                            },
+                            delimiter = " -> ",
+                            keys = {
+                                flag,
+                            },
+                        },
+
+                        setup = function(self)
+                            builder.renderer:allocate_lines(1)
+                            return {
+                                keys = self.configuration.keys,
+                            }
+                        end,
+
+                        render = function(self)
+                            builder.renderer:render({
+                                {
+                                    flag,
+                                    self.configuration.highlights.key,
+                                },
+                                {
+                                    self.configuration.delimiter or builder.renderer.configuration.tab,
+                                    self.configuration.highlights.delimiter or "Normal",
+                                },
+                                {
+                                    description,
+                                    self.configuration.highlights.description or "Normal",
+                                },
+                            })
+                        end,
+
+                        clean = function(self)
+                            builder.renderer:clean_line()
+                        end,
+
+                        trigger = function(self, key)
+                            return {
+                                data = "a",
+                                action = "close",
+                            }
+                        end,
+
+                        done = function(self, data)
+                            if self.configuration.done then
+                                self.configuration.done(data)
+                            end
+                        end,
+                    }, configuration)
+                end,
+
+                -- TODO: Move out of this scope
                 trigger = function(self, id, key, line)
                     if self.selection[id] and self.selection[id].trigger then
                         local item = self.selection[id]
-                        item:trigger(key)
+                        local return_data = item:trigger(key)
                         self.renderer.line = line
                         item:clean(self.renderer)
                         item:render(self.renderer)
+
+                        if return_data then
+                            if type(return_data.data) == "table" then
+                                self.data = vim.tbl_deep_extend("force", self.data, return_data.data or {})
+                            else
+                                self.data = return_data.data
+                            end
+
+                            if self.actions[return_data.action] then
+                                self.actions[return_data.action](self, id, key, line)
+                            else
+                                return_data.action(self, id, key, line)
+                            end
+                        end
+                    end
+                end,
+
+                done = function(self)
+                    for _, selection in ipairs(self.selection) do
+                        if selection.done then
+                            selection:done(self.data)
+                        end
                     end
                 end,
 
@@ -199,6 +288,8 @@ return function(module)
                 configuration = {
                     tab = "  ",
                 },
+                page_stack = { {} },
+                page_no = 1,
 
                 reset = function(self, buffer, configuration)
                     self.line = 0
@@ -220,6 +311,7 @@ return function(module)
                 end,
 
                 clean_line = function(self)
+                    table.remove(self.page_stack[self.page_no], self.line)
                     vim.api.nvim_buf_clear_namespace(self.buffer, self.configuration.namespace, self.line, self.line)
                 end,
 
@@ -235,6 +327,14 @@ return function(module)
                     })
 
                     self.line = self.line + 1
+
+                    self.page_stack[self.page_no][self.line] = args
+                end,
+
+                render_all = function(self, selection)
+                    for _, item in ipairs(selection) do
+                        item:render(self)
+                    end
                 end,
 
                 -- In the future we would want to add support for several different objects on the same line
@@ -251,6 +351,22 @@ return function(module)
 
                     self.line = self.line + count
                     self.column = 0
+                end,
+
+                push_page = function(self)
+                    self.line = 0
+                    self.allocated_lines = 0
+                    self.page_no = self.page_no + 1
+                    table.insert(self.page_stack, {})
+
+                    vim.api.nvim_buf_clear_namespace(self.buffer, self.configuration.namespace, 0, -1)
+                end,
+
+                pop_page = function(self)
+                    -- TODO: Extra error checking for page_no
+                    table.remove(self.page_stack)
+                    self.page_no = self.page_no - 1
+                    self:render_all(self.page_stack[self.page_no])
                 end,
             },
 
@@ -274,6 +390,13 @@ return function(module)
                         )
                     end
                 end
+
+                template:map_actions({
+                    ["close"] = function(selection)
+                        selection:done()
+                        vim.cmd("bd!")
+                    end,
+                })
 
                 template.add = function(builder, item, configuration)
                     item.configuration = item.configuration
@@ -327,9 +450,7 @@ return function(module)
 
                     renderer:flush_lines()
 
-                    for _, item in ipairs(builder.selection) do
-                        item:render(renderer)
-                    end
+                    renderer:render_all(builder.selection)
 
                     vim.cmd(
                         string.format(
