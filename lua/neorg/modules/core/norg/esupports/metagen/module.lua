@@ -104,7 +104,12 @@ module.load = function()
         module.required["core.autocommands"].enable_autocommand("BufEnter")
     elseif module.config.public.type ~= "none" then
         neorg.callbacks.on_event("core.keybinds.events.enable_keybinds", function(_, key)
-            key.map("n", module.config.public.type, string.format(":lua neorg.modules.get_module('%s').inject_metadata()<CR>", module.name), { noremap = true, silent = true })
+            key.map(
+                "n",
+                module.config.public.type,
+                string.format(":lua neorg.modules.get_module('%s').inject_metadata()<CR>", module.name),
+                { noremap = true, silent = true }
+            )
         end)
     end
 end

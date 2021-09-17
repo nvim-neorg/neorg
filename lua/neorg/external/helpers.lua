@@ -165,6 +165,16 @@ neorg.utils = {
 
         return reverse_lookup and vim.tbl_add_reverse_lookup(langs) or langs
     end,
+
+    --- Perform a backwards search for a character and return the index of that character
+    --- @param str string #The string to search
+    --- @param char string #The substring to search for
+    --- @return number|nil #The index of the found substring or `nil` if not found
+    rfind = function(str, char)
+        local length = str:len()
+        local found_from_back = str:reverse():find(char)
+        return found_from_back and length - found_from_back
+    end,
 }
 
 return neorg.utils
