@@ -17,7 +17,7 @@ module.public = {
     test_display = function()
         module.public.begin_selection("Test Selection", {
             title = {
-                highlight = "TSUnderline",
+                -- highlight = "TSUnderline",
             },
         })
             :title("Hello World!")
@@ -35,9 +35,13 @@ module.public = {
                     "--a",
                 },
             })
-            :blank(2)
-            :title("Other Stuff")
-            :switch("--bruh", "moment")
+            :blank()
+            :text("Flags:", "TSUnderline")
+            :flag("a", "a test flag", {
+                done = function(button)
+                    log.warn("I just pressed the '" .. button .. "' key!")
+                end,
+            })
             :finish(module.public.create_split("Test Selection"))
     end,
 
