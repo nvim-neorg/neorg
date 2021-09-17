@@ -400,6 +400,8 @@ module.public = {
             end
         end
 
+        vim.treesitter.get_parser(0, "norg"):parse()
+
         -- Get the root node of the document (required to iterate over query captures)
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
 
