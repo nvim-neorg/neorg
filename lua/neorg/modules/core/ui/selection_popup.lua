@@ -181,6 +181,12 @@ return function(module)
                     })
                 end,
 
+                --- Creates a clickable flag the user can press
+                --- @param builder table #Equivalent to `self`
+                --- @param flag string #The name of the flag. You want this to be a single character
+                --- @param description string #The description of the flag
+                --- @param configuration table #A configuration table
+                --- @return table #The builder class
                 flag = function(builder, flag, description, configuration)
                     return builder:add({
                         type = "flag",
