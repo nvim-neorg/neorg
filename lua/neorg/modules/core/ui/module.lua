@@ -15,34 +15,51 @@ module.private = {
 module.public = {
     -- TODO: Remove this. This is just a showcase
     test_display = function()
-        module.public.begin_selection("Test Selection", {
-            title = {
-                -- highlight = "TSUnderline",
-            },
+        -- Creates a buffer
+        local buffer = module.public.create_split("name")
+
+        -- Binds a selection to that buffer
+        local selection = module.public.begin_selection(buffer)
+
+        -- Applies some options beforehand
+        selection:options({
+            text = {
+                highlight = "TSUnderline",
+            }
         })
-            :title("Hello World!")
-            :blank()
-            :text("Switches:", "TSUnderline")
-            :switch("--test", "a test switch", {
-                keys = {
-                    "-t",
-                    "--t",
-                },
-            })
-            :switch("--another-test", "just another test switch", {
-                keys = {
-                    "-a",
-                    "--a",
-                },
-            })
-            :blank()
-            :text("Flags:", "TSUnderline")
-            :flag("a", "a test flag", {
-                done = function(button)
-                    log.warn("I just pressed the '" .. button .. "' key!")
-                end,
-            })
-            :finish(module.public.create_split("Test Selection"))
+
+        -- Creates custom elements for use in the selection
+        selection = selection:apply({
+            -- A title will simply be text with a custom highlight
+            title = function(self, text)
+                return self:text(text, "TSTitle")
+            end,
+        })
+
+        -- Render the newly created title element
+        selection:title("This is a title!")
+
+        -- Render some raw text with the TSUnderline highlight
+        selection:text("Flags:", "TSUnderline")
+
+        --[[ -- Create a flag "a" with the description "a description"
+        selection:flag("a", "a description", function(data)
+            -- Invoke this function when pressed!
+            log.warn("Pressed!")
+
+            -- Deletes the selection and the buffer
+            selection:delete(buffer)
+
+            -- Note: You could also use:
+            -- selection:detach(buffer)
+            -- to simply detach from the buffer (the buf won't get deleted)
+        end)
+
+        -- Creates a flag with subflags internally
+        selection:nested_flag("b", "another flag", function(data)
+            selection:text("Some text!")
+            selection:flag("a", "another flag that does nothing")
+        end) ]]
     end,
 
     -- @Summary Gets the current size of the window
