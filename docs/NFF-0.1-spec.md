@@ -463,7 +463,7 @@ changes:
   you will get the result you'd expect - t**his black** magic.
 
   An important thing to note is that a modifier opened via a link modifier must also be closed via a link modifier, that is:
-  `t:*his is some* text` will be *invalid* and will not render as you'd expect, because the opening `:*` does not have a corresponding closing `:*`.
+  `t:*his is some* text` will be *invalid* and will not render as you'd expect, because the opening `:*` does not have a corresponding closing `*:`.
   This, however, would be valid: `t:*his is some*: text`. As always you can use `\` to escape a character if you don't want it to have special meaning to Neorg.
 
 ### Lists
