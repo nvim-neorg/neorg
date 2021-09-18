@@ -21,7 +21,22 @@ module.public = {
         -- Binds a selection to that buffer
         local selection = module.public.begin_selection(buffer)
 
-        -- Applies some options beforehand
+        selection:options({
+            text = {
+                highlight = "TSUnderline",
+            },
+        })
+        :apply({
+            -- A title will simply be text with a custom highlight
+            title = function(self, text)
+                return self:text(text, "TSTitle")
+            end,
+        })
+        :title("Hello World!")
+        :blank()
+        :text("This is a test!")
+
+        --[[ -- Applies some options beforehand
         selection:options({
             text = {
                 highlight = "TSUnderline",
@@ -39,23 +54,24 @@ module.public = {
         -- Render the newly created title element
         selection:title("This is a title!")
 
+        -- Render a blank line
+        selection:blank()
+
         -- Render some raw text with the TSUnderline highlight
         selection:text("Flags:", "TSUnderline")
 
-        --[[ -- Create a flag "a" with the description "a description"
+        selection:detach()
+
+        -- Create a flag "a" with the description "a description"
         selection:flag("a", "a description", function(data)
             -- Invoke this function when pressed!
             log.warn("Pressed!")
 
             -- Deletes the selection and the buffer
-            selection:delete(buffer)
+            selection:detach()
+        end) ]]
 
-            -- Note: You could also use:
-            -- selection:detach(buffer)
-            -- to simply detach from the buffer (the buf won't get deleted)
-        end)
-
-        -- Creates a flag with subflags internally
+        --[[ -- Creates a flag with subflags internally
         selection:nested_flag("b", "another flag", function(data)
             selection:text("Some text!")
             selection:flag("a", "another flag that does nothing")
