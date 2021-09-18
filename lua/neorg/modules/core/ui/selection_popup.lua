@@ -1,5 +1,5 @@
 --[[
-A UI module to allow the user to press different keys to select different actions
+    A UI module to allow the user to press different keys to select different actions
 --]]
 
 return function(module)
@@ -28,13 +28,23 @@ return function(module)
                             vim.api.nvim_buf_set_lines(buffer, -1, -1, false, { "" })
                         end
 
-                        vim.api.nvim_buf_set_extmark(buffer, namespace, self.position, 0, {
-                            virt_text_pos = "overlay",
-                            virt_text = { ... },
-                        })
+                        if not vim.tbl_isempty({ ... }) then
+                            vim.api.nvim_buf_set_extmark(buffer, namespace, self.position, 0, {
+                                virt_text_pos = "overlay",
+                                virt_text = { ... },
+                            })
+                        end
 
                         -- Track which line we're on
                         self.position = self.position + 1
+                    end,
+
+                    --- Resets the renderer by clearing the buffer and resetting
+                    --- the render head
+                    reset = function(self)
+                        self.position = 0
+                        vim.api.nvim_buf_clear_namespace(buffer, namespace, 0, -1)
+                        vim.api.nvim_buf_set_lines(buffer, 0, -1, true, {})
                     end,
                 }
 
@@ -42,7 +52,7 @@ return function(module)
                     --- Retrieves the options for a certain type
                     --- @param type string #The type of element to extract the options for
                     --- @return table #The options for said type or {}
-                    options_for = function(_, type)
+                    options_for = function(type)
                         return options[type] or {}
                     end,
 
@@ -62,18 +72,61 @@ return function(module)
                         return self
                     end,
 
+                    --- Returns the data the selection holds
+                    data = function()
+                        return data
+                    end,
+
+                    --- Detaches the selection popup from the current buffer
+                    --- Does *not* close the buffer
+                    detach = function()
+                        renderer:reset()
+                        return data
+                    end,
+
+                    --- Destroys the selection popup and the buffer it occupied
+                    destroy = function()
+                        renderer:reset()
+                        vim.api.nvim_buf_delete(buffer, { force = true })
+                        return data
+                    end,
+
                     --- Renders some text on the screen
                     --- @param text string #The text to display
                     --- @param highlight string #An optional highlight group to use (defaults to "Normal")
                     --- @return table #`self`
                     text = function(self, text, highlight)
-                        local custom_highlight = self:options_for("text").highlight
+                        local custom_highlight = self.options_for("text").highlight
 
                         renderer:render({
                             text, highlight or custom_highlight or "Normal"
                         })
 
                         return self
+                    end,
+
+                    --- Simply enters a blank line
+                    --- @param count number #An optional number of blank lines to apply
+                    blank = function(self, count)
+                        count = count or 1
+                        renderer:render()
+
+                        if count <= 1 then
+                            return self
+                        else
+                            return self:blank(count - 1)
+                        end
+                    end,
+
+                    -- TODO
+                    flag = function(self, flag, description, callback)
+                        local configuration = vim.tbl_deep_extend("force", {
+                            keys = {
+                                flag
+                            }
+                        }, self.options_for("flag"), type(callback) == "table" and callback or {})
+
+
                     end,
                 }
 
