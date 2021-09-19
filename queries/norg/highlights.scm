@@ -38,6 +38,10 @@
 ; Markers
 (marker (marker_prefix) @NeorgMarker (paragraph_segment) @NeorgMarkerTitle)
 
+; Definitions
+(single_definition (single_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle definition: (_)* @NeorgDefinitionContent)
+(multi_definition (multi_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle content: (_)* @NeorgDefinitionContent end: (multi_definition_suffix) @NeorgDefinitionEnd)
+
 ; Escape sequences (\char)
 (escape_sequence) @NeorgEscapeSequence
 
