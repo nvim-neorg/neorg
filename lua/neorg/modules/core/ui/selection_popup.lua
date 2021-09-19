@@ -196,7 +196,7 @@ return function(module)
                         )
 
                         -- Attach a listener to this flag
-                        self:add_listener("flag", configuration.keys, function()
+                        self:add_listener("flag_" .. flag, configuration.keys, function()
                             -- Invoke the user-defined callback
                             (function()
                                 if type(callback) == "function" then
@@ -221,6 +221,8 @@ return function(module)
                             description or "no description",
                             configuration.highlights.description,
                         })
+
+                        return self
                     end,
                 }
 
