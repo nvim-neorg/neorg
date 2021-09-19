@@ -16,22 +16,21 @@ module.public = {
     -- TODO: Remove this. This is just a showcase
     test_display = function()
         -- Creates a buffer
-        local buffer = module.public.create_split("name")
+        local buffer = module.public.create_split("selection/Test selection")
 
         -- Binds a selection to that buffer
-        local selection = module.public.begin_selection(buffer)
+        local selection = module.public.begin_selection(buffer):apply({
+            -- A title will simply be text with a custom highlight
+            title = function(self, text)
+                return self:text(text, "TSTitle")
+            end,
+        })
 
         selection
             :options({
                 text = {
                     highlight = "TSUnderline",
                 },
-            })
-            :apply({
-                -- A title will simply be text with a custom highlight
-                title = function(self, text)
-                    return self:text(text, "TSTitle")
-                end,
             })
             :title("Hello World!")
             :blank()
@@ -41,8 +40,25 @@ module.public = {
             end)
             :blank()
             :text("Other flags:")
-            :flag("a", nil, function()
-                log.warn("Pressed a")
+            :rflag("a", "press me plz", function()
+                -- Create more elements for the selection
+                selection
+                    :title("Another title")
+                    :blank()
+                    :text("Other Flags:")
+                    :flag("b", "go back", {
+                        callback = function(data) -- TODO: Make the "data" variable useful
+                            log.warn("Pressed n")
+
+                            -- Move back to the previous page (yeah, we support that)
+                            selection:pop_page()
+                        end,
+                        -- Don't destroy the selection popup when we press the flag
+                        destroy = false,
+                    })
+                    :flag("a", "a value", function()
+                        log.warn("Pressed a in the nested flag")
+                    end)
             end)
 
         --[[ -- Applies some options beforehand

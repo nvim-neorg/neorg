@@ -22,9 +22,6 @@ return function(module)
             --- @param buffer number #The number of the buffer the selection should attach to
             --- @return table #A selection object
             begin_selection = function(buffer)
-                -- Used for storing options set by the user
-                local options = {}
-
                 -- Data that is gathered up over the lifetime of the selection popup
                 local data = {}
 
@@ -63,19 +60,27 @@ return function(module)
                     --- the render head
                     reset = function(self)
                         self.position = 0
+
                         vim.api.nvim_buf_clear_namespace(buffer, namespace, 0, -1)
                         vim.api.nvim_buf_set_lines(buffer, 0, -1, true, {})
+
+                        for _, key in ipairs(vim.api.nvim_buf_get_keymap(buffer, "n")) do
+                            vim.api.nvim_buf_del_keymap(buffer, "n", key.lhs)
+                        end
                     end,
                 }
 
                 local selection = {
                     callbacks = {},
+                    page = 1,
+                    pages = { {} },
+                    opts = {},
 
                     --- Retrieves the options for a certain type
                     --- @param type string #The type of element to extract the options for
                     --- @return table #The options for said type or {}
-                    options_for = function(type)
-                        return options[type] or {}
+                    options_for = function(self, type)
+                        return self.opts[type] or {}
                     end,
 
                     --- Applies some new functions for the selection
@@ -84,6 +89,13 @@ return function(module)
                     apply = function(self, tbl_of_functions)
                         self = vim.tbl_deep_extend("force", self, tbl_of_functions)
                         return self
+                    end,
+
+                    --- Adds a new element to the current page
+                    --- @param element function #A pointer to the function that created the item
+                    --- @vararg any #The arguments that were used to construct the element
+                    add = function(self, element, ...)
+                        table.insert(self.pages[self.page], { self[element], { ... } })
                     end,
 
                     --- Attaches a key listener to the current buffer
@@ -118,7 +130,7 @@ return function(module)
                     --- @param opts table #A table of options
                     --- @return table #`self`
                     options = function(self, opts)
-                        options = vim.tbl_deep_extend("force", options, opts)
+                        self.opts = vim.tbl_deep_extend("force", self.opts, opts)
                         return self
                     end,
 
@@ -129,14 +141,22 @@ return function(module)
 
                     --- Detaches the selection popup from the current buffer
                     --- Does *not* close the buffer
-                    detach = function()
+                    detach = function(self)
                         renderer:reset()
+
+                        self.page = 1
+                        self.pages = {}
+
                         return data
                     end,
 
                     --- Destroys the selection popup and the buffer it occupied
-                    destroy = function()
+                    destroy = function(self)
                         renderer:reset()
+
+                        self.page = 1
+                        self.pages = {}
+
                         vim.api.nvim_buf_delete(buffer, { force = true })
                         return data
                     end,
@@ -146,7 +166,9 @@ return function(module)
                     --- @param highlight string #An optional highlight group to use (defaults to "Normal")
                     --- @return table #`self`
                     text = function(self, text, highlight)
-                        local custom_highlight = self.options_for("text").highlight
+                        local custom_highlight = self:options_for("text").highlight
+
+                        self:add("text", text, highlight)
 
                         renderer:render({
                             text,
@@ -161,6 +183,8 @@ return function(module)
                     blank = function(self, count)
                         count = count or 1
                         renderer:render()
+
+                        self:add("blank", count)
 
                         if count <= 1 then
                             return self
@@ -188,12 +212,16 @@ return function(module)
                                     delimiter = "NeorgSelectionWindowArrow",
                                 },
                                 delimiter = " -> ",
+                                -- Whether to destroy the selection popup when this flag is pressed
+                                destroy = true,
                             },
-                            self.options_for( -- First merge the global options
+                            self:options_for( -- First merge the global options
                                 "flag"
                             ),
                             type(callback) == "table" and callback or {} -- Then optionally merge the flag-specific options
                         )
+
+                        self:add("flag", flag, description, callback)
 
                         -- Attach a listener to this flag
                         self:add_listener("flag_" .. flag, configuration.keys, function()
@@ -204,10 +232,12 @@ return function(module)
                                 else
                                     return callback.callback or function() end
                                 end
-                            end)()()
+                            end)()(data)
 
                             -- Delete the selection afterwards too
-                            self:destroy()
+                            if configuration.destroy then
+                                self:destroy()
+                            end
                         end)
 
                         -- Actually render the flag
@@ -223,6 +253,104 @@ return function(module)
                         })
 
                         return self
+                    end,
+
+                    --- Constructs a recursive (nested) flag
+                    --- @param flag string #The flag key, should be one character only
+                    --- @param description string #The description of the flag
+                    --- @param callback function|table #The callback to invoke after the flag is entered
+                    --- @return table #`self`
+                    rflag = function(self, flag, description, callback)
+                        -- Set up the configuration by properly merging everything
+                        local configuration = vim.tbl_deep_extend(
+                            "force",
+                            {
+                                keys = {
+                                    flag,
+                                },
+                                highlights = {
+                                    -- TODO: Change highlight group names
+                                    key = "NeorgSelectionWindowKey",
+                                    description = "NeorgSelectionWindowNestedKeyname",
+                                    delimiter = "NeorgSelectionWindowArrow",
+                                },
+                                delimiter = " -> ",
+                            },
+                            self:options_for( -- First merge the global options
+                                "rflag"
+                            ),
+                            type(callback) == "table" and callback or {} -- Then optionally merge the rflag-specific options
+                        )
+
+                        self:add("rflag", flag, description, callback)
+
+                        -- Attach a listener to this flag
+                        self:add_listener("flag_" .. flag, configuration.keys, function()
+                            -- Create a new page to allow the renderer to start fresh
+                            self:push_page();
+
+                            -- Invoke the user-defined callback
+                            (function()
+                                if type(callback) == "function" then
+                                    return callback()
+                                elseif callback.callback then
+                                    return callback.callback()
+                                end
+                            end)()
+                        end)
+
+                        -- Actually render the flag
+                        renderer:render({
+                            flag,
+                            configuration.highlights.key,
+                        }, {
+                            configuration.delimiter,
+                            configuration.highlights.delimiter,
+                        }, {
+                            "+" .. (description or "no description"),
+                            configuration.highlights.description,
+                        })
+
+                        return self
+                    end,
+
+                    --- Pushes a new page onto the stack, clearing the buffer
+                    --- and starting fresh
+                    push_page = function(self)
+                        self.page = self.page + 1
+                        self.pages[self.page] = {}
+                        renderer:reset()
+                    end,
+
+                    --- Pops the page stack, effectively restoring the previous
+                    --- state
+                    pop_page = function(self)
+                        -- If we have no pages left then there's nothing to pop
+                        if self.page - 1 < 1 then
+                            return
+                        end
+
+                        -- Delete the current page from existence
+                        self.pages[self.page] = {}
+                        -- Decrement the page counter
+                        self.page = self.page - 1
+
+                        -- Create a local copy of the previous (now current) page
+                        -- We do this because when we start rendering objects
+                        -- they'll start getting added onto the current page
+                        -- and will start looping to infinity.
+                        local page_copy = vim.deepcopy(self.pages[self.page])
+                        -- Clear the current page;
+                        self.pages[self.page] = {}
+
+                        -- Reset the renderer to make sure we're starting afresh
+                        renderer:reset()
+
+                        -- Loop through all items in the page and recreate
+                        -- each element
+                        for _, item in ipairs(page_copy) do
+                            item[1](self, unpack(item[2]))
+                        end
                     end,
                 }
 
