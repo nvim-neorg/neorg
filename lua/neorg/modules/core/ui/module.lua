@@ -21,20 +21,24 @@ module.public = {
         -- Binds a selection to that buffer
         local selection = module.public.begin_selection(buffer)
 
-        selection:options({
-            text = {
-                highlight = "TSUnderline",
-            },
-        })
-        :apply({
-            -- A title will simply be text with a custom highlight
-            title = function(self, text)
-                return self:text(text, "TSTitle")
-            end,
-        })
-        :title("Hello World!")
-        :blank()
-        :text("This is a test!")
+        selection
+            :options({
+                text = {
+                    highlight = "TSUnderline",
+                },
+            })
+            :apply({
+                -- A title will simply be text with a custom highlight
+                title = function(self, text)
+                    return self:text(text, "TSTitle")
+                end,
+            })
+            :title("Hello World!")
+            :blank()
+            :text("This is a test!")
+            :flag("h", "World", function()
+                log.warn("What")
+            end)
 
         --[[ -- Applies some options beforehand
         selection:options({
