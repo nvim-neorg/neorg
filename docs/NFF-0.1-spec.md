@@ -434,6 +434,7 @@ changes:
 	This is some subtext for heading one
   ```
   Obviously, it is still possible to supply a hard line break, however both options are permitted.
+
 ### Intersecting Modifiers
   Sometimes you may want to use modifiers while they're inside of a piece of text, like t**hi**s. Note how the **hi** is in bold.
   Neorg allows this, however it requires an extra step. According to the rules there must be whitespace/punctuation before
@@ -689,6 +690,32 @@ changes:
 
 	I have a link to my marker right [here](#marker1).
   ```
+
+### Definitions
+Defintions provide an easy syntax to define any kind of object.
+The norg format supports two such kinds:
+
+#### Single-paragraph definitions
+These look like the following:
+```
+: Object to be defined
+A single-paragraph definition of the object.
+
+This paragraph is no longer part of the definition.
+```
+
+#### Multi-paragraph definitions
+```
+:: Object to be defined
+Here you have the freedom to write your definition in multiple paragraphs.
+
+You can even include other syntax elements:
+@code lua
+print("Hello world!")
+@end
+::
+This is no longer part of the definition.
+```
 
 ### Indentation
 One of our design goals when developing this format was "focus on the text, not the outcome". Whilst most markdownesque languages

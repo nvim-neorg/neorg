@@ -113,6 +113,26 @@ And using 3 or more `=` signs will drop you right back to the root level!
     You can mark specific locations in your file with markers:
     | some marker
 
+ ** Definitions
+    There are two kinds of defintions:
+
+  *** Single-paragraph definitions
+      : Object to be defined
+      The definition of the object in a single paragraph.
+
+      This is already the next paragraph.
+
+  *** Multi-paragraph definitions
+      :: Object to be defined
+      Here, I can place any number of paragraphs or other format objects.
+
+      Even a code example:
+      @code lua
+      print("Hello world!")
+      @end
+      ::
+      This is no longer part of the definition because the `::` on the previous line marked its end.
+
  ** Data Tags
     Neorg supports a number of tags. The general format is:
     @data possible parameters
