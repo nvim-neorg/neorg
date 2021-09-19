@@ -133,6 +133,8 @@ changes:
   - `,some text,` - subscript
   - `|some text|` - spoilers
   - \`some text\` - inline code block (verbatim)
+  - `$inline math$` - inline mathematics
+  - `=variable` - accesses a previously defined variable
 
 ### Detached Modifiers and Their Functions
   Detached modifiers are those that change the way text is interpreted. Their symbols and functions are described in the format that follows:
@@ -432,6 +434,7 @@ changes:
 	This is some subtext for heading one
   ```
   Obviously, it is still possible to supply a hard line break, however both options are permitted.
+
 ### Intersecting Modifiers
   Sometimes you may want to use modifiers while they're inside of a piece of text, like t**hi**s. Note how the **hi** is in bold.
   Neorg allows this, however it requires an extra step. According to the rules there must be whitespace/punctuation before
@@ -654,6 +657,8 @@ changes:
 
   `= variable_name value`
 
+  Variables can be accessed at a later point in your document via the `=` **at**tached modifier like so: `Insert my =variable=`.
+
   Or can be used to place an element like a dynamically generated Table of Contents in the file (note how the "T" in TOC is uppercase; the rest of the casing doesn't matter):
 
   `= TOC Table of Contents:`
@@ -685,6 +690,32 @@ changes:
 
 	I have a link to my marker right [here](#marker1).
   ```
+
+### Definitions
+Defintions provide an easy syntax to define any kind of object.
+The norg format supports two such kinds:
+
+#### Single-paragraph definitions
+These look like the following:
+```
+: Object to be defined
+A single-paragraph definition of the object.
+
+This paragraph is no longer part of the definition.
+```
+
+#### Multi-paragraph definitions
+```
+:: Object to be defined
+Here you have the freedom to write your definition in multiple paragraphs.
+
+You can even include other syntax elements:
+@code lua
+print("Hello world!")
+@end
+::
+This is no longer part of the definition.
+```
 
 ### Indentation
 One of our design goals when developing this format was "focus on the text, not the outcome". Whilst most markdownesque languages
@@ -926,6 +957,9 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 
 - `@code language` - creates a mulitiline code block. The only parameters, `language`, is optional.
 Code placed within this tag will be rendered with the language's own syntax highlighter or simply rendered verbatim if no language parameter was given.
+
+- `@math` - creates a multline LaTeX-typesetting environment for easy mathmatical equations.
+  This may be enhanced further with the `$numbered` carryover tag in a similar vain to the `$ordered` tag.
 
 ### Unsupported Tags
   If a tag is encountered that is invalid it should simply be ignored and never showed in any render of the document.

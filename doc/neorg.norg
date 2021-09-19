@@ -23,6 +23,8 @@
     - \`inline code\`: `inline code`
     - \^superscript\^: ^superscript^
     - \,subscript\,: ,subscript,
+    - \$inline math\$: $f(x) = y$ (see also [Math](#math))
+    - \=variable\=: =variable= (see also [Variables](#variables))
 
     This also immediately shows you how to escape a special character using the backslash, \\.
 
@@ -111,6 +113,26 @@ And using 3 or more `=` signs will drop you right back to the root level!
     You can mark specific locations in your file with markers:
     | some marker
 
+ ** Definitions
+    There are two kinds of defintions:
+
+  *** Single-paragraph definitions
+      : Object to be defined
+      The definition of the object in a single paragraph.
+
+      This is already the next paragraph.
+
+  *** Multi-paragraph definitions
+      :: Object to be defined
+      Here, I can place any number of paragraphs or other format objects.
+
+      Even a code example:
+      @code lua
+      print("Hello world!")
+      @end
+      ::
+      This is no longer part of the definition because the `::` on the previous line marked its end.
+
  ** Data Tags
     Neorg supports a number of tags. The general format is:
     @data possible parameters
@@ -183,6 +205,16 @@ And using 3 or more `=` signs will drop you right back to the root level!
       https://github.com/vhyrro/neorg/blob/main/res/neorg.svg
       @end
 
+  *** Math
+      There are two ways of typesetting mathematics:
+      ~ Inline mathematics using the `$` attached modifier like so: $f(x) = y$.
+      ~ Multiline mathematics using the `math` ranged tag which supports any LaTeX-typeset math.
+      @math
+      f(x) = y
+      @end
+      A `numbered` carryover tag in a similar vain to the `ordered` one for lists is planned to add
+      easy equation numbering support.
+
  ** Advanced markup
     There are some more advanced markup features:
 
@@ -199,9 +231,25 @@ And using 3 or more `=` signs will drop you right back to the root level!
    **** This is a super duper long heading which I am so proud of and I absolutely cannot shorten~
         to fit onto a single line
 
+  *** Variables
+      You can define variables which you can access later in your document like so:
+      @code norg
+      = <variable name> <values>
+      @end
+      For a reason explained in the next section, variable names *must* be lowercase!
+      You can refer to this variable later in your document using the `=` attached modifier like so:
+      @code norg
+      Insert my =variable=.
+      @end
+
   *** Insertions
-      These are dynamically expended objects which you can add to your document's
-      [foreplay](#foreplay). Continue reading to find out where to find them.
+      These are dynamically expanded objects which you can add to your document.
+      The simplest example of an insertion is the /table of contents/ which looks like
+      @code norg
+      = ToC Table of Contents
+      @end
+      This shows the basic syntax `= <capitalized insertion name> <arguments>` and it also explains
+      why [Variables](#variables) have to be lowercased.
 
   *** Foreplay
       If you read the quote above, you already heard this before. The /foreplay/ is located at the
@@ -211,4 +259,4 @@ And using 3 or more `=` signs will drop you right back to the root level!
       find an example of it at the top of this file.
 
 $comment
-vim:tw=100:ts=8:noet:ft=norg:norl:
+vim:tw=100:ft=norg:norl:
