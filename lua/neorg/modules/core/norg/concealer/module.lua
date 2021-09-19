@@ -274,6 +274,29 @@ module.config.public = {
             highlight = "NeorgMarker",
             query = "(marker_prefix) @icon",
         },
+
+        definition = {
+            enabled = true,
+
+            single = {
+                enabled = true,
+                icon = "≡",
+                highlight = "NeorgDefinition",
+                query = "(single_definition_prefix) @icon",
+            },
+            multi_prefix = {
+                enabled = true,
+                icon = "⋙ ",
+                highlight = "NeorgDefinition",
+                query = "(multi_definition_prefix) @icon",
+            },
+            multi_suffix = {
+                enabled = true,
+                icon = "⋘ ",
+                highlight = "NeorgDefinition",
+                query = "(multi_definition_suffix) @icon",
+            },
+        },
     },
 
     conceals = {
