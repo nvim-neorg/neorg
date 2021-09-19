@@ -134,6 +134,7 @@ changes:
   - `|some text|` - spoilers
   - \`some text\` - inline code block (verbatim)
   - `$inline math$` - inline mathematics
+  - `=variable` - accesses a previously defined variable
 
 ### Detached Modifiers and Their Functions
   Detached modifiers are those that change the way text is interpreted. Their symbols and functions are described in the format that follows:
@@ -654,6 +655,8 @@ changes:
   This can be used to set a variable (must be lowercase):
 
   `= variable_name value`
+
+  Variables can be accessed at a later point in your document via the `=` **at**tached modifier like so: `Insert my =variable=`.
 
   Or can be used to place an element like a dynamically generated Table of Contents in the file (note how the "T" in TOC is uppercase; the rest of the casing doesn't matter):
 
