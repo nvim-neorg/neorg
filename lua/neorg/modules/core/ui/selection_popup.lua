@@ -4,15 +4,35 @@
 
 return function(module)
     return {
+        private = {
+            -- Stores all currently open selection popups
+            callbacks = {},
+        },
+
         public = {
+            --- Invokes a key callback in a certain selection
+            --- @param name string #The name of the selection
+            --- @param key string #The key that was pressed
+            --- @param type string #The type of element the callback belongs to (could be "flag", "switch" etc.)
+            invoke_key_in_selection = function(name, key, type)
+                module.private.callbacks[name].callbacks[type](key)
+            end,
+
+            --- Constructs a new selection
+            --- @param buffer number #The number of the buffer the selection should attach to
+            --- @return table #A selection object
             begin_selection = function(buffer)
                 -- Used for storing options set by the user
                 local options = {}
 
+                -- Data that is gathered up over the lifetime of the selection popup
                 local data = {}
 
+                -- Get the name of the buffer we are about to attach to
+                local name = vim.api.nvim_buf_get_name(buffer)
+
                 -- Create a namespace from the buffer name
-                local namespace = vim.api.nvim_create_namespace(vim.api.nvim_buf_get_name(buffer))
+                local namespace = vim.api.nvim_create_namespace(name)
 
                 --- Simply renders things using extmarks
                 local renderer = {
@@ -49,6 +69,8 @@ return function(module)
                 }
 
                 local selection = {
+                    callbacks = {},
+
                     --- Retrieves the options for a certain type
                     --- @param type string #The type of element to extract the options for
                     --- @return table #The options for said type or {}
@@ -62,6 +84,34 @@ return function(module)
                     apply = function(self, tbl_of_functions)
                         self = vim.tbl_deep_extend("force", self, tbl_of_functions)
                         return self
+                    end,
+
+                    --- Attaches a key listener to the current buffer
+                    --- @param type string #The type of element to attach to (can be "flag" or "switch" or something)
+                    --- @param keys table #An array of keys to bind
+                    --- @param func function #A callback to invoke whenever the key has been pressed
+                    add_listener = function(self, type, keys, func)
+                        self.callbacks[type] = func
+
+                        for _, key in ipairs(keys) do
+                            vim.api.nvim_buf_set_keymap(
+                                buffer,
+                                "n",
+                                key,
+                                string.format(
+                                    "<cmd>lua neorg.modules.get_module('%s').invoke_key_in_selection('%s', '%s', '%s')<CR>",
+                                    module.name,
+                                    name,
+                                    key,
+                                    type
+                                ),
+                                {
+                                    silent = true,
+                                    noremap = true,
+                                    nowait = true,
+                                }
+                            )
+                        end
                     end,
 
                     --- Sets some options for the selection to take into account
@@ -99,7 +149,8 @@ return function(module)
                         local custom_highlight = self.options_for("text").highlight
 
                         renderer:render({
-                            text, highlight or custom_highlight or "Normal"
+                            text,
+                            highlight or custom_highlight or "Normal",
                         })
 
                         return self
@@ -118,20 +169,66 @@ return function(module)
                         end
                     end,
 
-                    -- TODO
+                    --- Creates a pressable flag
+                    --- @param flag string #The flag. These should be a single character
+                    --- @param description string #The description for the flag
+                    --- @param callback table|function #The callback to invoke or configuration options for the flag
                     flag = function(self, flag, description, callback)
-                        local configuration = vim.tbl_deep_extend("force", {
-                            keys = {
-                                flag
-                            }
-                        }, self.options_for("flag"), type(callback) == "table" and callback or {})
+                        -- Set up the configuration by properly merging everything
+                        local configuration = vim.tbl_deep_extend(
+                            "force",
+                            {
+                                keys = {
+                                    flag,
+                                },
+                                highlights = {
+                                    -- TODO: Change highlight group names
+                                    key = "NeorgSelectionWindowKey",
+                                    description = "NeorgSelectionWindowKeyname",
+                                    delimiter = "NeorgSelectionWindowArrow",
+                                },
+                                delimiter = " -> ",
+                            },
+                            self.options_for( -- First merge the global options
+                                "flag"
+                            ),
+                            type(callback) == "table" and callback or {} -- Then optionally merge the flag-specific options
+                        )
 
+                        -- Attach a listener to this flag
+                        self:add_listener("flag", configuration.keys, function()
+                            -- Invoke the user-defined callback
+                            (function()
+                                if type(callback) == "function" then
+                                    return callback
+                                else
+                                    return callback.callback or function() end
+                                end
+                            end)()()
 
+                            -- Delete the selection afterwards too
+                            self:destroy()
+                        end)
+
+                        -- Actually render the flag
+                        renderer:render({
+                            flag,
+                            configuration.highlights.key,
+                        }, {
+                            configuration.delimiter,
+                            configuration.highlights.delimiter,
+                        }, {
+                            description or "no description",
+                            configuration.highlights.description,
+                        })
                     end,
                 }
 
+                -- Attach the selection to a list of callbacks
+                module.private.callbacks[name] = selection
+
                 return selection
-            end
-        }
+            end,
+        },
     }
 end
