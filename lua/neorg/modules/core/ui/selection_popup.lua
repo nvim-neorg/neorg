@@ -178,6 +178,13 @@ return function(module)
                         return self
                     end,
 
+                    --- Generates a title
+                    --- @param text string #The text to display
+                    --- @return table #`self`
+                    title = function(self, text)
+                        return self:text(text, "TSTitle")
+                    end,
+
                     --- Simply enters a blank line
                     --- @param count number #An optional number of blank lines to apply
                     blank = function(self, count)
