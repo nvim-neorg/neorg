@@ -133,6 +133,7 @@ changes:
   - `,some text,` - subscript
   - `|some text|` - spoilers
   - \`some text\` - inline code block (verbatim)
+  - `$inline math$` - inline mathematics
 
 ### Detached Modifiers and Their Functions
   Detached modifiers are those that change the way text is interpreted. Their symbols and functions are described in the format that follows:
@@ -926,6 +927,9 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 
 - `@code language` - creates a mulitiline code block. The only parameters, `language`, is optional.
 Code placed within this tag will be rendered with the language's own syntax highlighter or simply rendered verbatim if no language parameter was given.
+
+- `@math` - creates a multline LaTeX-typesetting environment for easy mathmatical equations.
+  This may be enhanced further with the `$numbered` carryover tag in a similar vain to the `$ordered` tag.
 
 ### Unsupported Tags
   If a tag is encountered that is invalid it should simply be ignored and never showed in any render of the document.

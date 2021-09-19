@@ -23,6 +23,7 @@
     - \`inline code\`: `inline code`
     - \^superscript\^: ^superscript^
     - \,subscript\,: ,subscript,
+    - \$inline math\$: $f(x) = y$ (see also [Math](#math))
 
     This also immediately shows you how to escape a special character using the backslash, \\.
 
@@ -182,6 +183,16 @@ And using 3 or more `=` signs will drop you right back to the root level!
       @embed image
       https://github.com/vhyrro/neorg/blob/main/res/neorg.svg
       @end
+
+  *** Math
+      There are two ways of typesetting mathematics:
+      ~ Inline mathematics using the `$` attached modifier like so: $f(x) = y$.
+      ~ Multiline mathematics using the `math` ranged tag which supports any LaTeX-typeset math.
+      @math
+      f(x) = y
+      @end
+      A `numbered` carryover tag in a similar vain to the `ordered` one for lists is planned to add
+      easy equation numbering support.
 
  ** Advanced markup
     There are some more advanced markup features:
