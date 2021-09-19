@@ -35,9 +35,14 @@ module.public = {
             })
             :title("Hello World!")
             :blank()
-            :text("This is a test!")
+            :text("Flags:")
             :flag("h", "World", function()
-                log.warn("What")
+                log.warn("Pressed h")
+            end)
+            :blank()
+            :text("Other flags:")
+            :flag("a", nil, function()
+                log.warn("Pressed a")
             end)
 
         --[[ -- Applies some options beforehand
