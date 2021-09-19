@@ -211,4 +211,4 @@ And using 3 or more `=` signs will drop you right back to the root level!
       find an example of it at the top of this file.
 
 $comment
-vim:tw=100:ts=8:noet:ft=norg:norl:
+vim:tw=100:ft=norg:norl:
