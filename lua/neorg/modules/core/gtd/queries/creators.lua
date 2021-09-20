@@ -2,6 +2,7 @@ return function(module)
     return {
         public = {
             --- Creates a new project from the `project` table and insert it in `bufnr` at `location`
+            --- supported `string`: project|task
             --- @param type string
             --- @param node table
             --- @param bufnr number
@@ -64,7 +65,15 @@ return function(module)
                 }
                 local document = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)[1]
 
-                local _, _, end_row, _ = ts_utils.get_node_range(document[1])
+                local end_row
+
+                -- There is no content in the document
+                if not document then
+                    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+                    end_row = #lines
+                else
+                    _, _, end_row, _ = ts_utils.get_node_range(document[1])
+                end
 
                 return end_row, bufnr
             end,
