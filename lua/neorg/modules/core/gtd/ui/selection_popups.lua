@@ -23,31 +23,17 @@ return function(module)
                     :title("This is a text")
                     :blank()
                     :text("Capture")
-                    :flag("a", "Add a task to inbox", module.public.add_task_to_inbox)
-                    :blank()
-                    :flag("v", "Test prompt (return back)", {
-                        callback = function()
-                            selection:push_page()
-                            selection:title("SAlut"):blank():prompt("Test Prompt", {
-                                callback = function(test)
-                                    print("test: ", test)
-                                end,
-                                pop = true,
-                            })
-                        end,
-                        -- Don't destroy the selection popup when we press the flag
-                        destroy = false,
-                    })
-                    :flag("x", "Test prompt (delete after confirmation)", {
-                        callback = function()
-                            selection:push_page()
-                            selection:title("SAlut"):blank():prompt("Test Prompt", function(test)
-                                print("test: ", test)
-                            end)
-                        end,
-                        -- Don't destroy the selection popup when we press the flag
-                        destroy = false,
-                    })
+                    :flag("a", "Add a task to inbox", {
+                    callback = function ()
+                       selection:push_page()
+
+                       selection
+                        :title("Add a task to inbox")
+                        :blank()
+                        :prompt("Task", module.public.add_task_to_inbox)
+                    end,
+                    destroy = false
+                })
                     :blank()
                     :text("Displays")
                     :flag("p", "Projects", function()
