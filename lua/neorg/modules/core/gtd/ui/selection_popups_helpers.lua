@@ -60,7 +60,7 @@ return function(module)
                                 selection:push_page()
 
                                 selection
-                                    :title("Hey")
+                                    :title("Add informations")
                                     :blank()
                                     :text("Task: " .. task.content)
                                     :blank()
