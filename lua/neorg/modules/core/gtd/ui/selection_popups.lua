@@ -15,6 +15,7 @@ return function(module)
                 local buffer = module.required["core.ui"].create_split("Quick Actions")
                 local selection = module.required["core.ui"].begin_selection(buffer)
 
+                -- FIXME: The destroy listener is not bound in new pages
                 selection:add_listener("destroy", { "q", "<Esc>" }, function()
                     selection:destroy()
                 end)
@@ -24,16 +25,57 @@ return function(module)
                     :blank()
                     :text("Capture")
                     :flag("a", "Add a task to inbox", {
-                    callback = function ()
-                       selection:push_page()
+                        callback = function()
+                            selection:push_page()
 
-                       selection
-                        :title("Add a task to inbox")
-                        :blank()
-                        :prompt("Task", module.public.add_task_to_inbox)
-                    end,
-                    destroy = false
-                })
+                            selection:title("Add a task to inbox"):blank():prompt("Task", {
+                                callback = function(text)
+                                    local task = {}
+                                    task.content = text
+                                    selection:push_page()
+
+                                    selection
+                                        :title("Hey")
+                                        :blank()
+                                        :text("Task: " .. task.content)
+                                        :blank()
+                                        :flag("c", "Add Contexts", {
+                                            destroy = false,
+                                            callback = function()
+                                                selection:push_page()
+                                                selection
+                                                    :title("Add contexts")
+                                                    :text("Separate contexts with space")
+                                                    :blank()
+                                                    :prompt(">", {
+                                                        callback = function(text)
+                                                            if #text > 0 then
+                                                                task.contexts = task.contexts or {}
+                                                                task.contexts = vim.list_extend(
+                                                                    task.contexts,
+                                                                    vim.split(text, " ", false)
+                                                                )
+                                                            end
+                                                        end,
+                                                        pop = true,
+                                                    })
+                                            end,
+                                        })
+                                        :flag("f", "Finish", function()
+                                            local end_row, bufnr =
+                                                module.required["core.gtd.queries"].get_end_document_content(
+                                                    "inbox.norg"
+                                                )
+                                            module.required["core.gtd.queries"].create("task", task, bufnr, end_row)
+                                        end)
+                                end,
+                                -- Do not pop or destroy the prompt when confirmed
+                                pop = false,
+                                destroy = false,
+                            })
+                        end,
+                        destroy = false,
+                    })
                     :blank()
                     :text("Displays")
                     :flag("p", "Projects", function()

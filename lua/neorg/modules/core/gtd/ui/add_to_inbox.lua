@@ -6,8 +6,7 @@ return function(module)
             add_task_to_inbox = function(task)
                 local configs = neorg.modules.get_module_config("core.gtd.base")
                 module.private.add_to_list(configs.default_lists.inbox, task)
-            end
-
+            end,
         },
 
         private = {
