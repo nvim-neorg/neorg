@@ -109,13 +109,14 @@ return function(module)
                     --- @param type string #The type of element to attach to (can be "flag" or "switch" or something)
                     --- @param keys table #An array of keys to bind
                     --- @param func function #A callback to invoke whenever the key has been pressed
-                    add_listener = function(self, type, keys, func)
+                    --- @param mode string #Optional, default "n": the mode to create the listener
+                    add_listener = function(self, type, keys, func, mode)
                         self.callbacks[type] = func
 
                         for _, key in ipairs(keys) do
                             vim.api.nvim_buf_set_keymap(
                                 buffer,
-                                "n",
+                                mode or "n",
                                 key,
                                 string.format(
                                     "<cmd>lua neorg.modules.get_module('%s').invoke_key_in_selection('%s', '%s', '%s')<CR>",
@@ -366,6 +367,60 @@ return function(module)
                         for _, item in ipairs(page_copy) do
                             item[1](self, unpack(item[2]))
                         end
+                    end,
+
+                    prompt = function(self, text, callback)
+                        -- Set up the configuration by properly merging everything
+                        local configuration = vim.tbl_deep_extend(
+                            "force",
+                            {
+                                text = text or "Input",
+                                delimiter = " -> ",
+                                -- Automatically destroys the popup when prompt is confirmed
+                                destroy = true,
+                            },
+
+                            self:options_for( -- First merge the global options
+                                "prompt"
+                            ),
+                            type(callback) == "table" and callback or {} -- Then optionally merge the flag-specific options
+                        )
+
+                        self:add("prompt", text)
+                        self:blank()
+
+                        -- Create prompt text
+                        vim.fn.prompt_setprompt(buffer, configuration.text .. configuration.delimiter)
+
+                        -- Create prompt
+                        vim.api.nvim_buf_set_option(buffer, "modifiable", true)
+                        local options = vim.api.nvim_buf_get_option(buffer, "buftype")
+                        vim.api.nvim_buf_set_option(buffer, "buftype", "prompt")
+
+                        -- Create a callback to be invoked on prompt confirmation
+                        vim.fn.prompt_setcallback(buffer, function(content)
+                            if content:len() > 0 then
+                                -- Delete the selection before any action
+                                -- We assume pressing a flag does quit the popup
+                                if configuration.pop then
+                                    -- Reset buftype options to previous ones
+                                    vim.api.nvim_buf_set_option(buffer, "buftype", options)
+                                    self:pop_page()
+                                elseif configuration.destroy then
+                                    self:destroy()
+                                end
+
+                                -- Invoke the user-defined callback
+                                if type(callback) == "function" then
+                                    callback(content)
+                                else
+                                    callback.callback(content)
+                                end
+                            end
+                        end)
+
+                        -- Jump to insert mode
+                        vim.api.nvim_feedkeys("i", "t", false)
                     end,
                 }
 

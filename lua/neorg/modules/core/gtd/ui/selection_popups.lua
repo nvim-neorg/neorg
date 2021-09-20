@@ -25,6 +25,30 @@ return function(module)
                     :text("Capture")
                     :flag("a", "Add a task to inbox", module.public.add_task_to_inbox)
                     :blank()
+                    :flag("v", "Test prompt (return back)", {
+                        callback = function()
+                            selection:push_page()
+                            selection:title("SAlut"):blank():prompt("Test Prompt", {
+                                callback = function(test)
+                                    print("test: ", test)
+                                end,
+                                pop = true,
+                            })
+                        end,
+                        -- Don't destroy the selection popup when we press the flag
+                        destroy = false,
+                    })
+                    :flag("x", "Test prompt (delete after confirmation)", {
+                        callback = function()
+                            selection:push_page()
+                            selection:title("SAlut"):blank():prompt("Test Prompt", function(test)
+                                print("test: ", test)
+                            end)
+                        end,
+                        -- Don't destroy the selection popup when we press the flag
+                        destroy = false,
+                    })
+                    :blank()
                     :text("Displays")
                     :flag("p", "Projects", function()
                         module.public.display_projects(tasks, projects, { priority = { "_" } })
