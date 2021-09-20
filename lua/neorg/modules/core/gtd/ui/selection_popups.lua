@@ -15,6 +15,10 @@ return function(module)
                 local buffer = module.required["core.ui"].create_split("Quick Actions")
                 local selection = module.required["core.ui"].begin_selection(buffer)
 
+                selection:add_listener("destroy", { "q", "<Esc>" }, function()
+                    selection:destroy()
+                end)
+
                 selection
                     :title("This is a text")
                     :blank()
