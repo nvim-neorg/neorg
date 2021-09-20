@@ -1,7 +1,7 @@
 return function(module)
     return {
         private = {
-            --- Generate flags for specific mode
+            --- Generate flags for specific mode (date related)
             --- @param selection table
             --- @param task table #Task to add due/start date
             --- @param mode string #Date mode to use: start|due
@@ -48,6 +48,39 @@ return function(module)
                 return selection
             end,
 
+            --- Generate flags for specific mode
+            --- @param selection table
+            --- @param task table #Task to add contexts or waiting fors
+            --- @param mode string #Date mode to use: waiting_for|contexts
+            --- @param flag string #The flag to use
+            --- @return table #`selection`
+            generate_default_flags = function(selection, task, mode, flag)
+                local title = (function()
+                    if mode == "contexts" then
+                        return "Add Contexts"
+                    elseif mode == "waiting_for" then
+                        return "Add Waiting Fors"
+                    end
+                end)()
+
+                selection:flag(flag, title, {
+                    destroy = false,
+                    callback = function()
+                        selection:push_page()
+                        selection:title(title):text("Separate multiple values with space"):blank():prompt(title, {
+                            callback = function(text)
+                                if #text > 0 then
+                                    task[mode] = task[mode] or {}
+                                    task[mode] = vim.list_extend(task[mode], vim.split(text, " ", false))
+                                end
+                            end,
+                            pop = true,
+                        })
+                    end,
+                })
+                return selection
+            end,
+
             add_to_inbox = function(selection)
                 selection:flag("a", "Add a task to inbox", {
                     callback = function()
@@ -64,28 +97,17 @@ return function(module)
                                     :blank()
                                     :text("Task: " .. task.content)
                                     :blank()
-                                    :flag("c", "Add Contexts", {
-                                        destroy = false,
-                                        callback = function()
-                                            selection:push_page()
-                                            selection
-                                                :title("Add contexts")
-                                                :text("Separate contexts with space")
-                                                :blank()
-                                                :prompt("Contexts", {
-                                                    callback = function(text)
-                                                        if #text > 0 then
-                                                            task.contexts = task.contexts or {}
-                                                            task.contexts = vim.list_extend(
-                                                                task.contexts,
-                                                                vim.split(text, " ", false)
-                                                            )
-                                                        end
-                                                    end,
-                                                    pop = true,
-                                                })
-                                        end,
-                                    })
+                                    :concat(function(_selection)
+                                        return module.private.generate_default_flags(_selection, task, "contexts", "c")
+                                    end)
+                                    :concat(function(_selection)
+                                        return module.private.generate_default_flags(
+                                            _selection,
+                                            task,
+                                            "waiting_for",
+                                            "w"
+                                        )
+                                    end)
                                     :concat(function(_selection)
                                         return module.private.generate_date_flags(_selection, task, "due", "d")
                                     end)
