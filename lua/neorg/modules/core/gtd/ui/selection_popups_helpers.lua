@@ -82,7 +82,7 @@ return function(module)
             end,
 
             add_to_inbox = function(selection)
-                selection:flag("a", "Add a task to inbox", {
+                selection:rflag("a", "Add a task to inbox", {
                     callback = function()
                         selection:push_page()
 
