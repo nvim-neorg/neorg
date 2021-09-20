@@ -239,6 +239,12 @@ return function(module)
 
                         -- Attach a listener to this flag
                         self:add_listener("flag_" .. flag, configuration.keys, function()
+                            -- Delete the selection before any action
+                            -- We assume pressing a flag does quit the popup
+                            if configuration.destroy then
+                                self:destroy()
+                            end
+
                             -- Invoke the user-defined callback
                             (function()
                                 if type(callback) == "function" then
@@ -247,11 +253,6 @@ return function(module)
                                     return callback.callback or function() end
                                 end
                             end)()(data)
-
-                            -- Delete the selection afterwards too
-                            if configuration.destroy then
-                                self:destroy()
-                            end
                         end)
 
                         -- Actually render the flag
