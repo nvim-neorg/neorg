@@ -369,6 +369,9 @@ return function(module)
                         end
                     end,
 
+                    --- Creates inside the page
+                    --- @param text string #The prompt text
+                    --- @param callback table|function #The callback to invoke or configuration options for the prompt
                     prompt = function(self, text, callback)
                         -- Set up the configuration by properly merging everything
                         local configuration = vim.tbl_deep_extend(
