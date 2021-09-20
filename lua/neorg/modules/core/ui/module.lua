@@ -19,12 +19,16 @@ module.public = {
         local buffer = module.public.create_split("selection/Test selection")
 
         -- Binds a selection to that buffer
-        local selection = module.public.begin_selection(buffer):apply({
-            -- A title will simply be text with a custom highlight
-            title = function(self, text)
-                return self:text(text, "TSTitle")
-            end,
-        })
+        local selection = module.public.begin_selection(buffer)
+            :apply({
+                -- A title will simply be text with a custom highlight
+                title = function(self, text)
+                    return self:text(text, "TSTitle")
+                end,
+            })
+            :add_listener("destroy", { "<Esc>" }, function(self)
+                self:destroy()
+            end)
 
         selection
             :options({
@@ -35,72 +39,21 @@ module.public = {
             :title("Hello World!")
             :blank()
             :text("Flags:")
+            :flag("<CR>", "finish")
             :flag("h", "World", function()
                 log.warn("Pressed h")
             end)
             :blank()
             :text("Other flags:")
+            :add_listener("dest", { "g" }, function(self)
+                log.warn("pressed")
+            end)
             :rflag("a", "press me plz", function()
                 -- Create more elements for the selection
-                selection
-                    :title("Another title")
-                    :blank()
-                    :text("Other Flags:")
-                    :flag("b", "go back", {
-                        callback = function(data) -- TODO: Make the "data" variable useful
-                            log.warn("Pressed n")
-
-                            -- Move back to the previous page (yeah, we support that)
-                            selection:pop_page()
-                        end,
-                        -- Don't destroy the selection popup when we press the flag
-                        destroy = false,
-                    })
-                    :flag("a", "a value", function()
-                        log.warn("Pressed a in the nested flag")
-                    end)
+                selection:title("Another title"):blank():text("Other Flags:"):flag("a", "a value"):rflag("b", nil, function()
+                    selection:flag("a")
+                end)
             end)
-
-        --[[ -- Applies some options beforehand
-        selection:options({
-            text = {
-                highlight = "TSUnderline",
-            }
-        })
-
-        -- Creates custom elements for use in the selection
-        selection = selection:apply({
-            -- A title will simply be text with a custom highlight
-            title = function(self, text)
-                return self:text(text, "TSTitle")
-            end,
-        })
-
-        -- Render the newly created title element
-        selection:title("This is a title!")
-
-        -- Render a blank line
-        selection:blank()
-
-        -- Render some raw text with the TSUnderline highlight
-        selection:text("Flags:", "TSUnderline")
-
-        selection:detach()
-
-        -- Create a flag "a" with the description "a description"
-        selection:flag("a", "a description", function(data)
-            -- Invoke this function when pressed!
-            log.warn("Pressed!")
-
-            -- Deletes the selection and the buffer
-            selection:detach()
-        end) ]]
-
-        --[[ -- Creates a flag with subflags internally
-        selection:nested_flag("b", "another flag", function(data)
-            selection:text("Some text!")
-            selection:flag("a", "another flag that does nothing")
-        end) ]]
     end,
 
     -- @Summary Gets the current size of the window

@@ -15,7 +15,8 @@ return function(module)
             --- @param key string #The key that was pressed
             --- @param type string #The type of element the callback belongs to (could be "flag", "switch" etc.)
             invoke_key_in_selection = function(name, key, type)
-                module.private.callbacks[name].callbacks[type](key)
+                local self = module.private.callbacks[name]
+                self.callbacks[({ type:gsub("<(.+)>", "%1") })[1]](self, key)
             end,
 
             --- Constructs a new selection
@@ -66,12 +67,9 @@ return function(module)
                         self.position = 0
 
                         vim.api.nvim_buf_set_option(buffer, "modifiable", true)
+
                         vim.api.nvim_buf_clear_namespace(buffer, namespace, 0, -1)
                         vim.api.nvim_buf_set_lines(buffer, 0, -1, true, {})
-
-                        for _, key in ipairs(vim.api.nvim_buf_get_keymap(buffer, "n")) do
-                            vim.api.nvim_buf_del_keymap(buffer, "n", key.lhs)
-                        end
 
                         vim.api.nvim_buf_set_option(buffer, "modifiable", false)
                     end,
@@ -82,6 +80,7 @@ return function(module)
                     page = 1,
                     pages = { {} },
                     opts = {},
+                    keys = {},
 
                     --- Retrieves the options for a certain type
                     --- @param type string #The type of element to extract the options for
@@ -110,19 +109,32 @@ return function(module)
                     --- @param keys table #An array of keys to bind
                     --- @param func function #A callback to invoke whenever the key has been pressed
                     --- @param mode string #Optional, default "n": the mode to create the listener
+                    --- @return table #`self`
                     add_listener = function(self, type, keys, func, mode)
-                        self.callbacks[type] = func
+                        -- Remove the <> characters from the string because that causes issues with Lua internally
+                        type = ({ type:gsub("<(.+)>", "%1") })[1]
 
+                        -- Extend ourself with the new callbacks. This allows us to give the callbacks value a "scope"
+                        self = vim.tbl_deep_extend(
+                            "force",
+                            self,
+                            { callbacks = {
+                                [type] = func,
+                            } }
+                        )
+
+                        -- Go through all keys that the user has bound a listener to and bind them!
                         for _, key in ipairs(keys) do
+                            -- TODO: Docs
                             vim.api.nvim_buf_set_keymap(
                                 buffer,
                                 mode or "n",
                                 key,
                                 string.format(
-                                    "<cmd>lua neorg.modules.get_module('%s').invoke_key_in_selection('%s', '%s', '%s')<CR>",
+                                    '<cmd>lua neorg.modules.get_module("%s").invoke_key_in_selection("%s", "%s", "%s")<CR>',
                                     module.name,
                                     name,
-                                    key,
+                                    ({ key:gsub("<(.+)>", "|%1|") })[1],
                                     type
                                 ),
                                 {
@@ -132,6 +144,8 @@ return function(module)
                                 }
                             )
                         end
+
+                        return self
                     end,
 
                     --- Sets some options for the selection to take into account
@@ -150,6 +164,10 @@ return function(module)
                     --- Detaches the selection popup from the current buffer
                     --- Does *not* close the buffer
                     detach = function(self)
+                        if not vim.api.nvim_buf_is_valid(buffer) then
+                            return
+                        end
+
                         renderer:reset()
 
                         self.page = 1
@@ -160,6 +178,10 @@ return function(module)
 
                     --- Destroys the selection popup and the buffer it occupied
                     destroy = function(self)
+                        if not vim.api.nvim_buf_is_valid(buffer) then
+                            return
+                        end
+
                         renderer:reset()
 
                         self.page = 1
@@ -239,22 +261,24 @@ return function(module)
                         self:add("flag", flag, description, callback)
 
                         -- Attach a listener to this flag
-                        self:add_listener("flag_" .. flag, configuration.keys, function()
-                            -- Delete the selection before any action
-                            -- We assume pressing a flag does quit the popup
-                            if configuration.destroy then
-                                self:destroy()
-                            end
-
+                        self = self:add_listener("flag_" .. flag, configuration.keys, function()
                             -- Invoke the user-defined callback
                             (function()
                                 if type(callback) == "function" then
                                     return callback
                                 else
-                                    return callback.callback or function() end
+                                    return callback and callback.callback or function() end
                                 end
                             end)()(data)
+
+                            -- Delete the selection before any action
+                            -- We assume pressing a flag does quit the popup
+                            if configuration.destroy then
+                                self:destroy()
+                            end
                         end)
+
+                        module.private.callbacks[name] = self
 
                         -- Actually render the flag
                         renderer:render({
@@ -301,7 +325,7 @@ return function(module)
                         self:add("rflag", flag, description, callback)
 
                         -- Attach a listener to this flag
-                        self:add_listener("flag_" .. flag, configuration.keys, function()
+                        self = self:add_listener("flag_" .. flag, configuration.keys, function()
                             -- Create a new page to allow the renderer to start fresh
                             self:push_page();
 
@@ -314,6 +338,8 @@ return function(module)
                                 end
                             end)()
                         end)
+
+                        module.private.callbacks[name] = self
 
                         -- Actually render the flag
                         renderer:render({
@@ -336,6 +362,10 @@ return function(module)
                         self.page = self.page + 1
                         self.pages[self.page] = {}
                         renderer:reset()
+
+                        for _, key in ipairs(vim.api.nvim_buf_get_keymap(buffer, "")) do
+                            vim.api.nvim_buf_del_keymap(buffer, key.mode, key.lhs)
+                        end
                     end,
 
                     --- Pops the page stack, effectively restoring the previous
@@ -424,6 +454,8 @@ return function(module)
 
                         -- Jump to insert mode
                         vim.api.nvim_feedkeys("i", "t", false)
+
+                        return self
                     end,
                 }
 

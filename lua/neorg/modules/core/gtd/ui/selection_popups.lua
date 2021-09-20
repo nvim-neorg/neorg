@@ -24,16 +24,16 @@ return function(module)
                     :blank()
                     :text("Capture")
                     :flag("a", "Add a task to inbox", {
-                    callback = function ()
-                       selection:push_page()
+                        callback = function()
+                            selection:push_page()
 
-                       selection
-                        :title("Add a task to inbox")
-                        :blank()
-                        :prompt("Task", module.public.add_task_to_inbox)
-                    end,
-                    destroy = false
-                })
+                            selection
+                                :title("Add a task to inbox")
+                                :blank()
+                                :prompt("Task", module.public.add_task_to_inbox)
+                        end,
+                        destroy = false,
+                    })
                     :blank()
                     :text("Displays")
                     :flag("p", "Projects", function()
