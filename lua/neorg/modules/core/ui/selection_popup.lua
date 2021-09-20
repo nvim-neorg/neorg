@@ -38,6 +38,8 @@ return function(module)
                     --- Renders something in the buffer
                     --- @vararg table #A vararg of { text, highlight } tables
                     render = function(self, ...)
+                        vim.api.nvim_buf_set_option(buffer, "modifiable", true)
+
                         -- Don't render if we're on the first line
                         -- because buffers always open with one line available
                         -- anyway
@@ -54,6 +56,8 @@ return function(module)
 
                         -- Track which line we're on
                         self.position = self.position + 1
+
+                        vim.api.nvim_buf_set_option(buffer, "modifiable", false)
                     end,
 
                     --- Resets the renderer by clearing the buffer and resetting
@@ -61,12 +65,15 @@ return function(module)
                     reset = function(self)
                         self.position = 0
 
+                        vim.api.nvim_buf_set_option(buffer, "modifiable", true)
                         vim.api.nvim_buf_clear_namespace(buffer, namespace, 0, -1)
                         vim.api.nvim_buf_set_lines(buffer, 0, -1, true, {})
 
                         for _, key in ipairs(vim.api.nvim_buf_get_keymap(buffer, "n")) do
                             vim.api.nvim_buf_del_keymap(buffer, "n", key.lhs)
                         end
+
+                        vim.api.nvim_buf_set_option(buffer, "modifiable", false)
                     end,
                 }
 
