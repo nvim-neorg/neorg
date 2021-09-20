@@ -12,7 +12,7 @@ return function(module)
                 end)
 
                 selection
-                    :title("This is a text")
+                    :title("Quick Actions")
                     :blank()
                     :text("Capture")
                     :concat(module.private.add_to_inbox)
@@ -48,7 +48,7 @@ return function(module)
                                                 :title("Add contexts")
                                                 :text("Separate contexts with space")
                                                 :blank()
-                                                :prompt(">", {
+                                                :prompt("Contexts", {
                                                     callback = function(text)
                                                         if #text > 0 then
                                                             task.contexts = task.contexts or {}
@@ -62,6 +62,45 @@ return function(module)
                                                 })
                                         end,
                                     })
+                                    :rflag("d", "Add a due date", function()
+                                        selection
+                                            :title("Add a due date")
+                                            :blank()
+                                            :flag("t", "Tomorrow", {
+                                                destroy = false,
+                                                callback = function()
+                                                    task.due = module.public.date_converter("tomorrow")
+                                                    selection:pop_page()
+                                                end,
+                                            })
+                                            :flag("c", "Custom", {
+                                                destroy = false,
+                                                callback = function()
+                                                    selection:push_page()
+                                                    selection
+                                                        :title("Custom Date")
+                                                        :text(
+                                                            "Allowed date: today, tomorrow, Xw, Xd, Xm (X is a number)"
+                                                        )
+                                                        :blank()
+                                                        :prompt("Due", {
+                                                            callback = function(text)
+                                                                if #text > 0 then
+                                                                    task.due = module.public.date_converter(text)
+                                                                    if not task.due then
+                                                                        log.error(
+                                                                            "Date format not recognized, please try again..."
+                                                                        )
+                                                                    else
+                                                                        selection:pop_page()
+                                                                    end
+                                                                end
+                                                            end,
+                                                            pop = true,
+                                                        })
+                                                end,
+                                            })
+                                    end)
                                     :flag("f", "Finish", function()
                                         local end_row, bufnr =
                                             module.required["core.gtd.queries"].get_end_document_content(
