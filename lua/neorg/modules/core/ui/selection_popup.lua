@@ -433,11 +433,11 @@ return function(module)
                         -- Create a callback to be invoked on prompt confirmation
                         vim.fn.prompt_setcallback(buffer, function(content)
                             if content:len() > 0 then
+                                vim.api.nvim_buf_set_option(buffer, "buftype", options)
                                 -- Delete the selection before any action
                                 -- We assume pressing a flag does quit the popup
                                 if configuration.pop then
                                     -- Reset buftype options to previous ones
-                                    vim.api.nvim_buf_set_option(buffer, "buftype", options)
                                     self:pop_page()
                                 elseif configuration.destroy then
                                     self:destroy()
@@ -455,6 +455,18 @@ return function(module)
                         -- Jump to insert mode
                         vim.api.nvim_feedkeys("i", "t", false)
 
+                        return self
+                    end,
+
+                    --- Concatenates a `callback` function that returns the selection popup to the existing selection popup
+                    --- Example:
+                    --- selection
+                    ---   :text("test")
+                    ---   :concat(this_is_a_function)
+                    --- @param callback function #The function to append
+                    --- @return table #`self`
+                    concat = function(self, callback)
+                        self = callback(self)
                         return self
                     end,
                 }
