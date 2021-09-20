@@ -1,7 +1,7 @@
 return function(module)
     return {
         public = {
-            --- Creates a new project from the `project` table and insert it in `bufnr` at `location`
+            --- Creates a new project/task (depending of `type`) from the `node` table and insert it in `bufnr` at `location`
             --- supported `string`: project|task
             --- @param type string
             --- @param node table
@@ -101,3 +101,5 @@ return function(module)
         },
     }
 end
+
+
