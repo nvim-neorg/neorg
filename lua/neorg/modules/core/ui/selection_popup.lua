@@ -425,6 +425,18 @@ return function(module)
                         -- Jump to insert mode
                         vim.api.nvim_feedkeys("i", "t", false)
                     end,
+
+                    --- Concatenates a `callback` function that returns the selection popup to the existing selection popup
+                    --- Example:
+                    --- selection
+                    ---   :text("test")
+                    ---   :concat(this_is_a_function)
+                    --- @param callback function #The function to append
+                    --- @return table #`self`
+                    concat = function(self, callback)
+                        self = callback(self)
+                        return self
+                    end,
                 }
 
                 -- Attach the selection to a list of callbacks
