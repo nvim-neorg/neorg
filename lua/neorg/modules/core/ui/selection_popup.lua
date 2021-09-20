@@ -57,6 +57,7 @@ return function(module)
                         -- Track which line we're on
                         self.position = self.position + 1
 
+                        vim.api.nvim_buf_set_keymap(buffer, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
                         vim.api.nvim_buf_set_option(buffer, "modifiable", false)
                     end,
 
