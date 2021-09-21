@@ -67,15 +67,20 @@ return function(module)
                     destroy = false,
                     callback = function()
                         selection:push_page()
-                        selection:title(title):text("Separate multiple values with space"):blank():prompt(title, {
-                            callback = function(text)
-                                if #text > 0 then
-                                    task[mode] = task[mode] or {}
-                                    task[mode] = vim.list_extend(task[mode], vim.split(text, " ", false))
-                                end
-                            end,
-                            pop = true,
-                        })
+                        selection = selection
+                            :title(title)
+                            :text("Separate multiple values with space")
+                            :blank()
+                            :prompt(title, {
+                                callback = function(text)
+                                    if #text > 0 then
+                                        task[mode] = task[mode] or {}
+                                        task[mode] = vim.list_extend(task[mode], vim.split(text, " ", false))
+                                    end
+                                end,
+                                pop = true,
+                            })
+                        return selection
                     end,
                 })
                 return selection
