@@ -78,9 +78,13 @@ return function(module)
             --- Add metadatas to a list of `nodes`
             --- @param nodes table
             --- @param type string
+            --- @param opts table
+            ---   - opts.extract (bool):   if false does not extract the content from the nodes
             --- @return table
-            add_metadata = function(nodes, type)
+            add_metadata = function(nodes, type, opts)
                 local res = {}
+                opts = opts or {}
+                opts.extract = opts.extract or true
 
                 if not vim.tbl_contains({ "task", "project" }, type) then
                     log.error("Unknown type")
@@ -91,17 +95,17 @@ return function(module)
                     exported.node = node[1]
                     exported.bufnr = node[2]
 
-                    exported.content = module.private.get_content(exported, type)
+                    exported.content = module.private.get_content(exported, type, opts.extract)
 
                     if type == "task" then
-                        exported.project = module.private.get_task_project(exported)
-                        exported.state = module.private.get_task_state(exported)
+                        exported.project = module.private.get_task_project(exported, opts.extract)
+                        exported.state = module.private.get_task_state(exported, opts.extract)
                     end
 
-                    exported.contexts = module.private.get_tag("contexts", exported)
-                    exported.start = module.private.get_tag("time.start", exported)
-                    exported.due = module.private.get_tag("time.due", exported)
-                    exported.waiting_for = module.private.get_tag("waiting.for", exported)
+                    exported.contexts = module.private.get_tag("contexts", exported, opts.extract)
+                    exported.start = module.private.get_tag("time.start", exported, opts.extract)
+                    exported.due = module.private.get_tag("time.due", exported, opts.extract)
+                    exported.waiting_for = module.private.get_tag("waiting.for", exported, opts.extract)
 
                     table.insert(res, exported)
                 end
@@ -158,11 +162,12 @@ return function(module)
                 return bufnr
             end,
 
-            --- Gets content from a `node` table
+            --- Gets content from a `node` table. If `extract`, extracts the content of the node
             --- @param node table
             --- @param type string
+            --- @param extract boolean
             --- @return string
-            get_content = function(node, type)
+            get_content = function(node, type, extract)
                 local tree = {}
                 if type == "project" then
                     table.insert(tree, { query = { "first", "paragraph_segment" } })
@@ -179,14 +184,19 @@ return function(module)
                     return {}
                 end
 
+                if not extract then
+                    return content[1][1]
+                end
+
                 local extracted = module.required["core.queries.native"].extract_nodes(content)
                 return extracted[1]
             end,
 
-            --- Get project from `task` if there is one
+            --- Get project from `task` if there is one. If `extract`, extracts the content of the node
             --- @param task table
+            --- @param extract boolean
             --- @return string
-            get_task_project = function(task)
+            get_task_project = function(task, extract)
                 local project_node = module.required["core.queries.native"].find_parent_node(
                     { task.node, task.bufnr },
                     "heading1"
@@ -206,15 +216,20 @@ return function(module)
                     project_node[2]
                 )
 
+                if not extract then
+                    return project_content_node[1][1]
+                end
+
                 local extracted = module.required["core.queries.native"].extract_nodes(project_content_node)
                 return extracted[1]
             end,
 
-            --- Get a list of content for a specific `tag_name` in a `node`
+            --- Get a list of content for a specific `tag_name` in a `node`. If `extract`, extracts the content of the node
             --- @param tag_name string
             --- @param node table
+            --- @param extract boolean
             --- @return table
-            get_tag = function(tag_name, node)
+            get_tag = function(tag_name, node, extract)
                 if not vim.tbl_contains({ "time.due", "time.start", "contexts", "waiting.for" }, tag_name) then
                     log.error("Please specify time.due|time.start|contexts|waiting.for in get_task_date function")
                     return
@@ -256,22 +271,32 @@ return function(module)
                         return nil
                     end
 
-                    local res = module.required["core.queries.native"].extract_nodes(tag_content_nodes)
+                    if not extract then
+                        -- Only keep the nodes and add them to the results
+                        tag_content_nodes = vim.tbl_map(function (node)
+                            return node[1]
+                        end, tag_content_nodes)
+                        vim.list_extend(extracted, tag_content_nodes)
+                    else
+                        local res = module.required["core.queries.native"].extract_nodes(tag_content_nodes)
 
-                    for _, res_tag in pairs(res) do
-                        if not vim.tbl_contains(extracted, res_tag) then
-                            table.insert(extracted, res_tag)
+                        for _, res_tag in pairs(res) do
+                            if not vim.tbl_contains(extracted, res_tag) then
+                                table.insert(extracted, res_tag)
+                            end
                         end
                     end
+
                 end
 
                 return extracted
             end,
 
-            --- Retrieve the state of the `task`
+            --- Retrieve the state of the `task`. If `extract`, extracts the content of the node
             --- @param task table
+            --- @param extract boolean
             --- @return string
-            get_task_state = function(task)
+            get_task_state = function(task, extract)
                 local tree = {
                     { query = { "all", "todo_item_done" } },
                     { query = { "all", "todo_item_undone" } },
@@ -286,6 +311,10 @@ return function(module)
 
                 if #task_state_nodes ~= 1 then
                     log.error("This task does not contain any state !")
+                end
+
+                if not extract then
+                    return task_state_nodes[1][1]
                 end
 
                 local state = task_state_nodes[1][1]:type()
