@@ -50,9 +50,14 @@ module.public = {
             end)
             :rflag("a", "press me plz", function()
                 -- Create more elements for the selection
-                selection:title("Another title"):blank():text("Other Flags:"):flag("a", "a value"):rflag("b", nil, function()
-                    selection:flag("a")
-                end)
+                selection
+                    :title("Another title")
+                    :blank()
+                    :text("Other Flags:")
+                    :flag("a", "a value")
+                    :rflag("b", nil, function()
+                        selection:flag("a")
+                    end)
             end)
     end,
 

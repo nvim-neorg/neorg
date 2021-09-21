@@ -119,10 +119,18 @@ return function(module)
                                     end)
                                     :blank()
                                     :flag("<CR>", "Finish", function()
+                                        local end_row, bufnr, projectAtEnd =
+                                            module.required["core.gtd.queries"].get_end_document_content(
+                                                "inbox.norg"
+                                            )
 
-                                        local end_row, bufnr, projectAtEnd = module.required["core.gtd.queries"].get_end_document_content( "inbox.norg")
-
-                                        module.required["core.gtd.queries"].create("task", task, bufnr, end_row, projectAtEnd)
+                                        module.required["core.gtd.queries"].create(
+                                            "task",
+                                            task,
+                                            bufnr,
+                                            end_row,
+                                            projectAtEnd
+                                        )
                                     end)
                             end,
                             -- Do not pop or destroy the prompt when confirmed

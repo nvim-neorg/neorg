@@ -4,10 +4,13 @@ return function(module)
             show_quick_actions = function(configs)
                 -- Generate quick_actions selection popup
                 local buffer = module.required["core.ui"].create_split("Quick Actions")
-                local selection = module.required["core.ui"].begin_selection(buffer)
-                    :add_listener("destroy", {  "<Esc>" }, function(self)
+                local selection = module.required["core.ui"].begin_selection(buffer):add_listener(
+                    "destroy",
+                    { "<Esc>" },
+                    function(self)
                         self:destroy()
-                    end)
+                    end
+                )
 
                 selection
                     :title("Quick Actions")

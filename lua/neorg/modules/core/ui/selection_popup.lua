@@ -276,7 +276,6 @@ return function(module)
                                     return callback and callback.callback or function() end
                                 end
                             end)()(data)
-
                         end)
 
                         module.private.callbacks[name] = self
