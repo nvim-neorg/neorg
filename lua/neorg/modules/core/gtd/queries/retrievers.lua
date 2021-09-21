@@ -75,6 +75,19 @@ return function(module)
                 return res
             end,
 
+            get_at_cursor = function(type)
+                vim.validate({
+                    type = { type, "string" },
+                })
+
+                local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+                local current_node = ts_utils.get_node_at_cursor(0)
+
+                local node_type = type == "project" and "heading1" or "todo_item1"
+                local parent = module.required["core.queries.native"].find_parent_node({ current_node, 0 }, node_type)
+
+                return parent
+            end,
             --- Add metadatas to a list of `nodes`
             --- @param nodes table
             --- @param type string
@@ -83,8 +96,9 @@ return function(module)
             --- @return table
             add_metadata = function(nodes, type, opts)
                 local res = {}
-                opts = opts or {}
-                opts.extract = opts.extract or true
+                opts = opts or {
+                    extract = true,
+                }
 
                 if not vim.tbl_contains({ "task", "project" }, type) then
                     log.error("Unknown type")
@@ -273,7 +287,7 @@ return function(module)
 
                     if not extract then
                         -- Only keep the nodes and add them to the results
-                        tag_content_nodes = vim.tbl_map(function (node)
+                        tag_content_nodes = vim.tbl_map(function(node)
                             return node[1]
                         end, tag_content_nodes)
                         vim.list_extend(extracted, tag_content_nodes)
@@ -286,7 +300,6 @@ return function(module)
                             end
                         end
                     end
-
                 end
 
                 return extracted
