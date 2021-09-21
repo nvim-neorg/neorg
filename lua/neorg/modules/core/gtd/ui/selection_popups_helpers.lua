@@ -9,7 +9,7 @@ return function(module)
             --- @return table #`selection`
             generate_date_flags = function(selection, task, mode, flag)
                 local title = "Add a " .. mode .. " date"
-                selection:rflag(flag, title, function()
+                selection = selection:rflag(flag, title, function()
                     selection
                         :title(title)
                         :blank()
@@ -63,7 +63,7 @@ return function(module)
                     end
                 end)()
 
-                selection:flag(flag, title, {
+                selection = selection:flag(flag, title, {
                     destroy = false,
                     callback = function()
                         selection:push_page()
@@ -82,7 +82,7 @@ return function(module)
             end,
 
             add_to_inbox = function(selection)
-                selection:rflag("a", "Add a task to inbox", {
+                selection = selection:rflag("a", "Add a task to inbox", {
                     callback = function()
                         selection:push_page()
 
@@ -144,7 +144,7 @@ return function(module)
                 tasks = module.required["core.gtd.queries"].add_metadata(tasks, "task")
                 projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
-                selection
+                selection = selection
                     :flag("p", "Projects", function()
                         module.public.display_projects(tasks, projects, { priority = { "_" } })
                     end)
