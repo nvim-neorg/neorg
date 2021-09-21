@@ -109,6 +109,8 @@ return function(module)
                                             "w"
                                         )
                                     end)
+                                    :blank()
+                                    :text("Dates")
                                     :concat(function(_selection)
                                         return module.private.generate_date_flags(_selection, task, "due", "d")
                                     end)
@@ -116,12 +118,11 @@ return function(module)
                                         return module.private.generate_date_flags(_selection, task, "start", "s")
                                     end)
                                     :blank()
-                                    :flag("f", "Finish", function()
-                                        local end_row, bufnr =
-                                            module.required["core.gtd.queries"].get_end_document_content(
-                                                "inbox.norg"
-                                            )
-                                        module.required["core.gtd.queries"].create("task", task, bufnr, end_row)
+                                    :flag("<CR>", "Finish", function()
+
+                                        local end_row, bufnr, projectAtEnd = module.required["core.gtd.queries"].get_end_document_content( "inbox.norg")
+
+                                        module.required["core.gtd.queries"].create("task", task, bufnr, end_row, projectAtEnd)
                                     end)
                             end,
                             -- Do not pop or destroy the prompt when confirmed
