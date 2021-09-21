@@ -43,7 +43,8 @@ end
 
 module = utils.require(module, "displayers")
 module = utils.require(module, "helpers")
-module = utils.require(module, "selection_popups_helpers")
+module = utils.require(module, "quick_actions_popup_helpers")
+module = utils.require(module, "edit_popup_helpers")
 module = utils.require(module, "selection_popups")
 
 return module

@@ -22,11 +22,6 @@ return function(module)
                     :concat(function(_selection)
                         return module.private.generate_display_flags(_selection, configs)
                     end)
-                    :blank()
-                    :text("Testing")
-                    :flag("x", "Get current node", function()
-                        module.required["core.gtd.queries"].get_at_cursor("")
-                    end)
             end,
 
             edit_task = function(task)
@@ -64,24 +59,10 @@ return function(module)
 
                 selection = selection
                     :blank()
-                    :flag("e", "Edit Content", {
-                        destroy = false,
-                        callback = function()
-                            selection:push_page()
-                            selection
-                                :title("Edit Content")
-                                :blank()
-                                :prompt("New content", { -- TODO: add already created content in prompt
-                                    callback = function(text)
-                                        if #text > 0 then
-                                            modified.content = text
-                                        end
-                                    end,
-                                    pop = true,
-                                })
-                        end,
-                    })
-                    :blank(2)
+                    :concat(function(_selection)
+                        return module.private.edit_content(_selection, modified)
+                    end)
+                    :blank()
                     :flag("<CR>", "Validate", function()
                         if modified.content then
                             module.required["core.gtd.queries"].modify(task_not_extracted, "content", modified.content)
