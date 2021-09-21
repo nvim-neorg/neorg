@@ -116,5 +116,3 @@ return function(module)
         },
     }
 end
-
-
