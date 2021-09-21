@@ -6,6 +6,7 @@ return function(module)
             --- @param opts table
             ---   - opts.filename (string):     will restrict the search only for the filename provided
             ---   - opts.exclude_files (table):     will exclude files from workspace in querying information
+            ---   - opts.bufnr (number):        will use this bufnr to search nodes from
             --- @return table
             get = function(type, opts)
                 if not vim.tbl_contains({ "projects", "tasks" }, type) then
@@ -50,6 +51,9 @@ return function(module)
 
                 if opts.filename then
                     local bufnr = module.private.get_bufnr_from_file(opts.filename)
+                    table.insert(bufnrs, bufnr)
+                elseif opts.bufnr then
+                    local bufnr = opts.bufnr
                     table.insert(bufnrs, bufnr)
                 else
                     local configs = neorg.modules.get_module_config("core.gtd.base")

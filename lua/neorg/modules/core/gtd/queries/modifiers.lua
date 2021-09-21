@@ -8,7 +8,7 @@ return function(module)
             --- @param index number
             modify = function(object, option, value, index)
                 if not object[option] then
-                    -- TODO: when the object does not contain the option, add new content to object
+                    -- TODO: When the object does not contain the option, add new content to object
                     return
                 end
 

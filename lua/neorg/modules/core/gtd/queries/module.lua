@@ -37,6 +37,7 @@ module.setup = function()
     }
 end
 
+module = utils.require(module, "helpers")
 module = utils.require(module, "retrievers")
 module = utils.require(module, "creators")
 module = utils.require(module, "modifiers")
