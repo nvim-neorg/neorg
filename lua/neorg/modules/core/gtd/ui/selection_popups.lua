@@ -5,11 +5,9 @@ return function(module)
                 -- Generate quick_actions selection popup
                 local buffer = module.required["core.ui"].create_split("Quick Actions")
                 local selection = module.required["core.ui"].begin_selection(buffer)
-
-                -- FIXME: The destroy listener is not bound in new pages
-                selection:add_listener("destroy", { "q", "<Esc>" }, function()
-                    selection:destroy()
-                end)
+                    :add_listener("destroy", {  "<Esc>" }, function(self)
+                        self:destroy()
+                    end)
 
                 selection
                     :title("Quick Actions")
