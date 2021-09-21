@@ -21,8 +21,8 @@ return function(module)
                     local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
                     local start_row, start_col, end_row, end_col = ts_utils.get_node_range(object[option])
 
-                    -- FIXME: It makes the line below the modified one jump to the top
-                    vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { value })
+                    -- Replacing old option with new one (The empty string is to prevent lines below to wrap)
+                    vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { value, "" })
                 end
             end,
         },
