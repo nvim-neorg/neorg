@@ -419,9 +419,10 @@ return function(module)
                             ),
                             type(callback) == "table" and callback or {} -- Then optionally merge the flag-specific options
                         )
+                        self:add("prompt", text, callback)
+                        self = self:blank()
 
-                        self:add("prompt", text)
-                        self:blank()
+                        module.private.callbacks[name] = self
 
                         -- Create prompt text
                         vim.fn.prompt_setprompt(buffer, configuration.text .. configuration.delimiter)
