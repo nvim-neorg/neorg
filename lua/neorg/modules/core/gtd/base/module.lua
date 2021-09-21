@@ -5,8 +5,8 @@
 USAGE:
     - Quick actions for gtd stuff:
         - Call the command :Neorg gtd quick_actions
-    - To add a task to the inbox:
-        - Call the command :Neorg gtd capture
+    - Edit the task under the cursor:
+        - Call the command :Neorg gtd edit
 
 REQUIRES:
     This module requires:
@@ -20,9 +20,8 @@ KEYBINDS:
     - core.gtd.base.add_to_inbox: Will call the function add_task_to_inbox()
 
 COMMANDS:
-    - Neorg gtd list ...        to list ... files
-    - Neorg gtd capture         to show a quick capture UI
     - Neorg gtd quick_actions   to show the quick actions popup
+    - Neorg edit                to edit the task under the cursor
 
 --]]
 
@@ -74,24 +73,16 @@ module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         definitions = {
             gtd = {
-                capture = {},
-                list = { inbox = {} },
                 quick_actions = {},
+                edit = {},
             },
         },
         data = {
             gtd = {
                 args = 1,
                 subcommands = {
-                    capture = { args = 0, name = "gtd.capture" },
-                    list = {
-                        args = 1,
-                        name = "gtd.list",
-                        subcommands = {
-                            inbox = { args = 0, name = "gtd.list.inbox" },
-                        },
-                    },
                     quick_actions = { args = 0, name = "gtd.quick_actions" },
+                    edit = { args = 0, name = "gtd.edit" },
                 },
             },
         },
@@ -99,19 +90,11 @@ module.load = function()
 end
 
 module.on_event = function(event)
-    if event.split_type[2] == "core.gtd.base.add_to_inbox" then
-        module.required["core.gtd.ui"].add_task_to_inbox()
-    end
     if event.split_type[1] == "core.neorgcmd" then
-        if event.split_type[2] == "gtd.capture" then
-            module.required["core.gtd.ui"].add_task_to_inbox()
-        elseif event.split_type[2] == "gtd.list.inbox" then
-            module.required["core.norg.dirman"].open_file(
-                module.config.public.workspace,
-                module.config.public.default_lists.inbox
-            )
-        elseif event.split_type[2] == "gtd.quick_actions" then
+        if event.split_type[2] == "gtd.quick_actions" then
             module.required["core.gtd.ui"].show_quick_actions(module.config.public)
+        elseif event.split_type[2] == "gtd.edit" then
+            module.public.edit_task()
         end
     end
 end
@@ -121,10 +104,20 @@ module.events.subscribed = {
         ["core.gtd.base.add_to_inbox"] = true,
     },
     ["core.neorgcmd"] = {
-        ["gtd.capture"] = true,
-        ["gtd.list.inbox"] = true,
         ["gtd.quick_actions"] = true,
+        ["gtd.edit"] = true,
     },
 }
 
+module.public = {
+    edit_task = function()
+        local task = module.required["core.gtd.queries"].get_at_cursor("task")
+
+        if #task == 0 then
+            log.warn("No task at cursor position")
+            return
+        end
+        module.required["core.gtd.ui"].edit_task(task)
+    end,
+}
 return module

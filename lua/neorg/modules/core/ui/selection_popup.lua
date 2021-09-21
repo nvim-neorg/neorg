@@ -434,7 +434,9 @@ return function(module)
                         -- Create a callback to be invoked on prompt confirmation
                         vim.fn.prompt_setcallback(buffer, function(content)
                             if content:len() > 0 then
+                                -- Remakes the buftype option the same before prompt
                                 vim.api.nvim_buf_set_option(buffer, "buftype", options)
+
                                 -- Delete the selection before any action
                                 -- We assume pressing a flag does quit the popup
                                 if configuration.pop then
@@ -454,7 +456,7 @@ return function(module)
                         end)
 
                         -- Jump to insert mode
-                        vim.api.nvim_feedkeys("i", "t", false)
+                        vim.api.nvim_feedkeys("A", "t", false)
 
                         return self
                     end,
