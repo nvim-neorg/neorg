@@ -61,9 +61,14 @@ module.load = function()
     -- Enable the VimLeavePre autocommand to write the last workspace to disk
     module.required["core.autocommands"].enable_autocommand("VimLeavePre", true)
 
-    -- If we have loaded this module from outside of a Neorg file then try jumping
-    -- to the last cached workspace
-    if neorg.configuration.manual then
+    -- If the user has supplied a custom workspace to start in (i.e. :NeorgStart workspace=<name>)
+    -- then load that custom workspace here
+    if neorg.configuration.arguments.workspace then
+        module.public.open_workspace(neorg.configuration.arguments.workspace)
+        vim.notify("Start in custom workspace -> " .. neorg.configuration.arguments.workspace)
+        -- If we have loaded this module by invoking :NeorgStart then try jumping
+        -- to the last cached workspace
+    elseif neorg.configuration.manual then
         module.public.set_last_workspace()
     end
 
@@ -405,6 +410,27 @@ module.public = {
 
         return res
     end,
+
+    --- Sets the current workspace and opens that workspace's index file
+    --- @param workspace string #The name of the workspace to open
+    open_workspace = function(workspace)
+        -- If we have, then query that workspace
+        local ws_match = module.public.get_workspace(workspace)
+
+        -- If the workspace does not exist then give the user a nice error and bail
+        if not ws_match then
+            log.error('Unable to switch to workspace - "' .. workspace .. '" does not exist')
+            return
+        end
+
+        -- Set the workspace to the one requested
+        module.public.set_workspace(workspace)
+
+        -- If we're switching to a workspace that isn't the default workspace then enter the index file
+        if workspace ~= "default" then
+            vim.cmd("e " .. ws_match .. "/" .. module.config.public.index)
+        end
+    end,
 }
 
 module.on_event = function(event)
@@ -456,25 +482,12 @@ module.on_event = function(event)
     if event.type == "core.neorgcmd.events.dirman.workspace" then
         -- Have we supplied an argument?
         if event.content[1] then
-            -- If we have, then query that workspace
-            local ws_match = module.public.get_workspace(event.content[1])
-
-            -- If the workspace does not exist then give the user a nice error and bail
-            if not ws_match then
-                log.error('Unable to switch to workspace - "' .. event.content[1] .. '" does not exist')
-                return
-            end
-
-            -- Set the workspace to the one requested
-            module.public.set_workspace(event.content[1])
-
-            -- If we're switching to a workspace that isn't the default workspace then enter the index file
-            if event.content[1] ~= "default" then
-                vim.cmd("e " .. ws_match .. "/" .. module.config.public.index)
-            end
+            module.public.open_workspace(event.content[1])
 
             vim.schedule(function()
-                vim.notify("New Workspace: " .. event.content[1] .. " -> " .. ws_match)
+                vim.notify(
+                    "New Workspace: " .. event.content[1] .. " -> " .. module.public.get_workspace(event.content[1])
+                )
             end)
         else -- No argument supplied, simply print the current workspace
             -- Query the current workspace

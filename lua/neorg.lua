@@ -24,7 +24,7 @@ function neorg.setup(config)
         -- Else listen for a BufRead event and fire up the Neorg environment
         vim.cmd([[
 			autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered(false)
-			command! -nargs=0 Neorg delcommand Neorg | lua require('neorg').org_file_entered(true)
+			command! -nargs=* NeorgStart delcommand NeorgStart | lua require('neorg').org_file_entered(true, <q-args>)
 		]])
     end
 end
@@ -32,12 +32,13 @@ end
 -- @Summary Neorg startup function
 -- @Description This function gets called upon entering a .norg file and loads all of the user-defined modules.
 -- @Param manual (boolean) - if true then the environment was kickstarted manually by the user
-function neorg.org_file_entered(manual)
+-- @Param arguments (string) - a list of arguments in the format of "key=value other_key=other_value"
+function neorg.org_file_entered(manual, arguments)
     -- Extract the module list from the user configuration
     local module_list = configuration.user_configuration and configuration.user_configuration.load or {}
 
     -- If we have already started Neorg or if we haven't defined any modules to load then bail
-    if neorg.configuration.started or not module_list or vim.tbl_isempty(module_list) then
+    if configuration.started or not module_list or vim.tbl_isempty(module_list) then
         return
     end
 
@@ -48,10 +49,18 @@ function neorg.org_file_entered(manual)
     --
     -- If the user has defined a post-load hook then execute it
     if configuration.user_configuration.hook then
-        configuration.user_configuration.hook(manual)
+        configuration.user_configuration.hook(manual, arguments)
     end
 
-    neorg.configuration.manual = manual
+    configuration.manual = manual
+
+    -- If the user has supplied any Neorg environment variables
+    -- then parse those here
+    if arguments and arguments:len() > 0 then
+        for key, value in arguments:gmatch("([%w%W]+)=([%w%W]+)") do
+            configuration.arguments[key] = value
+        end
+    end
 
     -- Go through each defined module and grab its configuration
     for name, module in pairs(module_list) do
@@ -87,7 +96,7 @@ function neorg.org_file_entered(manual)
     end
 
     -- Set this variable to prevent Neorg from loading twice
-    neorg.configuration.started = true
+    configuration.started = true
 end
 
 return neorg
