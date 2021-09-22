@@ -91,13 +91,13 @@ return function(module)
                     callback = function()
                         selection:push_page()
 
-                        selection:title("Add a task to inbox"):blank():prompt("Task", {
+                        selection = selection:title("Add a task to inbox"):blank():prompt("Task", {
                             callback = function(text)
                                 local task = {}
                                 task.content = text
                                 selection:push_page()
 
-                                selection
+                                selection = selection
                                     :title("Add informations")
                                     :blank()
                                     :text("Task: " .. task.content)
@@ -137,11 +137,13 @@ return function(module)
                                             projectAtEnd
                                         )
                                     end)
+                                return selection
                             end,
                             -- Do not pop or destroy the prompt when confirmed
                             pop = false,
                             destroy = false,
                         })
+                        return selection
                     end,
                     destroy = false,
                 })

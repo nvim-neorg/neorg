@@ -1,5 +1,6 @@
 return function(module)
     return {
+        -- FIXME: Still errors in multiple flags selection
         public = {
             show_quick_actions = function(configs)
                 -- Generate quick_actions selection popup
