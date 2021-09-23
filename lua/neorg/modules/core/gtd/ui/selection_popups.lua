@@ -5,7 +5,7 @@ return function(module)
             show_quick_actions = function(configs)
                 -- Generate quick_actions selection popup
                 local buffer = module.required["core.ui"].create_split("Quick Actions")
-                local selection = module.required["core.ui"].begin_selection(buffer):add_listener(
+                local selection = module.required["core.ui"].begin_selection(buffer):listener(
                     "destroy",
                     { "<Esc>" },
                     function(self)
@@ -39,7 +39,7 @@ return function(module)
                 -- Create selection popup
                 local buffer = module.required["core.ui"].create_split("Edit Task")
                 local selection = module.required["core.ui"].begin_selection(buffer)
-                selection = selection:add_listener("destroy", { "<Esc>" }, function(self)
+                selection = selection:listener("destroy", { "<Esc>" }, function(self)
                     self:destroy()
                 end)
 
