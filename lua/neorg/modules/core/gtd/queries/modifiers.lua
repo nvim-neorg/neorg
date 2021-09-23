@@ -48,6 +48,39 @@ return function(module)
                 -- Replacing old option with new one (The empty string is to prevent lines below to wrap)
                 vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { value, "" })
             end,
+
+            --- Delete a node from an `object` with `option` key
+            --- @param object table
+            --- @param option string
+            --- @param opts table
+            ---   - opts.index (number)         if object.option is a table, specify an index to select the node index to modify
+            delete = function (object, option, opts)
+                opts = opts or {}
+
+                local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+
+                local fetched_node
+                if type(object[option]) == "table" then
+                    if opts.index then
+                        -- Deletes the node at index
+                        fetched_node = object[option][opts.index]
+                    else
+                        -- Recursively deletes all objects
+                        for i,_ in ipairs(object[option]) do
+                            module.public.delete(object, option, { index = i })
+                        end
+                    end
+                else
+                    fetched_node = object[option]
+                end
+
+                local start_row, start_col, end_row, end_col = ts_utils.get_node_range(fetched_node)
+
+                -- Deleting object
+
+                vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { "" })
+
+            end
         },
     }
 end
