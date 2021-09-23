@@ -49,6 +49,8 @@ module.public = {
             :blank()
             :text("Other flags:")
             :rflag("a", "press me!", function()
+                selection:setstate("test", "hello from the other side")
+
                 -- Create more elements for the selection
                 selection
                     :title("Another Title!")
@@ -57,19 +59,24 @@ module.public = {
                     :flag("a", "i do nothing :)")
                     :rflag("b", "yet another nested flag", function()
                         selection
-                        :title("Final Title")
-                        :blank()
-                        :text("Btw, did you know that you can")
-                        :text("Press <BS> to go back a page? Try it!")
-                        :blank()
-                        :text("Also, psst, pressing `g` will give you a small surprise")
-                        :blank()
-                        :flag("a", "does nothing too")
-                        :listener("print-message", { "g" }, function()
-                            log.warn("You are awesome :)")
-                        end)
+                            :title("Final Title")
+                            :blank()
+                            :text("Btw, did you know that you can")
+                            :text("Press <BS> to go back a page? Try it!")
+                            :blank()
+                            :text("Also, psst, pressing `g` will give you a small surprise")
+                            :blank()
+                            :flag("a", "does nothing too")
+                            :listener("print-message", { "g" }, function()
+                                log.warn("You are awesome :)")
+                            end)
                     end)
             end)
+            :stateof( -- To view this press `a` and then <BS> to go back
+                "test",
+                "This is a custom message: %s." --[[ you can supply a third argument which
+                will forcefully render the message even if the state isn't present. The state will be replaced with a " " ]]
+            )
     end,
 
     -- @Summary Gets the current size of the window
