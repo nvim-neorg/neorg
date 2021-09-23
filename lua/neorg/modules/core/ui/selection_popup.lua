@@ -540,6 +540,18 @@ return function(module)
                         return self
                     end,
 
+                    --- Concatenates a `callback` function that returns the selection popup to the existing selection popup
+                    --- Example:
+                    --- selection
+                    ---   :text("test")
+                    ---   :concat(this_is_a_function)
+                    --- @param callback function #The function to append
+                    --- @return table #`self`
+                    concat = function(self, callback)
+                        self = callback(self)
+                        return self
+                    end,
+
                     setstate = function(self, key, value, rerender)
                         self.states[key] = {
                             value = value,
