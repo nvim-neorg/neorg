@@ -95,6 +95,7 @@ return function(module)
                     opts = {},
                     keys = {},
                     localkeys = {},
+                    states = {},
 
                     --- Retrieves the options for a certain type
                     --- @param type string #The type of element to extract the options for
@@ -539,15 +540,48 @@ return function(module)
                         return self
                     end,
 
-                    --- Concatenates a `callback` function that returns the selection popup to the existing selection popup
-                    --- Example:
-                    --- selection
-                    ---   :text("test")
-                    ---   :concat(this_is_a_function)
-                    --- @param callback function #The function to append
-                    --- @return table #`self`
-                    concat = function(self, callback)
-                        self = callback(self)
+                    setstate = function(self, key, value, rerender)
+                        self.states[key] = {
+                            value = value,
+                            callbacks = {},
+                        }
+
+                        -- Reset the renderer to make sure we're starting afresh
+                        renderer:reset()
+
+                        if rerender then
+                            renderer:reset()
+                            -- Loop through all items in the page and recreate
+                            -- each element
+                            for _, item in ipairs(self.pages[self.page]) do
+                                item[1](self, unpack(item[2]))
+                            end
+                        end
+
+                        return self
+                    end,
+
+                    -- TODO: Add support for a callback to be invoked on state change
+                    stateof = function(self, key, format, force_render)
+                        format = format or "%s"
+                        force_render = force_render or false
+
+                        -- Set up the configuration by properly merging everything
+                        local configuration = vim.tbl_deep_extend("force", {
+                            highlight = "Normal",
+                        }, self:options_for(
+                            "stateof"
+                        ))
+
+                        self:add("stateof", key, format)
+
+                        if force_render or (self.states[key] and self.states[key].value) then
+                            renderer:render({
+                                format:format(self.states[key] and self.states[key].value or " "),
+                                configuration.highlight,
+                            })
+                        end
+
                         return self
                     end,
                 }

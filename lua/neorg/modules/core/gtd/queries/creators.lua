@@ -132,7 +132,6 @@ return function(module)
                     end
                 end
             end,
-
         },
 
         private = {
