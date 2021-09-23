@@ -44,25 +44,26 @@ return function(module)
                 end)
 
                 -- TODO: Make the content prettier
-                selection = selection:title("Edit Task"):blank():text("Task: " .. task_extracted.content)
-                if task_extracted.contexts then
-                    selection = selection:text("- Contexts: " .. table.concat(task_extracted.contexts, ","))
-                end
-                if task_extracted.waiting_for then
-                    selection = selection:text("- Waiting For: " .. table.concat(task_extracted.waiting_for, ","))
-                end
-                if task_extracted.start then
-                    selection = selection:text("- Start: " .. task_extracted.start)
-                end
-                if task_extracted.due then
-                    selection = selection:text("- Due: " .. task_extracted.due)
-                end
+                selection = selection:title("Edit Task")
+                    :blank()
+                    :concat(function(_selection)
+                        return module.private.edit(_selection, "e", "Edit content: " .. task_extracted.content, modified, { prompt_title = "Edit Content"})
+                    end)
+                --if task_extracted.contexts then
+                    --selection = selection:text("- Contexts: " .. table.concat(task_extracted.contexts, ","))
+                --end
+                --if task_extracted.waiting_for then
+                    --selection = selection:text("- Waiting For: " .. table.concat(task_extracted.waiting_for, ","))
+                --end
+                --if task_extracted.start then
+                    --selection = selection:text("- Start: " .. task_extracted.start)
+                --end
+                --if task_extracted.due then
+                    --selection = selection:text("- Due: " .. task_extracted.due)
+                --end
 
                 selection = selection
                     :blank()
-                    :concat(function(_selection)
-                        return module.private.edit_content(_selection, modified)
-                    end)
                     :blank()
                     :flag("<CR>", "Validate", function()
                         if modified.content then
