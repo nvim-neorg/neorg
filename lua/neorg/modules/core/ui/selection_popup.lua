@@ -16,7 +16,19 @@ return function(module)
             --- @param type string #The type of element the callback belongs to (could be "flag", "switch" etc.)
             invoke_key_in_selection = function(name, key, type)
                 local self = module.private.callbacks[name]
-                self.callbacks[({ type:gsub("<(.+)>", "%1") })[1]](self, key)
+                local real_type = ({ type:gsub("<(.+)>", "%1") })[1]
+
+                if self.localcallbacks[real_type] then
+                    self.localcallbacks[real_type](self, key)
+                    return
+                end
+
+                for _, callbacks in ipairs(self.callbacks) do
+                    if callbacks[real_type] then
+                        callbacks[real_type](self, key)
+                        return
+                    end
+                end
             end,
 
             --- Constructs a new selection
@@ -77,10 +89,12 @@ return function(module)
 
                 local selection = {
                     callbacks = {},
+                    localcallbacks = {},
                     page = 1,
                     pages = { {} },
                     opts = {},
                     keys = {},
+                    localkeys = {},
 
                     --- Retrieves the options for a certain type
                     --- @param type string #The type of element to extract the options for
@@ -108,23 +122,64 @@ return function(module)
                     --- @param type string #The type of element to attach to (can be "flag" or "switch" or something)
                     --- @param keys table #An array of keys to bind
                     --- @param func function #A callback to invoke whenever the key has been pressed
-                    --- @param mode string #Optional, default "n": the mode to create the listener
+                    --- @param mode string #Optional, default "n": the mode to create the listener for
                     --- @return table #`self`
-                    add_listener = function(self, type, keys, func, mode)
+                    listener = function(self, type, keys, func, mode)
                         -- Remove the <> characters from the string because that causes issues with Lua internally
                         type = ({ type:gsub("<(.+)>", "%1") })[1]
 
                         -- Extend ourself with the new callbacks. This allows us to give the callbacks value a "scope"
-                        self = vim.tbl_deep_extend(
-                            "force",
-                            self,
-                            { callbacks = {
-                                [type] = func,
-                            } }
-                        )
+                        self.callbacks[self.page] = self.callbacks[self.page] or {}
+                        self.callbacks[self.page][type] = func
+
+                        self.keys[self.page] = self.keys[self.page] or {}
+                        self.keys[self.page] = vim.list_extend(self.keys[self.page], keys)
 
                         -- Go through all keys that the user has bound a listener to and bind them!
                         for _, key in ipairs(keys) do
+                            -- TODO: Docs
+                            vim.api.nvim_buf_set_keymap(
+                                buffer,
+                                mode or "n",
+                                key,
+                                string.format(
+                                    '<cmd>lua neorg.modules.get_module("%s").invoke_key_in_selection("%s", "%s", "%s")<CR>',
+                                    module.name,
+                                    name,
+                                    ({ key:gsub("<(.+)>", "|%1|") })[1],
+                                    type
+                                ),
+                                {
+                                    silent = true,
+                                    noremap = true,
+                                    nowait = true,
+                                }
+                            )
+                        end
+
+                        return self
+                    end,
+
+                    --- Attaches a key listener to the current page
+                    --- @param type string #The type of element to attach to (can be "flag" or "switch" or something)
+                    --- @param keys table #An array of keys to bind
+                    --- @param func function #A callback to invoke whenever the key has been pressed
+                    --- @param mode string #Optional, default "n": the mode to create the listener for
+                    --- @return table #`self`
+                    locallistener = function(self, type, keys, func, mode)
+                        -- Remove the <> characters from the string because that causes issues with Lua internally
+                        type = ({ type:gsub("<(.+)>", "%1") })[1]
+
+                        -- Extend ourself with the new callbacks. This allows us to give the callbacks value a "scope"
+                        self.localcallbacks = vim.tbl_deep_extend("force", self.localcallbacks or {}, {
+                            [type] = func,
+                        })
+
+                        -- Extend the page-local keys too
+                        self.localkeys = vim.list_extend(self.localkeys, keys)
+
+                        -- Go through all keys that the user has bound a listener to and bind them!
+                        for _, key in pairs(keys) do
                             -- TODO: Docs
                             vim.api.nvim_buf_set_keymap(
                                 buffer,
@@ -260,8 +315,8 @@ return function(module)
 
                         self:add("flag", flag, description, callback)
 
-                        -- Attach a listener to this flag
-                        self = self:add_listener("flag_" .. flag, configuration.keys, function()
+                        -- Attach a locallistener to this flag
+                        self = self:locallistener("flag_" .. flag, configuration.keys, function()
                             -- Delete the selection before any action
                             -- We assume pressing a flag does quit the popup
                             if configuration.destroy then
@@ -324,8 +379,8 @@ return function(module)
 
                         self:add("rflag", flag, description, callback)
 
-                        -- Attach a listener to this flag
-                        self = self:add_listener("flag_" .. flag, configuration.keys, function()
+                        -- Attach a locallistener to this flag
+                        self = self:locallistener("flag_" .. flag, configuration.keys, function()
                             -- Create a new page to allow the renderer to start fresh
                             self:push_page();
 
@@ -359,13 +414,22 @@ return function(module)
                     --- Pushes a new page onto the stack, clearing the buffer
                     --- and starting fresh
                     push_page = function(self)
+                        self.localcallbacks = {}
+
+                        -- Go through every locally bound key and unbind it
+                        -- We don't want page-local keys to continue being bound
+                        for _, key in ipairs(self.localkeys) do
+                            vim.api.nvim_buf_del_keymap(buffer, "", key)
+                        end
+
+                        self.localkeys = {}
+
                         self.page = self.page + 1
                         self.pages[self.page] = {}
-                        renderer:reset()
+                        self.callbacks[self.page] = {}
+                        self.keys[self.page] = {}
 
-                        for _, key in ipairs(vim.api.nvim_buf_get_keymap(buffer, "")) do
-                            vim.api.nvim_buf_del_keymap(buffer, key.mode, key.lhs)
-                        end
+                        renderer:reset()
                     end,
 
                     --- Pops the page stack, effectively restoring the previous
@@ -376,8 +440,22 @@ return function(module)
                             return
                         end
 
+                        self.localcallbacks = {}
+
+                        for _, key in ipairs(self.localkeys) do
+                            vim.api.nvim_buf_del_keymap(buffer, "", key)
+                        end
+
+                        self.localkeys = {}
+
+                        for _, key in ipairs(self.keys[self.page]) do
+                            vim.api.nvim_buf_del_keymap(buffer, "", key)
+                        end
+
                         -- Delete the current page from existence
                         self.pages[self.page] = {}
+                        self.callbacks[self.page] = {}
+
                         -- Decrement the page counter
                         self.page = self.page - 1
 
