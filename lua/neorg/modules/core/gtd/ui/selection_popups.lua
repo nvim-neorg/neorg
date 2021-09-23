@@ -44,29 +44,49 @@ return function(module)
                 end)
 
                 -- TODO: Make the content prettier
-                selection = selection:title("Edit Task")
+                selection = selection
+                    :title("Edit Task")
                     :blank()
                     :concat(function(_selection)
-                        return module.private.edit(_selection, "e", "Edit content: " .. task_extracted.content, "content", modified, { prompt_title = "Edit Content"})
+                        return module.private.edit(
+                            _selection,
+                            "e",
+                            "Edit content: " .. task_extracted.content,
+                            "content",
+                            modified,
+                            { prompt_title = "Edit Content" }
+                        )
                     end)
                     :concat(function(_selection)
-                        local text = (function ()
-                           if task_extracted.contexts then
-                              return table.concat(task_extracted.contexts, ", ")
-                            else return "No contexts"
-                           end
+                        local text = (function()
+                            if task_extracted.contexts then
+                                return table.concat(task_extracted.contexts, ", ")
+                            else
+                                return "No contexts"
+                            end
                         end)()
-                        return module.private.edit(_selection, "c", "Edit contexts: " .. text, "contexts", modified, { prompt_title = "Edit contexts", multiple_texts = true})
+                        return module.private.edit(
+                            _selection,
+                            "c",
+                            "Edit contexts: " .. text,
+                            "contexts",
+                            modified,
+                            { prompt_title = "Edit contexts", multiple_texts = true }
+                        )
                     end)
 
-                selection = selection
-                    :blank()
-                    :blank()
-                    :flag("<CR>", "Validate", function()
-                        module.required["core.gtd.queries"].modify(task_not_extracted, "content", modified.content)
-                        module.required["core.gtd.queries"].modify(task_not_extracted, "contexts", modified.contexts, { force_create = true, tag = "$contexts"})
-                        vim.api.nvim_buf_call(task_not_extracted.bufnr, function () vim.cmd(" write ") end)
+                selection = selection:blank():blank():flag("<CR>", "Validate", function()
+                    module.required["core.gtd.queries"].modify(task_not_extracted, "content", modified.content)
+                    module.required["core.gtd.queries"].modify(
+                        task_not_extracted,
+                        "contexts",
+                        modified.contexts,
+                        { force_create = true, tag = "$contexts" }
+                    )
+                    vim.api.nvim_buf_call(task_not_extracted.bufnr, function()
+                        vim.cmd(" write ")
                     end)
+                end)
             end,
         },
     }

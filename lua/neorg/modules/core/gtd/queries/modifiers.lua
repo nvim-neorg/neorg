@@ -54,7 +54,7 @@ return function(module)
             --- @param option string
             --- @param opts table
             ---   - opts.index (number)         if object.option is a table, specify an index to select the node index to modify
-            delete = function (object, option, opts)
+            delete = function(object, option, opts)
                 opts = opts or {}
 
                 local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
@@ -66,7 +66,7 @@ return function(module)
                         fetched_node = object[option][opts.index]
                     else
                         -- Recursively deletes all objects
-                        for i,_ in ipairs(object[option]) do
+                        for i, _ in ipairs(object[option]) do
                             module.public.delete(object, option, { index = i })
                         end
                     end
@@ -79,8 +79,7 @@ return function(module)
                 -- Deleting object
 
                 vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { "" })
-
-            end
+            end,
         },
     }
 end
