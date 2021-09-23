@@ -1,7 +1,7 @@
 return function(module)
     return {
         private = {
-            edit = function (selection, flag, text, modified, opts)
+            edit = function (selection, flag, text, key, modified, opts)
                 opts = opts or {}
                 local prompt_title = opts.prompt_title or 'Edit'
 
@@ -16,9 +16,9 @@ return function(module)
                             callback = function(t)
                                 if #t > 0 then
                                     if opts.multiple_texts then
-                                        modified.content = vim.split(t, " ", true)
+                                        modified[key] = vim.split(t, " ", true)
                                     else
-                                        modified.content = t
+                                        modified[key] = t
                                     end
                                 end
                             end,
