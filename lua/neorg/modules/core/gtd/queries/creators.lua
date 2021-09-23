@@ -36,10 +36,10 @@ return function(module)
                 -- Inserts the content and insert the tags just after
                 node.node = module.private.insert_content_new(node.content, bufnr, location, type, { newline = true })
 
-                module.private.insert_tag({ node.node, bufnr }, node.contexts, "$contexts")
-                module.private.insert_tag({ node.node, bufnr }, node.start, "$start")
-                module.private.insert_tag({ node.node, bufnr }, node.due, "$due")
-                module.private.insert_tag({ node.node, bufnr }, node.waiting_for, "$waiting_for")
+                module.public.insert_tag({ node.node, bufnr }, node.contexts, "$contexts")
+                module.public.insert_tag({ node.node, bufnr }, node.start, "$start")
+                module.public.insert_tag({ node.node, bufnr }, node.due, "$due")
+                module.public.insert_tag({ node.node, bufnr }, node.waiting_for, "$waiting_for")
 
                 vim.api.nvim_buf_call(bufnr, function()
                     vim.cmd([[ write ]])
@@ -93,9 +93,7 @@ return function(module)
 
                 return end_row, bufnr, projectAtEnd
             end,
-        },
 
-        private = {
             --- Insert the tag above a `type`
             --- @param node table #Must be { node, bufnr }
             --- @param content string|table
@@ -135,6 +133,9 @@ return function(module)
                 end
             end,
 
+        },
+
+        private = {
             --- Insert a `content` (with specific `type`) at specified `location`
             --- @param content string
             --- @param bufnr number
