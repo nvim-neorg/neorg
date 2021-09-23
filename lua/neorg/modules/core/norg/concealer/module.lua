@@ -362,13 +362,12 @@ module.config.public = {
 
             strong = {
                 enabled = true,
-                icon = "─",
+                icon = "❬",
                 highlight = "NeorgStrongParagraphDelimiter",
                 query = "(strong_paragraph_delimiter) @icon",
                 render = function(self, text)
                     return {
-                        { "" },
-                        { string.rep(self.icon, text:len() - 1), self.highlight },
+                        { string.rep(self.icon, text:len()), self.highlight },
                     }
                 end,
             },
