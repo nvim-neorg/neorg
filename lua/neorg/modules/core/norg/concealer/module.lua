@@ -136,6 +136,52 @@ module.config.public = {
             },
         },
 
+        list = {
+            enabled = true,
+
+            level_1 = {
+                enabled = true,
+                icon = "•",
+                highlight = "NeorgUnorderedList1",
+                query = "(unordered_list1_prefix) @icon",
+            },
+
+            level_2 = {
+                enabled = true,
+                icon = " •",
+                highlight = "NeorgUnorderedList2",
+                query = "(unordered_list2_prefix) @icon",
+            },
+
+            level_3 = {
+                enabled = true,
+                icon = "  •",
+                highlight = "NeorgUnorderedList3",
+                query = "(unordered_list3_prefix) @icon",
+            },
+
+            level_4 = {
+                enabled = true,
+                icon = "   •",
+                highlight = "NeorgUnorderedList4",
+                query = "(unordered_list4_prefix) @icon",
+            },
+
+            level_5 = {
+                enabled = true,
+                icon = "    •",
+                highlight = "NeorgUnorderedList5",
+                query = "(unordered_list5_prefix) @icon",
+            },
+
+            level_6 = {
+                enabled = true,
+                icon = "     •",
+                highlight = "NeorgUnorderedList6",
+                query = "(unordered_list6_prefix) @icon",
+            },
+        },
+
         quote = {
             enabled = true,
 
@@ -297,6 +343,36 @@ module.config.public = {
                 query = "(multi_definition_suffix) @icon",
             },
         },
+
+        delimiter = {
+            enabled = true,
+
+            weak = {
+                enabled = true,
+                icon = "─",
+                highlight = "NeorgWeakParagraphDelimiter",
+                query = "(weak_paragraph_delimiter) @icon",
+                render = function(self, text)
+                    return {
+                        { "⦗", self.highlight },
+                        { string.rep(self.icon, text:len() - 1), self.highlight },
+                    }
+                end,
+            },
+
+            strong = {
+                enabled = true,
+                icon = "─",
+                highlight = "NeorgStrongParagraphDelimiter",
+                query = "(strong_paragraph_delimiter) @icon",
+                render = function(self, text)
+                    return {
+                        { "" },
+                        { string.rep(self.icon, text:len() - 1), self.highlight },
+                    }
+                end,
+            },
+        },
     },
 
     conceals = {
@@ -434,50 +510,54 @@ module.public = {
                 local query = vim.treesitter.parse_query("norg", icon_data.query)
 
                 -- Go through every found node and try to apply an icon to it
-                for _, node in query:iter_captures(document_root, 0) do
-                    -- Extract both the text and the range of the node
-                    local text = module.required["core.integrations.treesitter"].get_node_text(node)
-                    local range = module.required["core.integrations.treesitter"].get_node_range(node)
+                for id, node in query:iter_captures(document_root, 0) do
+                    local capture = query.captures[id]
 
-                    -- Set the offset to 0 here. The offset is a special value that, well, offsets
-                    -- the location of the icon column-wise
-                    -- It's used in scenarios where the node spans more than what we want to iconify.
-                    -- A prime example of this is the todo item, whose content looks like this: "[x]".
-                    -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
-                    -- to use an offset of 1 to start the icon at the "x"
-                    local offset = 0
+                    if capture == "icon" then
+                        -- Extract both the text and the range of the node
+                        local text = module.required["core.integrations.treesitter"].get_node_text(node)
+                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
-                    -- The extract function is used exactly to calculate this offset
-                    -- If that function is present then run it and grab the return value
-                    if icon_data.extract then
-                        offset = icon_data.extract(text) or 0
-                    end
+                        -- Set the offset to 0 here. The offset is a special value that, well, offsets
+                        -- the location of the icon column-wise
+                        -- It's used in scenarios where the node spans more than what we want to iconify.
+                        -- A prime example of this is the todo item, whose content looks like this: "[x]".
+                        -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
+                        -- to use an offset of 1 to start the icon at the "x"
+                        local offset = 0
 
-                    -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
-                    -- This is primarily used in nested quotes
-                    -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
-                    if not icon_data.render then
-                        module.public._set_extmark(
-                            icon_data.icon,
-                            icon_data.highlight,
-                            range.row_start,
-                            range.row_end,
-                            range.column_start + offset,
-                            range.column_end,
-                            false,
-                            "combine"
-                        )
-                    else
-                        module.public._set_extmark(
-                            icon_data:render(text),
-                            icon_data.highlight,
-                            range.row_start,
-                            range.row_end,
-                            range.column_start + offset,
-                            range.column_end,
-                            false,
-                            "combine"
-                        )
+                        -- The extract function is used exactly to calculate this offset
+                        -- If that function is present then run it and grab the return value
+                        if icon_data.extract then
+                            offset = icon_data.extract(text) or 0
+                        end
+
+                        -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
+                        -- This is primarily used in nested quotes
+                        -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
+                        if not icon_data.render then
+                            module.public._set_extmark(
+                                icon_data.icon,
+                                icon_data.highlight,
+                                range.row_start,
+                                range.row_end,
+                                range.column_start + offset,
+                                range.column_end,
+                                false,
+                                "combine"
+                            )
+                        else
+                            module.public._set_extmark(
+                                icon_data:render(text),
+                                icon_data.highlight,
+                                range.row_start,
+                                range.row_end,
+                                range.column_start + offset,
+                                range.column_end,
+                                false,
+                                "combine"
+                            )
+                        end
                     end
                 end
             end
