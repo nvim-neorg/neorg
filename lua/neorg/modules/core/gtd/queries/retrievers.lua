@@ -92,6 +92,7 @@ return function(module)
 
                 return parent
             end,
+
             --- Add metadatas to a list of `nodes`
             --- @param nodes table
             --- @param type string
@@ -124,6 +125,7 @@ return function(module)
                     exported.start = module.private.get_tag("time.start", exported, opts.extract)
                     exported.due = module.private.get_tag("time.due", exported, opts.extract)
                     exported.waiting_for = module.private.get_tag("waiting.for", exported, opts.extract)
+                    exported.uuid = module.private.get_tag("uuid", exported, true)
 
                     table.insert(res, exported)
                 end
@@ -248,8 +250,8 @@ return function(module)
             --- @param extract boolean
             --- @return table
             get_tag = function(tag_name, node, extract)
-                if not vim.tbl_contains({ "time.due", "time.start", "contexts", "waiting.for" }, tag_name) then
-                    log.error("Please specify time.due|time.start|contexts|waiting.for in get_task_date function")
+                if not vim.tbl_contains({ "uuid","time.due", "time.start", "contexts", "waiting.for" }, tag_name) then
+                    log.error("Please specify uuid|time.due|time.start|contexts|waiting.for in get_task_date function")
                     return
                 end
 

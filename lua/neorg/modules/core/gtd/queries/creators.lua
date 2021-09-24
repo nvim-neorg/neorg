@@ -103,7 +103,6 @@ return function(module)
                 if not content then
                     return
                 end
-
                 local inserter = {}
                 module.private.insert_content(inserter, content, prefix)
 
@@ -130,6 +129,43 @@ return function(module)
                         vim.api.nvim_buf_set_lines(node[2], node_line, node_line, false, inserter)
                         return true
                     end
+                end
+            end,
+
+            --- Returns a random uuid
+            --- @return string
+            -- @see https://gist.github.com/jrus/3197011
+            generate_uuid = function()
+                local random = math.random
+                local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+                return string.gsub(template, '[xy]', function (c)
+                    local v = (c == 'x') and random(0, 0xf) or random(8, 0xb)
+                    return string.format('%x', v)
+                end)
+            end,
+
+            --- Search for all $uuid tags and generate missing UUIDs for each node
+            --- @param nodes table #A table of { node, bufnr }
+            generate_missing_uuids = function (nodes)
+                -- TODO: find a better way to save
+                for _, node in pairs(nodes) do
+                    local task_extracted = module.public.add_metadata({ node }, "task")[1]
+
+                    local uuid = module.public.generate_uuid()
+                    local carryover_tag_set = module.required["core.queries.native"].find_parent_node( node, "carryover_tag_set")
+
+                    if #carryover_tag_set == 0 then
+                        module.public.insert_tag(node,uuid, "$uuid")
+                        --vim.api.nvim_buf_call(node[2], function()
+                            --vim.cmd(" write ")
+                        --end)
+                        -- Re-get all tasks on current buffer
+                        local nodes = module.public.get("tasks", { bufnr = node[2] })
+                        module.public.generate_missing_uuids(nodes)
+                        return
+
+                    end
+
                 end
             end,
         },
