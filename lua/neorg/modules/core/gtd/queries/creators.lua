@@ -114,21 +114,19 @@ return function(module)
                 local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
                 local node_line, _, _, _ = ts_utils.get_node_range(node[1])
+
                 if #parent_tag_set == 0 then
                     -- No tag created, i will insert the tag just before the node
                     vim.api.nvim_buf_set_lines(node[2], node_line, node_line, false, inserter)
                     return true
                 else
-                    -- Gets the last tag in the found tag_set
+                    -- Gets the last tag in the found tag_set and append after it
                     local tags_number = parent_tag_set[1]:child_count()
                     local last_tag = parent_tag_set[1]:child(tags_number - 1)
-
-                    -- Check if the last tag in the tag_set is just above the `node`. If so, inserts the tag before the node
                     local start_row, _, _, _ = ts_utils.get_node_range(last_tag)
-                    if start_row == node_line - 1 then
-                        vim.api.nvim_buf_set_lines(node[2], node_line, node_line, false, inserter)
-                        return true
-                    end
+
+                    vim.api.nvim_buf_set_lines(node[2], start_row, start_row, false, inserter)
+                    return true
                 end
             end,
 
@@ -137,36 +135,11 @@ return function(module)
             -- @see https://gist.github.com/jrus/3197011
             generate_uuid = function()
                 local random = math.random
-                local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-                return string.gsub(template, '[xy]', function (c)
-                    local v = (c == 'x') and random(0, 0xf) or random(8, 0xb)
-                    return string.format('%x', v)
+                local template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+                return string.gsub(template, "[xy]", function(c)
+                    local v = (c == "x") and random(0, 0xf) or random(8, 0xb)
+                    return string.format("%x", v)
                 end)
-            end,
-
-            --- Search for all $uuid tags and generate missing UUIDs for each node
-            --- @param nodes table #A table of { node, bufnr }
-            generate_missing_uuids = function (nodes)
-                -- TODO: find a better way to save
-                for _, node in pairs(nodes) do
-                    local task_extracted = module.public.add_metadata({ node }, "task")[1]
-
-                    local uuid = module.public.generate_uuid()
-                    local carryover_tag_set = module.required["core.queries.native"].find_parent_node( node, "carryover_tag_set")
-
-                    if #carryover_tag_set == 0 then
-                        module.public.insert_tag(node,uuid, "$uuid")
-                        --vim.api.nvim_buf_call(node[2], function()
-                            --vim.cmd(" write ")
-                        --end)
-                        -- Re-get all tasks on current buffer
-                        local nodes = module.public.get("tasks", { bufnr = node[2] })
-                        module.public.generate_missing_uuids(nodes)
-                        return
-
-                    end
-
-                end
             end,
         },
 
