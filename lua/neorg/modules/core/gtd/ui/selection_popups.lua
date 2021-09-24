@@ -24,12 +24,10 @@ return function(module)
                         return module.private.generate_display_flags(_selection, configs)
                     end)
 
-                selection = selection
-                    :blank()
-                    :flag("x", "Debug Mode", function ()
-                        local nodes = module.required['core.gtd.queries'].get("tasks", { filename = "index.norg"})
-                        module.required["core.gtd.queries"].generate_missing_uuids(nodes)
-                    end)
+                selection = selection:blank():flag("x", "Debug Mode", function()
+                    local nodes = module.required["core.gtd.queries"].get("tasks", { filename = "index.norg" })
+                    module.required["core.gtd.queries"].generate_missing_uuids(nodes, "tasks")
+                end)
             end,
 
             edit_task = function(task)
@@ -85,10 +83,10 @@ return function(module)
                 selection = selection:blank():blank():flag("<CR>", "Validate", function()
                     --module.required["core.gtd.queries"].modify(task_not_extracted, "content", modified.content)
                     --module.required["core.gtd.queries"].modify(
-                        --task_not_extracted,
-                        --"contexts",
-                        --modified.contexts,
-                        --{ force_create = true, tag = "$contexts" }
+                    --task_not_extracted,
+                    --"contexts",
+                    --modified.contexts,
+                    --{ force_create = true, tag = "$contexts" }
                     --)
                     vim.api.nvim_buf_call(task_not_extracted.bufnr, function()
                         vim.cmd(" write ")

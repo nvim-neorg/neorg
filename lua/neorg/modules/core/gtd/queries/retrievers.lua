@@ -250,7 +250,7 @@ return function(module)
             --- @param extract boolean
             --- @return table
             get_tag = function(tag_name, node, extract)
-                if not vim.tbl_contains({ "uuid","time.due", "time.start", "contexts", "waiting.for" }, tag_name) then
+                if not vim.tbl_contains({ "uuid", "time.due", "time.start", "contexts", "waiting.for" }, tag_name) then
                     log.error("Please specify uuid|time.due|time.start|contexts|waiting.for in get_task_date function")
                     return
                 end
