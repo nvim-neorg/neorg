@@ -129,18 +129,6 @@ return function(module)
                     return true
                 end
             end,
-
-            --- Returns a random uuid
-            --- @return string
-            -- @see https://gist.github.com/jrus/3197011
-            generate_uuid = function()
-                local random = math.random
-                local template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
-                return string.gsub(template, "[xy]", function(c)
-                    local v = (c == "x") and random(0, 0xf) or random(8, 0xb)
-                    return string.format("%x", v)
-                end)
-            end,
         },
 
         private = {

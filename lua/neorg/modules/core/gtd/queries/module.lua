@@ -37,53 +37,6 @@ module.setup = function()
     }
 end
 
-module.public = {
-    --- Search for all $uuid tags and generate missing UUIDs for each node
-    --- @param nodes table #A table of { node, bufnr }
-    generate_missing_uuids = function(nodes, node_type)
-        -- Construct a table of uuids/node/bufnr
-        local uuids = vim.tbl_map(function(n)
-            return {
-                uuid = module.private.get_tag("uuid", { node = n[1], bufnr = n[2] }, false),
-                node = n[1],
-                bufnr = n[2],
-            }
-        end, nodes)
-
-        -- Find the first node that dont have an uuid
-        local node
-        for _, _node in pairs(uuids) do
-            if not _node.uuid then
-                node = _node
-                break
-            end
-        end
-
-        if not node then
-            return
-        end
-
-        local uuid = module.public.generate_uuid()
-        local uuid_tag = module.private.get_tag("uuid", { node = node.node, bufnr = node.bufnr }, false)
-
-        -- Re-get all tasks on current buffer and recursiverly call the function
-        local function descend()
-            vim.api.nvim_buf_call(node.bufnr, function()
-                vim.cmd(" write ")
-            end)
-            nodes = module.public.get(node_type)
-            module.public.generate_missing_uuids(nodes, node_type)
-        end
-
-        -- Generate the tag and recursively retry
-        if not uuid_tag then
-            if module.public.insert_tag({ node.node, node.bufnr }, uuid, "$uuid") then
-                descend()
-                return
-            end
-        end
-    end,
-}
 
 module = utils.require(module, "helpers")
 module = utils.require(module, "retrievers")
