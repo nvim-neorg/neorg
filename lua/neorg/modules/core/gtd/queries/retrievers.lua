@@ -109,7 +109,9 @@ return function(module)
                     log.error("Unknown type")
                     return
                 end
-                for _, node in pairs(nodes) do
+
+                local previous_bufnr_tbl = {}
+                for _, node in ipairs(nodes) do
                     local exported = {}
                     exported.node = node[1]
                     exported.bufnr = node[2]
@@ -125,6 +127,15 @@ return function(module)
                     exported.start = module.private.get_tag("time.start", exported, opts.extract)
                     exported.due = module.private.get_tag("time.due", exported, opts.extract)
                     exported.waiting_for = module.private.get_tag("waiting.for", exported, opts.extract)
+
+                    -- Add position in file for each node
+                    if not previous_bufnr_tbl[exported.bufnr] then
+                        previous_bufnr_tbl[exported.bufnr] = 1
+                        exported.position = 1
+                    else
+                        previous_bufnr_tbl[exported.bufnr] = previous_bufnr_tbl[exported.bufnr] + 1
+                        exported.position = previous_bufnr_tbl[exported.bufnr]
+                    end
 
                     table.insert(res, exported)
                 end
