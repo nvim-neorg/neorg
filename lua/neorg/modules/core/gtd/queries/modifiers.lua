@@ -3,6 +3,7 @@ return function(module)
         public = {
             --- Modifies an `option` from `object` (the content must not be extracted!) with new `value`
             --- @param object table
+            --- @param node_type string
             --- @param option string
             --- @param value string|table
             --- @param opts table
@@ -10,7 +11,7 @@ return function(module)
             ---   - opts.tag (string)           the tag to create if we use opts.force_create
             ---   - opts.index (number)         if object.option is a table, specify an index to select the node index to modify
             --                                  e.g contexts = { "home", "mac" }, replacing "mac" with opts.index = 2
-            modify = function(object, option, value, opts)
+            modify = function(object, node_type, option, value, opts)
                 opts = opts or {}
                 if not value then
                     return
@@ -47,6 +48,9 @@ return function(module)
 
                 -- Replacing old option with new one (The empty string is to prevent lines below to wrap)
                 vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { value, "" })
+
+                local new_node = module.public.update(object, node_type)
+                return new_node
             end,
 
             --- Delete a node from an `object` with `option` key
@@ -54,7 +58,7 @@ return function(module)
             --- @param option string
             --- @param opts table
             ---   - opts.index (number)         if object.option is a table, specify an index to select the node index to modify
-            delete = function(object, option, opts)
+            delete = function(object, node_type, option, opts)
                 opts = opts or {}
 
                 local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
@@ -65,10 +69,8 @@ return function(module)
                         -- Deletes the node at index
                         fetched_node = object[option][opts.index]
                     else
-                        -- Recursively deletes all objects
-                        for i, _ in ipairs(object[option]) do
-                            module.public.delete(object, option, { index = i })
-                        end
+                       log.error("please specify an index")
+                       return
                     end
                 else
                     fetched_node = object[option]
@@ -79,6 +81,9 @@ return function(module)
                 -- Deleting object
 
                 vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { "" })
+
+                local new_node = module.public.update(object, node_type)
+                return new_node
             end,
 
             --- Update a specific `node` with `type`.
@@ -92,40 +97,21 @@ return function(module)
                     return
                 end
 
-                -- If the node is not extracted, extract it in order to get a diff
-                local originally_extracted = true
-                if type(node.content) == "userdata" then
-                    node = module.public.add_metadata({ { node.node, node.bufnr } }, node_type)[1]
-                    originally_extracted = false
-                end
-
                 -- Get all nodes from same bufnr
                 local nodes = module.public.get(node_type .. "s", { bufnr = node.bufnr })
-                local nodes_extracted = module.public.add_metadata(nodes, node_type, { extract = true })
+                local originally_extracted = type(node.content) == "string"
+                nodes = module.public.add_metadata(nodes, node_type, { extract = originally_extracted })
 
-                -- Compare nodes by their contents
-                -- NOTE: Find a better way
-                local new_node = vim.tbl_filter(function(n)
-                    return n.content == node.content
-                end, nodes_extracted)
+                local found_node = vim.tbl_filter(function (n)
+                   return n.position == node.position
+                end, nodes)
 
-                if #new_node == 0 then
-                    log.error("Not updated")
+                if #found_node == 0 then
+                    log.error("An error occured in updating node")
                     return
                 end
 
-                -- Get first node
-                new_node = new_node[1]
-
-                if originally_extracted then
-                    return new_node
-                else
-                    new_node = vim.tbl_filter(function(n)
-                        return new_node.node == n[1]
-                    end, nodes)[1]
-                    new_node = module.public.add_metadata({ new_node }, node_type, { extract = false })[1]
-                    return new_node
-                end
+                return found_node[1]
             end,
         },
     }
