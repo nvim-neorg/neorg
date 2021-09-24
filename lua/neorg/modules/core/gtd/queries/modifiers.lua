@@ -14,7 +14,7 @@ return function(module)
             modify = function(object, node_type, option, value, opts)
                 opts = opts or {}
                 if not value then
-                    return
+                    return object
                 end
 
                 -- Create the tag (opts.tag) with the values if opts.force_create and opts.tag
@@ -22,7 +22,7 @@ return function(module)
                     if opts.force_create and opts.tag then
                         module.public.insert_tag({ object.node, object.bufnr }, value, opts.tag)
                     end
-                    return
+                    return object
                 end
 
                 local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
@@ -32,7 +32,7 @@ return function(module)
                 if type(object[option]) == "table" then
                     if not opts.index then
                         log.error("Please specify an index if you modify one of the nodes!")
-                        return
+                        return object
                     end
                     -- The node we modify will be the one at index: opts.index (if it's a table)
                     fetched_node = object[option][opts.index]
@@ -43,13 +43,16 @@ return function(module)
                 local start_row, start_col, end_row, end_col = ts_utils.get_node_range(fetched_node)
 
                 if not end_row or not end_col then
-                    return
+                    return object
                 end
 
                 -- Replacing old option with new one (The empty string is to prevent lines below to wrap)
                 vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { value, "" })
 
                 local new_node = module.public.update(object, node_type)
+                if not new_node then
+                    return object
+                end
                 return new_node
             end,
 

@@ -1,6 +1,5 @@
 return function(module)
     return {
-        -- FIXME: Still errors in multiple flags selection
         public = {
             show_quick_actions = function(configs)
                 -- Generate quick_actions selection popup
@@ -65,6 +64,7 @@ return function(module)
 
                 selection = selection:blank():blank():flag("<CR>", "Validate", function()
                     task_not_extracted = module.required["core.gtd.queries"].modify(task_not_extracted, "task", "content", modified.content)
+
 
                     vim.api.nvim_buf_call(task_not_extracted.bufnr, function()
                         vim.cmd(" write ")
