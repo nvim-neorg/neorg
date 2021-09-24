@@ -94,6 +94,54 @@ module.private = {
     namespace = vim.api.nvim_create_namespace("neorg_conceals"),
     extmarks = {},
     icons = {},
+
+    -- TODO: find appropriate location
+    -- BUG: placing this inside of module.config.public does not work due to odd require behavior
+    ordered_concealing = {
+        get_index = function(node, level)
+            local sibling = node:parent():prev_named_sibling()
+            local count = 1
+            while sibling and sibling:type() == level do
+                sibling = sibling:prev_named_sibling()
+                count = count + 1
+            end
+            return count
+        end,
+
+        icon_renderer = {
+            numeric = function(count)
+                return tostring(count)
+            end,
+
+            latin_lowercase = function(count)
+                return string.char(96 + count)
+            end,
+
+            latin_uppercase = function(count)
+                return string.char(64 + count)
+            end,
+        },
+
+        punctuation = {
+            dot = function(renderer)
+                return function(count)
+                    return renderer(count) .. "."
+                end
+            end,
+
+            parenthesis = function(renderer)
+                return function(count)
+                    return renderer(count) .. ")"
+                end
+            end,
+
+            double_parenthesis = function(renderer)
+                return function(count)
+                    return "(" .. renderer(count) .. ")"
+                end
+            end,
+        },
+    },
 }
 
 module.config.public = {
@@ -179,6 +227,100 @@ module.config.public = {
                 icon = "     •",
                 highlight = "NeorgUnorderedList6",
                 query = "(unordered_list6_prefix) @icon",
+            },
+        },
+
+        ordered = {
+            enabled = true,
+
+            level_1 = {
+                enabled = true,
+                icon = module.private.ordered_concealing.punctuation.dot(
+                    module.private.ordered_concealing.icon_renderer.numeric
+                ),
+                highlight = "NeorgOrderedList1",
+                query = "(ordered_list1_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.private.ordered_concealing.get_index(node, "ordered_list1")
+                    return {
+                        { self.icon(count), self.highlight },
+                    }
+                end,
+            },
+
+            level_2 = {
+                enabled = true,
+                icon = module.private.ordered_concealing.punctuation.dot(
+                    module.private.ordered_concealing.icon_renderer.latin_uppercase
+                ),
+                highlight = "NeorgOrderedList2",
+                query = "(ordered_list2_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.private.ordered_concealing.get_index(node, "ordered_list2")
+                    return {
+                        { " " .. self.icon(count), self.highlight },
+                    }
+                end,
+            },
+
+            level_3 = {
+                enabled = true,
+                icon = module.private.ordered_concealing.punctuation.dot(
+                    module.private.ordered_concealing.icon_renderer.latin_lowercase
+                ),
+                highlight = "NeorgOrderedList3",
+                query = "(ordered_list3_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.private.ordered_concealing.get_index(node, "ordered_list3")
+                    return {
+                        { "  " .. self.icon(count), self.highlight },
+                    }
+                end,
+            },
+
+            level_4 = {
+                enabled = true,
+                icon = module.private.ordered_concealing.punctuation.parenthesis(
+                    module.private.ordered_concealing.icon_renderer.numeric
+                ),
+                highlight = "NeorgOrderedList4",
+                query = "(ordered_list4_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.private.ordered_concealing.get_index(node, "ordered_list4")
+                    return {
+                        { "   " .. self.icon(count), self.highlight },
+                    }
+                end,
+            },
+
+            level_5 = {
+                enabled = true,
+                icon = module.private.ordered_concealing.punctuation.parenthesis(
+                    module.private.ordered_concealing.icon_renderer.latin_uppercase
+                ),
+                highlight = "NeorgOrderedList5",
+                query = "(ordered_list5_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.private.ordered_concealing.get_index(node, "ordered_list5")
+                    return {
+                        { "    " .. self.icon(count), self.highlight },
+                    }
+                end,
+            },
+
+            level_6 = {
+                enabled = true,
+                icon = module.private.ordered_concealing.punctuation.parenthesis(
+                    module.private.ordered_concealing.icon_renderer.latin_lowercase
+                ),
+                highlight = "NeorgOrderedList6",
+                query = "(ordered_list6_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.private.ordered_concealing.get_index(node, "ordered_list6")
+                    return {
+                        { "     " .. self.icon(count), self.highlight },
+                    }
+                end,
             },
         },
 
@@ -556,7 +698,7 @@ module.public = {
                             )
                         else
                             module.public._set_extmark(
-                                icon_data:render(text),
+                                icon_data:render(text, node),
                                 icon_data.highlight,
                                 range.row_start,
                                 range.row_end,
