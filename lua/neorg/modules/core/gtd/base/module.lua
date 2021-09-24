@@ -87,10 +87,6 @@ module.load = function()
             },
         },
     })
-
-    local nodes = module.required["core.gtd.queries"].get("tasks")
-    module.required["core.gtd.queries"].generate_missing_uuids(nodes, "tasks")
-    log.info("Generated missing uuids for gtd")
 end
 
 module.on_event = function(event)

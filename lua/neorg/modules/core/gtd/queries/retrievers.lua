@@ -125,7 +125,6 @@ return function(module)
                     exported.start = module.private.get_tag("time.start", exported, opts.extract)
                     exported.due = module.private.get_tag("time.due", exported, opts.extract)
                     exported.waiting_for = module.private.get_tag("waiting.for", exported, opts.extract)
-                    exported.uuid = module.private.get_tag("uuid", exported, true)
 
                     table.insert(res, exported)
                 end
