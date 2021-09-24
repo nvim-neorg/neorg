@@ -80,6 +80,53 @@ return function(module)
 
                 vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { "" })
             end,
+
+            --- Update a specific `node` with `type`.
+            --- Note: other nodes don't get updated ! If you want to update all nodes, just redo a get()
+            --- Note2: will only work if the node.content is the same and if the task is at same location
+            --- @param node table
+            --- @param node_type string
+            update = function(node, node_type)
+                if not vim.tbl_contains({ "task", "project" }, node_type) then
+                    log.error("Incorrect node_type")
+                    return
+                end
+
+                -- If the node is not extracted, extract it in order to get a diff
+                local originally_extracted = true
+                if type(node.content) == "userdata" then
+                    node = module.public.add_metadata({ { node.node, node.bufnr } }, node_type)[1]
+                    originally_extracted = false
+                end
+
+                -- Get all nodes from same bufnr
+                local nodes = module.public.get(node_type .. "s", { bufnr = node.bufnr })
+                local nodes_extracted = module.public.add_metadata(nodes, node_type, { extract = true })
+
+                -- Compare nodes by their contents
+                -- NOTE: Find a better way
+                local new_node = vim.tbl_filter(function(n)
+                    return n.content == node.content
+                end, nodes_extracted)
+
+                if #new_node == 0 then
+                    log.error("Not updated")
+                    return
+                end
+
+                -- Get first node
+                new_node = new_node[1]
+
+                if originally_extracted then
+                    return new_node
+                else
+                    new_node = vim.tbl_filter(function(n)
+                        return new_node.node == n[1]
+                    end, nodes)[1]
+                    new_node = module.public.add_metadata({ new_node }, node_type, { extract = false })[1]
+                    return new_node
+                end
+            end,
         },
     }
 end
