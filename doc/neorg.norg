@@ -93,6 +93,12 @@
 
 And using 3 or more `=` signs will drop you right back to the root level!
 
+You can also place horizontal lines using three or more underscores like so:
+___
+This will never affect the indentation level of the following text, but it will immediately
+terminate the paragraph which is why this is a new paragraph despite the absence of two (or more)
+consective new lines.
+
  ** Links
     We borrow the basic link syntax from markdown: `[link text](link source)`
     Here are some example which also show you a special list kind for links:
