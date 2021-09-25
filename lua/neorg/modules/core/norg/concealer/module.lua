@@ -235,9 +235,7 @@ module.config.public = {
 
             level_1 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.punctuation.dot(
-                    module.private.ordered_concealing.icon_renderer.numeric
-                ),
+                icon = module.private.ordered_concealing.icon_renderer.numeric,
                 highlight = "NeorgOrderedList1",
                 query = "(ordered_list1_prefix) @icon",
                 render = function(self, _, node)
@@ -250,9 +248,7 @@ module.config.public = {
 
             level_2 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.punctuation.dot(
-                    module.private.ordered_concealing.icon_renderer.latin_uppercase
-                ),
+                icon = module.private.ordered_concealing.icon_renderer.latin_uppercase,
                 highlight = "NeorgOrderedList2",
                 query = "(ordered_list2_prefix) @icon",
                 render = function(self, _, node)
@@ -265,9 +261,7 @@ module.config.public = {
 
             level_3 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.punctuation.dot(
-                    module.private.ordered_concealing.icon_renderer.latin_lowercase
-                ),
+                icon = module.private.ordered_concealing.icon_renderer.latin_lowercase,
                 highlight = "NeorgOrderedList3",
                 query = "(ordered_list3_prefix) @icon",
                 render = function(self, _, node)
@@ -280,9 +274,7 @@ module.config.public = {
 
             level_4 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.punctuation.parenthesis(
-                    module.private.ordered_concealing.icon_renderer.numeric
-                ),
+                icon = module.private.ordered_concealing.icon_renderer.numeric,
                 highlight = "NeorgOrderedList4",
                 query = "(ordered_list4_prefix) @icon",
                 render = function(self, _, node)
@@ -295,9 +287,7 @@ module.config.public = {
 
             level_5 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.punctuation.parenthesis(
-                    module.private.ordered_concealing.icon_renderer.latin_uppercase
-                ),
+                icon = module.private.ordered_concealing.icon_renderer.latin_uppercase,
                 highlight = "NeorgOrderedList5",
                 query = "(ordered_list5_prefix) @icon",
                 render = function(self, _, node)
@@ -310,9 +300,7 @@ module.config.public = {
 
             level_6 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.punctuation.parenthesis(
-                    module.private.ordered_concealing.icon_renderer.latin_lowercase
-                ),
+                icon = module.private.ordered_concealing.icon_renderer.latin_lowercase,
                 highlight = "NeorgOrderedList6",
                 query = "(ordered_list6_prefix) @icon",
                 render = function(self, _, node)
