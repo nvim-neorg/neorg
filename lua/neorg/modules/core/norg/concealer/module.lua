@@ -233,6 +233,32 @@ module.config.public = {
         ordered = {
             enabled = true,
 
+            --[[
+            Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
+            a thing, punctuation can be added (without removing the whitespace
+            between the icon and actual text) like so:
+
+            ```lua
+            icon = module.private.ordered_concealing.punctuation.dot(
+                module.private.ordered_concealing.icon_renderer.numeric
+            ),
+            ```
+
+            Note: this will produce icons like `1.`, `2.`, etc.
+
+            You can even chain multiple punctuation wrappers like so:
+
+            ```lua
+            icon = module.private.ordered_concealing.punctuation.parenthesis(
+                module.private.ordered_concealing.punctuation.dot(
+                    module.private.ordered_concealing.icon_renderer.numeric
+                )
+            ),
+            ```
+
+            Note: this will produce icons like `1.)`, `2.)`, etc.
+            --]]
+
             level_1 = {
                 enabled = true,
                 icon = module.private.ordered_concealing.icon_renderer.numeric,
