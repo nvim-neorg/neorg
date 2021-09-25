@@ -110,6 +110,17 @@ function neorg.modules.create(name)
     return new_module
 end
 
+neorg.modules.extend = neorg.modules.create
+
+-- TODO: Docs
+function neorg.modules.import(module, imports)
+    for _, file in ipairs(imports or {}) do
+        module = vim.tbl_deep_extend("keep", module, require("neorg.modules." .. module.name .. "." .. file))
+    end
+
+    return module
+end
+
 -- @Summary Creates a metamodule
 -- @Description Constructs a metamodule from a list of submodules. Metamodules are modules that can autoload batches of modules at once.
 -- @Param  name (string) - the name of the new metamodule. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
