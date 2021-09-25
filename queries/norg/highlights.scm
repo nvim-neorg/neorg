@@ -159,3 +159,4 @@
 ; Paragraph Delimiters
 (strong_paragraph_delimiter) @NeorgStrongParagraphDelimiter
 (weak_paragraph_delimiter) @NeorgWeakParagraphDelimiter
+(horizontal_line) @NeorgHorizontalLine

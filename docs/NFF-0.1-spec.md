@@ -807,6 +807,18 @@ This text belongs to the root of the document
 - Text that belongs and doesn't belong to the heading is easier to distinguish, especially if you have headings that span over a few screens in your neovim session.
   It can give you insight into the document's structure at a glance.
 
+#### Horizontal Lines
+There is one more delimiting modifier: the horizontal line. It looks like this: `___` (or any higher number of underscores).
+This modifier will get rendered as a horizontal line and as such is equivalent to Markdown's `---` syntax.
+Note, that this modifier does *NOT* affect the indentation of the following paragraphs!
+If you want to also change the heading level you should combine this with one of the aforementioned delimiting modifiers.
+It does however immediately terminate the current paragraph resulting in the following:
+```
+This is a paragraph.
+___
+This is an entirely different paragraph despite of the absence of two (or more) consecutive new lines because of the `___` delimiter.
+```
+
 # Data Tags
 Neorg provides several inbuilt data tags to represent different things. Those exact things will be detailed here:
 - `@document.meta` - describes metadata about the document. Attributes are stored as key-value pairs. Values may have
