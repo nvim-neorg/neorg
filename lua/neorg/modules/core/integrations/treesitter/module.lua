@@ -263,6 +263,7 @@ module.config.public = {
 
         StrongParagraphDelimiter = "+TSPunctDelimiter",
         WeakParagraphDelimiter = "+TSPunctDelimiter",
+        HorizontalLine = "+TSPunctDelimiter",
     },
 
     dim = {

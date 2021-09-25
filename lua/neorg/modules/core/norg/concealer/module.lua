@@ -370,6 +370,18 @@ module.config.public = {
                     }
                 end,
             },
+
+            horizontal_line = {
+                enabled = true,
+                icon = "─",
+                highlight = "NeorgHorizontalLine",
+                query = "(horizontal_line) @icon",
+                render = function(self, text)
+                    return {
+                        { string.rep(self.icon, vim.api.nvim_win_get_width(0)), self.highlight },
+                    }
+                end,
+            },
         },
     },
 
