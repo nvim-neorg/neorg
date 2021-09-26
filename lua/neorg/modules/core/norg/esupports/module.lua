@@ -808,6 +808,7 @@ module.public = {
         end
 
         if link then
+            vim.cmd("normal m'")
             if link.link_info.file and vim.fn.expand("%:p") ~= link.link_info.file then
                 vim.cmd("e " .. link.link_info.file)
             end
