@@ -230,7 +230,6 @@ module.public = {
                         -- If we're dealing with a table called "unbind" then go through all the strings defined there
                         -- and unbind each key
                         for _, to_unbind in ipairs(data) do
-                            log.warn(to_unbind)
                             pcall(vim.api.nvim_del_keymap, mode, to_unbind)
                         end
                     end

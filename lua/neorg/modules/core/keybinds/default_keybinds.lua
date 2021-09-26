@@ -61,4 +61,4 @@ module.public = {
     end,
 }
 
-return module
+return module.merge()

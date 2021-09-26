@@ -15,12 +15,17 @@ require("neorg.modules.base")
 --]]
 neorg.modules.loaded_module_count = 0
 
--- The table of currently loaded modules
+--- The table of currently loaded modules
 neorg.modules.loaded_modules = {}
 
--- @Summary Loads and enables a module
--- @Description Loads a specified module. If the module subscribes to any events then they will be activated too.
--- @Param  module (table) - the actual module to load
+--- A cache to temporarily store modules before they're fully initialized
+--- and placed in `neorg.modules.loaded_modules`
+neorg.modules.cache = {}
+
+--- Loads and enables a module
+-- Loads a specified module. If the module subscribes to any events then they will be activated too.
+--- @param module table #The actual module to load
+--- @return boolean #Whether the module successfully loaded
 function neorg.modules.load_module_from_table(module)
     log.info("Loading module with name", module.name)
 
@@ -143,12 +148,12 @@ function neorg.modules.load_module_from_table(module)
     return true
 end
 
--- @Summary Loads a module from disk
--- @Description Unlike load_module_from_table(), which loads a module from memory, load_module() tries to find the corresponding module file on disk and loads it into memory.
+--- Unlike `load_module_from_table()`, which loads a module from memory, `load_module()` tries to find the corresponding module file on disk and loads it into memory.
 -- If the module cannot not be found, attempt to load it off of github (unimplemented). This function also applies user-defined configurations and keymaps to the modules themselves.
--- This is the recommended way of loading modules - load_module_from_table() should only really be used by neorg itself.
--- @Param  module_name (string) - a path to a module on disk. A path seperator in neorg is '.', not '/'
--- @Param  config (table) - a configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
+-- This is the recommended way of loading modules - `load_module_from_table()` should only really be used by neorg itself.
+--- @param module_name string #A path to a module on disk. A path seperator in neorg is '.', not '/'
+--- @param config table #A configuration that reflects the structure of `neorg.configuration.user_configuration.load["module.name"].config`
+--- @return boolean #Whether the module was successfully loaded
 function neorg.modules.load_module(module_name, config)
     -- Don't bother loading the module from disk if it's already loaded
     if neorg.modules.is_module_loaded(module_name) then
