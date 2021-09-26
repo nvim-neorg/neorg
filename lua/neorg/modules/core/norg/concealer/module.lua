@@ -4,7 +4,7 @@
     by abstracting away certain bits of text and concealing it into one easy-to-recognize
     icon. Icons can be easily changed and every element can be disabled.
 
-USAGE:
+USAGE: (TODO: update)
     This module does not come bundled by default with the core.defaults metamodule.
     Make sure to manually enable it in neorg's setup function.
 
@@ -376,7 +376,7 @@ module.config.public = {
                 icon = "─",
                 highlight = "NeorgHorizontalLine",
                 query = "(horizontal_line) @icon",
-                render = function(self, text)
+                render = function(self)
                     return {
                         { string.rep(self.icon, vim.api.nvim_win_get_width(0)), self.highlight },
                     }
@@ -398,12 +398,10 @@ module.config.public = {
 }
 
 module.load = function()
-    local get_enabled_icons
-
     -- @Summary Returns all the enabled icons from a table
     -- @Param  tbl (table) - the table to parse
     -- @Param rec_name (string) - should not be set manually. Is used for Neorg to have information about all other previous recursions
-    get_enabled_icons = function(tbl, rec_name)
+    local function get_enabled_icons(tbl, rec_name)
         rec_name = rec_name or ""
 
         -- Create a result that we will return at the end of the function
@@ -721,7 +719,6 @@ module.on_event = function(event)
 end
 
 module.events.subscribed = {
-
     ["core.autocommands"] = {
         bufenter = true,
         textchangedi = true,
