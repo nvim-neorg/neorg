@@ -99,15 +99,49 @@ neorg.modules.module_base = {
 -- @Description Returns a module that derives from neorg.modules.module_base, exposing all the necessary function and variables
 -- @Param  name (string) - the name of the new module. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
 function neorg.modules.create(name)
-    local new_module = {}
-
-    new_module = vim.deepcopy(neorg.modules.module_base)
+    local new_module = vim.deepcopy(neorg.modules.module_base)
 
     if name then
         new_module.name = name
     end
 
-    return new_module
+    neorg.modules.cache[new_module.name] = new_module
+
+    return neorg.modules.cache[new_module.name]
+end
+
+--- Extends a module and returns a temporary copy
+--- @param name string #The name of the module to extend
+--- @return table #A copy of the module
+function neorg.modules.extend(name)
+    local from_cache = neorg.modules.cache[name] or {}
+
+    local t = {
+        merge = function()
+            return from_cache
+        end,
+    }
+
+    return setmetatable(t, {
+        __newindex = function(_, key, value)
+            neorg.modules.cache[name][key] = vim.tbl_deep_extend("force", from_cache[key] or {}, value)
+        end,
+        __index = from_cache,
+    })
+end
+
+--- Imports a new module by merging the original module table
+--- @param module table #The module to import new files into
+--- @param imports string[] #A list of files to import (relative to the `module.lua` file)
+--- @return table #The newly extended module
+function neorg.modules.import(module, imports)
+    local cache = neorg.modules.cache[module.name]
+
+    for _, file in ipairs(imports or {}) do
+        cache = vim.tbl_deep_extend("force", cache, require("neorg.modules." .. module.name .. "." .. file))
+    end
+
+    return cache
 end
 
 -- @Summary Creates a metamodule

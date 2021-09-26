@@ -5,7 +5,6 @@
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.ui")
-local utils = require("neorg.external.helpers")
 
 module.private = {
     windows = {},
@@ -110,7 +109,9 @@ module.public = {
     end,
 }
 
-module = utils.require(module, "selection_popup")
-module = utils.require(module, "text_popup")
+module = neorg.modules.import(module, {
+    "selection_popup",
+    "text_popup",
+})
 
 return module

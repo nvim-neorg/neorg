@@ -4,27 +4,6 @@
 --]]
 
 neorg.utils = {
-    -- @Summary Requires a file from the context of the current module
-    -- @Description Allows the module creator to require a file from within the module's cwd
-    -- @Param  module (table) - the module creator's module
-    -- @Param  filename (string) - a path to the file
-    require = function(module, filename)
-        -- Here we perform a hacky double-require. You love to see it!
-        -- We do this because there may be times where a module will reference
-        -- itself and requiring it once would cause it to error out.
-
-        local new_module = vim.tbl_deep_extend(
-            "keep",
-            module,
-            require("neorg.modules." .. module.name .. "." .. filename)(module)
-        )
-
-        return vim.tbl_deep_extend(
-            "keep",
-            module,
-            require("neorg.modules." .. module.name .. "." .. filename)(new_module)
-        )
-    end,
 
     -- @Summary Gets the current system username
     -- @Description An OS agnostic way of querying the current user
