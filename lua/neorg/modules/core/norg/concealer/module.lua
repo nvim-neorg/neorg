@@ -94,54 +94,6 @@ module.private = {
     namespace = vim.api.nvim_create_namespace("neorg_conceals"),
     extmarks = {},
     icons = {},
-
-    -- TODO: find appropriate location
-    -- BUG: placing this inside of module.config.public does not work due to odd require behavior
-    ordered_concealing = {
-        get_index = function(node, level)
-            local sibling = node:parent():prev_named_sibling()
-            local count = 1
-            while sibling and sibling:type() == level do
-                sibling = sibling:prev_named_sibling()
-                count = count + 1
-            end
-            return count
-        end,
-
-        icon_renderer = {
-            numeric = function(count)
-                return tostring(count)
-            end,
-
-            latin_lowercase = function(count)
-                return string.char(96 + count)
-            end,
-
-            latin_uppercase = function(count)
-                return string.char(64 + count)
-            end,
-        },
-
-        punctuation = {
-            dot = function(renderer)
-                return function(count)
-                    return renderer(count) .. "."
-                end
-            end,
-
-            parenthesis = function(renderer)
-                return function(count)
-                    return renderer(count) .. ")"
-                end
-            end,
-
-            double_parenthesis = function(renderer)
-                return function(count)
-                    return "(" .. renderer(count) .. ")"
-                end
-            end,
-        },
-    },
 }
 
 module.config.public = {
@@ -259,13 +211,57 @@ module.config.public = {
             Note: this will produce icons like `1.)`, `2.)`, etc.
             --]]
 
+            get_index = function(node, level)
+                local sibling = node:parent():prev_named_sibling()
+                local count = 1
+                while sibling and sibling:type() == level do
+                    sibling = sibling:prev_named_sibling()
+                    count = count + 1
+                end
+                return count
+            end,
+
+            enumerator = {
+                numeric = function(count)
+                    return tostring(count)
+                end,
+
+                latin_lowercase = function(count)
+                    return string.char(96 + count)
+                end,
+
+                latin_uppercase = function(count)
+                    return string.char(64 + count)
+                end,
+            },
+
+            punctuation = {
+                dot = function(renderer)
+                    return function(count)
+                        return renderer(count) .. "."
+                    end
+                end,
+
+                parenthesis = function(renderer)
+                    return function(count)
+                        return renderer(count) .. ")"
+                    end
+                end,
+
+                double_parenthesis = function(renderer)
+                    return function(count)
+                        return "(" .. renderer(count) .. ")"
+                    end
+                end,
+            },
+
             level_1 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.icon_renderer.numeric,
+                icon = module.config.public.icons.ordered.enumerator.numeric,
                 highlight = "NeorgOrderedList1",
                 query = "(ordered_list1_prefix) @icon",
                 render = function(self, _, node)
-                    local count = module.private.ordered_concealing.get_index(node, "ordered_list1")
+                    local count = module.config.public.icons.ordered.get_index(node, "ordered_list1")
                     return {
                         { self.icon(count), self.highlight },
                     }
@@ -274,11 +270,11 @@ module.config.public = {
 
             level_2 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.icon_renderer.latin_uppercase,
+                icon = module.config.public.icons.ordered.enumerator.latin_uppercase,
                 highlight = "NeorgOrderedList2",
                 query = "(ordered_list2_prefix) @icon",
                 render = function(self, _, node)
-                    local count = module.private.ordered_concealing.get_index(node, "ordered_list2")
+                    local count = module.config.public.icons.ordered.get_index(node, "ordered_list2")
                     return {
                         { " " .. self.icon(count), self.highlight },
                     }
@@ -287,11 +283,11 @@ module.config.public = {
 
             level_3 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.icon_renderer.latin_lowercase,
+                icon = module.config.public.icons.ordered.enumerator.latin_lowercase,
                 highlight = "NeorgOrderedList3",
                 query = "(ordered_list3_prefix) @icon",
                 render = function(self, _, node)
-                    local count = module.private.ordered_concealing.get_index(node, "ordered_list3")
+                    local count = module.config.public.icons.ordered.get_index(node, "ordered_list3")
                     return {
                         { "  " .. self.icon(count), self.highlight },
                     }
@@ -300,11 +296,11 @@ module.config.public = {
 
             level_4 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.icon_renderer.numeric,
+                icon = module.config.public.icons.ordered.enumerator.numeric,
                 highlight = "NeorgOrderedList4",
                 query = "(ordered_list4_prefix) @icon",
                 render = function(self, _, node)
-                    local count = module.private.ordered_concealing.get_index(node, "ordered_list4")
+                    local count = module.config.public.icons.ordered.get_index(node, "ordered_list4")
                     return {
                         { "   " .. self.icon(count), self.highlight },
                     }
@@ -313,11 +309,11 @@ module.config.public = {
 
             level_5 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.icon_renderer.latin_uppercase,
+                icon = module.config.public.icons.ordered.enumerator.latin_uppercase,
                 highlight = "NeorgOrderedList5",
                 query = "(ordered_list5_prefix) @icon",
                 render = function(self, _, node)
-                    local count = module.private.ordered_concealing.get_index(node, "ordered_list5")
+                    local count = module.config.public.icons.ordered.get_index(node, "ordered_list5")
                     return {
                         { "    " .. self.icon(count), self.highlight },
                     }
@@ -326,11 +322,11 @@ module.config.public = {
 
             level_6 = {
                 enabled = true,
-                icon = module.private.ordered_concealing.icon_renderer.latin_lowercase,
+                icon = module.config.public.icons.ordered.enumerator.latin_lowercase,
                 highlight = "NeorgOrderedList6",
                 query = "(ordered_list6_prefix) @icon",
                 render = function(self, _, node)
-                    local count = module.private.ordered_concealing.get_index(node, "ordered_list6")
+                    local count = module.config.public.icons.ordered.get_index(node, "ordered_list6")
                     return {
                         { "     " .. self.icon(count), self.highlight },
                     }
