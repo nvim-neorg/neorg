@@ -114,7 +114,7 @@ end
 --- @param name string #The name of the module to extend
 --- @return table #A copy of the module
 function neorg.modules.extend(name)
-    local from_cache = neorg.modules.cache[name] or {}
+    local from_cache = neorg.modules.cache[name] or neorg.modules.create(name)
 
     local t = {
         merge = function()
