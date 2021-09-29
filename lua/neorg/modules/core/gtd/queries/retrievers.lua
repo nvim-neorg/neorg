@@ -79,6 +79,9 @@ return function(module)
                 return res
             end,
 
+            --- Get the node `type` at cursor
+            --- @param type string #Either project|task
+            --- @return table #A table of type { node, bufnr }
             get_at_cursor = function(type)
                 vim.validate({
                     type = { type, "string" },
