@@ -364,17 +364,20 @@ return function(module)
 
                 local extracted = {}
 
-                -- If i don't fetch multiple sets, i only have one, so i cannot iterate
                 if not fetch_multiple_sets then
+                    -- If i don't fetch multiple sets, i only have one, so i cannot iterate
                     extract(tags_node, extracted)
-                    return extracted
+                else
+                    for _, _node in pairs(tags_node) do
+                        extract(_node, extracted)
+                    end
                 end
 
-                for _, _node in pairs(tags_node) do
-                    extract(_node, extracted)
+                if #extracted == 0 then
+                    return nil
                 end
+
                 return extracted
-
             end,
 
             --- Retrieve the state of the `task`. If `extract`, extracts the content of the node
