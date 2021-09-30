@@ -68,8 +68,8 @@ return function(module)
                         -- Deletes the node at index
                         fetched_node = object[option][opts.index]
                     else
-                       log.error("please specify an index")
-                       return
+                        log.error("please specify an index")
+                        return
                     end
                 else
                     fetched_node = object[option]
@@ -100,8 +100,8 @@ return function(module)
                 local originally_extracted = type(node.content) == "string"
                 nodes = module.public.add_metadata(nodes, node_type, { extract = originally_extracted })
 
-                local found_node = vim.tbl_filter(function (n)
-                   return n.position == node.position
+                local found_node = vim.tbl_filter(function(n)
+                    return n.position == node.position
                 end, nodes)
 
                 if #found_node == 0 then
