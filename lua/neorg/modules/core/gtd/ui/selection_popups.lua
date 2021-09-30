@@ -59,12 +59,12 @@ return function(module)
                 if task_extracted.waiting_for then
                     selection = selection:text("Waiting for: " .. table.concat(task_extracted.waiting_for, ", "))
                 end
-                -- if task_extracted.start then
-                --     selection = selection:text("Starting the" .. task_extracted.start)
-                -- end
-                -- if task_extracted.due then
-                --     selection = selection:text("Due for: " .. task_extracted.due)
-                -- end
+                if task_extracted.start then
+                    selection = selection:text("Starting: " .. task_extracted.start[1])
+                end
+                if task_extracted.due then
+                    selection = selection:text("Due for: " .. task_extracted.due[1])
+                end
                 selection = selection
                     :blank()
                     :concat(function(_selection)
@@ -110,3 +110,5 @@ return function(module)
         },
     }
 end
+
+
