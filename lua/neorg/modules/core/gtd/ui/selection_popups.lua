@@ -42,6 +42,7 @@ return function(module)
                     { extract = false, same_node = true }
                 )[1]
 
+                -- FIXME: As i only add 1 metadata, i only get 1 position
                 local modified = {}
 
                 -- Create selection popup
@@ -80,8 +81,36 @@ return function(module)
                     :blank()
                     :text("General Metadatas")
                     :rflag("c", "Edit contexts", function()
-                        -- content
+                        selection = selection
+                            :text("Edit contexts")
+                            :blank()
+                            :concat(function(_selection)
+                                selection = module.private.edit(
+                                    _selection,
+                                    "e",
+                                    "Edit contexts",
+                                    "contexts",
+                                    modified,
+                                    { prompt_title = "Edit Contexts", pop_page = true, multiple_texts = true }
+                                )
+                                return selection
+                            end)
+
+                            :flag("d", "Delete contexts and exit the popup", function()
+                                -- TODO: make the function a table callback in order to pop pages instead of destroying popup
+                                if not task_not_extracted["contexts"] then
+                                    log.warn("No context to delete")
+                                else
+                                    task_not_extracted = module.required["core.gtd.queries"].delete(
+                                        task_not_extracted,
+                                        "task",
+                                        "contexts"
+                                    )
+                                end
+                            end)
+                        return selection
                     end)
+
                     :rflag("w", "Edit waiting fors", function()
                         -- content
                     end)
@@ -100,6 +129,14 @@ return function(module)
                         "task",
                         "content",
                         modified.content
+                    )
+
+                    task_not_extracted = module.required["core.gtd.queries"].modify(
+                        task_not_extracted,
+                        "task",
+                        "contexts",
+                        modified.contexts,
+                        { tag = "$contexts" }
                     )
 
                     vim.api.nvim_buf_call(task_not_extracted.bufnr, function()

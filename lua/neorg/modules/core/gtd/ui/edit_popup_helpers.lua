@@ -9,6 +9,8 @@ return function(module)
             --- @param modified table #The table to insert modified text
             --- @param opts table
             ---   - opts.multiple_texts (bool):     if true, will split the modified content and convert into a list
+            ---   - opts.pop_page (bool):           if true, will pop the page a second time
+            ---   - opts.prompt_title (string):     provide custom prompt title. Else defaults to "Edit"
             --- @return table #The selection
             edit = function(selection, flag, text, key, modified, opts)
                 opts = opts or {}
@@ -29,6 +31,9 @@ return function(module)
                                         else
                                             modified[key] = t
                                         end
+                                    end
+                                    if opts.pop_page then
+                                        selection:pop_page()
                                     end
                                 end,
                                 pop = true,
