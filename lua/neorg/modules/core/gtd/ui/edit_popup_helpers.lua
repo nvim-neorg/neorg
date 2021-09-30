@@ -32,6 +32,9 @@ return function(module)
                                             modified[key] = t
                                         end
                                     end
+                                    -- We don't delete the key at CR because we just modified it
+                                    selection:set_data("delete_contexts", false)
+
                                     if opts.pop_page then
                                         selection:pop_page()
                                     end

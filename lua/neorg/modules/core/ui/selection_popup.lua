@@ -213,10 +213,13 @@ return function(module)
                     end,
 
                     --- Returns the data the selection holds
-                    data = function()
+                    data = function(_)
                         return data
                     end,
 
+                    set_data = function(_, key, value)
+                        data[key] = value
+                    end,
                     --- Detaches the selection popup from the current buffer
                     --- Does *not* close the buffer
                     detach = function(self)
