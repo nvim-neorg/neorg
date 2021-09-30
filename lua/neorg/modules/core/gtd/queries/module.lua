@@ -37,6 +37,36 @@ module.setup = function()
     }
 end
 
+module.public = {
+
+    --- Update a specific `node` with `type`.
+    --- Note: other nodes don't get updated ! If you want to update all nodes, just redo a module.required["core.gtd.queries"].get
+    --- @param node table #A task/project with metadatas
+    --- @param node_type string
+    update = function(node, node_type)
+        if not vim.tbl_contains({ "task", "project" }, node_type) then
+            log.error("Incorrect node_type")
+            return
+        end
+
+        -- Get all nodes from same bufnr
+        local nodes = module.public.get(node_type .. "s", { bufnr = node.bufnr })
+        local originally_extracted = type(node.content) == "string"
+        nodes = module.public.add_metadata(nodes, node_type, { extract = originally_extracted })
+
+        local found_node = vim.tbl_filter(function(n)
+            return n.position == node.position
+        end, nodes)
+
+        if #found_node == 0 then
+            log.error("An error occured in updating node")
+            return
+        end
+
+        return found_node[1]
+    end,
+}
+
 module = utils.require(module, "helpers")
 module = utils.require(module, "retrievers")
 module = utils.require(module, "creators")
