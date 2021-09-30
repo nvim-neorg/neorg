@@ -31,11 +31,15 @@ return function(module)
 
             edit_task = function(task)
                 -- Add metadatas to task node
-                local task_extracted = module.required["core.gtd.queries"].add_metadata({ task }, "task")[1]
+                local task_extracted = module.required["core.gtd.queries"].add_metadata(
+                    { task },
+                    "task",
+                    { same_node = true, extract = true }
+                )[1]
                 local task_not_extracted = module.required["core.gtd.queries"].add_metadata(
                     { task },
                     "task",
-                    { extract = false }
+                    { extract = false, same_node = true }
                 )[1]
 
                 local modified = {}
@@ -48,23 +52,55 @@ return function(module)
                 end)
 
                 -- TODO: Make the content prettier
+                selection = selection:title("Edit Task"):blank():text("Task: " .. task_extracted.content)
+                if task_extracted.contexts then
+                    selection = selection:text("Contexts: " .. table.concat(task_extracted.contexts, ", "))
+                end
+                if task_extracted.waiting_for then
+                    selection = selection:text("Waiting for: " .. table.concat(task_extracted.waiting_for, ", "))
+                end
+                -- if task_extracted.start then
+                --     selection = selection:text("Starting the" .. task_extracted.start)
+                -- end
+                -- if task_extracted.due then
+                --     selection = selection:text("Due for: " .. task_extracted.due)
+                -- end
                 selection = selection
-                    :title("Edit Task")
                     :blank()
                     :concat(function(_selection)
                         return module.private.edit(
                             _selection,
                             "e",
-                            "Edit content: " .. task_extracted.content,
+                            "Edit content",
                             "content",
                             modified,
                             { prompt_title = "Edit Content" }
                         )
                     end)
+                    :blank()
+                    :text("General Metadatas")
+                    :rflag("c", "Edit contexts", function()
+                        -- content
+                    end)
+                    :rflag("w", "Edit waiting fors", function()
+                        -- content
+                    end)
+                    :blank()
+                    :text("Due/Start dates")
+                    :rflag("s", "Reschedule or remove start date", function()
+                        -- content
+                    end)
+                    :rflag("d", "Reschedule or remove due date", function()
+                        -- content
+                    end)
 
                 selection = selection:blank():blank():flag("<CR>", "Validate", function()
-                    task_not_extracted = module.required["core.gtd.queries"].modify(task_not_extracted, "task", "content", modified.content)
-
+                    task_not_extracted = module.required["core.gtd.queries"].modify(
+                        task_not_extracted,
+                        "task",
+                        "content",
+                        modified.content
+                    )
 
                     vim.api.nvim_buf_call(task_not_extracted.bufnr, function()
                         vim.cmd(" write ")
