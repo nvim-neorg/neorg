@@ -87,11 +87,17 @@ return function(module)
                     type = { type, "string" },
                 })
 
+                local filename = vim.api.nvim_buf_get_name(0)
+                local bufnr = module.required["core.norg.dirman"].get_file_bufnr(filename)
+
                 local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
                 local current_node = ts_utils.get_node_at_cursor(0)
 
                 local node_type = type == "project" and "heading1" or "todo_item1"
-                local parent = module.required["core.queries.native"].find_parent_node({ current_node, 0 }, node_type)
+                local parent = module.required["core.queries.native"].find_parent_node(
+                    { current_node, bufnr },
+                    node_type
+                )
 
                 return parent
             end,

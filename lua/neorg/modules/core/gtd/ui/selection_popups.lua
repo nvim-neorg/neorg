@@ -41,8 +41,8 @@ return function(module)
                     "task",
                     { extract = false, same_node = true }
                 )[1]
-
                 -- FIXME: As i only add 1 metadata, i only get 1 position
+
                 local modified = {}
 
                 -- Create selection popup
@@ -96,18 +96,18 @@ return function(module)
                                 return selection
                             end)
 
-                            :flag("d", "Delete contexts and exit the popup", function()
-                                -- TODO: make the function a table callback in order to pop pages instead of destroying popup
-                                if not task_not_extracted["contexts"] then
-                                    log.warn("No context to delete")
-                                else
-                                    task_not_extracted = module.required["core.gtd.queries"].delete(
-                                        task_not_extracted,
-                                        "task",
-                                        "contexts"
-                                    )
-                                end
-                            end)
+                            :flag("d", "Delete contexts", {
+                                destroy = false,
+                                callback = function()
+                                    if not task_not_extracted["contexts"] then
+                                        log.warn("No context to delete")
+                                    else
+                                        selection:set_data("delete_contexts", true)
+                                    end
+                                    selection:pop_page()
+                                end,
+                            })
+
                         return selection
                     end)
 
@@ -124,6 +124,8 @@ return function(module)
                     end)
 
                 selection = selection:blank():blank():flag("<CR>", "Validate", function()
+                    local data = selection:data()
+
                     task_not_extracted = module.required["core.gtd.queries"].modify(
                         task_not_extracted,
                         "task",
@@ -131,13 +133,21 @@ return function(module)
                         modified.content
                     )
 
-                    task_not_extracted = module.required["core.gtd.queries"].modify(
-                        task_not_extracted,
-                        "task",
-                        "contexts",
-                        modified.contexts,
-                        { tag = "$contexts" }
-                    )
+                    if data.delete_contexts then
+                        task_not_extracted = module.required["core.gtd.queries"].delete(
+                            task_not_extracted,
+                            "task",
+                            "contexts"
+                        )
+                    else
+                        task_not_extracted = module.required["core.gtd.queries"].modify(
+                            task_not_extracted,
+                            "task",
+                            "contexts",
+                            modified.contexts,
+                            { tag = "$contexts" }
+                        )
+                    end
 
                     vim.api.nvim_buf_call(task_not_extracted.bufnr, function()
                         vim.cmd(" write ")
