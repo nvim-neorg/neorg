@@ -118,6 +118,7 @@ module.public = {
             return
         end
         module.required["core.gtd.ui"].edit_task(task_node)
+        vim.cmd(string.format([[echom '%s']], "Press ESC to exit without saving"))
     end,
 }
 return module
