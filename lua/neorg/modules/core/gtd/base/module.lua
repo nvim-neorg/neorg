@@ -111,13 +111,13 @@ module.events.subscribed = {
 
 module.public = {
     edit_task = function()
-        local task = module.required["core.gtd.queries"].get_at_cursor("task")
+        local task_node = module.required["core.gtd.queries"].get_at_cursor("task")
 
-        if #task == 0 then
+        if #task_node == 0 then
             log.warn("No task at cursor position")
             return
         end
-        module.required["core.gtd.ui"].edit_task(task)
+        module.required["core.gtd.ui"].edit_task(task_node)
     end,
 }
 return module

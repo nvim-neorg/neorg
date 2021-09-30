@@ -49,11 +49,7 @@ return function(module)
                 -- Replacing old option with new one (The empty string is to prevent lines below to wrap)
                 vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { value, "" })
 
-                local new_node = module.public.update(object, node_type)
-                if not new_node then
-                    return object
-                end
-                return new_node
+                return module.public.update(object, node_type)
             end,
 
             --- Delete a node from an `object` with `option` key
@@ -90,9 +86,8 @@ return function(module)
             end,
 
             --- Update a specific `node` with `type`.
-            --- Note: other nodes don't get updated ! If you want to update all nodes, just redo a get()
-            --- Note2: will only work if the node.content is the same and if the task is at same location
-            --- @param node table
+            --- Note: other nodes don't get updated ! If you want to update all nodes, just redo a module.required["core.gtd.queries"].get
+            --- @param node table #A task/project with metadatas
             --- @param node_type string
             update = function(node, node_type)
                 if not vim.tbl_contains({ "task", "project" }, node_type) then
