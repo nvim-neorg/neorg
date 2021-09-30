@@ -1,6 +1,15 @@
 return function(module)
     return {
         private = {
+            --- Edit content from `key`.
+            --- @param selection table #The popup selection
+            --- @param flag string #The flag to use for calling the prompt
+            --- @param text string #The text to show for the flag
+            --- @param key string #The key to modify
+            --- @param modified table #The table to insert modified text
+            --- @param opts table
+            ---   - opts.multiple_texts (bool):     if true, will split the modified content and convert into a list
+            --- @return table #The selection
             edit = function(selection, flag, text, key, modified, opts)
                 opts = opts or {}
                 local prompt_title = opts.prompt_title or "Edit"
