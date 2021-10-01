@@ -217,6 +217,9 @@ return function(module)
                         return data
                     end,
 
+                    --- Add a pair of key, value in data
+                    --- @param key string #The name for the key
+                    --- @param value any #Its content
                     set_data = function(_, key, value)
                         data[key] = value
                     end,

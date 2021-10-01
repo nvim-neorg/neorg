@@ -32,16 +32,10 @@ return function(module)
             edit_task = function(task)
                 -- Add metadatas to task node
                 local task_extracted = module.required["core.gtd.queries"].add_metadata(
-                    { task },
+                    { { task.node, task.bufnr } },
                     "task",
                     { same_node = true, extract = true }
                 )[1]
-                local task_not_extracted = module.required["core.gtd.queries"].add_metadata(
-                    { task },
-                    "task",
-                    { extract = false, same_node = true }
-                )[1]
-                -- FIXME: As i only add 1 metadata, i only get 1 position
 
                 local modified = {}
 
@@ -99,7 +93,7 @@ return function(module)
                             :flag("d", "Delete contexts", {
                                 destroy = false,
                                 callback = function()
-                                    if not task_not_extracted["contexts"] then
+                                    if not task["contexts"] then
                                         log.warn("No context to delete")
                                     else
                                         selection:set_data("delete_contexts", true)
@@ -126,22 +120,13 @@ return function(module)
                 selection = selection:blank():blank():flag("<CR>", "Validate", function()
                     local data = selection:data()
 
-                    task_not_extracted = module.required["core.gtd.queries"].modify(
-                        task_not_extracted,
-                        "task",
-                        "content",
-                        modified.content
-                    )
+                    task = module.required["core.gtd.queries"].modify(task, "task", "content", modified.content)
 
                     if data.delete_contexts then
-                        task_not_extracted = module.required["core.gtd.queries"].delete(
-                            task_not_extracted,
-                            "task",
-                            "contexts"
-                        )
+                        task = module.required["core.gtd.queries"].delete(task, "task", "contexts")
                     else
-                        task_not_extracted = module.required["core.gtd.queries"].modify(
-                            task_not_extracted,
+                        task = module.required["core.gtd.queries"].modify(
+                            task,
                             "task",
                             "contexts",
                             modified.contexts,
@@ -149,7 +134,7 @@ return function(module)
                         )
                     end
 
-                    vim.api.nvim_buf_call(task_not_extracted.bufnr, function()
+                    vim.api.nvim_buf_call(task.bufnr, function()
                         vim.cmd(" write ")
                     end)
                 end)

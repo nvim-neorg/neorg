@@ -113,11 +113,27 @@ module.public = {
     edit_task = function()
         local task_node = module.required["core.gtd.queries"].get_at_cursor("task")
 
-        if #task_node == 0 then
+        if not task_node then
             log.warn("No task at cursor position")
             return
         end
-        module.required["core.gtd.ui"].edit_task(task_node)
+
+        -- Get all nodes from the bufnr and add metadatas to it
+        -- This is mandatory because we need to have the correct task position, else the update will not work
+        local nodes = module.required["core.gtd.queries"].get("tasks", { bufnr = task_node[2] })
+        nodes = module.required["core.gtd.queries"].add_metadata(nodes, "task", { extract = false, same_node = true })
+
+        -- Find the correct task node
+        local found_task = vim.tbl_filter(function(n)
+            return n.node:id() == task_node[1]:id()
+        end, nodes)
+
+        if #found_task == 0 then
+            log.error("Error in fetching task")
+            return
+        end
+
+        module.required["core.gtd.ui"].edit_task(found_task[1])
         vim.cmd(string.format([[echom '%s']], "Press ESC to exit without saving"))
     end,
 }
