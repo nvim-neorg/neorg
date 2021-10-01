@@ -81,8 +81,10 @@ return function(module)
 
             --- Get the node `type` at cursor
             --- @param type string #Either project|task
+            --- @param opts table #Pass opts to add_metadata
             --- @return table #A table of type { node, bufnr }
-            get_at_cursor = function(type)
+            get_at_cursor = function(type, opts)
+                opts = opts or {}
                 vim.validate({
                     type = { type, "string" },
                 })
@@ -98,6 +100,10 @@ return function(module)
                     { current_node, bufnr },
                     node_type
                 )
+
+                if #parent == 0 then
+                    return
+                end
 
                 return parent
             end,
@@ -139,6 +145,7 @@ return function(module)
                     exported.due = module.private.get_tag("time.due", exported, type, opts)
                     exported.waiting_for = module.private.get_tag("waiting.for", exported, type, opts)
 
+                    -- TODO: find all tasks in each buffer, get their id and position, and merge the position with the node ids for each node
                     -- Add position in file for each node
                     if not previous_bufnr_tbl[exported.bufnr] then
                         previous_bufnr_tbl[exported.bufnr] = 1
