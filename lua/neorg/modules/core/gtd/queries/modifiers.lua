@@ -32,6 +32,7 @@ return function(module)
                 local fetched_node
                 if type(object[option]) == "table" then
                     if opts.tag then
+                        -- Delete the tag and recreate it with new values
                         object = module.public.delete(object, node_type, option)
                         module.public.insert_tag({ object.node, object.bufnr }, value, opts.tag)
                         return module.public.update(object, node_type)
@@ -92,14 +93,10 @@ return function(module)
 
                 local start_row, start_col, end_row, end_col = ts_utils.get_node_range(fetched_node)
 
-                -- FIXME: Out of bounds if i only delete without going to modify
-
                 -- Deleting object
                 vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { "" })
 
-                -- FIXME: module.update is nil here
-                local new_node = module.public.update(object, node_type)
-                return new_node
+                return module.public.update(object, node_type)
             end,
         },
     }
