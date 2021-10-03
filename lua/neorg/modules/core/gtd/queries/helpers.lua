@@ -1,4 +1,4 @@
-local module = neorg.modules.extend("core.gtd.queries")
+local module = neorg.modules.extend("core.gtd.queries.helpers")
 
 module.private = {
     --- Insert formatted `content` in `t`, with `prefix` before it. Mutates `t` !

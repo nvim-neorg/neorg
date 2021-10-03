@@ -1,4 +1,4 @@
-local module = neorg.modules.extend("core.gtd.queries")
+local module = neorg.modules.extend("core.gtd.queries.modifiers")
 
 module.public = {
     --- Modifies an `option` from `object` (the content must not be extracted!) with new `value`

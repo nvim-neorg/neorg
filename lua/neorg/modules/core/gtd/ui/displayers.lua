@@ -1,4 +1,4 @@
-local module = neorg.modules.extend("core.gtd.ui")
+local module = neorg.modules.extend("core.gtd.ui.displayers")
 
 module.public = {
     display_today_tasks = function(tasks)

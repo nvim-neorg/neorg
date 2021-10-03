@@ -37,13 +37,14 @@ function neorg.modules.load_module_from_table(module, parent)
     end
 
     -- Invoke the setup function. This function returns whether or not the loading of the module was successful and some metadata.
-    local loaded_module = module.setup and module.setup() or {
-        success = true,
-        replaces = {},
-        replace_merge = false,
-        requires = {},
-        imports = {},
-    }
+    local loaded_module = module.setup and module.setup()
+        or {
+            success = true,
+            replaces = {},
+            replace_merge = false,
+            requires = {},
+            imports = {},
+        }
 
     -- We do not expect module.setup() to ever return nil, that's why this check is in place
     if not loaded_module then

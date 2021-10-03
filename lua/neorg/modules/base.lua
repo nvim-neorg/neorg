@@ -107,7 +107,9 @@ function neorg.modules.create(name)
             new_module = vim.tbl_deep_extend(type or "force", new_module, parent.real())
 
             if not type then
-                new_module.setup = function() return { success = true } end
+                new_module.setup = function()
+                    return { success = true }
+                end
                 new_module.load = function() end
                 new_module.on_event = function() end
                 new_module.neorg_post_load = function() end
