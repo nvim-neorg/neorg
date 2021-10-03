@@ -1,4 +1,4 @@
-local module = neorg.modules.extend("core.gtd.ui")
+local module = neorg.modules.extend("core.gtd.ui.helpers")
 
 module.public = {
     -- @Summary Convert a date from text to YY-MM-dd format

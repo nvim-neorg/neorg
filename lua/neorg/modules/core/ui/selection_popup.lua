@@ -2,7 +2,7 @@
     A UI module to allow the user to press different keys to select different actions
 --]]
 
-local module = neorg.modules.create("core.ui.selection_popup")
+local module = neorg.modules.extend("core.ui.selection_popup")
 
 module.public = {
     create_selection = function(name, config, callback)

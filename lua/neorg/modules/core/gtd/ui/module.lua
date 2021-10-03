@@ -43,8 +43,8 @@ module.setup = function()
             "helpers",
             "quick_actions_popup_helpers",
             "edit_popup_helpers",
-            "selection_popups"
-        }
+            "selection_popups",
+        },
     }
 end
 
