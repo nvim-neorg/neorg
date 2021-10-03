@@ -20,7 +20,11 @@ local module = neorg.modules.create("core.keybinds")
 local log = require("neorg.external.log")
 
 module.setup = function()
-    return { success = true, requires = { "core.neorgcmd", "core.mode", "core.autocommands" } }
+    return {
+        success = true,
+        requires = { "core.neorgcmd", "core.mode", "core.autocommands" },
+        imports = { "default_keybinds" },
+    }
 end
 
 module.load = function()
@@ -330,9 +334,5 @@ module.events.subscribed = {
         mode_set = true,
     },
 }
-
-module = neorg.modules.import(module, {
-    "default_keybinds",
-})
 
 return module

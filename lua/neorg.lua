@@ -16,6 +16,11 @@ local configuration = require("neorg.config")
 function neorg.setup(config)
     configuration.user_configuration = config or {}
 
+    package.path = package.path
+        .. ";"
+        .. vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h")
+        .. "/?/module.lua;"
+
     -- If the file we have entered has a .norg extension
     if vim.fn.expand("%:e") == "norg" then
         -- Then set the filetype and boot up the environment
