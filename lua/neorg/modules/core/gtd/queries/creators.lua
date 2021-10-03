@@ -104,16 +104,17 @@ return function(module)
                     return
                 end
                 local inserter = {}
-                module.private.insert_content(inserter, content, prefix)
+
+                -- Creates the content to be inserted
+                local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+                local node_line, node_col, _, _ = ts_utils.get_node_range(node[1])
+                local inserted_prefix = string.rep(" ", node_col) .. prefix
+                module.private.insert_content(inserter, content, inserted_prefix)
 
                 local parent_tag_set = module.required["core.queries.native"].find_parent_node(
                     node,
                     "carryover_tag_set"
                 )
-
-                local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-
-                local node_line, _, _, _ = ts_utils.get_node_range(node[1])
 
                 if #parent_tag_set == 0 then
                     -- No tag created, i will insert the tag just before the node
