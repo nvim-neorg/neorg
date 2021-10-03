@@ -88,14 +88,11 @@ function _neorgcmd_generate_completions(_, command)
         return { "Unable to provide completions: core.neorgcmd is not loaded." }
     end
 
-    -- Since this is a global function we need to retrieve the neorgcmd module
-    local neorgcmd_module = require("neorg.modules.core.neorgcmd.module")
-
     -- Split the command into several smaller ones for easy parsing
     local split_command = vim.split(command, " ")
 
     -- Create a reference to the definitions table
-    local ref = neorgcmd_module.public.neorg_commands.definitions
+    local ref = module.public.neorg_commands.definitions
 
     -- If the split command contains only 2 values then don't bother with
     -- the code below, just return all the available completions and exit
@@ -141,7 +138,7 @@ end
 module.load = function()
     -- Define the :Neorg command with autocompletion and a requirement of at least one argument (-nargs=+)
     vim.cmd(
-        [[ command! -nargs=+ -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd.module').public.function_callback(<f-args>) ]]
+        [[ command! -nargs=+ -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd').public.function_callback(<f-args>) ]]
     )
 
     -- Loop through all the command modules we want to load and load them
@@ -156,7 +153,6 @@ module.load = function()
 end
 
 module.config.public = {
-
     load = {
         "default",
     },

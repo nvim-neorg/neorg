@@ -11,6 +11,15 @@ module.private = {
     namespace = vim.api.nvim_create_namespace("core.ui"),
 }
 
+module.setup = function()
+    return {
+        imports = {
+            "selection_popup",
+            "text_popup",
+        },
+    }
+end
+
 module.public = {
     -- @Summary Gets the current size of the window
     -- @Description Returns a table in the form of { width, height } containing the width and height of the current window
@@ -108,10 +117,5 @@ module.public = {
         return buf
     end,
 }
-
-module = neorg.modules.import(module, {
-    "selection_popup",
-    "text_popup",
-})
 
 return module
