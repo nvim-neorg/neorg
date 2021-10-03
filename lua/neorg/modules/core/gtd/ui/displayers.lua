@@ -1,7 +1,12 @@
 return function(module)
     return {
         public = {
-            display_today_tasks = function(tasks)
+            --- Display today view for `tasks`, grouped by contexts
+            --- @param tasks table
+            --- @param opts table
+            ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
+            display_today_tasks = function(tasks, opts)
+                opts = opts or {}
                 local name = "Today's Tasks"
                 local res = {
                     "* " .. name,
@@ -15,13 +20,42 @@ return function(module)
                     return vim.tbl_contains(task.contexts, "today") and today_state
                 end
 
-                local today_tasks = vim.tbl_filter(today_task, tasks)
+                -- Remove tasks that contains any of the excluded contexts
+                if opts.exclude then
+                    local exclude_tasks = function(t)
+                        if not t.contexts then
+                            return true
+                        end
 
-                for _, t in pairs(today_tasks) do
-                    local content = "- " .. t.content
-                    table.insert(res, content)
+                        for _, c in pairs(t.contexts) do
+                            if vim.tbl_contains(opts.exclude, c) then
+                                return false
+                            end
+                        end
+                        return true
+                    end
+                    tasks = vim.tbl_filter(exclude_tasks, tasks)
                 end
 
+                local contexts_tasks = module.required["core.gtd.queries"].sort_by("contexts", tasks)
+
+                local contexts = vim.tbl_keys(contexts_tasks)
+                contexts = vim.tbl_filter(function(c)
+                    return c ~= "today"
+                end, contexts)
+
+                for _, c in ipairs(contexts) do
+                    local today_tasks = vim.tbl_filter(today_task, contexts_tasks[c])
+                    if #today_tasks > 0 then
+                        table.insert(res, "** " .. c)
+
+                        for _, t in pairs(today_tasks) do
+                            local content = "- " .. t.content
+                            table.insert(res, content)
+                        end
+                        table.insert(res, "")
+                    end
+                end
                 local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
                 vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
                 vim.api.nvim_buf_set_option(buf, "modifiable", false)
@@ -59,7 +93,7 @@ return function(module)
             --- Display contexts view for `tasks`
             --- @param tasks table
             --- @param opts table
-            ---   - opts.exclude (table):   exclude all specified contexts from the view
+            ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
             ---   - opts.priority (table):  will prioritize in the display the contexts specified (order in priority contexts not guaranteed)
             display_contexts = function(tasks, opts)
                 opts = opts or {}
@@ -69,18 +103,32 @@ return function(module)
                     "",
                 }
 
+                -- Keep undone tasks and not waiting for ones
                 local filter_state = function(t)
-                    return t.state ~= "done"
+                    return t.state ~= "done" and not t.waiting_for
                 end
+
                 tasks = vim.tbl_filter(filter_state, tasks)
 
-                local contexts_tasks = module.required["core.gtd.queries"].sort_by("contexts", tasks)
-
+                -- Remove tasks that contains any of the excluded contexts
                 if opts.exclude then
-                    for _, c in pairs(opts.exclude) do
-                        contexts_tasks[c] = nil
+                    local exclude_tasks = function(t)
+                        if not t.contexts then
+                            return true
+                        end
+
+                        for _, c in pairs(t.contexts) do
+                            if vim.tbl_contains(opts.exclude, c) then
+                                return false
+                            end
+                        end
+                        return true
                     end
+                    tasks = vim.tbl_filter(exclude_tasks, tasks)
                 end
+
+                local contexts_tasks = module.required["core.gtd.queries"].sort_by("contexts", tasks)
+                contexts_tasks["today"] = nil -- Remove "today" context
 
                 -- Sort tasks with opts.priority
                 local contexts = vim.tbl_keys(contexts_tasks)
@@ -169,6 +217,45 @@ return function(module)
                         table.insert(res, "- /" .. #undone .. " tasks don't have a project assigned/")
                     end
                     table.insert(res, "")
+                end
+
+                local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
+                vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
+                vim.api.nvim_buf_set_option(buf, "modifiable", false)
+            end,
+
+            display_someday = function(tasks)
+                local name = "Someday Tasks"
+                local res = {
+                    "* " .. name,
+                    "",
+                }
+                local someday_task = function(task)
+                    if not task.contexts then
+                        return false
+                    end
+                    return task.state ~= "done" and vim.tbl_contains(task.contexts, "someday")
+                end
+
+                local someday_tasks = vim.tbl_filter(someday_task, tasks)
+
+                if #someday_tasks ~= 0 then
+                    for _, t in pairs(someday_tasks) do
+                        local inserted = "- " .. t.content
+                        if #t.contexts ~= 0 then
+                            local remove_someday = vim.tbl_filter(function(t)
+                                return t ~= "someday"
+                            end, t.contexts)
+
+                            if #remove_someday >= 1 then
+                                remove_someday = vim.tbl_map(function(c)
+                                    return "`" .. c .. "`"
+                                end, remove_someday)
+                                inserted = inserted .. " (" .. table.concat(remove_someday, ",") .. ")"
+                            end
+                        end
+                        table.insert(res, inserted)
+                    end
                 end
 
                 local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")

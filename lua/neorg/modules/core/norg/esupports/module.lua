@@ -219,7 +219,6 @@ module.config.public = {
 
     goto_links = true,
     fuzzing_threshold = 1,
-    generate_meta_tags = true,
 }
 
 module.load = function()
@@ -272,26 +271,6 @@ module.public = {
 
         -- If we haven't found a match, return nothing
         return nil, false
-    end,
-
-    -- @Summary Creates metadata for the current file
-    -- @Description Pastes a @document.meta block at the top of the current document
-    construct_metadata = function()
-        vim.api.nvim_win_set_cursor(0, { 1, 0 })
-
-        vim.api.nvim_put({
-            "@document.meta",
-            "\ttitle: " .. vim.fn.expand("%:t:r"),
-            "\tdescription: ",
-            "\tauthor: " .. require("neorg.external.helpers").get_username(),
-            "\tcategories: ",
-            "\tcreated: " .. os.date("%F"),
-            "\tversion: " .. require("neorg.config").version,
-            "@end",
-            "",
-        }, "l", false, true)
-
-        vim.opt_local.modified = false
     end,
 
     -- @Summary Indents the current line
@@ -1118,31 +1097,6 @@ module.on_event = function(event)
                 vim.opt_local.foldmethod = "expr"
                 vim.opt_local.foldexpr = "nvim_treesitter#foldexpr()"
                 vim.opt_local.foldlevel = module.config.public.folds.foldlevel
-            end
-
-            if module.config.public.generate_meta_tags then
-                -- If the first tag of the document isn't an existing document.meta tag then generate it
-                local treesitter = neorg.modules.get_module("core.integrations.treesitter")
-
-                if treesitter then
-                    -- Try and query a ranged tag with the name document.meta
-                    local query = vim.treesitter.parse_query(
-                        "norg",
-                        [[
-						(foreplay
-							(ranged_tag
-						  	  (tag_name) @name
-						  	  (#eq? @name "document.meta")
-							)
-						)
-					]]
-                    )
-
-                    -- If we have not found such a tag then we need to generate one!
-                    if not ({ query:iter_matches(vim.treesitter.get_parser(0, "norg"):parse()[1]:root(), 0)() })[2] then
-                        module.public.construct_metadata()
-                    end
-                end
             end
         end
     end

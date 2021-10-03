@@ -80,6 +80,14 @@ module.config.public = {
             Title = "+Normal",
         },
 
+        Definition = {
+            [""] = "+TSPunctDelimiter",
+            End = "+TSPunctDelimiter",
+            Title = "+TSStrong",
+            -- TODO: figure out odd highlighting of ranged tag when using TSNone
+            Content = "+TSEmphasis",
+        },
+
         EscapeSequence = "+TSType",
 
         TodoItem = {
@@ -255,6 +263,7 @@ module.config.public = {
 
         StrongParagraphDelimiter = "+TSPunctDelimiter",
         WeakParagraphDelimiter = "+TSPunctDelimiter",
+        HorizontalLine = "+TSPunctDelimiter",
     },
 
     dim = {
@@ -594,6 +603,38 @@ module.public = {
             row_end = re,
             column_end = ce,
         }
+    end,
+
+    --- Extracts the document root from the current document
+    --- @param buf number The number of the buffer to extract (can be nil)
+    --- @return userdata the root node of the document
+    get_document_root = function(buf)
+        local tree = vim.treesitter.get_parser(buf or 0, "norg"):parse()[1]
+
+        if not tree or not tree:root() then
+            log.warn("Unable to parse the current document's syntax tree :(")
+            return
+        end
+
+        return tree:root()
+    end,
+
+    --- Extracts the text from a node (only the first line)
+    --- @param node userdata a treesitter node to extract the text from
+    --- @param buf number the buffer number. This is required to verify the source of the node. Can be nil in which case it is treated as "0"
+    --- @return string The contents of the node in the form of a string
+    get_node_text = function(node, buf)
+        if not node then
+            return nil
+        end
+
+        local text = module.private.ts_utils.get_node_text(node, buf or 0)
+
+        if not text then
+            return nil
+        end
+
+        return text[1]
     end,
 }
 

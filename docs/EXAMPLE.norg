@@ -1,9 +1,9 @@
 @document.meta
-	title: EXAMPLE
-	description: Example norg doc
+	title: Neorg help-page
+	description: the Neorg vim help-page
 	author: The Neorg-community
 	categories: docs
-	created: 2021-08-27
+	created: 2021-09-05
 	version: 0.1
 @end
 
@@ -23,6 +23,8 @@
     - \`inline code\`: `inline code`
     - \^superscript\^: ^superscript^
     - \,subscript\,: ,subscript,
+    - \$inline math\$: $f(x) = y$ (see also [Math](#math))
+    - \=variable\=: =variable= (see also [Variables](#variables))
 
     This also immediately shows you how to escape a special character using the backslash, \\.
 
@@ -91,6 +93,12 @@
 
 And using 3 or more `=` signs will drop you right back to the root level!
 
+You can also place horizontal lines using three or more underscores like so:
+___
+This will never affect the indentation level of the following text, but it will immediately
+terminate the paragraph which is why this is a new paragraph despite the absence of two (or more)
+consective new lines.
+
  ** Links
     We borrow the basic link syntax from markdown: `[link text](link source)`
     Here are some example which also show you a special list kind for links:
@@ -110,6 +118,26 @@ And using 3 or more `=` signs will drop you right back to the root level!
  ** Markers
     You can mark specific locations in your file with markers:
     | some marker
+
+ ** Definitions
+    There are two kinds of defintions:
+
+  *** Single-paragraph definitions
+      : Object to be defined
+      The definition of the object in a single paragraph.
+
+      This is already the next paragraph.
+
+  *** Multi-paragraph definitions
+      :: Object to be defined
+      Here, I can place any number of paragraphs or other format objects.
+
+      Even a code example:
+      @code lua
+      print("Hello world!")
+      @end
+      ::
+      This is no longer part of the definition because the `::` on the previous line marked its end.
 
  ** Data Tags
     Neorg supports a number of tags. The general format is:
@@ -148,7 +176,7 @@ And using 3 or more `=` signs will drop you right back to the root level!
       This will render as:
       @code
       2. First entry
-
+      
       4. Second entry
       @end
 
@@ -167,7 +195,7 @@ And using 3 or more `=` signs will drop you right back to the root level!
       console.log("But I want syntax highlighting...")
       @end
 
-      @code lua
+      @code javascript
       console.log("Thank you!")
       @end
 
@@ -182,6 +210,16 @@ And using 3 or more `=` signs will drop you right back to the root level!
       @embed image
       https://github.com/vhyrro/neorg/blob/main/res/neorg.svg
       @end
+
+  *** Math
+      There are two ways of typesetting mathematics:
+      ~ Inline mathematics using the `$` attached modifier like so: $f(x) = y$.
+      ~ Multiline mathematics using the `math` ranged tag which supports any LaTeX-typeset math.
+      @math
+      f(x) = y
+      @end
+      A `numbered` carryover tag in a similar vain to the `ordered` one for lists is planned to add
+      easy equation numbering support.
 
  ** Advanced markup
     There are some more advanced markup features:
@@ -199,9 +237,25 @@ And using 3 or more `=` signs will drop you right back to the root level!
    **** This is a super duper long heading which I am so proud of and I absolutely cannot shorten~
         to fit onto a single line
 
+  *** Variables
+      You can define variables which you can access later in your document like so:
+      @code norg
+      = <variable name> <values>
+      @end
+      For a reason explained in the next section, variable names *must* be lowercase!
+      You can refer to this variable later in your document using the `=` attached modifier like so:
+      @code norg
+      Insert my =variable=.
+      @end
+
   *** Insertions
-      These are dynamically expended objects which you can add to your document's
-      [foreplay](#foreplay). Continue reading to find out where to find them.
+      These are dynamically expanded objects which you can add to your document.
+      The simplest example of an insertion is the /table of contents/ which looks like
+      @code norg
+      = ToC Table of Contents
+      @end
+      This shows the basic syntax `= <capitalized insertion name> <arguments>` and it also explains
+      why [Variables](#variables) have to be lowercased.
 
   *** Foreplay
       If you read the quote above, you already heard this before. The /foreplay/ is located at the
@@ -209,3 +263,6 @@ And using 3 or more `=` signs will drop you right back to the root level!
       written in their [carryover](#carryover) syntax), insertions and an arbitrary number of empty
       lines. Most importantly is the `document.meta` tag which we skipped over previously. You can
       find an example of it at the top of this file.
+
+$comment
+vim:tw=100:ft=norg:norl:
