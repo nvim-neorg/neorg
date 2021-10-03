@@ -1,7 +1,8 @@
 return function(module)
     return {
         public = {
-            --- Creates a new project from the `project` table and insert it in `bufnr` at `location`
+            --- Creates a new project/task (depending of `type`) from the `node` table and insert it in `bufnr` at `location`
+            --- supported `string`: project|task
             --- @param type string
             --- @param node table
             --- @param bufnr number
@@ -11,7 +12,8 @@ return function(module)
             ---   - project.start (string):           Start date
             ---   - project.due (string):             Due date
             ---   - project.waiting_for (string[]):   Waiting For names
-            create = function(type, node, bufnr, location)
+            --- @param delimit boolean #Add delimiter before the task/project if true
+            create = function(type, node, bufnr, location, delimit)
                 if not vim.tbl_contains({ "project", "task" }, type) then
                     log.error("You can only insert new project or task")
                     return
@@ -25,13 +27,20 @@ return function(module)
                 end
 
                 table.insert(res, "")
-                module.private.insert_content(res, node.contexts, "$contexts")
-                module.private.insert_content(res, node.start, "$start")
-                module.private.insert_content(res, node.due, "$due")
-                module.private.insert_content(res, node.waiting_for, "$waiting.for")
-                module.private.insert_content(res, node.content, type == "project" and "*" or "- [ ]")
 
-                vim.api.nvim_buf_set_lines(bufnr, location, location, false, res)
+                if delimit then
+                    table.insert(res, "===")
+                    table.insert(res, "")
+                end
+
+                -- Inserts the content and insert the tags just after
+                node.node = module.private.insert_content_new(node.content, bufnr, location, type, { newline = true })
+
+                module.public.insert_tag({ node.node, bufnr }, node.contexts, "$contexts")
+                module.public.insert_tag({ node.node, bufnr }, node.start, "$start")
+                module.public.insert_tag({ node.node, bufnr }, node.due, "$due")
+                module.public.insert_tag({ node.node, bufnr }, node.waiting_for, "$waiting_for")
+
                 vim.api.nvim_buf_call(bufnr, function()
                     vim.cmd([[ write ]])
                 end)
@@ -48,7 +57,7 @@ return function(module)
 
             --- Returns the end of the document content position of a `file` and the `file` bufnr
             --- @param file string
-            --- @return number
+            --- @return number, number, boolean
             get_end_document_content = function(file)
                 local config = neorg.modules.get_module_config("core.gtd.base")
                 local files = module.required["core.norg.dirman"].get_norg_files(config.workspace)
@@ -64,29 +73,97 @@ return function(module)
                 }
                 local document = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)[1]
 
-                local _, _, end_row, _ = ts_utils.get_node_range(document[1])
+                local end_row
+                local projectAtEnd = false
 
-                return end_row, bufnr
+                -- There is no content in the document
+                if not document then
+                    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+                    end_row = #lines
+                else
+                    -- Check if last child is a project
+                    local nb_childs = document[1]:child_count()
+                    local last_child = document[1]:child(nb_childs - 1)
+                    if last_child:type() == "heading1" then
+                        projectAtEnd = true
+                    end
+
+                    _, _, end_row, _ = ts_utils.get_node_range(document[1])
+                end
+
+                return end_row, bufnr, projectAtEnd
+            end,
+
+            --- Insert the tag above a `type`
+            --- @param node table #Must be { node, bufnr }
+            --- @param content string|table
+            --- @param prefix string
+            --- @return boolean #Whether inserting succeeded (if so, save the file)
+            insert_tag = function(node, content, prefix)
+                if not content then
+                    return
+                end
+                local inserter = {}
+
+                -- Creates the content to be inserted
+                local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+                local node_line, node_col, _, _ = ts_utils.get_node_range(node[1])
+                local inserted_prefix = string.rep(" ", node_col) .. prefix
+                module.private.insert_content(inserter, content, inserted_prefix)
+
+                local parent_tag_set = module.required["core.queries.native"].find_parent_node(
+                    node,
+                    "carryover_tag_set"
+                )
+
+                if #parent_tag_set == 0 then
+                    -- No tag created, i will insert the tag just before the node
+                    vim.api.nvim_buf_set_lines(node[2], node_line, node_line, false, inserter)
+                    return true
+                else
+                    -- Gets the last tag in the found tag_set and append after it
+                    local tags_number = parent_tag_set[1]:child_count()
+                    local last_tag = parent_tag_set[1]:child(tags_number - 1)
+                    local start_row, _, _, _ = ts_utils.get_node_range(last_tag)
+
+                    vim.api.nvim_buf_set_lines(node[2], start_row, start_row, false, inserter)
+                    return true
+                end
             end,
         },
 
         private = {
-            --- Insert formatted `content` in `t`, with `prefix` before it. Mutates `t` !
-            --- @param t table
-            --- @param content string|table
-            --- @param prefix string
-            insert_content = function(t, content, prefix)
-                if not content then
-                    return
+            --- Insert a `content` (with specific `type`) at specified `location`
+            --- @param content string
+            --- @param bufnr number
+            --- @param location number
+            --- @param type string #project|task
+            --- @param opts table
+            ---   - opts.newline (bool):    is true, insert a newline before the content
+            --- @return userdata|nil #the newly created node. Else returns nil
+            insert_content_new = function(content, bufnr, location, type, opts)
+                local inserter = {}
+                local prefix = type == "project" and "* " or "- [ ] "
+
+                if opts.newline then
+                    table.insert(inserter, "")
                 end
-                if type(content) == "string" then
-                    table.insert(t, prefix .. " " .. content)
-                elseif type(content) == "table" then
-                    local inserted = prefix
-                    for _, v in pairs(content) do
-                        inserted = inserted .. " " .. v
+
+                table.insert(inserter, prefix .. content)
+
+                vim.api.nvim_buf_set_lines(bufnr, location, location, false, inserter)
+
+                -- Get all nodes for `type` and return the one that is present at `location`
+                local nodes = module.public.get(type .. "s", { bufnr = bufnr })
+                local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+
+                for _, node in pairs(nodes) do
+                    local line = ts_utils.get_node_range(node[1])
+
+                    local count_newline = opts.newline and 1 or 0
+                    if line == location + count_newline then
+                        return node[1]
                     end
-                    table.insert(t, inserted)
                 end
             end,
         },
