@@ -28,7 +28,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufLeave")
 
     if module.config.public.default_keybinds then
-        module.public.generate_keybinds()
+        module.public.generate_keybinds(module.config.public.neorg_leader)
     end
 end
 

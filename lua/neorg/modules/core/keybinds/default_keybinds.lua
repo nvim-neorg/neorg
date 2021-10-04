@@ -1,9 +1,11 @@
 local module = neorg.modules.extend("core.keybinds")
 
 module.public = {
-    generate_keybinds = function()
+    generate_keybinds = function(neorg_leader)
         local neorg_callbacks = require("neorg.callbacks")
-        local neorg_leader = module.config.public.neorg_leader
+        if not neorg_leader then
+            neorg_leader = module.config.public.neorg_leader
+        end
 
         neorg_callbacks.on_event("core.keybinds.events.enable_keybinds", function(_, keybinds)
             -- Map all the below keybinds only when the "norg" mode is active
