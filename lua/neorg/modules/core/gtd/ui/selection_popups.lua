@@ -60,10 +60,11 @@ return function(module)
                 if task_extracted.due then
                     selection = selection:text("Due for: " .. task_extracted.due[1])
                 end
+
                 selection = selection
                     :blank()
                     :concat(function(_selection)
-                        return module.private.edit(
+                        return module.private.edit_prompt(
                             _selection,
                             "e",
                             "Edit content",
@@ -74,39 +75,25 @@ return function(module)
                     end)
                     :blank()
                     :text("General Metadatas")
-                    :rflag("c", "Edit contexts", function()
-                        selection = selection
-                            :text("Edit contexts")
-                            :blank()
-                            :concat(function(_selection)
-                                selection = module.private.edit(
-                                    _selection,
-                                    "e",
-                                    "Edit contexts",
-                                    "contexts",
-                                    modified,
-                                    { prompt_title = "Edit Contexts", pop_page = true, multiple_texts = true }
-                                )
-                                return selection
-                            end)
-
-                            :flag("d", "Delete contexts", {
-                                destroy = false,
-                                callback = function()
-                                    if not task["contexts"] then
-                                        log.warn("No context to delete")
-                                    else
-                                        selection:set_data("delete_contexts", true)
-                                    end
-                                    selection:pop_page()
-                                end,
-                            })
-
-                        return selection
+                    :concat(function(_selection)
+                        return module.private.edit(
+                            _selection,
+                            "c",
+                            { edit = "Edit contexts", delete = "Delete contexts" },
+                            modified,
+                            "contexts",
+                            task
+                        )
                     end)
-
-                    :rflag("w", "Edit waiting fors", function()
-                        -- content
+                    :concat(function(_selection)
+                        return module.private.edit(
+                            _selection,
+                            "w",
+                            { edit = "Edit waiting fors", delete = "Delete waiting fors" },
+                            modified,
+                            "waiting_for",
+                            task
+                        )
                     end)
                     :blank()
                     :text("Due/Start dates")
@@ -120,18 +107,20 @@ return function(module)
                 selection = selection:blank():blank():flag("<CR>", "Validate", function()
                     local data = selection:data()
 
-                    task = module.required["core.gtd.queries"].modify(task, "task", "content", modified.content)
+                    local edits = { "contexts", "waiting_for", "content" }
 
-                    if data.delete_contexts then
-                        task = module.required["core.gtd.queries"].delete(task, "task", "contexts")
-                    else
-                        task = module.required["core.gtd.queries"].modify(
-                            task,
-                            "task",
-                            "contexts",
-                            modified.contexts,
-                            { tag = "$contexts" }
-                        )
+                    for _, k in pairs(edits) do
+                        if data["delete_" .. k] then
+                            task = module.required["core.gtd.queries"].delete(task, "task", k)
+                        else
+                            task = module.required["core.gtd.queries"].modify(
+                                task,
+                                "task",
+                                k,
+                                modified[k],
+                                { tag = "$" .. k }
+                            )
+                        end
                     end
 
                     vim.api.nvim_buf_call(task.bufnr, function()
