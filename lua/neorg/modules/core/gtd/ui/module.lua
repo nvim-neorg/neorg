@@ -16,7 +16,6 @@ SUBMODULES:
 
     * HELPERS:
         Some helpers...
-        - date_converter
 
     * SELECTION_POPUPS:
         UI components that use selection popups

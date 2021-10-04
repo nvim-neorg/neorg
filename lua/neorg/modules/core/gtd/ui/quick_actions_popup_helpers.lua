@@ -16,7 +16,7 @@ return function(module)
                         :flag("t", "Tomorrow", {
                             destroy = false,
                             callback = function()
-                                task[mode] = module.public.date_converter("tomorrow")
+                                task[mode] = module.required["core.gtd.queries"].date_converter("tomorrow")
                                 selection:pop_page()
                             end,
                         })
@@ -31,7 +31,7 @@ return function(module)
                                     :prompt("Due", {
                                         callback = function(text)
                                             if #text > 0 then
-                                                task[mode] = module.public.date_converter(text)
+                                                task[mode] = module.required["core.gtd.queries"].date_converter(text)
                                                 if not task[mode] then
                                                     log.error("Date format not recognized, please try again...")
                                                 else
@@ -58,7 +58,7 @@ return function(module)
                 local title = (function()
                     if mode == "contexts" then
                         return "Add Contexts"
-                    elseif mode == "waiting_for" then
+                    elseif mode == "waiting.for" then
                         return "Add Waiting Fors"
                     end
                 end)()

@@ -51,14 +51,14 @@ return function(module)
                 if task_extracted.contexts then
                     selection = selection:text("Contexts: " .. table.concat(task_extracted.contexts, ", "))
                 end
-                if task_extracted.waiting_for then
-                    selection = selection:text("Waiting for: " .. table.concat(task_extracted.waiting_for, ", "))
+                if task_extracted["waiting.for"] then
+                    selection = selection:text("Waiting for: " .. table.concat(task_extracted["waiting.for"], ", "))
                 end
-                if task_extracted.start then
-                    selection = selection:text("Starting: " .. task_extracted.start[1])
+                if task_extracted["time.start"] then
+                    selection = selection:text("Starting: " .. task_extracted["time.start"][1])
                 end
-                if task_extracted.due then
-                    selection = selection:text("Due for: " .. task_extracted.due[1])
+                if task_extracted["time.due"] then
+                    selection = selection:text("Due for: " .. task_extracted["time.due"][1])
                 end
 
                 selection = selection
@@ -91,23 +91,31 @@ return function(module)
                             "w",
                             { edit = "Edit waiting fors", delete = "Delete waiting fors" },
                             modified,
-                            "waiting_for",
+                            "waiting.for",
                             task
                         )
                     end)
                     :blank()
                     :text("Due/Start dates")
-                    :rflag("s", "Reschedule or remove start date", function()
-                        -- content
+                    :concat(function(_selection)
+                        return module.private.edit_date(_selection, "s", {
+                            title = "Reschedule or remove start date",
+                            edit = "Reschedule date",
+                            delete = "Remove start date",
+                        }, modified, "time.start", task)
                     end)
-                    :rflag("d", "Reschedule or remove due date", function()
-                        -- content
+                    :concat(function(_selection)
+                        return module.private.edit_date(_selection, "d", {
+                            title = "Reschedule or remove due date",
+                            edit = "Reschedule date",
+                            delete = "Remove due date",
+                        }, modified, "time.due", task)
                     end)
 
                 selection = selection:blank():blank():flag("<CR>", "Validate", function()
                     local data = selection:data()
 
-                    local edits = { "contexts", "waiting_for", "content" }
+                    local edits = { "contexts", "waiting.for", "content", "time.start", "time.due" }
 
                     for _, k in pairs(edits) do
                         if data["delete_" .. k] then

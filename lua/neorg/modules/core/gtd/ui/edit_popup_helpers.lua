@@ -67,7 +67,7 @@ return function(module)
                             destroy = false,
                             callback = function()
                                 if not task[key] then
-                                    log.warn("No context to delete")
+                                    log.warn("Nothing to delete")
                                 else
                                     selection:set_data("delete_" .. key, true)
                                 end
@@ -76,6 +76,57 @@ return function(module)
                         })
 
                     return selection
+                end)
+                return selection
+            end,
+
+            edit_date = function(selection, flag, texts, modified, key, task)
+                selection = selection:rflag(flag, texts.title, function()
+                    selection = selection
+                        :text(texts.title)
+                        :blank()
+                        :flag("t", "Reschedule for tomorrow", {
+                            destroy = false,
+                            callback = function()
+                                modified[key] = module.required["core.gtd.queries"].date_converter("tomorrow")
+                                selection:pop_page()
+                            end,
+                        })
+                        :flag("c", "Custom", {
+                            destroy = false,
+                            callback = function()
+                                selection:push_page()
+                                selection
+                                    :title("Custom Date")
+                                    :text("Allowed date format: today, tomorrow, Xw, Xd, Xm (X is a number)")
+                                    :blank()
+                                    :prompt("Enter date", {
+                                        callback = function(text)
+                                            if #text > 0 then
+                                                modified[key] = module.required["core.gtd.queries"].date_converter(text)
+                                                if not modified[key] then
+                                                    log.error("Date format not recognized, please try again...")
+                                                else
+                                                    selection:pop_page()
+                                                end
+                                            end
+                                        end,
+                                        pop = true,
+                                    })
+                            end,
+                        })
+                        :blank()
+                        :flag("d", texts.delete, {
+                            destroy = false,
+                            callback = function()
+                                if not task[key] then
+                                    log.warn("Nothing to delete")
+                                else
+                                    selection:set_data("delete_" .. key, true)
+                                end
+                                selection:pop_page()
+                            end,
+                        })
                 end)
                 return selection
             end,
