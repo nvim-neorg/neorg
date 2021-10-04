@@ -99,3 +99,5 @@ module.public = {
         return module.public.update(object, node_type)
     end,
 }
+
+return module

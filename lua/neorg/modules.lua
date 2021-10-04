@@ -207,6 +207,15 @@ function neorg.modules.load_module(module_name, parent, config)
         return false
     end
 
+    if module == true then
+        log.error(
+            "An error has occurred when loading",
+            module_name,
+            "- loaded file didn't return anything meaningful. Be sure to return the table created by neorg.modules.create() at the end of your module.lua file!"
+        )
+        return false
+    end
+
     -- Load the user-defined configuration
     if config and not vim.tbl_isempty(config) then
         module.config.public = vim.tbl_deep_extend("force", module.config.public, config)

@@ -46,3 +46,5 @@ module.private = {
         return selection
     end,
 }
+
+return module

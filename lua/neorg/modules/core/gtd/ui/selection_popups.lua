@@ -140,3 +140,5 @@ module.public = {
         end)
     end,
 }
+
+return module
