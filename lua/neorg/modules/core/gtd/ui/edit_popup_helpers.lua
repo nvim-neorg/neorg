@@ -12,7 +12,7 @@ return function(module)
             ---   - opts.pop_page (bool):           if true, will pop the page a second time
             ---   - opts.prompt_title (string):     provide custom prompt title. Else defaults to "Edit"
             --- @return table #The selection
-            edit = function(selection, flag, text, key, modified, opts)
+            edit_prompt = function(selection, flag, text, key, modified, opts)
                 opts = opts or {}
                 local prompt_title = opts.prompt_title or "Edit"
 
@@ -43,6 +43,40 @@ return function(module)
                             })
                     end,
                 })
+                return selection
+            end,
+
+            edit = function(selection, flag, texts, modified, key, task)
+                selection = selection:rflag(flag, texts.edit, function()
+                    selection = selection
+                        :text(texts.edit)
+                        :blank()
+                        :concat(function(_selection)
+                            selection = module.private.edit_prompt(
+                                _selection,
+                                "e",
+                                texts.edit,
+                                key,
+                                modified,
+                                { prompt_title = texts.edit, pop_page = true, multiple_texts = true }
+                            )
+                            return selection
+                        end)
+
+                        :flag("d", texts.delete, {
+                            destroy = false,
+                            callback = function()
+                                if not task[key] then
+                                    log.warn("No context to delete")
+                                else
+                                    selection:set_data("delete_" .. key, true)
+                                end
+                                selection:pop_page()
+                            end,
+                        })
+
+                    return selection
+                end)
                 return selection
             end,
         },
