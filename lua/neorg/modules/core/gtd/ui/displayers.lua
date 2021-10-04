@@ -73,7 +73,7 @@ return function(module)
                 end
                 tasks = vim.tbl_filter(filter_state, tasks)
 
-                local waiting_for_tasks = module.required["core.gtd.queries"].sort_by("waiting_for", tasks)
+                local waiting_for_tasks = module.required["core.gtd.queries"].sort_by("waiting.for", tasks)
                 waiting_for_tasks["_"] = nil -- remove all tasks that does not have waiting for tag
 
                 for w, w_tasks in pairs(waiting_for_tasks) do

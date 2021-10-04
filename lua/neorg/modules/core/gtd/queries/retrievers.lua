@@ -141,9 +141,9 @@ return function(module)
                     end
 
                     exported.contexts = module.private.get_tag("contexts", exported, type, opts)
-                    exported.start = module.private.get_tag("time.start", exported, type, opts)
-                    exported.due = module.private.get_tag("time.due", exported, type, opts)
-                    exported.waiting_for = module.private.get_tag("waiting.for", exported, type, opts)
+                    exported["time.start"] = module.private.get_tag("time.start", exported, type, opts)
+                    exported["time.due"] = module.private.get_tag("time.due", exported, type, opts)
+                    exported["waiting.for"] = module.private.get_tag("waiting.for", exported, type, opts)
 
                     -- Add position in file for each node
                     if not previous_bufnr_tbl[exported.bufnr] then
@@ -167,7 +167,7 @@ return function(module)
             --- @return table
             sort_by = function(sorter, tasks, opts)
                 opts = opts or {}
-                if not vim.tbl_contains({ "waiting_for", "contexts", "project" }, sorter) then
+                if not vim.tbl_contains({ "waiting.for", "contexts", "project" }, sorter) then
                     log.error("Please provide a correct sorter.")
                     return
                 end
