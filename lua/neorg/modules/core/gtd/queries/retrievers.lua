@@ -145,7 +145,6 @@ return function(module)
                     exported.due = module.private.get_tag("time.due", exported, type, opts)
                     exported.waiting_for = module.private.get_tag("waiting.for", exported, type, opts)
 
-                    -- TODO: find all tasks in each buffer, get their id and position, and merge the position with the node ids for each node
                     -- Add position in file for each node
                     if not previous_bufnr_tbl[exported.bufnr] then
                         previous_bufnr_tbl[exported.bufnr] = 1
@@ -299,47 +298,6 @@ return function(module)
 
                 if #tags_node == 0 then
                     return nil
-                end
-
-                if opts.same_node then
-                    -- Get all children from the tag_set
-                    local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-                    local children = ts_utils.get_named_children(tags_node[1])
-                    children = vim.tbl_map(function(n)
-                        return { n, n:type() }
-                    end, children)
-
-                    -- Check if we have projects/tasks that share the same tags. If so, don't return anything
-                    if type == "project" then
-                        local projects = vim.tbl_filter(function(t)
-                            return t[2] == "heading1"
-                        end, children)
-                        if #projects > 1 then
-                            return nil
-                        end
-                    elseif type == "task" then
-                        -- Get the first generic list in children nodes
-                        local generic_list = vim.tbl_filter(function(t)
-                            return t[2] == "generic_list"
-                        end, children)[1]
-
-                        if not generic_list then
-                            return nil
-                        end
-
-                        -- Find all task nodes in this generic list
-                        local generic_list_children = ts_utils.get_named_children(generic_list[1])
-                        generic_list_children = vim.tbl_map(function(n)
-                            return n:type()
-                        end, generic_list_children)
-                        local tasks = vim.tbl_filter(function(t)
-                            return t == "todo_item1"
-                        end, generic_list_children)
-
-                        if #tasks > 1 then
-                            return nil
-                        end
-                    end
                 end
 
                 local tree = {
