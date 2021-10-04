@@ -16,7 +16,7 @@ return function(module)
                     return object
                 end
 
-                -- Create the tag (opts.tag) with the values if opts.force_create and opts.tag
+                -- Create the tag (opts.tag) with the values if opts.tag
                 if not object[option] then
                     if not opts.tag then
                         log.error("Please specify a tag with opts.tag")
@@ -33,8 +33,9 @@ return function(module)
                 if type(object[option]) == "table" then
                     if opts.tag then
                         -- Delete the tag and recreate it with new values
-                        object = module.public.delete(object, node_type, option)
-                        module.public.insert_tag({ object.node, object.bufnr }, value, opts.tag)
+                        local line_nr
+                        object, line_nr = module.public.delete(object, node_type, option)
+                        module.public.insert_tag({ object.node, object.bufnr }, value, opts.tag, { line = line_nr })
                         return module.public.update(object, node_type)
                     else
                         log.error("Only tags and content are supported for modification")
@@ -96,7 +97,7 @@ return function(module)
                 -- Deleting object
                 vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { "" })
 
-                return module.public.update(object, node_type)
+                return module.public.update(object, node_type), start_row
             end,
         },
     }

@@ -99,7 +99,8 @@ return function(module)
             --- @param content string|table
             --- @param prefix string
             --- @return boolean #Whether inserting succeeded (if so, save the file)
-            insert_tag = function(node, content, prefix)
+            insert_tag = function(node, content, prefix, opts)
+                opts = opts or {}
                 if not content then
                     return
                 end
@@ -117,7 +118,10 @@ return function(module)
                 )
 
                 if #parent_tag_set == 0 then
-                    -- No tag created, i will insert the tag just before the node
+                    -- No tag created, i will insert the tag just before the node or at specific line
+                    if opts.line then
+                        node_line = opts.line
+                    end
                     vim.api.nvim_buf_set_lines(node[2], node_line, node_line, false, inserter)
                     return true
                 else
