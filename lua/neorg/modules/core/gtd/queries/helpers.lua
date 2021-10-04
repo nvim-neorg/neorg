@@ -20,3 +20,5 @@ module.private = {
         end
     end,
 }
+
+return module
