@@ -1,8 +1,8 @@
 local module = neorg.modules.extend("core.gtd.ui.selection_popups")
 
 module.public = {
-    show_quick_actions = function(configs)
-        -- Generate quick_actions selection popup
+    show_views_popup = function(configs)
+        -- Generate views selection popup
         local buffer = module.required["core.ui"].create_split("Quick Actions")
         local selection = module.required["core.ui"].begin_selection(buffer):listener(
             "destroy",

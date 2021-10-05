@@ -19,7 +19,7 @@ SUBMODULES:
 
     * SELECTION_POPUPS:
         UI components that use selection popups
-        - show_quick_actions
+        - show_views_popup
         - edit_task
 
 --]]
@@ -40,7 +40,7 @@ module.setup = function()
         imports = {
             "displayers",
             "helpers",
-            "quick_actions_popup_helpers",
+            "views_popup_helpers",
             "edit_popup_helpers",
             "selection_popups",
         },
