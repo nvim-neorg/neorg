@@ -1,4 +1,4 @@
-neorg.modules.extend("core.gtd.ui.selection_popups")
+local module = neorg.modules.extend("core.gtd.ui.selection_popups")
 
 module.public = {
     show_quick_actions = function(configs)

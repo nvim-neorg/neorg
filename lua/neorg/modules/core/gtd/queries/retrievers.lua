@@ -1,4 +1,4 @@
-neorg.modules.extend("core.gtd.queries.retrievers")
+local module = neorg.modules.extend("core.gtd.queries.retrievers")
 
 module.public = {
     --- Get a table of all `type` in workspace

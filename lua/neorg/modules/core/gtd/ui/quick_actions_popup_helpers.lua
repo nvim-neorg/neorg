@@ -1,4 +1,4 @@
-neorg.modules.extend("core.gtd.ui.quick_actions_popup_helpers")
+local module = neorg.modules.extend("core.gtd.ui.quick_actions_popup_helpers")
 
 module.private = {
     --- Generate flags for specific mode (date related)

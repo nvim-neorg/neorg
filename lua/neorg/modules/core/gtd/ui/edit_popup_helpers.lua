@@ -1,4 +1,4 @@
-neorg.modules.extend("core.gtd.ui.edit_popup_helpers")
+local module = neorg.modules.extend("core.gtd.ui.edit_popup_helpers")
 
 module.private = {
     --- Edit content from `key`.
