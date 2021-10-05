@@ -1,7 +1,7 @@
 --[[
     A UI module to allow the user to press different keys to select different actions
 --]]
-neorg.modules.extend("core.ui.selection_popup")
+local module = neorg.modules.extend("core.ui.selection_popup")
 
 module.private = {
     -- Stores all currently open selection popups

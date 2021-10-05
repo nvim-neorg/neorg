@@ -1,4 +1,4 @@
-neorg.modules.extend("core.gtd.ui.displayers")
+local module = neorg.modules.extend("core.gtd.ui.displayers")
 
 module.public = {
     --- Display today view for `tasks`, grouped by contexts

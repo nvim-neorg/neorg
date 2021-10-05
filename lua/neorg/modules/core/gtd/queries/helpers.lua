@@ -1,4 +1,4 @@
-neorg.modules.extend("core.gtd.queries.helpers")
+local module = neorg.modules.extend("core.gtd.queries.helpers")
 
 module.public = {
     -- @Summary Convert a date from text to YY-MM-dd format

@@ -1,4 +1,4 @@
-neorg.modules.extend("core.gtd.ui.helpers")
+local module = neorg.modules.extend("core.gtd.ui.helpers")
 
 module.private = {
 
