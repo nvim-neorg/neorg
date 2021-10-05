@@ -12,21 +12,11 @@ module.public = {
             end
         )
 
-        selection = selection
-            :title("Quick Actions")
-            :blank()
-            :text("Capture")
-            :concat(module.private.add_to_inbox)
-            :blank()
-            :text("Displays")
-            :concat(function(_selection)
-                return module.private.generate_display_flags(_selection, configs)
-            end)
-
-        selection = selection:blank():flag("x", "Debug Mode", function()
-            local nodes = module.required["core.gtd.queries"].get("tasks", { filename = "index.norg" })
-            module.required["core.gtd.queries"].generate_missing_uuids(nodes, "tasks")
+        selection = selection:title("Views"):blank():concat(function(_selection)
+            return module.private.generate_display_flags(_selection, configs)
         end)
+
+        module.private.display_messages()
     end,
 
     edit_task = function(task)
@@ -129,6 +119,29 @@ module.public = {
                 vim.cmd(" write ")
             end)
         end)
+
+        module.private.display_messages()
+    end,
+
+    show_capture_popup = function()
+        -- Generate views selection popup
+        local buffer = module.required["core.ui"].create_split("Quick Actions")
+        local selection = module.required["core.ui"].begin_selection(buffer):listener(
+            "destroy",
+            { "<Esc>" },
+            function(self)
+                self:destroy()
+            end
+        )
+
+        selection = selection:title("Capture"):blank():concat(module.private.add_to_inbox)
+        module.private.display_messages()
+    end,
+}
+
+module.private = {
+    display_messages = function()
+        vim.cmd(string.format([[echom '%s']], "Press ESC to exit without saving"))
     end,
 }
 
