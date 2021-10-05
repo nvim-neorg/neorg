@@ -17,7 +17,12 @@ module.public = {
                 return false
             end
             local today_state = (task.state ~= "done")
-            return vim.tbl_contains(task.contexts, "today") and today_state
+
+            local already_started = true
+            if task["time.start"] then
+                already_started = not module.required["core.gtd.queries"].starting_after_today(task["time.start"][1])
+            end
+            return vim.tbl_contains(task.contexts, "today") and today_state and already_started
         end
 
         -- Remove tasks that contains any of the excluded contexts

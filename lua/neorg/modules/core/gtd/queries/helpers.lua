@@ -43,7 +43,7 @@ module.public = {
     end,
 
     --- Parses a date string to table relative to today's date
-    --- (e.g { weeks = 2, days = 2, years= 0 } for in 2 weeks and 2 days)
+    --- (e.g { weeks = 2, days = 2 } for in 2 weeks and 2 days)
     --- @param date string #A date formatted with YY-MM-dd format
     --- @return dateDiff
     diff_with_today = function(date)
@@ -66,6 +66,19 @@ module.public = {
         local elapsed = module.private.convert_seconds(elapsed_seconds)
 
         return elapsed
+    end,
+
+    --- Checks whether the date starts after today
+    --- @param date string
+    --- @param strict boolean #If today must be counted or not
+    --- @return boolean
+    starting_after_today = function(date, strict)
+        local diff = module.public.diff_with_today(date)
+        if strict then
+            return diff.days > 0 and diff.weeks > 0
+        else
+            return diff.days >= 0 and diff.weeks >= 0
+        end
     end,
 }
 
