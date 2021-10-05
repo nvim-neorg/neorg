@@ -1,5 +1,5 @@
 (ranged_tag ("_prefix") @NeorgTagBegin
-	name: (tag_name [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
+	name: (tag_name [(word) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
 	(tag_parameters parameter: (word) @NeorgTagParameter)? @NeorgTagParameters
 	content: (ranged_tag_content)? @NeorgTagContent
 	(ranged_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)) @NeorgTag
@@ -12,7 +12,7 @@
         name:
             (tag_name
                 [
-                    (tag_name_element) @NeorgCarryoverTagNameWord
+                    (word) @NeorgCarryoverTagNameWord
                     ("_delimiter") @NeorgCarryoverTagNameDelimiter
                 ]+
             ) @NeorgCarryoverTagName
@@ -153,7 +153,7 @@
 (quote6 (quote6_prefix) @NeorgQuote6 content: (paragraph_segment) @NeorgQuote6Content)
 
 ; Insertion
-(insertion (insertion_prefix) @NeorgInsertionPrefix item: (lowercase_word) @NeorgInsertionVariable parameters: (paragraph_segment)? @NeorgInsertionVariableValue) @NeorgInsertion
+(insertion (insertion_prefix) @NeorgInsertionPrefix item: (word) @NeorgInsertionVariable parameters: (paragraph_segment)? @NeorgInsertionVariableValue) @NeorgInsertion
 (insertion (insertion_prefix) @NeorgInsertionPrefix item: (capitalized_word) @NeorgInsertionItem parameters: (paragraph_segment)? @NeorgInsertionParameters) @NeorgInsertion
 
 ; Paragraph Delimiters
