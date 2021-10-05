@@ -51,6 +51,9 @@ module.public = {
 
                 for _, t in pairs(today_tasks) do
                     local content = "- " .. t.content
+                    if t.project then
+                        content = content .. " (`" .. t.project .. "`)"
+                    end
                     table.insert(res, content)
                 end
                 table.insert(res, "")
