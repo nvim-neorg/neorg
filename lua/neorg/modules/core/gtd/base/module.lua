@@ -4,7 +4,7 @@
 
 USAGE:
     - Quick actions for gtd stuff:
-        - Call the command :Neorg gtd quick_actions
+        - Call the command :Neorg gtd views
     - Edit the task under the cursor:
         - Call the command :Neorg gtd edit
 
@@ -20,7 +20,7 @@ KEYBINDS:
     - core.gtd.base.add_to_inbox: Will call the function add_task_to_inbox()
 
 COMMANDS:
-    - Neorg gtd quick_actions   to show the quick actions popup
+    - Neorg gtd views           to show the views popup
     - Neorg edit                to edit the task under the cursor
 
 --]]
@@ -73,7 +73,7 @@ module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         definitions = {
             gtd = {
-                quick_actions = {},
+                views = {},
                 edit = {},
             },
         },
@@ -81,7 +81,7 @@ module.load = function()
             gtd = {
                 args = 1,
                 subcommands = {
-                    quick_actions = { args = 0, name = "gtd.quick_actions" },
+                    views = { args = 0, name = "gtd.views" },
                     edit = { args = 0, name = "gtd.edit" },
                 },
             },
@@ -91,8 +91,8 @@ end
 
 module.on_event = function(event)
     if event.split_type[1] == "core.neorgcmd" then
-        if event.split_type[2] == "gtd.quick_actions" then
-            module.required["core.gtd.ui"].show_quick_actions(module.config.public)
+        if event.split_type[2] == "gtd.views" then
+            module.required["core.gtd.ui"].show_views_popup(module.config.public)
         elseif event.split_type[2] == "gtd.edit" then
             module.public.edit_task()
         end
@@ -104,7 +104,7 @@ module.events.subscribed = {
         ["core.gtd.base.add_to_inbox"] = true,
     },
     ["core.neorgcmd"] = {
-        ["gtd.quick_actions"] = true,
+        ["gtd.views"] = true,
         ["gtd.edit"] = true,
     },
 }
