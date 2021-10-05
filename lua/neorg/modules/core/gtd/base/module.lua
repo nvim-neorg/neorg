@@ -21,7 +21,8 @@ KEYBINDS:
 
 COMMANDS:
     - Neorg gtd views           to show the views popup
-    - Neorg edit                to edit the task under the cursor
+    - Neorg gtd edit            to edit the task under the cursor
+    - Neorg gtd capture         to create tasks and projects in the gtd workspace
 
 --]]
 
@@ -75,6 +76,7 @@ module.load = function()
             gtd = {
                 views = {},
                 edit = {},
+                capture = {},
             },
         },
         data = {
@@ -83,6 +85,7 @@ module.load = function()
                 subcommands = {
                     views = { args = 0, name = "gtd.views" },
                     edit = { args = 0, name = "gtd.edit" },
+                    capture = { args = 0, name = "gtd.capture" },
                 },
             },
         },
@@ -95,6 +98,8 @@ module.on_event = function(event)
             module.required["core.gtd.ui"].show_views_popup(module.config.public)
         elseif event.split_type[2] == "gtd.edit" then
             module.public.edit_task()
+        elseif event.split_type[2] == "gtd.capture" then
+            module.required["core.gtd.ui"].show_capture_popup()
         end
     end
 end
@@ -106,6 +111,7 @@ module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["gtd.views"] = true,
         ["gtd.edit"] = true,
+        ["gtd.capture"] = true,
     },
 }
 
@@ -134,7 +140,6 @@ module.public = {
         end
 
         module.required["core.gtd.ui"].edit_task(found_task[1])
-        vim.cmd(string.format([[echom '%s']], "Press ESC to exit without saving"))
     end,
 }
 return module
