@@ -86,7 +86,7 @@ here. For a better viewing experience, we recommend reading it opening it from `
               selectively disabled.
         - [x] Module to manage directories where .norg files can be stored (`core.norg.dirman`).
         - [x] Create an nvim-compe (and nvim-cmp) completion source
-        - [ ] Add a module for efficiently managing and manipulating vim windows, be it splits,
+        - [*] Add a module for efficiently managing and manipulating vim windows, be it splits,
               floating windows etc.
         - [x] Create the basics of ui components (selection popups, input prompts)
 
@@ -107,6 +107,22 @@ here. For a better viewing experience, we recommend reading it opening it from `
         - [x] Create the .norg spec. This spec will try to be similar to other markdown formats, but
               does not promise to keep everything the same. The goal is as little ambiguity and as
               much predictability as possible.
+
+   **** Performance
+        Currently the performance of Neorg is "ok". In certain circumstances Neorg can end up
+        slowing down the editor quite a lot.
+    ***** Conceals
+          To fix the conceal performance Neovim needs to do one of two things:
+          - [ ] Merge [this pull request](https://github.com/neovim/neovim/pull/15658). It would
+                allow to us to run several tasks in an actual asynchronous manner.
+                Would reduce slowdown.
+          - [ ] Fix a bug where undoing a range of text doesn't trigger `vim.api.nvim_buf_attach`
+                callbacks. If this were fixed we would be able to simply update the changed region
+                of text instead of reparsing the whole buffer.
+
+   **** Bugs
+        - [ ] Make `core.keybinds` use `vim.api.nvim_buf_set_keymap` instead of applying global
+        keymaps
 
    **** GTD (Getting things done) integration
         - [x] Create a full GTD specification

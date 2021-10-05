@@ -20,7 +20,11 @@ local module = neorg.modules.create("core.keybinds")
 local log = require("neorg.external.log")
 
 module.setup = function()
-    return { success = true, requires = { "core.neorgcmd", "core.mode", "core.autocommands" } }
+    return {
+        success = true,
+        requires = { "core.neorgcmd", "core.mode", "core.autocommands" },
+        imports = { "default_keybinds" },
+    }
 end
 
 module.load = function()
@@ -28,7 +32,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufLeave")
 
     if module.config.public.default_keybinds then
-        require("neorg.external.helpers").require(module, "default_keybinds").public.generate_keybinds()
+        module.public.generate_keybinds()
     end
 end
 
@@ -230,7 +234,6 @@ module.public = {
                         -- If we're dealing with a table called "unbind" then go through all the strings defined there
                         -- and unbind each key
                         for _, to_unbind in ipairs(data) do
-                            log.warn(to_unbind)
                             pcall(vim.api.nvim_del_keymap, mode, to_unbind)
                         end
                     end

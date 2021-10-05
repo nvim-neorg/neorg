@@ -34,6 +34,12 @@ module.setup = function()
             "core.queries.native",
             "core.integrations.treesitter",
         },
+        imports = {
+            "helpers",
+            "retrievers",
+            "creators",
+            "modifiers",
+        },
     }
 end
 
@@ -66,10 +72,5 @@ module.public = {
         return found_node[1]
     end,
 }
-
-module = utils.require(module, "helpers")
-module = utils.require(module, "retrievers")
-module = utils.require(module, "creators")
-module = utils.require(module, "modifiers")
 
 return module

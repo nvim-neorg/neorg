@@ -5,12 +5,20 @@
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.ui")
-local utils = require("neorg.external.helpers")
 
 module.private = {
     windows = {},
     namespace = vim.api.nvim_create_namespace("core.ui"),
 }
+
+module.setup = function()
+    return {
+        imports = {
+            "selection_popup",
+            "text_popup",
+        },
+    }
+end
 
 module.public = {
     -- TODO: Remove this. This is just a showcase
@@ -348,8 +356,5 @@ module.public = {
         return buf
     end,
 }
-
-module = utils.require(module, "selection_popup")
-module = utils.require(module, "text_popup")
 
 return module

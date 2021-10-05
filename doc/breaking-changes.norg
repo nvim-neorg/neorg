@@ -1,0 +1,41 @@
+@document.meta
+    title: Breaking Changes
+    description: Document detailing all the breaking changes that~
+    have been implemented in Neorg.
+    author: vhyrro
+    categories: neorg-doc
+    created: 2021-10-01
+    version: 0.1
+@end
+
+* All the Breakages
+  Since Neorg is still very new there are a lot of expected breaking changes.
+  We're really sorry about their existence as we know that having to change stuff is annoying -
+  having too frequent breaking changes almost makes you want to stop using the plugin. A lot of
+  these changes will usually reside in the `unstable` branch and will only get periodically merged
+  into main so you don't freak out knowing that every update might have broken something.
+
+  An important thing to note is that if you're just a regular user of Neorg you probably won't come
+  face-to-face with these issues; the tinkerers though, they will probably feel it. Here's a
+  comprehensive list:
+
+ ** Icons
+    Icons have changed. Rather than using regex they are now fully parsed with TreeSitter queries
+    for efficiency. This also means that the format for defining an icon has changed too:
+    @code lua
+    level_1 = {
+        enabled = true, -- Whether or not the icon is enabled 
+        icon = "•", -- The actual icon itself
+        highlight = "NeorgUnorderedList1", -- The highlight to use on the icon
+        -- The query that determines where to place the icon
+        query = "(unordered_list1_prefix) @icon", -- @icon tells treesitter which node to iconify
+    },
+    @end
+    Due to this *icons now need padding* around them if you want to conceal several chars. For
+    example if you want to conceal a second-level heading (`**`) you /need/ to make your icon
+    something along the lines of ` •` where as you can see there is a space before the icon itself.
+    This will then overlap the first `*` with the space (therefore rendering it invisible) and will
+    overlap the second `*` with your actual icon.
+
+$comment
+vim:tw=100:ft=norg:norl:
