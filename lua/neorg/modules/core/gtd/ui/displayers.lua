@@ -45,6 +45,7 @@ module.public = {
         local contexts_tasks = module.required["core.gtd.queries"].sort_by("contexts", tasks)
 
         local contexts = vim.tbl_keys(contexts_tasks)
+
         contexts = vim.tbl_filter(function(c)
             return c ~= "today"
         end, contexts)
@@ -76,10 +77,16 @@ module.public = {
             "",
         }
 
-        local filter_state = function(t)
-            return t.state ~= "done"
+        -- Only show waiting fors that are not done and are already started
+        local filters = function(t)
+            local already_started = true
+            if t["time.start"] then
+                already_started = not module.required["core.gtd.queries"].starting_after_today(t["time.start"][1])
+            end
+            return t.state ~= "done" and already_started
         end
-        tasks = vim.tbl_filter(filter_state, tasks)
+
+        tasks = vim.tbl_filter(filters, tasks)
 
         local waiting_for_tasks = module.required["core.gtd.queries"].sort_by("waiting.for", tasks)
         waiting_for_tasks["_"] = nil -- remove all tasks that does not have waiting for tag
@@ -112,11 +119,15 @@ module.public = {
         }
 
         -- Keep undone tasks and not waiting for ones
-        local filter_state = function(t)
-            return t.state ~= "done" and not t.waiting_for
+        local filter = function(t)
+            local already_started = true
+            if t["time.start"] then
+                already_started = not module.required["core.gtd.queries"].starting_after_today(t["time.start"][1])
+            end
+            return t.state ~= "done" and not t.waiting_for and already_started
         end
 
-        tasks = vim.tbl_filter(filter_state, tasks)
+        tasks = vim.tbl_filter(filter, tasks)
 
         -- Remove tasks that contains any of the excluded contexts
         if opts.exclude then
