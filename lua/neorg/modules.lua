@@ -15,13 +15,15 @@ require("neorg.modules.base")
 --]]
 neorg.modules.loaded_module_count = 0
 
--- The table of currently loaded modules
+--- The table of currently loaded modules
 neorg.modules.loaded_modules = {}
 
--- @Summary Loads and enables a module
--- @Description Loads a specified module. If the module subscribes to any events then they will be activated too.
--- @Param  module (table) - the actual module to load
-function neorg.modules.load_module_from_table(module)
+--- Loads and enables a module
+-- Loads a specified module. If the module subscribes to any events then they will be activated too.
+--- @param module table #The actual module to load
+--- @param parent string #The name of a potential parent of the module
+--- @return boolean #Whether the module successfully loaded
+function neorg.modules.load_module_from_table(module, parent)
     log.info("Loading module with name", module.name)
 
     -- If our module is already loaded don't try loading it again
@@ -30,8 +32,19 @@ function neorg.modules.load_module_from_table(module)
         return true
     end
 
+    if parent then
+        module = module:from(neorg.modules.loaded_modules[parent])
+    end
+
     -- Invoke the setup function. This function returns whether or not the loading of the module was successful and some metadata.
-    local loaded_module = module.setup()
+    local loaded_module = module.setup and module.setup()
+        or {
+            success = true,
+            replaces = {},
+            replace_merge = false,
+            requires = {},
+            imports = {},
+        }
 
     -- We do not expect module.setup() to ever return nil, that's why this check is in place
     if not loaded_module then
@@ -120,7 +133,7 @@ function neorg.modules.load_module_from_table(module)
         -- previous module into our new one. This allows for practically seamless hotswapping, as it allows you to retain the data
         -- of the previous module.
         if loaded_module.replace_merge then
-            vim.tbl_deep_extend("force", module, {
+            module = vim.tbl_deep_extend("force", module, {
                 private = module_to_replace.private,
                 config = module_to_replace.config,
                 public = module_to_replace.public,
@@ -132,33 +145,51 @@ function neorg.modules.load_module_from_table(module)
         module.replaced = true
     end
 
+    if loaded_module.imports and not vim.tbl_isempty(loaded_module.imports) then
+        log.info("Module", module.name, "has imports. Including them...")
+
+        for _, import in ipairs(loaded_module.imports) do
+            if not neorg.modules.load_module(module.name .. "." .. import, module.name) then
+                log.error(
+                    "Unable to load",
+                    module.name,
+                    "- the module specified an import (" .. import .. ") but that import could not be found under",
+                    "neorg.modules." .. module.name .. "." .. import
+                )
+                return false
+            end
+
+            module = module:from(neorg.modules.loaded_modules[module.name .. "." .. import], "keep")
+        end
+    end
+
     log.info("Successfully loaded module", module.name)
 
     -- Keep track of the number of loaded modules
     neorg.modules.loaded_module_count = neorg.modules.loaded_module_count + 1
 
     -- Call the load function
-    module.load()
+    if module.load then
+        module.load()
+    end
 
     return true
 end
 
--- @Summary Loads a module from disk
--- @Description Unlike load_module_from_table(), which loads a module from memory, load_module() tries to find the corresponding module file on disk and loads it into memory.
+--- Unlike `load_module_from_table()`, which loads a module from memory, `load_module()` tries to find the corresponding module file on disk and loads it into memory.
 -- If the module cannot not be found, attempt to load it off of github (unimplemented). This function also applies user-defined configurations and keymaps to the modules themselves.
--- This is the recommended way of loading modules - load_module_from_table() should only really be used by neorg itself.
--- @Param  module_name (string) - a path to a module on disk. A path seperator in neorg is '.', not '/'
--- @Param  config (table) - a configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
-function neorg.modules.load_module(module_name, config)
+-- This is the recommended way of loading modules - `load_module_from_table()` should only really be used by neorg itself.
+--- @param module_name string #A path to a module on disk. A path seperator in neorg is '.', not '/'
+--- @param config table #A configuration that reflects the structure of `neorg.configuration.user_configuration.load["module.name"].config`
+--- @return boolean #Whether the module was successfully loaded
+function neorg.modules.load_module(module_name, parent, config)
     -- Don't bother loading the module from disk if it's already loaded
     if neorg.modules.is_module_loaded(module_name) then
         return true
     end
 
     -- Attempt to require the module, does not throw an error if the module doesn't exist
-    local exists, module
-
-    exists, module = pcall(require, "neorg.modules." .. module_name .. ".module")
+    local exists, module = pcall(require, "neorg.modules." .. module_name)
 
     -- If the module doesn't exist then return false
     if not exists then
@@ -176,6 +207,15 @@ function neorg.modules.load_module(module_name, config)
         return false
     end
 
+    if module == true then
+        log.error(
+            "An error has occurred when loading",
+            module_name,
+            "- loaded file didn't return anything meaningful. Be sure to return the table created by neorg.modules.create() at the end of your module.lua file!"
+        )
+        return false
+    end
+
     -- Load the user-defined configuration
     if config and not vim.tbl_isempty(config) then
         module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
@@ -188,7 +228,7 @@ function neorg.modules.load_module(module_name, config)
     end
 
     -- Pass execution onto load_module_from_table() and let it handle the rest
-    return neorg.modules.load_module_from_table(module)
+    return neorg.modules.load_module_from_table(module, parent)
 end
 
 -- @Summary Loads a preloaded module as a dependency of another module.

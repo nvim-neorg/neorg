@@ -30,7 +30,6 @@ neorg.modules.module_base = {
     -- Every module can expose any set of information it sees fit through the public field
     -- All functions and variables declared in this table will be visible to any other module loaded
     public = {
-
         version = "0.0.1", -- A good practice is to expose version information
     },
 
@@ -99,15 +98,63 @@ neorg.modules.module_base = {
 -- @Description Returns a module that derives from neorg.modules.module_base, exposing all the necessary function and variables
 -- @Param  name (string) - the name of the new module. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
 function neorg.modules.create(name)
-    local new_module = {}
+    local new_module = vim.deepcopy(neorg.modules.module_base)
 
-    new_module = vim.deepcopy(neorg.modules.module_base)
+    local t = {
+        from = function(self, parent, type)
+            local prevname = self.real().name
+
+            new_module = vim.tbl_deep_extend(type or "force", new_module, parent.real())
+
+            if not type then
+                new_module.setup = function()
+                    return { success = true }
+                end
+                new_module.load = function() end
+                new_module.on_event = function() end
+                new_module.neorg_post_load = function() end
+            end
+
+            new_module.name = prevname
+
+            return self
+        end,
+
+        real = function()
+            return new_module
+        end,
+    }
 
     if name then
         new_module.name = name
     end
 
-    return new_module
+    return setmetatable(t, {
+        __newindex = function(_, key, value)
+            if type(value) ~= "table" then
+                new_module[key] = value
+            else
+                new_module[key] = vim.tbl_deep_extend("force", new_module[key], value or {})
+            end
+        end,
+
+        __index = function(_, key)
+            return t.real()[key]
+        end,
+    })
+end
+
+function neorg.modules.extend(name)
+    local module = neorg.modules.create(name)
+
+    local realmodule = rawget(module, "real")()
+
+    realmodule.setup = nil
+    realmodule.load = nil
+    realmodule.on_event = nil
+    realmodule.neorg_post_load = nil
+
+    return module
 end
 
 -- @Summary Creates a metamodule

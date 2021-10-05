@@ -58,3 +58,4 @@ neorg-continuation	neorg.norg	/*** Object continuation
 neorg-insertions	neorg.norg	/*** Insertions
 neorg-foreplay	neorg.norg	/*** Foreplay
 neorg-roadmap	roadmap.norg	/* The Neorg Roadmap
+neorg-breaking-changes	breaking-changes.norg	/* All the Breakages

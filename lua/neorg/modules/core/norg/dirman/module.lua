@@ -63,13 +63,15 @@ module.load = function()
 
     -- If the user has supplied a custom workspace to start in (i.e. :NeorgStart workspace=<name>)
     -- then load that custom workspace here
-    if neorg.configuration.arguments.workspace then
-        module.public.open_workspace(neorg.configuration.arguments.workspace)
-        vim.notify("Start in custom workspace -> " .. neorg.configuration.arguments.workspace)
-        -- If we have loaded this module by invoking :NeorgStart then try jumping
-        -- to the last cached workspace
-    elseif neorg.configuration.manual then
-        module.public.set_last_workspace()
+    if not neorg.configuration.arguments.silent then
+        if neorg.configuration.arguments.workspace then
+            module.public.open_workspace(neorg.configuration.arguments.workspace)
+            vim.notify("Start in custom workspace -> " .. neorg.configuration.arguments.workspace)
+        elseif neorg.configuration.manual then
+            -- If we have loaded this module by invoking :NeorgStart then try jumping
+            -- to the last cached workspace
+            module.public.set_last_workspace()
+        end
     end
 
     -- Synchronize core.neorgcmd autocompletions
@@ -302,9 +304,11 @@ module.public = {
     -- @Param  path (string) - a path to open the file (e.g directory/filename.norg)
     open_file = function(workspace_name, path)
         local workspace = module.public.get_workspace(workspace_name)
+
         if workspace == nil then
             return
         end
+
         vim.cmd("e " .. workspace .. "/" .. path .. " | w")
     end,
 

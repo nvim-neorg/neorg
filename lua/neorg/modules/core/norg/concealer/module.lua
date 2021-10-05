@@ -4,7 +4,7 @@
     by abstracting away certain bits of text and concealing it into one easy-to-recognize
     icon. Icons can be easily changed and every element can be disabled.
 
-USAGE:
+USAGE: (TODO: update)
     This module does not come bundled by default with the core.defaults metamodule.
     Make sure to manually enable it in neorg's setup function.
 
@@ -96,6 +96,315 @@ module.private = {
     icons = {},
 }
 
+module.public = {
+
+    -- @Summary Activates icons for the current window
+    -- @Description Parses the user configuration and enables concealing for the current window.
+    trigger_icons = function()
+        -- Clear all the conceals beforehand (so no overlaps occur)
+        module.public.clear_icons()
+
+        -- The next block of code will be responsible for dimming code blocks accordingly
+        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+        -- If the tree is valid then attempt to perform the query
+        if tree then
+            do
+                -- Query all code blocks
+                local ok, query = pcall(
+                    vim.treesitter.parse_query,
+                    "norg",
+                    [[(
+                        (ranged_tag (tag_name) @_name) @tag
+                        (#eq? @_name "code")
+                    )]]
+                )
+
+                -- If something went wrong then go bye bye
+                if not ok or not query then
+                    return
+                end
+
+                -- Go through every found capture
+                for id, node in query:iter_captures(tree:root(), 0) do
+                    local id_name = query.captures[id]
+
+                    -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                    if id_name == "tag" then
+                        -- Get the range of the code block
+                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+                        -- Go through every line in the code block and give it a magical highlight
+                        for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
+                            local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
+
+                            -- If our buffer is modifiable or if our line is too short then try to fill in the line
+                            -- (this fixes broken syntax highlights automatically)
+                            if vim.bo.modifiable and line:len() < range.column_start then
+                                vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
+                            end
+
+                            -- If our line is valid and it's not too short then apply the dimmed highlight
+                            if line and line:len() >= range.column_start then
+                                module.public._set_extmark(
+                                    nil,
+                                    "NeorgCodeBlock",
+                                    i,
+                                    i + 1,
+                                    range.column_start,
+                                    nil,
+                                    true,
+                                    "blend"
+                                )
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        -- Get the root node of the document (required to iterate over query captures)
+        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+
+        -- Loop through all icons that the user has enabled
+        for _, icon_data in ipairs(module.private.icons) do
+            if icon_data.query then
+                -- Attempt to parse the query provided by `icon_data.query`
+                -- A query must have at least one capture, e.g. "(test_node) @icon"
+                local query = vim.treesitter.parse_query("norg", icon_data.query)
+
+                -- Go through every found node and try to apply an icon to it
+                for id, node in query:iter_captures(document_root, 0) do
+                    local capture = query.captures[id]
+
+                    if capture == "icon" then
+                        -- Extract both the text and the range of the node
+                        local text = module.required["core.integrations.treesitter"].get_node_text(node)
+                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+                        -- Set the offset to 0 here. The offset is a special value that, well, offsets
+                        -- the location of the icon column-wise
+                        -- It's used in scenarios where the node spans more than what we want to iconify.
+                        -- A prime example of this is the todo item, whose content looks like this: "[x]".
+                        -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
+                        -- to use an offset of 1 to start the icon at the "x"
+                        local offset = 0
+
+                        -- The extract function is used exactly to calculate this offset
+                        -- If that function is present then run it and grab the return value
+                        if icon_data.extract then
+                            offset = icon_data.extract(text) or 0
+                        end
+
+                        -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
+                        -- This is primarily used in nested quotes
+                        -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
+                        if not icon_data.render then
+                            module.public._set_extmark(
+                                icon_data.icon,
+                                icon_data.highlight,
+                                range.row_start,
+                                range.row_end,
+                                range.column_start + offset,
+                                range.column_end,
+                                false,
+                                "combine"
+                            )
+                        else
+                            module.public._set_extmark(
+                                icon_data:render(text, node),
+                                icon_data.highlight,
+                                range.row_start,
+                                range.row_end,
+                                range.column_start + offset,
+                                range.column_end,
+                                false,
+                                "combine"
+                            )
+                        end
+                    end
+                end
+            end
+        end
+    end,
+
+    -- @Summary Sets an extmark in the buffer
+    -- @Description Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it more safe
+    -- @Param  text (string|table) - the virtual text to overlay (usually the icon)
+    -- @Param  highlight (string) - the name of a highlight to use for the icon
+    -- @Param  line_number (number) - the line number to apply the extmark in
+    -- @Param  end_line (number) - the last line number to apply the extmark to (useful if you want an extmark to exist for more than one line)
+    -- @Param  start_column (number) - the start column of the conceal
+    -- @Param  end_column (number) - the end column of the conceal
+    -- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
+    -- @Param  mode (string: "replace"/"combine"/"blend") - the highlight mode for the extmark
+    _set_extmark = function(text, highlight, line_number, end_line, start_column, end_column, whole_line, mode)
+        -- If the text type is a string then convert it into something that Neovim's extmark API can understand
+        if type(text) == "string" then
+            text = { { text, highlight } }
+        end
+
+        -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
+        local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, module.private.namespace, line_number, start_column, {
+            end_col = end_column,
+            hl_group = highlight,
+            end_line = end_line,
+            virt_text = text or nil,
+            virt_text_pos = "overlay",
+            hl_mode = mode,
+            hl_eol = whole_line,
+        })
+
+        -- If we have encountered an error then log it
+        if not ok then
+            log.error("Unable to create custom conceal for highlight:", highlight, "-", result)
+        end
+    end,
+
+    -- @Summary Clears all the conceals that neorg has defined
+    -- @Description Simply clears the Neorg extmark namespace
+    clear_icons = function()
+        vim.api.nvim_buf_clear_namespace(0, module.private.namespace, 0, -1)
+    end,
+
+    -- @Summary Triggers conceals for the current buffer
+    -- @Description Reads through the user configuration and enables concealing for the current buffer
+    trigger_conceals = function()
+        local conceals = module.config.public.conceals
+
+        if conceals.url then
+            vim.schedule(function()
+                vim.cmd(
+                    'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
+                )
+                vim.cmd(
+                    'syn region NeorgConcealURL matchgroup=mkdDelimiter start="\\([^\\\\]\\|\\_^\\)\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
+                )
+            end)
+        end
+
+        if conceals.bold then
+            vim.schedule(function()
+                vim.cmd([[
+                syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                ]])
+            end)
+        end
+
+        if conceals.italic then
+            vim.schedule(function()
+                vim.cmd([[
+                syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                ]])
+            end)
+        end
+
+        if conceals.underline then
+            vim.schedule(function()
+                vim.cmd([[
+                syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\|^\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                ]])
+            end)
+        end
+
+        if conceals.strikethrough then
+            vim.schedule(function()
+                vim.cmd([[
+                syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                ]])
+            end)
+        end
+
+        if conceals.verbatim then
+            vim.schedule(function()
+                vim.cmd([[
+                syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                ]])
+            end)
+        end
+
+        if conceals.trailing then
+            vim.schedule(function()
+                vim.cmd([[
+                syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
+                ]])
+            end)
+        end
+
+        if conceals.link then
+            vim.schedule(function()
+                vim.cmd([[
+                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
+                ]])
+            end)
+        end
+    end,
+
+    -- @Summary Clears conceals for the current buffer
+    -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
+    clear_conceals = function()
+        vim.cmd([[
+        silent! syn clear NeorgConcealURL
+        silent! syn clear NeorgConcealURLValue
+        silent! syn clear NeorgConcealItalic
+        silent! syn clear NeorgConcealBold
+        silent! syn clear NeorgConcealUnderline
+        silent! syn clear NeorgConcealMonospace
+        silent! syn clear NeorgConcealStrikethrough
+        silent! syn clear NeorgConcealTrailing
+        silent! syn clear NeorgConcealLink
+        ]])
+    end,
+
+    concealing = {
+        ordered = {
+            get_index = function(node, level)
+                local sibling = node:parent():prev_named_sibling()
+                local count = 1
+                while sibling and sibling:type() == level do
+                    sibling = sibling:prev_named_sibling()
+                    count = count + 1
+                end
+                return count
+            end,
+
+            enumerator = {
+                numeric = function(count)
+                    return tostring(count)
+                end,
+
+                latin_lowercase = function(count)
+                    return string.char(96 + count)
+                end,
+
+                latin_uppercase = function(count)
+                    return string.char(64 + count)
+                end,
+            },
+
+            punctuation = {
+                dot = function(renderer)
+                    return function(count)
+                        return renderer(count) .. "."
+                    end
+                end,
+
+                parenthesis = function(renderer)
+                    return function(count)
+                        return renderer(count) .. ")"
+                    end
+                end,
+
+                double_parenthesis = function(renderer)
+                    return function(count)
+                        return "(" .. renderer(count) .. ")"
+                    end
+                end,
+            },
+        },
+    },
+}
+
 module.config.public = {
 
     icons = {
@@ -179,6 +488,114 @@ module.config.public = {
                 icon = "     •",
                 highlight = "NeorgUnorderedList6",
                 query = "(unordered_list6_prefix) @icon",
+            },
+        },
+
+        ordered = {
+            enabled = true,
+
+            --[[
+            Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
+            a thing, punctuation can be added (without removing the whitespace
+            between the icon and actual text) like so:
+
+            ```lua
+            icon = module.private.ordered_concealing.punctuation.dot(
+                module.private.ordered_concealing.icon_renderer.numeric
+            ),
+            ```
+
+            Note: this will produce icons like `1.`, `2.`, etc.
+
+            You can even chain multiple punctuation wrappers like so:
+
+            ```lua
+            icon = module.private.ordered_concealing.punctuation.parenthesis(
+                module.private.ordered_concealing.punctuation.dot(
+                    module.private.ordered_concealing.icon_renderer.numeric
+                )
+            ),
+            ```
+
+            Note: this will produce icons like `1.)`, `2.)`, etc.
+            --]]
+
+            level_1 = {
+                enabled = true,
+                icon = module.public.concealing.ordered.enumerator.numeric,
+                highlight = "NeorgOrderedList1",
+                query = "(ordered_list1_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.public.concealing.ordered.get_index(node, "ordered_list1")
+                    return {
+                        { self.icon(count), self.highlight },
+                    }
+                end,
+            },
+
+            level_2 = {
+                enabled = true,
+                icon = module.public.concealing.ordered.enumerator.latin_uppercase,
+                highlight = "NeorgOrderedList2",
+                query = "(ordered_list2_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.public.concealing.ordered.get_index(node, "ordered_list2")
+                    return {
+                        { " " .. self.icon(count), self.highlight },
+                    }
+                end,
+            },
+
+            level_3 = {
+                enabled = true,
+                icon = module.public.concealing.ordered.enumerator.latin_lowercase,
+                highlight = "NeorgOrderedList3",
+                query = "(ordered_list3_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.public.concealing.ordered.get_index(node, "ordered_list3")
+                    return {
+                        { "  " .. self.icon(count), self.highlight },
+                    }
+                end,
+            },
+
+            level_4 = {
+                enabled = true,
+                icon = module.public.concealing.ordered.enumerator.numeric,
+                highlight = "NeorgOrderedList4",
+                query = "(ordered_list4_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.public.concealing.ordered.get_index(node, "ordered_list4")
+                    return {
+                        { "   " .. self.icon(count), self.highlight },
+                    }
+                end,
+            },
+
+            level_5 = {
+                enabled = true,
+                icon = module.public.concealing.ordered.enumerator.latin_uppercase,
+                highlight = "NeorgOrderedList5",
+                query = "(ordered_list5_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.public.concealing.ordered.get_index(node, "ordered_list5")
+                    return {
+                        { "    " .. self.icon(count), self.highlight },
+                    }
+                end,
+            },
+
+            level_6 = {
+                enabled = true,
+                icon = module.public.concealing.ordered.enumerator.latin_lowercase,
+                highlight = "NeorgOrderedList6",
+                query = "(ordered_list6_prefix) @icon",
+                render = function(self, _, node)
+                    local count = module.public.concealing.ordered.get_index(node, "ordered_list6")
+                    return {
+                        { "     " .. self.icon(count), self.highlight },
+                    }
+                end,
             },
         },
 
@@ -376,7 +793,7 @@ module.config.public = {
                 icon = "─",
                 highlight = "NeorgHorizontalLine",
                 query = "(horizontal_line) @icon",
-                render = function(self, text)
+                render = function(self)
                     return {
                         { string.rep(self.icon, vim.api.nvim_win_get_width(0)), self.highlight },
                     }
@@ -398,12 +815,10 @@ module.config.public = {
 }
 
 module.load = function()
-    local get_enabled_icons
-
     -- @Summary Returns all the enabled icons from a table
     -- @Param  tbl (table) - the table to parse
     -- @Param rec_name (string) - should not be set manually. Is used for Neorg to have information about all other previous recursions
-    get_enabled_icons = function(tbl, rec_name)
+    local function get_enabled_icons(tbl, rec_name)
         rec_name = rec_name or ""
 
         -- Create a result that we will return at the end of the function
@@ -442,267 +857,6 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("TextChangedI")
 end
 
-module.public = {
-
-    -- @Summary Activates icons for the current window
-    -- @Description Parses the user configuration and enables concealing for the current window.
-    trigger_icons = function()
-        -- Clear all the conceals beforehand (so no overlaps occur)
-        module.public.clear_icons()
-
-        -- The next block of code will be responsible for dimming code blocks accordingly
-        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
-
-        -- If the tree is valid then attempt to perform the query
-        if tree then
-            do
-                -- Query all code blocks
-                local ok, query = pcall(
-                    vim.treesitter.parse_query,
-                    "norg",
-                    [[(
-                        (ranged_tag (tag_name) @_name) @tag
-                        (#eq? @_name "code")
-                    )]]
-                )
-
-                -- If something went wrong then go bye bye
-                if not ok or not query then
-                    return
-                end
-
-                -- Go through every found capture
-                for id, node in query:iter_captures(tree:root(), 0) do
-                    local id_name = query.captures[id]
-
-                    -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
-                    if id_name == "tag" then
-                        -- Get the range of the code block
-                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-                        -- Go through every line in the code block and give it a magical highlight
-                        for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
-                            local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
-
-                            -- If our buffer is modifiable or if our line is too short then try to fill in the line
-                            -- (this fixes broken syntax highlights automatically)
-                            if vim.bo.modifiable and line:len() < range.column_start then
-                                vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
-                            end
-
-                            -- If our line is valid and it's not too short then apply the dimmed highlight
-                            if line and line:len() >= range.column_start then
-                                module.public._set_extmark(
-                                    nil,
-                                    "NeorgCodeBlock",
-                                    i,
-                                    i + 1,
-                                    range.column_start,
-                                    nil,
-                                    true,
-                                    "blend"
-                                )
-                            end
-                        end
-                    end
-                end
-            end
-        end
-
-        -- Get the root node of the document (required to iterate over query captures)
-        local document_root = module.required["core.integrations.treesitter"].get_document_root()
-
-        -- Loop through all icons that the user has enabled
-        for _, icon_data in ipairs(module.private.icons) do
-            if icon_data.query then
-                -- Attempt to parse the query provided by `icon_data.query`
-                -- A query must have at least one capture, e.g. "(test_node) @icon"
-                local query = vim.treesitter.parse_query("norg", icon_data.query)
-
-                -- Go through every found node and try to apply an icon to it
-                for id, node in query:iter_captures(document_root, 0) do
-                    local capture = query.captures[id]
-
-                    if capture == "icon" then
-                        -- Extract both the text and the range of the node
-                        local text = module.required["core.integrations.treesitter"].get_node_text(node)
-                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-                        -- Set the offset to 0 here. The offset is a special value that, well, offsets
-                        -- the location of the icon column-wise
-                        -- It's used in scenarios where the node spans more than what we want to iconify.
-                        -- A prime example of this is the todo item, whose content looks like this: "[x]".
-                        -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
-                        -- to use an offset of 1 to start the icon at the "x"
-                        local offset = 0
-
-                        -- The extract function is used exactly to calculate this offset
-                        -- If that function is present then run it and grab the return value
-                        if icon_data.extract then
-                            offset = icon_data.extract(text) or 0
-                        end
-
-                        -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
-                        -- This is primarily used in nested quotes
-                        -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
-                        if not icon_data.render then
-                            module.public._set_extmark(
-                                icon_data.icon,
-                                icon_data.highlight,
-                                range.row_start,
-                                range.row_end,
-                                range.column_start + offset,
-                                range.column_end,
-                                false,
-                                "combine"
-                            )
-                        else
-                            module.public._set_extmark(
-                                icon_data:render(text),
-                                icon_data.highlight,
-                                range.row_start,
-                                range.row_end,
-                                range.column_start + offset,
-                                range.column_end,
-                                false,
-                                "combine"
-                            )
-                        end
-                    end
-                end
-            end
-        end
-    end,
-
-    -- @Summary Sets an extmark in the buffer
-    -- @Description Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it more safe
-    -- @Param  text (string|table) - the virtual text to overlay (usually the icon)
-    -- @Param  highlight (string) - the name of a highlight to use for the icon
-    -- @Param  line_number (number) - the line number to apply the extmark in
-    -- @Param  end_line (number) - the last line number to apply the extmark to (useful if you want an extmark to exist for more than one line)
-    -- @Param  start_column (number) - the start column of the conceal
-    -- @Param  end_column (number) - the end column of the conceal
-    -- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
-    -- @Param  mode (string: "replace"/"combine"/"blend") - the highlight mode for the extmark
-    _set_extmark = function(text, highlight, line_number, end_line, start_column, end_column, whole_line, mode)
-        -- If the text type is a string then convert it into something that Neovim's extmark API can understand
-        if type(text) == "string" then
-            text = { { text, highlight } }
-        end
-
-        -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, module.private.namespace, line_number, start_column, {
-            end_col = end_column,
-            hl_group = highlight,
-            end_line = end_line,
-            virt_text = text or nil,
-            virt_text_pos = "overlay",
-            hl_mode = mode,
-            hl_eol = whole_line,
-        })
-
-        -- If we have encountered an error then log it
-        if not ok then
-            log.error("Unable to create custom conceal for highlight:", highlight, "-", result)
-        end
-    end,
-
-    -- @Summary Clears all the conceals that neorg has defined
-    -- @Description Simply clears the Neorg extmark namespace
-    clear_icons = function()
-        vim.api.nvim_buf_clear_namespace(0, module.private.namespace, 0, -1)
-    end,
-
-    -- @Summary Triggers conceals for the current buffer
-    -- @Description Reads through the user configuration and enables concealing for the current buffer
-    trigger_conceals = function()
-        local conceals = module.config.public.conceals
-
-        if conceals.url then
-            vim.schedule(function()
-                vim.cmd(
-                    'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
-                )
-                vim.cmd(
-                    'syn region NeorgConcealURL matchgroup=mkdDelimiter start="\\([^\\\\]\\|\\_^\\)\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
-                )
-            end)
-        end
-
-        if conceals.bold then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.italic then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.underline then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\|^\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.strikethrough then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.verbatim then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.trailing then
-            vim.schedule(function()
-                vim.cmd([[
-                syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
-                ]])
-            end)
-        end
-
-        if conceals.link then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
-                ]])
-            end)
-        end
-    end,
-
-    -- @Summary Clears conceals for the current buffer
-    -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
-    clear_conceals = function()
-        vim.cmd([[
-        silent! syn clear NeorgConcealURL
-        silent! syn clear NeorgConcealURLValue
-        silent! syn clear NeorgConcealItalic
-        silent! syn clear NeorgConcealBold
-        silent! syn clear NeorgConcealUnderline
-        silent! syn clear NeorgConcealMonospace
-        silent! syn clear NeorgConcealStrikethrough
-        silent! syn clear NeorgConcealTrailing
-        silent! syn clear NeorgConcealLink
-        ]])
-    end,
-}
-
 module.on_event = function(event)
     -- If we have just entered a .norg buffer then apply all conceals
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
@@ -721,7 +875,6 @@ module.on_event = function(event)
 end
 
 module.events.subscribed = {
-
     ["core.autocommands"] = {
         bufenter = true,
         textchangedi = true,
