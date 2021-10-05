@@ -143,10 +143,10 @@ module.private = {
         projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
         selection = selection
-            :flag("p", "Projects", function()
+            :flag("p", "Show projects", function()
                 module.public.display_projects(tasks, projects, { priority = { "_" } })
             end)
-            :rflag("t", "Tasks", function()
+            :rflag("t", "Show tasks", function()
                 selection
                     :title("Tasks")
                     :blank(2)
