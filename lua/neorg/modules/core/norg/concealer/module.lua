@@ -100,9 +100,10 @@ module.public = {
 
     -- @Summary Activates icons for the current window
     -- @Description Parses the user configuration and enables concealing for the current window.
-    trigger_icons = function()
+    -- @Param from (number) - the line number that we should start at (defaults to 0)
+    trigger_icons = function(from)
         -- Clear all the conceals beforehand (so no overlaps occur)
-        module.public.clear_icons()
+        module.public.clear_icons(from)
 
         -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
@@ -126,7 +127,7 @@ module.public = {
                 end
 
                 -- Go through every found capture
-                for id, node in query:iter_captures(tree:root(), 0) do
+                for id, node in query:iter_captures(tree:root(), 0, from or 0, -1) do
                     local id_name = query.captures[id]
 
                     -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
@@ -263,8 +264,9 @@ module.public = {
 
     -- @Summary Clears all the conceals that neorg has defined
     -- @Description Simply clears the Neorg extmark namespace
-    clear_icons = function()
-        vim.api.nvim_buf_clear_namespace(0, module.private.namespace, 0, -1)
+    -- @Param from (number) - the line number to start clearing from
+    clear_icons = function(from)
+        vim.api.nvim_buf_clear_namespace(0, module.private.namespace, from or 0, -1)
     end,
 
     -- @Summary Triggers conceals for the current buffer
@@ -406,7 +408,6 @@ module.public = {
 }
 
 module.config.public = {
-
     icons = {
         todo = {
             enabled = true,
@@ -495,29 +496,29 @@ module.config.public = {
             enabled = true,
 
             --[[
-            Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
-            a thing, punctuation can be added (without removing the whitespace
-            between the icon and actual text) like so:
+                Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
+                a thing, punctuation can be added (without removing the whitespace
+                between the icon and actual text) like so:
 
-            ```lua
-            icon = module.private.ordered_concealing.punctuation.dot(
-                module.private.ordered_concealing.icon_renderer.numeric
-            ),
-            ```
+                ```lua
+                    icon = module.private.ordered_concealing.punctuation.dot(
+                        module.private.ordered_concealing.icon_renderer.numeric
+                    ),
+                ```
 
-            Note: this will produce icons like `1.`, `2.`, etc.
+                Note: this will produce icons like `1.`, `2.`, etc.
 
-            You can even chain multiple punctuation wrappers like so:
+                You can even chain multiple punctuation wrappers like so:
 
-            ```lua
-            icon = module.private.ordered_concealing.punctuation.parenthesis(
-                module.private.ordered_concealing.punctuation.dot(
-                    module.private.ordered_concealing.icon_renderer.numeric
-                )
-            ),
-            ```
+                ```lua
+                icon = module.private.ordered_concealing.punctuation.parenthesis(
+                    module.private.ordered_concealing.punctuation.dot(
+                        module.private.ordered_concealing.icon_renderer.numeric
+                    )
+                ),
+                ```
 
-            Note: this will produce icons like `1.)`, `2.)`, etc.
+                Note: this will produce icons like `1.)`, `2.)`, etc.
             --]]
 
             level_1 = {
@@ -854,7 +855,8 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufEnter")
 
     module.required["core.autocommands"].enable_autocommand("TextChanged")
-    module.required["core.autocommands"].enable_autocommand("TextChangedI")
+    module.required["core.autocommands"].enable_autocommand("InsertEnter")
+    module.required["core.autocommands"].enable_autocommand("InsertLeave")
 end
 
 module.on_event = function(event)
@@ -865,20 +867,27 @@ module.on_event = function(event)
         end
 
         module.public.trigger_icons()
-    elseif
-        event.type == "core.autocommands.events.textchanged"
-        or event.type == "core.autocommands.events.textchangedi"
-    then
-        -- If the content of a line has changed then reparse the file
+    elseif event.type == "core.autocommands.events.textchanged" then
+        -- If the content of a line has changed in normal mode then reparse the file
         module.public.trigger_icons()
+    elseif event.type == "core.autocommands.events.insertenter" then
+        vim.api.nvim_buf_clear_namespace(
+            0,
+            module.private.namespace,
+            event.cursor_position[1] - 1,
+            event.cursor_position[1]
+        )
+    elseif event.type == "core.autocommands.events.insertleave" then
+        module.public.trigger_icons(event.cursor_position[1])
     end
 end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
-        textchangedi = true,
         textchanged = true,
+        insertenter = true,
+        insertleave = true,
     },
 }
 
