@@ -865,10 +865,7 @@ module.public = {
                     if not result and child:type() == "marker" then
                         local marker_title = child:named_child(1)
 
-                        if
-                            utility.strip(destination)
-                            == utility.strip(utility:get_text_as_one(marker_title))
-                        then
+                        if utility.strip(destination) == utility.strip(utility:get_text_as_one(marker_title)) then
                             result = utility.ts.get_node_range(marker_title)
                         end
                     end
