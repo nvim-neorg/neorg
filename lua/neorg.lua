@@ -87,9 +87,9 @@ function neorg.org_file_entered(manual, arguments)
     end
 
     -- After all configurations are merged proceed to actually load the modules
-    for name, _ in pairs(module_list) do
+    for name, module in pairs(module_list) do
         -- If it could not be loaded then halt
-        if not neorg.modules.load_module(name) then
+        if not neorg.modules.load_module(name, module.config) then
             log.fatal("Halting loading of modules due to error...")
             break
         end
