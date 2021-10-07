@@ -24,6 +24,7 @@ module.public = {
         P(res)
         res = json.encode(res)
 
+        P(res)
         -- Create file and start job
         -- os.execute("echo '" .. res .. "' > /tmp/neorg_gen_pandoc")
         -- Job
@@ -102,11 +103,30 @@ module.private = {
                         _res.c = nil
                     end
 
-                    -- local content = ts_utils.get_node_text(child, bufnr)[1]
-
                     -- Add the pandoc type
                     local generator = module.config.public.pandoc_conversion[child:type()]
                     _res.t = generator.type
+                    local content = ts_utils.get_node_text(child, bufnr)[1]
+
+                    -- It's a terminal type, verify it's type and output text
+                    local pandoc_type = module.config.public.pandoc_types[generator.type]
+                    if type(pandoc_type) ~= "table" then
+                        _res.c = content
+                    end
+
+                    -- Overrides the required subtypes with custom options
+                    if generator.override then
+                        _res.c = {}
+                        for i, value in ipairs(generator.override) do
+                            if type(value) == "table" and value[1] == "s" then
+                                table.insert(_res.c, i, { content })
+                            elseif value == "s" then
+                                table.insert(_res.c, i, content)
+                            else
+                                table.insert(_res.c, i, value)
+                            end
+                        end
+                    end
 
                     -- Add to results
                     table.insert(results, _res)
