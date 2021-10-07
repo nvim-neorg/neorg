@@ -20,7 +20,7 @@ module.config.public = {
 
     pandoc_types = {
         ["Header"] = { types = { "Int", "Attr", { "Inline" } } },
-        ["Para"] = { types = { "Inline" } },
+        ["Para"] = { types = { { "Inline" } } },
         ["Inline"] = { subtypes = { "Str", "Space" }, force = "Str" },
         ["Str"] = "string",
         ["Int"] = "number",
