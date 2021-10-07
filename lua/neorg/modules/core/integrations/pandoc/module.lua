@@ -85,25 +85,41 @@ module.private = {
 
         local neorg_types = vim.tbl_keys(module.config.public.pandoc_conversion)
 
-        local ref = res.blocks
         local function descend(node)
+            local results = {}
+
             for child, _ in node:iter_children() do
+                -- Add the node to the results
                 if vim.tbl_contains(neorg_types, child:type()) then
+                    local _res = {}
+
+                    _res.c = {}
+                    local _c = descend(child)
+                    if #_c ~= 0 then
+                        _res.c = _c
+                    else
+                        -- Delete c because nothing has been fetched
+                        _res.c = nil
+                    end
+
+                    -- local content = ts_utils.get_node_text(child, bufnr)[1]
+
+                    -- Add the pandoc type
                     local generator = module.config.public.pandoc_conversion[child:type()]
+                    _res.t = generator.type
 
-                    local content = ts_utils.get_node_text(child, bufnr)[1]
-                    local inserted = { t = generator.type, c = { content } }
-                    table.insert(ref, inserted)
-                    ref = ref[#ref].c
-                    descend(child)
+                    -- Add to results
+                    table.insert(results, _res)
+                else
+                    -- Recursively extend the results with all childs
+                    vim.list_extend(results, descend(child))
                 end
-
-                -- Recursively constructs the table
-                descend(child)
             end
+
+            return results
         end
 
-        descend(root)
+        res = descend(root)
 
         return res
     end,
