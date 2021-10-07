@@ -496,6 +496,7 @@ module.public = {
             end
 
             -- Otherwise it means the destination could not be found, prompt the user with what to do next
+
             local ui = neorg.modules.get_module("core.ui")
 
             if not ui then
@@ -825,7 +826,7 @@ module.public = {
                     if not result and child:type() == "heading" .. tostring(level) then
                         local title = child:named_child(1)
 
-                        if utility.strip(destination) == utility.strip(utility:get_text_as_one(title)) then
+                        if utility.strip(destination) == utility.strip(utility:get_text_as_one(title):sub(1, -2)) then
                             result = utility.ts.get_node_range(title)
                         end
                     end
@@ -892,7 +893,7 @@ module.public = {
                     then
                         local title = child:named_child(1)
 
-                        if utility.strip(destination) == utility.strip(utility:get_text_as_one(title)) then
+                        if utility.strip(destination) == utility.strip(utility:get_text_as_one(title):sub(1, -2)) then
                             result = utility.ts.get_node_range(title)
                             result.type = child:type()
                         end
@@ -910,6 +911,7 @@ module.public = {
                 else
                     vim.cmd('silent !start "' .. vim.fn.fnameescape(destination) .. '"')
                 end
+
                 return utility.ts.get_node_range(utility.ts.get_ts_utils().get_node_at_cursor())
             end,
         },
@@ -988,7 +990,7 @@ module.public = {
 
                 utility.ts.tree_map_rec(function(child)
                     if type == child:type() then
-                        local title = utility:get_text_as_one(child:named_child(1))
+                        local title = utility:get_text_as_one(child:named_child(1)):sub(1, -2)
 
                         local similarity = module.public.locators.fuzzy.get_similarity(
                             utility.strip(destination),
@@ -1054,7 +1056,7 @@ module.public = {
                             "marker",
                         }, child:type())
                     then
-                        local title = utility:get_text_as_one(child:named_child(1))
+                        local title = utility:get_text_as_one(child:named_child(1)):sub(1, -2)
 
                         local similarity = module.public.locators.fuzzy.get_similarity(
                             utility.strip(destination),

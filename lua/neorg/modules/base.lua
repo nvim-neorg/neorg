@@ -30,7 +30,6 @@ neorg.modules.module_base = {
     -- Every module can expose any set of information it sees fit through the public field
     -- All functions and variables declared in this table will be visible to any other module loaded
     public = {
-
         version = "0.0.1", -- A good practice is to expose version information
     },
 
@@ -101,47 +100,61 @@ neorg.modules.module_base = {
 function neorg.modules.create(name)
     local new_module = vim.deepcopy(neorg.modules.module_base)
 
+    local t = {
+        from = function(self, parent, type)
+            local prevname = self.real().name
+
+            new_module = vim.tbl_deep_extend(type or "force", new_module, parent.real())
+
+            if not type then
+                new_module.setup = function()
+                    return { success = true }
+                end
+                new_module.load = function() end
+                new_module.on_event = function() end
+                new_module.neorg_post_load = function() end
+            end
+
+            new_module.name = prevname
+
+            return self
+        end,
+
+        real = function()
+            return new_module
+        end,
+    }
+
     if name then
         new_module.name = name
     end
 
-    neorg.modules.cache[new_module.name] = new_module
-
-    return neorg.modules.cache[new_module.name]
-end
-
---- Extends a module and returns a temporary copy
---- @param name string #The name of the module to extend
---- @return table #A copy of the module
-function neorg.modules.extend(name)
-    local from_cache = neorg.modules.cache[name] or neorg.modules.create(name)
-
-    local t = {
-        merge = function()
-            return from_cache
-        end,
-    }
-
     return setmetatable(t, {
         __newindex = function(_, key, value)
-            neorg.modules.cache[name][key] = vim.tbl_deep_extend("force", from_cache[key] or {}, value)
+            if type(value) ~= "table" then
+                new_module[key] = value
+            else
+                new_module[key] = vim.tbl_deep_extend("force", new_module[key], value or {})
+            end
         end,
-        __index = from_cache,
+
+        __index = function(_, key)
+            return t.real()[key]
+        end,
     })
 end
 
---- Imports a new module by merging the original module table
---- @param module table #The module to import new files into
---- @param imports string[] #A list of files to import (relative to the `module.lua` file)
---- @return table #The newly extended module
-function neorg.modules.import(module, imports)
-    local cache = neorg.modules.cache[module.name]
+function neorg.modules.extend(name)
+    local module = neorg.modules.create(name)
 
-    for _, file in ipairs(imports or {}) do
-        cache = vim.tbl_deep_extend("force", cache, require("neorg.modules." .. module.name .. "." .. file))
-    end
+    local realmodule = rawget(module, "real")()
 
-    return cache
+    realmodule.setup = nil
+    realmodule.load = nil
+    realmodule.on_event = nil
+    realmodule.neorg_post_load = nil
+
+    return module
 end
 
 -- @Summary Creates a metamodule
