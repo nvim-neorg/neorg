@@ -124,13 +124,14 @@ here. For a better viewing experience, we recommend reading it opening it from `
         - [ ] Make `core.keybinds` use `vim.api.nvim_buf_set_keymap` instead of applying global
         keymaps
 
-   **** GTD (Getting things done) integration
+   **** GTD (Getting things done) integration (GTD docs with :h neorg-gtd)
         - [x] Create a full GTD specification
         - [x] Create a `gtd.base` module. This will allow us to query all tasks and project
               information from a GTD workspace.
         - [x] Aggregate and display tasks and projects by context, due dates, etc
         - [*] Quick Capture popup: create a task/project and add metadata to it
-        - [ ] Quick Modify popup: modify a task/project already in the workspace
+        - [x] Quick Actions popup: view your tasks and projects nicely aggregated
+        - [x] Quick Modify popup: modify a task/project already in the workspace
 
  ** Plans after 0.1
     > Ok that's pretty cool, so after 0.1 I should be at least able to do some basic stuff, right?

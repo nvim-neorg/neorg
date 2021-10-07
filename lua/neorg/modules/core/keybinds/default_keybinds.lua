@@ -1,4 +1,4 @@
-local module = neorg.modules.extend("core.keybinds")
+local module = neorg.modules.extend("core.keybinds.default_keybinds")
 
 module.public = {
     generate_keybinds = function(neorg_leader)
@@ -63,4 +63,4 @@ module.public = {
     end,
 }
 
-return module.merge()
+return module

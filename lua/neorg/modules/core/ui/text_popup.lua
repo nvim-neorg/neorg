@@ -2,7 +2,7 @@
 	File for creating text popups for the user.
 --]]
 
-local module = neorg.modules.extend("core.ui")
+local module = neorg.modules.extend("core.ui.text_popup")
 
 module.public = {
     -- @Summary Creates a new interactable prompt
@@ -77,4 +77,4 @@ module.public = {
     end,
 }
 
-return module.merge()
+return module
