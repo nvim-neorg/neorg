@@ -21,10 +21,10 @@ module.public = {
         -- Requiring json encoder/decoder
         local json = require("neorg.modules.core.integrations.pandoc.json")
 
-        P(res)
+        -- P(res)
         res = json.encode(res)
 
-        P(res)
+        -- P(res)
         -- Create file and start job
         -- os.execute("echo '" .. res .. "' > /tmp/neorg_gen_pandoc")
         -- Job
@@ -87,21 +87,12 @@ module.private = {
         local neorg_types = vim.tbl_keys(module.config.public.pandoc_conversion)
 
         local function descend(node)
-            local results = {}
-
             for child, _ in node:iter_children() do
+                -- Because the child can be replaced with generator.child
+                local child_ref = child
                 -- Add the node to the results
                 if vim.tbl_contains(neorg_types, child:type()) then
                     local _res = {}
-
-                    _res.c = {}
-                    local _c = descend(child)
-                    if #_c ~= 0 then
-                        _res.c = _c
-                    else
-                        -- Delete c because nothing has been fetched
-                        _res.c = nil
-                    end
 
                     -- Add the pandoc type
                     local generator = module.config.public.pandoc_conversion[child:type()]
@@ -139,17 +130,17 @@ module.private = {
                     end
 
                     -- Add to results
-                    table.insert(results, _res)
-                else
-                    -- Recursively extend the results with all childs
-                    vim.list_extend(results, descend(child))
+                    table.insert(res.blocks, _res)
                 end
+
+                -- Recursively extend the results with all childs
+                descend(child_ref)
             end
 
-            return results
+            -- return results
         end
 
-        res = descend(root)
+        descend(root)
 
         return res
     end,
