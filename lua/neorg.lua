@@ -65,7 +65,7 @@ function neorg.org_file_entered(manual, arguments)
     -- Go through each defined module and grab its configuration
     for name, module in pairs(module_list) do
         -- If the module's data is not empty and we have not defined a config table then it probably means there's junk in there
-        if not vim.tbl_isempty(module) and not module.config then
+        if not vim.tbl_isempty(module) and module.config and vim.tbl_isempty(module.config) then
             log.warn(
                 "Potential bug detected in",
                 name,
@@ -82,11 +82,11 @@ function neorg.org_file_entered(manual, arguments)
     end
 
     -- After all configurations are merged proceed to actually load the modules
-    for name, module in pairs(module_list) do
+    for name, _ in pairs(module_list) do
         -- If it could not be loaded then halt
-        if not neorg.modules.load_module(name, module.config) then
-            log.fatal("Halting loading of modules due to error...")
-            break
+        if not neorg.modules.load_module(name) then
+            log.warn("Recovering from error...")
+            neorg.modules.loaded_modules[name] = nil
         end
     end
 
