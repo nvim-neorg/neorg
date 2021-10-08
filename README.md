@@ -226,6 +226,9 @@ Here's an example config, yours will probably be different:
 ```lua
 require('nvim-treesitter.configs').setup {
 	ensure_installed = { "norg", "haskell", "cpp", "c", "javascript", "markdown" },
+	highlight = {
+        enable = true,
+	}
 }
 ```
 
