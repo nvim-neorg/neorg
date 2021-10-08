@@ -103,7 +103,7 @@ module.private = {
                                 return module.private.generate_default_flags(_selection, task, "contexts", "c")
                             end)
                             :concat(function(_selection)
-                                return module.private.generate_default_flags(_selection, task, "waiting_for", "w")
+                                return module.private.generate_default_flags(_selection, task, "waiting.for", "w")
                             end)
                             :blank()
                             :text("Dates")
