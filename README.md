@@ -225,10 +225,10 @@ If you want the parser to be more persistent across different installations of y
 Here's an example config, yours will probably be different:
 ```lua
 require('nvim-treesitter.configs').setup {
-	ensure_installed = { "norg", "haskell", "cpp", "c", "javascript", "markdown" },
-	highlight = {
+    ensure_installed = { "norg", "haskell", "cpp", "c", "javascript", "markdown" },
+    highlight = {
         enable = true,
-	}
+    }
 }
 ```
 
@@ -251,9 +251,9 @@ to communicate with the Neorg core. By default no engine is specified. To specif
 
 ```lua
 ["core.norg.completion"] = {
-	config = {
-		engine = "nvim-compe" | "nvim-cmp" -- We current support nvim-compe and nvim-cmp only
-	}
+    config = {
+        engine = "nvim-compe" | "nvim-cmp" -- We current support nvim-compe and nvim-cmp only
+    }
 }
 ```
 
@@ -272,8 +272,8 @@ source = {
 Make sure to enable the `neorg` completion source in the cmp sources table:
 ```lua
 sources = {
-	...
-	{ name = "neorg" }
+    ...
+    { name = "neorg" }
 }
 ```
 
@@ -289,11 +289,11 @@ This doesn't mean the plugin isn't capable of those things, it just means we're 
 We tried focusing heavily on the backend first, but now that that is almost done we are actually starting work on features just for you:
 - [x] Telescope.nvim integration for several things (see https://github.com/nvim-neorg/neorg-telescope)
 - [x] TreeSitter parser (can be found [here](https://github.com/nvim-neorg/tree-sitter-norg))
-	- [x] AST Generation
-	- [x] Custom highlight support
-	- [x] Custom folds
-	- [x] Language injection (for code blocks)
-	- [ ] Smarter todo item toggling with the TreeSitter AST
+    - [x] AST Generation
+    - [x] Custom highlight support
+    - [x] Custom folds
+    - [x] Language injection (for code blocks)
+    - [ ] Smarter todo item toggling with the TreeSitter AST
 
 It's all about the patience! We're gonna deliver all the juicy features ASAP.
 In the meantime you might be interested in reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format :D
@@ -379,9 +379,9 @@ heartwarming and fuels the urge to keep going :heart:. You can support me here:
 # :green_heart: Credits
 Massive shoutouts to the people who supported the project! These are:
 - Binx, for making that gorgeous logo for free!
-	- [Github](https://github.com/Binx-Codes/)
-	- [Reddit](https://www.reddit.com/u/binxatmachine)
+    - [Github](https://github.com/Binx-Codes/)
+    - [Reddit](https://www.reddit.com/u/binxatmachine)
 - bandithedoge, for recreating the logo in svg form!
-	- [Website](https://bandithedoge.com)
-	- [Github](https://github.com/bandithedoge)
-	- [YouTube](https://youtube.com/bandithedoge)
+    - [Website](https://bandithedoge.com)
+    - [Github](https://github.com/bandithedoge)
+    - [YouTube](https://youtube.com/bandithedoge)
