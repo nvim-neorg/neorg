@@ -503,92 +503,72 @@ module.public = {
                 return
             end
 
+            -- TODO(vhyrro): This new implementation is awesome, however can be cleaned up
+            -- We should extract a lot of stuff into its own functions
+            -- to prevent code duplication
+
             -- This variable will be true if we're searching for a destination in a file other than the current file
             local searching_in_foreign_file = link.link_info.file and link.link_info.file ~= vim.fn.expand("%:p")
 
-            -- Actually prompt the user
-            ui.create_selection("Link not found - what do we do now?", {
-                flags = {
-                    { "General actions:", "TSComment" },
-                    { "n", "Nothing" },
-                    {
-                        "f",
-                        {
-                            display = "Attempt to fix the link",
-                            name = "Fixing method",
-                            flags = {
-                                { "f", "Fuzzy fixing (search for any element)" },
-                                { "s", "Strict fixing (search for element of the link type)" },
-                            },
-                        },
+            --- Returns the type of node we should search for from a link type
+            --- @param link_type string the type of link we're dealing with
+            local function extract_node_type(link_type)
+                if vim.startswith(link_type, "link_end_heading") then
+                    local start = ("link_end_heading"):len()
+                    return "heading" .. link_type:sub(start + 1, start + 1)
+                elseif link_type:find("marker") then
+                    return "marker"
+                else
+                    return "any"
+                end
+            end
+
+            local ts = neorg.modules.get_module("core.integrations.treesitter")
+
+            if not ts then
+                log.error("Unable to perform operations on the syntax tree, treesitter integrations module not loaded")
+                return
+            end
+
+            local selection = ui.begin_selection(ui.create_split("Link not found"))
+                :options({
+                    text = {
+                        highlight = "TSComment",
                     },
-                    {},
-                    { "Locations:", "TSComment" },
-                    { "a", "Place above parent node", searching_in_foreign_file },
-                    { "A", "Place at the top of the document" },
-                    { "b", "Place below parent node", searching_in_foreign_file },
-                    { "B", "Place at the bottom of the document" },
-                    {},
-                    { "Custom:", "TSComment" },
-                    {
-                        "c",
-                        {
-                            name = "Enter insert-linkable mode with the following restraints",
-                            display = "Custom Placement",
-                            flags = {
-                                { "h", "Traverse the document by heading" },
-                                { "f", "Traverse the document freely" },
-                            },
-                        },
-                        -- This currently isn't supported and so is greyed out
-                        true,
-                    },
-                },
-            }, function(result, _)
-                --- Converts a node type (like "heading1" or "marker") into a char
-                --- representation ("*"/"|" etc.)
-                --- @param type string a node type
-                local function from_type_to_link_identifier(type)
-                    if vim.startswith(type, "heading") then
-                        local start = ("heading"):len()
-                        return ("*"):rep(tonumber(type:sub(start + 1, start + 1)))
-                    elseif type == "marker" then
-                        return "|"
-                    else
-                        return "#"
-                    end
-                end
+                })
+                :listener("destroy", { "<Esc>" }, function(self)
+                    self:destroy()
+                end)
+                :listener("go-back", { "<BS>" }, function(self)
+                    self:pop_page()
+                end)
 
-                --- Returns the type of node we should search for from a link type
-                --- @param link_type string the type of link we're dealing with
-                local function extract_node_type(link_type)
-                    if vim.startswith(link_type, "link_end_heading") then
-                        local start = ("link_end_heading"):len()
-                        return "heading" .. link_type:sub(start + 1, start + 1)
-                    elseif link_type:find("marker") then
-                        return "marker"
-                    else
-                        return "any"
-                    end
-                end
+            selection
+                :title("Link not found - what do we do now?")
+                :blank()
+                :text("General actions:")
+                :flag("n", "Nothing")
+                :rflag("f", "Attempt to fix the link", function()
+                    selection
+                        :title("Fixing method")
+                        :blank()
+                        :flag("f", "Fuzzy fixing (search for any element)", function()
+                            selection:destroy()
+                            module.private.fix_link(link, "fuzzy")
+                        end)
+                        :flag("s", "Strict fixing (search for element matching the link type)", function()
+                            selection:destroy()
+                            module.private.fix_link(link, "strict")
+                        end)
+                end)
+                :blank()
+                :text("Locations:")
 
-                local ts = neorg.modules.get_module("core.integrations.treesitter")
+            if not searching_in_foreign_file then
+                selection
+                    :flag("a", "Place above parent node", function()
+                        selection:destroy()
 
-                if not ts then
-                    log.error(
-                        "Unable to perform operations on the syntax tree, treesitter integrations module not loaded"
-                    )
-                    return
-                end
-
-                if #result == 1 then
-                    local selected_value = result[1]
-
-                    -- If the user chose to "do nothing" then do nothing :)
-                    if selected_value == "n" then
-                        return
-                        -- If the user has pressed one of "a" or "b" (above/below) then
-                    elseif vim.tbl_contains({ "a", "b" }, selected_value) then
                         -- Extract the type of node we should start searching for
                         local to_search = extract_node_type(link.link_info.type)
 
@@ -613,201 +593,144 @@ module.public = {
 
                         local range = ts.get_node_range(link_node)
 
-                        -- Here is where we be a bit more narrow, depending on the selected value insert
-                        -- the text at different locations
-                        if selected_value == "a" then
-                            vim.fn.append(range.row_start, {
+                        vim.fn.append(range.row_start, {
+                            (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                            "",
+                        })
+                    end)
+                    :flag("b", "Place below parent node", function()
+                        selection:destroy()
+
+                        -- Extract the type of node we should start searching for
+                        local to_search = extract_node_type(link.link_info.type)
+
+                        -- If the returned value was any (aka we were dealing with a generic #link)
+                        -- then bail, we can't possibly create a linkable if we don't know its type
+                        if to_search == "any" then
+                            vim.notify("Cannot create a linkable from ambiguous type '#'!", 4)
+                            return
+                        end
+
+                        -- Extract the link node
+                        local link_node = link.link_info.node
+
+                        -- Keep searching for a potential parent node
+                        while
+                            link_node:type() ~= to_search
+                            and link_node:parent():type() ~= "document_content"
+                            and link_node:type() ~= "marker"
+                        do
+                            link_node = link_node:parent()
+                        end
+
+                        local range = ts.get_node_range(link_node)
+
+                        local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
+
+                        -- If the line has non-whitespace characters then insert an extra newline before the linkable
+                        if line:match("%S") then
+                            vim.fn.append(range.row_end, {
+                                "",
                                 (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
                                 "",
                             })
-                        else -- We've pressed "b"
-                            local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
-
-                            -- If the line has non-whitespace characters then insert an extra newline before the linkable
-                            if line:match("%S") then
-                                vim.fn.append(range.row_end, {
-                                    "",
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                    "",
-                                })
-                            else
-                                vim.fn.append(range.row_end, {
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                    "",
-                                })
-                            end
+                        else
+                            vim.fn.append(range.row_end, {
+                                (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                                "",
+                            })
                         end
-                        -- Else if we pressed one of { A, B }
-                    elseif vim.tbl_contains({ "A", "B" }, selected_value) then
-                        -- If we're dealing with a foreign file then open that up first
-                        if link.link_info.file and link.link_info.file:len() > 0 then
-                            vim.cmd("e " .. link.link_info.file)
-                        end
+                    end)
+            end
 
-                        local document_tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+            selection
+                :flag("A", "Place at the top of the document", function()
+                    selection:destroy()
 
-                        if not document_tree then
-                            log.error("Unable to parse current document, what a bummer")
-                            return
-                        end
+                    if link.link_info.file and link.link_info.file:len() > 0 then
+                        vim.cmd("e " .. link.link_info.file)
+                    end
 
-                        local document = document_tree:root()
+                    local document_tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
 
-                        -- Get the range of the document content (skip the foreplay)
-                        local range = ts.get_node_range(
-                            document:named_child(document:named_child_count() == 1 and 0 or 1)
-                        )
+                    if not document_tree then
+                        log.error("Unable to parse current document, what a bummer")
+                        return
+                    end
 
-                        -- TODO: Add support for selecting which file to place the link in if multiple files are given
-                        if selected_value == "A" then
-                            local line
+                    local document = document_tree:root()
 
-                            -- Depending on whether we have foreplay or not place the linkable at either the start of the file
-                            -- or at the start of the document content
-                            if document:named_child_count() == 1 then
-                                line = vim.api.nvim_buf_get_lines(0, 0, 1, true)[1]
-                            else
-                                line = vim.api.nvim_buf_get_lines(0, range.row_start - 1, range.row_start, true)[1]
-                            end
+                    -- Get the range of the document content (skip the foreplay)
+                    local range = ts.get_node_range(document:named_child(document:named_child_count() == 1 and 0 or 1))
 
-                            -- If we're not at the start of the document and the current line has a non-whitespace character
-                            -- then prepend an extra newline (\n)
-                            if range.row_start > 0 and line:match("%S") then
-                                vim.fn.append(range.row_start, {
-                                    "",
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                    "",
-                                })
-                            else -- Else don't lol
-                                vim.fn.append(range.row_start, {
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                    "",
-                                })
-                            end
-                        elseif selected_value == "B" then
-                            local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
+                    local line
 
-                            -- Same as above, if the line has a non-whitespace character
-                            -- then prepend an extra newline
-                            if line:match("%S") then
-                                vim.fn.append(range.row_end, {
-                                    "",
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                    "",
-                                })
-                            else
-                                vim.fn.append(range.row_end, {
-                                    (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
-                                    "",
-                                })
-                            end
-                        end
+                    -- Depending on whether we have foreplay or not place the linkable at either the start of the file
+                    -- or at the start of the document content
+                    if document:named_child_count() == 1 then
+                        line = vim.api.nvim_buf_get_lines(0, 0, 1, true)[1]
+                    else
+                        line = vim.api.nvim_buf_get_lines(0, range.row_start - 1, range.row_start, true)[1]
+                    end
+
+                    -- If we're not at the start of the document and the current line has a non-whitespace character
+                    -- then prepend an extra newline (\n)
+                    if range.row_start > 0 and line:match("%S") then
+                        vim.fn.append(range.row_start, {
+                            "",
+                            (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                            "",
+                        })
+                    else -- Else don't lol
+                        vim.fn.append(range.row_start, {
+                            (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                            "",
+                        })
                     end
 
                     vim.cmd("w")
-                else
-                    if result[1] == "f" then
-                        local fixed_link = module.public.locate_link(
-                            result[2] == "f" and "link_end_generic" or nil,
-                            module.public.locators.fuzzy,
-                            function(files, locators, link_type, utility, callback_result)
-                                local best_matches = {}
-
-                                for _, file in ipairs(vim.list_slice(files, 0, #files - 1)) do
-                                    if vim.startswith(file, "/") then
-                                        file = module.required["core.norg.dirman"].get_current_workspace()[2] .. file
-                                    else
-                                        file = vim.fn.expand("%:p:h") .. "/" .. file
-                                    end
-
-                                    if not vim.endswith(file, ".norg") then
-                                        file = file .. ".norg"
-                                    end
-
-                                    -- Attempt to open the last workspace cache file in read-only mode
-                                    local fd = vim.loop.fs_open(file, "r", 438)
-                                    if not fd then
-                                        return callback_result
-                                    end
-
-                                    -- Attempt to stat the file and get the file length of the cache file
-                                    local stat = vim.loop.fs_stat(file)
-                                    if not stat then
-                                        return callback_result
-                                    end
-
-                                    local read_data = vim.loop.fs_read(fd, stat.size, 0)
-                                    if not read_data then
-                                        return callback_result
-                                    end
-
-                                    vim.loop.fs_close(fd)
-
-                                    local buf = vim.api.nvim_create_buf(false, true)
-
-                                    vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(read_data, "\n", true))
-
-                                    local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
-
-                                    if not tree then
-                                        return callback_result
-                                    end
-
-                                    if not locators[link_type] then
-                                        log.error("Locator not present for link type:", link_type)
-                                        return callback_result
-                                    end
-
-                                    table.insert(best_matches, {
-                                        locators[link_type](
-                                            tree,
-                                            files[#files],
-                                            vim.tbl_extend("force", utility, { buf = buf })
-                                        ),
-                                        file,
-                                    })
-
-                                    vim.api.nvim_buf_delete(buf, { force = true })
-                                end
-
-                                table.sort(best_matches, function(lhs, rhs)
-                                    return lhs[1].similarity < rhs[1].similarity
-                                end)
-
-                                callback_result.link_location = best_matches[1][1]
-                                callback_result.link_info.file = best_matches[1][2]
-
-                                return callback_result
-                            end
-                        )
-
-                        if fixed_link.link_location then
-                            vim.api.nvim_buf_set_text(
-                                0,
-                                link.link_info.range.row_start,
-                                link.link_info.range.column_start,
-                                link.link_info.range.row_end,
-                                link.link_info.range.column_end,
-                                {
-                                    "[" .. fixed_link.link_info.text .. "](" .. (fixed_link.link_info.location:match(
-                                        "(:.*:)[%*%#%|]+"
-                                    ) or "") .. from_type_to_link_identifier(
-                                        fixed_link.link_location.type
-                                    ) .. fixed_link.link_location.text .. ")",
-                                }
-                            )
-                            return
-                        else
-                            vim.notify("Sorry, Neorg couldn't fix that link :(")
-                        end
+                end)
+                :flag("B", "Place at the bottom of the document", function()
+                    -- If we're dealing with a foreign file then open that up first
+                    if link.link_info.file and link.link_info.file:len() > 0 then
+                        vim.cmd("e " .. link.link_info.file)
                     end
-                end
-            end)
 
-            return
-        end
+                    local document_tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
 
-        if link then
+                    if not document_tree then
+                        log.error("Unable to parse current document, what a bummer")
+                        return
+                    end
+
+                    local document = document_tree:root()
+
+                    -- Get the range of the document content (skip the foreplay)
+                    local range = ts.get_node_range(document:named_child(document:named_child_count() == 1 and 0 or 1))
+
+                    local line = vim.api.nvim_buf_get_lines(0, range.row_end - 1, range.row_end, true)[1]
+
+                    -- Same as above, if the line has a non-whitespace character
+                    -- then prepend an extra newline
+                    if line:match("%S") then
+                        vim.fn.append(range.row_end, {
+                            "",
+                            (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                            "",
+                        })
+                    else
+                        vim.fn.append(range.row_end, {
+                            (" "):rep(range.column_start) .. link.link_info.location:gsub("^([%#%*%|]+)", "%1 "),
+                            "",
+                        })
+                    end
+
+                    vim.cmd("w")
+                end)
+                :blank()
+                :text("Custom:")
+                :text("Custom stuff not yet supported :(", "TSStrike")
+        elseif link then
             vim.cmd("normal m'")
             if link.link_info.file and vim.fn.expand("%:p") ~= link.link_info.file then
                 vim.cmd("e " .. link.link_info.file)
@@ -826,7 +749,7 @@ module.public = {
                     if not result and child:type() == "heading" .. tostring(level) then
                         local title = child:named_child(1)
 
-                        if utility.strip(destination) == utility.strip(utility:get_text_as_one(title):sub(1, -2)) then
+                        if utility.strip(destination) == utility.strip(utility:get_text_as_one(title)) then
                             result = utility.ts.get_node_range(title)
                         end
                     end
@@ -893,7 +816,7 @@ module.public = {
                     then
                         local title = child:named_child(1)
 
-                        if utility.strip(destination) == utility.strip(utility:get_text_as_one(title):sub(1, -2)) then
+                        if utility.strip(destination) == utility.strip(utility:get_text_as_one(title)) then
                             result = utility.ts.get_node_range(title)
                             result.type = child:type()
                         end
@@ -990,7 +913,7 @@ module.public = {
 
                 utility.ts.tree_map_rec(function(child)
                     if type == child:type() then
-                        local title = utility:get_text_as_one(child:named_child(1)):sub(1, -2)
+                        local title = utility:get_text_as_one(child:named_child(1))
 
                         local similarity = module.public.locators.fuzzy.get_similarity(
                             utility.strip(destination),
@@ -1056,7 +979,7 @@ module.public = {
                             "marker",
                         }, child:type())
                     then
-                        local title = utility:get_text_as_one(child:named_child(1)):sub(1, -2)
+                        local title = utility:get_text_as_one(child:named_child(1))
 
                         local similarity = module.public.locators.fuzzy.get_similarity(
                             utility.strip(destination),
@@ -1114,6 +1037,116 @@ module.on_event = function(event)
         module.public.goto_link()
     end
 end
+
+module.private = {
+    fix_link = function(link, _type)
+        --- Converts a node type (like "heading1" or "marker") into a char
+        --- representation ("*"/"|" etc.)
+        --- @param type string a node type
+        local function from_type_to_link_identifier(type)
+            if vim.startswith(type, "heading") then
+                local start = ("heading"):len()
+                return ("*"):rep(tonumber(type:sub(start + 1, start + 1)))
+            elseif type == "marker" then
+                return "|"
+            else
+                return "#"
+            end
+        end
+
+        local fixed_link = module.public.locate_link(
+            _type == "fuzzy" and "link_end_generic" or nil,
+            module.public.locators.fuzzy,
+            function(files, locators, link_type, utility, callback_result)
+                local best_matches = {}
+
+                for _, file in ipairs(vim.list_slice(files, 0, #files - 1)) do
+                    if vim.startswith(file, "/") then
+                        file = module.required["core.norg.dirman"].get_current_workspace()[2] .. file
+                    else
+                        file = vim.fn.expand("%:p:h") .. "/" .. file
+                    end
+
+                    if not vim.endswith(file, ".norg") then
+                        file = file .. ".norg"
+                    end
+
+                    -- Attempt to open the last workspace cache file in read-only mode
+                    local fd = vim.loop.fs_open(file, "r", 438)
+                    if not fd then
+                        return callback_result
+                    end
+
+                    -- Attempt to stat the file and get the file length of the cache file
+                    local stat = vim.loop.fs_stat(file)
+                    if not stat then
+                        return callback_result
+                    end
+
+                    local read_data = vim.loop.fs_read(fd, stat.size, 0)
+                    if not read_data then
+                        return callback_result
+                    end
+
+                    vim.loop.fs_close(fd)
+
+                    local buf = vim.api.nvim_create_buf(false, true)
+
+                    vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(read_data, "\n", true))
+
+                    local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
+
+                    if not tree then
+                        return callback_result
+                    end
+
+                    if not locators[link_type] then
+                        log.error("Locator not present for link type:", link_type)
+                        return callback_result
+                    end
+
+                    table.insert(best_matches, {
+                        locators[link_type](tree, files[#files], vim.tbl_extend("force", utility, { buf = buf })),
+                        file,
+                    })
+
+                    vim.api.nvim_buf_delete(buf, { force = true })
+                end
+
+                table.sort(best_matches, function(lhs, rhs)
+                    return lhs[1].similarity < rhs[1].similarity
+                end)
+
+                callback_result.link_location = best_matches[1][1]
+                callback_result.link_info.file = best_matches[1][2]
+
+                return callback_result
+            end
+        )
+
+        if fixed_link.link_location then
+            vim.api.nvim_buf_set_text(
+                0,
+                link.link_info.range.row_start,
+                link.link_info.range.column_start,
+                link.link_info.range.row_end,
+                link.link_info.range.column_end,
+                {
+                    "["
+                        .. fixed_link.link_info.text
+                        .. "]("
+                        .. (fixed_link.link_info.location:match("(:.*:)[%*%#%|]+") or "")
+                        .. from_type_to_link_identifier(fixed_link.link_location.type)
+                        .. fixed_link.link_location.text
+                        .. ")",
+                }
+            )
+            return
+        else
+            vim.notify("Sorry, Neorg couldn't fix that link :(")
+        end
+    end,
+}
 
 module.events.subscribed = {
     ["core.autocommands"] = {
