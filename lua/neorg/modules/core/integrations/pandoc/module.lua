@@ -106,8 +106,18 @@ module.private = {
                     -- Add the pandoc type
                     local generator = module.config.public.pandoc_conversion[child:type()]
                     _res.t = generator.type
-                    local content = ts_utils.get_node_text(child, bufnr)[1]
 
+                    -- Use the child node instead for actual extraction
+                    if generator.child then
+                        child = module.private.get_child(child, generator.child)
+                        if not child then
+                            log.error("Error in fetching nodes, please check your pandoc public config")
+                            return
+                        end
+                    end
+
+                    -- Get node content
+                    local content = ts_utils.get_node_text(child, bufnr)[1]
                     -- It's a terminal type, verify it's type and output text
                     local pandoc_type = module.config.public.pandoc_types[generator.type]
                     if type(pandoc_type) ~= "table" then
@@ -142,6 +152,14 @@ module.private = {
         res = descend(root)
 
         return res
+    end,
+
+    get_child = function(node, child_type)
+        for child, _ in node:iter_children() do
+            if child:type() == child_type then
+                return child
+            end
+        end
     end,
 }
 return module
