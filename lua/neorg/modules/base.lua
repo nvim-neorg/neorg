@@ -100,16 +100,27 @@ neorg.modules.module_base = {
 function neorg.modules.create(name)
     local new_module = vim.deepcopy(neorg.modules.module_base)
 
+    -- TODO: Comment this black magic
+
     local t = {
         from = function(self, parent, type)
             local prevname = self.real().name
 
-            new_module = vim.tbl_deep_extend(type or "force", new_module, parent.real())
+            local parent_copy = vim.deepcopy(parent.real())
+
+            for tbl_name, tbl in pairs(parent_copy) do
+                if _G.type(tbl) == "table" and vim.tbl_isempty(tbl) then
+                    parent_copy[tbl_name] = nil
+                end
+            end
+
+            new_module = vim.tbl_deep_extend(type or "force", new_module, parent_copy)
 
             if not type then
                 new_module.setup = function()
                     return { success = true }
                 end
+
                 new_module.load = function() end
                 new_module.on_event = function() end
                 new_module.neorg_post_load = function() end
