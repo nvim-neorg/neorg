@@ -293,7 +293,7 @@ We tried focusing heavily on the backend first, but now that that is almost done
     - [x] Custom highlight support
     - [x] Custom folds
     - [x] Language injection (for code blocks)
-    - [ ] Smarter todo item toggling with the TreeSitter AST
+    - [x] Smarter todo item toggling with the TreeSitter AST
 
 It's all about the patience! We're gonna deliver all the juicy features ASAP.
 In the meantime you might be interested in reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format :D
@@ -357,7 +357,7 @@ Get syntax highlighting for any language that's supported by treesitter.
 ### Smort Syntax
 Thanks to TreeSitter we can achieve a surprising amount of precision.
 
-![Trailing Modifier Showcas](https://user-images.githubusercontent.com/13149513/125274133-79b7f880-e32f-11eb-86c3-c06f1484b685.gif)
+![Trailing Modifier Showcase](https://user-images.githubusercontent.com/13149513/125274133-79b7f880-e32f-11eb-86c3-c06f1484b685.gif)
 ![Comments](https://user-images.githubusercontent.com/13149513/125274156-80467000-e32f-11eb-935c-a65460b3fc61.gif)
 
 ### Completion
