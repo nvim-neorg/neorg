@@ -79,6 +79,11 @@ module.private = {
     --- @param flag string #The flag to use
     --- @return table #`selection`
     generate_default_flags = function(selection, task, mode, flag)
+        if not vim.tbl_contains({ "contexts", "waiting.for" }, mode) then
+            log.error("Invalid mode")
+            return
+        end
+
         local title = (function()
             if mode == "contexts" then
                 return "Add Contexts"
