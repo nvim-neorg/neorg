@@ -11,6 +11,9 @@ module.private = {
         local title = "Add a " .. mode .. " date"
         selection = selection:rflag(flag, title, function()
             selection
+                :listener("go-back", { "<BS>" }, function(self)
+                    self:pop_page()
+                end)
                 :title(title)
                 :blank()
                 :flag("t", "Tomorrow", {
@@ -20,18 +23,39 @@ module.private = {
                         selection:pop_page()
                     end,
                 })
-                :flag("c", "Custom", {
+                :flag("w", "Next week", {
                     destroy = false,
                     callback = function()
-                        selection:push_page()
+                        task[mode] = module.required["core.gtd.queries"].date_converter("1w")
+                        selection:pop_page()
+                    end,
+                })
+                :flag("m", "Next month", {
+                    destroy = false,
+                    callback = function()
+                        task[mode] = module.required["core.gtd.queries"].date_converter("1m")
+                        selection:pop_page()
+                    end,
+                })
+                :flag("y", "Next year", {
+                    destroy = false,
+                    callback = function()
+                        task[mode] = module.required["core.gtd.queries"].date_converter("1y")
+                        selection:pop_page()
+                    end,
+                })
+                :rflag("c", "Custom", {
+                    destroy = false,
+                    callback = function()
                         selection
                             :title("Custom Date")
-                            :text("Allowed date: today, tomorrow, Xw, Xd, Xm (X is a number)")
+                            :text("Allowed date: today, tomorrow, Xw, Xd, Xm, Xy (where X is a number)")
                             :blank()
                             :prompt("Due", {
                                 callback = function(text)
                                     if #text > 0 then
                                         task[mode] = module.required["core.gtd.queries"].date_converter(text)
+
                                         if not task[mode] then
                                             log.error("Date format not recognized, please try again...")
                                         else
@@ -63,41 +87,41 @@ module.private = {
             end
         end)()
 
-        selection = selection:flag(flag, title, {
-            destroy = false,
-            callback = function()
-                selection:push_page()
-                selection = selection:title(title):text("Separate multiple values with space"):blank():prompt(title, {
-                    callback = function(text)
-                        if #text > 0 then
-                            task[mode] = task[mode] or {}
-                            task[mode] = vim.list_extend(task[mode], vim.split(text, " ", false))
-                        end
-                    end,
-                    pop = true,
-                })
-                return selection
-            end,
-        })
         return selection
+            :listener("go-back", { "<BS>" }, function(self)
+                self:pop_page()
+            end)
+            :rflag(flag, title, {
+                destroy = false,
+                callback = function()
+                    return selection:title(title):text("Separate multiple values with space"):blank():prompt(title, {
+                        callback = function(text)
+                            if #text > 0 then
+                                task[mode] = task[mode] or {}
+                                task[mode] = vim.list_extend(task[mode], vim.split(text, " ", false))
+                            end
+                        end,
+                        pop = true,
+                    })
+                end,
+            })
     end,
 
     add_to_inbox = function(selection)
-        selection = selection:rflag("a", "Add a task to inbox", {
+        return selection:rflag("a", "Add a task to inbox", {
             callback = function()
-                selection:push_page()
-
                 selection = selection:title("Add a task to inbox"):blank():prompt("Task", {
                     callback = function(text)
                         local task = {}
                         task.content = text
+
                         selection:push_page()
 
                         selection = selection
                             :title("Add informations")
                             :blank()
                             :text("Task: " .. task.content)
-                            :blank(2)
+                            :blank()
                             :text("General informations")
                             :concat(function(_selection)
                                 return module.private.generate_default_flags(_selection, task, "contexts", "c")
@@ -122,8 +146,10 @@ module.private = {
 
                                 module.required["core.gtd.queries"].create("task", task, bufnr, end_row, projectAtEnd)
                             end)
+
                         return selection
                     end,
+
                     -- Do not pop or destroy the prompt when confirmed
                     pop = false,
                     destroy = false,
@@ -132,7 +158,6 @@ module.private = {
             end,
             destroy = false,
         })
-        return selection
     end,
 
     generate_display_flags = function(selection, configs)
