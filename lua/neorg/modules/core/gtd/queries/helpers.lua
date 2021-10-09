@@ -94,13 +94,16 @@ module.public = {
             return os.time(date)
         end
 
-        return os.date("%Y-%m-%d", ({
-            ["h"] = get_date_in_x_hours, -- TODO(vhyrro): Add internal support for hours
-            ["d"] = get_date_in_x_days,
-            ["w"] = get_date_in_x_weeks,
-            ["m"] = get_date_in_x_months,
-            ["y"] = get_date_in_x_years,
-        })[type](number))
+        return os.date(
+            "%Y-%m-%d",
+            ({
+                ["h"] = get_date_in_x_hours, -- TODO(vhyrro): Add internal support for hours
+                ["d"] = get_date_in_x_days,
+                ["w"] = get_date_in_x_weeks,
+                ["m"] = get_date_in_x_months,
+                ["y"] = get_date_in_x_years,
+            })[type](number)
+        )
     end,
 
     --- Parses a date string to table relative to today's date
