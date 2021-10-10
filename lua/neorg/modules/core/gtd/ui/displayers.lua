@@ -68,6 +68,8 @@ module.public = {
                         local diff = module.required["core.gtd.queries"].diff_with_today(t["time.due"][1])
                         if diff.weeks == 0 and diff.days == 0 then
                             content = content .. ", `due for today`"
+                        elseif diff.weeks < 0 or diff.days < 0 then
+                            content = content .. ", `overdue: " .. t["time.due"][1] .. "`"
                         end
                     end
 
