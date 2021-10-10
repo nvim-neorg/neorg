@@ -363,10 +363,12 @@ module.public = {
             get_index = function(node, level)
                 local sibling = node:parent():prev_named_sibling()
                 local count = 1
+
                 while sibling and sibling:type() == level do
                     sibling = sibling:prev_named_sibling()
                     count = count + 1
                 end
+
                 return count
             end,
 
@@ -493,7 +495,8 @@ module.config.public = {
         },
 
         ordered = {
-            enabled = true,
+            -- enabled = not require('neorg.external.helpers').is_version("0.5"),
+            enabled = false,
 
             --[[
                 Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
