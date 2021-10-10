@@ -173,7 +173,7 @@ module.public = {
             if t["time.start"] then
                 already_started = not module.required["core.gtd.queries"].starting_after_today(t["time.start"][1])
             end
-            return t.state ~= "done" and not t.waiting_for and already_started
+            return t.state ~= "done" and not t["waiting.for"] and already_started
         end
 
         tasks = vim.tbl_filter(filter, tasks)
