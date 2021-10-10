@@ -143,6 +143,20 @@ module.private = {
     ---   - opts.newline (bool):    is true, insert a newline before the content
     --- @return userdata|nil #the newly created node. Else returns nil
     insert_content_new = function(content, bufnr, location, type, opts)
+        vim.validate({
+            content = { content, "string" },
+            bufnr = { bufnr, "number" },
+            location = { location, "number" },
+            type = {
+                type,
+                function(t)
+                    return vim.tbl_contains({ "project", "task" }, t)
+                end,
+                "project|task",
+            },
+            opts = { opts, "table", true },
+        })
+
         local inserter = {}
         local prefix = type == "project" and "* " or "- [ ] "
 
