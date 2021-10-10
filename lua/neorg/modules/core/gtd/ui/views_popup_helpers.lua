@@ -87,6 +87,11 @@ module.private = {
     --- @param flag string #The flag to use
     --- @return table #`selection`
     generate_default_flags = function(selection, task, mode, flag)
+        if not vim.tbl_contains({ "contexts", "waiting.for" }, mode) then
+            log.error("Invalid mode")
+            return
+        end
+
         local title = (function()
             if mode == "contexts" then
                 return "Add Contexts"
@@ -165,9 +170,10 @@ module.private = {
                                 return module.private.generate_project_flags(selection, task, "p")
                             end)
                             :flag("<CR>", "Finish", function()
+                                local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
                                 local end_row, bufnr, projectAtEnd =
                                     module.required["core.gtd.queries"].get_end_document_content(
-                                        "inbox.norg"
+                                        inbox
                                     )
 
                                 module.required["core.gtd.queries"].create("task", task, bufnr, end_row, projectAtEnd)
@@ -194,10 +200,17 @@ module.private = {
         projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
         selection
+            :text("Top priorities")
+            :flag("s", "Weekly Summary", function()
+                module.public.display_weekly_summary(tasks)
+            end)
+            :blank()
             :text("Tasks")
             :flag("t", "Today's tasks", function()
                 module.public.display_today_tasks(tasks)
             end)
+            :blank()
+            :text("Sort and filter tasks")
             :flag("c", "Contexts", function()
                 module.public.display_contexts(tasks, { exclude = { "someday" }, priority = { "_" } })
             end)
