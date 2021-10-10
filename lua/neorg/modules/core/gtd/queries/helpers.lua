@@ -16,6 +16,8 @@ module.public = {
     --   The format for date is YY-mm-dd
     -- @Param  text (string) the text to use
     date_converter = function(text)
+        vim.validate({ text, "string" })
+
         if text == "today" then
             return os.date("%Y-%m-%d")
         elseif text == "tomorrow" then
@@ -152,9 +154,22 @@ module.private = {
     --- @param content string|table
     --- @param prefix string
     insert_content = function(t, content, prefix)
+        vim.validate({
+            t = { t, "table" },
+            content = {
+                content,
+                function(c)
+                    return vim.tbl_contains({ "nil", "string", "table" }, type(c))
+                end,
+                "string|table",
+            },
+            prefix = { prefix, "string" },
+        })
+
         if not content then
             return
         end
+
         if type(content) == "string" then
             table.insert(t, prefix .. " " .. content)
         elseif type(content) == "table" then
