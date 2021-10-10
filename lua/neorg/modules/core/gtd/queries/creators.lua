@@ -7,13 +7,15 @@ module.public = {
     --- @param node table
     --- @param bufnr number
     --- @param location number
-    ---   - project.content (string):         Mandatory field. It's the project name
-    ---   - project.contexts (string[]):      Contexts names
-    ---   - project.start (string):           Start date
-    ---   - project.due (string):             Due date
-    ---   - project.waiting_for (string[]):   Waiting For names
     --- @param delimit boolean #Add delimiter before the task/project if true
     create = function(type, node, bufnr, location, delimit)
+        vim.validate({
+            type = { type, "string" },
+            node = { node, "table" },
+            bufnr = { bufnr, "number" },
+            location = { location, "number" },
+        })
+
         if not vim.tbl_contains({ "project", "task" }, type) then
             log.error("You can only insert new project or task")
             return
@@ -50,6 +52,9 @@ module.public = {
     --- @param project table
     --- @return number
     get_end_project = function(project)
+        vim.validate({
+            project = { project, "table" },
+        })
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
         local _, _, end_row, _ = ts_utils.get_node_range(project.node)
         return end_row
@@ -59,6 +64,10 @@ module.public = {
     --- @param file string
     --- @return number, number, boolean
     get_end_document_content = function(file)
+        vim.validate({
+            file = { file, "string" },
+        })
+
         local config = neorg.modules.get_module_config("core.gtd.base")
         local files = module.required["core.norg.dirman"].get_norg_files(config.workspace)
         if not vim.tbl_contains(files, file) then
@@ -96,14 +105,24 @@ module.public = {
 
     --- Insert the tag above a `type`
     --- @param node table #Must be { node, bufnr }
-    --- @param content string|table
+    --- @param content? string|table
     --- @param prefix string
     --- @return boolean #Whether inserting succeeded (if so, save the file)
     insert_tag = function(node, content, prefix, opts)
+        vim.validate({
+            node = { node, "table" },
+            content = {
+                content,
+                function(c)
+                    return vim.tbl_contains({ "string", "table", "nil" }, type(c))
+                end,
+                "string|table",
+            },
+            prefix = { prefix, "string" },
+            opts = { opts, "table", true },
+        })
+
         opts = opts or {}
-        if not content then
-            return
-        end
         local inserter = {}
 
         -- Creates the content to be inserted
