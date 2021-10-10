@@ -16,7 +16,7 @@ module.public = {
     --   The format for date is YY-mm-dd
     -- @Param  text (string) the text to use
     date_converter = function(text)
-        vim.validate({ text, "string" })
+        vim.validate({ text = { text, "string" } })
 
         if text == "today" then
             return os.date("%Y-%m-%d")
