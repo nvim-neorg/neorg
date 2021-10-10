@@ -144,9 +144,10 @@ module.private = {
                             end)
                             :blank()
                             :flag("<CR>", "Finish", function()
+                                local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
                                 local end_row, bufnr, projectAtEnd =
                                     module.required["core.gtd.queries"].get_end_document_content(
-                                        "inbox.norg"
+                                        inbox
                                     )
 
                                 module.required["core.gtd.queries"].create("task", task, bufnr, end_row, projectAtEnd)
