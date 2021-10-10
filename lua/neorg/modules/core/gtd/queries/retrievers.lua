@@ -9,10 +9,16 @@ module.public = {
     ---   - opts.bufnr (number):        will use this bufnr to search nodes from
     --- @return table
     get = function(type, opts)
-        if not vim.tbl_contains({ "projects", "tasks" }, type) then
-            log.error("You can only retrieve projects and tasks. Asked: " .. type)
-            return
-        end
+        vim.validate({
+            type = {
+                type,
+                function(t)
+                    return vim.tbl_contains({ "projects", "tasks" }, t)
+                end,
+                "projects|tasks",
+            },
+            opts = { opts, "table", true },
+        })
 
         opts = opts or {}
         local bufnrs = {}
@@ -89,10 +95,18 @@ module.public = {
     --- @param opts table #Pass opts to add_metadata
     --- @return table #A table of type { node, bufnr }
     get_at_cursor = function(type, opts)
-        opts = opts or {}
         vim.validate({
-            type = { type, "string" },
+            type = {
+                type,
+                function(t)
+                    return vim.tbl_contains({ "project", "task" }, t)
+                end,
+                "project|task",
+            },
+            opts = { opts, "table", true },
         })
+
+        opts = opts or {}
 
         local filename = vim.api.nvim_buf_get_name(0)
         local bufnr = module.required["core.norg.dirman"].get_file_bufnr(filename)
@@ -119,15 +133,22 @@ module.public = {
     ---   It will not fetch metadatas that group tasks or projects
     --- @return table
     add_metadata = function(nodes, type, opts)
+        vim.validate({
+            nodes = { nodes, "table" },
+            type = {
+                type,
+                function(t)
+                    return vim.tbl_contains({ "project", "task" }, t)
+                end,
+                "project|task",
+            },
+            opts = { opts, "table", true },
+        })
+
         local res = {}
         opts = opts or {
             extract = true,
         }
-
-        if not vim.tbl_contains({ "task", "project" }, type) then
-            log.error("Unknown type")
-            return
-        end
 
         local previous_bufnr_tbl = {}
         for _, node in ipairs(nodes) do
@@ -163,16 +184,23 @@ module.public = {
     end,
 
     --- Sort `tasks` list by specified `sorter`
-    --- Current sorters: waiting_for, contexts, project
     --- @param sorter string
     --- @param tasks table
     --- @return table
     sort_by = function(sorter, tasks, opts)
+        vim.validate({
+            sorter = {
+                sorter,
+                function(s)
+                    return vim.tbl_contains({ "waiting.for", "contexts", "project" }, s)
+                end,
+                "waiting.for|contexts|projects",
+            },
+            tasks = { tasks, "table" },
+            opts = { opts, "table", true },
+        })
+
         opts = opts or {}
-        if not vim.tbl_contains({ "waiting.for", "contexts", "project" }, sorter) then
-            log.error("Please provide a correct sorter.")
-            return
-        end
         local res = {}
 
         local insert = function(t, k, v)
@@ -205,6 +233,7 @@ module.private = {
     --- @param file string
     --- @return number
     get_bufnr_from_file = function(file)
+        vim.validate({ file = { file, "string" } })
         local configs = neorg.modules.get_module_config("core.gtd.base")
         local workspace = module.required["core.norg.dirman"].get_workspace(configs.workspace)
         local bufnr = module.required["core.norg.dirman"].get_file_bufnr(workspace .. "/" .. file)
@@ -217,15 +246,24 @@ module.private = {
     --- @param opts table #Options from add_metadata
     --- @return string
     get_content = function(node, type, opts)
+        vim.validate({
+            node = { node, "table" },
+            type = {
+                type,
+                function(t)
+                    return vim.tbl_contains({ "project", "task" }, t)
+                end,
+                "project|task",
+            },
+            opts = { opts, "table", true },
+        })
+
         opts = opts or {}
         local tree = {}
         if type == "project" then
             table.insert(tree, { query = { "first", "paragraph_segment" } })
         elseif type == "task" then
             table.insert(tree, { query = { "first", "paragraph" } })
-        else
-            log.error("Unknown type")
-            return
         end
 
         local content = module.required["core.queries.native"].query_from_tree(node.node, tree, node.bufnr)
@@ -247,6 +285,10 @@ module.private = {
     --- @param opts table #Options from add_metadata
     --- @return string
     get_task_project = function(task, opts)
+        vim.validate({
+            task = { task, "table" },
+            opts = { opts, "table", true },
+        })
         opts = opts or {}
         local project_node = module.required["core.queries.native"].find_parent_node(
             { task.node, task.bufnr },
@@ -282,11 +324,26 @@ module.private = {
     --- @param opts table #Options from add_metadata
     --- @return table
     get_tag = function(tag_name, node, type, opts)
+        vim.validate({
+            tag_name = {
+                tag_name,
+                function(t)
+                    return vim.tbl_contains({ "time.due", "time.start", "contexts", "waiting.for" }, t)
+                end,
+                "time.due|time.start|contexts|waiting.for",
+            },
+            node = { node, "table" },
+            type = {
+                type,
+                function(t)
+                    return vim.tbl_contains({ "project", "task" }, t)
+                end,
+                "task|project",
+            },
+            opts = { opts, "table", true },
+        })
+
         opts = opts or {}
-        if not vim.tbl_contains({ "uuid", "time.due", "time.start", "contexts", "waiting.for" }, tag_name) then
-            log.error("Please specify uuid|time.due|time.start|contexts|waiting.for")
-            return
-        end
 
         -- Will fetch multiple parent tag sets if we did not explicitly add same_node.
         -- Else, it'll only get the first upper tag_set from the current node
@@ -364,6 +421,11 @@ module.private = {
     --- @param opts table #Options from add_metadata
     --- @return string
     get_task_state = function(task, opts)
+        vim.validate({
+            task = { task, "table" },
+            opts = { opts, "table", true },
+        })
+
         opts = opts or {}
         local tree = {
             { query = { "all", "todo_item_done" } },
@@ -390,6 +452,8 @@ module.private = {
     --- @param el any
     --- @return table
     remove_from_table = function(t, el)
+        vim.validate({ t = { t, "table" } })
+
         for i, v in ipairs(t) do
             if v == el then
                 table.remove(t, i)
