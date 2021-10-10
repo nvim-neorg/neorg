@@ -154,6 +154,23 @@ neorg.utils = {
         local found_from_back = str:reverse():find(char)
         return found_from_back and length - found_from_back
     end,
+
+    is_version = function(version)
+        local major, minor, patch = unpack(vim.split(version, ".", true))
+
+        if not major then
+            log.error("Invalid version provided (" .. version .. "). Expected format: x.x.x")
+            return false
+        end
+
+        local nvim_version = vim.version()
+
+        log.warn(major, minor, nvim_version)
+
+        return tonumber(major) == nvim_version.major
+            and (minor and tonumber(minor) == nvim_version.minor or true)
+            and (patch and tonumber(patch) == nvim_version.patch or true)
+    end,
 }
 
 return neorg.utils
