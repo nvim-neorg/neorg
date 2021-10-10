@@ -6,6 +6,11 @@ module.public = {
     --- @param opts table
     ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
     display_today_tasks = function(tasks, opts)
+        vim.validate({
+            tasks = { tasks, "table" },
+            opts = { opts, "table", true },
+        })
+
         opts = opts or {}
         local name = "Today's Tasks"
         local res = {
@@ -71,6 +76,10 @@ module.public = {
     end,
 
     display_waiting_for = function(tasks)
+        vim.validate({
+            tasks = { tasks, "table" },
+        })
+
         local name = "Waiting For Tasks"
         local res = {
             "* " .. name,
@@ -111,6 +120,11 @@ module.public = {
     ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
     ---   - opts.priority (table):  will prioritize in the display the contexts specified (order in priority contexts not guaranteed)
     display_contexts = function(tasks, opts)
+        vim.validate({
+            tasks = { tasks, "table" },
+            opts = { opts, "table", true },
+        })
+
         opts = opts or {}
         local name = "Contexts"
         local res = {
@@ -182,6 +196,12 @@ module.public = {
     --- @param opts table
     ---   - opts.priority (table):  will prioritize in the display the projects specified (order in prioritized projects not guaranteed)
     display_projects = function(tasks, projects, opts)
+        vim.validate({
+            tasks = { tasks, "table" },
+            projects = { projects, "table" },
+            opts = { opts, "table", true },
+        })
+
         opts = opts or {}
         local name = "Projects"
         local res = {
@@ -244,6 +264,10 @@ module.public = {
     end,
 
     display_someday = function(tasks)
+        vim.validate({
+            tasks = { tasks, "table" },
+        })
+
         local name = "Someday Tasks"
         local res = {
             "* " .. name,
@@ -288,6 +312,8 @@ module.private = {
     --- @param t table
     --- @return table
     remove_duplicates = function(t)
+        vim.validate({ t = { t, "table" } })
+
         local res = {}
         for _, v in ipairs(t) do
             if not vim.tbl_contains(res, v) then
