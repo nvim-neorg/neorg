@@ -320,12 +320,11 @@ module.public = {
             "",
         }
 
-        local today_tasks = vim.tbl_filter(module.private.today_task, tasks)
-
         table.insert(res, "** Today")
         table.insert(res, "")
+        local today_tasks = vim.tbl_filter(module.private.today_task, tasks)
         for _, t in pairs(today_tasks) do
-            local result = t.content
+            local result = "- " .. t.content
             if t.contexts then
                 if vim.tbl_contains(t.contexts, "today") then
                     result = result .. " `marked as today`"
@@ -346,7 +345,51 @@ module.public = {
             table.insert(res, result)
         end
 
-        -- TODO: Add other days
+        local filter_upcoming_tasks = function(task, day)
+            local due = false
+            local start = false
+            if task["time.start"] then
+                start = task["time.start"][1] == day
+            end
+            if task["time.due"] then
+                due = task["time.due"][1] == day
+            end
+
+            return due or start
+        end
+
+        local days = { "tomorrow", "2d", "3d", "4d", "5d", "6d" }
+
+        for i, d in ipairs(days) do
+            local date = module.required["core.gtd.queries"].date_converter(d)
+            local filtered_tasks = vim.tbl_filter(function(t)
+                return filter_upcoming_tasks(t, date)
+            end, tasks)
+
+            table.insert(res, "")
+            if d == "tomorrow" then
+                table.insert(res, "** Tomorrow (" .. date .. ")")
+            else
+                table.insert(res, "** " .. date)
+            end
+            table.insert(res, "")
+            for _, t in pairs(filtered_tasks) do
+                local result = "- " .. t.content
+                if t["time.start"] then
+                    local diff = module.required["core.gtd.queries"].diff_with_today(t["time.start"][1])
+                    if diff.weeks == 0 and diff.days == i then
+                        result = result .. ", `starting this day`"
+                    end
+                end
+                if t["time.due"] then
+                    local diff = module.required["core.gtd.queries"].diff_with_today(t["time.due"][1])
+                    if diff.weeks == 0 and diff.days == i then
+                        result = result .. ", `due this day`"
+                    end
+                end
+                table.insert(res, result)
+            end
+        end
 
         local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
