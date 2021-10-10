@@ -173,10 +173,15 @@ module.private = {
         projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
         selection = selection
-            :text("Tasks")
+            :text("Top priorities")
+            :flag("s", "Weekly Summary", function()
+                module.public.display_weekly_summary(tasks)
+            end)
             :flag("t", "Today's tasks", function()
                 module.public.display_today_tasks(tasks)
             end)
+            :blank()
+            :text("Sort and filter tasks")
             :flag("c", "Contexts", function()
                 module.public.display_contexts(tasks, { exclude = { "someday" }, priority = { "_" } })
             end)
