@@ -23,35 +23,6 @@ module.public = {
             "",
         }
 
-        local today_task = function(task)
-            local today_context = false
-            if task.contexts then
-                today_context = vim.tbl_contains(task.contexts, "today")
-            end
-
-            local today_state = (task.state ~= "done")
-
-            local already_started = true
-            local starting_today = false
-            if task["time.start"] then
-                already_started = not module.required["core.gtd.queries"].starting_after_today(task["time.start"][1])
-                local diff = module.required["core.gtd.queries"].diff_with_today(task["time.start"][1])
-                starting_today = diff.days == 0 and diff.weeks == 0
-            end
-
-            local due_today = false
-            if task["time.due"] then
-                local diff = module.required["core.gtd.queries"].diff_with_today(task["time.due"][1])
-                due_today = diff.days == 0 and diff.weeks == 0
-            end
-
-            -- all not done tasks:
-            --   - marked as today and starting after today
-            --   - starting today
-            --   - due for today
-            return today_state and (starting_today or due_today or (today_context and already_started))
-        end
-
         -- Remove tasks that contains any of the excluded contexts
         if opts.exclude then
             local exclude_tasks = function(t)
@@ -78,7 +49,7 @@ module.public = {
         end, contexts)
 
         for _, c in ipairs(contexts) do
-            local today_tasks = vim.tbl_filter(today_task, contexts_tasks[c])
+            local today_tasks = vim.tbl_filter(module.private.today_task, contexts_tasks[c])
             if #today_tasks > 0 then
                 table.insert(res, "** " .. c)
 
@@ -340,6 +311,47 @@ module.public = {
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
     end,
+
+    display_weekly_summary = function(tasks)
+        -- TODO: Add date ranges
+        local name = "Weekly Summary"
+        local res = {
+            "* " .. name,
+            "",
+        }
+
+        local today_tasks = vim.tbl_filter(module.private.today_task, tasks)
+
+        table.insert(res, "** Today")
+        table.insert(res, "")
+        for _, t in pairs(today_tasks) do
+            local result = t.content
+            if t.contexts then
+                if vim.tbl_contains(t.contexts, "today") then
+                    result = result .. " `marked as today`"
+                end
+            end
+            if t["time.start"] then
+                local diff = module.required["core.gtd.queries"].diff_with_today(t["time.start"][1])
+                if diff.weeks == 0 and diff.days == 0 then
+                    result = result .. ", `starting today`"
+                end
+            end
+            if t["time.due"] then
+                local diff = module.required["core.gtd.queries"].diff_with_today(t["time.due"][1])
+                if diff.weeks == 0 and diff.days == 0 then
+                    result = result .. ", `due for today`"
+                end
+            end
+            table.insert(res, result)
+        end
+
+        -- TODO: Add other days
+
+        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
+        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+    end,
 }
 
 module.private = {
@@ -356,6 +368,35 @@ module.private = {
             end
         end
         return res
+    end,
+
+    today_task = function(task)
+        local today_context = false
+        if task.contexts then
+            today_context = vim.tbl_contains(task.contexts, "today")
+        end
+
+        local today_state = (task.state ~= "done")
+
+        local already_started = true
+        local starting_today = false
+        if task["time.start"] then
+            already_started = not module.required["core.gtd.queries"].starting_after_today(task["time.start"][1])
+            local diff = module.required["core.gtd.queries"].diff_with_today(task["time.start"][1])
+            starting_today = diff.days == 0 and diff.weeks == 0
+        end
+
+        local due_today = false
+        if task["time.due"] then
+            local diff = module.required["core.gtd.queries"].diff_with_today(task["time.due"][1])
+            due_today = diff.days == 0 and diff.weeks == 0
+        end
+
+        -- all not done tasks:
+        --   - marked as today and starting after today
+        --   - starting today
+        --   - due for today
+        return today_state and (starting_today or due_today or (today_context and already_started))
     end,
 }
 
