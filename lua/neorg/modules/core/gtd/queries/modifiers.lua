@@ -8,10 +8,28 @@ module.public = {
     --- @param value string|table
     --- @param opts table
     ---   - opts.tag (string)           the tag to create if we use opts.force_create
-    ---   - opts.index (number)         if object.option is a table, specify an index to select the node index to modify
-    --                                  e.g contexts = { "home", "mac" }, replacing "mac" with opts.index = 2
     modify = function(object, node_type, option, value, opts)
+        vim.validate({
+            object = { object, "table" },
+            node_type = {
+                node_type,
+                function(n)
+                    return vim.tbl_contains({ "project", "task" }, n)
+                end,
+                "project|task",
+            },
+            option = { option, "string" },
+            value = {
+                value,
+                function(v)
+                    return vim.tbl_contains({ "string", "table", "nil" }, type(v))
+                end,
+                "string|table",
+            },
+            opts = { opts, "table", true },
+        })
         opts = opts or {}
+
         if not value then
             return object
         end
@@ -64,6 +82,19 @@ module.public = {
     --- @param option string
     --- @param opts table
     delete = function(object, node_type, option, opts)
+        vim.validate({
+            object = { object, "table" },
+            node_type = {
+                node_type,
+                function(n)
+                    return vim.tbl_contains({ "project", "task" }, n)
+                end,
+                "task|project",
+            },
+            option = { option, "string" },
+            opts = { opts, "table", true },
+        })
+
         opts = opts or {}
 
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
@@ -98,6 +129,39 @@ module.public = {
         vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { "" })
 
         return module.public.update(object, node_type), start_row
+    end,
+
+    --- Update a specific `node` with `type`.
+    --- Note: other nodes don't get updated ! If you want to update all nodes, just redo a module.required["core.gtd.queries"].get
+    --- @param node table #A task/project with metadatas
+    --- @param node_type string
+    update = function(node, node_type)
+        vim.validate({
+            node = { node, "table" },
+            node_type = {
+                node_type,
+                function(n)
+                    return vim.tbl_contains({ "project", "task" }, n)
+                end,
+                "task|project",
+            },
+        })
+
+        -- Get all nodes from same bufnr
+        local nodes = module.public.get(node_type .. "s", { bufnr = node.bufnr })
+        local originally_extracted = type(node.content) == "string"
+        nodes = module.public.add_metadata(nodes, node_type, { extract = originally_extracted })
+
+        local found_node = vim.tbl_filter(function(n)
+            return n.position == node.position
+        end, nodes)
+
+        if #found_node == 0 then
+            log.error("An error occured in updating node")
+            return
+        end
+
+        return found_node[1]
     end,
 }
 
