@@ -135,7 +135,7 @@ module.private = {
         })
     end,
 
-    add_to_inbox = function(selection)
+    capture_task = function(selection)
         return selection:rflag("a", "Add a task to the inbox", {
             callback = function()
                 selection:title("Add a task to the inbox"):blank():prompt("Task", {
@@ -169,7 +169,13 @@ module.private = {
                             :concat(function()
                                 return module.private.generate_project_flags(selection, task, "p")
                             end)
-                            :flag("<CR>", "Finish", function()
+                            :blank()
+                            :flag("x", "Add to cursor position", function()
+                                local cursor = vim.api.nvim_win_get_cursor(0)
+                                local location = cursor[1] - 1
+                                module.required["core.gtd.queries"].create("task", task, 0, location, false, { newline = false })
+                            end)
+                            :flag("<CR>", "Add to inbox", function()
                                 local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
                                 local end_row, bufnr, projectAtEnd =
                                     module.required["core.gtd.queries"].get_end_document_content(

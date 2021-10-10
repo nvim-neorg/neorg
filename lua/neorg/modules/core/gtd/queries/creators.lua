@@ -8,12 +8,13 @@ module.public = {
     --- @param bufnr number
     --- @param location number
     --- @param delimit boolean #Add delimiter before the task/project if true
-    create = function(type, node, bufnr, location, delimit)
+    create = function(type, node, bufnr, location, delimit, opts)
         vim.validate({
             type = { type, "string" },
             node = { node, "table" },
             bufnr = { bufnr, "number" },
             location = { location, "number" },
+            opts = { opts, "table", true },
         })
 
         if not vim.tbl_contains({ "project", "task" }, type) then
@@ -21,6 +22,7 @@ module.public = {
             return
         end
 
+        opts = opts or {}
         local res = {}
 
         if not node.content then
@@ -36,7 +38,13 @@ module.public = {
         end
 
         -- Inserts the content and insert the tags just after
-        node.node = module.private.insert_content_new(node.content, bufnr, location, type, { newline = true })
+        local newline = true
+
+        if opts.newline ~= nil then
+            newline = opts.newline
+        end
+
+        node.node = module.private.insert_content_new(node.content, bufnr, location, type, { newline = newline })
 
         module.public.insert_tag({ node.node, bufnr }, node.contexts, "$contexts")
         module.public.insert_tag({ node.node, bufnr }, node["time.start"], "$start")
@@ -44,7 +52,7 @@ module.public = {
         module.public.insert_tag({ node.node, bufnr }, node["waiting.for"], "$waiting_for")
 
         vim.api.nvim_buf_call(bufnr, function()
-            vim.cmd([[ write ]])
+            vim.cmd([[ write! ]])
         end)
     end,
 
