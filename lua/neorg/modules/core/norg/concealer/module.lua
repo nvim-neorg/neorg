@@ -361,10 +361,10 @@ module.public = {
     concealing = {
         ordered = {
             get_index = function(node, level)
-                local sibling = node:parent():prev_sibling()
+                local sibling = node:parent():prev_named_sibling()
                 local count = 1
                 while sibling and sibling:type() == level do
-                    sibling = sibling:prev_sibling()
+                    sibling = sibling:prev_named_sibling()
                     count = count + 1
                 end
                 return count
