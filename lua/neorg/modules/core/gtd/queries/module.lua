@@ -12,6 +12,8 @@ Exposes functions to retrieve useful stuff from gtd files
 - get                           retrieve a table of { node, bufnr } for the type specified
 - get_at_cursor                 retrieve the content under the cursor ({ node, bufnr}) for the type specified
 - add_metadatas                 add metadatas to the content returned by `get`
+- sort_by                       sort tasks and projects by metadata
+
 * CREATORS:
 Exposes functions to create stuff in files
 - create                        create (task, project,...) in specified location in file
@@ -27,7 +29,6 @@ Exposes functions to modify gtd stuff
 
 require("neorg.modules.base")
 local module = neorg.modules.create("core.gtd.queries")
-local utils = require("neorg.external.helpers")
 
 module.setup = function()
     return {
@@ -46,7 +47,6 @@ module.setup = function()
     }
 end
 
-module.public = {
-}
+module.public = {}
 
 return module
