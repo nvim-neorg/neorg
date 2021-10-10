@@ -318,7 +318,7 @@ module.public = {
             "* " .. name,
             "",
             "This is a summary of your tasks due or starting these next 7 days",
-            ""
+            "",
         }
 
         table.insert(res, "** Today")
@@ -341,6 +341,8 @@ module.public = {
                 local diff = module.required["core.gtd.queries"].diff_with_today(t["time.due"][1])
                 if diff.weeks == 0 and diff.days == 0 then
                     result = result .. ", `due for today`"
+                elseif diff.weeks < 0 or diff.days < 0 then
+                    result = result .. ", `overdue: " .. t["time.due"][1] .. "`"
                 end
             end
             table.insert(res, result)
@@ -433,7 +435,7 @@ module.private = {
         local due_today = false
         if task["time.due"] then
             local diff = module.required["core.gtd.queries"].diff_with_today(task["time.due"][1])
-            due_today = diff.days == 0 and diff.weeks == 0
+            due_today = diff.days <= 0 and diff.weeks <= 0
         end
 
         -- all not done tasks:
