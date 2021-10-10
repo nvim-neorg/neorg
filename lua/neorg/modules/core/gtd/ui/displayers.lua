@@ -313,11 +313,11 @@ module.public = {
     end,
 
     display_weekly_summary = function(tasks)
-        -- TODO: Add date ranges
         local name = "Weekly Summary"
         local res = {
             "* " .. name,
             "",
+            "This is a summary of your tasks due or starting these next 7 days",
         }
 
         table.insert(res, "** Today")
