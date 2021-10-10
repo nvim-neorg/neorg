@@ -16,6 +16,11 @@ module.public = {
         local res = {
             "* " .. name,
             "",
+            "For a pending or undone task to appear here, it must meet one of these criterias:",
+            "- Task marked with `today` context, and already started",
+            "- Task starting today",
+            "- Task due for today",
+            "",
         }
 
         local today_task = function(task)
