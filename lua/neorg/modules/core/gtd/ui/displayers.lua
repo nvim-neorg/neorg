@@ -318,6 +318,7 @@ module.public = {
             "* " .. name,
             "",
             "This is a summary of your tasks due or starting these next 7 days",
+            ""
         }
 
         table.insert(res, "** Today")
