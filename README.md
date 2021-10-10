@@ -6,7 +6,7 @@
 
 # Neorg - An Organized Future
 
-<a href="https://github.com/neovim/neovim"> ![Requires](https://img.shields.io/badge/requires-neovim%200.5%2B-green?style=flat-square&logo=neovim) </a>
+<a href="https://github.com/neovim/neovim"> ![Requires](https://img.shields.io/badge/requires-neovim%200.6%2B-green?style=flat-square&logo=neovim) </a>
 <a href="https://discord.gg/T6EgTAX7ht"> ![Discord](https://img.shields.io/badge/discord-join-7289da?style=flat-square&logo=discord) </a>
 <a href="https://paypal.me/ewaczupryna?locale.x=en_GB"> ![Paypal](https://img.shields.io/badge/support-paypal-blue?style=flat-square&logo=paypal) </a>
 <a href="https://www.buymeacoffee.com/vhyrro"> ![BuyMeACoffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-ffdd00?style=flat-square&logo=buy-me-a-coffee) </a>
@@ -95,11 +95,10 @@ what is the goal of this project? Whilst those projects are amazing, it's simply
 surpass _every_ other text editor. One that will give you all the bragging rights for using Neovim. Here's how we'll do it:
 - Revise the org format - Simple, very extensible, unambiguous. Will make you feel right at home. Org and markdown have several flaws, but the most
   notable one is the requirement for **complex parsers**.
-  I really advise educating yourself on just how bad markdown can get at times;
-  what if we told you it's possible to eliminate those problems completely,
-  all whilst keeping that familiar markdown feel?
+  I really advise checking some writeups out on how bad it can get at times.
+  What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
 
-  Enter the .norg file format, whose base spec is [almost complete](docs/NFF-0.1-spec.md).
+  Enter the .norg file format, whose base spec is [practically complete](docs/NFF-0.1-spec.md).
   The cross between all the best things from org and the best things from markdown, revised and merged into one.
 - Keybinds that _make sense_ - vim's keybind philosophy is unlike any other, and we want to keep that vibe.
   Keys form a "language", one that you can speak, not one that you need to learn off by heart.
@@ -112,9 +111,15 @@ surpass _every_ other text editor. One that will give you all the bragging right
 ###### _IMPORTANT_: Neorg is *alpha* software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and keeping docs up-to-date would be very painful.
 
 # :wrench: Installation
+Neorg requires at least **Neovim Nightly/0.6+** to operate. I know that for some this makes the plugin pretty much unusable,
+however we simply need to impose this requirement, we're real sorry. In order to make Neorg work we need to squeeze out the total
+max amount of features that we can from the Neovim core, and maintaining the same version of a plugin
+for two different versions of Neovim is simply too much for the still rather small team that Neorg is comprised of.
+You can still use Neorg on `0.5.x`, however don't expect all modules to load properly.
+
 Installation may seem a bit daunting, however it's nothing you can't understand. If you really like to be in control,
 you can read exactly what the below code snippets do in the [wiki](https://github.com/nvim-neorg/neorg/wiki/Installation).
-You can install through any plugin manager (it can even be vimscript plugin managers, as long as you're running Neovim version 0.5 or higher).
+You can install through any plugin manager (it can even be vimscript plugin managers, as long as you're running Neovim version 0.6 or higher).
 
 > :exclamation: NOTE: Neorg requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) to operate, so be sure to install it alongside Neorg!
 
@@ -168,9 +173,10 @@ You can install through any plugin manager (it can even be vimscript plugin mana
   use { "nvim-neorg/neorg", ft = "norg", config = ... }
   ```
 
-  However don't expect everything to work. TreeSitter highlights are known to fail, amongst other things.
+  **However don't expect everything to work**. TreeSitter highlights are known to fail, amongst other things.
   Neorg practically lazy loads itself - only a few lines of code are run on startup, these lines check whether the current
   extension is `.norg`, if it's not then nothing else loads. You shouldn't have to worry about performance issues.
+  In fact by not lazy-loading Neorg on `ft` you can use `:NeorgStart` to jump to your notes from anywhere! Worth it.
 
   After all of that resource the current file and `:PackerSync`:
 
@@ -183,7 +189,7 @@ You can install through any plugin manager (it can even be vimscript plugin mana
    
    Afterwards resource the current file and to install plugins run `:PlugInstall`.
    
-   You can put this initial configuration in your init.vim file:
+   You can then place this initial configuration in your init.vim file:
    ```vim
    lua << EOF
        require('neorg').setup {
@@ -220,13 +226,14 @@ parser_configs.norg = {
     },
 }
 ```
+
 Then run `:TSInstall norg`.
 If you want the parser to be more persistent across different installations of your config make sure to set `norg` as a parser in the `ensure_installed` table, then run `:TSUpdate`.
 Here's an example config, yours will probably be different:
 ```lua
 require('nvim-treesitter.configs').setup {
     ensure_installed = { "norg", "haskell", "cpp", "c", "javascript", "markdown" },
-    highlight = {
+    highlight = { -- Be sure to enable highlights if you haven't!
         enable = true,
     }
 }
@@ -371,10 +378,12 @@ contextual completion based on your position in the syntax tree.
 # :purple_heart: Support
 Love what I do? Want to see more get done faster? Want to support future projects of mine? Any sort of support is always
 heartwarming and fuels the urge to keep going :heart:. You can support me here:
+
 - [Buy me a coffee!](https://buymeacoffee.com/vhyrro)
 - [Support on LiberaPay](https://liberapay.com/vhyrro)
 - [Donate directly via paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
 - [Support me on Patreon](https://patreon.com/vhyrro)
+- Donate to my monero wallet: `86CXbnPLa14F458FRQFe26PRfffZTZDbUeb4NzYiHDtzcyaoMnfq1TqVU1EiBFrbKqGshFomDzxWzYX2kMvezcNu9TaKd9t`
 
 # :green_heart: Credits
 Massive shoutouts to the people who supported the project! These are:

@@ -12,7 +12,7 @@ module.public = {
             end
         )
 
-        selection = selection:title("Views"):blank():concat(function(_selection)
+        selection:title("Views"):blank():concat(function(_selection)
             return module.private.generate_display_flags(_selection, configs)
         end)
 
@@ -31,27 +31,30 @@ module.public = {
 
         -- Create selection popup
         local buffer = module.required["core.ui"].create_split("Edit Task")
-        local selection = module.required["core.ui"].begin_selection(buffer)
-        selection = selection:listener("destroy", { "<Esc>" }, function(self)
-            self:destroy()
-        end)
+        local selection = module.required["core.ui"].begin_selection(buffer):listener(
+            "destroy",
+            { "<Esc>" },
+            function(self)
+                self:destroy()
+            end
+        )
 
         -- TODO: Make the content prettier
-        selection = selection:title("Edit Task"):blank():text("Task: " .. task_extracted.content)
+        selection:title("Edit Task"):blank():text("Task: " .. task_extracted.content)
         if task_extracted.contexts then
-            selection = selection:text("Contexts: " .. table.concat(task_extracted.contexts, ", "))
+            selection:text("Contexts: " .. table.concat(task_extracted.contexts, ", "))
         end
         if task_extracted["waiting.for"] then
-            selection = selection:text("Waiting for: " .. table.concat(task_extracted["waiting.for"], ", "))
+            selection:text("Waiting for: " .. table.concat(task_extracted["waiting.for"], ", "))
         end
         if task_extracted["time.start"] then
-            selection = selection:text("Starting: " .. task_extracted["time.start"][1])
+            selection:text("Starting: " .. task_extracted["time.start"][1])
         end
         if task_extracted["time.due"] then
-            selection = selection:text("Due for: " .. task_extracted["time.due"][1])
+            selection:text("Due for: " .. task_extracted["time.due"][1])
         end
 
-        selection = selection
+        selection
             :blank()
             :concat(function(_selection)
                 return module.private.edit_prompt(
@@ -102,7 +105,7 @@ module.public = {
                 }, modified, "time.due", task)
             end)
 
-        selection = selection:blank():blank():flag("<CR>", "Validate", function()
+        selection:blank(2):flag("<CR>", "Validate", function()
             local data = selection:data()
 
             local edits = { "contexts", "waiting.for", "content", "time.start", "time.due" }
@@ -134,7 +137,7 @@ module.public = {
             end
         )
 
-        selection = selection:title("Capture"):blank():concat(module.private.add_to_inbox)
+        selection:title("Capture"):blank():concat(module.private.add_to_inbox)
         module.private.display_messages()
     end,
 }

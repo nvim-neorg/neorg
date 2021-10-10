@@ -9,13 +9,14 @@ module.private = {
     --- @return table #`selection`
     generate_date_flags = function(selection, task, mode, flag)
         local title = "Add a " .. mode .. " date"
-        selection = selection:rflag(flag, title, function()
+        return selection:rflag(flag, title, function()
             selection
                 :listener("go-back", { "<BS>" }, function(self)
                     self:pop_page()
                 end)
                 :title(title)
                 :blank()
+                :text("Static Times:")
                 :flag("t", "Tomorrow", {
                     destroy = false,
                     callback = function()
@@ -44,6 +45,15 @@ module.private = {
                         selection:pop_page()
                     end,
                 })
+                :blank()
+                :text("Other:")
+                :flag("s", "Someday", {
+                    destroy = false,
+                    callback = function()
+                        log.warn("Unimplemented :(")
+                        selection:pop_page()
+                    end,
+                })
                 :rflag("c", "Custom", {
                     destroy = false,
                     callback = function()
@@ -68,8 +78,6 @@ module.private = {
                     end,
                 })
         end)
-
-        return selection
     end,
 
     --- Generate flags for specific mode
@@ -87,14 +95,17 @@ module.private = {
             end
         end)()
 
-        return selection
-            :listener("go-back", { "<BS>" }, function(self)
-                self:pop_page()
-            end)
-            :rflag(flag, title, {
-                destroy = false,
-                callback = function()
-                    return selection:title(title):text("Separate multiple values with space"):blank():prompt(title, {
+        return selection:rflag(flag, title, {
+            destroy = false,
+            callback = function()
+                selection
+                    :listener("go-back", { "<BS>" }, function(self)
+                        self:pop_page()
+                    end)
+                    :title(title)
+                    :text("Separate multiple values with space")
+                    :blank()
+                    :prompt(title, {
                         callback = function(text)
                             if #text > 0 then
                                 task[mode] = task[mode] or {}
@@ -103,41 +114,56 @@ module.private = {
                         end,
                         pop = true,
                     })
-                end,
-            })
+            end,
+        })
+    end,
+
+    generate_project_flags = function(selection, task, flag)
+        return selection:flag("p", "Add to project", {
+            callback = function()
+                --[[ selection
+                    :listener("go-back", { "<BS>" }, selection.pop_page)
+                    :text("Helo") ]]
+                log.warn("Unimplemented :(")
+            end,
+            destroy = false,
+        })
     end,
 
     add_to_inbox = function(selection)
-        return selection:rflag("a", "Add a task to inbox", {
+        return selection:rflag("a", "Add a task to the inbox", {
             callback = function()
-                selection = selection:title("Add a task to inbox"):blank():prompt("Task", {
+                selection:title("Add a task to the inbox"):blank():prompt("Task", {
                     callback = function(text)
                         local task = {}
                         task.content = text
 
                         selection:push_page()
 
-                        selection = selection
+                        selection
                             :title("Add informations")
                             :blank()
                             :text("Task: " .. task.content)
                             :blank()
                             :text("General informations")
-                            :concat(function(_selection)
-                                return module.private.generate_default_flags(_selection, task, "contexts", "c")
+                            :concat(function()
+                                return module.private.generate_default_flags(selection, task, "contexts", "c")
                             end)
-                            :concat(function(_selection)
-                                return module.private.generate_default_flags(_selection, task, "waiting.for", "w")
+                            :concat(function()
+                                return module.private.generate_default_flags(selection, task, "waiting.for", "w")
                             end)
                             :blank()
                             :text("Dates")
-                            :concat(function(_selection)
-                                return module.private.generate_date_flags(_selection, task, "due", "d")
+                            :concat(function()
+                                return module.private.generate_date_flags(selection, task, "due", "d")
                             end)
-                            :concat(function(_selection)
-                                return module.private.generate_date_flags(_selection, task, "start", "s")
+                            :concat(function()
+                                return module.private.generate_date_flags(selection, task, "start", "s")
                             end)
                             :blank()
+                            :concat(function()
+                                return module.private.generate_project_flags(selection, task, "p")
+                            end)
                             :flag("<CR>", "Finish", function()
                                 local end_row, bufnr, projectAtEnd =
                                     module.required["core.gtd.queries"].get_end_document_content(
@@ -167,7 +193,7 @@ module.private = {
         tasks = module.required["core.gtd.queries"].add_metadata(tasks, "task")
         projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
-        selection = selection
+        selection
             :text("Tasks")
             :flag("t", "Today's tasks", function()
                 module.public.display_today_tasks(tasks)
