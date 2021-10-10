@@ -212,6 +212,8 @@ You can install through any plugin manager (it can even be vimscript plugin mana
 ##### :robot: For the latest and greatest check out the [unstable](https://github.com/nvim-neorg/neorg/tree/unstable) branch
 
 ### Setting up TreeSitter
+###### Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system!
+
 As of right now, the TreeSitter parser is in its early stage. To install it, you want to run this code snippet before you invoke
 `require('nvim-treesitter.configs').setup()`:
 
