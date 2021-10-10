@@ -77,6 +77,12 @@ module.public = {
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         local bufnr = module.private.get_bufnr_from_file(file)
+
+        if not bufnr then
+            log.error("The buffer number from " .. file .. "was not retrieved")
+            return
+        end
+
         local tree = {
             { query = { "first", "document_content" } },
         }
@@ -88,7 +94,7 @@ module.public = {
         -- There is no content in the document
         if not document then
             local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-            end_row = #lines
+            end_row = #lines or 0
         else
             -- Check if last child is a project
             local nb_childs = document[1]:child_count()
