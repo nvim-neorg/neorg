@@ -17,17 +17,34 @@ module.public = {
             "* " .. name,
             "",
         }
+
         local today_task = function(task)
-            if not task.contexts then
-                return false
+            local today_context = false
+            if task.contexts then
+                today_context = vim.tbl_contains(task.contexts, "today")
             end
+
             local today_state = (task.state ~= "done")
 
             local already_started = true
+            local starting_today = false
             if task["time.start"] then
                 already_started = not module.required["core.gtd.queries"].starting_after_today(task["time.start"][1])
+                local diff = module.required["core.gtd.queries"].diff_with_today(task["time.start"][1])
+                starting_today = diff.days == 0 and diff.weeks == 0
             end
-            return vim.tbl_contains(task.contexts, "today") and today_state and already_started
+
+            local due_today = false
+            if task["time.due"] then
+                local diff = module.required["core.gtd.queries"].diff_with_today(task["time.due"][1])
+                due_today = diff.days == 0 and diff.weeks == 0
+            end
+
+            -- all not done tasks:
+            --   - marked as today and starting after today
+            --   - starting today
+            --   - due for today
+            return today_state and (starting_today or due_today or (today_context and already_started))
         end
 
         -- Remove tasks that contains any of the excluded contexts
@@ -63,8 +80,21 @@ module.public = {
                 for _, t in pairs(today_tasks) do
                     local content = "- " .. t.content
                     if t.project then
-                        content = content .. " (`" .. t.project .. "`)"
+                        content = content .. " `in " .. t.project .. "`"
                     end
+                    if t["time.start"] then
+                        local diff = module.required["core.gtd.queries"].diff_with_today(t["time.start"][1])
+                        if diff.weeks == 0 and diff.days == 0 then
+                            content = content .. ", `starting today`"
+                        end
+                    end
+                    if t["time.due"] then
+                        local diff = module.required["core.gtd.queries"].diff_with_today(t["time.due"][1])
+                        if diff.weeks == 0 and diff.days == 0 then
+                            content = content .. ", `due for today`"
+                        end
+                    end
+
                     table.insert(res, content)
                 end
                 table.insert(res, "")
