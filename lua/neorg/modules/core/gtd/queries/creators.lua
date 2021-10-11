@@ -49,7 +49,7 @@ module.public = {
         module.public.insert_tag({ node.node, bufnr }, node.contexts, "$contexts")
         module.public.insert_tag({ node.node, bufnr }, node["time.start"], "$start")
         module.public.insert_tag({ node.node, bufnr }, node["time.due"], "$due")
-        module.public.insert_tag({ node.node, bufnr }, node["waiting.for"], "$waiting_for")
+        module.public.insert_tag({ node.node, bufnr }, node["waiting.for"], "$waiting.for")
 
         vim.api.nvim_buf_call(bufnr, function()
             vim.cmd([[ write! ]])
