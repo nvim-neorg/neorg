@@ -334,7 +334,7 @@ module.public = {
         if conceals.link then
             vim.schedule(function()
                 vim.cmd([[
-                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
+                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgBold,NeorgItalic,NeorgUnderline,NeorgStrikethrough,NeorgConcealMonospace oneline concealends
                 ]])
             end)
         end
@@ -346,10 +346,6 @@ module.public = {
         vim.cmd([[
         silent! syn clear NeorgConcealURL
         silent! syn clear NeorgConcealURLValue
-        silent! syn clear NeorgConcealItalic
-        silent! syn clear NeorgConcealUnderline
-        silent! syn clear NeorgConcealMonospace
-        silent! syn clear NeorgConcealStrikethrough
         silent! syn clear NeorgConcealTrailing
         silent! syn clear NeorgConcealLink
         ]])
@@ -882,7 +878,7 @@ module.config.public = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             volatile = true,
-            highlight = "NeorgConcealBold",
+            highlight = "NeorgBold",
             query = "(bold) @icon",
             render = function(self, text)
                 return {
@@ -895,7 +891,7 @@ module.config.public = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             volatile = true,
-            highlight = "NeorgConcealItalic",
+            highlight = "NeorgItalic",
             query = "(italic) @icon",
             render = function(self, text)
                 return {
@@ -908,7 +904,7 @@ module.config.public = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             volatile = true,
-            highlight = "NeorgConcealUnderline",
+            highlight = "NeorgUnderline",
             query = "(underline) @icon",
             render = function(self, text)
                 return {
@@ -921,7 +917,7 @@ module.config.public = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             volatile = true,
-            highlight = "NeorgConcealStrikethrough",
+            highlight = "NeorgStrikethrough",
             query = "(strikethrough) @icon",
             render = function(self, text)
                 return {
@@ -945,7 +941,7 @@ module.config.public = {
 
         spoiler = {
             enabled = true,
-            icon = "*",
+            icon = "●",
             volatile = true,
             highlight = "NeorgSpoiler",
             query = "(spoiler) @icon",
