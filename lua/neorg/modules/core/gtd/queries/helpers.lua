@@ -16,30 +16,96 @@ module.public = {
     --   The format for date is YY-mm-dd
     -- @Param  text (string) the text to use
     date_converter = function(text)
-        -- Get today's date
-        local now = os.date("%Y-%m-%d")
-        local y, m, d = now:match("(%d+)-(%d+)-(%d+)")
+        vim.validate({ text = { text, "string" } })
 
-        -- Cases for converting quick dates to full dates (e.g 1w is one week from now)
-        local converted_date
-        local patterns = { weeks = "[%d]+w", days = "[%d]+d", months = "[%d]+m" }
-        local days_matched = text:match(patterns.days)
-        local weeks_matched = text:match(patterns.weeks)
-        local months_matched = text:match(patterns.months)
-        if text == "tomorrow" then
-            converted_date = os.time({ year = y, month = m, day = d + 1 })
-        elseif text == "today" then
-            return now
-        elseif weeks_matched ~= nil then
-            converted_date = os.time({ year = y, month = m, day = d + 7 * weeks_matched:sub(1, -2) })
-        elseif days_matched ~= nil then
-            converted_date = os.time({ year = y, month = m, day = d + days_matched:sub(1, -2) })
-        elseif months_matched ~= nil then
-            converted_date = os.time({ year = y, month = m + months_matched:sub(1, -2), day = d })
-        else
-            return nil
+        if text == "today" then
+            return os.date("%Y-%m-%d")
+        elseif text == "tomorrow" then
+            -- Return tomorrow's date in YY-MM-DD format
+            return os.date("%Y-%m-%d", os.time() + 24 * 60 * 60)
         end
-        return os.date("%Y-%m-%d", converted_date)
+
+        local number, type = text:match("^(%d+)([hdwmy])$")
+
+        if not number or not type then
+            return
+        end
+
+        -- Function to calculate a date that'll occur in x months.
+        local function get_date_in_x_months(months)
+            local date = os.date("*t")
+            date.month = date.month + months
+            if date.month > 12 then
+                date.month = date.month - 12
+                date.year = date.year + 1
+            end
+            return os.time(date)
+        end
+
+        -- Function to calculate a date that'll occur in x days.
+        local function get_date_in_x_days(days)
+            -- Create a table to store the number of days in each month
+            local month_days = {
+                31,
+                28,
+                31,
+                30,
+                31,
+                30,
+                31,
+                31,
+                30,
+                31,
+                30,
+                31,
+            }
+
+            local date = os.date("*t")
+            date.day = date.day + days
+
+            if date.day > month_days[date.month] then
+                date.day = date.day - month_days[date.month]
+                date.month = date.month + 1
+                if date.month > 12 then
+                    date.month = date.month - 12
+                    date.year = date.year + 1
+                end
+            end
+
+            return os.time(date)
+        end
+
+        -- Function to calculate a date that'll occur in x years.
+        local function get_date_in_x_years(years)
+            local date = os.date("*t")
+            date.year = date.year + years
+            return os.time(date)
+        end
+
+        -- Function to calculate a date that'll occur in x hours.
+        local function get_date_in_x_hours(hours)
+            local date = os.date("*t")
+            date.hour = date.hour + hours
+            return os.time(date)
+        end
+
+        -- Function to calculate a date that'll occur in x weeks
+        local function get_date_in_x_weeks(weeks)
+            local date = os.date("*t")
+            date.day = date.day + 7 * weeks
+            return os.time(date)
+        end
+
+        return os.date(
+            "%Y-%m-%d",
+            ({
+                ["h"] = get_date_in_x_hours, -- TODO(vhyrro): Add internal support for hours
+                ["d"] = get_date_in_x_days,
+                ["w"] = get_date_in_x_weeks,
+                ["m"] = get_date_in_x_months,
+                ["y"] = get_date_in_x_years,
+            })[type](number)
+        )
     end,
 
     --- Parses a date string to table relative to today's date
@@ -50,6 +116,7 @@ module.public = {
         vim.validate({
             date = { date, "string" },
         })
+
         -- Get today's date
         local now = os.date("%Y-%m-%d")
         local y_now, m_now, d_now = now:match("(%d+)-(%d+)-(%d+)")
@@ -60,8 +127,7 @@ module.public = {
         local date_timestamp = os.time({ year = y, month = m, day = d })
 
         -- Find out how many elapsed seconds between now and the date
-        local elapsed_seconds = date_timestamp - now_timestamp
-        elapsed_seconds = elapsed_seconds
+        local elapsed_seconds = os.difftime(date_timestamp, now_timestamp)
 
         local elapsed = module.private.convert_seconds(elapsed_seconds)
 
@@ -88,9 +154,22 @@ module.private = {
     --- @param content string|table
     --- @param prefix string
     insert_content = function(t, content, prefix)
+        vim.validate({
+            t = { t, "table" },
+            content = {
+                content,
+                function(c)
+                    return vim.tbl_contains({ "nil", "string", "table" }, type(c))
+                end,
+                "string|table",
+            },
+            prefix = { prefix, "string" },
+        })
+
         if not content then
             return
         end
+
         if type(content) == "string" then
             table.insert(t, prefix .. " " .. content)
         elseif type(content) == "table" then

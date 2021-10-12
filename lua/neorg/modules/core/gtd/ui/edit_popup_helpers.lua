@@ -98,7 +98,7 @@ module.private = {
                         selection:push_page()
                         selection
                             :title("Custom Date")
-                            :text("Allowed date format: today, tomorrow, Xw, Xd, Xm (X is a number)")
+                            :text("Allowed date format: today, tomorrow, Xw, Xd, Xm, Xy (X is a number)")
                             :blank()
                             :prompt("Enter date", {
                                 callback = function(text)
