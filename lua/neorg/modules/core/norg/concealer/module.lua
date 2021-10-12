@@ -495,8 +495,7 @@ module.config.public = {
         },
 
         ordered = {
-            -- enabled = not require('neorg.external.helpers').is_version("0.5"),
-            enabled = false,
+            enabled = require('neorg.external.helpers').is_minimum_version(0, 6, 0),
 
             --[[
                 Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
@@ -797,12 +796,49 @@ module.config.public = {
                 icon = "─",
                 highlight = "NeorgHorizontalLine",
                 query = "(horizontal_line) @icon",
-                render = function(self)
+                render = function(self, _, node)
+                    -- Get the length of the Neovim window (used to render to the edge of the screen)
+                    local resulting_length = vim.api.nvim_win_get_width(0)
+
+                    -- If we are running at least 0.6 (which has the prev_sibling() function) then
+                    if require('neorg.external.helpers').is_minimum_version(0, 6, 0) then
+                        -- Grab the sibling before our current node in order to later
+                        -- determine how much space it occupies in the buffer vertically
+                        local prev_sibling = node:prev_sibling()
+                        local ts = module.required["core.integrations.treesitter"].get_ts_utils()
+
+                        if prev_sibling then
+                            -- Get the text of the previous sibling and store its longest line width-wise
+                            local text = ts.get_node_text(prev_sibling)
+                            local longest = 0
+
+                            -- Go through each line and remove its surrounding whitespace,
+                            -- we do this because some inconsistencies tend to occur with
+                            -- the way whitespace is handled.
+                            for _, line in ipairs(text) do
+                                line = vim.trim(line)
+
+                                -- If the line even has any "normal" characters
+                                -- and its length is a new record then update the
+                                -- `longest` variable
+                                if line:match("%w") and line:len() > longest then
+                                    longest = line:len()
+                                end
+                            end
+
+                            -- If we've set a longest value then override the resulting length
+                            -- with that longest value (to make it render only up until that point)
+                            if longest > 0 then
+                                resulting_length = longest
+                            end
+                        end
+                    end
+
                     return {
                         {
                             string.rep(
                                 self.icon,
-                                vim.api.nvim_win_get_width(0)
+                                resulting_length
                             ),
                             self.highlight,
                         },

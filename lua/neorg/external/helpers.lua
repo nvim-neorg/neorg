@@ -155,22 +155,11 @@ neorg.utils = {
         return found_from_back and length - found_from_back
     end,
 
-    is_version = function(version)
-        local major, minor, patch = unpack(vim.split(version, ".", true))
+    is_minimum_version = function(major, minor, patch)
+        local version = vim.version()
 
-        if not major then
-            log.error("Invalid version provided (" .. version .. "). Expected format: x.x.x")
-            return false
-        end
-
-        local nvim_version = vim.version()
-
-        log.warn(major, minor, nvim_version)
-
-        return tonumber(major) == nvim_version.major
-            and (minor and tonumber(minor) == nvim_version.minor or true)
-            and (patch and tonumber(patch) == nvim_version.patch or true)
-    end,
+        return major <= version.major and minor <= version.minor and patch <= version.patch
+    end
 }
 
 return neorg.utils
