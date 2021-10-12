@@ -136,7 +136,7 @@ module.private = {
     end,
 
     capture_task = function(selection)
-        return selection:title("Add a task to the inbox"):blank():prompt("Task", {
+        return selection:title("Add a task"):blank():prompt("Task", {
             callback = function(text)
                 local task = {}
                 task.content = text
@@ -158,10 +158,10 @@ module.private = {
                     :blank()
                     :text("Dates")
                     :concat(function()
-                        return module.private.generate_date_flags(selection, task, "due", "d")
+                        return module.private.generate_date_flags(selection, task, "time.due", "d")
                     end)
                     :concat(function()
-                        return module.private.generate_date_flags(selection, task, "start", "s")
+                        return module.private.generate_date_flags(selection, task, "time.start", "s")
                     end)
                     :blank()
                     :concat(function()
