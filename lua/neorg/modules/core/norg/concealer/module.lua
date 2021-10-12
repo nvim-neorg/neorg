@@ -92,6 +92,7 @@ end
 
 module.private = {
     namespace = vim.api.nvim_create_namespace("neorg_conceals"),
+    volatile_namespace = vim.api.nvim_create_namespace("neorg_volatile_conceals"),
     extmarks = {},
     icons = {},
 }
@@ -101,15 +102,16 @@ module.public = {
     -- @Summary Activates icons for the current window
     -- @Description Parses the user configuration and enables concealing for the current window.
     -- @Param from (number) - the line number that we should start at (defaults to 0)
-    trigger_icons = function(from)
+    -- @Param volatile (boolean) - whether to clear the volatile icons
+    trigger_icons = function(from, volatile)
         -- Clear all the conceals beforehand (so no overlaps occur)
-        module.public.clear_icons(from)
+        module.public.clear_icons(from, volatile)
 
         -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
 
         -- If the tree is valid then attempt to perform the query
-        if tree then
+        if not volatile and tree then
             do
                 -- Query all code blocks
                 local ok, query = pcall(
@@ -148,6 +150,7 @@ module.public = {
                             -- If our line is valid and it's not too short then apply the dimmed highlight
                             if line and line:len() >= range.column_start then
                                 module.public._set_extmark(
+                                    module.private.namespace,
                                     nil,
                                     "NeorgCodeBlock",
                                     i,
@@ -168,7 +171,16 @@ module.public = {
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
 
         -- Loop through all icons that the user has enabled
-        for _, icon_data in ipairs(module.private.icons) do
+        local icon_set
+        local namespace
+        if volatile then
+            icon_set = module.private.volatile_icons
+            namespace = module.private.volatile_namespace
+        else
+            icon_set = module.private.icons
+            namespace = module.private.namespace
+        end
+        for _, icon_data in ipairs(icon_set) do
             if icon_data.query then
                 -- Attempt to parse the query provided by `icon_data.query`
                 -- A query must have at least one capture, e.g. "(test_node) @icon"
@@ -202,6 +214,7 @@ module.public = {
                         -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
                         if not icon_data.render then
                             module.public._set_extmark(
+                                namespace,
                                 icon_data.icon,
                                 icon_data.highlight,
                                 range.row_start,
@@ -213,6 +226,7 @@ module.public = {
                             )
                         else
                             module.public._set_extmark(
+                                namespace,
                                 icon_data:render(text, node),
                                 icon_data.highlight,
                                 range.row_start,
@@ -239,14 +253,14 @@ module.public = {
     -- @Param  end_column (number) - the end column of the conceal
     -- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
     -- @Param  mode (string: "replace"/"combine"/"blend") - the highlight mode for the extmark
-    _set_extmark = function(text, highlight, line_number, end_line, start_column, end_column, whole_line, mode)
+    _set_extmark = function(namespace, text, highlight, line_number, end_line, start_column, end_column, whole_line, mode)
         -- If the text type is a string then convert it into something that Neovim's extmark API can understand
         if type(text) == "string" then
             text = { { text, highlight } }
         end
 
         -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, module.private.namespace, line_number, start_column, {
+        local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, namespace, line_number, start_column, {
             end_col = end_column,
             hl_group = highlight,
             end_line = end_line,
@@ -265,8 +279,28 @@ module.public = {
     -- @Summary Clears all the conceals that neorg has defined
     -- @Description Simply clears the Neorg extmark namespace
     -- @Param from (number) - the line number to start clearing from
-    clear_icons = function(from)
-        vim.api.nvim_buf_clear_namespace(0, module.private.namespace, from or 0, -1)
+    -- @Param volatile (boolean) - whether to clear the volatile icons
+    clear_icons = function(from, volatile)
+        if volatile then
+            vim.api.nvim_buf_clear_namespace(0, module.private.volatile_namespace, from or 0, -1)
+        else
+            vim.api.nvim_buf_clear_namespace(0, module.private.namespace, from or 0, -1)
+        end
+    end,
+
+    volatile_icons = function()
+        module.public.trigger_icons(true)
+        local pos = vim.api.nvim_win_get_cursor(0)
+        local current_extmarks = vim.api.nvim_buf_get_extmarks(
+            0,
+            module.private.volatile_namespace,
+            { pos[1] - 1, 0 },
+            { pos[1] - 1, -1 },
+            {}
+        )
+        for _, extmark in pairs(current_extmarks) do
+            vim.api.nvim_buf_del_extmark(0, module.private.volatile_namespace, extmark[1])
+        end
     end,
 
     -- @Summary Triggers conceals for the current buffer
@@ -274,6 +308,7 @@ module.public = {
     trigger_conceals = function()
         local conceals = module.config.public.conceals
 
+        -- TODO: migrate to TS based concealing
         if conceals.url then
             vim.schedule(function()
                 vim.cmd(
@@ -285,46 +320,8 @@ module.public = {
             end)
         end
 
-        if conceals.bold then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.italic then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.underline then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\|^\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.strikethrough then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.verbatim then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
+        -- TODO: figure out a way to conceal this based on TS
+        -- This will require inclusion of the trailining modifier in the TS tree
         if conceals.trailing then
             vim.schedule(function()
                 vim.cmd([[
@@ -333,6 +330,7 @@ module.public = {
             end)
         end
 
+        -- TODO: requires TS-support for link modifiers
         if conceals.link then
             vim.schedule(function()
                 vim.cmd([[
@@ -349,7 +347,6 @@ module.public = {
         silent! syn clear NeorgConcealURL
         silent! syn clear NeorgConcealURLValue
         silent! syn clear NeorgConcealItalic
-        silent! syn clear NeorgConcealBold
         silent! syn clear NeorgConcealUnderline
         silent! syn clear NeorgConcealMonospace
         silent! syn clear NeorgConcealStrikethrough
@@ -417,6 +414,7 @@ module.config.public = {
             done = {
                 enabled = true,
                 icon = "",
+                volatile = false,
                 highlight = "NeorgTodoItemDoneMark",
                 query = "(todo_item_done) @icon",
                 extract = function(content)
@@ -428,6 +426,7 @@ module.config.public = {
             pending = {
                 enabled = true,
                 icon = "",
+                volatile = false,
                 highlight = "NeorgTodoItemPendingMark",
                 query = "(todo_item_pending) @icon",
                 extract = function(content)
@@ -439,6 +438,7 @@ module.config.public = {
             undone = {
                 enabled = true,
                 icon = "×",
+                volatile = false,
                 highlight = "NeorgTodoItemUndoneMark",
                 query = "(todo_item_undone) @icon",
                 extract = function(content)
@@ -454,6 +454,7 @@ module.config.public = {
             level_1 = {
                 enabled = true,
                 icon = "•",
+                volatile = false,
                 highlight = "NeorgUnorderedList1",
                 query = "(unordered_list1_prefix) @icon",
             },
@@ -461,6 +462,7 @@ module.config.public = {
             level_2 = {
                 enabled = true,
                 icon = " •",
+                volatile = false,
                 highlight = "NeorgUnorderedList2",
                 query = "(unordered_list2_prefix) @icon",
             },
@@ -468,6 +470,7 @@ module.config.public = {
             level_3 = {
                 enabled = true,
                 icon = "  •",
+                volatile = false,
                 highlight = "NeorgUnorderedList3",
                 query = "(unordered_list3_prefix) @icon",
             },
@@ -475,6 +478,7 @@ module.config.public = {
             level_4 = {
                 enabled = true,
                 icon = "   •",
+                volatile = false,
                 highlight = "NeorgUnorderedList4",
                 query = "(unordered_list4_prefix) @icon",
             },
@@ -482,6 +486,7 @@ module.config.public = {
             level_5 = {
                 enabled = true,
                 icon = "    •",
+                volatile = false,
                 highlight = "NeorgUnorderedList5",
                 query = "(unordered_list5_prefix) @icon",
             },
@@ -489,6 +494,7 @@ module.config.public = {
             level_6 = {
                 enabled = true,
                 icon = "     •",
+                volatile = false,
                 highlight = "NeorgUnorderedList6",
                 query = "(unordered_list6_prefix) @icon",
             },
@@ -526,6 +532,7 @@ module.config.public = {
             level_1 = {
                 enabled = true,
                 icon = module.public.concealing.ordered.enumerator.numeric,
+                volatile = false,
                 highlight = "NeorgOrderedList1",
                 query = "(ordered_list1_prefix) @icon",
                 render = function(self, _, node)
@@ -539,6 +546,7 @@ module.config.public = {
             level_2 = {
                 enabled = true,
                 icon = module.public.concealing.ordered.enumerator.latin_uppercase,
+                volatile = false,
                 highlight = "NeorgOrderedList2",
                 query = "(ordered_list2_prefix) @icon",
                 render = function(self, _, node)
@@ -552,6 +560,7 @@ module.config.public = {
             level_3 = {
                 enabled = true,
                 icon = module.public.concealing.ordered.enumerator.latin_lowercase,
+                volatile = false,
                 highlight = "NeorgOrderedList3",
                 query = "(ordered_list3_prefix) @icon",
                 render = function(self, _, node)
@@ -565,6 +574,7 @@ module.config.public = {
             level_4 = {
                 enabled = true,
                 icon = module.public.concealing.ordered.enumerator.numeric,
+                volatile = false,
                 highlight = "NeorgOrderedList4",
                 query = "(ordered_list4_prefix) @icon",
                 render = function(self, _, node)
@@ -578,6 +588,7 @@ module.config.public = {
             level_5 = {
                 enabled = true,
                 icon = module.public.concealing.ordered.enumerator.latin_uppercase,
+                volatile = false,
                 highlight = "NeorgOrderedList5",
                 query = "(ordered_list5_prefix) @icon",
                 render = function(self, _, node)
@@ -591,6 +602,7 @@ module.config.public = {
             level_6 = {
                 enabled = true,
                 icon = module.public.concealing.ordered.enumerator.latin_lowercase,
+                volatile = false,
                 highlight = "NeorgOrderedList6",
                 query = "(ordered_list6_prefix) @icon",
                 render = function(self, _, node)
@@ -608,6 +620,7 @@ module.config.public = {
             level_1 = {
                 enabled = true,
                 icon = "│",
+                volatile = false,
                 highlight = "NeorgQuote1",
                 query = "(quote1_prefix) @icon",
             },
@@ -615,6 +628,7 @@ module.config.public = {
             level_2 = {
                 enabled = true,
                 icon = "│",
+                volatile = false,
                 highlight = "NeorgQuote2",
                 query = "(quote2_prefix) @icon",
                 render = function(self)
@@ -628,6 +642,7 @@ module.config.public = {
             level_3 = {
                 enabled = true,
                 icon = "│",
+                volatile = false,
                 highlight = "NeorgQuote3",
                 query = "(quote3_prefix) @icon",
                 render = function(self)
@@ -642,6 +657,7 @@ module.config.public = {
             level_4 = {
                 enabled = true,
                 icon = "│",
+                volatile = false,
                 highlight = "NeorgQuote4",
                 query = "(quote4_prefix) @icon",
                 render = function(self)
@@ -657,6 +673,7 @@ module.config.public = {
             level_5 = {
                 enabled = true,
                 icon = "│",
+                volatile = false,
                 highlight = "NeorgQuote5",
                 query = "(quote5_prefix) @icon",
                 render = function(self)
@@ -673,6 +690,7 @@ module.config.public = {
             level_6 = {
                 enabled = true,
                 icon = "│",
+                volatile = false,
                 highlight = "NeorgQuote6",
                 query = "(quote6_prefix) @icon",
                 render = function(self)
@@ -694,6 +712,7 @@ module.config.public = {
             level_1 = {
                 enabled = true,
                 icon = "◉",
+                volatile = false,
                 highlight = "NeorgHeading1",
                 query = "(heading1_prefix) @icon",
             },
@@ -701,6 +720,7 @@ module.config.public = {
             level_2 = {
                 enabled = true,
                 icon = " ○",
+                volatile = false,
                 highlight = "NeorgHeading2",
                 query = "(heading2_prefix) @icon",
             },
@@ -708,6 +728,7 @@ module.config.public = {
             level_3 = {
                 enabled = true,
                 icon = "  ✿",
+                volatile = false,
                 highlight = "NeorgHeading3",
                 query = "(heading3_prefix) @icon",
             },
@@ -715,6 +736,7 @@ module.config.public = {
             level_4 = {
                 enabled = true,
                 icon = "   ▶",
+                volatile = false,
                 highlight = "NeorgHeading4",
                 query = "(heading4_prefix) @icon",
             },
@@ -722,6 +744,7 @@ module.config.public = {
             level_5 = {
                 enabled = true,
                 icon = "    •",
+                volatile = false,
                 highlight = "NeorgHeading5",
                 query = "(heading5_prefix) @icon",
             },
@@ -729,6 +752,7 @@ module.config.public = {
             level_6 = {
                 enabled = true,
                 icon = "     ⤷",
+                volatile = false,
                 highlight = "NeorgHeading6",
                 query = "(heading6_prefix) @icon",
             },
@@ -737,6 +761,7 @@ module.config.public = {
         marker = {
             enabled = true,
             icon = "",
+            volatile = false,
             highlight = "NeorgMarker",
             query = "(marker_prefix) @icon",
         },
@@ -747,18 +772,21 @@ module.config.public = {
             single = {
                 enabled = true,
                 icon = "≡",
+                volatile = false,
                 highlight = "NeorgDefinition",
                 query = "(single_definition_prefix) @icon",
             },
             multi_prefix = {
                 enabled = true,
                 icon = "⋙ ",
+                volatile = false,
                 highlight = "NeorgDefinition",
                 query = "(multi_definition_prefix) @icon",
             },
             multi_suffix = {
                 enabled = true,
                 icon = "⋘ ",
+                volatile = false,
                 highlight = "NeorgDefinition",
                 query = "(multi_definition_suffix) @icon",
             },
@@ -770,6 +798,7 @@ module.config.public = {
             weak = {
                 enabled = true,
                 icon = "⟨",
+                volatile = false,
                 highlight = "NeorgWeakParagraphDelimiter",
                 query = "(weak_paragraph_delimiter) @icon",
                 render = function(self, text)
@@ -782,6 +811,7 @@ module.config.public = {
             strong = {
                 enabled = true,
                 icon = "⟪",
+                volatile = false,
                 highlight = "NeorgStrongParagraphDelimiter",
                 query = "(strong_paragraph_delimiter) @icon",
                 render = function(self, text)
@@ -794,6 +824,7 @@ module.config.public = {
             horizontal_line = {
                 enabled = true,
                 icon = "─",
+                volatile = false,
                 highlight = "NeorgHorizontalLine",
                 query = "(horizontal_line) @icon",
                 render = function(self, _, node)
@@ -846,15 +877,88 @@ module.config.public = {
                 end,
             },
         },
+
+        bold = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            volatile = true,
+            highlight = "NeorgConcealBold",
+            query = "(bold) @icon",
+            render = function(self, text)
+                return {
+                    { text:gsub("*", self.icon), self.highlight },
+                }
+            end,
+        },
+
+        italic = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            volatile = true,
+            highlight = "NeorgConcealItalic",
+            query = "(italic) @icon",
+            render = function(self, text)
+                return {
+                    { text:gsub("/", self.icon), self.highlight },
+                }
+            end,
+        },
+
+        underline = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            volatile = true,
+            highlight = "NeorgConcealUnderline",
+            query = "(underline) @icon",
+            render = function(self, text)
+                return {
+                    { text:gsub("_", self.icon), self.highlight },
+                }
+            end,
+        },
+
+        strikethrough = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            volatile = true,
+            highlight = "NeorgConcealStrikethrough",
+            query = "(strikethrough) @icon",
+            render = function(self, text)
+                return {
+                    { text:gsub("-", self.icon), self.highlight },
+                }
+            end,
+        },
+
+        verbatim = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            volatile = true,
+            highlight = "NeorgConcealMonospace",
+            query = "(inline_code) @icon",
+            render = function(self, text)
+                return {
+                    { text:gsub("`", self.icon), self.highlight },
+                }
+            end,
+        },
+
+        spoiler = {
+            enabled = true,
+            icon = "*",
+            volatile = true,
+            highlight = "NeorgSpoiler",
+            query = "(spoiler) @icon",
+            render = function(self, text)
+                return {
+                    { string.rep(self.icon, #text), self.highlight },
+                }
+            end,
+        },
     },
 
     conceals = {
         url = true,
-        bold = true,
-        italic = true,
-        underline = true,
-        strikethrough = true,
-        verbatim = true,
         trailing = true,
         link = true,
     },
@@ -863,8 +967,9 @@ module.config.public = {
 module.load = function()
     -- @Summary Returns all the enabled icons from a table
     -- @Param  tbl (table) - the table to parse
+    -- @Param volatile (boolean) - whether to clear the volatile icons
     -- @Param rec_name (string) - should not be set manually. Is used for Neorg to have information about all other previous recursions
-    local function get_enabled_icons(tbl, rec_name)
+    local function get_enabled_icons(tbl, volatile, rec_name)
         rec_name = rec_name or ""
 
         -- Create a result that we will return at the end of the function
@@ -880,12 +985,12 @@ module.load = function()
             -- If we're dealing with a table (which we should be) and if the current icon set is enabled then
             if type(icons) == "table" and icons.enabled then
                 -- If we have defined an icon value then add that icon to the result
-                if icons.icon then
+                if icons.icon and icons.volatile == volatile then
                     result[rec_name .. name] = icons
                 else
                     -- If we don't have an icon variable then we need to descend further down the lua table.
                     -- To do this we recursively call this very function and merge the results into the result table
-                    result = vim.tbl_deep_extend("force", result, get_enabled_icons(icons, rec_name .. name))
+                    result = vim.tbl_deep_extend("force", result, get_enabled_icons(icons, volatile, rec_name .. name))
                 end
             end
         end
@@ -894,11 +999,13 @@ module.load = function()
     end
 
     -- Set the module.private.icons variable to the values of the enabled icons
-    module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
+    module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons, false))
+    module.private.volatile_icons = vim.tbl_values(get_enabled_icons(module.config.public.icons, true))
 
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
 
+    module.required["core.autocommands"].enable_autocommand("CursorMoved")
     module.required["core.autocommands"].enable_autocommand("TextChanged")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
@@ -912,9 +1019,13 @@ module.on_event = function(event)
         end
 
         module.public.trigger_icons()
+        module.public.trigger_icons(false)
     elseif event.type == "core.autocommands.events.textchanged" then
         -- If the content of a line has changed in normal mode then reparse the file
-        module.public.trigger_icons()
+        module.public.trigger_icons(false)
+    elseif event.type == "core.autocommands.events.cursormoved" then
+        -- If the content of a line has changed in normal mode then reparse the file
+        module.public.volatile_icons()
     elseif event.type == "core.autocommands.events.insertenter" then
         vim.api.nvim_buf_clear_namespace(
             0,
@@ -930,6 +1041,7 @@ end
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
+        cursormoved = true,
         textchanged = true,
         insertenter = true,
         insertleave = true,
