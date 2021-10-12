@@ -16,6 +16,14 @@ module.setup = function()
     }
 end
 
+module.config.private = {
+    generic_indent = {
+        indent = function(node, get_range)
+            return get_range(node:named_child(1)).column_start
+        end,
+    },
+}
+
 module.config.public = {
     indents = {
         extract = function(node)
@@ -50,8 +58,7 @@ module.config.public = {
 
             while not check_all() do
                 if node:type() == "document" then
-                    vim.notify("Unable to indent current line", vim.log.levels.INFO)
-                    return
+                    return node
                 end
 
                 node = node:parent()
@@ -61,14 +68,38 @@ module.config.public = {
         end,
 
         heading1 = {
+            -- TODO
         }
     },
 
     lookbacks = {
-        heading1 = {
-            indent = function(node)
-                return module.required["core.integrations.treesitter"].get_node_range(node:named_child(1)).column_start
+        heading1 = module.config.private.generic_indent,
+        heading2 = module.config.private.generic_indent,
+        heading3 = module.config.private.generic_indent,
+        heading4 = module.config.private.generic_indent,
+        heading5 = module.config.private.generic_indent,
+        heading6 = module.config.private.generic_indent,
+
+        paragraph = {
+            indent = function(node, get_range)
+                return get_range(node).column_start
+            end
+        },
+
+        weak_paragraph_delimiter = {
+            indent = function(node, get_range)
+                if node:parent() then
+                    return get_range(node).column_start
+                end
+
+                return 0
             end,
+        },
+
+        strong_paragraph_delimiter = {
+            indent = function()
+                return 0
+            end
         }
     }
 }
@@ -89,10 +120,10 @@ module.public = {
         end
 
         if vim.api.nvim_get_current_line():match("^%s*$") then
-            log.warn("Empty, use lookback only")
+            log.trace("Empty, use lookback only")
             return module.public.get_indent_for_lookback(current_node)
         else
-            log.warn("Not empty, use regular indents")
+            log.trace("Not empty, use regular indents")
             return 4
         end
     end,
@@ -100,7 +131,7 @@ module.public = {
     get_indent_for_lookback = function(node)
         local indentor = module.config.public.lookbacks[node:type()]
 
-        return indentor and indentor.indent(node) or 0
+        return indentor and indentor.indent(node, module.required["core.integrations.treesitter"].get_node_range) or 0
     end,
 }
 
