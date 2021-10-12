@@ -797,14 +797,12 @@ module.config.public = {
                 icon = "─",
                 highlight = "NeorgHorizontalLine",
                 query = "(horizontal_line) @icon",
-                render = function(self, _, node)
+                render = function(self)
                     return {
                         {
                             string.rep(
                                 self.icon,
-                                vim.opt_local.columns:get()
-                                    - (module.required["core.integrations.treesitter"].get_node_range(node).column_start + 1) * 2
-                                    - 1
+                                vim.api.nvim_win_get_width(0)
                             ),
                             self.highlight,
                         },
