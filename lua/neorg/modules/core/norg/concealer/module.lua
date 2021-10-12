@@ -101,11 +101,11 @@ module.public = {
 
     -- @Summary Activates icons for the current window
     -- @Description Parses the user configuration and enables concealing for the current window.
-    -- @Param from (number) - the line number that we should start at (defaults to 0)
     -- @Param volatile (boolean) - whether to clear the volatile icons
-    trigger_icons = function(from, volatile)
+    -- @Param from (number) - the line number that we should start at (defaults to 0)
+    trigger_icons = function(volatile, from)
         -- Clear all the conceals beforehand (so no overlaps occur)
-        module.public.clear_icons(from, volatile)
+        module.public.clear_icons(volatile, from)
 
         -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
@@ -278,9 +278,9 @@ module.public = {
 
     -- @Summary Clears all the conceals that neorg has defined
     -- @Description Simply clears the Neorg extmark namespace
-    -- @Param from (number) - the line number to start clearing from
     -- @Param volatile (boolean) - whether to clear the volatile icons
-    clear_icons = function(from, volatile)
+    -- @Param from (number) - the line number to start clearing from
+    clear_icons = function(volatile, from)
         if volatile then
             vim.api.nvim_buf_clear_namespace(0, module.private.volatile_namespace, from or 0, -1)
         else
@@ -1020,7 +1020,6 @@ module.on_event = function(event)
         -- If the content of a line has changed in normal mode then reparse the file
         module.public.trigger_icons(false)
     elseif event.type == "core.autocommands.events.cursormoved" then
-        -- If the content of a line has changed in normal mode then reparse the file
         module.public.volatile_icons()
     elseif event.type == "core.autocommands.events.insertenter" then
         vim.api.nvim_buf_clear_namespace(
