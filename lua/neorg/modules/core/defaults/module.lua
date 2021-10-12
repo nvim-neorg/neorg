@@ -13,6 +13,7 @@ return neorg.modules.create_meta(
     "core.norg.qol.todo_items",
     "core.norg.esupports",
     "core.norg.esupports.metagen",
+    "core.norg.esupports.indent",
     "core.integrations.treesitter",
     "core.norg.manoeuvre"
 )
