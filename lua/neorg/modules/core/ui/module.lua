@@ -93,10 +93,10 @@ module.public = {
     get_window_size = function(half)
         return half
                 and {
-                    math.floor(vim.api.nvim_win_get_width(0) / 2),
-                    math.floor(vim.api.nvim_win_get_height(0) / 2),
+                    math.floor(vim.opt_local.columns:get() / 2),
+                    math.floor(vim.opt_local.lines:get() / 2),
                 }
-            or { vim.api.nvim_win_get_width(0), vim.api.nvim_win_get_height(0) }
+            or { vim.opt_local.columns:get(), vim.opt_local.lines:get() }
     end,
 
     -- @Summary Applies a set of custom options to modify regular Neovim window opts
