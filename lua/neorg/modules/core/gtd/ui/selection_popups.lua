@@ -137,7 +137,7 @@ module.public = {
             end
         )
 
-        selection:title("Capture"):blank():concat(module.private.add_to_inbox)
+        selection:title("Capture"):blank():concat(module.private.capture_task)
         module.private.display_messages()
     end,
 }

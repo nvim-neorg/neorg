@@ -101,6 +101,8 @@ module.on_event = function(event)
         elseif event.split_type[2] == "gtd.capture" then
             module.required["core.gtd.ui"].show_capture_popup()
         end
+    elseif event.split_type[1] == "core.neorgcmd" then
+        log.warn("Keybinds not implemented")
     end
 end
 
