@@ -799,11 +799,15 @@ module.config.public = {
                 query = "(horizontal_line) @icon",
                 render = function(self, _, node)
                     return {
-                        { string.rep(
-                            self.icon,
-                            vim.opt_local.columns:get() - (module.required["core.integrations.treesitter"].get_node_range(node).column_start() + 1) * 2 - 1
-                        ),
-                        self.highlight },
+                        {
+                            string.rep(
+                                self.icon,
+                                vim.opt_local.columns:get()
+                                    - (module.required["core.integrations.treesitter"].get_node_range(node).column_start + 1) * 2
+                                    - 1
+                            ),
+                            self.highlight,
+                        },
                     }
                 end,
             },
