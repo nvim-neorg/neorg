@@ -399,6 +399,7 @@ module.public = {
         local res = {}
         local workspace = module.public.get_workspace(workspace_name)
         if workspace == nil then
+            log.error("Workspace " .. workspace_name .. "does not exist")
             return
         end
 

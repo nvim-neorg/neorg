@@ -135,59 +135,66 @@ module.private = {
         })
     end,
 
-    add_to_inbox = function(selection)
-        return selection:rflag("a", "Add a task to the inbox", {
-            callback = function()
-                selection:title("Add a task to the inbox"):blank():prompt("Task", {
-                    callback = function(text)
-                        local task = {}
-                        task.content = text
+    capture_task = function(selection)
+        return selection:title("Add a task to the inbox"):blank():prompt("Task", {
+            callback = function(text)
+                local task = {}
+                task.content = text
 
-                        selection:push_page()
+                selection:push_page()
 
-                        selection
-                            :title("Add informations")
-                            :blank()
-                            :text("Task: " .. task.content)
-                            :blank()
-                            :text("General informations")
-                            :concat(function()
-                                return module.private.generate_default_flags(selection, task, "contexts", "c")
-                            end)
-                            :concat(function()
-                                return module.private.generate_default_flags(selection, task, "waiting.for", "w")
-                            end)
-                            :blank()
-                            :text("Dates")
-                            :concat(function()
-                                return module.private.generate_date_flags(selection, task, "due", "d")
-                            end)
-                            :concat(function()
-                                return module.private.generate_date_flags(selection, task, "start", "s")
-                            end)
-                            :blank()
-                            :concat(function()
-                                return module.private.generate_project_flags(selection, task, "p")
-                            end)
-                            :flag("<CR>", "Finish", function()
-                                local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
-                                local end_row, bufnr, projectAtEnd =
-                                    module.required["core.gtd.queries"].get_end_document_content(
-                                        inbox
-                                    )
+                selection
+                    :title("Add informations")
+                    :blank()
+                    :text("Task: " .. task.content)
+                    :blank()
+                    :text("General informations")
+                    :concat(function()
+                        return module.private.generate_default_flags(selection, task, "contexts", "c")
+                    end)
+                    :concat(function()
+                        return module.private.generate_default_flags(selection, task, "waiting.for", "w")
+                    end)
+                    :blank()
+                    :text("Dates")
+                    :concat(function()
+                        return module.private.generate_date_flags(selection, task, "due", "d")
+                    end)
+                    :concat(function()
+                        return module.private.generate_date_flags(selection, task, "start", "s")
+                    end)
+                    :blank()
+                    :concat(function()
+                        return module.private.generate_project_flags(selection, task, "p")
+                    end)
+                    :blank()
+                    :flag("x", "Add to cursor position", function()
+                        local cursor = vim.api.nvim_win_get_cursor(0)
+                        local location = cursor[1] - 1
+                        module.required["core.gtd.queries"].create(
+                            "task",
+                            task,
+                            0,
+                            location,
+                            false,
+                            { newline = false }
+                        )
+                    end)
+                    :flag("<CR>", "Add to inbox", function()
+                        local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
+                        local end_row, bufnr, projectAtEnd =
+                            module.required["core.gtd.queries"].get_end_document_content(
+                                inbox
+                            )
 
-                                module.required["core.gtd.queries"].create("task", task, bufnr, end_row, projectAtEnd)
-                            end)
+                        module.required["core.gtd.queries"].create("task", task, bufnr, end_row, projectAtEnd)
+                    end)
 
-                        return selection
-                    end,
-
-                    -- Do not pop or destroy the prompt when confirmed
-                    pop = false,
-                    destroy = false,
-                })
                 return selection
             end,
+
+            -- Do not pop or destroy the prompt when confirmed
+            pop = false,
             destroy = false,
         })
     end,
