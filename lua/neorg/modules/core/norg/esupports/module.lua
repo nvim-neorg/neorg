@@ -1017,6 +1017,7 @@ module.on_event = function(event)
             if module.config.public.folds.enabled then
                 vim.opt_local.foldmethod = "expr"
                 vim.opt_local.foldexpr = "nvim_treesitter#foldexpr()"
+                vim.opt_local.foldtext = "v:lua.neorg.utils.foldtext()"
                 vim.opt_local.foldlevel = module.config.public.folds.foldlevel
             end
         end
