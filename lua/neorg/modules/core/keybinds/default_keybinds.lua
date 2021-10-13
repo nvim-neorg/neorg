@@ -18,6 +18,11 @@ module.public = {
                     { "gtp", "core.norg.qol.todo_items.todo.task_pending" },
                     { "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" },
 
+                    -- Keys for managing GTD
+                    { neorg_leader .. "tc", "core.gtd.base.capture" },
+                    { neorg_leader .. "tv", "core.gtd.base.views" },
+                    { neorg_leader .. "te", "core.gtd.base.edit" },
+
                     -- Keys for managing notes
                     { neorg_leader .. "nn", "core.norg.dirman.new.note" },
 
