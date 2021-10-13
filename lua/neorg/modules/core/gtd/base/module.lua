@@ -67,7 +67,9 @@ module.load = function()
     module.private.workspace_full_path = module.required["core.norg.dirman"].get_workspace(workspace)
 
     -- Register keybinds
-    module.required["core.keybinds"].register_keybind(module.name, "add_to_inbox")
+    module.required["core.keybinds"].register_keybind(module.name, "views")
+    module.required["core.keybinds"].register_keybind(module.name, "edit")
+    module.required["core.keybinds"].register_keybind(module.name, "capture")
 
     -- Add neorgcmd capabilities
     -- All gtd commands start with :Neorg gtd ...
@@ -93,22 +95,22 @@ module.load = function()
 end
 
 module.on_event = function(event)
-    if event.split_type[1] == "core.neorgcmd" then
-        if event.split_type[2] == "gtd.views" then
+    if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.split_type[1]) then
+        if vim.tbl_contains({ "gtd.views", "core.gtd.base.views" }, event.split_type[2]) then
             module.required["core.gtd.ui"].show_views_popup(module.config.public)
-        elseif event.split_type[2] == "gtd.edit" then
+        elseif vim.tbl_contains({ "gtd.edit", "core.gtd.base.edit" }, event.split_type[2]) then
             module.public.edit_task()
-        elseif event.split_type[2] == "gtd.capture" then
+        elseif vim.tbl_contains({ "gtd.capture", "core.gtd.base.capture" }, event.split_type[2]) then
             module.required["core.gtd.ui"].show_capture_popup()
         end
-    elseif event.split_type[1] == "core.neorgcmd" then
-        log.warn("Keybinds not implemented")
     end
 end
 
 module.events.subscribed = {
     ["core.keybinds"] = {
-        ["core.gtd.base.add_to_inbox"] = true,
+        ["core.gtd.base.capture"] = true,
+        ["core.gtd.base.views"] = true,
+        ["core.gtd.base.edit"] = true,
     },
     ["core.neorgcmd"] = {
         ["gtd.views"] = true,
