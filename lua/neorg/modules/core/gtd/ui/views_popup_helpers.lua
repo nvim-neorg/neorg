@@ -200,9 +200,13 @@ module.private = {
     end,
 
     generate_display_flags = function(selection, configs)
+        -- Exlude files explicitely provided by the user, and the inbox file
+        local exclude_files = configs.exclude
+        table.insert(exclude_files, configs.default_lists.inbox)
+
         -- Get tasks and projects
-        local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = configs.exclude })
-        local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = configs.exclude })
+        local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = exclude_files })
+        local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = exclude_files })
         tasks = module.required["core.gtd.queries"].add_metadata(tasks, "task")
         projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
