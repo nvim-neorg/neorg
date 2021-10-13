@@ -60,6 +60,7 @@ module.private = {
                         selection
                             :title("Custom Date")
                             :text("Allowed date: today, tomorrow, Xw, Xd, Xm, Xy (where X is a number)")
+                            :text("You can even use 'mon', 'tue', 'wed' ... for the next weekday date")
                             :blank()
                             :prompt("Due", {
                                 callback = function(text)
