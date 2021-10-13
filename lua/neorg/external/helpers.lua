@@ -159,7 +159,7 @@ neorg.utils = {
         local version = vim.version()
 
         return major <= version.major and minor <= version.minor and patch <= version.patch
-    end
+    end,
 }
 
 return neorg.utils

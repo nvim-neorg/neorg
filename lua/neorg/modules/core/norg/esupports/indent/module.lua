@@ -2,7 +2,7 @@
 -- Indentation module for Neorg
 --]]
 
-require('neorg.modules.base')
+require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.esupports.indent")
 
@@ -11,8 +11,8 @@ module.setup = function()
         success = true,
         requires = {
             "core.integrations.treesitter",
-            "core.autocommands"
-        }
+            "core.autocommands",
+        },
     }
 end
 
@@ -69,7 +69,7 @@ module.config.public = {
 
         heading1 = {
             -- TODO
-        }
+        },
     },
 
     lookbacks = {
@@ -83,7 +83,7 @@ module.config.public = {
         paragraph = {
             indent = function(node, get_range)
                 return get_range(node).column_start
-            end
+            end,
         },
 
         weak_paragraph_delimiter = {
@@ -99,9 +99,15 @@ module.config.public = {
         strong_paragraph_delimiter = {
             indent = function()
                 return 0
-            end
-        }
-    }
+            end,
+        },
+
+        ranged_tag = {
+            indent = function(node, get_range)
+                return get_range(node).start_column -- TODO: Maybe extract this into another helper func?
+            end,
+        },
+    },
 }
 
 module.load = function()
@@ -143,8 +149,8 @@ end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
-        bufenter = true
-    }
+        bufenter = true,
+    },
 }
 
 return module

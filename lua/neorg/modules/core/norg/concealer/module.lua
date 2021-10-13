@@ -495,7 +495,7 @@ module.config.public = {
         },
 
         ordered = {
-            enabled = require('neorg.external.helpers').is_minimum_version(0, 6, 0),
+            enabled = require("neorg.external.helpers").is_minimum_version(0, 6, 0),
 
             --[[
                 Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
@@ -801,7 +801,7 @@ module.config.public = {
                     local resulting_length = vim.api.nvim_win_get_width(0)
 
                     -- If we are running at least 0.6 (which has the prev_sibling() function) then
-                    if require('neorg.external.helpers').is_minimum_version(0, 6, 0) then
+                    if require("neorg.external.helpers").is_minimum_version(0, 6, 0) then
                         -- Grab the sibling before our current node in order to later
                         -- determine how much space it occupies in the buffer vertically
                         local prev_sibling = node:prev_sibling()
@@ -836,10 +836,7 @@ module.config.public = {
 
                     return {
                         {
-                            string.rep(
-                                self.icon,
-                                resulting_length
-                            ),
+                            string.rep(self.icon, resulting_length),
                             self.highlight,
                         },
                     }
