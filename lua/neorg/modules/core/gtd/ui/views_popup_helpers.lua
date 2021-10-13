@@ -60,6 +60,7 @@ module.private = {
                         selection
                             :title("Custom Date")
                             :text("Allowed date: today, tomorrow, Xw, Xd, Xm, Xy (where X is a number)")
+                            :text("You can even use 'mon', 'tue', 'wed' ... for the next weekday date")
                             :blank()
                             :prompt("Due", {
                                 callback = function(text)
@@ -136,7 +137,7 @@ module.private = {
     end,
 
     capture_task = function(selection)
-        return selection:title("Add a task to the inbox"):blank():prompt("Task", {
+        return selection:title("Add a task"):blank():prompt("Task", {
             callback = function(text)
                 local task = {}
                 task.content = text
@@ -158,10 +159,10 @@ module.private = {
                     :blank()
                     :text("Dates")
                     :concat(function()
-                        return module.private.generate_date_flags(selection, task, "due", "d")
+                        return module.private.generate_date_flags(selection, task, "time.due", "d")
                     end)
                     :concat(function()
-                        return module.private.generate_date_flags(selection, task, "start", "s")
+                        return module.private.generate_date_flags(selection, task, "time.start", "s")
                     end)
                     :blank()
                     :concat(function()
@@ -200,9 +201,13 @@ module.private = {
     end,
 
     generate_display_flags = function(selection, configs)
+        -- Exlude files explicitely provided by the user, and the inbox file
+        local exclude_files = configs.exclude
+        table.insert(exclude_files, configs.default_lists.inbox)
+
         -- Get tasks and projects
-        local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = configs.exclude })
-        local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = configs.exclude })
+        local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = exclude_files })
+        local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = exclude_files })
         tasks = module.required["core.gtd.queries"].add_metadata(tasks, "task")
         projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
