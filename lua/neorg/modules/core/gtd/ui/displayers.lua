@@ -360,7 +360,7 @@ module.public = {
                 due = task["time.due"][1] == day
             end
 
-            return due or start
+            return task.state ~= "done" and (due or start)
         end
 
         local days = { "tomorrow", "2d", "3d", "4d", "5d", "6d" }
@@ -424,7 +424,7 @@ module.private = {
             today_context = vim.tbl_contains(task.contexts, "today")
         end
 
-        local today_state = (task.state ~= "done")
+        local today_state = task.state ~= "done"
 
         local already_started = true
         local starting_today = false
