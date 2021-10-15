@@ -812,17 +812,28 @@ module.config.public = {
                             local text = ts.get_node_text(prev_sibling)
                             local longest = 0
 
-                            -- Go through each line and remove its surrounding whitespace,
-                            -- we do this because some inconsistencies tend to occur with
-                            -- the way whitespace is handled.
-                            for _, line in ipairs(text) do
-                                line = vim.trim(line)
+                            if prev_sibling:parent() and prev_sibling:prev_sibling():type() == "marker_prefix" then
+                                local range_of_prefix = module.required["core.integrations.treesitter"].get_node_range(
+                                    prev_sibling:prev_sibling()
+                                )
+                                local range_of_title = module.required["core.integrations.treesitter"].get_node_range(
+                                    prev_sibling
+                                )
+                                resulting_length = (range_of_prefix.column_end - range_of_prefix.column_start)
+                                    + (range_of_title.column_end - range_of_title.column_start)
+                            else
+                                -- Go through each line and remove its surrounding whitespace,
+                                -- we do this because some inconsistencies tend to occur with
+                                -- the way whitespace is handled.
+                                for _, line in ipairs(text) do
+                                    line = vim.trim(line)
 
-                                -- If the line even has any "normal" characters
-                                -- and its length is a new record then update the
-                                -- `longest` variable
-                                if line:match("%w") and line:len() > longest then
-                                    longest = line:len()
+                                    -- If the line even has any "normal" characters
+                                    -- and its length is a new record then update the
+                                    -- `longest` variable
+                                    if line:match("%w") and line:len() > longest then
+                                        longest = line:len()
+                                    end
                                 end
                             end
 
