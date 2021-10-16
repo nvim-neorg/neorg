@@ -91,7 +91,8 @@ module.setup = function()
 end
 
 module.private = {
-    namespace = vim.api.nvim_create_namespace("neorg_conceals"),
+    icon_namespace = vim.api.nvim_create_namespace("neorg_conceals"),
+    code_block_namespace = vim.api.nvim_create_namespace("neorg_code_blocks"),
     extmarks = {},
     icons = {},
 }
@@ -104,65 +105,6 @@ module.public = {
     trigger_icons = function(from)
         -- Clear all the conceals beforehand (so no overlaps occur)
         module.public.clear_icons(from)
-
-        -- The next block of code will be responsible for dimming code blocks accordingly
-        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
-
-        -- If the tree is valid then attempt to perform the query
-        if tree then
-            do
-                -- Query all code blocks
-                local ok, query = pcall(
-                    vim.treesitter.parse_query,
-                    "norg",
-                    [[(
-                        (ranged_tag (tag_name) @_name) @tag
-                        (#eq? @_name "code")
-                    )]]
-                )
-
-                -- If something went wrong then go bye bye
-                if not ok or not query then
-                    return
-                end
-
-                -- Go through every found capture
-                for id, node in query:iter_captures(tree:root(), 0, from or 0, -1) do
-                    local id_name = query.captures[id]
-
-                    -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
-                    if id_name == "tag" then
-                        -- Get the range of the code block
-                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-                        -- Go through every line in the code block and give it a magical highlight
-                        for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
-                            local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
-
-                            -- If our buffer is modifiable or if our line is too short then try to fill in the line
-                            -- (this fixes broken syntax highlights automatically)
-                            if vim.bo.modifiable and line:len() < range.column_start then
-                                vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
-                            end
-
-                            -- If our line is valid and it's not too short then apply the dimmed highlight
-                            if line and line:len() >= range.column_start then
-                                module.public._set_extmark(
-                                    nil,
-                                    "NeorgCodeBlock",
-                                    i,
-                                    i + 1,
-                                    range.column_start,
-                                    nil,
-                                    true,
-                                    "blend"
-                                )
-                            end
-                        end
-                    end
-                end
-            end
-        end
 
         -- Get the root node of the document (required to iterate over query captures)
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
@@ -204,6 +146,7 @@ module.public = {
                             module.public._set_extmark(
                                 icon_data.icon,
                                 icon_data.highlight,
+                                "icon",
                                 range.row_start,
                                 range.row_end,
                                 range.column_start + offset,
@@ -215,12 +158,75 @@ module.public = {
                             module.public._set_extmark(
                                 icon_data:render(text, node),
                                 icon_data.highlight,
+                                "icon",
                                 range.row_start,
                                 range.row_end,
                                 range.column_start + offset,
                                 range.column_end,
                                 false,
                                 "combine"
+                            )
+                        end
+                    end
+                end
+            end
+        end
+    end,
+
+    trigger_code_block_highlights = function(from)
+        module.public.clear_code_block_dimming(from)
+
+        -- The next block of code will be responsible for dimming code blocks accordingly
+        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+        -- If the tree is valid then attempt to perform the query
+        if tree then
+            -- Query all code blocks
+            local ok, query = pcall(
+                vim.treesitter.parse_query,
+                "norg",
+                [[(
+                    (ranged_tag (tag_name) @_name) @tag
+                    (#eq? @_name "code")
+                )]]
+            )
+
+            -- If something went wrong then go bye bye
+            if not ok or not query then
+                return
+            end
+
+            -- Go through every found capture
+            for id, node in query:iter_captures(tree:root(), 0, from or 0, -1) do
+                local id_name = query.captures[id]
+
+                -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                if id_name == "tag" then
+                    -- Get the range of the code block
+                    local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+                    -- Go through every line in the code block and give it a magical highlight
+                    for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
+                        local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
+
+                        -- If our buffer is modifiable or if our line is too short then try to fill in the line
+                        -- (this fixes broken syntax highlights automatically)
+                        if vim.bo.modifiable and line:len() < range.column_start then
+                            vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
+                        end
+
+                        -- If our line is valid and it's not too short then apply the dimmed highlight
+                        if line and line:len() >= range.column_start then
+                            module.public._set_extmark(
+                                nil,
+                                "NeorgCodeBlock",
+                                "code_block",
+                                i,
+                                i + 1,
+                                range.column_start,
+                                nil,
+                                true,
+                                "blend"
                             )
                         end
                     end
@@ -239,22 +245,29 @@ module.public = {
     -- @Param  end_column (number) - the end column of the conceal
     -- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
     -- @Param  mode (string: "replace"/"combine"/"blend") - the highlight mode for the extmark
-    _set_extmark = function(text, highlight, line_number, end_line, start_column, end_column, whole_line, mode)
+    _set_extmark = function(text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode)
         -- If the text type is a string then convert it into something that Neovim's extmark API can understand
         if type(text) == "string" then
             text = { { text, highlight } }
         end
 
         -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, module.private.namespace, line_number, start_column, {
-            end_col = end_column,
-            hl_group = highlight,
-            end_line = end_line,
-            virt_text = text or nil,
-            virt_text_pos = "overlay",
-            hl_mode = mode,
-            hl_eol = whole_line,
-        })
+        local ok, result = pcall(
+            vim.api.nvim_buf_set_extmark,
+            0,
+            module.private[ns .. "_namespace"],
+            line_number,
+            start_column,
+            {
+                end_col = end_column,
+                hl_group = highlight,
+                end_line = end_line,
+                virt_text = text or nil,
+                virt_text_pos = "overlay",
+                hl_mode = mode,
+                hl_eol = whole_line,
+            }
+        )
 
         -- If we have encountered an error then log it
         if not ok then
@@ -266,7 +279,13 @@ module.public = {
     -- @Description Simply clears the Neorg extmark namespace
     -- @Param from (number) - the line number to start clearing from
     clear_icons = function(from)
-        vim.api.nvim_buf_clear_namespace(0, module.private.namespace, from or 0, -1)
+        vim.api.nvim_buf_clear_namespace(0, module.private.icon_namespace, from or 0, -1)
+    end,
+
+    --- Clears all dimming applied to code blocks in the current buffer
+    --- @param from number #The line number to start clearing from
+    clear_code_block_dimming = function(from)
+        vim.api.nvim_buf_clear_namespace(0, module.private.code_block_namespace, from or 0, -1)
     end,
 
     -- @Summary Triggers conceals for the current buffer
@@ -812,17 +831,28 @@ module.config.public = {
                             local text = ts.get_node_text(prev_sibling)
                             local longest = 0
 
-                            -- Go through each line and remove its surrounding whitespace,
-                            -- we do this because some inconsistencies tend to occur with
-                            -- the way whitespace is handled.
-                            for _, line in ipairs(text) do
-                                line = vim.trim(line)
+                            if prev_sibling:parent() and prev_sibling:prev_sibling():type() == "marker_prefix" then
+                                local range_of_prefix = module.required["core.integrations.treesitter"].get_node_range(
+                                    prev_sibling:prev_sibling()
+                                )
+                                local range_of_title = module.required["core.integrations.treesitter"].get_node_range(
+                                    prev_sibling
+                                )
+                                resulting_length = (range_of_prefix.column_end - range_of_prefix.column_start)
+                                    + (range_of_title.column_end - range_of_title.column_start)
+                            else
+                                -- Go through each line and remove its surrounding whitespace,
+                                -- we do this because some inconsistencies tend to occur with
+                                -- the way whitespace is handled.
+                                for _, line in ipairs(text) do
+                                    line = vim.trim(line)
 
-                                -- If the line even has any "normal" characters
-                                -- and its length is a new record then update the
-                                -- `longest` variable
-                                if line:match("%w") and line:len() > longest then
-                                    longest = line:len()
+                                    -- If the line even has any "normal" characters
+                                    -- and its length is a new record then update the
+                                    -- `longest` variable
+                                    if line:match("%w") and line:len() > longest then
+                                        longest = line:len()
+                                    end
                                 end
                             end
 
@@ -897,6 +927,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufEnter")
 
     module.required["core.autocommands"].enable_autocommand("TextChanged")
+    module.required["core.autocommands"].enable_autocommand("TextChangedI")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
 end
@@ -908,19 +939,27 @@ module.on_event = function(event)
             module.public.trigger_conceals()
         end
 
+        -- TODO: Allow code block dimming to be disabled
+        module.public.trigger_code_block_highlights()
+
         module.public.trigger_icons()
     elseif event.type == "core.autocommands.events.textchanged" then
         -- If the content of a line has changed in normal mode then reparse the file
         module.public.trigger_icons()
+        module.public.trigger_code_block_highlights()
     elseif event.type == "core.autocommands.events.insertenter" then
         vim.api.nvim_buf_clear_namespace(
             0,
-            module.private.namespace,
+            module.private.icon_namespace,
             event.cursor_position[1] - 1,
             event.cursor_position[1]
         )
     elseif event.type == "core.autocommands.events.insertleave" then
-        module.public.trigger_icons(event.cursor_position[1])
+        vim.schedule(function()
+            module.public.trigger_icons(event.cursor_position[1])
+        end)
+    elseif event.type == "core.autocommands.events.textchangedi" then
+        vim.schedule(module.public.trigger_code_block_highlights)
     end
 end
 
@@ -928,6 +967,7 @@ module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
         textchanged = true,
+        textchangedi = true,
         insertenter = true,
         insertleave = true,
     },
