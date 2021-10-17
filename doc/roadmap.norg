@@ -73,22 +73,23 @@ here. For a better viewing experience, we recommend reading it opening it from `
         - [x] Create `module.queries.native` in order to play around with the norg content (from Treesitter).
 
    **** Default modules
-        - [x] Create a `core.neorgcmd` module. This module will allow the use of the `:Neorg`
-              command and will allow other modules to define their own custom functions to be
-              executed in this command, e.g. `:Neorg my_custom_command`. Default commands will be
-              `:Neorg list modules` (VERY BASIC, will be remastered soon) to list currently loaded
-              modules. More will be added in the future.
-        - [x] Create the wiki/docs for `core.neorgcmd`
-        - [x] Implement a `core.norg.concealer` module - this module will make the experience much
-              more aesthetically pleasing by using icons for bits of text rather than raw text itself.
-        - [x] Allow todo items to be checked, unchecked and marked as pending with a keybind.
-        - [x] Extend functionality of metamodules, allow individual modules from a metamodule to be
-              selectively disabled.
-        - [x] Module to manage directories where .norg files can be stored (`core.norg.dirman`).
-        - [x] Create an nvim-compe (and nvim-cmp) completion source
-        - [*] Add a module for efficiently managing and manipulating vim windows, be it splits,
-              floating windows etc.
-        - [x] Create the basics of ui components (selection popups, input prompts)
+    ***** Basics
+          - [x] Create a `core.neorgcmd` module. This module will allow the use of the `:Neorg`
+                command and will allow other modules to define their own custom functions to be
+                executed in this command, e.g. `:Neorg my_custom_command`. Default commands will be
+                `:Neorg list modules` (VERY BASIC, will be remastered soon) to list currently loaded
+                modules. More will be added in the future.
+          - [x] Create the wiki/docs for `core.neorgcmd`
+          - [x] Implement a `core.norg.concealer` module - this module will make the experience much
+                more aesthetically pleasing by using icons for bits of text rather than raw text itself.
+          - [x] Allow todo items to be checked, unchecked and marked as pending with a keybind.
+          - [x] Extend functionality of metamodules, allow individual modules from a metamodule to be
+                selectively disabled.
+          - [x] Module to manage directories where .norg files can be stored (`core.norg.dirman`).
+          - [x] Create an nvim-compe (and nvim-cmp) completion source
+          - [x] Add a module for efficiently managing and manipulating vim windows, be it splits,
+                floating windows etc.
+          - [x] Create the basics of ui components (selection popups, input prompts)
 
    **** External Modules
         - [x] Allow the installation of modules from github using `:Neorg install some/address`
@@ -104,8 +105,7 @@ here. For a better viewing experience, we recommend reading it opening it from `
               what they think before the specification is pushed (join the
               [discord](https://discord.gg/T6EgTAX7ht) if you haven't already).
         - [x] Make fancy README
-        - [x] Create the .norg spec. This spec will try to be similar to other markdown formats, but
-              does not promise to keep everything the same. The goal is as little ambiguity and as
+        - [x] Create the .norg spec. The goal is as little ambiguity and as
               much predictability as possible.
 
    **** Performance
