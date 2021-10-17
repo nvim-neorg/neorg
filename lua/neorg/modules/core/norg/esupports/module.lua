@@ -755,11 +755,11 @@ module.on_event = function(event)
     end
 
     -- If we have changed some text then attempt to auto-indent the current line
-    if
-        event.type == "core.autocommands.events.textchangedi" and module.config.public.indent_config.realtime.enabled
+    --[[ if
+        event.type == "core.autocommands.events.textchangedi" and module.config.public.indents.realtime.enabled
     then
         module.public.indent_line()
-    end
+    end ]]
 
     --[[ if event.type == "core.autocommands.events.bufwrite" then
 -- TODO

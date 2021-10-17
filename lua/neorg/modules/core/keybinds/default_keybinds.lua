@@ -32,6 +32,8 @@ module.public = {
 
                     { "<M-k>", "core.norg.manoeuvre.item_up" },
                     { "<M-j>", "core.norg.manoeuvre.item_down" },
+
+                    { "=", "core.norg.esupports.indent.indent" }
                 },
 
                 i = {

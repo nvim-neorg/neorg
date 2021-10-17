@@ -119,6 +119,8 @@ here. For a better viewing experience, we recommend reading it opening it from `
           - [ ] Fix a bug where undoing a range of text doesn't trigger `vim.api.nvim_buf_attach`
                 callbacks. If this were fixed we would be able to simply update the changed region
                 of text instead of reparsing the whole buffer.
+          *NOTE*: As of right now we've managed to make the situation a bit better by utilizing
+          :`vim.schedule`:s and by updating icons only on `InsertLeave` and `TextChanged`.
 
    **** Bugs
         - [ ] Make `core.keybinds` use `vim.api.nvim_buf_set_keymap` instead of applying global
