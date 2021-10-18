@@ -42,6 +42,10 @@ module.config.public = {
                 reference = "Normal",
                 percentage = 20,
             },
+            Comment = {
+                reference = "Normal",
+                percentage = 40,
+            },
         },
     },
 }

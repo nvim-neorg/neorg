@@ -25,6 +25,7 @@
     - \,subscript\,: ,subscript,
     - \$inline math\$: $f(x) = y$ (see also [Math](#math))
     - \=variable\=: =variable= (see also [Variables](#variables))
+    - \#inline comment\#: #inline comment#
 
     This also immediately shows you how to escape a special character using the backslash, \\.
 
@@ -156,6 +157,8 @@ consective new lines.
       This is also still a comment because the paragraph has not ended, yet.
 
       The double line break ended the paragraph so this is no longer part of the comment.
+
+      Note, that you can also add in-line comments using the `#`-attached modifier. #E.g. like this#
 
   *** Name
       $name foreplay

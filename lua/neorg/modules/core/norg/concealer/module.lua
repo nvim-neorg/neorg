@@ -355,6 +355,14 @@ module.public = {
             end)
         end
 
+        if conceals.comment then
+            vim.schedule(function()
+                vim.cmd([[
+                syn region NeorgConcealComment matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=#\%\([^ \t\n#]\)\@=" end="[^ \t\n\\]\@<=#\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                ]])
+            end)
+        end
+
         if conceals.trailing then
             vim.schedule(function()
                 vim.cmd([[
@@ -382,6 +390,7 @@ module.public = {
         silent! syn clear NeorgConcealBold
         silent! syn clear NeorgConcealUnderline
         silent! syn clear NeorgConcealMonospace
+        silent! syn clear NeorgConcealComment
         silent! syn clear NeorgConcealStrikethrough
         silent! syn clear NeorgConcealTrailing
         silent! syn clear NeorgConcealLink
@@ -451,6 +460,7 @@ module.config.public = {
         underline = true,
         strikethrough = true,
         verbatim = true,
+        comment = true,
         trailing = true,
         link = true,
     },
