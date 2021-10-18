@@ -209,7 +209,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             query = "(quote2_prefix) @icon",
             render = function(self)
                 return {
-                    { self.icon, module.config.public.icons.quote.level_1.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_1.highlight },
                     { self.icon, self.highlight },
                 }
             end,
@@ -222,8 +222,8 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             query = "(quote3_prefix) @icon",
             render = function(self)
                 return {
-                    { self.icon, module.config.public.icons.quote.level_1.highlight },
-                    { self.icon, module.config.public.icons.quote.level_2.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_1.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_2.highlight },
                     { self.icon, self.highlight },
                 }
             end,
@@ -236,9 +236,9 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             query = "(quote4_prefix) @icon",
             render = function(self)
                 return {
-                    { self.icon, module.config.public.icons.quote.level_1.highlight },
-                    { self.icon, module.config.public.icons.quote.level_2.highlight },
-                    { self.icon, module.config.public.icons.quote.level_3.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_1.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_2.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_3.highlight },
                     { self.icon, self.highlight },
                 }
             end,
@@ -251,10 +251,10 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             query = "(quote5_prefix) @icon",
             render = function(self)
                 return {
-                    { self.icon, module.config.public.icons.quote.level_1.highlight },
-                    { self.icon, module.config.public.icons.quote.level_2.highlight },
-                    { self.icon, module.config.public.icons.quote.level_3.highlight },
-                    { self.icon, module.config.public.icons.quote.level_4.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_1.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_2.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_3.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_4.highlight },
                     { self.icon, self.highlight },
                 }
             end,
@@ -267,11 +267,11 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             query = "(quote6_prefix) @icon",
             render = function(self)
                 return {
-                    { self.icon, module.config.public.icons.quote.level_1.highlight },
-                    { self.icon, module.config.public.icons.quote.level_2.highlight },
-                    { self.icon, module.config.public.icons.quote.level_3.highlight },
-                    { self.icon, module.config.public.icons.quote.level_4.highlight },
-                    { self.icon, module.config.public.icons.quote.level_5.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_1.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_2.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_3.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_4.highlight },
+                    { self.icon, module.config.private.icon_preset_diamond.quote.level_5.highlight },
                     { self.icon, self.highlight },
                 }
             end,
