@@ -3,7 +3,7 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.norg.qol.toc")
 
 module.setup = function()
-    return { success = true, requires = { "core.integrations.treesitter" } }
+    return { success = true, requires = { "core.integrations.treesitter", "core.ui" } }
 end
 
 module.public = {
@@ -135,26 +135,38 @@ Type :messages to see full output
     end,
 
     --- Displays the table of contents to the user
-    --- @param left boolean if true will spawn the vertical split on the right hand side
-    display_toc = function(left)
+    --- @param split boolean if true will spawn the vertical split on the right hand side
+    display_toc = function(split)
         local found_toc = module.public.find_toc()
 
         if not found_toc then
             return
         end
 
-        local namespace = vim.api.nvim_create_namespace("Neorg ToC")
         local generated_toc = module.public.generate_toc(found_toc)
 
         if not generated_toc then
             return
         end
 
-        virt_lines = {}
-        for i, element in ipairs(generated_toc) do
+        local virt_lines = {}
+        for _, element in ipairs(generated_toc) do
             table.insert(virt_lines, { { element.text, element.highlight } })
         end
 
+        if split == true then
+            local buf = module.required["core.ui"].create_norg_buffer("Neorg Toc", "vsplitr")
+
+            local filter = function(a)
+                return a.text
+            end
+
+            vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.tbl_map(filter, generated_toc))
+            vim.api.nvim_buf_set_option(buf, "modifiable", false)
+            return
+        end
+
+        local namespace = vim.api.nvim_create_namespace("Neorg ToC")
         vim.api.nvim_buf_set_extmark(0, namespace, found_toc.line, 0, { virt_lines = virt_lines })
     end,
 }
