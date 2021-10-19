@@ -110,6 +110,9 @@ Type :messages to see full output
                 highlight = "TSAnnotation",
                 level = 1,
             },
+            {
+                text = "",
+            },
         }
 
         local root = module.required["core.integrations.treesitter"].get_document_root()
