@@ -169,6 +169,10 @@ Type :messages to see full output
             return
         end
 
+        -- remove header because we are inserting right below `= TOC` anyways
+        table.remove(virt_lines, 1)
+        table.remove(virt_lines, 1)
+
         local namespace = vim.api.nvim_create_namespace("Neorg ToC")
         vim.api.nvim_buf_set_extmark(0, namespace, found_toc.line, 0, { virt_lines = virt_lines })
     end,
