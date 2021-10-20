@@ -107,6 +107,75 @@ module.private = {
     completion_level_namespace = vim.api.nvim_create_namespace("neorg-completion-level"),
     extmarks = {},
     icons = {},
+
+    completion_level_base = {
+        {
+            "(",
+        },
+        {
+            "<done>",
+            "TSField",
+        },
+        {
+            " of ",
+        },
+        {
+            "<total>",
+            "NeorgTodoItem1Done",
+        },
+        {
+            ") [<percentage>% complete]",
+        },
+    },
+
+    todo_list_query = [[
+        (generic_list
+            [
+                (todo_item1
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+                (todo_item2
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+                (todo_item3
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+                (todo_item4
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+                (todo_item5
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+                (todo_item6
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+            ] 
+        )
+    ]]
 }
 
 module.public = {
@@ -546,6 +615,14 @@ module.public = {
     },
 }
 
+local function reparg(value, index)
+    if index == 1 then
+        return value
+    end
+
+    return value, reparg(value, index - 1)
+end
+
 module.config.public = {
     icon_preset = "basic",
 
@@ -565,319 +642,68 @@ module.config.public = {
 
     completion_level = {
         enabled = true,
+
         queries = {
             {
-                query = [[
+                query = string.format([[
                 [
                     (heading1
-                        content: (generic_list
-                            [
-                                (todo_item1
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item2
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item3
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item4
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item5
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item6
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                            ] 
-                        )
-                    ) @progress
+                        content: [
+                            %s
+                            (carryover_tag_set
+                                (carryover_tag)+
+                                target: %s
+                            )
+                        ]
+                    )
                     (heading2
-                        content: (generic_list
-                            [
-                                (todo_item1
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item2
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item3
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item4
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item5
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item6
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                            ] 
-                        )
-                    ) @progress
+                        content: [
+                            %s
+                            (carryover_tag_set
+                                (carryover_tag)+
+                                target: %s
+                            )
+                        ]
+                    )
                     (heading3
-                        content: (generic_list
-                            [
-                                (todo_item1
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item2
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item3
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item4
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item5
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item6
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                            ] 
-                        )
-                    ) @progress
+                        content: [
+                            %s
+                            (carryover_tag_set
+                                (carryover_tag)+
+                                target: %s
+                            )
+                        ]
+                    )
                     (heading4
-                        content: (generic_list
-                            [
-                                (todo_item1
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item2
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item3
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item4
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item5
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item6
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                            ] 
-                        )
-                    ) @progress
+                        content: [
+                            %s
+                            (carryover_tag_set
+                                (carryover_tag)+
+                                target: %s
+                            )
+                        ]
+                    )
                     (heading5
-                        content: (generic_list
-                            [
-                                (todo_item1
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item2
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item3
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item4
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item5
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item6
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                            ] 
-                        )
-                    ) @progress
+                        content: [
+                            %s
+                            (carryover_tag_set
+                                (carryover_tag)+
+                                target: %s
+                            )
+                        ]
+                    )
                     (heading6
-                        content: (generic_list
-                            [
-                                (todo_item1
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item2
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item3
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item4
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item5
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                                (todo_item6
-                                    state: [
-                                        (todo_item_undone) @undone
-                                        (todo_item_pending) @pending
-                                        (todo_item_done) @done
-                                    ]
-                                )
-                            ] 
-                        )
-                    ) @progress
-                ]
-                ]],
-                text = {
-                    {
-                        "(",
-                    },
-                    {
-                        "<done>",
-                        "TSField",
-                    },
-                    {
-                        " of ",
-                    },
-                    {
-                        "<total>",
-                        "NeorgTodoItem1Done",
-                    },
-                    {
-                        ") [<percentage>% complete]",
-                    },
-                },
+                        content: [
+                            %s
+                            (carryover_tag_set
+                                (carryover_tag)+
+                                target: %s
+                            )
+                        ]
+                    )
+                ] @progress
+                ]], reparg(module.private.todo_list_query, 6 * 2)),
+                text = module.private.completion_level_base,
                 highlight = "DiagnosticVirtualTextHint",
             },
         },
