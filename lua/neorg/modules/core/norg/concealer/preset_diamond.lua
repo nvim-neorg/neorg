@@ -318,9 +318,17 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
         level_6 = {
             enabled = true,
-            icon = "     ⟡",
+            icon = "⟡",
             highlight = "NeorgHeading6",
             query = "(heading6_prefix) @icon",
+            render = function(self, text)
+                return {
+                    {
+                        string.rep(" ", text:len() - 2) .. self.icon,
+                        self.highlight,
+                    },
+                }
+            end,
         },
     },
 
