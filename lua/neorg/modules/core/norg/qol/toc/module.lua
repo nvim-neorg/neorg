@@ -90,7 +90,7 @@ Type :messages to see full output
                 if vim.startswith(node_type, "heading") and not vim.endswith(node_type, "prefix") then
                     local heading_level = tonumber(node_type:sub(8, 8))
 
-                    function join_text(text)
+                    local function join_text(text)
                         local out = {}
                         for k, v in ipairs(text) do
                             -- TODO: figure out how to do this in a single gsub
@@ -104,6 +104,7 @@ Type :messages to see full output
                         return table.concat(out, " ")
                     end
 
+                    local line, _, _ = node:start()
                     return {
                         text = string.rep("*", heading_level) .. " " .. join_text(
                             ts_utils.get_node_text(node:field("title")[1], 0)
@@ -111,6 +112,7 @@ Type :messages to see full output
                         highlight = "NeorgHeading" .. heading_level .. "Title",
                         level = heading_level,
                         state = state,
+                        line = line + 1,
                     }
                 end
             end
@@ -202,6 +204,41 @@ Type :messages to see full output
 
         local namespace = vim.api.nvim_create_namespace("Neorg ToC")
         vim.api.nvim_buf_set_extmark(0, namespace, found_toc.line, 0, { virt_lines = new_virt_lines })
+    end,
+
+    --- Populates the quickfix list with the table of contents
+    --- @param loclist boolean if true, uses the location list instead of the quickfix one
+    toqflist = function(loclist)
+        local found_toc = module.public.find_toc()
+
+        if not found_toc then
+            return
+        end
+
+        local generated_toc = module.public.generate_toc(found_toc)
+
+        if not generated_toc then
+            return
+        end
+
+        local bufnr = vim.api.nvim_win_get_buf(0)
+
+        local qflist = {}
+        for num, element in ipairs(generated_toc) do
+            if num > 2 then
+                table.insert(qflist, {
+                    bufnr = bufnr,
+                    lnum = element.line,
+                    text = element.text,
+                })
+            end
+        end
+
+        if loclist == true then
+            vim.fn.setloclist(0, qflist, "r")
+        else
+            vim.fn.setqflist(qflist, "r")
+        end
     end,
 }
 
