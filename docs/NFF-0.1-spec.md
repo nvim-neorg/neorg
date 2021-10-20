@@ -133,8 +133,9 @@ changes:
   - `,some text,` - subscript
   - `|some text|` - spoilers
   - \`some text\` - inline code block (verbatim)
-  - `$inline math$` - inline mathematics
-  - `=variable` - accesses a previously defined variable
+  - `$some text$` - inline mathematics
+  - `#some text#` - inline comment
+  - `=variable=` - accesses a previously defined variable
 
 ### Detached Modifiers and Their Functions
   Detached modifiers are those that change the way text is interpreted. Their symbols and functions are described in the format that follows:

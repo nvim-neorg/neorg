@@ -42,6 +42,10 @@ module.config.public = {
                 reference = "Normal",
                 percentage = 20,
             },
+            Comment = {
+                reference = "Normal",
+                percentage = 40,
+            },
         },
     },
 }
@@ -51,6 +55,7 @@ module.setup = function()
 end
 
 module.load = function()
+    module.required["core.autocommands"].enable_autocommand("BufEnter")
     module.required["core.autocommands"].enable_autocommand("ColorScheme", true)
 end
 
@@ -216,7 +221,7 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.type == "core.autocommands.events.colorscheme" then
+    if event.type == "core.autocommands.events.bufenter" or event.type == "core.autocommands.events.colorscheme" then
         module.public.trigger_highlights()
     end
 end
@@ -224,11 +229,8 @@ end
 module.events.subscribed = {
     ["core.autocommands"] = {
         colorscheme = true,
+        bufenter = true,
     },
 }
-
-module.neorg_post_load = function()
-    module.public.trigger_highlights()
-end
 
 return module

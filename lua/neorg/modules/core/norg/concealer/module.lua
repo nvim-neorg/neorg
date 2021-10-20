@@ -102,10 +102,80 @@ module.setup = function()
 end
 
 module.private = {
-    icon_namespace = vim.api.nvim_create_namespace("neorg_conceals"),
-    code_block_namespace = vim.api.nvim_create_namespace("neorg_code_blocks"),
+    icon_namespace = vim.api.nvim_create_namespace("neorg-conceals"),
+    code_block_namespace = vim.api.nvim_create_namespace("neorg-code-blocks"),
+    completion_level_namespace = vim.api.nvim_create_namespace("neorg-completion-level"),
     extmarks = {},
     icons = {},
+
+    completion_level_base = {
+        {
+            "(",
+        },
+        {
+            "<done>",
+            "TSField",
+        },
+        {
+            " of ",
+        },
+        {
+            "<total>",
+            "NeorgTodoItem1Done",
+        },
+        {
+            ") [<percentage>% complete]",
+        },
+    },
+
+    todo_list_query = [[
+        (generic_list
+            [
+                (todo_item1
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+                (todo_item2
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+                (todo_item3
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+                (todo_item4
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+                (todo_item5
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+                (todo_item6
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+            ] 
+        )
+    ]],
 }
 
 module.public = {
@@ -355,6 +425,14 @@ module.public = {
             end)
         end
 
+        if conceals.comment then
+            vim.schedule(function()
+                vim.cmd([[
+                syn region NeorgConcealComment matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=#\%\([^ \t\n#]\)\@=" end="[^ \t\n\\]\@<=#\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                ]])
+            end)
+        end
+
         if conceals.trailing then
             vim.schedule(function()
                 vim.cmd([[
@@ -376,18 +454,122 @@ module.public = {
     -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
     clear_conceals = function()
         vim.cmd([[
-        silent! syn clear NeorgConcealURL
-        silent! syn clear NeorgConcealURLValue
-        silent! syn clear NeorgConcealItalic
-        silent! syn clear NeorgConcealBold
-        silent! syn clear NeorgConcealUnderline
-        silent! syn clear NeorgConcealMonospace
-        silent! syn clear NeorgConcealStrikethrough
-        silent! syn clear NeorgConcealTrailing
-        silent! syn clear NeorgConcealLink
+            silent! syn clear NeorgConcealURL
+            silent! syn clear NeorgConcealURLValue
+            silent! syn clear NeorgConcealItalic
+            silent! syn clear NeorgConcealBold
+            silent! syn clear NeorgConcealUnderline
+            silent! syn clear NeorgConcealMonospace
+            silent! syn clear NeorgConcealComment
+            silent! syn clear NeorgConcealStrikethrough
+            silent! syn clear NeorgConcealTrailing
+            silent! syn clear NeorgConcealLink
         ]])
     end,
 
+    trigger_completion_levels = function(from)
+        from = from or 0
+
+        module.public.clear_completion_levels(from)
+
+        -- Get the root node of the document (required to iterate over query captures)
+        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+
+        if not document_root then
+            return
+        end
+
+        for _, query in ipairs(module.config.public.completion_level.queries) do
+            local query_object = vim.treesitter.parse_query("norg", query.query)
+
+            local nodes = {}
+            local last_node
+
+            local total, done, pending, undone = 0, 0, 0, 0
+
+            for id, node in query_object:iter_captures(document_root, 0, from, -1) do
+                local name = query_object.captures[id]
+
+                if name == "progress" then
+                    if last_node and node ~= last_node then
+                        table.insert(nodes, {
+                            node = last_node,
+                            total = total,
+                            done = done,
+                            pending = pending,
+                            undone = undone,
+                        })
+
+                        total, done, pending, undone = 0, 0, 0, 0
+                    end
+
+                    last_node = node
+                elseif name == "done" then
+                    done = done + 1
+                    total = total + 1
+                elseif name == "undone" then
+                    undone = undone + 1
+                    total = total + 1
+                elseif name == "pending" then
+                    pending = pending + 1
+                    total = total + 1
+                end
+            end
+
+            if total > 0 then
+                table.insert(nodes, {
+                    node = last_node,
+                    total = total,
+                    done = done,
+                    pending = pending,
+                    undone = undone,
+                })
+
+                for _, node_information in ipairs(nodes) do
+                    local node_range = module.required["core.integrations.treesitter"].get_node_range(
+                        node_information.node
+                    )
+                    local text = vim.deepcopy(query.text)
+
+                    local function format_query_text(data)
+                        data = data:gsub("<total>", tostring(node_information.total))
+                        data = data:gsub("<done>", tostring(node_information.done))
+                        data = data:gsub("<pending>", tostring(node_information.pending))
+                        data = data:gsub("<undone>", tostring(node_information.undone))
+                        data = data:gsub(
+                            "<percentage>",
+                            tostring(math.floor(node_information.done / node_information.total * 100))
+                        )
+
+                        return data
+                    end
+
+                    -- Format query text
+                    if type(text) == "string" then
+                        text = format_query_text(text)
+                    else
+                        for _, tbl in ipairs(text) do
+                            tbl[1] = format_query_text(tbl[1])
+
+                            tbl[2] = tbl[2] or query.highlight
+                        end
+                    end
+
+                    vim.api.nvim_buf_set_extmark(0, module.private.completion_level_namespace, node_range.row_start, -1, {
+                        virt_text = type(text) == "string" and { { text, query.highlight } } or text,
+                        priority = 250,
+                        hl_mode = "combine",
+                    })
+                end
+            end
+        end
+    end,
+
+    clear_completion_levels = function(from)
+        vim.api.nvim_buf_clear_namespace(0, module.private.completion_level_namespace, from or 0, -1)
+    end,
+
+    -- VARIABLES
     concealing = {
         ordered = {
             get_index = function(node, level)
@@ -439,6 +621,14 @@ module.public = {
     },
 }
 
+local function reparg(value, index)
+    if index == 1 then
+        return value
+    end
+
+    return value, reparg(value, index - 1)
+end
+
 module.config.public = {
     icon_preset = "basic",
 
@@ -451,8 +641,81 @@ module.config.public = {
         underline = true,
         strikethrough = true,
         verbatim = true,
+        comment = true,
         trailing = true,
         link = true,
+    },
+
+    completion_level = {
+        enabled = true,
+
+        queries = {
+            {
+                query = string.format(
+                    [[
+                        [
+                            (heading1
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
+                            )
+                            (heading2
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
+                            )
+                            (heading3
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
+                            )
+                            (heading4
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
+                            )
+                            (heading5
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
+                            )
+                            (heading6
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
+                            )
+                        ] @progress
+                ]],
+                    reparg(module.private.todo_list_query, 6 * 2)
+                ),
+                text = module.private.completion_level_base,
+                highlight = "DiagnosticVirtualTextHint",
+            },
+        },
     },
 }
 
@@ -519,19 +782,23 @@ end
 
 module.on_event = function(event)
     -- If we have just entered a .norg buffer then apply all conceals
+    -- TODO: Allow code block dimming to be disabled
+    -- TODO: Remove (or at least provide a reason) as to why there are so many vim.schedules
+    -- Explain priorities and how we only schedule less important things to improve the average user
+    -- experience
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         if module.config.public.conceals then
             module.public.trigger_conceals()
         end
 
-        -- TODO: Allow code block dimming to be disabled
         module.public.trigger_code_block_highlights()
-
+        module.public.trigger_completion_levels()
         module.public.trigger_icons()
     elseif event.type == "core.autocommands.events.textchanged" then
         -- If the content of a line has changed in normal mode then reparse the file
         module.public.trigger_icons()
         module.public.trigger_code_block_highlights()
+        vim.schedule(module.public.trigger_completion_levels)
     elseif event.type == "core.autocommands.events.insertenter" then
         vim.api.nvim_buf_clear_namespace(
             0,
@@ -542,6 +809,7 @@ module.on_event = function(event)
     elseif event.type == "core.autocommands.events.insertleave" then
         vim.schedule(function()
             module.public.trigger_icons(event.cursor_position[1])
+            module.public.trigger_completion_levels()
         end)
     elseif event.type == "core.autocommands.events.textchangedi" then
         vim.schedule(module.public.trigger_code_block_highlights)
