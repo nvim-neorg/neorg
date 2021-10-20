@@ -385,16 +385,16 @@ module.public = {
     -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
     clear_conceals = function()
         vim.cmd([[
-        silent! syn clear NeorgConcealURL
-        silent! syn clear NeorgConcealURLValue
-        silent! syn clear NeorgConcealItalic
-        silent! syn clear NeorgConcealBold
-        silent! syn clear NeorgConcealUnderline
-        silent! syn clear NeorgConcealMonospace
-        silent! syn clear NeorgConcealComment
-        silent! syn clear NeorgConcealStrikethrough
-        silent! syn clear NeorgConcealTrailing
-        silent! syn clear NeorgConcealLink
+            silent! syn clear NeorgConcealURL
+            silent! syn clear NeorgConcealURLValue
+            silent! syn clear NeorgConcealItalic
+            silent! syn clear NeorgConcealBold
+            silent! syn clear NeorgConcealUnderline
+            silent! syn clear NeorgConcealMonospace
+            silent! syn clear NeorgConcealComment
+            silent! syn clear NeorgConcealStrikethrough
+            silent! syn clear NeorgConcealTrailing
+            silent! syn clear NeorgConcealLink
         ]])
     end,
 
@@ -413,14 +413,28 @@ module.public = {
         for _, query in ipairs(module.config.public.completion_level.queries) do
             local query_object = vim.treesitter.parse_query("norg", query.query)
 
+            local nodes = {}
+            local last_node
+
             local total, done, pending, undone = 0, 0, 0, 0
-            local progress_node
 
             for id, node in query_object:iter_captures(document_root, 0, from, -1) do
                 local name = query_object.captures[id]
 
                 if name == "progress" then
-                    progress_node = node
+                    if last_node and node ~= last_node then
+                        table.insert(nodes, {
+                            node = last_node,
+                            total = total,
+                            done = done,
+                            pending = pending,
+                            undone = undone,
+                        })
+
+                        total, done, pending, undone = 0, 0, 0, 0
+                    end
+
+                    last_node = node
                 elseif name == "done" then
                     done = done + 1
                     total = total + 1
@@ -433,33 +447,46 @@ module.public = {
                 end
             end
 
-            local node_range = module.required["core.integrations.treesitter"].get_node_range(progress_node)
-            local text = vim.deepcopy(query.text)
-
-            local function format_query_text(data)
-                data = data:gsub("<total>", tostring(total))
-                data = data:gsub("<done>", tostring(done))
-                data = data:gsub("<pending>", tostring(pending))
-                data = data:gsub("<undone>", tostring(undone))
-                data = data:gsub("<percentage>", tostring(math.floor(done / total * 100)))
-
-                return data
-            end
-
-            -- Format query text
-            if type(text) == "string" then
-                text = format_query_text(text)
-            else
-                for _, tbl in ipairs(text) do
-                    tbl[1] = format_query_text(tbl[1])
-
-                    tbl[2] = tbl[2] or query.highlight
-                end
-            end
-
-            vim.api.nvim_buf_set_extmark(0, module.private.completion_level_namespace, node_range.row_start, -1, {
-                virt_text = type(text) == "string" and { { text, query.highlight } } or text,
+            table.insert(nodes, {
+                node = last_node,
+                total = total,
+                done = done,
+                pending = pending,
+                undone = undone,
             })
+
+            for _, node_information in ipairs(nodes) do
+                local node_range = module.required["core.integrations.treesitter"].get_node_range(node_information.node)
+                local text = vim.deepcopy(query.text)
+
+                local function format_query_text(data)
+                    data = data:gsub("<total>", tostring(node_information.total))
+                    data = data:gsub("<done>", tostring(node_information.done))
+                    data = data:gsub("<pending>", tostring(node_information.pending))
+                    data = data:gsub("<undone>", tostring(node_information.undone))
+                    data = data:gsub(
+                        "<percentage>",
+                        tostring(math.floor(node_information.done / node_information.total * 100))
+                    )
+
+                    return data
+                end
+
+                -- Format query text
+                if type(text) == "string" then
+                    text = format_query_text(text)
+                else
+                    for _, tbl in ipairs(text) do
+                        tbl[1] = format_query_text(tbl[1])
+
+                        tbl[2] = tbl[2] or query.highlight
+                    end
+                end
+
+                vim.api.nvim_buf_set_extmark(0, module.private.completion_level_namespace, node_range.row_start, -1, {
+                    virt_text = type(text) == "string" and { { text, query.highlight } } or text,
+                })
+            end
         end
     end,
 
@@ -541,6 +568,7 @@ module.config.public = {
         queries = {
             {
                 query = [[
+                [
                     (heading1
                         content: (generic_list
                             [
@@ -589,8 +617,248 @@ module.config.public = {
                             ] 
                         )
                     ) @progress
+                    (heading2
+                        content: (generic_list
+                            [
+                                (todo_item1
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item2
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item3
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item4
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item5
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item6
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                            ] 
+                        )
+                    ) @progress
+                    (heading3
+                        content: (generic_list
+                            [
+                                (todo_item1
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item2
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item3
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item4
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item5
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item6
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                            ] 
+                        )
+                    ) @progress
+                    (heading4
+                        content: (generic_list
+                            [
+                                (todo_item1
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item2
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item3
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item4
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item5
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item6
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                            ] 
+                        )
+                    ) @progress
+                    (heading5
+                        content: (generic_list
+                            [
+                                (todo_item1
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item2
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item3
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item4
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item5
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item6
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                            ] 
+                        )
+                    ) @progress
+                    (heading6
+                        content: (generic_list
+                            [
+                                (todo_item1
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item2
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item3
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item4
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item5
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item6
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                            ] 
+                        )
+                    ) @progress
+                ]
                 ]],
-                -- text = "(<done> of <total>) [<percentage>% complete]",
                 text = {
                     {
                         "(",
