@@ -90,11 +90,22 @@ Type :messages to see full output
                 if vim.startswith(node_type, "heading") and not vim.endswith(node_type, "prefix") then
                     local heading_level = tonumber(node_type:sub(8, 8))
 
+                    function join_text(text)
+                        local out = {}
+                        for k, v in ipairs(text) do
+                            -- TODO: figure out how to do this in a single gsub
+                            -- (it's not as trivial as it seems because we must
+                            -- avoid that `(.+)` greedily includes the trailing
+                            -- modifier...)
+                            v = v:gsub("^(.+)%~$", "%1")
+                            v = v:gsub("^%s*(.+)$", "%1")
+                            out[k] = v
+                        end
+                        return table.concat(out, " ")
+                    end
+
                     return {
-                        text = string.rep("*", heading_level) .. " " .. table.concat(
-                            ts_utils.get_node_text(node:field("title")[1], 0),
-                            " "
-                        ),
+                        text = string.rep("*", heading_level) .. " " .. join_text(ts_utils.get_node_text(node:field("title")[1], 0)),
                         highlight = "NeorgHeading" .. heading_level .. "Title",
                         level = heading_level,
                         state = state,
