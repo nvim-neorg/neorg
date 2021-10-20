@@ -102,8 +102,9 @@ module.setup = function()
 end
 
 module.private = {
-    icon_namespace = vim.api.nvim_create_namespace("neorg_conceals"),
-    code_block_namespace = vim.api.nvim_create_namespace("neorg_code_blocks"),
+    icon_namespace = vim.api.nvim_create_namespace("neorg-conceals"),
+    code_block_namespace = vim.api.nvim_create_namespace("neorg-code-blocks"),
+    completion_level_namespace = vim.api.nvim_create_namespace("neorg-completion-level"),
     extmarks = {},
     icons = {},
 }
@@ -397,6 +398,76 @@ module.public = {
         ]])
     end,
 
+    trigger_completion_levels = function(from)
+        from = from or 0
+
+        module.public.clear_completion_levels(from)
+
+        -- Get the root node of the document (required to iterate over query captures)
+        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+
+        if not document_root then
+            return
+        end
+
+        for _, query in ipairs(module.config.public.completion_level.queries) do
+            local query_object = vim.treesitter.parse_query("norg", query.query)
+
+            local total, done, pending, undone = 0, 0, 0, 0
+            local progress_node
+
+            for id, node in query_object:iter_captures(document_root, 0, from, -1) do
+                local name = query_object.captures[id]
+
+                if name == "progress" then
+                    progress_node = node
+                elseif name == "done" then
+                    done = done + 1
+                    total = total + 1
+                elseif name == "undone" then
+                    undone = undone + 1
+                    total = total + 1
+                elseif name == "pending" then
+                    pending = pending + 1
+                    total = total + 1
+                end
+            end
+
+            local node_range = module.required["core.integrations.treesitter"].get_node_range(progress_node)
+            local text = vim.deepcopy(query.text)
+
+            local function format_query_text(data)
+                data = data:gsub("<total>", tostring(total))
+                data = data:gsub("<done>", tostring(done))
+                data = data:gsub("<pending>", tostring(pending))
+                data = data:gsub("<undone>", tostring(undone))
+                data = data:gsub("<percentage>", tostring(math.floor(done / total * 100)))
+
+                return data
+            end
+
+            -- Format query text
+            if type(text) == "string" then
+                text = format_query_text(text)
+            else
+                for _, tbl in ipairs(text) do
+                    tbl[1] = format_query_text(tbl[1])
+
+                    tbl[2] = tbl[2] or query.highlight
+                end
+            end
+
+            vim.api.nvim_buf_set_extmark(0, module.private.completion_level_namespace, node_range.row_start, -1, {
+                virt_text = type(text) == "string" and { { text, query.highlight } } or text,
+            })
+        end
+    end,
+
+    clear_completion_levels = function(from)
+        vim.api.nvim_buf_clear_namespace(0, module.private.completion_level_namespace, from or 0, -1)
+    end,
+
+    -- VARIABLES
     concealing = {
         ordered = {
             get_index = function(node, level)
@@ -464,6 +535,85 @@ module.config.public = {
         trailing = true,
         link = true,
     },
+
+    completion_level = {
+        enabled = true,
+        queries = {
+            {
+                query = [[
+                    (heading1
+                        content: (generic_list
+                            [
+                                (todo_item1
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item2
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item3
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item4
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item5
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                                (todo_item6
+                                    state: [
+                                        (todo_item_undone) @undone
+                                        (todo_item_pending) @pending
+                                        (todo_item_done) @done
+                                    ]
+                                )
+                            ] 
+                        )
+                    ) @progress
+                ]],
+                -- text = "(<done> of <total>) [<percentage>% complete]",
+                text = {
+                    {
+                        "(",
+                    },
+                    {
+                        "<done>",
+                        "TSField",
+                    },
+                    {
+                        " of ",
+                    },
+                    {
+                        "<total>",
+                        "NeorgTodoItem1Done",
+                    },
+                    {
+                        ") [<percentage>% complete]",
+                    },
+                },
+                highlight = "DiagnosticVirtualTextHint",
+            },
+        },
+    },
 }
 
 module.load = function()
@@ -529,19 +679,23 @@ end
 
 module.on_event = function(event)
     -- If we have just entered a .norg buffer then apply all conceals
+    -- TODO: Allow code block dimming to be disabled
+    -- TODO: Remove (or at least provide a reason) as to why there are so many vim.schedules
+    -- Explain priorities and how we only schedule less important things to improve the average user
+    -- experience
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         if module.config.public.conceals then
             module.public.trigger_conceals()
         end
 
-        -- TODO: Allow code block dimming to be disabled
         module.public.trigger_code_block_highlights()
-
+        module.public.trigger_completion_levels()
         module.public.trigger_icons()
     elseif event.type == "core.autocommands.events.textchanged" then
         -- If the content of a line has changed in normal mode then reparse the file
         module.public.trigger_icons()
         module.public.trigger_code_block_highlights()
+        vim.schedule(module.public.trigger_completion_levels)
     elseif event.type == "core.autocommands.events.insertenter" then
         vim.api.nvim_buf_clear_namespace(
             0,
@@ -552,6 +706,7 @@ module.on_event = function(event)
     elseif event.type == "core.autocommands.events.insertleave" then
         vim.schedule(function()
             module.public.trigger_icons(event.cursor_position[1])
+            module.public.trigger_completion_levels()
         end)
     elseif event.type == "core.autocommands.events.textchangedi" then
         vim.schedule(module.public.trigger_code_block_highlights)
