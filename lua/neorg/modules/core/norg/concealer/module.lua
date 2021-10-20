@@ -557,7 +557,7 @@ module.public = {
 
                     vim.api.nvim_buf_set_extmark(0, module.private.completion_level_namespace, node_range.row_start, -1, {
                         virt_text = type(text) == "string" and { { text, query.highlight } } or text,
-                        priority = 250,
+                        priority = 250, hl_mode = "combine",
                     })
                 end
             end
