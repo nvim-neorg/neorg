@@ -175,7 +175,7 @@ module.private = {
                 )
             ] 
         )
-    ]]
+    ]],
 }
 
 module.public = {
@@ -645,64 +645,67 @@ module.config.public = {
 
         queries = {
             {
-                query = string.format([[
-                [
-                    (heading1
-                        content: [
-                            %s
-                            (carryover_tag_set
-                                (carryover_tag)+
-                                target: %s
+                query = string.format(
+                    [[
+                        [
+                            (heading1
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
                             )
-                        ]
-                    )
-                    (heading2
-                        content: [
-                            %s
-                            (carryover_tag_set
-                                (carryover_tag)+
-                                target: %s
+                            (heading2
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
                             )
-                        ]
-                    )
-                    (heading3
-                        content: [
-                            %s
-                            (carryover_tag_set
-                                (carryover_tag)+
-                                target: %s
+                            (heading3
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
                             )
-                        ]
-                    )
-                    (heading4
-                        content: [
-                            %s
-                            (carryover_tag_set
-                                (carryover_tag)+
-                                target: %s
+                            (heading4
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
                             )
-                        ]
-                    )
-                    (heading5
-                        content: [
-                            %s
-                            (carryover_tag_set
-                                (carryover_tag)+
-                                target: %s
+                            (heading5
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
                             )
-                        ]
-                    )
-                    (heading6
-                        content: [
-                            %s
-                            (carryover_tag_set
-                                (carryover_tag)+
-                                target: %s
+                            (heading6
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
                             )
-                        ]
-                    )
-                ] @progress
-                ]], reparg(module.private.todo_list_query, 6 * 2)),
+                        ] @progress
+                ]],
+                    reparg(module.private.todo_list_query, 6 * 2)
+                ),
                 text = module.private.completion_level_base,
                 highlight = "DiagnosticVirtualTextHint",
             },
