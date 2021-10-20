@@ -105,7 +105,9 @@ Type :messages to see full output
                     end
 
                     return {
-                        text = string.rep("*", heading_level) .. " " .. join_text(ts_utils.get_node_text(node:field("title")[1], 0)),
+                        text = string.rep("*", heading_level) .. " " .. join_text(
+                            ts_utils.get_node_text(node:field("title")[1], 0)
+                        ),
                         highlight = "NeorgHeading" .. heading_level .. "Title",
                         level = heading_level,
                         state = state,
@@ -187,17 +189,14 @@ Type :messages to see full output
                 local text = virt_line[1][1]
                 local link_text = string.gsub(text, "%*+", "")
                 local level = #text - #link_text
-                table.insert(
-                    new_virt_lines,
-                    {
-                        { string.rep("~", level) .. "> ", "NeorgOrderedLink" .. level },
-                        { "[", "" },
-                        { string.gsub(link_text, "^%s+", ""), "NeorgConcealURL" },
-                        { "](", "" },
-                        { text, "NeorgConcealURLValue" },
-                        { ")", "" },
-                    }
-                )
+                table.insert(new_virt_lines, {
+                    { string.rep("~", level) .. "> ", "NeorgOrderedLink" .. level },
+                    { "[", "" },
+                    { string.gsub(link_text, "^%s+", ""), "NeorgConcealURL" },
+                    { "](", "" },
+                    { text, "NeorgConcealURLValue" },
+                    { ")", "" },
+                })
             end
         end
 
