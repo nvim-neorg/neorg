@@ -169,12 +169,29 @@ Type :messages to see full output
             return
         end
 
-        -- remove header because we are inserting right below `= TOC` anyways
-        table.remove(virt_lines, 1)
-        table.remove(virt_lines, 1)
+        -- reformat ToC appearance for in-lined display
+        local new_virt_lines = {}
+        for num, virt_line in ipairs(virt_lines) do
+            if num > 2 then
+                local text = virt_line[1][1]
+                local link_text = string.gsub(text, "%*+", "")
+                local level = #text - #link_text
+                table.insert(
+                    new_virt_lines,
+                    {
+                        { string.rep("~", level) .. "> ", "NeorgOrderedLink" .. level },
+                        { "[", "" },
+                        { string.gsub(link_text, "^%s+", ""), "NeorgConcealURL" },
+                        { "](", "" },
+                        { text, "NeorgConcealURLValue" },
+                        { ")", "" },
+                    }
+                )
+            end
+        end
 
         local namespace = vim.api.nvim_create_namespace("Neorg ToC")
-        vim.api.nvim_buf_set_extmark(0, namespace, found_toc.line, 0, { virt_lines = virt_lines })
+        vim.api.nvim_buf_set_extmark(0, namespace, found_toc.line, 0, { virt_lines = new_virt_lines })
     end,
 }
 
