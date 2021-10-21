@@ -5,7 +5,7 @@ local module = neorg.modules.extend("core.gtd.queries.helpers")
 --- @field days number
 
 module.public = {
-    -- @Summary Convert a date from text to YY-MM-dd format
+    -- @Summary Convert a date from text to YYYY-MM-dd format
     -- @Description If the date is a quick capture (like 2w, 10d, 4m), it will convert to a standardized date
     -- Supported formats ($ treated as number):
     --   - $d: days from now (e.g 2d is 2 days from now)
@@ -13,7 +13,7 @@ module.public = {
     --   - $m: months from now (e.g 2m is 2 months from now)
     --   - tomorrow: tomorrow's date
     --   - today: today's date
-    --   The format for date is YY-mm-dd
+    --   The format for date is YYYY-mm-dd
     -- @Param  text (string) the text to use
     date_converter = function(text)
         vim.validate({ text = { text, "string" } })
@@ -43,8 +43,12 @@ module.public = {
             return os.date("%Y-%m-%d", time)
         end
 
-        local number, type = text:match("^(%d+)([hdwmy])$")
+        local year, month, day = text:match("^[(%d)(%d)(%d)(%d)]-[(%d+)(%d)]-[(%d+)(%d)]$")
+        if year and month and day then
+            return text
+        end
 
+        local number, type = text:match("^(%d+)([hdwmy])$")
         if not number or not type then
             return
         end
