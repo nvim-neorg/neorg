@@ -37,6 +37,10 @@ module.public = {
                 i = {
                     { "<C-l>", "core.integrations.telescope.insert_link" },
                 },
+
+                o = {
+                    { "ah", "core.norg.manoeuvre.textobject.around-heading" },
+                },
             }, {
                 silent = true,
                 noremap = true,
