@@ -85,7 +85,10 @@ module.public = {
         end
 
         if not vim.tbl_contains(files, file) then
-            log.error("File " .. file .. " is not from gtd workspace")
+            log.error([[ Inbox file is not from gtd workspace.
+                Please verify if the file exists in your gtd workspace.
+                Type :messages to show the full error report
+            ]])
             return
         end
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
