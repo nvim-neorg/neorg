@@ -11,10 +11,13 @@ module.setup = function()
 end
 
 module.load = function()
-    module.required["core.keybinds"].register_keybinds(
-        module.name,
-        { "item_up", "item_down", "textobject.around-heading", "textobject.inner-heading" }
-    )
+    module.required["core.keybinds"].register_keybinds(module.name, {
+        "item_up",
+        "item_down",
+        "textobject.around-heading",
+        "textobject.inner-heading",
+        "textobject.around-tag",
+    })
 end
 
 module.config.public = {
@@ -142,6 +145,9 @@ module.config.private = {
         ["around-heading"] = function(node)
             return unless(node, "^heading%d+$")
         end,
+        ["around-tag"] = function(node)
+            return unless(node, "ranged_tag$")
+        end,
     },
 }
 
@@ -179,6 +185,8 @@ module.events.subscribed = {
 
         [module.name .. ".textobject.around-heading"] = true,
         [module.name .. ".textobject.inner-heading"] = true,
+
+        [module.name .. ".textobject.around-tag"] = true,
     },
 }
 
