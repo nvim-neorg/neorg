@@ -751,6 +751,62 @@ module.config.public = {
                 text = "[<done>/<total>]",
                 highlight = "DiagnosticVirtualTextHint",
             },
+            {
+                query = string.format(
+                    [[
+                    [
+                        (todo_item2
+                            %s
+                        )
+                    ] @progress
+                ]],
+                    module.private.any_todo_item(3)
+                ),
+                text = "[<done>/<total>]",
+                highlight = "DiagnosticVirtualTextHint",
+            },
+            {
+                query = string.format(
+                    [[
+                    [
+                        (todo_item3
+                            %s
+                        )
+                    ] @progress
+                ]],
+                    module.private.any_todo_item(4)
+                ),
+                text = "[<done>/<total>]",
+                highlight = "DiagnosticVirtualTextHint",
+            },
+            {
+                query = string.format(
+                    [[
+                    [
+                        (todo_item4
+                            %s
+                        )
+                    ] @progress
+                ]],
+                    module.private.any_todo_item(5)
+                ),
+                text = "[<done>/<total>]",
+                highlight = "DiagnosticVirtualTextHint",
+            },
+            {
+                query = string.format(
+                    [[
+                    [
+                        (todo_item5
+                            %s
+                        )
+                    ] @progress
+                ]],
+                    module.private.any_todo_item(6)
+                ),
+                text = "[<done>/<total>]",
+                highlight = "DiagnosticVirtualTextHint",
+            },
         },
     },
 }
