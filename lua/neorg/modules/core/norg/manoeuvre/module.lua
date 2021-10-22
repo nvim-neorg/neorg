@@ -123,7 +123,7 @@ module.public = {
     end,
 }
 
-local function unless(node, expected_type)
+local function find(node, expected_type)
     while not node:type():match(expected_type) do
         if not node or node:type() == "document" then
             return
@@ -132,21 +132,25 @@ local function unless(node, expected_type)
         node = node:parent()
     end
 
+    return node
+end
+
+local function unless(node)
     local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
     vim.api.nvim_buf_set_mark(0, "<", range.row_start + 1, range.column_start)
     vim.api.nvim_buf_set_mark(0, ">", range.row_end + 1, range.column_end)
     vim.cmd("normal! gv")
-    return
 end
 
 module.config.private = {
     textobjects = {
         ["around-heading"] = function(node)
-            return unless(node, "^heading%d+$")
+            return unless(find(node, "^heading%d+$"))
         end,
+        ["inner-heading"] = function(node) end,
         ["around-tag"] = function(node)
-            return unless(node, "ranged_tag$")
+            return unless(find(node, "ranged_tag$"))
         end,
     },
 }
