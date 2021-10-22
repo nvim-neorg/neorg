@@ -128,53 +128,75 @@ module.private = {
         },
     },
 
+    any_todo_item = function(index)
+        local result = "["
+
+        for i = index, 6 do
+            result = result
+                .. string.format(
+                    [[
+                (todo_item%d
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+            ]],
+                    i
+                )
+        end
+
+        return result .. "]"
+    end,
+
     todo_list_query = [[
-        (generic_list
-            [
-                (todo_item1
-                    state: [
-                        (todo_item_undone) @undone
-                        (todo_item_pending) @pending
-                        (todo_item_done) @done
-                    ]
-                )
-                (todo_item2
-                    state: [
-                        (todo_item_undone) @undone
-                        (todo_item_pending) @pending
-                        (todo_item_done) @done
-                    ]
-                )
-                (todo_item3
-                    state: [
-                        (todo_item_undone) @undone
-                        (todo_item_pending) @pending
-                        (todo_item_done) @done
-                    ]
-                )
-                (todo_item4
-                    state: [
-                        (todo_item_undone) @undone
-                        (todo_item_pending) @pending
-                        (todo_item_done) @done
-                    ]
-                )
-                (todo_item5
-                    state: [
-                        (todo_item_undone) @undone
-                        (todo_item_pending) @pending
-                        (todo_item_done) @done
-                    ]
-                )
-                (todo_item6
-                    state: [
-                        (todo_item_undone) @undone
-                        (todo_item_pending) @pending
-                        (todo_item_done) @done
-                    ]
-                )
-            ] 
+(generic_list
+    [
+        (todo_item1
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
         )
+        (todo_item2
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
+        )
+        (todo_item3
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
+        )
+        (todo_item4
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
+        )
+        (todo_item5
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
+        )
+        (todo_item6
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
+        )
+    ]
+)
     ]],
 }
 
@@ -713,6 +735,20 @@ module.config.public = {
                     reparg(module.private.todo_list_query, 6 * 2)
                 ),
                 text = module.private.completion_level_base,
+                highlight = "DiagnosticVirtualTextHint",
+            },
+            {
+                query = string.format(
+                    [[
+                    [
+                        (todo_item1
+                            %s
+                        )
+                    ] @progress
+                ]],
+                    module.private.any_todo_item(2)
+                ),
+                text = "[<done>/<total>]",
                 highlight = "DiagnosticVirtualTextHint",
             },
         },
