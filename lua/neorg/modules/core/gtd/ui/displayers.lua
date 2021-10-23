@@ -397,6 +397,16 @@ module.public = {
         end
 
         local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
+        module.private.tasks = tasks
+        module.private.set_vars_to_buf(buf, positions)
+        vim.api.nvim_buf_set_keymap(
+            buf,
+            "n",
+            "<CR>",
+            string.format(':lua neorg.modules.get_module("%s").goto_task()<CR>', module.name),
+            { noremap = true, silent = true }
+        )
+
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
     end,
