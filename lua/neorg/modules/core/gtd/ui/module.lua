@@ -29,7 +29,7 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.gtd.ui")
 
 module.load = function()
-    module.required["core.keybinds"].register_keybinds(module.name, { "goto_task", "close" })
+    module.required["core.keybinds"].register_keybinds(module.name, { "goto_task", "close", "edit_task"})
 end
 
 module.setup = function()
@@ -59,6 +59,11 @@ module.on_event = function(event)
             module.public.goto_task()
         elseif event.split_type[2] == "core.gtd.ui.close" then
             module.public.close_buffer()
+        elseif event.split_type[2] == "core.gtd.ui.edit_task" then
+            local task = module.public.get_task_by_var()
+            module.public.close_buffer()
+            task = module.public.refetch_task_not_extracted({task.node, task.bufnr})
+            module.public.edit_task(task)
         end
     end
 end
@@ -67,6 +72,7 @@ module.events.subscribed = {
     ["core.keybinds"] = {
         ["core.gtd.ui.goto_task"] = true,
         ["core.gtd.ui.close"] = true,
+        ["core.gtd.ui.edit_task"] = true,
     },
 }
 

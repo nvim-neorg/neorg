@@ -62,6 +62,12 @@ module.public = {
     ---   - opts.multiple (bool):  if true, will return all recursive parent nodes that match `node_type`
     --- @return table
     find_parent_node = function(node, node_type, opts)
+        vim.validate({
+            node = { node, "table" },
+            node_type = { node_type, "string" },
+            opts = { opts, "table", true },
+        })
+
         opts = opts or {}
         local res = {}
         local parent = node[1]:parent()

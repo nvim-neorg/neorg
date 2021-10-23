@@ -403,7 +403,7 @@ module.public = {
         module.private.generate_display(name, positions, res)
     end,
 
-    goto_task = function()
+    get_task_by_var = function()
         -- Get the current task at cursor
         local current_line = vim.api.nvim_win_get_cursor(0)[1]
         local ok, task = pcall(vim.api.nvim_buf_get_var, 0, tostring(current_line))
@@ -421,6 +421,12 @@ module.public = {
             log.error("No task found at position " .. current_line)
             return
         end
+
+        return task
+    end,
+
+    goto_task = function()
+        local task = module.public.get_task_by_var()
 
         module.public.close_buffer()
 
@@ -440,6 +446,25 @@ module.public = {
         -- Go back to previous mode
         local previous_mode = module.required["core.mode"].get_previous_mode()
         module.required["core.mode"].set_mode(previous_mode)
+    end,
+
+    refetch_task_not_extracted = function(node)
+        -- Get all nodes from the bufnr and add metadatas to it
+        -- This is mandatory because we need to have the correct task position, else the update will not work
+        local nodes = module.required["core.gtd.queries"].get("tasks", { bufnr = node[2] })
+        nodes = module.required["core.gtd.queries"].add_metadata(nodes, "task", { extract = false, same_node = true })
+
+        -- Find the correct task node
+        local found_task = vim.tbl_filter(function(n)
+            return n.node:id() == node[1]:id()
+        end, nodes)
+
+        if #found_task == 0 then
+            log.error("Error in fetching task")
+            return
+        end
+
+        return found_task[1]
     end,
 }
 
