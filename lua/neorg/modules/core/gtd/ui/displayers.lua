@@ -406,7 +406,13 @@ module.public = {
     goto_task = function()
         -- Get the current task at cursor
         local current_line = vim.api.nvim_win_get_cursor(0)[1]
-        local task = vim.api.nvim_buf_get_var(0, tostring(current_line))
+        local ok, task = pcall(vim.api.nvim_buf_get_var, 0, tostring(current_line))
+
+        -- If not under task, return as is
+        if not ok then
+            return
+        end
+
         task = vim.tbl_filter(function(t)
             return t.position == task.position and t.bufnr == task.bufnr
         end, module.private.tasks)[1]
