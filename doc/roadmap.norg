@@ -129,7 +129,7 @@ here. For a better viewing experience, we recommend reading it opening it from `
         - [x] Create a `gtd.base` module. This will allow us to query all tasks and project
               information from a GTD workspace.
         - [x] Aggregate and display tasks and projects by context, due dates, etc
-        - [*] Quick Capture popup: create a task/project and add metadata to it
+        - [x] Quick Capture popup: create a task/project and add metadata to it
         - [x] Quick Actions popup: view your tasks and projects nicely aggregated
         - [x] Quick Modify popup: modify a task/project already in the workspace
 
@@ -144,5 +144,9 @@ here. For a better viewing experience, we recommend reading it opening it from `
     - [ ] Add the ability to upgrade .org documents and downgrade .norg documents to their respective formats.
     - [ ] Add fancy UI elements for the true user experience
 
+  *** New GTD features
+      - [ ] Add support for recurring actions, and update the GTD specs
+      - [ ] Add support for sequential projects (see `:h neorg-gtd-projects`)
+      - [ ] Add support for the daily and weekly review (see `:h neorg-gtd-reflect`)
 $comment
 vim:tw=100:ft=norg:norl:
