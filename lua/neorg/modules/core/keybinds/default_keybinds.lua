@@ -68,6 +68,7 @@ module.public = {
                     { "q", "core.gtd.ui.close" },
                     { "<Esc>", "core.gtd.ui.close" },
                     { "e", "core.gtd.ui.edit_task" },
+                    { "d", "core.gtd.ui.details" },
                 },
             })
 

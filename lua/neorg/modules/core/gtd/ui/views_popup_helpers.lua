@@ -229,7 +229,7 @@ module.private = {
             :flag("w", "Waiting For", function()
                 module.public.display_waiting_for(tasks)
             end)
-            :flag("s", "Someday Tasks", function()
+            :flag("d", "Someday Tasks", function()
                 module.public.display_someday(tasks)
             end)
             :blank()

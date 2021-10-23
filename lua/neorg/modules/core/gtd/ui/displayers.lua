@@ -266,9 +266,7 @@ module.public = {
             table.insert(res, "")
         end
 
-        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
-        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+        module.private.generate_display(name, {}, res)
     end,
 
     display_someday = function(tasks)
@@ -410,7 +408,7 @@ module.public = {
 
         -- If not under task, return as is
         if not ok then
-            return
+            return {}
         end
 
         task = vim.tbl_filter(function(t)
@@ -418,7 +416,6 @@ module.public = {
         end, module.private.tasks)[1]
 
         if not task then
-            log.error("No task found at position " .. current_line)
             return
         end
 
@@ -427,6 +424,10 @@ module.public = {
 
     goto_task = function()
         local task = module.public.get_task_by_var()
+
+        if not task then
+            return
+        end
 
         module.public.close_buffer()
 
@@ -446,6 +447,10 @@ module.public = {
         -- Go back to previous mode
         local previous_mode = module.required["core.mode"].get_previous_mode()
         module.required["core.mode"].set_mode(previous_mode)
+
+        module.private.tasks = {}
+        module.private.current_bufnr = nil
+        module.private.display_namespace_nr = nil
     end,
 
     refetch_task_not_extracted = function(node)
@@ -466,10 +471,67 @@ module.public = {
 
         return found_task[1]
     end,
+
+    toggle_details = function()
+        local task = module.public.get_task_by_var()
+        local res = {}
+
+        if not task then
+            return
+        end
+
+        local surround = function(v)
+            return "*" .. v .. "*"
+        end
+
+        if task.project then
+            table.insert(res, "-- Project: " .. surround(task.project))
+        end
+        if task.contexts then
+            local contexts = vim.tbl_map(surround, task.contexts)
+            table.insert(res, "-- Contexts: " .. table.concat(contexts, ","))
+        end
+        if task["waiting.for"] then
+            local waiting_for = vim.tbl_map(surround, task["waiting.for"])
+            table.insert(res, "-- Waiting for: " .. table.concat(waiting_for, ","))
+        end
+        if task["time.start"] then
+            table.insert(res, "-- Starting the " .. surround(task["time.start"][1]))
+        end
+        if task["time.due"] then
+            table.insert(res, "-- Due for " .. surround(task["time.due"][1]))
+        end
+
+        local current_line = vim.api.nvim_win_get_cursor(0)[1]
+
+        local ok, var = pcall(vim.api.nvim_buf_get_var, module.private.current_bufnr, tostring(current_line))
+
+        if not ok then
+            return
+        end
+
+        var.detailed = var.detailed == true
+
+        vim.api.nvim_buf_set_option(module.private.current_bufnr, "modifiable", true)
+        module.private.update_vars(res, current_line + 1, var.detailed)
+
+        if var.detailed then
+            vim.api.nvim_buf_set_lines(module.private.current_bufnr, current_line, current_line + #res, false, {})
+            var.detailed = false
+        else
+            vim.api.nvim_buf_set_lines(module.private.current_bufnr, current_line, current_line, false, res)
+            var.detailed = true
+        end
+
+        vim.api.nvim_buf_set_var(module.private.current_bufnr, tostring(current_line), var)
+        vim.api.nvim_buf_set_option(module.private.current_bufnr, "modifiable", false)
+    end,
 }
 
 module.private = {
     tasks = {},
+    current_bufnr = nil,
+    display_namespace_nr = nil,
     --- Removes duplicates items from table `t`
     --- @param t table
     --- @return table
@@ -526,8 +588,35 @@ module.private = {
         module.required["core.mode"].set_mode("gtd-displays")
 
         module.private.set_vars_to_buf(buf, vars)
+        module.private.current_bufnr = buf
+        module.private.display_namespace_nr = vim.api.nvim_create_namespace("neorg display")
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
+    end,
+
+    update_vars = function(lines_inserted, line, remove)
+        local lines = vim.api.nvim_buf_line_count(module.private.current_bufnr)
+        local updated_vars = {}
+
+        for i = line, lines do
+            local ok, var = pcall(vim.api.nvim_buf_get_var, module.private.current_bufnr, tostring(i))
+            -- Remove the var at positions after the line, and save them to updated_vars
+            if ok then
+                table.insert(updated_vars, { var = var, line_nr = i })
+                vim.api.nvim_buf_del_var(module.private.current_bufnr, tostring(i))
+            end
+        end
+
+        for _, var in pairs(updated_vars) do
+            local new_line
+            if remove then
+                new_line = var.line_nr - #lines_inserted
+            else
+                new_line = var.line_nr + #lines_inserted
+            end
+
+            vim.api.nvim_buf_set_var(module.private.current_bufnr, tostring(new_line), var.var)
+        end
     end,
 }
 
