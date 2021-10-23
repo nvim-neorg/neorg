@@ -25,18 +25,23 @@ SUBMODULES:
 --]]
 
 require("neorg.modules.base")
-local utils = require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.gtd.ui")
+
+module.load = function()
+    module.required["core.keybinds"].register_keybinds(module.name, { "goto_task", "close" })
+end
 
 module.setup = function()
     return {
         success = true,
         requires = {
             "core.ui",
+            "core.keybinds",
             "core.norg.dirman",
             "core.gtd.queries",
-            "core.integrations.treesitter"
+            "core.integrations.treesitter",
+            "core.mode",
         },
         imports = {
             "displayers",
@@ -47,5 +52,22 @@ module.setup = function()
         },
     }
 end
+
+module.on_event = function(event)
+    if event.split_type[1] == "core.keybinds" then
+        if event.split_type[2] == "core.gtd.ui.goto_task" then
+            module.public.goto_task()
+        elseif event.split_type[2] == "core.gtd.ui.close" then
+            module.public.close_buffer()
+        end
+    end
+end
+
+module.events.subscribed = {
+    ["core.keybinds"] = {
+        ["core.gtd.ui.goto_task"] = true,
+        ["core.gtd.ui.close"] = true,
+    },
+}
 
 return module
