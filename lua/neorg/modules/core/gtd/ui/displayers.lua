@@ -22,6 +22,7 @@ module.public = {
             "- Task due for today",
             "",
         }
+        local positions = {}
 
         -- Remove tasks that contains any of the excluded contexts
         if opts.exclude then
@@ -74,13 +75,12 @@ module.public = {
                     end
 
                     table.insert(res, content)
+                    table.insert(positions, { line = #res, task = t })
                 end
                 table.insert(res, "")
             end
         end
-        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
-        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+        module.private.generate_display(name, positions, res)
     end,
 
     display_waiting_for = function(tasks)
@@ -93,6 +93,7 @@ module.public = {
             "* " .. name,
             "",
         }
+        local positions = {}
 
         -- Only show waiting fors that are not done and are already started
         local filters = function(t)
@@ -113,13 +114,12 @@ module.public = {
             for _, t in pairs(w_tasks) do
                 local content = "- " .. t.content
                 table.insert(res, content)
+                table.insert(positions, { line = #res, task = t })
             end
             table.insert(res, "")
         end
 
-        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
-        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+        module.private.generate_display(name, positions, res)
     end,
 
     --- Display contexts view for `tasks`
@@ -139,6 +139,7 @@ module.public = {
             "* " .. name,
             "",
         }
+        local positions = {}
 
         -- Keep undone tasks and not waiting for ones
         local filter = function(t)
@@ -189,13 +190,12 @@ module.public = {
             table.insert(res, inserted_context)
             for _, t in pairs(c_tasks) do
                 table.insert(res, "- " .. t.content)
+                table.insert(positions, { line = #res, task = t })
             end
             table.insert(res, "")
         end
 
-        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
-        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+        module.private.generate_display(name, positions, res)
     end,
 
     --- Display formatted projects from `tasks` table. Uses `projects` table to find all projects
@@ -281,6 +281,8 @@ module.public = {
             "* " .. name,
             "",
         }
+        local positions = {}
+
         local someday_task = function(task)
             if not task.contexts then
                 return false
@@ -306,12 +308,11 @@ module.public = {
                     end
                 end
                 table.insert(res, inserted)
+                table.insert(positions, { line = #res, task = t })
             end
         end
 
-        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
-        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+        module.private.generate_display(name, positions, res)
     end,
 
     display_weekly_summary = function(tasks)
@@ -322,6 +323,7 @@ module.public = {
             "This is a summary of your tasks due or starting these next 7 days",
             "",
         }
+        local positions = {}
 
         table.insert(res, "** Today")
         table.insert(res, "")
@@ -348,6 +350,7 @@ module.public = {
                 end
             end
             table.insert(res, result)
+            table.insert(positions, { line = #res, task = t })
         end
 
         local filter_upcoming_tasks = function(task, day)
@@ -393,26 +396,41 @@ module.public = {
                     end
                 end
                 table.insert(res, result)
+                table.insert(positions, { line = #res, task = t })
             end
         end
 
-        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
-        module.private.tasks = tasks
-        module.private.set_vars_to_buf(buf, positions)
-        vim.api.nvim_buf_set_keymap(
-            buf,
-            "n",
-            "<CR>",
-            string.format(':lua neorg.modules.get_module("%s").goto_task()<CR>', module.name),
-            { noremap = true, silent = true }
-        )
+        module.private.generate_display(name, positions, res)
+    end,
 
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
-        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+    goto_task = function()
+        -- Get the current task at cursor
+        local current_line = vim.api.nvim_win_get_cursor(0)[1]
+        local task = vim.api.nvim_buf_get_var(0, tostring(current_line))
+        task = vim.tbl_filter(function(t)
+            return t.position == task.position and t.bufnr == task.bufnr
+        end, module.private.tasks)[1]
+
+        if not task then
+            log.error("No task found at position " .. current_line)
+            return
+        end
+
+        -- Closes the display
+        vim.cmd(":bd")
+
+        -- Go to the task node
+        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+        vim.api.nvim_win_set_buf(0, task.bufnr)
+        ts_utils.goto_node(task.node)
+
+        -- Reset the data
+        module.private.tasks = {}
     end,
 }
 
 module.private = {
+    tasks = {},
     --- Removes duplicates items from table `t`
     --- @param t table
     --- @return table
@@ -455,6 +473,28 @@ module.private = {
         --   - starting today
         --   - due for today
         return today_state and (starting_today or due_today or (today_context and already_started))
+    end,
+
+    set_vars_to_buf = function(buf, tasks)
+        for _, var in ipairs(tasks) do
+            vim.api.nvim_buf_set_var(buf, tostring(var.line), { bufnr = var.task.bufnr, position = var.task.position })
+            table.insert(module.private.tasks, var.task)
+        end
+    end,
+
+    generate_display = function(name, vars, res)
+        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
+        module.private.set_vars_to_buf(buf, vars)
+        vim.api.nvim_buf_set_keymap(
+            buf,
+            "n",
+            "<CR>",
+            string.format(':lua neorg.modules.get_module("%s").goto_task()<CR>', module.name),
+            { noremap = true, silent = true }
+        )
+
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
+        vim.api.nvim_buf_set_option(buf, "modifiable", false)
     end,
 }
 

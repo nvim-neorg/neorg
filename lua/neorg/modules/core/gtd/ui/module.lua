@@ -36,6 +36,7 @@ module.setup = function()
             "core.ui",
             "core.norg.dirman",
             "core.gtd.queries",
+            "core.integrations.treesitter"
         },
         imports = {
             "displayers",
