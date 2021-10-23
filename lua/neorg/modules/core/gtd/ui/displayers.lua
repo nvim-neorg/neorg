@@ -416,8 +416,7 @@ module.public = {
             return
         end
 
-        -- Closes the display
-        vim.cmd(":bd")
+        module.public.close_buffer()
 
         -- Go to the task node
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
@@ -426,6 +425,15 @@ module.public = {
 
         -- Reset the data
         module.private.tasks = {}
+    end,
+
+    close_buffer = function()
+        -- Closes the display
+        vim.cmd(":bd")
+
+        -- Go back to previous mode
+        local previous_mode = module.required["core.mode"].get_previous_mode()
+        module.required["core.mode"].set_mode(previous_mode)
     end,
 }
 
@@ -483,16 +491,10 @@ module.private = {
     end,
 
     generate_display = function(name, vars, res)
-        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr")
-        module.private.set_vars_to_buf(buf, vars)
-        vim.api.nvim_buf_set_keymap(
-            buf,
-            "n",
-            "<CR>",
-            string.format(':lua neorg.modules.get_module("%s").goto_task()<CR>', module.name),
-            { noremap = true, silent = true }
-        )
+        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr", nil, false)
+        module.required["core.mode"].set_mode("gtd-displays")
 
+        module.private.set_vars_to_buf(buf, vars)
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
     end,

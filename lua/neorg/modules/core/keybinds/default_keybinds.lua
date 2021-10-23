@@ -59,6 +59,17 @@ module.public = {
                 noremap = true,
             })
 
+            -- Map the below keys on gtd displays
+            keybinds.map_event_to_mode("gtd-displays", {
+                n = {
+                    { "<CR>", "core.gtd.ui.goto_task" },
+
+                    -- Keys for closing the current display
+                    { "q", "core.gtd.ui.close" },
+                    { "<Esc>", "core.gtd.ui.close" },
+                },
+            })
+
             -- Apply the below keys to all modes
             keybinds.map_to_mode("all", {
                 n = {
