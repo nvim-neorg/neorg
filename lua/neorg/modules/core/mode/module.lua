@@ -10,7 +10,7 @@ USAGE:
 	To retrieve the *previous* mode name, use get_previous_mode().
 	To retrieve *all* modes, use get_modes()
 
-	If core.neorgcmd is loaded, core.mode.public.add_mode() also updates the autocompletion for the :Neorg set-mode command,
+	If core.neorgcmd is loaded, core.mode.public.add_mode() also updates the autocompletion for the :Neorg mode command,
 	which can be used by the user to switch modes.
 
 EVENTS:
@@ -49,15 +49,15 @@ module.public = {
     -- Define command for :Neorg
     neorg_commands = {
         definitions = {
-            ["set-mode"] = {
+            ["mode"] = {
                 norg = {},
             },
         },
 
         data = {
-            ["set-mode"] = {
-                args = 1,
-                name = "set-mode",
+            ["mode"] = {
+                max_args = 1,
+                name = "mode",
             },
         },
     },
@@ -85,7 +85,7 @@ module.public = {
         )
 
         -- Define the autocompletion tables and make them include the current mode
-        module.public.neorg_commands.definitions["set-mode"][mode_name] = {}
+        module.public.neorg_commands.definitions["mode"][mode_name] = {}
 
         -- If core.neorgcmd is loaded then update all autocompletions
         local neorgcmd = neorg.modules.get_module("core.neorgcmd")
@@ -143,9 +143,14 @@ module.public = {
 }
 
 module.on_event = function(event)
-    -- Retrieve the :Neorg set-mode command and set the mode accordingly
-    if event.type == "core.neorgcmd.events.set-mode" then
-        module.public.set_mode(event.content[1])
+    -- Retrieve the :Neorg mode command and set the mode accordingly
+    if event.type == "core.neorgcmd.events.mode" then
+        -- If no parameters were given then just print the current mode
+        if not event.content[1] then
+            vim.notify("Active Mode: " .. module.public.get_mode())
+        else -- Else actually set the mode to the one we specified
+            module.public.set_mode(event.content[1])
+        end
     end
 end
 
@@ -156,7 +161,7 @@ module.events.defined = {
 
 module.events.subscribed = {
     ["core.neorgcmd"] = {
-        ["set-mode"] = true,
+        ["mode"] = true,
     },
 }
 
