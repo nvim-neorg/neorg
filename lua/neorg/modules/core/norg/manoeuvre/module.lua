@@ -17,6 +17,7 @@ module.load = function()
         "textobject.around-heading",
         "textobject.inner-heading",
         "textobject.around-tag",
+        "textobject.inner-tag",
         "textobject.around-whole-list",
     })
 end
@@ -126,7 +127,7 @@ module.public = {
 
 local function find(node, expected_type)
     while not node:type():match(expected_type) do
-        if not node or node:type() == "document" then
+        if not node:parent() or node:type() == "document" then
             return
         end
 
@@ -134,6 +135,18 @@ local function find(node, expected_type)
     end
 
     return node
+end
+
+local function find_content(node, expected_type, content_field)
+    local heading = find(node, expected_type)
+
+    if not heading then
+        return
+    end
+
+    local content = heading:field(content_field or "content")
+
+    return #content > 0 and content
 end
 
 local function unless(node)
@@ -153,9 +166,15 @@ module.config.private = {
         ["around-heading"] = function(node)
             return unless(find(node, "^heading%d+$"))
         end,
-        ["inner-heading"] = function(node) end,
+        ["inner-heading"] = function(node)
+            return unless(find_content(node, "^heading%d+$"))
+        end,
         ["around-tag"] = function(node)
             return unless(find(node, "ranged_tag$"))
+        end,
+        ["inner-tag"] = function(node)
+            -- TODO: Fix Treesitter, this is currently buggy
+            return unless(find_content(node, "ranged_tag$"))
         end,
         ["around-whole-list"] = function(node)
             return unless(find(node, "generic_list"))
@@ -199,6 +218,7 @@ module.events.subscribed = {
         [module.name .. ".textobject.inner-heading"] = true,
 
         [module.name .. ".textobject.around-tag"] = true,
+        [module.name .. ".textobject.inner-tag"] = true,
 
         [module.name .. ".textobject.around-whole-list"] = true,
     },

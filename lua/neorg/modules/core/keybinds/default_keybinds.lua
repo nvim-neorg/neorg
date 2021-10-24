@@ -40,7 +40,9 @@ module.public = {
 
                 o = {
                     { "ah", "core.norg.manoeuvre.textobject.around-heading" },
+                    { "ih", "core.norg.manoeuvre.textobject.inner-heading" },
                     { "at", "core.norg.manoeuvre.textobject.around-tag" },
+                    { "it", "core.norg.manoeuvre.textobject.inner-tag" },
                     { "al", "core.norg.manoeuvre.textobject.around-whole-list" },
                 },
             }, {
