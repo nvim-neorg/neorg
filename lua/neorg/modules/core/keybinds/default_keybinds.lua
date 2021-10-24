@@ -70,6 +70,10 @@ module.public = {
                     { "e", "core.gtd.ui.edit_task" },
                     { "d", "core.gtd.ui.details" },
                 },
+            }, {
+                silent = true,
+                noremap = true,
+                nowait = true,
             })
 
             -- Apply the below keys to all modes
