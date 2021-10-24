@@ -37,5 +37,13 @@
     This will then overlap the first `*` with the space (therefore rendering it invisible) and will
     overlap the second `*` with your actual icon.
 
+ ** Changes to `:Neorg set-mode`
+    We've changed the command `set-mode` to just `mode` to be consistent with other commands.
+    Now you can run `:Neorg mode <mode-name>` to switch to your desired mode. This also means
+    you should *update your keybinds* if you've defined any custom ones.
+
+    Btw you can also now run `:Neorg mode` without any arguments to get the current mode printed out
+    in `:messages`, pretty neat eh?
+
 $comment
 vim:tw=100:ft=norg:norl:
