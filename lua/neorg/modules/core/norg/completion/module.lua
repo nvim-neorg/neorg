@@ -76,7 +76,6 @@ module.public = {
                 "code",
                 "image",
                 "embed",
-                "name",
                 "document",
             },
 
@@ -165,13 +164,32 @@ module.public = {
             complete = {
                 "comment",
                 "ordered",
+                "time.due",
+                "time.start",
+                "contexts",
+                "waiting.for",
             },
 
             options = {
                 type = "Tag",
             },
 
-            descend = {},
+            descend = {
+                {
+                    regex = "contexts%s+%w*",
+
+                    complete = {
+                        "today",
+                        "someday",
+                    },
+
+                    options = {
+                        type = "GTDContext",
+                    },
+
+                    descend = {}
+                },
+            },
         },
         {
             regex = "^%s*@e?n?",
@@ -210,6 +228,7 @@ module.public = {
                         vim.api.nvim_set_current_line(sub)
                     end
                 end,
+
                 completion_start = "-",
             },
         },
