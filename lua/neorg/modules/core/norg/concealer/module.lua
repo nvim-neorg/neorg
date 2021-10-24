@@ -898,6 +898,12 @@ module.on_event = function(event)
             event.cursor_position[1] - 1,
             event.cursor_position[1]
         )
+        vim.api.nvim_buf_clear_namespace(
+            0,
+            module.private.completion_level_namespace,
+            event.cursor_position[1] - 1,
+            event.cursor_position[1]
+        )
     elseif event.type == "core.autocommands.events.insertleave" then
         vim.schedule(function()
             module.public.trigger_icons(event.cursor_position[1])

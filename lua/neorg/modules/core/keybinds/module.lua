@@ -119,10 +119,24 @@ module.public = {
             -- @Param  command (string) - same as the rhs parameter for :h nvim_buf_set_keymap
             -- @Param  opts (table) - same as the opts parameter for :h nvim_buf_set_keymap
             map = function(mode, key, command, opts)
-                local ok, error = pcall(function() if action then action(0, mode, key, command, opts or {}) else vim.api.nvim_buf_set_keymap(0, mode, key, command, opts or {}) end end)
+                local ok, error = pcall(function()
+                    if action then
+                        action(0, mode, key, command, opts or {})
+                    else
+                        vim.api.nvim_buf_set_keymap(0, mode, key, command, opts or {})
+                    end
+                end)
 
                 if not ok then
-                    log.trace(string.format("An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s", key, mode, current_mode, error))
+                    log.trace(
+                        string.format(
+                            "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s",
+                            key,
+                            mode,
+                            current_mode,
+                            error
+                        )
+                    )
                 end
             end,
 
@@ -283,11 +297,15 @@ module.on_event = function(event)
         module.public.sync()
     elseif event.type == "core.mode.events.mode_set" then
         -- If a new mode has been set then reset all of our keybinds
-        module.public.bind_all(function(buf, mode, key) vim.api.nvim_buf_del_keymap(buf, mode, key) end, event.content.current)
+        module.public.bind_all(function(buf, mode, key)
+            vim.api.nvim_buf_del_keymap(buf, mode, key)
+        end, event.content.current)
         module.public.bind_all()
     elseif event.type == "core.autocommands.events.bufenter" and event.content.norg then
         -- If a new mode has been set then reset all of our keybinds
-        module.public.bind_all(function(buf, mode, key) vim.api.nvim_buf_del_keymap(buf, mode, key) end, module.required["core.mode"].get_previous_mode())
+        module.public.bind_all(function(buf, mode, key)
+            vim.api.nvim_buf_del_keymap(buf, mode, key)
+        end, module.required["core.mode"].get_previous_mode())
         module.public.bind_all()
     end
 end

@@ -31,7 +31,6 @@ local module = neorg.modules.create("core.mode")
 local log = require("neorg.external.log")
 
 module.config.public = {
-
     -- As the name suggests, stores the current and previous mode
     current_mode = "norg",
     previous_mode = "norg",
