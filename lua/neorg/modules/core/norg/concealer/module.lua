@@ -151,7 +151,7 @@ module.private = {
     end,
 
     todo_list_query = [[
-(generic_list
+content: (generic_list
     [
         (todo_item1
             state: [
@@ -195,8 +195,8 @@ module.private = {
                 (todo_item_done) @done
             ]
         )
-    ]
-)
+    ]+
+)+
     ]],
 }
 
