@@ -17,6 +17,7 @@ module.load = function()
         "textobject.around-heading",
         "textobject.inner-heading",
         "textobject.around-tag",
+        "textobject.around-whole-list",
     })
 end
 
@@ -136,6 +137,10 @@ local function find(node, expected_type)
 end
 
 local function unless(node)
+    if not node then
+        return
+    end
+
     local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
     vim.api.nvim_buf_set_mark(0, "<", range.row_start + 1, range.column_start)
@@ -151,6 +156,9 @@ module.config.private = {
         ["inner-heading"] = function(node) end,
         ["around-tag"] = function(node)
             return unless(find(node, "ranged_tag$"))
+        end,
+        ["around-whole-list"] = function(node)
+            return unless(find(node, "generic_list"))
         end,
     },
 }
@@ -191,6 +199,8 @@ module.events.subscribed = {
         [module.name .. ".textobject.inner-heading"] = true,
 
         [module.name .. ".textobject.around-tag"] = true,
+
+        [module.name .. ".textobject.around-whole-list"] = true,
     },
 }
 
