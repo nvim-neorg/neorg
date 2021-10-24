@@ -401,6 +401,8 @@ module.public = {
         module.private.generate_display(name, positions, res)
     end,
 
+    --- Get the corresponding task from the buffer variable in the current line
+    --- @return table the task node
     get_task_by_var = function()
         -- Get the current task at cursor
         local current_line = vim.api.nvim_win_get_cursor(0)[1]
@@ -583,6 +585,10 @@ module.private = {
         end
     end,
 
+    --- Create the buffer and attach options to it
+    --- @param name string the buffer name
+    --- @param vars table the variables to add in the buffer
+    --- @param res table the lines to add
     generate_display = function(name, vars, res)
         local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr", nil, false)
         module.required["core.mode"].set_mode("gtd-displays")
@@ -594,6 +600,10 @@ module.private = {
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
     end,
 
+    --- Update created variables inside the buffer (will offset the variables depending of the lines_inserted)
+    --- @param lines_inserted table the lines inserted
+    --- @param line number the position of the line we inserted the values from
+    --- @param remove boolean|nil if true, will offset the variables negatively
     update_vars = function(lines_inserted, line, remove)
         local lines = vim.api.nvim_buf_line_count(module.private.current_bufnr)
         local updated_vars = {}
