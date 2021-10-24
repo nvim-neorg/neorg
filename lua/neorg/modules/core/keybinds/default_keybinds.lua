@@ -75,8 +75,8 @@ module.public = {
             -- Apply the below keys to all modes
             keybinds.map_to_mode("all", {
                 n = {
-                    { neorg_leader .. "mn", ":Neorg set-mode norg<CR>" },
-                    { neorg_leader .. "mh", ":Neorg set-mode traverse-heading<CR>" },
+                    { neorg_leader .. "mn", ":Neorg mode norg<CR>" },
+                    { neorg_leader .. "mh", ":Neorg mode traverse-heading<CR>" },
                 },
             }, {
                 silent = true,
