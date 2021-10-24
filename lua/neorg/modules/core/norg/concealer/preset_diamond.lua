@@ -334,7 +334,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
     marker = {
         enabled = true,
-        icon = "",
+        icon = "",
         highlight = "NeorgMarker",
         query = "(marker_prefix) @icon",
     },
