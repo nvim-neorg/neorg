@@ -187,7 +187,7 @@ module.public = {
                         type = "GTDContext",
                     },
 
-                    descend = {}
+                    descend = {},
                 },
             },
         },
