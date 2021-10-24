@@ -151,7 +151,7 @@ module.private = {
     end,
 
     todo_list_query = [[
-content: (generic_list
+(generic_list
     [
         (todo_item1
             state: [
@@ -548,40 +548,48 @@ module.public = {
                 })
 
                 for _, node_information in ipairs(nodes) do
-                    local node_range = module.required["core.integrations.treesitter"].get_node_range(
-                        node_information.node
-                    )
-                    local text = vim.deepcopy(query.text)
-
-                    local function format_query_text(data)
-                        data = data:gsub("<total>", tostring(node_information.total))
-                        data = data:gsub("<done>", tostring(node_information.done))
-                        data = data:gsub("<pending>", tostring(node_information.pending))
-                        data = data:gsub("<undone>", tostring(node_information.undone))
-                        data = data:gsub(
-                            "<percentage>",
-                            tostring(math.floor(node_information.done / node_information.total * 100))
+                    if node_information.total > 0 then
+                        local node_range = module.required["core.integrations.treesitter"].get_node_range(
+                            node_information.node
                         )
+                        local text = vim.deepcopy(query.text)
 
-                        return data
-                    end
+                        local function format_query_text(data)
+                            data = data:gsub("<total>", tostring(node_information.total))
+                            data = data:gsub("<done>", tostring(node_information.done))
+                            data = data:gsub("<pending>", tostring(node_information.pending))
+                            data = data:gsub("<undone>", tostring(node_information.undone))
+                            data = data:gsub(
+                                "<percentage>",
+                                tostring(math.floor(node_information.done / node_information.total * 100))
+                            )
 
-                    -- Format query text
-                    if type(text) == "string" then
-                        text = format_query_text(text)
-                    else
-                        for _, tbl in ipairs(text) do
-                            tbl[1] = format_query_text(tbl[1])
-
-                            tbl[2] = tbl[2] or query.highlight
+                            return data
                         end
-                    end
 
-                    vim.api.nvim_buf_set_extmark(0, module.private.completion_level_namespace, node_range.row_start, -1, {
-                        virt_text = type(text) == "string" and { { text, query.highlight } } or text,
-                        priority = 250,
-                        hl_mode = "combine",
-                    })
+                        -- Format query text
+                        if type(text) == "string" then
+                            text = format_query_text(text)
+                        else
+                            for _, tbl in ipairs(text) do
+                                tbl[1] = format_query_text(tbl[1])
+
+                                tbl[2] = tbl[2] or query.highlight
+                            end
+                        end
+
+                        vim.api.nvim_buf_set_extmark(
+                            0,
+                            module.private.completion_level_namespace,
+                            node_range.row_start,
+                            -1,
+                            {
+                                virt_text = type(text) == "string" and { { text, query.highlight } } or text,
+                                priority = 250,
+                                hl_mode = "combine",
+                            }
+                        )
+                    end
                 end
             end
         end
@@ -677,15 +685,17 @@ module.config.public = {
                     [[
                         [
                             (heading1
+                                content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
                                         (carryover_tag)+
                                         target: %s
                                     )
-                                ]
-                            )
+                                ]+
+                            )+
                             (heading2
+                                content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
@@ -693,8 +703,9 @@ module.config.public = {
                                         target: %s
                                     )
                                 ]
-                            )
+                            )+
                             (heading3
+                                content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
@@ -702,8 +713,9 @@ module.config.public = {
                                         target: %s
                                     )
                                 ]
-                            )
+                            )+
                             (heading4
+                                content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
@@ -711,8 +723,9 @@ module.config.public = {
                                         target: %s
                                     )
                                 ]
-                            )
+                            )+
                             (heading5
+                                content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
@@ -720,8 +733,9 @@ module.config.public = {
                                         target: %s
                                     )
                                 ]
-                            )
+                            )+
                             (heading6
+                                content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
@@ -729,7 +743,7 @@ module.config.public = {
                                         target: %s
                                     )
                                 ]
-                            )
+                            )+
                         ] @progress
                 ]],
                     reparg(module.private.todo_list_query, 6 * 2)
