@@ -19,6 +19,18 @@ module.public = {
         module.private.display_messages()
     end,
 
+    edit_task_at_cursor = function()
+        local task_node = module.required["core.gtd.queries"].get_at_cursor("task")
+
+        if not task_node then
+            log.warn("No task at cursor position")
+            return
+        end
+
+        local task = module.public.refetch_data_not_extracted(task_node, "task")
+        module.public.edit_task(task)
+    end,
+
     edit_task = function(task)
         -- Add metadatas to task node
         local task_extracted = module.required["core.gtd.queries"].add_metadata(
