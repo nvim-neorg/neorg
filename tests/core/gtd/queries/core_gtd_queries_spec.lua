@@ -19,4 +19,13 @@ describe("GTD - Retrievers:", function()
         local tasks = queries.get("tasks", { bufnr = buf })
         assert.equals(3, #tasks)
     end)
+
+    it("Verify the task types and bufnr", function()
+        local tasks = queries.get("tasks", { bufnr = buf })
+        for _, task in pairs(tasks) do
+            assert.equals("userdata", type(task[1]))
+            assert.equals("number", type(task[2]))
+            assert.equals(buf, task[2])
+        end
+    end)
 end)
