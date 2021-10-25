@@ -76,7 +76,7 @@ module.config.public = {
         Error = "+TSError",
 
         Marker = {
-            [""] = "+TSLabel",
+            Prefix = "+TSLabel",
             Title = "+Normal",
         },
 
@@ -259,6 +259,66 @@ module.config.public = {
             },
             Item = "+TSNamespace",
             Parameters = "+TSComment",
+        },
+
+        Link = {
+            Text = {
+                [""] = "+TSURI",
+                Delimiter = "+mkdDelimiter",
+            },
+
+            Location = {
+                Delimiter = "+mkdDelimiter",
+
+                File = {
+                    [""] = "+TSType",
+                    Delimiter = "+mkdDelimiter",
+                },
+
+                URL = "+TSURI",
+
+                Generic = {
+                    [""] = "+TSType",
+                    Prefix = "+TSType",
+                },
+
+                Marker = {
+                    [""] = "+NeorgMarkerTitle",
+                    Prefix = "+NeorgMarkerPrefix",
+                },
+
+                Heading = {
+                    ["1"] = {
+                        [""] = "+NeorgHeading1Title",
+                        Prefix = "+NeorgHeading1Prefix",
+                    },
+
+                    ["2"] = {
+                        [""] = "+NeorgHeading2Title",
+                        Prefix = "+NeorgHeading2Prefix",
+                    },
+
+                    ["3"] = {
+                        [""] = "+NeorgHeading3Title",
+                        Prefix = "+NeorgHeading3Prefix",
+                    },
+
+                    ["4"] = {
+                        [""] = "+NeorgHeading4Title",
+                        Prefix = "+NeorgHeading4Prefix",
+                    },
+
+                    ["5"] = {
+                        [""] = "+NeorgHeading5Title",
+                        Prefix = "+NeorgHeading5Prefix",
+                    },
+
+                    ["6"] = {
+                        [""] = "+NeorgHeading6Title",
+                        Prefix = "+NeorgHeading6Prefix",
+                    },
+                },
+            },
         },
 
         StrongParagraphDelimiter = "+TSPunctDelimiter",
