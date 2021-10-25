@@ -37,7 +37,6 @@ module.public = {
             table.insert(res, "")
         end
 
-        -- Inserts the content and insert the tags just after
         local newline = true
 
         if opts.newline ~= nil then
@@ -110,8 +109,7 @@ module.public = {
 
         -- There is no content in the document
         if not document then
-            local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-            end_row = #lines or 0
+            end_row = vim.api.nvim_buf_line_count(bufnr)
         else
             -- Check if last child is a project
             local nb_childs = document[1]:child_count()
@@ -121,6 +119,8 @@ module.public = {
             end
 
             _, _, end_row, _ = ts_utils.get_node_range(document[1])
+            -- Because TS is 0 based
+            end_row = end_row + 1
         end
 
         return end_row, bufnr, projectAtEnd
@@ -216,6 +216,8 @@ module.private = {
 
         for _, node in pairs(nodes) do
             local line = ts_utils.get_node_range(node[1])
+            -- Because TS is 0-based
+            line = line + 1
 
             local count_newline = opts.newline and 1 or 0
             if line == location + count_newline then
