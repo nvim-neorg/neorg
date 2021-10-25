@@ -235,7 +235,7 @@ module.private = {
             :blank()
             :text("Projects")
             :flag("p", "Show projects", function()
-                module.public.display_projects(tasks, projects, { priority = { "_" } })
+                module.public.display_projects(tasks, projects)
             end)
         return selection
     end,
