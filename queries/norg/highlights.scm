@@ -24,6 +24,66 @@
 	target: (_)+ @NeorgCarryoverTagTarget
 )
 
+; Links
+(link
+    (link_text
+        ("_prefix") @NeorgLinkTextDelimiter
+        link_text: (text) @NeorgLinkText
+        ("_suffix") @NeorgLinkTextDelimiter
+    )
+    (link_location
+        ("_prefix") @NeorgLinkLocationDelimiter
+
+        (link_file
+            ("_prefix") @NeorgLinkLocationFileDelimiter
+            location: (link_file_location) @NeorgLinkLocationFile
+            ("_suffix") @NeorgLinkLocationFileDelimiter
+        )?
+        (link_end
+            [
+                (
+                    (link_end_url) ; Doesn't require a highlight since it's a 0-width node
+                    (text) @NeorgLinkLocationURL
+                )
+                (
+                    (link_end_generic) @NeorgLinkLocationGenericPrefix
+                    (text) @NeorgLinkLocationGeneric
+                )
+                (
+                    (link_end_marker_reference) @NeorgLinkLocationMarkerPrefix
+                    (text) @NeorgLinkLocationMarker
+                )
+                (
+                    (link_end_heading1_reference) @NeorgLinkLocationHeading1Prefix
+                    (text) @NeorgLinkLocationHeading1
+                )
+                (
+                    (link_end_heading2_reference) @NeorgLinkLocationHeading2Prefix
+                    (text) @NeorgLinkLocationHeading2
+                )
+                (
+                    (link_end_heading3_reference) @NeorgLinkLocationHeading3Prefix
+                    (text) @NeorgLinkLocationHeading3
+                )
+                (
+                    (link_end_heading4_reference) @NeorgLinkLocationHeading4Prefix
+                    (text) @NeorgLinkLocationHeading4
+                )
+                (
+                    (link_end_heading5_reference) @NeorgLinkLocationHeading5Prefix
+                    (text) @NeorgLinkLocationHeading5
+                )
+                (
+                    (link_end_heading6_reference) @NeorgLinkLocationHeading6Prefix
+                    (text) @NeorgLinkLocationHeading6
+                )
+            ]
+        )
+
+        ("_suffix") @NeorgLinkLocationDelimiter
+    )
+) @NeorgLink
+
 ; Headings
 (heading1 (heading1_prefix) @NeorgHeading1Prefix title: (paragraph_segment) @NeorgHeading1Title) @NeorgHeading1
 (heading2 (heading2_prefix) @NeorgHeading2Prefix title: (paragraph_segment) @NeorgHeading2Title) @NeorgHeading2
@@ -36,7 +96,7 @@
 (ERROR) @NeorgError
 
 ; Markers
-(marker (marker_prefix) @NeorgMarker (paragraph_segment) @NeorgMarkerTitle)
+(marker (marker_prefix) @NeorgMarkerPrefix (paragraph_segment) @NeorgMarkerTitle)
 
 ; Definitions
 (single_definition (single_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle definition: (_)* @NeorgDefinitionContent)

@@ -396,17 +396,6 @@ module.public = {
     trigger_conceals = function()
         local conceals = module.config.public.conceals
 
-        if conceals.url then
-            vim.schedule(function()
-                vim.cmd(
-                    'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
-                )
-                vim.cmd(
-                    'syn region NeorgConcealURL matchgroup=mkdDelimiter start="\\([^\\\\]\\|\\_^\\)\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
-                )
-            end)
-        end
-
         if conceals.bold then
             vim.schedule(function()
                 vim.cmd([[
@@ -665,7 +654,6 @@ module.config.public = {
     icons = {},
 
     conceals = {
-        url = true,
         bold = true,
         italic = true,
         underline = true,
