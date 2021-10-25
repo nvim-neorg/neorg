@@ -188,7 +188,7 @@ module.private = {
                                 inbox
                             )
 
-                        module.required["core.gtd.queries"].create("task", task, bufnr, end_row, projectAtEnd)
+                        module.required["core.gtd.queries"].create("task", task, bufnr, end_row + 1, projectAtEnd)
                     end)
 
                 return selection
