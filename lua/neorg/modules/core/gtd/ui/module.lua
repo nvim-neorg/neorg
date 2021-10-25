@@ -56,13 +56,13 @@ end
 module.on_event = function(event)
     if event.split_type[1] == "core.keybinds" then
         if event.split_type[2] == "core.gtd.ui.goto_task" then
-            module.public.goto_task()
+            module.public.goto_node()
         elseif event.split_type[2] == "core.gtd.ui.close" then
             module.public.close_buffer()
         elseif event.split_type[2] == "core.gtd.ui.edit_task" then
-            local task = module.public.get_task_by_var()
+            local task = module.public.get_by_var()
             module.public.close_buffer()
-            task = module.public.refetch_task_not_extracted({ task.node, task.bufnr })
+            task = module.public.refetch_data_not_extracted({ task.node, task.bufnr }, "task")
             module.public.edit_task(task)
         elseif event.split_type[2] == "core.gtd.ui.details" then
             module.public.toggle_details()

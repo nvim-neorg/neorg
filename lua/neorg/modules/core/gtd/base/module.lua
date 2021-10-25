@@ -128,7 +128,7 @@ module.public = {
             return
         end
 
-        local task = module.required["core.gtd.ui"].refetch_task_not_extracted(task_node)
+        local task = module.required["core.gtd.ui"].refetch_data_not_extracted(task_node, "task")
         module.required["core.gtd.ui"].edit_task(task)
     end,
 }
