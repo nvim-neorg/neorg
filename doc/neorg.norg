@@ -34,34 +34,53 @@
     Note, that this allows you to start at an arbitrary nesting level if you so desire!
 
   *** Unordered lists
+      @code norg
         - Unordered list level 1
         -- Unordered list level 2
-        --- Unordered list level 3
-        ---- Unordered list level 4
-        ----- Unordered list level 5
-        ------ Unordered list level 6
+      @end
+      - Unordered list level 1
+      -- Unordered list level 2
+      --- Unordered list level 3
+      ---- Unordered list level 4
+      ----- Unordered list level 5
+      ------ Unordered list level 6
 
   *** Ordered lists
-        ~ Ordered list level 1
-        ~~ Ordered list level 2
-        ~~~ Ordered list level 3
-        ~~~~ Ordered list level 4
-        ~~~~~ Ordered list level 5
-        ~~~~~~ Ordered list level 6
+      @code norg
+        ~ Unordered list level 1
+        ~~ Unordered list level 2
+      @end
+      ~ Ordered list level 1
+      ~~ Ordered list level 2
+      ~~~ Ordered list level 3
+      ~~~~ Ordered list level 4
+      ~~~~~ Ordered list level 5
+      ~~~~~~ Ordered list level 6
 
   *** Tasks
+      @code norg
         - [ ] Undone Task
         - [*] Pending Task
         - [x] Done Task
-
-        You can also nest tasks:
         -- [ ] Nested task level 2
         --- [ ] Nested task level 3
-        ---- [ ] Nested task level 4
-        ----- [ ] Nested task level 5
-        ------ [ ] Nested task level 6
+      @end
+      - [ ] Undone Task
+      - [*] Pending Task
+      - [x] Done Task
+
+      You can also nest tasks:
+      -- [ ] Nested task level 2
+      --- [ ] Nested task level 3
+      ---- [ ] Nested task level 4
+      ----- [ ] Nested task level 5
+      ------ [ ] Nested task level 6
 
   *** Quotes
+      @code norg
+        > 1. level quote
+        >> 2. level quote
+      @end
       > 1. level quote
       >> 2. level quote
       >>> 3. level quote
