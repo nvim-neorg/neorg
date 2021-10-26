@@ -16,7 +16,7 @@
 --- deleted the mandatory `last_review` field
 --- changed the notes format in a task
 --- Added subtasks
---- Deleted `:` delimiter in $<due|start|contexts>
+--- Deleted `:` delimiter in #<due|start|contexts>
 --- Added [Standard contexts](#Standard contexts)
 --- Added [Working with dates](#Working with dates)
 --- Removed notes specification
@@ -49,10 +49,10 @@
         /Note3: You can go up to 6 subtask levels/
 
         @code norg
-            $contexts §context_name§ §context_name§ ...
-            $time.start §date§
-            $time.due §date§
-            $waiting.for
+            #contexts §context_name§ §context_name§ ...
+            #time.start §date§
+            #time.due §date§
+            #waiting.for
             - [ ] §Task description§
             -- [ ] §Subtask description§
         @end
@@ -101,9 +101,9 @@
 
       @code norg
       
-          $contexts §context_name§ §context_name§ ...
-          $time.start §date§
-          $time.due §date§
+          #contexts §context_name§ §context_name§ ...
+          #time.start §date§
+          #time.due §date§
           * §Project name§
           - [ ] §Task description§
       @end
@@ -236,14 +236,14 @@
 
    **** Changes from base GTD
     ***** Context Lists
-          There is no concept of context lists. Instead there are tags, e.g. `$contexts home`.
+          There is no concept of context lists. Instead there are tags, e.g. `#contexts home`.
           Special contexts:
-          - `$contexts today`: Marks a task to be done today, will have particular effects on [Quick view](#Quick view).
+          - `#contexts today`: Marks a task to be done today, will have particular effects on [Quick view](#Quick view).
     ***** Projects List
           See [Project](#Project).
     ***** Someday List:
           A someday list is now a context called `@someday`.
-          - `$contexts someday`: Prevent the task from showing in the [Quick view](#Quick view).
+          - `#contexts someday`: Prevent the task from showing in the [Quick view](#Quick view).
 
   *** Reflect
       This part of the process is the /review/ part, which is a set of tools to help the user regain
@@ -263,10 +263,10 @@
         Every step of [GTD Weekly review](https://gettingthingsdone.com/wp-content/uploads/2014/10/Weekly_Review_Checklist.pdf) should be user interacted, and each step must present one
         after the other:
         - /Get Inbox to Zero/: [Clarify](#Clarify)
-        - Review action lists: Open a view to see all contexts (except `$waiting.for` and `$contexts someday`)
-        - Review waiting for lists: Open a view to see all `$waiting.for` tasks
+        - Review action lists: Open a view to see all contexts (except `#waiting.for` and `#contexts someday`)
+        - Review waiting for lists: Open a view to see all `#waiting.for` tasks
         - Review projects lists: Open a view to see all projects, with options to see their tasks
-        - Review someday/maybe list: Open a view to see all `$contexts someday` tasks
+        - Review someday/maybe list: Open a view to see all `#contexts someday` tasks
 
         The weekly review is done when all steps are done.
 
@@ -276,9 +276,9 @@
    **** Quick view
         What we call quick view is a sort of dashboard comprising:
         - Today's tasks
-        - Assigned for today with `$contexts today`
-        - Starting today (with `$time.start`)
-        - Due today (with `$time.due`)
+        - Assigned for today with `#contexts today`
+        - Starting today (with `#time.start`)
+        - Due today (with `#time.due`)
         - Calendar for next 7 days (with due dates)
         - Adding a task to the inbox
         - Opening a particular project view

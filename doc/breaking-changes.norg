@@ -24,7 +24,7 @@
     for efficiency. This also means that the format for defining an icon has changed too:
     @code lua
     level_1 = {
-        enabled = true, -- Whether or not the icon is enabled 
+        enabled = true, -- Whether or not the icon is enabled
         icon = "•", -- The actual icon itself
         highlight = "NeorgUnorderedList1", -- The highlight to use on the icon
         -- The query that determines where to place the icon
@@ -45,5 +45,55 @@
     Btw you can also now run `:Neorg mode` without any arguments to get the current mode printed out
     in `:messages`, pretty neat eh?
 
-$comment
+ ** New Defintion syntax
+    After a discussion of the new link syntax (coming soon!) we decided to change the syntax for
+    /definitions/ from using the detached modifier `:` to `$`, instead:
+  *** Old
+      @code norg
+      : Object to be defined
+      Actual definition text
+      
+      :: Multi-paragraph version
+      Text can go here
+      
+      on multiple paragraphs.
+      ::
+      @end
+
+  *** New
+      @code norg
+      $ Object to be defined
+      Actual definition text
+      
+      $$ Multi-paragraph version
+      Text can go here
+      
+      on multiple paragraphs.
+      $$
+      @end
+
+ ** New Carryover-Tag syntax
+    To differentiate carryover tags from the new definitions (see above) we also changed these from
+    using `$` to `#`:
+  *** Old
+      @code norg
+      $comment
+      This is a comment.
+      
+      $color #ff0000
+      $ New-style definition
+      You see this would not look very nice.
+      @end
+
+  *** New
+      @code norg
+      #comment
+      This is a comment.
+      
+      #color #ff0000
+      $ New-style definition
+      This is considerably better.
+      @end
+
+#comment
 vim:tw=100:ft=norg:norl:
