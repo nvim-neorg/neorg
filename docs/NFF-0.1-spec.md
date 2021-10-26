@@ -177,12 +177,12 @@ changes:
 	Marks a link to another segment of a document or to a link on the web. More about it can be read [here](#links).
 
   - ```
-  	$comment
+  	#comment
   	This is a comment!
 
   	->
 
-  	^\s*\$[^\s]+\s*(([^\s]+\s*)*)$
+  	^\s*\#[^\s]+\s*(([^\s]+\s*)*)$
 	.+
   	```
   	Marks a carryover tag, which is essentially syntax sugar for a regular tag.
@@ -305,10 +305,10 @@ changes:
 
 #### Carryover Tags
   Neorg provides a more convenient method of defining tags, one that does not require an `@end` token. These are called carryover tags,
-  because they carry over and apply only to the next paragraph. They can be denoted with a `$` token, rather than a `@` token.
+  because they carry over and apply only to the next paragraph. They can be denoted with a `#` token, rather than a `@` token.
   Carryover tags are most commonly used with the `comment` tag, as writing:
   ```
-	$comment
+	#comment
 	This part of the document needs refactoring
 
 	* Reasons why dark chocolate is better than white chocolate
@@ -331,20 +331,20 @@ changes:
 ##### Quirks
   Carryover tags have an interesting property when applied to lines with detached modifiers - as long as no
   hard line break (e.g. \n\n) is encountered, the carryover tag will "infect" all the other detached modifiers below it,
-  let me show an example. Let's say, hypothetically, we have a `$color` tag, which allows us to change the colour
+  let me show an example. Let's say, hypothetically, we have a `#color` tag, which allows us to change the colour
   of the next element. Because of this infectious property:
 
   ```
-	$color red
+	#color red
 	- One element
 	- Another element
   ```
 
-  Both the first and second list element will be affected by the `$color` tag, because the first element infected the other.
-  In this scenario, the infection does not happen, and only the first list element gets the `$color` tag applied:
+  Both the first and second list element will be affected by the `#color` tag, because the first element infected the other.
+  In this scenario, the infection does not happen, and only the first list element gets the `#color` tag applied:
 
   ```
-	$color red
+	#color red
 	- One element
 
 	- Unaffected element
@@ -353,7 +353,7 @@ changes:
   Because of the hard line break the second unordered list element gets unaffected. Just for clarity, this:
 
   ```
-	$color red
+	#color red
 	- One element
 	  with some content on a newline
 	- Another element
@@ -363,7 +363,7 @@ changes:
 
   Obviously, this rule applies to every detached modifier, even headings:
   ```
-	$color red
+	#color red
 	* A heading
 	  ** A subheading
 	     This regular text will be unaffected because it does not have a detached modifier.
@@ -376,12 +376,12 @@ changes:
   tags together. For example, if I were to do:
 
   ```
-	$color red
-	$name my-heading
+	#color red
+	#name my-heading
 	* I like tomatoes
   ```
 
-  The `$color` carryover tag will carry over to the `$name` tag, which will in turn carry over to the heading,
+  The `#color` carryover tag will carry over to the `#name` tag, which will in turn carry over to the heading,
   creating a chain reaction. This is much more convenient than e.g. writing:
 
   ```
@@ -491,8 +491,8 @@ changes:
   1. Ordered item
   2. Second ordered item
 
-  The `$ordered` tag controls how the ordered list will get rendered and has a few parameters, and they are:
-  `$ordered start step spacing`.
+  The `#ordered` tag controls how the ordered list will get rendered and has a few parameters, and they are:
+  `#ordered start step spacing`.
   - `start` - signifies where to start counting from, default is `1`.
   - `step` - signifies how much to add between each list element, default step is `1`,
     if it were e.g. `2`, then the numbering would look like:
@@ -506,7 +506,7 @@ changes:
 
   Example:
   ```
-  $ordered 2 2 2
+  #ordered 2 2 2
   ~ Item 1
   ~ Item 2
   ```
@@ -680,12 +680,12 @@ changes:
 	  - [x] Throw banana at boss's massive 4head
   ```
 
-  It is also possible to give your marker a special name by using the `$name` tag to reference it in links, like so:
+  It is also possible to give your marker a special name by using the `#name` tag to reference it in links, like so:
   ```
-	$name marker1
+	#name marker1
 	| My Special Marker
 
-	$comment
+	#comment
 	Reference the marker with its custom name
 
 	I have a link to my marker right [here](#marker1).
@@ -698,7 +698,7 @@ The norg format supports two such kinds:
 #### Single-paragraph definitions
 These look like the following:
 ```
-: Object to be defined
+$ Object to be defined
 A single-paragraph definition of the object.
 
 This paragraph is no longer part of the definition.
@@ -706,14 +706,14 @@ This paragraph is no longer part of the definition.
 
 #### Multi-paragraph definitions
 ```
-:: Object to be defined
+$$ Object to be defined
 Here you have the freedom to write your definition in multiple paragraphs.
 
 You can even include other syntax elements:
 @code lua
 print("Hello world!")
 @end
-::
+$$
 This is no longer part of the definition.
 ```
 
@@ -838,7 +838,7 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 	@end
 	```
 
-  It is not recommended to use the `$` equivalent for this tag but hey, you do you.
+  It is not recommended to use the `#` equivalent for this tag but hey, you do you.
 
 - `@comment` - simply signals a comment. Using the comment tag with the `@` symbol makes
 			   it a multi-paragraph comment, however using carryover tags allows you to supply only
@@ -855,7 +855,7 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
   	And it can span across multiple paragraphs too!
   @end
 
-  $comment
+  #comment
   And this is a single-paragraph comment, because they're cool!
   I can write as much as I like here as long as I don't terminate the paragraph.
   ```
@@ -930,13 +930,13 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 
   The carryover tag version can be used with "infecting" to achieve a nice result.
 
-- `$name name` - gives the next element with a detached modifier a custom name that can then be used to
+- `#name name` - gives the next element with a detached modifier a custom name that can then be used to
   reference it in links if that next element has a detached modifier.
 
   Example:
   ```
-  $name mycustomname
-  $name anothername
+  #name mycustomname
+  #name anothername
   * My Heading
 
   You can reference the document [here](#mycustomname) and [here](#anothername).
@@ -945,13 +945,13 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 - `@image format` - stores an image within the file. The content of this image should be a base64 encoded jpeg, png, svg, jfif or exif file.
   The only parameter, `format`, specifies which format the image was encoded in. Defaults to `PNG` if unspecified.
 
-- `$embed type` - embeds an element directly into the document, for example an image, a GIF, or any other kind of media that is supported.
+- `#embed type` - embeds an element directly into the document, for example an image, a GIF, or any other kind of media that is supported.
   The `type` parameter can be one of two values: `video` or `image`.
 
   The body symbolizes the link to the actual media to be embedded. This can be a link to a local file or to a remote resource.
 
   ```
-  $embed image
+  #embed image
   /my/image
   ```
 
@@ -971,7 +971,7 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 Code placed within this tag will be rendered with the language's own syntax highlighter or simply rendered verbatim if no language parameter was given.
 
 - `@math` - creates a multline LaTeX-typesetting environment for easy mathmatical equations.
-  This may be enhanced further with the `$numbered` carryover tag in a similar vain to the `$ordered` tag.
+  This may be enhanced further with the `#numbered` carryover tag in a similar vain to the `#ordered` tag.
 
 ### Unsupported Tags
   If a tag is encountered that is invalid it should simply be ignored and never showed in any render of the document.
