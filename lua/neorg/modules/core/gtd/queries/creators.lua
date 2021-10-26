@@ -45,10 +45,10 @@ module.public = {
 
         node.node = module.private.insert_content_new(node.content, bufnr, location, type, { newline = newline })
 
-        module.public.insert_tag({ node.node, bufnr }, node.contexts, "$contexts")
-        module.public.insert_tag({ node.node, bufnr }, node["time.start"], "$time.start")
-        module.public.insert_tag({ node.node, bufnr }, node["time.due"], "$time.due")
-        module.public.insert_tag({ node.node, bufnr }, node["waiting.for"], "$waiting.for")
+        module.public.insert_tag({ node.node, bufnr }, node.contexts, "#contexts")
+        module.public.insert_tag({ node.node, bufnr }, node["time.start"], "#time.start")
+        module.public.insert_tag({ node.node, bufnr }, node["time.due"], "#time.due")
+        module.public.insert_tag({ node.node, bufnr }, node["waiting.for"], "#waiting.for")
 
         vim.api.nvim_buf_call(bufnr, function()
             vim.cmd([[ write! ]])
