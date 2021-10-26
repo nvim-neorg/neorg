@@ -88,6 +88,70 @@
     )
 ) @NeorgLink
 
+; Is there a better way to do this?
+(strict_link
+    (link_text
+        ("_prefix") @NeorgLinkTextDelimiter
+        link_text: (text) @NeorgLinkText
+        ("_suffix") @NeorgLinkTextDelimiter
+    )
+    (link_location
+        ("_prefix") @NeorgLinkLocationDelimiter
+
+        (link_file
+            ("_prefix") @NeorgLinkLocationFileDelimiter
+            location: (link_file_location) @NeorgLinkLocationFile
+            ("_suffix") @NeorgLinkLocationFileDelimiter
+        )?
+        (link_end
+            [
+                (
+                    (link_end_url) ; Doesn't require a highlight since it's a 0-width node
+                    (text) @NeorgLinkLocationURL
+                )
+                (
+                    (link_end_generic) @NeorgLinkLocationGenericPrefix
+                    (text) @NeorgLinkLocationGeneric
+                )
+                (
+                    (link_end_external_file) @NeorgLinkLocationExternalFilePrefix
+                    (text) @NeorgLinkLocationExternalFile
+                )
+                (
+                    (link_end_marker_reference) @NeorgLinkLocationMarkerPrefix
+                    (text) @NeorgLinkLocationMarker
+                )
+                (
+                    (link_end_heading1_reference) @NeorgLinkLocationHeading1Prefix
+                    (text) @NeorgLinkLocationHeading1
+                )
+                (
+                    (link_end_heading2_reference) @NeorgLinkLocationHeading2Prefix
+                    (text) @NeorgLinkLocationHeading2
+                )
+                (
+                    (link_end_heading3_reference) @NeorgLinkLocationHeading3Prefix
+                    (text) @NeorgLinkLocationHeading3
+                )
+                (
+                    (link_end_heading4_reference) @NeorgLinkLocationHeading4Prefix
+                    (text) @NeorgLinkLocationHeading4
+                )
+                (
+                    (link_end_heading5_reference) @NeorgLinkLocationHeading5Prefix
+                    (text) @NeorgLinkLocationHeading5
+                )
+                (
+                    (link_end_heading6_reference) @NeorgLinkLocationHeading6Prefix
+                    (text) @NeorgLinkLocationHeading6
+                )
+            ]
+        )?
+
+        ("_suffix") @NeorgLinkLocationDelimiter
+    )
+) @NeorgLink
+
 ; Headings
 (heading1 (heading1_prefix) @NeorgHeading1Prefix title: (paragraph_segment) @NeorgHeading1Title) @NeorgHeading1
 (heading2 (heading2_prefix) @NeorgHeading2Prefix title: (paragraph_segment) @NeorgHeading2Title) @NeorgHeading2
@@ -193,20 +257,20 @@
 (ordered_list6 (ordered_list6_prefix) @NeorgOrderedList6 content: (paragraph) @NeorgOrderedList6Content)
 
 ; Unordered links
-(unordered_link1 (unordered_link1_prefix) @NeorgUnorderedLink1 location: (link) @NeorgUnorderedLink1Location)
-(unordered_link2 (unordered_link2_prefix) @NeorgUnorderedLink2 location: (link) @NeorgUnorderedLink2Location)
-(unordered_link3 (unordered_link3_prefix) @NeorgUnorderedLink3 location: (link) @NeorgUnorderedLink3Location)
-(unordered_link4 (unordered_link4_prefix) @NeorgUnorderedLink4 location: (link) @NeorgUnorderedLink4Location)
-(unordered_link5 (unordered_link5_prefix) @NeorgUnorderedLink5 location: (link) @NeorgUnorderedLink5Location)
-(unordered_link6 (unordered_link6_prefix) @NeorgUnorderedLink6 location: (link) @NeorgUnorderedLink6Location)
+(unordered_link1 (unordered_link1_prefix) @NeorgUnorderedLink1 location: (strict_link) @NeorgUnorderedLink1Location)
+(unordered_link2 (unordered_link2_prefix) @NeorgUnorderedLink2 location: (strict_link) @NeorgUnorderedLink2Location)
+(unordered_link3 (unordered_link3_prefix) @NeorgUnorderedLink3 location: (strict_link) @NeorgUnorderedLink3Location)
+(unordered_link4 (unordered_link4_prefix) @NeorgUnorderedLink4 location: (strict_link) @NeorgUnorderedLink4Location)
+(unordered_link5 (unordered_link5_prefix) @NeorgUnorderedLink5 location: (strict_link) @NeorgUnorderedLink5Location)
+(unordered_link6 (unordered_link6_prefix) @NeorgUnorderedLink6 location: (strict_link) @NeorgUnorderedLink6Location)
 
 ; Ordered links
-(ordered_link1 (ordered_link1_prefix) @NeorgOrderedLink1 location: (link) @NeorgOrderedLink1Location)
-(ordered_link2 (ordered_link2_prefix) @NeorgOrderedLink2 location: (link) @NeorgOrderedLink2Location)
-(ordered_link3 (ordered_link3_prefix) @NeorgOrderedLink3 location: (link) @NeorgOrderedLink3Location)
-(ordered_link4 (ordered_link4_prefix) @NeorgOrderedLink4 location: (link) @NeorgOrderedLink4Location)
-(ordered_link5 (ordered_link5_prefix) @NeorgOrderedLink5 location: (link) @NeorgOrderedLink5Location)
-(ordered_link6 (ordered_link6_prefix) @NeorgOrderedLink6 location: (link) @NeorgOrderedLink6Location)
+(ordered_link1 (ordered_link1_prefix) @NeorgOrderedLink1 location: (strict_link) @NeorgOrderedLink1Location)
+(ordered_link2 (ordered_link2_prefix) @NeorgOrderedLink2 location: (strict_link) @NeorgOrderedLink2Location)
+(ordered_link3 (ordered_link3_prefix) @NeorgOrderedLink3 location: (strict_link) @NeorgOrderedLink3Location)
+(ordered_link4 (ordered_link4_prefix) @NeorgOrderedLink4 location: (strict_link) @NeorgOrderedLink4Location)
+(ordered_link5 (ordered_link5_prefix) @NeorgOrderedLink5 location: (strict_link) @NeorgOrderedLink5Location)
+(ordered_link6 (ordered_link6_prefix) @NeorgOrderedLink6 location: (strict_link) @NeorgOrderedLink6Location)
 
 ; Quotes
 (quote1 (quote1_prefix) @NeorgQuote1 content: (paragraph_segment) @NeorgQuote1Content)
