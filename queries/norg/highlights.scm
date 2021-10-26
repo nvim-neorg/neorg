@@ -50,6 +50,10 @@
                     (text) @NeorgLinkLocationGeneric
                 )
                 (
+                    (link_end_external_file) @NeorgLinkLocationExternalFilePrefix
+                    (text) @NeorgLinkLocationExternalFile
+                )
+                (
                     (link_end_marker_reference) @NeorgLinkLocationMarkerPrefix
                     (text) @NeorgLinkLocationMarker
                 )
@@ -78,7 +82,7 @@
                     (text) @NeorgLinkLocationHeading6
                 )
             ]
-        )
+        )?
 
         ("_suffix") @NeorgLinkLocationDelimiter
     )
