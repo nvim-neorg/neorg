@@ -271,7 +271,7 @@ module.config.public = {
                 Delimiter = "+mkdDelimiter",
 
                 File = {
-                    [""] = "+TSType",
+                    [""] = "+TSComment",
                     Delimiter = "+mkdDelimiter",
                 },
 
@@ -280,6 +280,11 @@ module.config.public = {
                 Generic = {
                     [""] = "+TSType",
                     Prefix = "+TSType",
+                },
+
+                ExternalFile = {
+                    [""] = "+TSLabel",
+                    Prefix = "+TSLabel",
                 },
 
                 Marker = {
