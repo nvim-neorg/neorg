@@ -75,7 +75,7 @@ module.public = {
                     end
 
                     table.insert(res, content)
-                    table.insert(positions, { line = #res, task = t })
+                    table.insert(positions, { line = #res, data = t })
                 end
                 table.insert(res, "")
             end
@@ -114,7 +114,7 @@ module.public = {
             for _, t in pairs(w_tasks) do
                 local content = "- " .. t.content
                 table.insert(res, content)
-                table.insert(positions, { line = #res, task = t })
+                table.insert(positions, { line = #res, data = t })
             end
             table.insert(res, "")
         end
@@ -190,7 +190,7 @@ module.public = {
             table.insert(res, inserted_context)
             for _, t in pairs(c_tasks) do
                 table.insert(res, "- " .. t.content)
-                table.insert(positions, { line = #res, task = t })
+                table.insert(positions, { line = #res, data = t })
             end
             table.insert(res, "")
         end
@@ -201,48 +201,42 @@ module.public = {
     --- Display formatted projects from `tasks` table. Uses `projects` table to find all projects
     --- @param tasks table
     --- @param projects table
-    --- @param opts table
-    ---   - opts.priority (table):  will prioritize in the display the projects specified (order in prioritized projects not guaranteed)
-    display_projects = function(tasks, projects, opts)
+    display_projects = function(tasks, projects)
         vim.validate({
             tasks = { tasks, "table" },
             projects = { projects, "table" },
-            opts = { opts, "table", true },
         })
 
-        opts = opts or {}
         local name = "Projects"
         local res = {
             "* " .. name,
             "",
         }
-        projects = vim.tbl_map(function(p)
-            return p.content
-        end, projects)
+        local positions = {}
 
-        table.insert(projects, "_")
         local projects_tasks = module.required["core.gtd.queries"].sort_by("project", tasks)
 
-        -- Remove duplicates in projects
-        projects = module.private.remove_duplicates(projects)
-
-        -- Sort tasks with opts.priority
-        if opts.priority then
-            local projects_sorter = function(a, _)
-                return vim.tbl_contains(opts.priority, a)
-            end
-            table.sort(projects, projects_sorter)
+        -- Show informations for tasks without projects
+        local unknown_project = projects_tasks["_"]
+        if unknown_project and #unknown_project > 0 then
+            local undone = vim.tbl_filter(function(a, _)
+                return a.state ~= "done"
+            end, unknown_project)
+            table.insert(res, "- /" .. #undone .. " tasks don't have a project assigned/")
+            table.insert(res, "")
         end
 
+        local added_projects = {}
         for _, project in ipairs(projects) do
-            local tasks_project = projects_tasks[project] or {}
+            local tasks_project = projects_tasks[project.content] or {}
 
             local completed = vim.tbl_filter(function(t)
                 return t.state == "done"
             end, tasks_project)
 
-            if project ~= "_" then
-                table.insert(res, "** " .. project .. " (" .. #completed .. "/" .. #tasks_project .. " done)")
+            if project ~= "_" and not vim.tbl_contains(added_projects, project.content) then
+                table.insert(res, "** " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)")
+                table.insert(positions, { line = #res, data = project })
 
                 local percent_completed = (function()
                     if #tasks_project == 0 then
@@ -257,16 +251,13 @@ module.public = {
                     .. string.rep(" ", 10 - completed_over_10)
                     .. "]"
                 table.insert(res, "   " .. percent_completed_visual .. " " .. percent_completed .. "% done")
-            elseif project == "_" and #tasks_project ~= 0 then
-                local undone = vim.tbl_filter(function(a, _)
-                    return a.state ~= "done"
-                end, tasks_project)
-                table.insert(res, "- /" .. #undone .. " tasks don't have a project assigned/")
+                table.insert(added_projects, project.content)
+                table.insert(res, "")
             end
-            table.insert(res, "")
         end
 
-        module.private.generate_display(name, {}, res)
+        module.private.extras = projects_tasks
+        module.private.generate_display(name, positions, res)
     end,
 
     display_someday = function(tasks)
@@ -306,7 +297,7 @@ module.public = {
                     end
                 end
                 table.insert(res, inserted)
-                table.insert(positions, { line = #res, task = t })
+                table.insert(positions, { line = #res, data = t })
             end
         end
 
@@ -348,7 +339,7 @@ module.public = {
                 end
             end
             table.insert(res, result)
-            table.insert(positions, { line = #res, task = t })
+            table.insert(positions, { line = #res, data = t })
         end
 
         local filter_upcoming_tasks = function(task, day)
@@ -394,7 +385,7 @@ module.public = {
                     end
                 end
                 table.insert(res, result)
-                table.insert(positions, { line = #res, task = t })
+                table.insert(positions, { line = #res, data = t })
             end
         end
 
@@ -403,43 +394,44 @@ module.public = {
 
     --- Get the corresponding task from the buffer variable in the current line
     --- @return table the task node
-    get_task_by_var = function()
+    get_by_var = function()
         -- Get the current task at cursor
         local current_line = vim.api.nvim_win_get_cursor(0)[1]
-        local ok, task = pcall(vim.api.nvim_buf_get_var, 0, tostring(current_line))
+        local ok, data = pcall(vim.api.nvim_buf_get_var, 0, tostring(current_line))
 
         -- If not under task, return as is
         if not ok then
             return {}
         end
 
-        task = vim.tbl_filter(function(t)
-            return t.position == task.position and t.bufnr == task.bufnr
-        end, module.private.tasks)[1]
+        data = vim.tbl_filter(function(t)
+            return t.position == data.position and t.bufnr == data.bufnr
+        end, module.private.data)[1]
 
-        if not task then
+        if not data then
             return
         end
 
-        return task
+        return data
     end,
 
-    goto_task = function()
-        local task = module.public.get_task_by_var()
+    goto_node = function()
+        local data = module.public.get_by_var()
 
-        if not task then
+        if not data then
             return
         end
 
         module.public.close_buffer()
 
-        -- Go to the task node
+        -- Go to the node
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        vim.api.nvim_win_set_buf(0, task.bufnr)
-        ts_utils.goto_node(task.node)
+        vim.api.nvim_win_set_buf(0, data.bufnr)
+        ts_utils.goto_node(data.node)
 
         -- Reset the data
-        module.private.tasks = {}
+        module.private.data = {}
+        module.private.extras = {}
     end,
 
     close_buffer = function()
@@ -450,35 +442,37 @@ module.public = {
         local previous_mode = module.required["core.mode"].get_previous_mode()
         module.required["core.mode"].set_mode(previous_mode)
 
-        module.private.tasks = {}
+        module.private.data = {}
+        module.private.extras = {}
         module.private.current_bufnr = nil
         module.private.display_namespace_nr = nil
     end,
 
-    refetch_task_not_extracted = function(node)
+    refetch_data_not_extracted = function(node, _type)
         -- Get all nodes from the bufnr and add metadatas to it
         -- This is mandatory because we need to have the correct task position, else the update will not work
-        local nodes = module.required["core.gtd.queries"].get("tasks", { bufnr = node[2] })
-        nodes = module.required["core.gtd.queries"].add_metadata(nodes, "task", { extract = false, same_node = true })
+        local nodes = module.required["core.gtd.queries"].get(_type .. "s", { bufnr = node[2] })
+        nodes = module.required["core.gtd.queries"].add_metadata(nodes, _type, { extract = false, same_node = true })
 
         -- Find the correct task node
-        local found_task = vim.tbl_filter(function(n)
+        local found_data = vim.tbl_filter(function(n)
             return n.node:id() == node[1]:id()
         end, nodes)
 
-        if #found_task == 0 then
-            log.error("Error in fetching task")
+        if #found_data == 0 then
+            log.error("Error in fetching " .. _type)
             return
         end
 
-        return found_task[1]
+        return found_data[1]
     end,
 
     toggle_details = function()
-        local task = module.public.get_task_by_var()
+        local data = module.public.get_by_var()
         local res = {}
+        local offset = 0
 
-        if not task then
+        if not data then
             return
         end
 
@@ -486,22 +480,44 @@ module.public = {
             return "*" .. v .. "*"
         end
 
-        if task.project then
-            table.insert(res, "-- Project: " .. surround(task.project))
-        end
-        if task.contexts then
-            local contexts = vim.tbl_map(surround, task.contexts)
-            table.insert(res, "-- Contexts: " .. table.concat(contexts, ","))
-        end
-        if task["waiting.for"] then
-            local waiting_for = vim.tbl_map(surround, task["waiting.for"])
-            table.insert(res, "-- Waiting for: " .. table.concat(waiting_for, ","))
-        end
-        if task["time.start"] then
-            table.insert(res, "-- Starting the " .. surround(task["time.start"][1]))
-        end
-        if task["time.due"] then
-            table.insert(res, "-- Due for " .. surround(task["time.due"][1]))
+        -- For displaying projects, we assume that there is no data.state in it
+        if not data.state then
+            offset = 1
+            local tasks = module.private.extras[data.content]
+            if not tasks then
+                table.insert(res, "  - /No tasks found for this project/")
+            else
+                for _, task in pairs(tasks) do
+                    local state = (function()
+                        if task.state == "done" then
+                            return "- [x] "
+                        elseif task.state == "undone" then
+                            return "- [ ] "
+                        else
+                            return "- [*] "
+                        end
+                    end)()
+                    table.insert(res, "  " .. state .. task.content)
+                end
+            end
+        else
+            if data.project then
+                table.insert(res, "-- Project: " .. surround(data.project))
+            end
+            if data.contexts then
+                local contexts = vim.tbl_map(surround, data.contexts)
+                table.insert(res, "-- Contexts: " .. table.concat(contexts, ","))
+            end
+            if data["waiting.for"] then
+                local waiting_for = vim.tbl_map(surround, data["waiting.for"])
+                table.insert(res, "-- Waiting for: " .. table.concat(waiting_for, ","))
+            end
+            if data["time.start"] then
+                table.insert(res, "-- Starting the " .. surround(data["time.start"][1]))
+            end
+            if data["time.due"] then
+                table.insert(res, "-- Due for " .. surround(data["time.due"][1]))
+            end
         end
 
         local current_line = vim.api.nvim_win_get_cursor(0)[1]
@@ -518,10 +534,22 @@ module.public = {
         module.private.update_vars(res, current_line + 1, var.detailed)
 
         if var.detailed then
-            vim.api.nvim_buf_set_lines(module.private.current_bufnr, current_line, current_line + #res, false, {})
+            vim.api.nvim_buf_set_lines(
+                module.private.current_bufnr,
+                current_line + offset,
+                current_line + offset + #res,
+                false,
+                {}
+            )
             var.detailed = false
         else
-            vim.api.nvim_buf_set_lines(module.private.current_bufnr, current_line, current_line, false, res)
+            vim.api.nvim_buf_set_lines(
+                module.private.current_bufnr,
+                current_line + offset,
+                current_line + offset,
+                false,
+                res
+            )
             var.detailed = true
         end
 
@@ -531,23 +559,9 @@ module.public = {
 }
 
 module.private = {
-    tasks = {},
+    data = {},
     current_bufnr = nil,
     display_namespace_nr = nil,
-    --- Removes duplicates items from table `t`
-    --- @param t table
-    --- @return table
-    remove_duplicates = function(t)
-        vim.validate({ t = { t, "table" } })
-
-        local res = {}
-        for _, v in ipairs(t) do
-            if not vim.tbl_contains(res, v) then
-                table.insert(res, v)
-            end
-        end
-        return res
-    end,
 
     today_task = function(task)
         local today_context = false
@@ -578,10 +592,10 @@ module.private = {
         return today_state and (starting_today or due_today or (today_context and already_started))
     end,
 
-    set_vars_to_buf = function(buf, tasks)
-        for _, var in ipairs(tasks) do
-            vim.api.nvim_buf_set_var(buf, tostring(var.line), { bufnr = var.task.bufnr, position = var.task.position })
-            table.insert(module.private.tasks, var.task)
+    set_vars_to_buf = function(buf, data)
+        for _, var in ipairs(data) do
+            vim.api.nvim_buf_set_var(buf, tostring(var.line), { bufnr = var.data.bufnr, position = var.data.position })
+            table.insert(module.private.data, var.data)
         end
     end,
 
