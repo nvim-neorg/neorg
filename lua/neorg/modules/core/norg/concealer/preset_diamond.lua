@@ -84,6 +84,46 @@ module.config.private.icon_preset_diamond = {
         },
     },
 
+    link = {
+        enabled = true,
+        level_1 = {
+            enabled = true,
+            icon = " ",
+            highlight = "NeorgUnorderedLink1",
+            query = "(unordered_link1_prefix) @icon",
+        },
+        level_2 = {
+            enabled = true,
+            icon = "  ",
+            highlight = "NeorgUnorderedLink2",
+            query = "(unordered_link2_prefix) @icon",
+        },
+        level_3 = {
+            enabled = true,
+            icon = "   ",
+            highlight = "NeorgUnorderedLink3",
+            query = "(unordered_link3_prefix) @icon",
+        },
+        level_4 = {
+            enabled = true,
+            icon = "    ",
+            highlight = "NeorgUnorderedLink4",
+            query = "(unordered_link4_prefix) @icon",
+        },
+        level_5 = {
+            enabled = true,
+            icon = "     ",
+            highlight = "NeorgUnorderedLink5",
+            query = "(unordered_link5_prefix) @icon",
+        },
+        level_6 = {
+            enabled = true,
+            icon = "      ",
+            highlight = "NeorgUnorderedLink6",
+            query = "(unordered_link6_prefix) @icon",
+        },
+    },
+
     ordered = {
         enabled = require("neorg.external.helpers").is_minimum_version(0, 6, 0),
 
