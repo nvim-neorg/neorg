@@ -59,11 +59,9 @@
 
   *** Tasks
       @code norg
-        - [ ] Undone Task
-        - [*] Pending Task
-        - [x] Done Task
-        -- [ ] Nested task level 2
-        --- [ ] Nested task level 3
+        - [ ] Undone Task, Nested level 1
+        -- [*] Pending Task, Nested level 2
+        --- [x] Done Task, Nested level 3
       @end
       - [ ] Undone Task
       - [*] Pending Task
@@ -89,6 +87,14 @@
       >>>>>> 6. level quote
 
   *** Headings
+      @code norg
+        **** 4. level heading
+        ***** 5. level heading
+        ---
+        back to level 4
+        ===
+        back to root level
+      @end
       You already saw headings up to the third out of six levels. I assume by now you know how they
       work. But now...
 
@@ -119,36 +125,45 @@ terminate the paragraph which is why this is a new paragraph despite the absence
 consective new lines.
 
  ** Links
+    For more info on links check the
+    [spec](https://github.com/nvim-neorg/neorg/blob/main/docs/NFF-0.1-spec.md#links).
+
     We borrow the basic link syntax from markdown: `[link text](link source)`
-    Here are some example which also show you a special list kind for links:
+    Here is an example for links with the special syntax for lists.
 
-    -> [arbitrary heading link](#links)
-    --> [heading level 1](*The `.norg` file-format)
-    -> [some marker](|some marker)
-
-    These links will be ordered:
-    ~> [shameless plug](https://github.com/vhyrro/taurivim)
-    ~> [shameless plug](https://github.com/danymat/neogen)
-
-    You can link to objects in other files like so:
-    `[link text](:file:#location)`
-    `[link text](:file:other_file:#location)`
+    @code norg
+      $Unordered lists
+      -> [link to a level 1 heading](*The `.norg` file-format)
+      --> [link to a level 2 heading](**links)
+      -> [link to a marker](|some marker)
+      -> [link to any element with the text definitions](#definitions)
+      $These links will be ordered:
+      ~> [link to a cool plugin](https://github.com/vhyrro/taurivim)
+      ~> [another cool plugin](https://github.com/danymat/neogen)
+      $Links to files
+      [link to file.norg](:file:)
+      [link to target in file_2.norg](:file_2:#target)
+      [link to non neorg file notes.txt](@notes.txt)
+    @end
 
  ** Markers
     You can mark specific locations in your file with markers:
+    @code norg
+     | some marker
+    @end
     | some marker
 
  ** Definitions
     There are two kinds of defintions:
 
   *** Single-paragraph definitions
-      : Object to be defined
+      $ Object to be defined
       The definition of the object in a single paragraph.
 
       This is already the next paragraph.
 
   *** Multi-paragraph definitions
-      :: Object to be defined
+      $$ Object to be defined
       Here, I can place any number of paragraphs or other format objects.
 
       Even a code example:
