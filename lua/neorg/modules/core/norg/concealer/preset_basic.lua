@@ -83,7 +83,7 @@ module.config.private.icon_preset_basic = {
             query = "(unordered_list6_prefix) @icon",
         },
     },
-    
+
     link = {
         enabled = true,
         level_1 = {
@@ -123,7 +123,7 @@ module.config.private.icon_preset_basic = {
             query = "(unordered_link6_prefix) @icon",
         },
     },
-    
+
     ordered = {
         enabled = require("neorg.external.helpers").is_minimum_version(0, 6, 0),
 
