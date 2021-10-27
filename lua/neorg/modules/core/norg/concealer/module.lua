@@ -277,6 +277,11 @@ module.public = {
     end,
 
     trigger_code_block_highlights = function(from)
+        -- If the code block dimming is disabled, return right away.
+        if not module.config.public.dim_code_blocks then
+            return
+        end
+
         module.public.clear_code_block_dimming(from)
 
         -- The next block of code will be responsible for dimming code blocks accordingly
@@ -431,7 +436,7 @@ module.public = {
         if conceals.verbatim then
             vim.schedule(function()
                 vim.cmd([[
-                syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+                syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=@NoSpell oneline concealends
                 ]])
             end)
         end
@@ -664,6 +669,8 @@ module.config.public = {
         link = true,
     },
 
+    dim_code_blocks = true,
+
     completion_level = {
         enabled = true,
 
@@ -876,7 +883,6 @@ end
 
 module.on_event = function(event)
     -- If we have just entered a .norg buffer then apply all conceals
-    -- TODO: Allow code block dimming to be disabled
     -- TODO: Remove (or at least provide a reason) as to why there are so many vim.schedules
     -- Explain priorities and how we only schedule less important things to improve the average user
     -- experience

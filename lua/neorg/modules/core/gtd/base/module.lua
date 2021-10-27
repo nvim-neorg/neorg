@@ -14,7 +14,6 @@ REQUIRES:
         - core.keybinds         (check KEYBINDS for usage)
         - core.gtd.ui           for gtd UI components
         - core.neorgcmd         to add commands capabilities
-        - core.gtd.queries      to use custom gtd queries
 
 KEYBINDS:
     - core.gtd.base.add_to_inbox: Will call the function add_task_to_inbox()
@@ -38,7 +37,6 @@ module.setup = function()
             "core.norg.dirman",
             "core.keybinds",
             "core.gtd.ui",
-            "core.gtd.queries",
             "core.neorgcmd",
         },
     }
@@ -99,7 +97,7 @@ module.on_event = function(event)
         if vim.tbl_contains({ "gtd.views", "core.gtd.base.views" }, event.split_type[2]) then
             module.required["core.gtd.ui"].show_views_popup(module.config.public)
         elseif vim.tbl_contains({ "gtd.edit", "core.gtd.base.edit" }, event.split_type[2]) then
-            module.public.edit_task()
+            module.required["core.gtd.ui"].edit_task_at_cursor()
         elseif vim.tbl_contains({ "gtd.capture", "core.gtd.base.capture" }, event.split_type[2]) then
             module.required["core.gtd.ui"].show_capture_popup()
         end
@@ -119,17 +117,5 @@ module.events.subscribed = {
     },
 }
 
-module.public = {
-    edit_task = function()
-        local task_node = module.required["core.gtd.queries"].get_at_cursor("task")
-
-        if not task_node then
-            log.warn("No task at cursor position")
-            return
-        end
-
-        local task = module.required["core.gtd.ui"].refetch_task_not_extracted(task_node)
-        module.required["core.gtd.ui"].edit_task(task)
-    end,
-}
+module.public = {}
 return module
