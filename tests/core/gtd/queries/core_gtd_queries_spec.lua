@@ -1,18 +1,14 @@
 require("neorg").setup({
-    load = { ["core.gtd.base"] = {} },
+    load = { ["core.gtd.base"] = {}, ["core.norg.dirman"] = {} },
 })
 
+neorg.org_file_entered(false)
+
+local workspace = neorg.modules.get_module("core.norg.dirman").get_workspace("default")
+local uri = vim.uri_from_fname(workspace .. "/tests/core/gtd/queries/test_file.norg")
+local buf = vim.uri_to_bufnr(uri)
+
 describe("GTD - Retrievers:", function()
-    -- vim.cmd(":NeorgStart silent=true")
-    neorg.org_file_entered(false)
-    local buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_name(buf, "test.norg")
-    vim.api.nvim_buf_set_lines(buf, 0, 0, false, {
-        "this is a test",
-        "- [ ] test1",
-        "- [ ] test2",
-        "- [x] test3",
-    })
     local queries = neorg.modules.get_module("core.gtd.queries")
 
     it("Get all tasks from buffer", function()
