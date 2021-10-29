@@ -40,4 +40,7 @@ vim.api.nvim_buf_set_lines(config.temp_buf, 0, 0, false, {
     "- [ ] test5",
 })
 
+config.buf = vim.api.nvim_create_buf(false, true)
+vim.api.nvim_buf_set_name(config.buf, "test2.norg")
+
 return config

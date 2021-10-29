@@ -4,7 +4,7 @@ local config = require("tests.core.gtd.queries.config")
 -- Get the required module
 local queries = neorg.modules.get_module("core.gtd.queries")
 
-describe("GTD - Modifiers", function()
+describe("CORE.GTD.QUERIES - Modifiers:", function()
     it("Modify a task", function()
         local tasks = queries.get("tasks", { bufnr = config.temp_buf })
         tasks = queries.add_metadata(tasks, "task", { extract = false })
