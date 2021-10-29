@@ -1,27 +1,5 @@
 ---@diagnostic disable: undefined-global
-
--- Generate a simple config file
-local path = vim.fn.getcwd()
-require("neorg").setup({
-    load = {
-        ["core.gtd.base"] = {
-            config = {
-                workspace = "gtd",
-            },
-        },
-        ["core.norg.dirman"] = {
-            config = {
-                workspaces = {
-                    gtd = path .. "/tests/core/gtd/queries",
-                },
-            },
-        },
-    },
-})
-
--- Start neorg
-neorg.org_file_entered(false)
-neorg.modules.get_module("core.norg.dirman").set_workspace("gtd")
+require("tests.core.gtd.queries.config")
 
 -- Get a test file bufnr
 local workspace = neorg.modules.get_module("core.norg.dirman").get_workspace("gtd")
@@ -133,6 +111,39 @@ describe("GTD - Retrievers:", function()
             assert.is_true(vim.tbl_contains(keys, "node"))
             assert.is_true(vim.tbl_contains(keys, "bufnr"))
             assert.is_true(vim.tbl_contains(keys, "content"))
+        end
+    end)
+
+    it("Add not extracted metadata", function()
+        local tasks = queries.get("tasks", { bufnr = temp_buf })
+        tasks = queries.add_metadata(tasks, "task", { extract = false })
+
+        for _, task in ipairs(tasks) do
+            assert.is_userdata(task.content)
+            assert.is_userdata(task.state)
+            if task.contexts then
+                for _, context in pairs(task.contexts) do
+                    assert.is_userdata(context)
+                end
+            end
+            if task.project then
+                assert.is_userdata(task.project)
+            end
+            if task["waiting.for"] then
+                for _, waiting_for in pairs(task["waiting.for"]) do
+                    assert.is_userdata(waiting_for)
+                end
+            end
+            if task["time.due"] then
+                for _, node in pairs(task["time.due"]) do
+                    assert.is_userdata(node)
+                end
+            end
+            if task["time.start"] then
+                for _, node in pairs(task["time.start"]) do
+                    assert.is_userdata(node)
+                end
+            end
         end
     end)
 
