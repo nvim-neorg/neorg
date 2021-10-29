@@ -816,28 +816,9 @@ module.config.public = {
             highlight = "NeorgBold",
             query = "(bold) @icon",
             render = function(self, text, node)
-                local offset = 0
-                if node ~= nil then
-                    offset = -self.extract(text, node)
-                end
                 return {
-                    { text:gsub("*", self.icon) .. string.rep(self.icon, offset), self.highlight },
+                    { text:gsub("*", self.icon), self.highlight },
                 }
-            end,
-            extract = function(content, node)
-                local next_sibling = node:next_sibling()
-                if next_sibling ~= nil and next_sibling:type() == "markup_end" then
-                    local prev_sib = node:prev_sibling()
-                    while prev_sib ~= nil and prev_sib:type() ~= "markup_end" do
-                        prev_sib = prev_sib:prev_sibling()
-                    end
-                    if prev_sib == nil then
-                        return -1
-                    else
-                        return 0
-                    end
-                end
-                return 0
             end,
         },
 
@@ -847,28 +828,9 @@ module.config.public = {
             highlight = "NeorgItalic",
             query = "(italic) @icon",
             render = function(self, text, node)
-                local offset = 0
-                if node ~= nil then
-                    offset = -self.extract(text, node)
-                end
                 return {
-                    { text:gsub("/", self.icon) .. string.rep(self.icon, offset), self.highlight },
+                    { text:gsub("/", self.icon), self.highlight },
                 }
-            end,
-            extract = function(content, node)
-                local next_sibling = node:next_sibling()
-                if next_sibling ~= nil and next_sibling:type() == "markup_end" then
-                    local prev_sib = node:prev_sibling()
-                    while prev_sib ~= nil and prev_sib:type() ~= "markup_end" do
-                        prev_sib = prev_sib:prev_sibling()
-                    end
-                    if prev_sib == nil then
-                        return -1
-                    else
-                        return 0
-                    end
-                end
-                return 0
             end,
         },
 
@@ -878,28 +840,9 @@ module.config.public = {
             highlight = "NeorgUnderline",
             query = "(underline) @icon",
             render = function(self, text, node)
-                local offset = 0
-                if node ~= nil then
-                    offset = -self.extract(text, node)
-                end
                 return {
-                    { text:gsub("_", self.icon) .. string.rep(self.icon, offset), self.highlight },
+                    { text:gsub("_", self.icon), self.highlight },
                 }
-            end,
-            extract = function(content, node)
-                local next_sibling = node:next_sibling()
-                if next_sibling ~= nil and next_sibling:type() == "markup_end" then
-                    local prev_sib = node:prev_sibling()
-                    while prev_sib ~= nil and prev_sib:type() ~= "markup_end" do
-                        prev_sib = prev_sib:prev_sibling()
-                    end
-                    if prev_sib == nil then
-                        return -1
-                    else
-                        return 0
-                    end
-                end
-                return 0
             end,
         },
 
@@ -909,28 +852,9 @@ module.config.public = {
             highlight = "NeorgStrikethrough",
             query = "(strikethrough) @icon",
             render = function(self, text, node)
-                local offset = 0
-                if node ~= nil then
-                    offset = -self.extract(text, node)
-                end
                 return {
-                    { text:gsub("-", self.icon) .. string.rep(self.icon, offset), self.highlight },
+                    { text:gsub("-", self.icon), self.highlight },
                 }
-            end,
-            extract = function(content, node)
-                local next_sibling = node:next_sibling()
-                if next_sibling ~= nil and next_sibling:type() == "markup_end" then
-                    local prev_sib = node:prev_sibling()
-                    while prev_sib ~= nil and prev_sib:type() ~= "markup_end" do
-                        prev_sib = prev_sib:prev_sibling()
-                    end
-                    if prev_sib == nil then
-                        return -1
-                    else
-                        return 0
-                    end
-                end
-                return 0
             end,
         },
 
@@ -952,28 +876,9 @@ module.config.public = {
             highlight = "NeorgSpoiler",
             query = "(spoiler) @icon",
             render = function(self, text, node)
-                local offset = 0
-                if node ~= nil then
-                    offset = -self.extract(text, node)
-                end
                 return {
-                    { text:gsub("|", self.icon) .. string.rep(self.icon, offset), self.highlight },
+                    { text:gsub("|", self.icon), self.highlight },
                 }
-            end,
-            extract = function(content, node)
-                local next_sibling = node:next_sibling()
-                if next_sibling ~= nil and next_sibling:type() == "markup_end" then
-                    local prev_sib = node:prev_sibling()
-                    while prev_sib ~= nil and prev_sib:type() ~= "markup_end" do
-                        prev_sib = prev_sib:prev_sibling()
-                    end
-                    if prev_sib == nil then
-                        return -1
-                    else
-                        return 0
-                    end
-                end
-                return 0
             end,
         },
     },
