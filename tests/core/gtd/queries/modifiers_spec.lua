@@ -21,4 +21,32 @@ describe("GTD - Modifiers", function()
         assert.is_true(vim.tbl_contains(tasks[5].contexts, "new_context"))
         assert.equals("new content", tasks[5].content)
     end)
+
+    it("Modify a project", function()
+        local projects = queries.get("projects", { bufnr = config.temp_buf })
+        projects = queries.add_metadata(projects, "project", { extract = false })
+        local project = projects[1]
+
+        project = queries.modify(project, "project", "content", "new content")
+
+        projects = queries.get("projects", { bufnr = config.temp_buf })
+        projects = queries.add_metadata(projects, "project", { extract = true })
+
+        assert.equals("new content", projects[1].content)
+    end)
+
+    it("Delete content from a task", function()
+        local tasks = queries.get("tasks", { bufnr = config.temp_buf })
+        tasks = queries.add_metadata(tasks, "task", { extract = false })
+        local task = tasks[5]
+
+        assert.is_table(task["waiting.for"])
+
+        task = queries.delete(task, "task", "waiting.for")
+
+        tasks = queries.get("tasks", { bufnr = config.temp_buf })
+        tasks = queries.add_metadata(tasks, "task", { extract = true })
+
+        assert.is_nil(tasks[5]["waiting_for"])
+    end)
 end)
