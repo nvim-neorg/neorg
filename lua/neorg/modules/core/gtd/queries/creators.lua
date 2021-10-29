@@ -8,6 +8,9 @@ module.public = {
     --- @param bufnr number
     --- @param location number
     --- @param delimit boolean #Add delimiter before the task/project if true
+    --- @param opts table|nil opts
+    ---   - opts.new_line(boolean)   if false, do not add a newline before the content
+    ---   - opts.no_save(boolean)    if true, don't save the buffer
     create = function(type, node, bufnr, location, delimit, opts)
         vim.validate({
             type = { type, "string" },
@@ -45,14 +48,20 @@ module.public = {
 
         node.node = module.private.insert_content_new(node.content, bufnr, location, type, { newline = newline })
 
+        if node.node == nil then
+            log.error("Error in inserting new content")
+        end
+
         module.public.insert_tag({ node.node, bufnr }, node.contexts, "#contexts")
         module.public.insert_tag({ node.node, bufnr }, node["time.start"], "#time.start")
         module.public.insert_tag({ node.node, bufnr }, node["time.due"], "#time.due")
         module.public.insert_tag({ node.node, bufnr }, node["waiting.for"], "#waiting.for")
 
-        vim.api.nvim_buf_call(bufnr, function()
-            vim.cmd([[ write! ]])
-        end)
+        if not opts.no_save then
+            vim.api.nvim_buf_call(bufnr, function()
+                vim.cmd([[ write! ]])
+            end)
+        end
     end,
 
     --- Returns the end of the `project`
@@ -216,8 +225,6 @@ module.private = {
 
         for _, node in pairs(nodes) do
             local line = ts_utils.get_node_range(node[1])
-            -- Because TS is 0-based
-            line = line + 1
 
             local count_newline = opts.newline and 1 or 0
             if line == location + count_newline then
