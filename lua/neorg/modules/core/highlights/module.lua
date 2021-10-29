@@ -98,23 +98,25 @@ module.public = {
 
             -- If we are dealing with a link then link the highlights together (excluding the + symbol)
             if is_link then
-                local trimmed_highlight = highlight:sub(2)
+                local full_highlight_name = "Neorg" .. prefix .. hl_name
 
                 -- If the highlight already exists then assume the user doesn't want it to be
                 -- overwritten
-                if vim.fn.hlexists(trimmed_highlight) then
+                if vim.fn.hlexists(full_highlight_name) == 1 then
                     return
                 end
 
-                vim.cmd("highlight! link Neorg" .. prefix .. hl_name .. " " .. trimmed_highlight)
+                vim.cmd("highlight! link " .. full_highlight_name .. " " .. highlight:sub(2))
             else -- Otherwise simply apply the highlight options the user provided
+                local full_highlight_name = "Neorg" .. prefix .. hl_name
+
                 -- If the highlight already exists then assume the user doesn't want it to be
                 -- overwritten
-                if vim.fn.hlexists(highlight) then
+                if vim.fn.hlexists(full_highlight_name) == 1 then
                     return
                 end
 
-                vim.cmd("highlight! Neorg" .. prefix .. hl_name .. " " .. highlight)
+                vim.cmd("highlight! " .. full_highlight_name .. " " .. highlight)
             end
         end, "")
 
