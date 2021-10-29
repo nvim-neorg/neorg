@@ -25,6 +25,7 @@
     - \,subscript\,: ,subscript,
     - \$inline math\$: $f(x) = y$ (see also [Math](#math))
     - \=variable\=: =variable= (see also [Variables](#variables))
+    - \+inline comment\+: +inline comment+
 
     This also immediately shows you how to escape a special character using the backslash, \\.
 
