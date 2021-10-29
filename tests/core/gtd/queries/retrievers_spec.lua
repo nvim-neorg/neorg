@@ -10,7 +10,7 @@ local buf = vim.uri_to_bufnr(uri)
 -- Get the required module
 local queries = neorg.modules.get_module("core.gtd.queries")
 
-describe("GTD - Retrievers:", function()
+describe("CORE.GTD.QUERIES - Retrievers:", function()
     it("Get all tasks and projects from buffer", function()
         local tasks = queries.get("tasks", { bufnr = buf })
         assert.equals(3, #tasks)
