@@ -1,5 +1,5 @@
 ---@diagnostic disable: undefined-global
-require("tests.core.gtd.queries.config")
+local config = require("tests.core.gtd.queries.config")
 
 -- Get a test file bufnr
 local workspace = neorg.modules.get_module("core.norg.dirman").get_workspace("gtd")
@@ -7,21 +7,6 @@ local filename = "test_file.norg"
 local uri = vim.uri_from_fname(workspace .. "/" .. filename)
 local buf = vim.uri_to_bufnr(uri)
 
-local temp_buf = vim.api.nvim_create_buf(false, true)
-vim.api.nvim_buf_set_name(temp_buf, "test.norg")
-vim.api.nvim_buf_set_lines(temp_buf, 0, 0, false, {
-    "* Project",
-    "this is a test",
-    "- [ ] test1",
-    "- [ ] test2",
-    "- [x] test3",
-    "- [*] test4",
-    "#contexts test_context test_context2",
-    "#time.due 2021-10-10",
-    "#time.start 2021-10-11",
-    "#waiting.for test_waiting_for",
-    "- [ ] test5",
-})
 -- Get the required module
 local queries = neorg.modules.get_module("core.gtd.queries")
 
@@ -70,12 +55,12 @@ describe("GTD - Retrievers:", function()
     end)
 
     it("Add metadata to node task", function()
-        local projects = queries.get("projects", { bufnr = temp_buf })
+        local projects = queries.get("projects", { bufnr = config.temp_buf })
         projects = queries.add_metadata(projects, "project")
         assert.equals(1, #projects)
         assert.equals("Project", projects[1].content)
 
-        local tasks = queries.get("tasks", { bufnr = temp_buf })
+        local tasks = queries.get("tasks", { bufnr = config.temp_buf })
         tasks = queries.add_metadata(tasks, "task")
 
         for i, task in ipairs(tasks) do
@@ -115,7 +100,7 @@ describe("GTD - Retrievers:", function()
     end)
 
     it("Add not extracted metadata", function()
-        local tasks = queries.get("tasks", { bufnr = temp_buf })
+        local tasks = queries.get("tasks", { bufnr = config.temp_buf })
         tasks = queries.add_metadata(tasks, "task", { extract = false })
 
         for _, task in ipairs(tasks) do
@@ -166,7 +151,7 @@ describe("GTD - Retrievers:", function()
     end)
 
     it("Sort tasks", function()
-        local tasks = queries.get("tasks", { bufnr = temp_buf })
+        local tasks = queries.get("tasks", { bufnr = config.temp_buf })
         tasks = queries.add_metadata(tasks, "task")
 
         local sorted_waiting_for = queries.sort_by("waiting.for", tasks)
