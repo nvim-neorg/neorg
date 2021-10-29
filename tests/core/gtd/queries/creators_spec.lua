@@ -19,4 +19,28 @@ describe("CORE.GTD.QUERIES - Creators:", function()
         assert.is_true(vim.tbl_contains(tasks[1]["waiting.for"], "test"))
         assert.equals("test_content", tasks[1].content)
     end)
+
+    it("Creates a project", function()
+        local project = {
+            content = "test_content",
+            contexts = { "test" },
+        }
+
+        queries.create("project", project, config.buf, 0, false, { no_save = true, newline = true })
+
+        local projects = queries.get("projects", { bufnr = config.buf })
+        projects = queries.add_metadata(projects, "project")
+
+        assert.equals(1, #projects)
+        assert.is_true(vim.tbl_contains(projects[1]["contexts"], "test"))
+        assert.equals("test_content", projects[1].content)
+    end)
+
+    it("Get the end of the project", function()
+        local projects = queries.get("projects")
+        projects = queries.add_metadata(projects, "project")
+
+        local location = queries.get_end_project(projects[1])
+        assert.equals(nil, location)
+    end)
 end)
