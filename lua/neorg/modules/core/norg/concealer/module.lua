@@ -199,7 +199,7 @@ module.public = {
                         -- The extract function is used exactly to calculate this offset
                         -- If that function is present then run it and grab the return value
                         if icon_data.extract then
-                            offset = icon_data.extract(text) or 0
+                            offset = icon_data.extract(text, node) or 0
                         end
 
                         -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
@@ -815,10 +815,29 @@ module.config.public = {
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgBold",
             query = "(bold) @icon",
-            render = function(self, text)
+            render = function(self, text, node)
+                local offset = 0
+                if node ~= nil then
+                    offset = -self.extract(text, node)
+                end
                 return {
-                    { text:gsub("*", self.icon), self.highlight },
+                    { text:gsub("*", self.icon) .. string.rep(self.icon, offset), self.highlight },
                 }
+            end,
+            extract = function(content, node)
+                local next_sibling = node:next_sibling()
+                if next_sibling ~= nil and next_sibling:type() == "markup_end" then
+                    local prev_sib = node:prev_sibling()
+                    while prev_sib ~= nil and prev_sib:type() ~= "markup_end" do
+                        prev_sib = prev_sib:prev_sibling()
+                    end
+                    if prev_sib == nil then
+                        return -1
+                    else
+                        return 0
+                    end
+                end
+                return 0
             end,
         },
 
@@ -827,10 +846,29 @@ module.config.public = {
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgItalic",
             query = "(italic) @icon",
-            render = function(self, text)
+            render = function(self, text, node)
+                local offset = 0
+                if node ~= nil then
+                    offset = -self.extract(text, node)
+                end
                 return {
-                    { text:gsub("/", self.icon), self.highlight },
+                    { text:gsub("/", self.icon) .. string.rep(self.icon, offset), self.highlight },
                 }
+            end,
+            extract = function(content, node)
+                local next_sibling = node:next_sibling()
+                if next_sibling ~= nil and next_sibling:type() == "markup_end" then
+                    local prev_sib = node:prev_sibling()
+                    while prev_sib ~= nil and prev_sib:type() ~= "markup_end" do
+                        prev_sib = prev_sib:prev_sibling()
+                    end
+                    if prev_sib == nil then
+                        return -1
+                    else
+                        return 0
+                    end
+                end
+                return 0
             end,
         },
 
@@ -839,10 +877,29 @@ module.config.public = {
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgUnderline",
             query = "(underline) @icon",
-            render = function(self, text)
+            render = function(self, text, node)
+                local offset = 0
+                if node ~= nil then
+                    offset = -self.extract(text, node)
+                end
                 return {
-                    { text:gsub("_", self.icon), self.highlight },
+                    { text:gsub("_", self.icon) .. string.rep(self.icon, offset), self.highlight },
                 }
+            end,
+            extract = function(content, node)
+                local next_sibling = node:next_sibling()
+                if next_sibling ~= nil and next_sibling:type() == "markup_end" then
+                    local prev_sib = node:prev_sibling()
+                    while prev_sib ~= nil and prev_sib:type() ~= "markup_end" do
+                        prev_sib = prev_sib:prev_sibling()
+                    end
+                    if prev_sib == nil then
+                        return -1
+                    else
+                        return 0
+                    end
+                end
+                return 0
             end,
         },
 
@@ -851,10 +908,29 @@ module.config.public = {
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgStrikethrough",
             query = "(strikethrough) @icon",
-            render = function(self, text)
+            render = function(self, text, node)
+                local offset = 0
+                if node ~= nil then
+                    offset = -self.extract(text, node)
+                end
                 return {
-                    { text:gsub("-", self.icon), self.highlight },
+                    { text:gsub("-", self.icon) .. string.rep(self.icon, offset), self.highlight },
                 }
+            end,
+            extract = function(content, node)
+                local next_sibling = node:next_sibling()
+                if next_sibling ~= nil and next_sibling:type() == "markup_end" then
+                    local prev_sib = node:prev_sibling()
+                    while prev_sib ~= nil and prev_sib:type() ~= "markup_end" do
+                        prev_sib = prev_sib:prev_sibling()
+                    end
+                    if prev_sib == nil then
+                        return -1
+                    else
+                        return 0
+                    end
+                end
+                return 0
             end,
         },
 
@@ -873,13 +949,31 @@ module.config.public = {
         spoiler = {
             enabled = true,
             icon = "●",
-            volatile = true,
             highlight = "NeorgSpoiler",
             query = "(spoiler) @icon",
-            render = function(self, text)
+            render = function(self, text, node)
+                local offset = 0
+                if node ~= nil then
+                    offset = -self.extract(text, node)
+                end
                 return {
-                    { string.rep(self.icon, #text), self.highlight },
+                    { text:gsub("|", self.icon) .. string.rep(self.icon, offset), self.highlight },
                 }
+            end,
+            extract = function(content, node)
+                local next_sibling = node:next_sibling()
+                if next_sibling ~= nil and next_sibling:type() == "markup_end" then
+                    local prev_sib = node:prev_sibling()
+                    while prev_sib ~= nil and prev_sib:type() ~= "markup_end" do
+                        prev_sib = prev_sib:prev_sibling()
+                    end
+                    if prev_sib == nil then
+                        return -1
+                    else
+                        return 0
+                    end
+                end
+                return 0
             end,
         },
     },
