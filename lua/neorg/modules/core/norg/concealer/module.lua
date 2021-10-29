@@ -862,7 +862,7 @@ module.config.public = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgConcealMonospace",
-            query = "(inline_code) @icon",
+            query = "(verbatim) @icon",
             render = function(self, text)
                 return {
                     { text:gsub("`", self.icon), self.highlight },
