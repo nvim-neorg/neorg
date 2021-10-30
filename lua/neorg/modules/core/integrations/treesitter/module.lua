@@ -326,6 +326,14 @@ module.config.public = {
             },
         },
 
+        Markup = {
+            Bold = "cterm=bold gui=bold",
+            Italic = "cterm=italic gui=italic",
+            Strikethrough = "cterm=strikethrough gui=strikethrough",
+            Underline = "cterm=underline gui=underline",
+            Variable = "+NeorgInsertionVariable",
+        },
+
         StrongParagraphDelimiter = "+TSPunctDelimiter",
         WeakParagraphDelimiter = "+TSPunctDelimiter",
         HorizontalLine = "+TSPunctDelimiter",
