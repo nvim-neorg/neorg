@@ -80,8 +80,7 @@ module.public = {
     --- Delete a node from an `object` with `option` key
     --- @param object table
     --- @param option string
-    --- @param opts table
-    delete = function(object, node_type, option, opts)
+    delete = function(object, node_type, option)
         vim.validate({
             object = { object, "table" },
             node_type = {
@@ -92,10 +91,7 @@ module.public = {
                 "task|project",
             },
             option = { option, "string" },
-            opts = { opts, "table", true },
         })
-
-        opts = opts or {}
 
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
