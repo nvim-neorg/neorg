@@ -21,11 +21,11 @@
     - \-strikethrough\-: -strikethrough-
     - \|spoiler\|: |spoiler|
     - \`inline code\`: `inline code`
-    - \^superscript\^: ^superscript^
-    - \,subscript\,: ,subscript,
+    - \^superscript\^: ^superscript^    | cannot exist within a subscript block
+    - \,subscript\,: ,subscript,        | cannot exist within a superscript block
     - \$inline math\$: $f(x) = y$ (see also [Math](#math))
     - \=variable\=: =variable= (see also [Variables](#variables))
-    - \#inline comment\#: #inline comment#
+    - \+inline comment\+: +inline comment+
 
     This also immediately shows you how to escape a special character using the backslash, \\.
 
@@ -36,8 +36,8 @@
 
   *** Unordered lists
       @code norg
-        - Unordered list level 1
-        -- Unordered list level 2
+      - Unordered list level 1
+      -- Unordered list level 2
       @end
       - Unordered list level 1
       -- Unordered list level 2
@@ -48,8 +48,8 @@
 
   *** Ordered lists
       @code norg
-        ~ Unordered list level 1
-        ~~ Unordered list level 2
+      ~ Unordered list level 1
+      ~~ Unordered list level 2
       @end
       ~ Ordered list level 1
       ~~ Ordered list level 2
@@ -76,15 +76,15 @@
       ------ [ ] Nested task level 6
       
       @code norg
-        - [ ] Undone Task, Nested level 1
-        -- [*] Pending Task, Nested level 2
-        --- [x] Done Task, Nested level 3
+      - [ ] Undone Task, Nested level 1
+      -- [*] Pending Task, Nested level 2
+      --- [x] Done Task, Nested level 3
       @end
       
   *** Quotes
       @code norg
-        > 1. level quote
-        >> 2. level quote
+      > 1. level quote
+      >> 2. level quote
       @end
       > 1. level quote
       >> 2. level quote
@@ -114,12 +114,12 @@
         indentation.
         ---
       @code norg
-        **** 4. level heading
-        ***** 5. level heading
-        ---
-        back to level 4
-        ===
-        back to root level
+      **** 4. level heading
+      ***** 5. level heading
+            ---
+           back to level 4
+      ===
+      back to root level
       @end
       
       
@@ -140,24 +140,25 @@ consective new lines.
     Here is an example for links with the special syntax for lists.
       
     @code norg
-      #unordered links#
-      -> [link to a level 1 heading](*The `.norg` file-format)
-      --> [link to a level 2 heading](**links)
-      -> [link to a marker](|some marker)
-      -> [link to any element with the text definitions](#definitions)
-      #these links will be ordered:#
-      ~> [link to a cool plugin](https://github.com/vhyrro/taurivim)
-      ~> [another cool plugin](https://github.com/danymat/neogen)
-      #links to files#
-      [link to file.norg](:file:)
-      [link to target in file_2.norg](:file_2:#target)
-      [link to non neorg file notes.txt](@notes.txt)
+    +unordered links+
+    -> [link to a level 1 heading](*The `.norg` file-format)
+    --> [link to a level 2 heading](**links)
+    -> [link to a marker](|some marker)
+    -> [link to any element with the text definitions](#definitions)
+    +these links will be ordered:+
+    ~> [link to a cool plugin](https://github.com/vhyrro/taurivim)
+    ~> [another cool plugin](https://github.com/danymat/neogen)
+    +links to files+
+    [link to file.norg](:file:)
+    [link to target in file_2.norg](:file_2:#target)
+    [link to a target from the root of the workspace](:/my/file:#target)
+    [link to non neorg file notes.txt](@notes.txt)
     @end
       
  ** Markers
     You can mark specific locations in your file with markers:
     @code norg
-     | some marker
+    | some marker
     @end
     | some marker
       
