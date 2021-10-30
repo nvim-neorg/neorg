@@ -42,6 +42,10 @@ module.config.public = {
                 reference = "Normal",
                 percentage = 20,
             },
+            Comment = {
+                reference = "Normal",
+                percentage = 40,
+            },
         },
     },
 }
@@ -51,6 +55,7 @@ module.setup = function()
 end
 
 module.load = function()
+    module.required["core.autocommands"].enable_autocommand("BufEnter")
     module.required["core.autocommands"].enable_autocommand("ColorScheme", true)
 end
 
@@ -93,9 +98,25 @@ module.public = {
 
             -- If we are dealing with a link then link the highlights together (excluding the + symbol)
             if is_link then
-                vim.cmd("highlight! link Neorg" .. prefix .. hl_name .. " " .. highlight:sub(2))
+                local full_highlight_name = "Neorg" .. prefix .. hl_name
+
+                -- If the highlight already exists then assume the user doesn't want it to be
+                -- overwritten
+                if vim.fn.hlexists(full_highlight_name) == 1 then
+                    return
+                end
+
+                vim.cmd("highlight! link " .. full_highlight_name .. " " .. highlight:sub(2))
             else -- Otherwise simply apply the highlight options the user provided
-                vim.cmd("highlight! Neorg" .. prefix .. hl_name .. " " .. highlight)
+                local full_highlight_name = "Neorg" .. prefix .. hl_name
+
+                -- If the highlight already exists then assume the user doesn't want it to be
+                -- overwritten
+                if vim.fn.hlexists(full_highlight_name) == 1 then
+                    return
+                end
+
+                vim.cmd("highlight! " .. full_highlight_name .. " " .. highlight)
             end
         end, "")
 
@@ -216,7 +237,7 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.type == "core.autocommands.events.colorscheme" then
+    if event.type == "core.autocommands.events.bufenter" or event.type == "core.autocommands.events.colorscheme" then
         module.public.trigger_highlights()
     end
 end
@@ -224,11 +245,8 @@ end
 module.events.subscribed = {
     ["core.autocommands"] = {
         colorscheme = true,
+        bufenter = true,
     },
 }
-
-module.neorg_post_load = function()
-    module.public.trigger_highlights()
-end
 
 return module

@@ -188,7 +188,7 @@ module.private = {
                                 inbox
                             )
 
-                        module.required["core.gtd.queries"].create("task", task, bufnr, end_row, projectAtEnd)
+                        module.required["core.gtd.queries"].create("task", task, bufnr, end_row + 1, projectAtEnd)
                     end)
 
                 return selection
@@ -229,10 +229,13 @@ module.private = {
             :flag("w", "Waiting For", function()
                 module.public.display_waiting_for(tasks)
             end)
+            :flag("d", "Someday Tasks", function()
+                module.public.display_someday(tasks)
+            end)
             :blank()
             :text("Projects")
             :flag("p", "Show projects", function()
-                module.public.display_projects(tasks, projects, { priority = { "_" } })
+                module.public.display_projects(tasks, projects)
             end)
         return selection
     end,

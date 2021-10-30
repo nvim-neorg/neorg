@@ -24,6 +24,9 @@ neorg.modules.module_base = {
     -- The name of the module, note that modules beginning with core are neorg's inbuilt modules
     name = "core.default",
 
+    -- The path of the module, can be used in require() statements
+    path = "neorg.modules.core.default.module",
+
     -- A convenience table to place all of your private variables that you don't want to expose here.
     private = {},
 
@@ -134,10 +137,15 @@ function neorg.modules.create(name)
         real = function()
             return new_module
         end,
+
+        setreal = function(new)
+            new_module = new
+        end,
     }
 
     if name then
         new_module.name = name
+        new_module.path = "neorg.modules." .. name
     end
 
     return setmetatable(t, {
@@ -155,15 +163,23 @@ function neorg.modules.create(name)
     })
 end
 
-function neorg.modules.extend(name)
+function neorg.modules.extend(name, parent)
     local module = neorg.modules.create(name)
 
     local realmodule = rawget(module, "real")()
+
+    if parent then
+        local path = realmodule.path
+        realmodule = vim.tbl_deep_extend("force", realmodule, neorg.modules.loaded_modules[parent].real())
+        realmodule.name, realmodule.path = name, path
+    end
 
     realmodule.setup = nil
     realmodule.load = nil
     realmodule.on_event = nil
     realmodule.neorg_post_load = nil
+
+    module.setreal(realmodule)
 
     return module
 end
