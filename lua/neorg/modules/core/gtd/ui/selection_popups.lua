@@ -126,7 +126,7 @@ module.public = {
                 if data["delete_" .. k] then
                     task = module.required["core.gtd.queries"].delete(task, "task", k)
                 else
-                    task = module.required["core.gtd.queries"].modify(task, "task", k, modified[k], { tag = "$" .. k })
+                    task = module.required["core.gtd.queries"].modify(task, "task", k, modified[k], { tag = "#" .. k })
                 end
             end
 

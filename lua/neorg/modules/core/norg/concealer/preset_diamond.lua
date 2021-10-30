@@ -448,7 +448,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
                     if prev_sibling then
                         -- Get the text of the previous sibling and store its longest line width-wise
                         local text = ts.get_node_text(prev_sibling)
-                        local longest = 0
+                        local longest = 3
 
                         if prev_sibling:parent() and prev_sibling:prev_sibling():type() == "marker_prefix" then
                             local range_of_prefix = module.required["core.integrations.treesitter"].get_node_range(
