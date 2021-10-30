@@ -37,12 +37,13 @@ module.config.public = {
         },
     },
     dim = {
-        Conceal = {
-            Monospace = {
+        Markup = {
+            Verbatim = {
                 reference = "Normal",
                 percentage = 20,
             },
-            Comment = {
+
+            InlineComment = {
                 reference = "Normal",
                 percentage = 40,
             },

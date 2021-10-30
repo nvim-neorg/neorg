@@ -288,3 +288,16 @@
 (strong_paragraph_delimiter) @NeorgStrongParagraphDelimiter
 (weak_paragraph_delimiter) @NeorgWeakParagraphDelimiter
 (horizontal_line) @NeorgHorizontalLine
+
+; Markup
+(bold) @NeorgMarkupBold
+(italic) @NeorgMarkupItalic
+(strikethrough) @NeorgMarkupStrikethrough
+(underline) @NeorgMarkupUnderline
+(spoiler) @NeorgMarkupSpoiler
+(verbatim) @NeorgMarkupVerbatim
+(superscript) @NeorgMarkupSuperscript
+(subscript) @NeorgMarkupSubscript
+(inline_comment) @NeorgMarkupInlineComment
+(inline_math) @NeorgMarkupInlineMath
+(variable) @NeorgMarkupVariable

@@ -396,93 +396,6 @@ module.public = {
         vim.api.nvim_buf_clear_namespace(0, module.private.code_block_namespace, from or 0, -1)
     end,
 
-    -- @Summary Triggers conceals for the current buffer
-    -- @Description Reads through the user configuration and enables concealing for the current buffer
-    trigger_conceals = function()
-        local conceals = module.config.public.conceals
-
-        if conceals.bold then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.italic then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.underline then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\|^\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.strikethrough then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.verbatim then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=@NoSpell oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.comment then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealComment matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=#\%\([^ \t\n#]\)\@=" end="[^ \t\n\\]\@<=#\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
-        end
-
-        if conceals.trailing then
-            vim.schedule(function()
-                vim.cmd([[
-                syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
-                ]])
-            end)
-        end
-
-        if conceals.link then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
-                ]])
-            end)
-        end
-    end,
-
-    -- @Summary Clears conceals for the current buffer
-    -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
-    clear_conceals = function()
-        vim.cmd([[
-            silent! syn clear NeorgConcealURL
-            silent! syn clear NeorgConcealURLValue
-            silent! syn clear NeorgConcealItalic
-            silent! syn clear NeorgConcealBold
-            silent! syn clear NeorgConcealUnderline
-            silent! syn clear NeorgConcealMonospace
-            silent! syn clear NeorgConcealComment
-            silent! syn clear NeorgConcealStrikethrough
-            silent! syn clear NeorgConcealTrailing
-            silent! syn clear NeorgConcealLink
-        ]])
-    end,
-
     trigger_completion_levels = function(from)
         from = from or 0
 
@@ -657,17 +570,6 @@ module.config.public = {
     icon_preset = "basic",
 
     icons = {},
-
-    conceals = {
-        bold = true,
-        italic = true,
-        underline = true,
-        strikethrough = true,
-        verbatim = true,
-        comment = true,
-        trailing = true,
-        link = true,
-    },
 
     dim_code_blocks = true,
 
@@ -887,10 +789,6 @@ module.on_event = function(event)
     -- Explain priorities and how we only schedule less important things to improve the average user
     -- experience
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        if module.config.public.conceals then
-            module.public.trigger_conceals()
-        end
-
         module.public.trigger_code_block_highlights()
         module.public.trigger_completion_levels()
         module.public.trigger_icons()
