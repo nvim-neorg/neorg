@@ -5,7 +5,7 @@ local module = neorg.modules.extend("core.gtd.queries.helpers")
 --- @field days number
 
 module.public = {
-    -- @Summary Convert a date from text to YY-MM-dd format
+    -- @Summary Convert a date from text to YYYY-MM-dd format
     -- @Description If the date is a quick capture (like 2w, 10d, 4m), it will convert to a standardized date
     -- Supported formats ($ treated as number):
     --   - $d: days from now (e.g 2d is 2 days from now)
@@ -13,7 +13,7 @@ module.public = {
     --   - $m: months from now (e.g 2m is 2 months from now)
     --   - tomorrow: tomorrow's date
     --   - today: today's date
-    --   The format for date is YY-mm-dd
+    --   The format for date is YYYY-mm-dd
     -- @Param  text (string) the text to use
     date_converter = function(text)
         vim.validate({ text = { text, "string" } })
@@ -23,10 +23,32 @@ module.public = {
         elseif text == "tomorrow" then
             -- Return tomorrow's date in YY-MM-DD format
             return os.date("%Y-%m-%d", os.time() + 24 * 60 * 60)
+        elseif vim.tbl_contains({ "mon", "tue", "wed", "thu", "fri", "sat", "sun" }, text) then
+            local values = {
+                ["sun"] = 1,
+                ["mon"] = 2,
+                ["tue"] = 3,
+                ["wed"] = 4,
+                ["thu"] = 5,
+                ["fri"] = 6,
+                ["sat"] = 7,
+            }
+            local date = os.date("*t")
+            if values[text] > date.wday then
+                date.day = date.day + values[text] - date.wday
+            else
+                date.day = date.day + 7 - (date.wday - values[text])
+            end
+            local time = os.time(date)
+            return os.date("%Y-%m-%d", time)
+        end
+
+        local year, month, day = text:match("^[(%d)(%d)(%d)(%d)]-[(%d+)(%d)]-[(%d+)(%d)]$")
+        if year and month and day then
+            return text
         end
 
         local number, type = text:match("^(%d+)([hdwmy])$")
-
         if not number or not type then
             return
         end

@@ -5,6 +5,23 @@
 
 neorg.utils = {
 
+    ---Render folded text.
+    ---Support showing heading icons
+    ---@return string
+    foldtext = function()
+        local line = vim.fn.getline(vim.v.foldstart)
+        local _, count = string.gsub(line, "%*", "")
+        if count ~= 0 then
+            local config = require("neorg.modules.core.norg.concealer.module").config.public.icons.heading
+            local icon = config["level_" .. count].icon
+            line = line:gsub(("%*"):rep(count), icon)
+        end
+
+        local res = line:gsub([[\\t]], ([[\ ]]):rep(vim.o.tabstop)) .. " …"
+
+        return res
+    end,
+
     -- @Summary Gets the current system username
     -- @Description An OS agnostic way of querying the current user
     get_username = function()

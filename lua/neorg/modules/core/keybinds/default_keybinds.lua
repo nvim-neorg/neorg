@@ -18,6 +18,11 @@ module.public = {
                     { "gtp", "core.norg.qol.todo_items.todo.task_pending" },
                     { "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" },
 
+                    -- Keys for managing GTD
+                    { neorg_leader .. "tc", "core.gtd.base.capture" },
+                    { neorg_leader .. "tv", "core.gtd.base.views" },
+                    { neorg_leader .. "te", "core.gtd.base.edit" },
+
                     -- Keys for managing notes
                     { neorg_leader .. "nn", "core.norg.dirman.new.note" },
 
@@ -31,6 +36,14 @@ module.public = {
 
                 i = {
                     { "<C-l>", "core.integrations.telescope.insert_link" },
+                },
+
+                o = {
+                    { "ah", "core.norg.manoeuvre.textobject.around-heading" },
+                    { "ih", "core.norg.manoeuvre.textobject.inner-heading" },
+                    { "at", "core.norg.manoeuvre.textobject.around-tag" },
+                    { "it", "core.norg.manoeuvre.textobject.inner-tag" },
+                    { "al", "core.norg.manoeuvre.textobject.around-whole-list" },
                 },
             }, {
                 silent = true,
@@ -49,11 +62,28 @@ module.public = {
                 noremap = true,
             })
 
+            -- Map the below keys on gtd displays
+            keybinds.map_event_to_mode("gtd-displays", {
+                n = {
+                    { "<CR>", "core.gtd.ui.goto_task" },
+
+                    -- Keys for closing the current display
+                    { "q", "core.gtd.ui.close" },
+                    { "<Esc>", "core.gtd.ui.close" },
+                    { "e", "core.gtd.ui.edit_task" },
+                    { "<Tab>", "core.gtd.ui.details" },
+                },
+            }, {
+                silent = true,
+                noremap = true,
+                nowait = true,
+            })
+
             -- Apply the below keys to all modes
             keybinds.map_to_mode("all", {
                 n = {
-                    { neorg_leader .. "mn", ":Neorg set-mode norg<CR>" },
-                    { neorg_leader .. "mh", ":Neorg set-mode traverse-heading<CR>" },
+                    { neorg_leader .. "mn", ":Neorg mode norg<CR>" },
+                    { neorg_leader .. "mh", ":Neorg mode traverse-heading<CR>" },
                 },
             }, {
                 silent = true,
