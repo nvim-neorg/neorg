@@ -635,30 +635,6 @@ module.public = {
         descend(root)
     end,
 
-    get_link_info = function()
-        local node = module.private.ts_utils.get_node_at_cursor(0)
-
-        if not node then
-            return nil
-        end
-
-        local parent = node:parent()
-
-        if not parent then
-            return nil
-        end
-
-        if parent:type() == "link" and parent:named_child_count() > 1 then
-            return {
-                text = module.private.ts_utils.get_node_text(parent:named_child(0))[1],
-                location = module.private.ts_utils.get_node_text(parent:named_child(1))[1],
-                type = parent:named_child(1):type(),
-                range = module.public.get_node_range(parent),
-                node = parent,
-            }
-        end
-    end,
-
     -- Gets the range of a given node
     get_node_range = function(node)
         if not node then
@@ -718,6 +694,20 @@ module.public = {
         end
 
         return text[1]
+    end,
+
+    find_parent = function(node, types)
+        local _node = node
+
+        while _node do
+            if type(types) == "string" and _node:type():match(types) then
+                return _node
+            elseif vim.tbl_contains(types, _node:type()) then
+                return _node
+            end
+
+            _node = _node:parent()
+        end
     end,
 }
 
