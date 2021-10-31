@@ -26,16 +26,10 @@ module.public = {
                     -- Keys for managing notes
                     { neorg_leader .. "nn", "core.norg.dirman.new.note" },
 
-                    { "<CR>", "core.norg.esupports.goto_link" },
-
-                    { "<C-s>", "core.integrations.telescope.find_linkable" },
+                    { "<CR>", "core.norg.esupports.hop.hop-link" },
 
                     { "<M-k>", "core.norg.manoeuvre.item_up" },
                     { "<M-j>", "core.norg.manoeuvre.item_down" },
-                },
-
-                i = {
-                    { "<C-l>", "core.integrations.telescope.insert_link" },
                 },
 
                 o = {
