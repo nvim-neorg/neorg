@@ -23,6 +23,7 @@ module.config.public = {
         },
 
         ConcealMath = "+TSMath",
+        ConcealVariable = "+TSKeyword",
 
         SelectionWindow = {
             Heading = "+TSAnnotation",
