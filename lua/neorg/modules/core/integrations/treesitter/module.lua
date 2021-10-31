@@ -700,8 +700,10 @@ module.public = {
         local _node = node
 
         while _node do
-            if type(types) == "string" and _node:type():match(types) then
-                return _node
+            if type(types) == "string" then
+                if _node:type():match(types) then
+                    return _node
+                end
             elseif vim.tbl_contains(types, _node:type()) then
                 return _node
             end
