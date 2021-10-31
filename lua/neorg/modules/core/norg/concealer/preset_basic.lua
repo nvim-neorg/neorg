@@ -578,6 +578,18 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         end,
     },
 
+    variable = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgConcealVariable",
+        query = "(variable) @icon",
+        render = function(self, text)
+            return {
+                { text:gsub("=", self.icon), self.highlight },
+            }
+        end,
+    },
+
     spoiler = {
         enabled = true,
         icon = "●",
