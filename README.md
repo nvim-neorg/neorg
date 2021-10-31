@@ -288,6 +288,31 @@ sources = {
 
 And that's it!
 
+### Lazy Loading Neorg Completion
+It's very much likely that you're lazy loading your favourite completion engine on an autocommand like `InsertEnter`.
+In this case loading the `core.norg.completion` module right away will flat out fail.
+To make Neorg work with your lazy loaded completion engine, you can simply defer the loading of the completion
+module when necessary. Place this code after you initialize your completion engine:
+
+```lua
+-- Get the current Neorg state
+local neorg = require('neorg')
+
+--- Loads the Neorg completion module
+local function load_completion()
+    neorg.modules.load_module("core.norg.completion", nil, {
+        engine = "nvim-cmp" -- Choose your completion engine here
+    })
+end
+
+-- If Neorg is loaded already then don't hesitate and load the completion
+if neorg.is_loaded() then
+    load_completion()
+else -- Otherwise wait until Neorg gets started and load the completion module then
+    neorg.callbacks.on_event("core.started", load_completion)
+end
+```
+
 # :question: Usage
 Simply drop into a .norg file and start typing!
 
@@ -386,6 +411,7 @@ heartwarming and fuels the urge to keep going :heart:. You can support me here:
 - [Donate directly via paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
 - [Support me on Patreon](https://patreon.com/vhyrro)
 - Donate to my monero wallet: `86CXbnPLa14F458FRQFe26PRfffZTZDbUeb4NzYiHDtzcyaoMnfq1TqVU1EiBFrbKqGshFomDzxWzYX2kMvezcNu9TaKd9t`
+- Donate via bitcoin: `bc1q4ey43t9hhstzdqh8kqcllxwnqlx9lfxqqh439s`
 
 # :green_heart: Credits
 Massive shoutouts to the people who supported the project! These are:
