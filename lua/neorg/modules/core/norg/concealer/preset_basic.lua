@@ -565,6 +565,19 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         end,
     },
 
+    math = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgConcealMath",
+        query = "(inline_math) @icon",
+        render = function(self, text)
+            return {
+                -- NOTE: `$` must be escaped!
+                { text:gsub("%$", self.icon), self.highlight },
+            }
+        end,
+    },
+
     spoiler = {
         enabled = true,
         icon = "●",

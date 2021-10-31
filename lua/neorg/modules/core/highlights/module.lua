@@ -22,6 +22,8 @@ module.config.public = {
             Value = "+TSType",
         },
 
+        ConcealMath = "+TSMath",
+
         SelectionWindow = {
             Heading = "+TSAnnotation",
             Arrow = "+Normal",
