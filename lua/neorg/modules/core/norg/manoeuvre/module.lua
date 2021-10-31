@@ -11,7 +11,15 @@ module.setup = function()
 end
 
 module.load = function()
-    module.required["core.keybinds"].register_keybinds(module.name, { "item_up", "item_down" })
+    module.required["core.keybinds"].register_keybinds(module.name, {
+        "item_up",
+        "item_down",
+        "textobject.around-heading",
+        "textobject.inner-heading",
+        "textobject.around-tag",
+        "textobject.inner-tag",
+        "textobject.around-whole-list",
+    })
 end
 
 module.config.public = {
@@ -117,6 +125,63 @@ module.public = {
     end,
 }
 
+local function find(node, expected_type)
+    while not node:type():match(expected_type) do
+        if not node:parent() or node:type() == "document" then
+            return
+        end
+
+        node = node:parent()
+    end
+
+    return node
+end
+
+local function find_content(node, expected_type, content_field)
+    local heading = find(node, expected_type)
+
+    if not heading then
+        return
+    end
+
+    local content = heading:field(content_field or "content")
+
+    return #content > 0 and content
+end
+
+local function unless(node)
+    if not node then
+        return
+    end
+
+    local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+    vim.api.nvim_buf_set_mark(0, "<", range.row_start + 1, range.column_start)
+    vim.api.nvim_buf_set_mark(0, ">", range.row_end + 1, range.column_end)
+    vim.cmd("normal! gv")
+end
+
+module.config.private = {
+    textobjects = {
+        ["around-heading"] = function(node)
+            return unless(find(node, "^heading%d+$"))
+        end,
+        ["inner-heading"] = function(node)
+            return unless(find_content(node, "^heading%d+$"))
+        end,
+        ["around-tag"] = function(node)
+            return unless(find(node, "ranged_tag$"))
+        end,
+        ["inner-tag"] = function(node)
+            -- TODO: Fix Treesitter, this is currently buggy
+            return unless(find_content(node, "ranged_tag$"))
+        end,
+        ["around-whole-list"] = function(node)
+            return unless(find(node, "generic_list"))
+        end,
+    },
+}
+
 module.on_event = function(event)
     local config = module.config.public.moveables
 
@@ -128,13 +193,34 @@ module.on_event = function(event)
         for _, data in pairs(config) do
             module.public.move_item_up(data[1], data[2])
         end
+    else
+        local textobj = event.split_type[2]:find("textobject")
+
+        if textobj then
+            local textobject_type = event.split_type[2]:sub(textobj + string.len("textobject") + 1)
+            local textobj_lookup = module.config.private.textobjects[textobject_type]
+
+            if textobj_lookup then
+                return textobj_lookup(
+                    module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
+                )
+            end
+        end
     end
 end
 
 module.events.subscribed = {
     ["core.keybinds"] = {
-        ["core.norg.manoeuvre.item_down"] = true,
-        ["core.norg.manoeuvre.item_up"] = true,
+        [module.name .. ".item_down"] = true,
+        [module.name .. ".item_up"] = true,
+
+        [module.name .. ".textobject.around-heading"] = true,
+        [module.name .. ".textobject.inner-heading"] = true,
+
+        [module.name .. ".textobject.around-tag"] = true,
+        [module.name .. ".textobject.inner-tag"] = true,
+
+        [module.name .. ".textobject.around-whole-list"] = true,
     },
 }
 

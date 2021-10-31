@@ -601,7 +601,17 @@ module.public = {
                 column_end = 0,
             }
         end
-        local rs, cs, re, ce = node:range()
+
+        local rs, cs, re, ce = 0, 0, 0, 0
+
+        if type(node) == "table" then -- We're dealing with a node range
+            local brs, bcs, _, _ = node[1]:range()
+            local _, _, ere, ece = node[#node]:range()
+            rs, cs, re, ce = brs, bcs, ere, ece
+        else
+            rs, cs, re, ce = node:range()
+        end
+
         return {
             row_start = rs,
             column_start = cs,

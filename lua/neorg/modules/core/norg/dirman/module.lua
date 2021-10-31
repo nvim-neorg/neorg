@@ -405,8 +405,13 @@ module.public = {
 
         local scanned_dir = scan.scan_dir(workspace)
 
+        -- We remove the workspace path and only keep relative path.
+        -- In order to prevent bugs with special characters (hyphens), we escapte them in the pattern
+        -- @see https://stackoverflow.com/questions/6705872/how-to-escape-a-variable-in-lua
+        local workspace_pattern = string.gsub(workspace, "%p", "%%%1")
+
         for _, file in pairs(scanned_dir) do
-            local remove_dir = string.gsub(file, workspace .. "/", "")
+            local remove_dir = string.gsub(file, workspace_pattern .. "/", "")
 
             if string.find(remove_dir, ".norg$") then
                 table.insert(res, remove_dir)

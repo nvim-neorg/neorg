@@ -36,10 +36,6 @@ module.load = function()
     end
 end
 
-module.private = {
-    bound_keys = {},
-}
-
 module.config.public = {
     default_keybinds = false,
     neorg_leader = "<Leader>o",
@@ -108,13 +104,8 @@ module.public = {
     end,
 
     -- @Summary Rebinds all the keys defined via User Callbacks
-    bind_all = function()
-        -- If the table is already populated then don't populate it further
-        if not vim.tbl_isempty(module.private.bound_keys) then
-            return
-        end
-
-        local current_mode = module.required["core.mode"].get_mode()
+    bind_all = function(action, for_mode)
+        local current_mode = for_mode or module.required["core.mode"].get_mode()
 
         -- Broadcast the enable_keybinds event to any user that might have registered a User Callback for it
         local payload
@@ -128,10 +119,25 @@ module.public = {
             -- @Param  command (string) - same as the rhs parameter for :h nvim_buf_set_keymap
             -- @Param  opts (table) - same as the opts parameter for :h nvim_buf_set_keymap
             map = function(mode, key, command, opts)
-                vim.api.nvim_set_keymap(mode, key, command, opts or {})
+                local ok, error = pcall(function()
+                    if action then
+                        action(0, mode, key, command, opts or {})
+                    else
+                        vim.api.nvim_buf_set_keymap(0, mode, key, command, opts or {})
+                    end
+                end)
 
-                -- Insert it into the list of tracked keys
-                table.insert(module.private.bound_keys, { mode, key })
+                if not ok then
+                    log.trace(
+                        string.format(
+                            "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s",
+                            key,
+                            mode,
+                            current_mode,
+                            error
+                        )
+                    )
+                end
             end,
 
             -- @Summary Maps a bunch of keys for a certain mode
@@ -146,7 +152,7 @@ module.public = {
                 end
 
                 -- If the current mode matches the desired mode then
-                if mode == "all" or module.required["core.mode"].get_mode() == mode then
+                if mode == "all" or (for_mode or module.required["core.mode"].get_mode()) == mode then
                     -- Loop through all the keybinds for a certain mode
                     for neovim_mode, keymaps in pairs(keys) do
                         -- Loop though all the keymaps in that mode
@@ -170,7 +176,7 @@ module.public = {
                 end
 
                 -- If the current mode matches the desired mode then
-                if mode == "all" or module.required["core.mode"].get_mode() == mode then
+                if mode == "all" or (for_mode or module.required["core.mode"].get_mode()) == mode then
                     -- Loop through all the keybinds for a certain mode
                     for neovim_mode, keymaps in pairs(keys) do
                         -- Loop though all the keymaps in that mode
@@ -234,25 +240,12 @@ module.public = {
                         -- If we're dealing with a table called "unbind" then go through all the strings defined there
                         -- and unbind each key
                         for _, to_unbind in ipairs(data) do
-                            pcall(vim.api.nvim_del_keymap, mode, to_unbind)
+                            pcall(vim.api.nvim_buf_del_keymap, 0, mode, to_unbind)
                         end
                     end
                 end
             end
         end
-    end,
-
-    -- @Summary Unbind all currently defined keys
-    -- @Description If the user has used the map() function, as they should have, Neorg will have tracked all the currently bound keymaps.
-    --				Thanks to this function all those keys will be cleared as a result of e.g. a mode change.
-    unbind_all = function()
-        -- Loop through every currently defined keybind and unbind it
-        for _, mode_key_pair in ipairs(module.private.bound_keys) do
-            pcall(vim.api.nvim_del_keymap, mode_key_pair[1], mode_key_pair[2])
-        end
-
-        -- Reset the bound keys table
-        module.private.bound_keys = {}
     end,
 
     -- @Summary Synchronizes all autocompletions
@@ -304,14 +297,16 @@ module.on_event = function(event)
         module.public.sync()
     elseif event.type == "core.mode.events.mode_set" then
         -- If a new mode has been set then reset all of our keybinds
-        module.public.unbind_all()
+        module.public.bind_all(function(buf, mode, key)
+            vim.api.nvim_buf_del_keymap(buf, mode, key)
+        end, event.content.current)
         module.public.bind_all()
     elseif event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        -- If we have entered a buffer then rebind all keys
+        -- If a new mode has been set then reset all of our keybinds
+        module.public.bind_all(function(buf, mode, key)
+            vim.api.nvim_buf_del_keymap(buf, mode, key)
+        end, module.required["core.mode"].get_previous_mode())
         module.public.bind_all()
-    elseif event.type == "core.autocommands.events.bufleave" and event.content.norg then
-        -- If we have left a buffer then unbind all keys
-        module.public.unbind_all()
     end
 end
 

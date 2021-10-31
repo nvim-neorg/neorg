@@ -92,9 +92,8 @@ module.public = {
 
     --- Get the node `type` at cursor
     --- @param type string #Either project|task
-    --- @param opts table #Pass opts to add_metadata
     --- @return table #A table of type { node, bufnr }
-    get_at_cursor = function(type, opts)
+    get_at_cursor = function(type)
         vim.validate({
             type = {
                 type,
@@ -103,10 +102,7 @@ module.public = {
                 end,
                 "project|task",
             },
-            opts = { opts, "table", true },
         })
-
-        opts = opts or {}
 
         local filename = vim.api.nvim_buf_get_name(0)
         local bufnr = module.required["core.norg.dirman"].get_file_bufnr(filename)
@@ -183,11 +179,11 @@ module.public = {
         return res
     end,
 
-    --- Sort `tasks` list by specified `sorter`
+    --- Sort `nodes` list by specified `sorter`
     --- @param sorter string
-    --- @param tasks table
+    --- @param nodes table
     --- @return table
-    sort_by = function(sorter, tasks, opts)
+    sort_by = function(sorter, nodes)
         vim.validate({
             sorter = {
                 sorter,
@@ -196,11 +192,9 @@ module.public = {
                 end,
                 "waiting.for|contexts|projects",
             },
-            tasks = { tasks, "table" },
-            opts = { opts, "table", true },
+            tasks = { nodes, "table" },
         })
 
-        opts = opts or {}
         local res = {}
 
         local insert = function(t, k, v)
@@ -210,7 +204,7 @@ module.public = {
             table.insert(t[k], v)
         end
 
-        for _, t in pairs(tasks) do
+        for _, t in pairs(nodes) do
             if not t[sorter] then
                 insert(res, "_", t)
             else

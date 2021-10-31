@@ -87,13 +87,117 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.norg.concealer")
 
 module.setup = function()
-    return { success = true, requires = { "core.autocommands", "core.integrations.treesitter" } }
+    return {
+        success = true,
+        requires = {
+            "core.autocommands",
+            "core.integrations.treesitter",
+        },
+        imports = {
+            "preset_basic",
+            "preset_varied",
+            "preset_diamond",
+        },
+    }
 end
 
 module.private = {
-    namespace = vim.api.nvim_create_namespace("neorg_conceals"),
+    icon_namespace = vim.api.nvim_create_namespace("neorg-conceals"),
+    code_block_namespace = vim.api.nvim_create_namespace("neorg-code-blocks"),
+    completion_level_namespace = vim.api.nvim_create_namespace("neorg-completion-level"),
     extmarks = {},
     icons = {},
+
+    completion_level_base = {
+        {
+            "(",
+        },
+        {
+            "<done>",
+            "TSField",
+        },
+        {
+            " of ",
+        },
+        {
+            "<total>",
+            "NeorgTodoItem1Done",
+        },
+        {
+            ") [<percentage>% complete]",
+        },
+    },
+
+    any_todo_item = function(index)
+        local result = "["
+
+        for i = index, 6 do
+            result = result
+                .. string.format(
+                    [[
+                (todo_item%d
+                    state: [
+                        (todo_item_undone) @undone
+                        (todo_item_pending) @pending
+                        (todo_item_done) @done
+                    ]
+                )
+            ]],
+                    i
+                )
+        end
+
+        return result .. "]"
+    end,
+
+    todo_list_query = [[
+(generic_list
+    [
+        (todo_item1
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
+        )
+        (todo_item2
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
+        )
+        (todo_item3
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
+        )
+        (todo_item4
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
+        )
+        (todo_item5
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
+        )
+        (todo_item6
+            state: [
+                (todo_item_undone) @undone
+                (todo_item_pending) @pending
+                (todo_item_done) @done
+            ]
+        )
+    ]+
+)+
+    ]],
 }
 
 module.public = {
@@ -104,66 +208,6 @@ module.public = {
     trigger_icons = function(from)
         -- Clear all the conceals beforehand (so no overlaps occur)
         module.public.clear_icons(from)
-
-        -- The next block of code will be responsible for dimming code blocks accordingly
-        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
-
-        -- If the tree is valid then attempt to perform the query
-        if tree then
-            do
-                -- Query all code blocks
-                local ok, query = pcall(
-                    vim.treesitter.parse_query,
-                    "norg",
-                    [[(
-                        (ranged_tag (tag_name) @_name) @tag
-                        (#eq? @_name "code")
-                    )]]
-                )
-
-                -- If something went wrong then go bye bye
-                if not ok or not query then
-                    return
-                end
-
-                -- Go through every found capture
-                for id, node in query:iter_captures(tree:root(), 0, from or 0, -1) do
-                    local id_name = query.captures[id]
-
-                    -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
-                    if id_name == "tag" then
-                        -- Get the range of the code block
-                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-                        -- Go through every line in the code block and give it a magical highlight
-                        for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
-                            local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
-
-                            -- If our buffer is modifiable or if our line is too short then try to fill in the line
-                            -- (this fixes broken syntax highlights automatically)
-                            if vim.bo.modifiable and line:len() < range.column_start then
-                                vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
-                            end
-
-                            -- If our line is valid and it's not too short then apply the dimmed highlight
-                            if line and line:len() >= range.column_start then
-                                module.public._set_extmark(
-                                    module.private.namespace,
-                                    nil,
-                                    "NeorgCodeBlock",
-                                    i,
-                                    i + 1,
-                                    range.column_start,
-                                    nil,
-                                    true,
-                                    "blend"
-                                )
-                            end
-                        end
-                    end
-                end
-            end
-        end
 
         -- Get the root node of the document (required to iterate over query captures)
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
@@ -207,9 +251,9 @@ module.public = {
                         -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
                         if not icon_data.render then
                             module.public._set_extmark(
-                                namespace,
                                 icon_data.icon,
                                 icon_data.highlight,
+                                "icon",
                                 range.row_start,
                                 range.row_end,
                                 range.column_start + offset,
@@ -219,15 +263,82 @@ module.public = {
                             )
                         else
                             module.public._set_extmark(
-                                namespace,
                                 icon_data:render(text, node),
                                 icon_data.highlight,
+                                "icon",
                                 range.row_start,
                                 range.row_end,
                                 range.column_start + offset,
                                 range.column_end,
                                 false,
                                 "combine"
+                            )
+                        end
+                    end
+                end
+            end
+        end
+    end,
+
+    trigger_code_block_highlights = function(from)
+        -- If the code block dimming is disabled, return right away.
+        if not module.config.public.dim_code_blocks then
+            return
+        end
+
+        module.public.clear_code_block_dimming(from)
+
+        -- The next block of code will be responsible for dimming code blocks accordingly
+        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+        -- If the tree is valid then attempt to perform the query
+        if tree then
+            -- Query all code blocks
+            local ok, query = pcall(
+                vim.treesitter.parse_query,
+                "norg",
+                [[(
+                    (ranged_tag (tag_name) @_name) @tag
+                    (#eq? @_name "code")
+                )]]
+            )
+
+            -- If something went wrong then go bye bye
+            if not ok or not query then
+                return
+            end
+
+            -- Go through every found capture
+            for id, node in query:iter_captures(tree:root(), 0, from or 0, -1) do
+                local id_name = query.captures[id]
+
+                -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                if id_name == "tag" then
+                    -- Get the range of the code block
+                    local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+                    -- Go through every line in the code block and give it a magical highlight
+                    for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
+                        local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
+
+                        -- If our buffer is modifiable or if our line is too short then try to fill in the line
+                        -- (this fixes broken syntax highlights automatically)
+                        if vim.bo.modifiable and line:len() < range.column_start then
+                            vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
+                        end
+
+                        -- If our line is valid and it's not too short then apply the dimmed highlight
+                        if line and line:len() >= range.column_start then
+                            module.public._set_extmark(
+                                nil,
+                                "NeorgCodeBlock",
+                                "code_block",
+                                i,
+                                i + 1,
+                                range.column_start,
+                                nil,
+                                true,
+                                "blend"
                             )
                         end
                     end
@@ -246,22 +357,29 @@ module.public = {
     -- @Param  end_column (number) - the end column of the conceal
     -- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
     -- @Param  mode (string: "replace"/"combine"/"blend") - the highlight mode for the extmark
-    _set_extmark = function(namespace, text, highlight, line_number, end_line, start_column, end_column, whole_line, mode)
+    _set_extmark = function(text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode)
         -- If the text type is a string then convert it into something that Neovim's extmark API can understand
         if type(text) == "string" then
             text = { { text, highlight } }
         end
 
         -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, namespace, line_number, start_column, {
-            end_col = end_column,
-            hl_group = highlight,
-            end_line = end_line,
-            virt_text = text or nil,
-            virt_text_pos = "overlay",
-            hl_mode = mode,
-            hl_eol = whole_line,
-        })
+        local ok, result = pcall(
+            vim.api.nvim_buf_set_extmark,
+            0,
+            module.private[ns .. "_namespace"],
+            line_number,
+            start_column,
+            {
+                end_col = end_column,
+                hl_group = highlight,
+                end_line = end_line,
+                virt_text = text or nil,
+                virt_text_pos = "overlay",
+                hl_mode = mode,
+                hl_eol = whole_line,
+            }
+        )
 
         -- If we have encountered an error then log it
         if not ok then
@@ -273,7 +391,13 @@ module.public = {
     -- @Description Simply clears the Neorg extmark namespace
     -- @Param from (number) - the line number to start clearing from
     clear_icons = function(from)
-        vim.api.nvim_buf_clear_namespace(0, module.private.namespace, from or 0, -1)
+        vim.api.nvim_buf_clear_namespace(0, module.private.icon_namespace, from or 0, -1)
+    end,
+
+    --- Clears all dimming applied to code blocks in the current buffer
+    --- @param from number #The line number to start clearing from
+    clear_code_block_dimming = function(from)
+        vim.api.nvim_buf_clear_namespace(0, module.private.code_block_namespace, from or 0, -1)
     end,
 
     -- @Summary Triggers conceals for the current buffer
@@ -307,7 +431,7 @@ module.public = {
         if conceals.link then
             vim.schedule(function()
                 vim.cmd([[
-                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgBold,NeorgItalic,NeorgUnderline,NeorgStrikethrough,NeorgConcealMonospace oneline concealends
+                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgBold,NeorgItalic,NeorgUnderline,NeorgStrikethrough,NeorgConcealVerbatim oneline concealends
                 ]])
             end)
         end
@@ -324,6 +448,117 @@ module.public = {
         ]])
     end,
 
+    trigger_completion_levels = function(from)
+        from = from or 0
+
+        module.public.clear_completion_levels(from)
+
+        -- Get the root node of the document (required to iterate over query captures)
+        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+
+        if not document_root then
+            return
+        end
+
+        for _, query in ipairs(module.config.public.completion_level.queries) do
+            local query_object = vim.treesitter.parse_query("norg", query.query)
+
+            local nodes = {}
+            local last_node
+
+            local total, done, pending, undone = 0, 0, 0, 0
+
+            for id, node in query_object:iter_captures(document_root, 0, from, -1) do
+                local name = query_object.captures[id]
+
+                if name == "progress" then
+                    if last_node and node ~= last_node then
+                        table.insert(nodes, {
+                            node = last_node,
+                            total = total,
+                            done = done,
+                            pending = pending,
+                            undone = undone,
+                        })
+
+                        total, done, pending, undone = 0, 0, 0, 0
+                    end
+
+                    last_node = node
+                elseif name == "done" then
+                    done = done + 1
+                    total = total + 1
+                elseif name == "undone" then
+                    undone = undone + 1
+                    total = total + 1
+                elseif name == "pending" then
+                    pending = pending + 1
+                    total = total + 1
+                end
+            end
+
+            if total > 0 then
+                table.insert(nodes, {
+                    node = last_node,
+                    total = total,
+                    done = done,
+                    pending = pending,
+                    undone = undone,
+                })
+
+                for _, node_information in ipairs(nodes) do
+                    if node_information.total > 0 then
+                        local node_range = module.required["core.integrations.treesitter"].get_node_range(
+                            node_information.node
+                        )
+                        local text = vim.deepcopy(query.text)
+
+                        local function format_query_text(data)
+                            data = data:gsub("<total>", tostring(node_information.total))
+                            data = data:gsub("<done>", tostring(node_information.done))
+                            data = data:gsub("<pending>", tostring(node_information.pending))
+                            data = data:gsub("<undone>", tostring(node_information.undone))
+                            data = data:gsub(
+                                "<percentage>",
+                                tostring(math.floor(node_information.done / node_information.total * 100))
+                            )
+
+                            return data
+                        end
+
+                        -- Format query text
+                        if type(text) == "string" then
+                            text = format_query_text(text)
+                        else
+                            for _, tbl in ipairs(text) do
+                                tbl[1] = format_query_text(tbl[1])
+
+                                tbl[2] = tbl[2] or query.highlight
+                            end
+                        end
+
+                        vim.api.nvim_buf_set_extmark(
+                            0,
+                            module.private.completion_level_namespace,
+                            node_range.row_start,
+                            -1,
+                            {
+                                virt_text = type(text) == "string" and { { text, query.highlight } } or text,
+                                priority = 250,
+                                hl_mode = "combine",
+                            }
+                        )
+                    end
+                end
+            end
+        end
+    end,
+
+    clear_completion_levels = function(from)
+        vim.api.nvim_buf_clear_namespace(0, module.private.completion_level_namespace, from or 0, -1)
+    end,
+
+    -- VARIABLES
     concealing = {
         ordered = {
             get_index = function(node, level)
@@ -375,522 +610,193 @@ module.public = {
     },
 }
 
+local function reparg(value, index)
+    if index == 1 then
+        return value
+    end
+
+    return value, reparg(value, index - 1)
+end
+
 module.config.public = {
-    icons = {
-        todo = {
-            enabled = true,
+    icon_preset = "basic",
 
-            done = {
-                enabled = true,
-                icon = "",
-                highlight = "NeorgTodoItemDoneMark",
-                query = "(todo_item_done) @icon",
-                extract = function(content)
-                    local column = content:find("x")
-                    return column and column - 1
-                end,
-            },
-
-            pending = {
-                enabled = true,
-                icon = "",
-                highlight = "NeorgTodoItemPendingMark",
-                query = "(todo_item_pending) @icon",
-                extract = function(content)
-                    local column = content:find("*")
-                    return column and column - 1
-                end,
-            },
-
-            undone = {
-                enabled = true,
-                icon = "×",
-                highlight = "NeorgTodoItemUndoneMark",
-                query = "(todo_item_undone) @icon",
-                extract = function(content)
-                    local match = content:match("%s+")
-                    return match and math.floor((match:len() + 1) / 2)
-                end,
-            },
-        },
-
-        list = {
-            enabled = true,
-
-            level_1 = {
-                enabled = true,
-                icon = "•",
-                highlight = "NeorgUnorderedList1",
-                query = "(unordered_list1_prefix) @icon",
-            },
-
-            level_2 = {
-                enabled = true,
-                icon = " •",
-                highlight = "NeorgUnorderedList2",
-                query = "(unordered_list2_prefix) @icon",
-            },
-
-            level_3 = {
-                enabled = true,
-                icon = "  •",
-                highlight = "NeorgUnorderedList3",
-                query = "(unordered_list3_prefix) @icon",
-            },
-
-            level_4 = {
-                enabled = true,
-                icon = "   •",
-                highlight = "NeorgUnorderedList4",
-                query = "(unordered_list4_prefix) @icon",
-            },
-
-            level_5 = {
-                enabled = true,
-                icon = "    •",
-                highlight = "NeorgUnorderedList5",
-                query = "(unordered_list5_prefix) @icon",
-            },
-
-            level_6 = {
-                enabled = true,
-                icon = "     •",
-                highlight = "NeorgUnorderedList6",
-                query = "(unordered_list6_prefix) @icon",
-            },
-        },
-
-        ordered = {
-            enabled = require("neorg.external.helpers").is_minimum_version(0, 6, 0),
-
-            --[[
-                Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
-                a thing, punctuation can be added (without removing the whitespace
-                between the icon and actual text) like so:
-
-                ```lua
-                    icon = module.private.ordered_concealing.punctuation.dot(
-                        module.private.ordered_concealing.icon_renderer.numeric
-                    ),
-                ```
-
-                Note: this will produce icons like `1.`, `2.`, etc.
-
-                You can even chain multiple punctuation wrappers like so:
-
-                ```lua
-                icon = module.private.ordered_concealing.punctuation.parenthesis(
-                    module.private.ordered_concealing.punctuation.dot(
-                        module.private.ordered_concealing.icon_renderer.numeric
-                    )
-                ),
-                ```
-
-                Note: this will produce icons like `1.)`, `2.)`, etc.
-            --]]
-
-            level_1 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.enumerator.numeric,
-                highlight = "NeorgOrderedList1",
-                query = "(ordered_list1_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list1")
-                    return {
-                        { self.icon(count), self.highlight },
-                    }
-                end,
-            },
-
-            level_2 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.enumerator.latin_uppercase,
-                highlight = "NeorgOrderedList2",
-                query = "(ordered_list2_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list2")
-                    return {
-                        { " " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-
-            level_3 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.enumerator.latin_lowercase,
-                highlight = "NeorgOrderedList3",
-                query = "(ordered_list3_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list3")
-                    return {
-                        { "  " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-
-            level_4 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.enumerator.numeric,
-                highlight = "NeorgOrderedList4",
-                query = "(ordered_list4_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list4")
-                    return {
-                        { "   " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-
-            level_5 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.enumerator.latin_uppercase,
-                highlight = "NeorgOrderedList5",
-                query = "(ordered_list5_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list5")
-                    return {
-                        { "    " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-
-            level_6 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.enumerator.latin_lowercase,
-                highlight = "NeorgOrderedList6",
-                query = "(ordered_list6_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list6")
-                    return {
-                        { "     " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-        },
-
-        quote = {
-            enabled = true,
-
-            level_1 = {
-                enabled = true,
-                icon = "│",
-                highlight = "NeorgQuote1",
-                query = "(quote1_prefix) @icon",
-            },
-
-            level_2 = {
-                enabled = true,
-                icon = "│",
-                highlight = "NeorgQuote2",
-                query = "(quote2_prefix) @icon",
-                render = function(self)
-                    return {
-                        { self.icon, module.config.public.icons.quote.level_1.highlight },
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-
-            level_3 = {
-                enabled = true,
-                icon = "│",
-                highlight = "NeorgQuote3",
-                query = "(quote3_prefix) @icon",
-                render = function(self)
-                    return {
-                        { self.icon, module.config.public.icons.quote.level_1.highlight },
-                        { self.icon, module.config.public.icons.quote.level_2.highlight },
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-
-            level_4 = {
-                enabled = true,
-                icon = "│",
-                highlight = "NeorgQuote4",
-                query = "(quote4_prefix) @icon",
-                render = function(self)
-                    return {
-                        { self.icon, module.config.public.icons.quote.level_1.highlight },
-                        { self.icon, module.config.public.icons.quote.level_2.highlight },
-                        { self.icon, module.config.public.icons.quote.level_3.highlight },
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-
-            level_5 = {
-                enabled = true,
-                icon = "│",
-                highlight = "NeorgQuote5",
-                query = "(quote5_prefix) @icon",
-                render = function(self)
-                    return {
-                        { self.icon, module.config.public.icons.quote.level_1.highlight },
-                        { self.icon, module.config.public.icons.quote.level_2.highlight },
-                        { self.icon, module.config.public.icons.quote.level_3.highlight },
-                        { self.icon, module.config.public.icons.quote.level_4.highlight },
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-
-            level_6 = {
-                enabled = true,
-                icon = "│",
-                highlight = "NeorgQuote6",
-                query = "(quote6_prefix) @icon",
-                render = function(self)
-                    return {
-                        { self.icon, module.config.public.icons.quote.level_1.highlight },
-                        { self.icon, module.config.public.icons.quote.level_2.highlight },
-                        { self.icon, module.config.public.icons.quote.level_3.highlight },
-                        { self.icon, module.config.public.icons.quote.level_4.highlight },
-                        { self.icon, module.config.public.icons.quote.level_5.highlight },
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-        },
-
-        heading = {
-            enabled = true,
-
-            level_1 = {
-                enabled = true,
-                icon = "◉",
-                highlight = "NeorgHeading1",
-                query = "(heading1_prefix) @icon",
-            },
-
-            level_2 = {
-                enabled = true,
-                icon = " ○",
-                highlight = "NeorgHeading2",
-                query = "(heading2_prefix) @icon",
-            },
-
-            level_3 = {
-                enabled = true,
-                icon = "  ✿",
-                highlight = "NeorgHeading3",
-                query = "(heading3_prefix) @icon",
-            },
-
-            level_4 = {
-                enabled = true,
-                icon = "   ▶",
-                highlight = "NeorgHeading4",
-                query = "(heading4_prefix) @icon",
-            },
-
-            level_5 = {
-                enabled = true,
-                icon = "    •",
-                highlight = "NeorgHeading5",
-                query = "(heading5_prefix) @icon",
-            },
-
-            level_6 = {
-                enabled = true,
-                icon = "     ⤷",
-                highlight = "NeorgHeading6",
-                query = "(heading6_prefix) @icon",
-            },
-        },
-
-        marker = {
-            enabled = true,
-            icon = "",
-            highlight = "NeorgMarker",
-            query = "(marker_prefix) @icon",
-        },
-
-        definition = {
-            enabled = true,
-
-            single = {
-                enabled = true,
-                icon = "≡",
-                highlight = "NeorgDefinition",
-                query = "(single_definition_prefix) @icon",
-            },
-            multi_prefix = {
-                enabled = true,
-                icon = "⋙ ",
-                highlight = "NeorgDefinition",
-                query = "(multi_definition_prefix) @icon",
-            },
-            multi_suffix = {
-                enabled = true,
-                icon = "⋘ ",
-                highlight = "NeorgDefinition",
-                query = "(multi_definition_suffix) @icon",
-            },
-        },
-
-        delimiter = {
-            enabled = true,
-
-            weak = {
-                enabled = true,
-                icon = "⟨",
-                highlight = "NeorgWeakParagraphDelimiter",
-                query = "(weak_paragraph_delimiter) @icon",
-                render = function(self, text)
-                    return {
-                        { string.rep(self.icon, text:len()), self.highlight },
-                    }
-                end,
-            },
-
-            strong = {
-                enabled = true,
-                icon = "⟪",
-                highlight = "NeorgStrongParagraphDelimiter",
-                query = "(strong_paragraph_delimiter) @icon",
-                render = function(self, text)
-                    return {
-                        { string.rep(self.icon, text:len()), self.highlight },
-                    }
-                end,
-            },
-
-            horizontal_line = {
-                enabled = true,
-                icon = "─",
-                highlight = "NeorgHorizontalLine",
-                query = "(horizontal_line) @icon",
-                render = function(self, _, node)
-                    -- Get the length of the Neovim window (used to render to the edge of the screen)
-                    local resulting_length = vim.api.nvim_win_get_width(0)
-
-                    -- If we are running at least 0.6 (which has the prev_sibling() function) then
-                    if require("neorg.external.helpers").is_minimum_version(0, 6, 0) then
-                        -- Grab the sibling before our current node in order to later
-                        -- determine how much space it occupies in the buffer vertically
-                        local prev_sibling = node:prev_sibling()
-                        local ts = module.required["core.integrations.treesitter"].get_ts_utils()
-
-                        if prev_sibling then
-                            -- Get the text of the previous sibling and store its longest line width-wise
-                            local text = ts.get_node_text(prev_sibling)
-                            local longest = 0
-
-                            -- Go through each line and remove its surrounding whitespace,
-                            -- we do this because some inconsistencies tend to occur with
-                            -- the way whitespace is handled.
-                            for _, line in ipairs(text) do
-                                line = vim.trim(line)
-
-                                -- If the line even has any "normal" characters
-                                -- and its length is a new record then update the
-                                -- `longest` variable
-                                if line:match("%w") and line:len() > longest then
-                                    longest = line:len()
-                                end
-                            end
-
-                            -- If we've set a longest value then override the resulting length
-                            -- with that longest value (to make it render only up until that point)
-                            if longest > 0 then
-                                resulting_length = longest
-                            end
-                        end
-                    end
-
-                    return {
-                        {
-                            string.rep(self.icon, resulting_length),
-                            self.highlight,
-                        },
-                    }
-                end,
-            },
-        },
-
-        bold = {
-            enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgBold",
-            query = "(bold) @icon",
-            render = function(self, text, node)
-                return {
-                    { text:gsub("*", self.icon), self.highlight },
-                }
-            end,
-        },
-
-        italic = {
-            enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgItalic",
-            query = "(italic) @icon",
-            render = function(self, text, node)
-                return {
-                    { text:gsub("/", self.icon), self.highlight },
-                }
-            end,
-        },
-
-        underline = {
-            enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgUnderline",
-            query = "(underline) @icon",
-            render = function(self, text, node)
-                return {
-                    { text:gsub("_", self.icon), self.highlight },
-                }
-            end,
-        },
-
-        strikethrough = {
-            enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgStrikethrough",
-            query = "(strikethrough) @icon",
-            render = function(self, text, node)
-                return {
-                    { text:gsub("-", self.icon), self.highlight },
-                }
-            end,
-        },
-
-        verbatim = {
-            enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgConcealMonospace",
-            query = "(verbatim) @icon",
-            render = function(self, text)
-                return {
-                    { text:gsub("`", self.icon), self.highlight },
-                }
-            end,
-        },
-
-        spoiler = {
-            enabled = true,
-            icon = "●",
-            highlight = "NeorgSpoiler",
-            query = "(spoiler) @icon",
-            render = function(self, text, node)
-                return {
-                    { text:gsub("|", self.icon), self.highlight },
-                }
-            end,
-        },
-    },
+    icons = {},
 
     conceals = {
         url = true,
         trailing = true,
         link = true,
     },
+
+    dim_code_blocks = true,
+
+    completion_level = {
+        enabled = true,
+
+        queries = {
+            {
+                query = string.format(
+                    [[
+                        [
+                            (heading1
+                                content: (_)*
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]+
+                            )+
+                            (heading2
+                                content: (_)*
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
+                            )+
+                            (heading3
+                                content: (_)*
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
+                            )+
+                            (heading4
+                                content: (_)*
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
+                            )+
+                            (heading5
+                                content: (_)*
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
+                            )+
+                            (heading6
+                                content: (_)*
+                                content: [
+                                    %s
+                                    (carryover_tag_set
+                                        (carryover_tag)+
+                                        target: %s
+                                    )
+                                ]
+                            )+
+                        ] @progress
+                ]],
+                    reparg(module.private.todo_list_query, 6 * 2)
+                ),
+                text = module.private.completion_level_base,
+                highlight = "DiagnosticVirtualTextHint",
+            },
+            {
+                query = string.format(
+                    [[
+                    [
+                        (todo_item1
+                            %s
+                        )
+                    ] @progress
+                ]],
+                    module.private.any_todo_item(2)
+                ),
+                text = "[<done>/<total>]",
+                highlight = "DiagnosticVirtualTextHint",
+            },
+            {
+                query = string.format(
+                    [[
+                    [
+                        (todo_item2
+                            %s
+                        )
+                    ] @progress
+                ]],
+                    module.private.any_todo_item(3)
+                ),
+                text = "[<done>/<total>]",
+                highlight = "DiagnosticVirtualTextHint",
+            },
+            {
+                query = string.format(
+                    [[
+                    [
+                        (todo_item3
+                            %s
+                        )
+                    ] @progress
+                ]],
+                    module.private.any_todo_item(4)
+                ),
+                text = "[<done>/<total>]",
+                highlight = "DiagnosticVirtualTextHint",
+            },
+            {
+                query = string.format(
+                    [[
+                    [
+                        (todo_item4
+                            %s
+                        )
+                    ] @progress
+                ]],
+                    module.private.any_todo_item(5)
+                ),
+                text = "[<done>/<total>]",
+                highlight = "DiagnosticVirtualTextHint",
+            },
+            {
+                query = string.format(
+                    [[
+                    [
+                        (todo_item5
+                            %s
+                        )
+                    ] @progress
+                ]],
+                    module.private.any_todo_item(6)
+                ),
+                text = "[<done>/<total>]",
+                highlight = "DiagnosticVirtualTextHint",
+            },
+        },
+    },
 }
 
 module.load = function()
+    if not module.config.private["icon_preset_" .. module.config.public.icon_preset] then
+        log.error(
+            string.format(
+                "Unable to load icon preset '%s' - such a preset does not exist",
+                module.config.public.icon_preset
+            )
+        )
+        return
+    end
+
+    module.config.public.icons = vim.tbl_deep_extend(
+        "keep",
+        module.config.public.icons,
+        module.config.private["icon_preset_" .. module.config.public.icon_preset]
+    )
+
     -- @Summary Returns all the enabled icons from a table
     -- @Param  tbl (table) - the table to parse
     -- @Param rec_name (string) - should not be set manually. Is used for Neorg to have information about all other previous recursions
@@ -931,31 +837,49 @@ module.load = function()
 
     module.required["core.autocommands"].enable_autocommand("CursorMoved")
     module.required["core.autocommands"].enable_autocommand("TextChanged")
+    module.required["core.autocommands"].enable_autocommand("TextChangedI")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
 end
 
 module.on_event = function(event)
     -- If we have just entered a .norg buffer then apply all conceals
+    -- TODO: Remove (or at least provide a reason) as to why there are so many vim.schedules
+    -- Explain priorities and how we only schedule less important things to improve the average user
+    -- experience
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         if module.config.public.conceals then
             module.public.trigger_conceals()
         end
 
+        module.public.trigger_code_block_highlights()
+        module.public.trigger_completion_levels()
         module.public.trigger_icons()
-        module.public.trigger_icons(false)
     elseif event.type == "core.autocommands.events.textchanged" then
         -- If the content of a line has changed in normal mode then reparse the file
-        module.public.trigger_icons(false)
+        module.public.trigger_icons()
+        module.public.trigger_code_block_highlights()
+        vim.schedule(module.public.trigger_completion_levels)
     elseif event.type == "core.autocommands.events.insertenter" then
         vim.api.nvim_buf_clear_namespace(
             0,
-            module.private.namespace,
+            module.private.icon_namespace,
+            event.cursor_position[1] - 1,
+            event.cursor_position[1]
+        )
+        vim.api.nvim_buf_clear_namespace(
+            0,
+            module.private.completion_level_namespace,
             event.cursor_position[1] - 1,
             event.cursor_position[1]
         )
     elseif event.type == "core.autocommands.events.insertleave" then
-        module.public.trigger_icons(event.cursor_position[1])
+        vim.schedule(function()
+            module.public.trigger_icons(event.cursor_position[1])
+            module.public.trigger_completion_levels()
+        end)
+    elseif event.type == "core.autocommands.events.textchangedi" then
+        vim.schedule(module.public.trigger_code_block_highlights)
     end
 end
 
@@ -964,6 +888,7 @@ module.events.subscribed = {
         bufenter = true,
         cursormoved = true,
         textchanged = true,
+        textchangedi = true,
         insertenter = true,
         insertleave = true,
     },
