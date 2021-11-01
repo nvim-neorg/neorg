@@ -18,8 +18,8 @@ local module = neorg.modules.create("core.highlights")
 module.config.public = {
     highlights = {
         ConcealURL = {
-            [""] = "+TSURI",
-            Value = "+TSType",
+            Text = "+TSURI",
+            Location = "+TSType",
         },
 
         ConcealMath = "+TSMath",

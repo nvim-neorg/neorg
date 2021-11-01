@@ -405,18 +405,6 @@ module.public = {
     trigger_conceals = function()
         local conceals = module.config.public.conceals
 
-        -- TODO: migrate to TS based concealing
-        if conceals.url then
-            vim.schedule(function()
-                vim.cmd(
-                    'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
-                )
-                vim.cmd(
-                    'syn region NeorgConcealURL matchgroup=mkdDelimiter start="\\([^\\\\]\\|\\_^\\)\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
-                )
-            end)
-        end
-
         -- TODO: figure out a way to conceal this based on TS
         -- This will require inclusion of the trailining modifier in the TS tree
         if conceals.trailing then
@@ -441,8 +429,6 @@ module.public = {
     -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
     clear_conceals = function()
         vim.cmd([[
-        silent! syn clear NeorgConcealURL
-        silent! syn clear NeorgConcealURLValue
         silent! syn clear NeorgConcealTrailing
         silent! syn clear NeorgConcealLink
         ]])
@@ -624,7 +610,6 @@ module.config.public = {
     icons = {},
 
     conceals = {
-        url = true,
         trailing = true,
         link = true,
     },

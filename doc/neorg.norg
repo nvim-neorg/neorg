@@ -23,7 +23,7 @@
     - \`inline code\`: `inline code`
     - \^superscript\^: ^superscript^
     - \,subscript\,: ,subscript,
-    - \$inline math\$: $f(x) = y$  (see also [Math](#math))
+    - \$inline math\$: $f(x) = y$ (see also [Math](#math))
     - \=variable\=: =variable= (see also [Variables](#variables))
     - \+inline comment\+: +inline comment+
 
