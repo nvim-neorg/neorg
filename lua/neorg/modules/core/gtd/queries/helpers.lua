@@ -43,7 +43,7 @@ module.public = {
             return os.date("%Y-%m-%d", time)
         end
 
-        local year, month, day = text:match("^[(%d)(%d)(%d)(%d)]-[(%d+)(%d)]-[(%d+)(%d)]$")
+        local year, month, day = text:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
         if year and month and day then
             return text
         end
