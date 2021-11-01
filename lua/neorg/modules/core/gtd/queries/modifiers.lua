@@ -40,7 +40,7 @@ module.public = {
                 log.error("Please specify a tag with opts.tag")
                 return
             end
-            module.public.insert_tag({ object.node, object.bufnr }, value, opts.tag)
+            module.private.insert_tag({ object.node, object.bufnr }, value, opts.tag)
             return module.public.update(object, node_type)
         end
 
@@ -53,7 +53,7 @@ module.public = {
                 -- Delete the tag and recreate it with new values
                 local line_nr
                 object, line_nr = module.public.delete(object, node_type, option)
-                module.public.insert_tag({ object.node, object.bufnr }, value, opts.tag, { line = line_nr })
+                module.private.insert_tag({ object.node, object.bufnr }, value, opts.tag, { line = line_nr })
                 return module.public.update(object, node_type)
             else
                 log.error("Only tags and content are supported for modification")
