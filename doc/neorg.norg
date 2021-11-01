@@ -274,6 +274,15 @@ consective new lines.
 
       W:*h*:y w:/oul/:d a:_nyon_:e w:-an-:t to do t:`hi`:s?
 
+  *** Nested markup
+      You can nest multiple markup groups to combine their effect. Some examples:
+      - *Text can be bold _and underlined_!*
+      - You can create ,/italic subscripts/,.
+      - If you want to shout in the internet, use */_DOUBLY EMPHASIZED AND UNDERLINED CAPS_/*
+
+      Note: You can:*not*: combine sub- and superscripts like so: ^,the superscript has no effect,^.
+      This is done by design for obvious reasons.
+
   *** Object continuation
       The `~` trailing modifier causes the line break to be ignored. This allows you to do things
       like this:
