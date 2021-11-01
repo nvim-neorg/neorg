@@ -601,6 +601,32 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             }
         end,
     },
+
+    url = {
+        enabled = true,
+        text = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgConcealURLText",
+            query = "(link_text) @icon",
+            render = function(self, text)
+                return {
+                    { text:gsub("%[(.+)%]", self.icon .. "%1" .. self.icon), self.highlight },
+                }
+            end,
+        },
+        location = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgConcealURLLocation",
+            query = "(link_location) @icon",
+            render = function(self, text)
+                return {
+                    { string.rep(self.icon, #text), self.highlight },
+                }
+            end,
+        },
+    },
 }
 
 return module
