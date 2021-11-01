@@ -73,7 +73,7 @@ module.public = {
         })
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
         local _, _, end_row, _ = ts_utils.get_node_range(project.node)
-        return end_row
+        return end_row + 1
     end,
 
     --- Returns the end of the document content position of a `file`

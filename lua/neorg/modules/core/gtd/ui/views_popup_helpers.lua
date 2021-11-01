@@ -199,7 +199,7 @@ module.private = {
                         local buf = vim.uri_to_bufnr(uri)
                         local end_row, projectAtEnd = module.required["core.gtd.queries"].get_end_document_content(buf)
 
-                        module.required["core.gtd.queries"].create("task", task, buf, end_row + 1, projectAtEnd)
+                        module.required["core.gtd.queries"].create("task", task, buf, end_row, projectAtEnd)
                     end)
 
                 return selection
