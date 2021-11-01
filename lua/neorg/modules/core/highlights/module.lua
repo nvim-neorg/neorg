@@ -17,14 +17,6 @@ local module = neorg.modules.create("core.highlights")
 --]]
 module.config.public = {
     highlights = {
-        ConcealURL = {
-            Text = "+TSURI",
-            Location = "+TSType",
-        },
-
-        ConcealMath = "+TSMath",
-        ConcealVariable = "+TSKeyword",
-
         SelectionWindow = {
             Heading = "+TSAnnotation",
             Arrow = "+Normal",
@@ -34,14 +26,11 @@ module.config.public = {
         },
     },
     dim = {
+        -- TODO: can we simply use a different TS hl group for this?
         Conceal = {
             Verbatim = {
                 reference = "Normal",
                 percentage = 20,
-            },
-            Comment = {
-                reference = "Normal",
-                percentage = 40,
             },
         },
     },

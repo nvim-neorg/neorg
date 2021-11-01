@@ -36,10 +36,19 @@
 (ERROR) @NeorgError
 
 ; Basic Markup
-(bold) @text.strong
-(italic) @text.emphasis
-(underline) @text.underline
-(strikethrough) @text.strike
+(bold) @NeorgBold
+(italic) @NeorgItalic
+(underline) @NeorgUnderline
+(strikethrough) @NeorgStrikethrough
+(spoiler) @NeorgSpoiler
+(subscript) @NeorgSubscript
+(superscript) @NeorgSuperscript
+(inline_math) @NeorgMath
+(variable) @NeorgVariable
+(inline_comment) @NeorgComment
+
+(link_text) @NeorgURLText
+(link_location) @NeorgURLLocation
 
 ; Markers
 (marker (marker_prefix) @NeorgMarker (paragraph_segment) @NeorgMarkerTitle)

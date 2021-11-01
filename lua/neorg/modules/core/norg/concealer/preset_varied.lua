@@ -541,6 +541,31 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         end,
     },
 
+    subscript = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgSubscript",
+        query = "(subscript) @icon",
+        render = function(self, text)
+            return {
+                { text:gsub(",", self.icon), self.highlight },
+            }
+        end,
+    },
+
+    superscript = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgSuperscript",
+        query = "(superscript) @icon",
+        render = function(self, text)
+            return {
+                -- NOTE: `^` must be escaped!
+                { text:gsub("%^", self.icon), self.highlight },
+            }
+        end,
+    },
+
     verbatim = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
@@ -556,7 +581,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     comment = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgConcealComment",
+        highlight = "NeorgComment",
         query = "(inline_comment) @icon",
         render = function(self, text)
             return {
@@ -568,7 +593,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     math = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgConcealMath",
+        highlight = "NeorgMath",
         query = "(inline_math) @icon",
         render = function(self, text)
             return {
@@ -581,7 +606,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     variable = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgConcealVariable",
+        highlight = "NeorgVariable",
         query = "(variable) @icon",
         render = function(self, text)
             return {
@@ -602,13 +627,12 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         end,
     },
 
-
     url = {
         enabled = true,
         text = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgConcealURLText",
+            highlight = "NeorgURLText",
             query = "(link_text) @icon",
             render = function(self, text)
                 return {
@@ -619,7 +643,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         location = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgConcealURLLocation",
+            highlight = "NeorgURLLocation",
             query = "(link_location) @icon",
             render = function(self, text)
                 return {

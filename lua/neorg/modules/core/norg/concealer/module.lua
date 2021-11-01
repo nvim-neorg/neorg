@@ -405,8 +405,7 @@ module.public = {
     trigger_conceals = function()
         local conceals = module.config.public.conceals
 
-        -- TODO: figure out a way to conceal this based on TS
-        -- This will require inclusion of the trailining modifier in the TS tree
+        -- TODO: requires TS-support for an actual trailing modifier item
         if conceals.trailing then
             vim.schedule(function()
                 vim.cmd([[
@@ -419,7 +418,7 @@ module.public = {
         if conceals.link then
             vim.schedule(function()
                 vim.cmd([[
-                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgBold,NeorgItalic,NeorgUnderline,NeorgStrikethrough,NeorgConcealVerbatim oneline concealends
+                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgBold,NeorgItalic,NeorgUnderline,NeorgStrikethrough,NeorgSubscript,NeorgSuperscript,NeorgConcealVerbatim oneline concealends
                 ]])
             end)
         end
