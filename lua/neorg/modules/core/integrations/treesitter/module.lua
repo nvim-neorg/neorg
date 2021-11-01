@@ -79,6 +79,18 @@ module.config.public = {
         Italic = "+TSEmphasis",
         Underline = "+TSUnderline",
         Strikethrough = "+TSStrike",
+        Spoiler = "+TSDanger",
+        Subscript = "+TSString",
+        Superscript = "+TSNumber",
+
+        Math = "+TSMath",
+        Variable = "+TSKeyword",
+        Comment = "+TSComment",
+
+        URL = {
+            Text = "+TSURI",
+            Location = "+TSType",
+        },
 
         Marker = {
             [""] = "+TSLabel",
