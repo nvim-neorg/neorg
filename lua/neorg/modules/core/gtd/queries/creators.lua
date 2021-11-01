@@ -76,37 +76,15 @@ module.public = {
         return end_row
     end,
 
-    --- Returns the end of the document content position of a `file` and the `file` bufnr
-    --- @param file string
+    --- Returns the end of the document content position of a `file`
+    --- @param bufnr string
     --- @return number, number, boolean
-    get_end_document_content = function(file)
+    get_end_document_content = function(bufnr)
         vim.validate({
-            file = { file, "string" },
+            file = { bufnr, "number" },
         })
 
-        local config = neorg.modules.get_module_config("core.gtd.base")
-        local files = module.required["core.norg.dirman"].get_norg_files(config.workspace)
-
-        if not files then
-            log.error("No files found in" .. config.workspace .. " workspace")
-            return
-        end
-
-        if not vim.tbl_contains(files, file) then
-            log.error([[ Inbox file is not from gtd workspace.
-                Please verify if the file exists in your gtd workspace.
-                Type :messages to show the full error report
-            ]])
-            return
-        end
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-
-        local bufnr = module.private.get_bufnr_from_file(file)
-
-        if not bufnr then
-            log.error("The buffer number from " .. file .. "was not retrieved")
-            return
-        end
 
         local tree = {
             { query = { "first", "document_content" } },
@@ -132,7 +110,7 @@ module.public = {
             end_row = end_row + 1
         end
 
-        return end_row, bufnr, projectAtEnd
+        return end_row, projectAtEnd
     end,
 
     --- Insert the tag above a `type`
