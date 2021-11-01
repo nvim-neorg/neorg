@@ -49,7 +49,6 @@ describe("CORE.GTD.QUERIES - Creators:", function()
         local location = queries.get_end_project(projects[1])
         local lines = vim.api.nvim_buf_line_count(config.temp_buf)
         assert.equals(lines, location)
-
     end)
 
     it("Get the end of the document content", function()
