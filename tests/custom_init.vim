@@ -33,6 +33,8 @@ parser_configs.norg = {
 
 local installed_parsers = require'nvim-treesitter.info'.installed_parsers()
 
+-- fixes 'pos_delta >= 0' error - https://github.com/nvim-lua/plenary.nvim/issues/52
+vim.cmd('set display=lastline')
 if not vim.tbl_contains(installed_parsers, 'norg') then
   vim.cmd 'runtime! plugin/nvim-treesitter.vim'
   vim.cmd('TSInstallSync norg')
