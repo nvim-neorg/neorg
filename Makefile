@@ -8,3 +8,6 @@ ci:
 	mkdir -p /tmp/neorg/parser && \
 	cp nvim-treesitter/parser/norg.so /tmp/neorg/parser && \
 	make test
+
+testfile:
+	nvim --headless --noplugin -u tests/custom_init.vim -c "PlenaryBustedFile $(FILE)"

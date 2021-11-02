@@ -1,5 +1,5 @@
 ---@diagnostic disable: undefined-global
-require("tests.core.gtd.queries.config")
+require("tests.config")
 
 -- Get the required module
 local queries = neorg.modules.get_module("core.gtd.queries")
