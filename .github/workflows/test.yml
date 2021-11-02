@@ -26,4 +26,4 @@ jobs:
             - name: Test
               run: |
                 cd neorg
-                nvim --headless -c "PlenaryBustedDirectory . {minimal_init = 'tests/custom_init.vim' }"
+                nvim --headless --clean -u tests/custom_init.vim -c "PlenaryBustedDirectory . {minimal_init = 'tests/custom_init.vim' }"
