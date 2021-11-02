@@ -97,6 +97,7 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                WontComplete = "+Whitespace",
             },
             ["2"] = {
                 [""] = "+NeorgUnorderedList2",
@@ -104,6 +105,7 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                WontComplete = "+Whitespace",
             },
             ["3"] = {
                 [""] = "+NeorgUnorderedList3",
@@ -111,6 +113,7 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                WontComplete = "+Whitespace",
             },
             ["4"] = {
                 [""] = "+NeorgUnorderedList4",
@@ -118,6 +121,7 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                WontComplete = "+Whitespace",
             },
             ["5"] = {
                 [""] = "+NeorgUnorderedList5",
@@ -125,6 +129,7 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                WontComplete = "+Whitespace",
             },
             ["6"] = {
                 [""] = "+NeorgUnorderedList6",
@@ -132,6 +137,7 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                WontComplete = "+Whitespace",
             },
         },
 

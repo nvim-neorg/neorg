@@ -212,11 +212,6 @@ module.config.public = {
         },
     },
 
-    folds = {
-        enabled = true,
-        foldlevel = 99,
-    },
-
     fuzzing_threshold = 1,
 }
 
@@ -315,14 +310,6 @@ module.on_event = function(event)
         if event.content.norg then
             if module.config.public.indent then
                 vim.opt_local.indentexpr = "v:lua._neorg_indent_expr()"
-            end
-
-            -- If folds are enabled then handle them
-            if module.config.public.folds.enabled then
-                vim.opt_local.foldmethod = "expr"
-                vim.opt_local.foldexpr = "nvim_treesitter#foldexpr()"
-                vim.opt_local.foldtext = "v:lua.neorg.utils.foldtext()"
-                vim.opt_local.foldlevel = module.config.public.folds.foldlevel
             end
         end
     end

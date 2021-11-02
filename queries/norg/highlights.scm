@@ -181,6 +181,7 @@
 			(todo_item_undone) @NeorgTodoItem1Undone
 			(todo_item_pending) @NeorgTodoItem1Pending
 			(todo_item_done) @NeorgTodoItem1Done
+			(todo_item_wont_complete) @NeorgTodoItem1WontComplete
 		]
 	content:
 		(paragraph) @NeorgTodoItem1Content)
@@ -192,6 +193,7 @@
 			(todo_item_undone) @NeorgTodoItem2Undone
 			(todo_item_pending) @NeorgTodoItem2Pending
 			(todo_item_done) @NeorgTodoItem2Done
+			(todo_item_wont_complete) @NeorgTodoItem2WontComplete
 		]
 	content:
 		(paragraph) @NeorgTodoItem2Content)
@@ -203,6 +205,7 @@
 			(todo_item_undone) @NeorgTodoItem3Undone
 			(todo_item_pending) @NeorgTodoItem3Pending
 			(todo_item_done) @NeorgTodoItem3Done
+			(todo_item_wont_complete) @NeorgTodoItem3WontComplete
 		]
 	content:
 		(paragraph) @NeorgTodoItem3Content)
@@ -214,6 +217,7 @@
 			(todo_item_undone) @NeorgTodoItem4Undone
 			(todo_item_pending) @NeorgTodoItem4Pending
 			(todo_item_done) @NeorgTodoItem4Done
+			(todo_item_wont_complete) @NeorgTodoItem4WontComplete
 		]
 	content:
 		(paragraph) @NeorgTodoItem4Content)
@@ -225,6 +229,7 @@
 			(todo_item_undone) @NeorgTodoItem5Undone
 			(todo_item_pending) @NeorgTodoItem5Pending
 			(todo_item_done) @NeorgTodoItem5Done
+			(todo_item_wont_complete) @NeorgTodoItem5WontComplete
 		]
 	content:
 		(paragraph) @NeorgTodoItem5Content)
@@ -236,6 +241,7 @@
 			(todo_item_undone) @NeorgTodoItem6Undone
 			(todo_item_pending) @NeorgTodoItem6Pending
 			(todo_item_done) @NeorgTodoItem6Done
+			(todo_item_wont_complete) @NeorgTodoItem6WontComplete
 		]
 	content:
 		(paragraph) @NeorgTodoItem6Content)
