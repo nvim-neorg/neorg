@@ -159,7 +159,7 @@ module.public = {
             },
         },
         {
-            regex = "^%s*%$(%w*)",
+            regex = "^%s*%#(%w*)",
 
             complete = {
                 "comment",
