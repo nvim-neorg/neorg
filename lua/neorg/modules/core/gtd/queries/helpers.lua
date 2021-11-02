@@ -141,11 +141,15 @@ module.public = {
 
         -- Get today's date
         local now = os.date("%Y-%m-%d")
-        local y_now, m_now, d_now = now:match("(%d+)-(%d+)-(%d+)")
+        local y_now, m_now, d_now = now:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
         local now_timestamp = os.time({ year = y_now, month = m_now, day = d_now })
 
         -- Parse date parameter
-        local y, m, d = date:match("(%d+)-(%d+)-(%d+)")
+        local y, m, d = date:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
+        if not y or not m or not d then
+            return
+        end
+
         local date_timestamp = os.time({ year = y, month = m, day = d })
 
         -- Find out how many elapsed seconds between now and the date
