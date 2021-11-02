@@ -1,4 +1,4 @@
-name: default
+name: Stylua Checks
 
 on: [push, pull_request]
 
