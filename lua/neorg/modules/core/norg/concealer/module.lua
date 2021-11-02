@@ -224,7 +224,7 @@ module.public = {
                 local query = vim.treesitter.parse_query("norg", icon_data.query)
 
                 -- Go through every found node and try to apply an icon to it
-                for id, node in query:iter_captures(document_root, 0) do
+                for id, node in query:iter_captures(document_root, 0, from and from - 1 or 0, -1) do
                     local capture = query.captures[id]
 
                     if capture == "icon" then
@@ -593,6 +593,42 @@ module.public = {
             },
         },
     },
+
+    foldtext = function()
+        local foldstart = vim.v.foldstart
+        local line = vim.api.nvim_buf_get_lines(0, foldstart - 1, foldstart, true)[1]
+        local line_length = vim.api.nvim_strwidth(line)
+
+        local icon_extmarks = vim.api.nvim_buf_get_extmarks(0, module.private.icon_namespace, { foldstart - 1, 0 }, { foldstart - 1, line_length }, {
+            details = true,
+        })
+
+        for _, extmark in ipairs(icon_extmarks) do
+            local extmark_details = extmark[4]
+            local extmark_column = extmark[3] + (line_length - line:len())
+
+            for _, virt_text in ipairs(extmark_details.virt_text or {}) do
+                line = line:sub(1, extmark_column) ..  virt_text[1] .. line:sub(extmark_column + vim.api.nvim_strwidth(virt_text[1]) + 1)
+                line_length = vim.api.nvim_strwidth(line) - line_length + vim.api.nvim_strwidth(virt_text[1])
+            end
+        end
+
+        local completion_extmarks = vim.api.nvim_buf_get_extmarks(0, module.private.completion_level_namespace, { foldstart - 1, 0 }, { foldstart - 1, vim.api.nvim_strwidth(line) }, {
+            details = true
+        })
+
+        if not vim.tbl_isempty(completion_extmarks) then
+            line = line .. " "
+
+            for _, extmark in ipairs(completion_extmarks) do
+                for _, virt_text in ipairs(extmark[4].virt_text or {}) do
+                    line = line .. virt_text[1]
+                end
+            end
+        end
+
+        return line
+    end,
 }
 
 local function reparg(value, index)
@@ -614,6 +650,11 @@ module.config.public = {
     },
 
     dim_code_blocks = true,
+
+    folds = {
+        enable = true,
+        foldlevel = 999,
+    },
 
     completion_level = {
         enabled = true,
@@ -839,6 +880,13 @@ module.on_event = function(event)
         module.public.trigger_code_block_highlights()
         module.public.trigger_completion_levels()
         module.public.trigger_icons()
+
+        if module.config.public.folds.enable then
+            vim.opt_local.foldmethod = "expr"
+            vim.opt_local.foldlevel = module.config.public.folds.foldlevel
+            vim.opt_local.foldexpr = "nvim_treesitter#foldexpr()"
+            vim.opt_local.foldtext = "v:lua.neorg.modules.get_module('" .. module.name .. "').foldtext()"
+        end
     elseif event.type == "core.autocommands.events.textchanged" then
         -- If the content of a line has changed in normal mode then reparse the file
         module.public.trigger_icons()

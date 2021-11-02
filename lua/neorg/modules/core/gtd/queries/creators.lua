@@ -52,10 +52,10 @@ module.public = {
             log.error("Error in inserting new content")
         end
 
-        module.public.insert_tag({ node.node, bufnr }, node.contexts, "#contexts")
-        module.public.insert_tag({ node.node, bufnr }, node["time.start"], "#time.start")
-        module.public.insert_tag({ node.node, bufnr }, node["time.due"], "#time.due")
-        module.public.insert_tag({ node.node, bufnr }, node["waiting.for"], "#waiting.for")
+        module.private.insert_tag({ node.node, bufnr }, node.contexts, "#contexts")
+        module.private.insert_tag({ node.node, bufnr }, node["time.start"], "#time.start")
+        module.private.insert_tag({ node.node, bufnr }, node["time.due"], "#time.due")
+        module.private.insert_tag({ node.node, bufnr }, node["waiting.for"], "#waiting.for")
 
         if not opts.no_save then
             vim.api.nvim_buf_call(bufnr, function()
@@ -73,40 +73,18 @@ module.public = {
         })
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
         local _, _, end_row, _ = ts_utils.get_node_range(project.node)
-        return end_row
+        return end_row + 1
     end,
 
-    --- Returns the end of the document content position of a `file` and the `file` bufnr
-    --- @param file string
+    --- Returns the end of the document content position of a `file`
+    --- @param bufnr string
     --- @return number, number, boolean
-    get_end_document_content = function(file)
+    get_end_document_content = function(bufnr)
         vim.validate({
-            file = { file, "string" },
+            file = { bufnr, "number" },
         })
 
-        local config = neorg.modules.get_module_config("core.gtd.base")
-        local files = module.required["core.norg.dirman"].get_norg_files(config.workspace)
-
-        if not files then
-            log.error("No files found in" .. config.workspace .. " workspace")
-            return
-        end
-
-        if not vim.tbl_contains(files, file) then
-            log.error([[ Inbox file is not from gtd workspace.
-                Please verify if the file exists in your gtd workspace.
-                Type :messages to show the full error report
-            ]])
-            return
-        end
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-
-        local bufnr = module.private.get_bufnr_from_file(file)
-
-        if not bufnr then
-            log.error("The buffer number from " .. file .. "was not retrieved")
-            return
-        end
 
         local tree = {
             { query = { "first", "document_content" } },
@@ -132,55 +110,7 @@ module.public = {
             end_row = end_row + 1
         end
 
-        return end_row, bufnr, projectAtEnd
-    end,
-
-    --- Insert the tag above a `type`
-    --- @param node table #Must be { node, bufnr }
-    --- @param content? string|table
-    --- @param prefix string
-    --- @return boolean #Whether inserting succeeded (if so, save the file)
-    insert_tag = function(node, content, prefix, opts)
-        vim.validate({
-            node = { node, "table" },
-            content = {
-                content,
-                function(c)
-                    return vim.tbl_contains({ "string", "table", "nil" }, type(c))
-                end,
-                "string|table",
-            },
-            prefix = { prefix, "string" },
-            opts = { opts, "table", true },
-        })
-
-        opts = opts or {}
-        local inserter = {}
-
-        -- Creates the content to be inserted
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        local node_line, node_col, _, _ = ts_utils.get_node_range(node[1])
-        local inserted_prefix = string.rep(" ", node_col) .. prefix
-        module.private.insert_content(inserter, content, inserted_prefix)
-
-        local parent_tag_set = module.required["core.queries.native"].find_parent_node(node, "carryover_tag_set")
-
-        if #parent_tag_set == 0 then
-            -- No tag created, i will insert the tag just before the node or at specific line
-            if opts.line then
-                node_line = opts.line
-            end
-            vim.api.nvim_buf_set_lines(node[2], node_line, node_line, false, inserter)
-            return true
-        else
-            -- Gets the last tag in the found tag_set and append after it
-            local tags_number = parent_tag_set[1]:child_count()
-            local last_tag = parent_tag_set[1]:child(tags_number - 1)
-            local start_row, _, _, _ = ts_utils.get_node_range(last_tag)
-
-            vim.api.nvim_buf_set_lines(node[2], start_row, start_row, false, inserter)
-            return true
-        end
+        return end_row, projectAtEnd
     end,
 }
 
@@ -230,6 +160,54 @@ module.private = {
             if line == location + count_newline then
                 return node[1]
             end
+        end
+    end,
+
+    --- Insert the tag above a `type`
+    --- @param node table #Must be { node, bufnr }
+    --- @param content? string|table
+    --- @param prefix string
+    --- @return boolean #Whether inserting succeeded (if so, save the file)
+    insert_tag = function(node, content, prefix, opts)
+        vim.validate({
+            node = { node, "table" },
+            content = {
+                content,
+                function(c)
+                    return vim.tbl_contains({ "string", "table", "nil" }, type(c))
+                end,
+                "string|table",
+            },
+            prefix = { prefix, "string" },
+            opts = { opts, "table", true },
+        })
+
+        opts = opts or {}
+        local inserter = {}
+
+        -- Creates the content to be inserted
+        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+        local node_line, node_col, _, _ = ts_utils.get_node_range(node[1])
+        local inserted_prefix = string.rep(" ", node_col) .. prefix
+        module.private.insert_content(inserter, content, inserted_prefix)
+
+        local parent_tag_set = module.required["core.queries.native"].find_parent_node(node, "carryover_tag_set")
+
+        if #parent_tag_set == 0 then
+            -- No tag created, i will insert the tag just before the node or at specific line
+            if opts.line then
+                node_line = opts.line
+            end
+            vim.api.nvim_buf_set_lines(node[2], node_line, node_line, false, inserter)
+            return true
+        else
+            -- Gets the last tag in the found tag_set and append after it
+            local tags_number = parent_tag_set[1]:child_count()
+            local last_tag = parent_tag_set[1]:child(tags_number - 1)
+            local start_row, _, _, _ = ts_utils.get_node_range(last_tag)
+
+            vim.api.nvim_buf_set_lines(node[2], start_row, start_row, false, inserter)
+            return true
         end
     end,
 }
