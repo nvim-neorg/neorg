@@ -4,36 +4,30 @@ module.config.private.icon_preset_basic = {
     todo = {
         enabled = true,
 
-        done = {
+        undone = {
             enabled = true,
-            icon = "",
-            highlight = "NeorgTodoItemDoneMark",
-            query = "(todo_item_done) @icon",
+            icon = "×",
+            query = "(todo_item_undone) @icon",
             extract = function(content)
-                local column = content:find("x")
-                return column and column - 1
+                return 1
             end,
         },
 
         pending = {
             enabled = true,
             icon = "",
-            highlight = "NeorgTodoItemPendingMark",
             query = "(todo_item_pending) @icon",
             extract = function(content)
-                local column = content:find("*")
-                return column and column - 1
+                return 1
             end,
         },
 
-        undone = {
+        done = {
             enabled = true,
-            icon = "×",
-            highlight = "NeorgTodoItemUndoneMark",
-            query = "(todo_item_undone) @icon",
-            extract = function(content)
-                local match = content:match("%s+")
-                return match and math.floor((match:len() + 1) / 2)
+            icon = "",
+            query = "(todo_item_done) @icon",
+            extract = function()
+                return 1
             end,
         },
     },
