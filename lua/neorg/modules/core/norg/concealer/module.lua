@@ -158,6 +158,7 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_wont_complete) @wont-complete
             ]
         )
         (todo_item2
@@ -165,6 +166,7 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_wont_complete) @wont-complete
             ]
         )
         (todo_item3
@@ -172,6 +174,7 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_wont_complete) @wont-complete
             ]
         )
         (todo_item4
@@ -179,6 +182,7 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_wont_complete) @wont-complete
             ]
         )
         (todo_item5
@@ -186,6 +190,7 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_wont_complete) @wont-complete
             ]
         )
         (todo_item6
@@ -193,6 +198,7 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_wont_complete) @wont-complete
             ]
         )
     ]+
