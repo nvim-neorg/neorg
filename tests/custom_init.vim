@@ -19,3 +19,22 @@ set rtp+=~/.local/share/nvim/site/pack/packer/start/neorg
 set rtp+=~/.local/share/nvim/site/pack/packer/opt/plenary.nvim
 set rtp+=~/.local/share/nvim/site/pack/packer/opt/nvim-treesitter
 set rtp+=~/.local/share/nvim/site/pack/packer/opt/neorg
+
+lua <<EOF
+local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
+
+parser_configs.norg = {
+    install_info = {
+        url = "https://github.com/vhyrro/tree-sitter-norg",
+        files = { "src/parser.c", "src/scanner.cc" },
+        branch = "main",
+    },
+}
+
+local installed_parsers = require'nvim-treesitter.info'.installed_parsers()
+
+if not vim.tbl_contains(installed_parsers, 'norg') then
+  vim.cmd 'runtime! plugin/nvim-treesitter.vim'
+  vim.cmd('TSInstallSync ' .. table.concat(to_install, ' '))
+end
+EOF
