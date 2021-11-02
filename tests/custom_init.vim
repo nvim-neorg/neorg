@@ -1,5 +1,9 @@
 " Copied from: https://github.com/ThePrimeagen/refactoring.nvim/blob/master/scripts/minimal.vim
 
+" For test suites
+set rtp+=../plenary.nvim
+set rtp+=../nvim-treesitter
+
 " If you use vim-plug if you got it locally
 set rtp+=~/.vim/plugged/plenary.nvim
 set rtp+=~/.vim/plugged/nvim-treesitter
