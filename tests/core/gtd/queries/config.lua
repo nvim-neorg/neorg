@@ -26,7 +26,7 @@ neorg.modules.get_module("core.norg.dirman").set_workspace("gtd")
 -- Create temporary buffer for quick use in test files
 config.temp_buf = vim.api.nvim_create_buf(false, true)
 vim.api.nvim_buf_set_name(config.temp_buf, "test.norg")
-vim.api.nvim_buf_set_lines(config.temp_buf, 0, 0, false, {
+vim.api.nvim_buf_set_lines(config.temp_buf, 0, -1, false, {
     "* Project",
     "this is a test",
     "- [ ] test1",
@@ -40,7 +40,10 @@ vim.api.nvim_buf_set_lines(config.temp_buf, 0, 0, false, {
     "- [ ] test5",
 })
 
-config.buf = vim.api.nvim_create_buf(false, true)
-vim.api.nvim_buf_set_name(config.buf, "test2.norg")
+config.get_void_buf = function()
+    local buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_name(buf, "test2.norg")
+    return buf
+end
 
 return config
