@@ -181,7 +181,11 @@
 			(todo_item_undone) @NeorgTodoItem1Undone
 			(todo_item_pending) @NeorgTodoItem1Pending
 			(todo_item_done) @NeorgTodoItem1Done
-			(todo_item_wont_complete) @NeorgTodoItem1WontComplete
+			(todo_item_on_hold) @NeorgTodoItem1OnHold
+			(todo_item_cancelled) @NeorgTodoItem1Cancelled
+			(todo_item_urgent) @NeorgTodoItem1Urgent
+			(todo_item_uncertain) @NeorgTodoItem1Uncertain
+			(todo_item_recurring) @NeorgTodoItem1Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem1Content)
@@ -193,7 +197,11 @@
 			(todo_item_undone) @NeorgTodoItem2Undone
 			(todo_item_pending) @NeorgTodoItem2Pending
 			(todo_item_done) @NeorgTodoItem2Done
-			(todo_item_wont_complete) @NeorgTodoItem2WontComplete
+			(todo_item_on_hold) @NeorgTodoItem2OnHold
+			(todo_item_cancelled) @NeorgTodoItem2Cancelled
+			(todo_item_urgent) @NeorgTodoItem2Urgent
+			(todo_item_uncertain) @NeorgTodoItem2Uncertain
+			(todo_item_recurring) @NeorgTodoItem2Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem2Content)
@@ -205,7 +213,11 @@
 			(todo_item_undone) @NeorgTodoItem3Undone
 			(todo_item_pending) @NeorgTodoItem3Pending
 			(todo_item_done) @NeorgTodoItem3Done
-			(todo_item_wont_complete) @NeorgTodoItem3WontComplete
+			(todo_item_on_hold) @NeorgTodoItem3OnHold
+			(todo_item_cancelled) @NeorgTodoItem3Cancelled
+			(todo_item_urgent) @NeorgTodoItem3Urgent
+			(todo_item_uncertain) @NeorgTodoItem3Uncertain
+			(todo_item_recurring) @NeorgTodoItem3Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem3Content)
@@ -217,7 +229,11 @@
 			(todo_item_undone) @NeorgTodoItem4Undone
 			(todo_item_pending) @NeorgTodoItem4Pending
 			(todo_item_done) @NeorgTodoItem4Done
-			(todo_item_wont_complete) @NeorgTodoItem4WontComplete
+			(todo_item_on_hold) @NeorgTodoItem4OnHold
+			(todo_item_cancelled) @NeorgTodoItem4Cancelled
+			(todo_item_urgent) @NeorgTodoItem4Urgent
+			(todo_item_uncertain) @NeorgTodoItem4Uncertain
+			(todo_item_recurring) @NeorgTodoItem4Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem4Content)
@@ -229,7 +245,11 @@
 			(todo_item_undone) @NeorgTodoItem5Undone
 			(todo_item_pending) @NeorgTodoItem5Pending
 			(todo_item_done) @NeorgTodoItem5Done
-			(todo_item_wont_complete) @NeorgTodoItem5WontComplete
+			(todo_item_on_hold) @NeorgTodoItem5OnHold
+			(todo_item_cancelled) @NeorgTodoItem5Cancelled
+			(todo_item_urgent) @NeorgTodoItem5Urgent
+			(todo_item_uncertain) @NeorgTodoItem5Uncertain
+			(todo_item_recurring) @NeorgTodoItem5Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem5Content)
@@ -241,7 +261,11 @@
 			(todo_item_undone) @NeorgTodoItem6Undone
 			(todo_item_pending) @NeorgTodoItem6Pending
 			(todo_item_done) @NeorgTodoItem6Done
-			(todo_item_wont_complete) @NeorgTodoItem6WontComplete
+			(todo_item_on_hold) @NeorgTodoItem6OnHold
+			(todo_item_cancelled) @NeorgTodoItem6Cancelled
+			(todo_item_urgent) @NeorgTodoItem6Urgent
+			(todo_item_uncertain) @NeorgTodoItem6Uncertain
+			(todo_item_recurring) @NeorgTodoItem6Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem6Content)
