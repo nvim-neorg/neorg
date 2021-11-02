@@ -80,7 +80,7 @@ module.public = {
                 table.insert(res, "")
             end
         end
-        module.private.generate_display(name, positions, res)
+        return module.private.generate_display(name, positions, res)
     end,
 
     display_waiting_for = function(tasks)
@@ -612,6 +612,8 @@ module.private = {
         module.private.display_namespace_nr = vim.api.nvim_create_namespace("neorg display")
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
+
+        return buf
     end,
 
     --- Update created variables inside the buffer (will offset the variables depending of the lines_inserted)
