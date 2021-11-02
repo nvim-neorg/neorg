@@ -4,8 +4,9 @@
 set rtp+=.
 
 " For test suites
-set rtp+=../plenary.nvim
-set rtp+=../nvim-treesitter
+set rtp+=/tmp/neorg
+set rtp+=./plenary.nvim
+set rtp+=./nvim-treesitter
 
 " If you use vim-plug if you got it locally
 set rtp+=~/.vim/plugged/plenary.nvim
@@ -20,7 +21,13 @@ set rtp+=~/.local/share/nvim/site/pack/packer/opt/plenary.nvim
 set rtp+=~/.local/share/nvim/site/pack/packer/opt/nvim-treesitter
 set rtp+=~/.local/share/nvim/site/pack/packer/opt/neorg
 
+set noswapfile
+
+runtime! plugin/plenary.vim
+runtime! plugin/nvim-treesitter.vim
+
 lua <<EOF
+
 local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
 
 parser_configs.norg = {
@@ -31,12 +38,8 @@ parser_configs.norg = {
     },
 }
 
-local installed_parsers = require'nvim-treesitter.info'.installed_parsers()
-
+require('nvim-treesitter.configs').setup({})
 -- fixes 'pos_delta >= 0' error - https://github.com/nvim-lua/plenary.nvim/issues/52
 vim.cmd('set display=lastline')
-if not vim.tbl_contains(installed_parsers, 'norg') then
-  vim.cmd 'runtime! plugin/nvim-treesitter.vim'
-  vim.cmd('TSInstallSync norg')
-end
 EOF
+
