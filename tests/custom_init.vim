@@ -35,6 +35,6 @@ local installed_parsers = require'nvim-treesitter.info'.installed_parsers()
 
 if not vim.tbl_contains(installed_parsers, 'norg') then
   vim.cmd 'runtime! plugin/nvim-treesitter.vim'
-  vim.cmd('TSInstallSync ' .. table.concat(to_install, ' '))
+  vim.cmd('TSInstallSync norg')
 end
 EOF
