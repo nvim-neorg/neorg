@@ -1,8 +1,8 @@
 ---@diagnostic disable: undefined-global
-local config = require("tests.config")
+require("tests.config")
 
 -- Get the required module
-local queries = neorg.modules.get_module("core.gtd.ui")
+local ui = neorg.modules.get_module("core.gtd.ui")
 
 describe("CORE.GTD.QUERIES - Displayers:", function()
     it("Displays today tasks", function()
@@ -11,7 +11,7 @@ describe("CORE.GTD.QUERIES - Displayers:", function()
             { content = "done_task", contexts = { "today", "home" }, state = "done" },
             { content = "test_task2", contexts = { "today", "home" }, state = "undone" },
         }
-        local buf = queries.display_today_tasks(tasks)
+        local buf = ui.display_today_tasks(tasks)
         assert.is_number(buf)
 
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
