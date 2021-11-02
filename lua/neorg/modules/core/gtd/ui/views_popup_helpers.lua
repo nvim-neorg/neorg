@@ -183,12 +183,23 @@ module.private = {
                     end)
                     :flag("<CR>", "Add to inbox", function()
                         local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
-                        local end_row, bufnr, projectAtEnd =
-                            module.required["core.gtd.queries"].get_end_document_content(
-                                inbox
-                            )
+                        local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
+                        local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
 
-                        module.required["core.gtd.queries"].create("task", task, bufnr, end_row + 1, projectAtEnd)
+                        local files = module.required["core.norg.dirman"].get_norg_files(workspace)
+                        if not vim.tbl_contains(files, inbox) then
+                            log.error([[ Inbox file is not from gtd workspace.
+                            Please verify if the file exists in your gtd workspace.
+                            Type :messages to show the full error report
+                            ]])
+                            return
+                        end
+
+                        local uri = vim.uri_from_fname(workspace_path .. "/" .. inbox)
+                        local buf = vim.uri_to_bufnr(uri)
+                        local end_row, projectAtEnd = module.required["core.gtd.queries"].get_end_document_content(buf)
+
+                        module.required["core.gtd.queries"].create("task", task, buf, end_row, projectAtEnd)
                     end)
 
                 return selection

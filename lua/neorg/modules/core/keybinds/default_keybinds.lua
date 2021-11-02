@@ -13,9 +13,10 @@ module.public = {
                 n = { -- Bind keys in normal mode
 
                     -- Keys for managing TODO items and setting their states
-                    { "gtd", "core.norg.qol.todo_items.todo.task_done" },
                     { "gtu", "core.norg.qol.todo_items.todo.task_undone" },
                     { "gtp", "core.norg.qol.todo_items.todo.task_pending" },
+                    { "gtd", "core.norg.qol.todo_items.todo.task_done" },
+                    { "gtw", "core.norg.qol.todo_items.todo.task_wont_complete" },
                     { "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" },
 
                     -- Keys for managing GTD

@@ -202,8 +202,8 @@ module.public = {
         -- Find a matching workspace
         for workspace, location in pairs(module.config.public.workspaces) do
             if workspace ~= "default" then
-                -- Expand all special symbols like ~ etc.
-                local expanded = vim.fn.expand(location)
+                -- Expand all special symbols like ~ etc. and escape special characters
+                local expanded = string.gsub(vim.fn.expand(location), "%p", "%%%1")
 
                 -- If the workspace location is a parent directory of our current realcwd
                 -- or if the ws location is the same then set it as the real workspace
