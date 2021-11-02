@@ -660,23 +660,37 @@ module.public = {
         local line = vim.api.nvim_buf_get_lines(0, foldstart - 1, foldstart, true)[1]
         local line_length = vim.api.nvim_strwidth(line)
 
-        local icon_extmarks = vim.api.nvim_buf_get_extmarks(0, module.private.icon_namespace, { foldstart - 1, 0 }, { foldstart - 1, line_length }, {
-            details = true,
-        })
+        local icon_extmarks = vim.api.nvim_buf_get_extmarks(
+            0,
+            module.private.icon_namespace,
+            { foldstart - 1, 0 },
+            { foldstart - 1, line_length },
+            {
+                details = true,
+            }
+        )
 
         for _, extmark in ipairs(icon_extmarks) do
             local extmark_details = extmark[4]
             local extmark_column = extmark[3] + (line_length - line:len())
 
             for _, virt_text in ipairs(extmark_details.virt_text or {}) do
-                line = line:sub(1, extmark_column) ..  virt_text[1] .. line:sub(extmark_column + vim.api.nvim_strwidth(virt_text[1]) + 1)
+                line = line:sub(1, extmark_column)
+                    .. virt_text[1]
+                    .. line:sub(extmark_column + vim.api.nvim_strwidth(virt_text[1]) + 1)
                 line_length = vim.api.nvim_strwidth(line) - line_length + vim.api.nvim_strwidth(virt_text[1])
             end
         end
 
-        local completion_extmarks = vim.api.nvim_buf_get_extmarks(0, module.private.completion_level_namespace, { foldstart - 1, 0 }, { foldstart - 1, vim.api.nvim_strwidth(line) }, {
-            details = true
-        })
+        local completion_extmarks = vim.api.nvim_buf_get_extmarks(
+            0,
+            module.private.completion_level_namespace,
+            { foldstart - 1, 0 },
+            { foldstart - 1, vim.api.nvim_strwidth(line) },
+            {
+                details = true,
+            }
+        )
 
         if not vim.tbl_isempty(completion_extmarks) then
             line = line .. " "
