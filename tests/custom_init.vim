@@ -1,5 +1,8 @@
 " Copied from: https://github.com/ThePrimeagen/refactoring.nvim/blob/master/scripts/minimal.vim
 
+" Current neorg code
+set rtp+=.
+
 " For test suites
 set rtp+=../plenary.nvim
 set rtp+=../nvim-treesitter
