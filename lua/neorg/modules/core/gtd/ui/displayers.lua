@@ -119,7 +119,7 @@ module.public = {
             table.insert(res, "")
         end
 
-        module.private.generate_display(name, positions, res)
+        return module.private.generate_display(name, positions, res)
     end,
 
     --- Display contexts view for `tasks`
