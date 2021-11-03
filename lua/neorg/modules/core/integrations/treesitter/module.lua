@@ -696,10 +696,10 @@ module.public = {
         local text = module.private.ts_utils.get_node_text(node, buf or 0)
 
         if not text then
-            return nil
+            return
         end
 
-        return text[1]
+        return text[#text] == "\n" and table.concat(vim.list_slice(text, 0, -2), " ") or table.concat(text, " ")
     end,
 
     find_parent = function(node, types)
