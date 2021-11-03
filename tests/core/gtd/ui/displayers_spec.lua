@@ -58,6 +58,12 @@ describe("CORE.GTD.UI - Displayers:", function()
                 state = "pending",
                 ["waiting.for"] = { "vhyrro" },
             },
+            {
+                content = "test_task4",
+                state = "undone",
+                ["waiting.for"] = { "vhyrro" },
+                ["time.start"] = { os.date("%Y-%m-%d") },
+            },
         }
 
         local buf = ui.display_waiting_for(tasks)
@@ -68,12 +74,16 @@ describe("CORE.GTD.UI - Displayers:", function()
         assert.is_true(vim.tbl_contains(lines, "** vhyrro"))
         assert.is_true(vim.tbl_contains(lines, "- test_task"))
         assert.is_false(vim.tbl_contains(lines, "- done_task"))
+        assert.is_true(vim.tbl_contains(lines, "- test_task4"))
 
         assert.equals(2, #vim.tbl_filter(function(t)
             return t == "- test_task"
         end, lines))
         assert.equals(1, #vim.tbl_filter(function(t)
             return t == "- test_task2"
+        end, lines))
+        assert.equals(1, #vim.tbl_filter(function(t)
+            return t == "- test_task3"
         end, lines))
         assert.equals(1, #vim.tbl_filter(function(t)
             return t == "- test_task3"
