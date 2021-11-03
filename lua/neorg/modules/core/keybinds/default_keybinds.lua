@@ -70,6 +70,7 @@ module.public = {
                     -- Keys for closing the current display
                     { "q", "core.gtd.ui.close" },
                     { "<Esc>", "core.gtd.ui.close" },
+
                     { "e", "core.gtd.ui.edit_task" },
                     { "<Tab>", "core.gtd.ui.details" },
                 },
