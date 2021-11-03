@@ -99,7 +99,7 @@ module.public = {
         local filters = function(t)
             local already_started = true
             if t["time.start"] then
-                already_started = not module.required["core.gtd.queries"].starting_after_today(t["time.start"][1])
+                already_started = not module.required["core.gtd.queries"].starting_after_today(t["time.start"][1], true)
             end
             return t.state ~= "done" and already_started
         end
