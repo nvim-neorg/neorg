@@ -4,7 +4,7 @@ require("tests.config")
 -- Get the required module
 local ui = neorg.modules.get_module("core.gtd.ui")
 
-describe("CORE.GTD.QUERIES - Displayers:", function()
+describe("CORE.GTD.UI - Displayers:", function()
     it("Displays today tasks", function()
         local tasks = {
             { content = "test_task", contexts = { "today", "mac" }, state = "undone" },
@@ -52,6 +52,12 @@ describe("CORE.GTD.QUERIES - Displayers:", function()
                 state = "undone",
                 ["waiting.for"] = { "vhyrro" },
             },
+            {
+                content = "test_task3",
+                contexts = { "today", "home" },
+                state = "pending",
+                ["waiting.for"] = { "vhyrro" },
+            },
         }
 
         local buf = ui.display_waiting_for(tasks)
@@ -68,6 +74,9 @@ describe("CORE.GTD.QUERIES - Displayers:", function()
         end, lines))
         assert.equals(1, #vim.tbl_filter(function(t)
             return t == "- test_task2"
+        end, lines))
+        assert.equals(1, #vim.tbl_filter(function(t)
+            return t == "- test_task3"
         end, lines))
 
         vim.api.nvim_buf_delete(buf, {})
