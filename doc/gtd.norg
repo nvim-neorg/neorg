@@ -285,5 +285,5 @@
         - Opening a particular context view (or next actions)
         - Doing a weekly review
 
-$comment
+#comment
 vim:tw=100:ft=norg:norl:
