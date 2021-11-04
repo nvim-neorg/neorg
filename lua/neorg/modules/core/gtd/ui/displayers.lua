@@ -145,7 +145,7 @@ module.public = {
         local filter = function(t)
             local already_started = true
             if t["time.start"] then
-                already_started = not module.required["core.gtd.queries"].starting_after_today(t["time.start"][1])
+                already_started = not module.required["core.gtd.queries"].starting_after_today(t["time.start"][1], true)
             end
             return t.state ~= "done" and not t["waiting.for"] and already_started
         end
@@ -574,7 +574,7 @@ module.private = {
         local already_started = true
         local starting_today = false
         if task["time.start"] then
-            already_started = not module.required["core.gtd.queries"].starting_after_today(task["time.start"][1])
+            already_started = not module.required["core.gtd.queries"].starting_after_today(task["time.start"][1], true)
             local diff = module.required["core.gtd.queries"].diff_with_today(task["time.start"][1])
             starting_today = diff.days == 0 and diff.weeks == 0
         end
