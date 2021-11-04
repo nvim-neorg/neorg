@@ -43,7 +43,25 @@ module.public = {
             return
         end
 
-        -- local current_node = ts_utils.get_node_at_cursor()
+        local line = vim.api.nvim_get_current_line()
+        local current_row = vim.api.nvim_win_get_cursor(0)[1]
+        local index = line:find("%[")
+
+        while index do
+            vim.api.nvim_win_set_cursor(0, { current_row, index - 1 })
+
+            local current_node = ts_utils.get_node_at_cursor()
+            local link_node = module.required["core.integrations.treesitter"].find_parent(
+                current_node,
+                { "link", "strict_link" }
+            )
+
+            if link_node then
+                return link_node
+            end
+
+            index = line:find("%[", index + 1)
+        end
     end,
 
     parse_link = function(link_node)
@@ -115,6 +133,10 @@ module.on_event = function(event)
         end
 
         local parsed_link = module.public.parse_link(link_node_at_cursor)
+
+        if not parsed_link then
+            return
+        end
 
         log.warn(parsed_link)
     end
