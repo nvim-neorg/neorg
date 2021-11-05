@@ -23,13 +23,12 @@ module.private = {
     open_diary = function(date)
         local workspace = module.config.public.workspace
         local folder_name = module.config.public.journal_folder
-        if not string.match(date, "^%d%d%d%d%-%d%d%-%d%d$") then
-            log.error("Wrong date format: use yyyy-mm-dd")
+
+        local year, month, day = date:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
+        if not year or not month or not day then
+            log.error("Wrong date format: use YYYY-mm-dd")
             return
         end
-        local year = string.sub(date, 1, 4)
-        local month = string.sub(date, 6, 7)
-        local day = string.sub(date, 9, 10)
 
         if module.config.public.use_folders then
             module.required["core.norg.dirman"].create_file(
