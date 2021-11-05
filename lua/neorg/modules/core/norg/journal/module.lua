@@ -21,16 +21,8 @@ end
 
 module.private = {
     open_diary = function(date)
-        local workspace
-        local folder
+        local workspace = module.config.public.workspace
         local folder_name = module.config.public.journal_folder
-        if not module.config.public.workspace then
-            workspace = module.required["core.norg.dirman"].get_current_workspace()[2]
-            folder = workspace .. "/" .. folder_name
-        else
-            workspace = module.required["core.norg.dirman"].get_workspace(module.config.public.workspace)
-            folder = workspace .. folder_name
-        end
         if not string.match(date, "^%d%d%d%d%-%d%d%-%d%d$") then
             log.error("Wrong date format: use yyyy-mm-dd")
             return
@@ -38,10 +30,14 @@ module.private = {
         local year = string.sub(date, 1, 4)
         local month = string.sub(date, 6, 7)
         local day = string.sub(date, 9, 10)
+
         if module.config.public.use_folders then
-            vim.cmd([[e ]] .. folder .. year .. "/" .. month .. "/" .. day .. ".norg")
+            module.required["core.norg.dirman"].create_file(
+                folder_name .. year .. "/" .. month .. "/" .. day .. ".norg",
+                workspace
+            )
         else
-            vim.cmd([[e ]] .. folder .. "/" .. date .. ".norg")
+            module.required["core.norg.dirman"].create_file(folder_name .. "/" .. date .. ".norg", workspace)
         end
     end,
 

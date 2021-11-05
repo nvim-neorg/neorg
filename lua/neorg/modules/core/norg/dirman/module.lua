@@ -271,9 +271,19 @@ module.public = {
     -- @Summary Creates a new Neorg file
     -- @Description Takes in a path (can include directories) and creates a .norg file from that path
     -- @Param  path (string) - a path to place the .norg file in
-    create_file = function(path)
+    create_file = function(path, workspace)
         -- Grab the current workspace's full path
-        local fullpath = module.public.get_current_workspace()[2]
+        local fullpath
+        if workspace ~= nil then
+            fullpath = module.public.get_workspace(workspace)
+        else
+            fullpath = module.public.get_current_workspace()[2]
+        end
+
+        if fullpath == nil then
+            log.error("Error in fetching workspace path")
+            return
+        end
 
         -- Split the path at every /
         local split = vim.split(vim.trim(path), "/", true)
