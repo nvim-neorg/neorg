@@ -20,15 +20,23 @@ end
 
 module.private = {
     open_diary = function(date)
-        local workspace = module.required["core.norg.dirman"].get_current_workspace()
+        local workspace
+        local folder
         local folder_name = module.config.public.journal_folder
+        if not module.config.public.workspace then
+            workspace = module.required["core.norg.dirman"].get_current_workspace()[2]
+            folder = workspace .. "/" .. folder_name
+        else
+            workspace = module.required["core.norg.dirman"].get_workspace(module.config.public.workspace)
+            folder = workspace .. folder_name
+        end
         local year = string.sub(date, 1, 4)
         local month = string.sub(date, 6, 7)
         local day = string.sub(date, 9, 10)
         if module.config.public.use_folders then
-            vim.cmd([[e]] .. workspace[2] .. "/" .. folder_name .. "/" .. year .. "/" .. month .. "/" .. day .. ".norg")
+            vim.cmd([[e ]] .. folder .. year .. "/" .. month .. "/" .. day .. ".norg")
         else
-            vim.cmd([[e]] .. workspace[2] .. "/" .. folder_name .. "/" .. date .. ".norg")
+            vim.cmd([[e ]] .. folder .. "/" .. date .. ".norg")
         end
     end,
 
@@ -49,7 +57,7 @@ module.private = {
 }
 
 module.config.public = {
-    workspace = "default",
+    workspace = nil,
     journal_folder = "/journal/",
     use_folders = true, -- if true -> /2021/07/23
 }
@@ -107,3 +115,4 @@ module.events.subscribed = {
 }
 
 return module
+
