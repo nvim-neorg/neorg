@@ -179,7 +179,7 @@ consective new lines.
       print("Hello world!")
       @end
       $$
-      This is no longer part of the definition because the `::` on the previous line marked its end.
+      This is no longer part of the definition because the `$$` on the previous line marked its end.
       
  ** Data Tags
     Neorg supports a number of tags. The general format is:
