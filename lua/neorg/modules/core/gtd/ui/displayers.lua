@@ -80,7 +80,7 @@ module.public = {
                 table.insert(res, "")
             end
         end
-        module.private.generate_display(name, positions, res)
+        return module.private.generate_display(name, positions, res)
     end,
 
     display_waiting_for = function(tasks)
@@ -99,7 +99,7 @@ module.public = {
         local filters = function(t)
             local already_started = true
             if t["time.start"] then
-                already_started = not module.required["core.gtd.queries"].starting_after_today(t["time.start"][1])
+                already_started = not module.required["core.gtd.queries"].starting_after_today(t["time.start"][1], true)
             end
             return t.state ~= "done" and already_started
         end
@@ -119,7 +119,7 @@ module.public = {
             table.insert(res, "")
         end
 
-        module.private.generate_display(name, positions, res)
+        return module.private.generate_display(name, positions, res)
     end,
 
     --- Display contexts view for `tasks`
@@ -145,7 +145,7 @@ module.public = {
         local filter = function(t)
             local already_started = true
             if t["time.start"] then
-                already_started = not module.required["core.gtd.queries"].starting_after_today(t["time.start"][1])
+                already_started = not module.required["core.gtd.queries"].starting_after_today(t["time.start"][1], true)
             end
             return t.state ~= "done" and not t["waiting.for"] and already_started
         end
@@ -574,7 +574,7 @@ module.private = {
         local already_started = true
         local starting_today = false
         if task["time.start"] then
-            already_started = not module.required["core.gtd.queries"].starting_after_today(task["time.start"][1])
+            already_started = not module.required["core.gtd.queries"].starting_after_today(task["time.start"][1], true)
             local diff = module.required["core.gtd.queries"].diff_with_today(task["time.start"][1])
             starting_today = diff.days == 0 and diff.weeks == 0
         end
@@ -612,6 +612,8 @@ module.private = {
         module.private.display_namespace_nr = vim.api.nvim_create_namespace("neorg display")
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
+
+        return buf
     end,
 
     --- Update created variables inside the buffer (will offset the variables depending of the lines_inserted)
