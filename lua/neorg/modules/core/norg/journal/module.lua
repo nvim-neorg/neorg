@@ -32,7 +32,7 @@ module.private = {
 
         if module.config.public.use_folders then
             module.required["core.norg.dirman"].create_file(
-                folder_name .. year .. "/" .. month .. "/" .. day .. ".norg",
+                folder_name .. "/" .. year .. "/" .. month .. "/" .. day .. ".norg",
                 workspace
             )
         else
