@@ -6,7 +6,7 @@ This module will allow you to write a basic journal in neorg.
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.journal")
-local log = require('neorg.external.log')
+local log = require("neorg.external.log")
 
 module.setup = function()
     return {
