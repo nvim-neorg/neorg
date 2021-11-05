@@ -22,9 +22,9 @@ module.private = {
   open_diary = function(date)
     local workspace = module.required["core.norg.dirman"].get_current_workspace()
     local folder_name = module.config.public.journal_folder
-    local year = date:sub(1,4)
-    local month = date:sub(6,7)
-    local day = date:sub(9,10)
+    local year = string.sub(date,1,4)
+    local month = string.sub(date,6,7)
+    local day = string.sub(date,9,10)
     if module.config.public.use_folders then
       vim.cmd([[e]]..workspace[2].."/"..folder_name.."/"..year.."/"..month.."/"..day..".norg")
     else
@@ -32,12 +32,12 @@ module.private = {
     end
   end,
 
-  diary_next = function()
+  diary_tomorrow = function()
     local date = os.date("%Y-%m-%d", os.time() + 24 * 60 * 60)
     module.private.open_diary(date)
   end,
 
-  diary_previous = function()
+  diary_yesterday = function()
     local date = os.date("%Y-%m-%d", os.time() - 24 * 60 * 60)
     module.private.open_diary(date)
   end,
@@ -64,8 +64,8 @@ module.load = function()
   module.required["core.neorgcmd"].add_commands_from_table({
     definitions = {
       journal = {
-        next = {},
-        previous = {},
+        tomorrow = {},
+        yesterday = {},
         today = {},
         custom = {},
       },
@@ -75,8 +75,8 @@ module.load = function()
         min_args = 1,
         max_args = 2,
         subcommands = {
-          next = { args = 0, name = "journal.next" },
-          previous = { args = 0, name = "journal.previous" },
+          tomorrow = { args = 0, name = "journal.tomorrow" },
+          yesterday = { args = 0, name = "journal.yesterday" },
           today = { args = 0, name = "journal.today" },
           custom = { args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
         },
@@ -87,27 +87,25 @@ end
 
 module.on_event = function(event)
   if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.split_type[1]) then
-    if event.split_type[2] == "journal.next" then
-      diary_next()
-    elseif event.split_type[2] == "journal.previous" then
-      diary_previous()
+    if event.split_type[2] == "journal.tomorrow" then
+      module.private.diary_tomorrow()
+    elseif event.split_type[2] == "journal.yesterday" then
+      module.private.diary_yesterday()
     elseif event.split_type[2] == "journal.custom" then
-      open_diary(event.content)
+      module.private.open_diary(event.content[1])
     elseif event.split_type[2] == "journal.today" then
-    diary_today()
+    module.private.diary_today()
     end
   end
 end
 
 module.events.subscribed = {
   ["core.neorgcmd"] = {
-    ["journal.previous"] = true,
-    ["journal.next"] = true,
+    ["journal.yesterday"] = true,
+    ["journal.tomorrow"] = true,
     ["journal.today"] = true,
     ["journal.custom"] = true,
   },
 }
-
-
 
 return module
