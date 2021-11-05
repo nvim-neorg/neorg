@@ -31,9 +31,9 @@ module.private = {
             workspace = module.required["core.norg.dirman"].get_workspace(module.config.public.workspace)
             folder = workspace .. folder_name
         end
-        if not string.match(date,"%d%d%d%d%-%d%d%-%d%d") then
-          log.error("Wrong date format: use yyyy-mm-dd")
-          return
+        if not string.match(date, "^%d%d%d%d%-%d%d%-%d%d$") then
+            log.error("Wrong date format: use yyyy-mm-dd")
+            return
         end
         local year = string.sub(date, 1, 4)
         local month = string.sub(date, 6, 7)
@@ -120,4 +120,3 @@ module.events.subscribed = {
 }
 
 return module
-
