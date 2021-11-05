@@ -6,6 +6,7 @@ This module will allow you to write a basic journal in neorg.
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.journal")
+local log = require('neorg.external.log')
 
 module.setup = function()
     return {
@@ -29,6 +30,10 @@ module.private = {
         else
             workspace = module.required["core.norg.dirman"].get_workspace(module.config.public.workspace)
             folder = workspace .. folder_name
+        end
+        if not string.match(date,"%d%d%d%d%-%d%d%-%d%d") then
+          log.error("Wrong date format: use yyyy-mm-dd")
+          return
         end
         local year = string.sub(date, 1, 4)
         local month = string.sub(date, 6, 7)
