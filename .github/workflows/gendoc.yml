@@ -1,0 +1,42 @@
+name: Automatically Generate Documentation
+
+on: [push, pull_request_target]
+
+jobs:
+  generate-documentation:
+    name: Generate Markdown Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          path: neorg
+
+      - name: Run Documentation Generator
+        run: |
+          cd ./neorg
+          make documentation
+
+      - name: Clone Wiki
+        uses: actions/checkout@v2
+        with:
+          repository: "nvim-neorg/neorg.wiki"
+          path: neorg-wiki
+
+      - name: Move Wiki Files
+          cd neorg-wiki
+          mv ../neorg/wiki/**.md . -f
+      
+      - name: Commit Wiki Changes
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "chore: autoupdate github wiki"
+
+      - name: Push Wiki to Github
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+          directory: ./neorg-wiki
