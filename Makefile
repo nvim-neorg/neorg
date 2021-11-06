@@ -11,3 +11,6 @@ ci:
 
 testfile:
 	nvim --headless --noplugin -u tests/custom_init.vim -c "PlenaryBustedFile $(FILE)"
+
+documentation:
+	nvim --noplugin --headless -u docgen/minimal_init.vim -c "luafile ./docgen/init.lua" -c 'qa'
