@@ -12,6 +12,11 @@ jobs:
         with:
           path: neorg
 
+      - name: Install Dependencies
+        run: |
+          sudo apt update -q
+          sudo apt install -y -q neovim
+
       - name: Run Documentation Generator
         run: |
           cd ./neorg
