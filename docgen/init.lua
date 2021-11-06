@@ -2,7 +2,7 @@ local docgen = {}
 
 docgen.output_dir = "wiki"
 
-vim.fn.mkdir(docgen.output_dir)
+pcall(vim.fn.mkdir, docgen.output_dir)
 
 local scan = require("plenary.scandir")
 
