@@ -24,6 +24,7 @@ jobs:
           path: neorg-wiki
 
       - name: Move Wiki Files
+        run: |
           cd neorg-wiki
           mv ../neorg/wiki/**.md . -f
       
