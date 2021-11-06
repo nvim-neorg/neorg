@@ -79,7 +79,7 @@ docgen.generate_md_file = function(comment)
     local path = vim.fn.getcwd() .. "/" .. docgen.output_dir .. "/" .. output_filename
     vim.api.nvim_buf_set_name(buf, path)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, comment)
-    vim.api.nvim_buf_call(buf, function ()
+    vim.api.nvim_buf_call(buf, function()
         vim.cmd("write!")
     end)
 end
