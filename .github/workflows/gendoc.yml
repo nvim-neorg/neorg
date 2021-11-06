@@ -45,5 +45,7 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+          repository: "nvim-neorg/neorg.wiki"
+          branch: master
+          force: true
           directory: ./neorg-wiki
