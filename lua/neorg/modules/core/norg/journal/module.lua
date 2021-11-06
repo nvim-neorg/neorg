@@ -1,6 +1,29 @@
 --[[
-JOURNAL
+File: journal_module
+# JOURNAL MODULE FOR NEORG
 This module will allow you to write a basic journal in neorg.
+
+## Usage:
+This module creates four commands.
+- `Neorg journal today`
+- `Neorg journal yesterday`
+- `Neorg journal tomorrow`
+With this commands you can open the config files for the dates.
+
+- `Neorg journal custom`
+This command requires a date as an argument.
+The date should have to format yyyy-mm-dd.
+
+## Config:
+The workspace in which the journal is created.
+Leave it empty to always use the current workspace.
+- Workspace = <workspace name>
+
+The name of the folder in which the journal is created.
+- journal_folder = /<folder name>/
+
+Wheter to just use the date as filename or create subfolders for each year and month and use the day as filename.
+- use_folder = <boolean>
 --]]
 
 require("neorg.modules.base")
