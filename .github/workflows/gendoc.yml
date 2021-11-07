@@ -1,6 +1,10 @@
 name: Automatically Generate Documentation
 
-on: [push, pull_request_target]
+on:
+  push:
+    branches:
+      - main
+      - unstable
 
 jobs:
   generate-documentation:
