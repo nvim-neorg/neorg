@@ -91,7 +91,9 @@ docgen.generate_md_file = function(buf, path, comment)
                 end, core_defaults.config.public.enable or {}))
             then
                 return {
-                    "- This module is already present in the `core.defaults` metamodule.",
+                    "- This module is already present in the [`core.defaults`](https://github.com/nvim-neorg/neorg/wiki/"
+                        .. core_defaults.filename
+                        .. ") metamodule.",
                     "  You can load the module with:",
                     "  ```lua",
                     '  ["core.defaults"] = {},',
@@ -195,22 +197,70 @@ docgen.generate_md_file = function(buf, path, comment)
                 return vim.tbl_flatten(result)
             end,
         },
+        "",
+        "## Extra Info",
+        "### Requires",
+        function()
+            local required = module.setup().requires
+
+            if not required or vim.tbl_isempty(required) or not modules[required[1]] then
+                return { "This module does not require any other modules to operate." }
+            end
+
+            local ret = {}
+
+            for _, name in ipairs(required) do
+                if modules[name] and modules[name].filename then
+                    ret[#ret + 1] = "- [`"
+                        .. name
+                        .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                        .. modules[name].filename
+                        .. ") - "
+                        .. (modules[name].short_description or "no description")
+                else
+                    ret[#ret + 1] = "- `" .. name .. "` - undocumented module"
+                end
+            end
+
+            return ret
+        end,
     }
 
     if not comment or #comment == 0 then
         return
     end
 
-    comment[1] = string.gsub(comment[1], "^%s*(.-)%s*$", "%1")
+    local oldkey
+    local arguments = {}
 
-    -- Checks if we want to generate as a file
-    if not vim.startswith(comment[1], "File: ") then
+    for i, line in ipairs(comment) do
+        if line:match("^%s*---$") then
+            comment = vim.list_slice(comment, i + 1)
+            break
+        end
+
+        local key, value = line:match("^%s*([%w%s]+)%:%s+(.+)$")
+
+        if key and value then
+            key = key:lower():gsub("%s", "_")
+            arguments[key] = value
+            oldkey = key
+        elseif not line:match("^%s*$") and oldkey then
+            arguments[oldkey] = arguments[oldkey] .. " " .. vim.trim(line)
+        end
+    end
+
+    if not arguments.file then
         return
     end
 
-    -- Only keeps the desired file name
-    local output_filename = string.gsub(comment[1], "^File: ", "") .. ".md"
-    table.remove(comment, 1)
+    -- Populate the module with some extra info
+    module.filename = arguments.file
+    module.short_description = arguments.short_description
+    module.description = arguments.description
+
+    -- Construct the desired filename
+    local output_filename = module.filename .. ".md"
 
     -- Generate structure
     for _, item in ipairs(structure) do

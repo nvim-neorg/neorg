@@ -1,6 +1,8 @@
 --[[
-   File: Autocommands
-# Autocommand module for Neorg
+    File: Autocommands
+    Short Description: Handles the creation and management of Neovim's autocommands.
+    ---
+# AUTOCOMMAND MODULE FOR NEORG
 
 This module exposes functionality for subscribing to autocommands and performing actions based on those autocommands
 
