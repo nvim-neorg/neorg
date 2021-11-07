@@ -108,7 +108,7 @@ docgen.generate_md_file = function(buf, path, comment)
         "     }",
         "  }",
         "  ```",
-        "  Consult the [configuration](#Configuration) section to see how you can configure `"
+        "  Consult the [configuration](###Configuration) section to see how you can configure `"
             .. module.name
             .. "` to your liking.",
         "",
