@@ -1,6 +1,6 @@
 --[[
     File: Getting-Things-Done
-    Title: Base module for the Getting Things Done methodology
+    Title: Base module for GTD workflow
     Summary: Manages your tasks with Neorg using the Getting Things Done methodology.
     ---
 It's here where the keybinds and commands are created in order to interact with GTD stuff
@@ -30,9 +30,11 @@ end
 module.config.public = {
     -- Workspace name to use for gtd related lists
     workspace = "default",
+    -- Filenames to use for default lists
     default_lists = {
         inbox = "inbox.norg",
     },
+    -- You can exclude files from gtd parsing by passing them here
     exclude = {},
 }
 
