@@ -98,7 +98,9 @@ docgen.generate_md_file = function(buf, path, comment)
 
                 for _, variable_declaration in main_query:iter_captures(tree:root(), buf) do
                     if variable_declaration:type() == "variable_declaration" then
-                        local query = vim.treesitter.parse_query("lua", [[
+                        local query = vim.treesitter.parse_query(
+                            "lua",
+                            [[
                             (table
                                 (field
                                     [
@@ -110,7 +112,8 @@ docgen.generate_md_file = function(buf, path, comment)
                                     )
                                 )
                             )
-                        ]])
+                        ]]
+                        )
 
                         for id, node in query:iter_captures(variable_declaration, buf) do
                             local capture = query.captures[id]
@@ -145,7 +148,7 @@ docgen.generate_md_file = function(buf, path, comment)
 
                 return vim.tbl_flatten(result)
             end,
-        }
+        },
     }
 
     if not comment or #comment == 0 then
