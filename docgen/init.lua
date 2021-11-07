@@ -128,28 +128,24 @@ docgen.generate_md_file = function(buf, path, comment)
                                     "```lua",
                                 }
 
-                                local start_node = node:next_named_sibling():named_child(1)
+                                local start_node = node:next_named_sibling()
 
                                 if not start_node then
                                     table.insert(result[index], "-- empty code block")
                                 end
 
-                                while start_node do
-                                    local text = ts_utils.get_node_text(start_node)
-                                    local start = ts.get_node_range(start_node).column_start
+                                local text = ts_utils.get_node_text(start_node)
+                                -- Remove the function() and "end" keywords
+                                table.remove(text, 1)
+                                table.remove(text)
 
-                                    for i = 2, #text do
-                                        text[i] = text[i]:sub(start + 1)
-                                    end
+                                local start = vim.api.nvim_strwidth(text[1]:match("^%s*")) + 1
 
-                                    vim.list_extend(result[index], text)
-
-                                    start_node = start_node:next_named_sibling()
-
-                                    if start_node then
-                                        table.insert(result[index], "")
-                                    end
+                                for i = 1, #text do
+                                    text[i] = text[i]:sub(start)
                                 end
+
+                                vim.list_extend(result[index], text)
 
                                 table.insert(result[index], "```")
                                 table.insert(result[index], "")
