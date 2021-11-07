@@ -33,19 +33,6 @@ jobs:
       - name: Run Documentation Generator
         run: |
           make ci-doc
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          if [[ ! -z $(git status -s wiki) ]]; then
-            git add wiki/
-            git commit -m "chore: autogenerate wiki pages"
-          fi
-
-      - name: Push Documentation to Github
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
-          directory: .
 
       - name: Clone Wiki
         uses: actions/checkout@v2
