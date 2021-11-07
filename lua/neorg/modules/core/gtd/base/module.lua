@@ -4,13 +4,13 @@
 
 It's here where the keybinds and commands are created in order to interact with GTD stuff
 
-## USAGE
+## Summary
 
 - Call the command `:Neorg gtd views` to nicely show your tasks and projects
 - Create a new task with `:Neorg gtd capture`
 - Edit the task under the cursor with `:Neorg gtd edit`
 
-## REQUIRES
+## Requires
 
 - `core.norg.dirman`: in order to get full path to the workspace
 - `core.keybinds`: (check KEYBINDS for usage)
