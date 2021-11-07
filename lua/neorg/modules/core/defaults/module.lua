@@ -1,7 +1,9 @@
 --[[
     File: Defaults
-    This file contains all of the most important
-    modules that any user would want to have a "just works" experience.
+    ---
+
+This file contains all of the most important
+modules that any user would want to have a "just works" experience.
 --]]
 
 require("neorg.modules.base")
