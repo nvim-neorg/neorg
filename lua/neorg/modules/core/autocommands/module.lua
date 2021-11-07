@@ -1,10 +1,10 @@
 --[[
    File: Autocommands
-# AUTOCOMMAND MODULE FOR NEORG
+# Autocommand module for Neorg
 
 This module exposes functionality for subscribing to autocommands and performing actions based on those autocommands
 
-## USAGE
+## Summary
 
 In your `module.setup()`, make sure to require core.autocommands (requires = { "core.autocommands" })
 Afterwards in a function of your choice that gets called *after* core.autocommmands gets intialized e.g. load():
