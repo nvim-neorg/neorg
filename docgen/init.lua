@@ -201,6 +201,7 @@ docgen.generate_md_file = function(buf, path, comment)
         "## Extra Info",
         "### Version",
         "The `" .. module.name .. "` module is currently at version **" .. module.public.version .. "**.",
+        "",
         "For reference the current Neorg version is **" .. neorg.configuration.version .. "**.",
         "",
         "### Requires",
