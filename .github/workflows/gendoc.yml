@@ -38,7 +38,7 @@ jobs:
       - name: Clone Wiki
         uses: actions/checkout@v2
         with:
-          repository: "nvim-neorg/neorg/wiki"
+          repository: "nvim-neorg/neorg.wiki"
           path: neorg-wiki
 
       - name: Move Wiki Files
@@ -57,7 +57,7 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          repository: "nvim-neorg/neorg/wiki"
+          repository: "nvim-neorg/neorg.wiki"
           branch: master
           force: true
           directory: ./neorg-wiki
