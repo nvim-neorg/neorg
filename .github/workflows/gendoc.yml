@@ -8,7 +8,6 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - v0.5.0
           - nightly
     name: Generate Markdown Docs
     runs-on: ubuntu-latest
@@ -17,6 +16,19 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: neorg
+      - uses: actions/checkout@v2
+
+      - name: Install Plenary
+        uses: actions/checkout@v2
+        with:
+          repository: nvim-lua/plenary.nvim
+          path: plenary.nvim
+
+      - name: Install Treesitter
+        uses: actions/checkout@v2
+        with:
+          repository: nvim-treesitter/nvim-treesitter
+          path: nvim-treesitter
 
       - name: Install Neovim
         uses: rhysd/action-setup-vim@v1
