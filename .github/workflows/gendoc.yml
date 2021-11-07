@@ -33,6 +33,11 @@ jobs:
           neovim: true
           version: ${{ matrix.version }}
 
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          path: neorg
+
       - name: Run Documentation Generator
         run: |
           make ci-doc
