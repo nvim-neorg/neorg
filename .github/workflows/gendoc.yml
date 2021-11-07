@@ -30,8 +30,7 @@ jobs:
 
       - name: Move Wiki Files
         run: |
-          cd neorg-wiki
-          mv ../neorg/wiki/**.md . -f
+          mv ./neorg/wiki/**.md ./neorg-wiki/ -f
       
       - name: Commit Wiki Changes
         run: |
