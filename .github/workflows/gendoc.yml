@@ -12,12 +12,6 @@ jobs:
     name: Generate Markdown Docs
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v2
-        with:
-          path: neorg
-      - uses: actions/checkout@v2
-
       - name: Install Plenary
         uses: actions/checkout@v2
         with:
@@ -36,6 +30,11 @@ jobs:
         with:
           neovim: true
           version: ${{ matrix.version }}
+
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          path: neorg
 
       - name: Run Documentation Generator
         run: |
