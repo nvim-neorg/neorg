@@ -136,7 +136,12 @@ docgen.generate_md_file = function(buf, path, comment)
 
                                 while start_node do
                                     vim.list_extend(result[index], ts_utils.get_node_text(start_node))
+
                                     start_node = start_node:next_named_sibling()
+
+                                    if start_node then
+                                        table.insert(result[index], "")
+                                    end
                                 end
 
                                 table.insert(result[index], "```")

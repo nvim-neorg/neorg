@@ -331,4 +331,40 @@ module.events.defined = {
     winscrolled = module.autocmd_base("winscrolled"),
 }
 
+module.examples = {
+    ["Binding to an Autocommand"] = function()
+        local mymodule = neorg.modules.create("my.module")
+
+        mymodule.setup = function()
+            return {
+                success = true,
+                requires = {
+                    "core.autocommands", -- Be sure to require the module!
+                },
+            }
+        end
+
+        mymodule.load = function()
+            -- Enable an autocommand (in this case InsertLeave)
+            module.required["core.autocommands"].enable_autocommand("InsertLeave")
+        end
+
+        -- Listen for any incoming events
+        mymodule.on_event = function(event)
+            -- If it's the event we're looking for then do something!
+            if event.type == "core.autocommands.events.insertleave" then
+                log.warn("We left insert mode!")
+            end
+        end
+
+        mymodule.events.subscribed = {
+            ["core.autocommands"] = {
+                insertleave = true, -- Be sure to listen in for this event!
+            },
+        }
+
+        return mymodule
+    end,
+}
+
 return module
