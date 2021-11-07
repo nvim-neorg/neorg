@@ -72,8 +72,45 @@ end
 
 docgen.generate_md_file = function(buf, path, comment)
     local module = dofile(path)
+    modules[module.name] = module
 
     local structure = {
+        "",
+        "## Usage",
+        "### How to Apply",
+        function()
+            local core_defaults = modules["core.defaults"]
+
+            if not core_defaults then
+                return
+            end
+
+            if
+                not vim.tbl_isempty(vim.tbl_filter(function(elem)
+                    return elem == module.name
+                end, core_defaults.config.public.enable or {}))
+            then
+                return {
+                    "- This module is already present in the `core.defaults` metamodule.",
+                    "  You can load the module with:",
+                    "  ```lua",
+                    '  ["core.defaults"] = {},',
+                    "  ```",
+                    "  In your Neorg setup.",
+                }
+            end
+        end,
+        "- To manually load the module, place this code in your Neorg setup:",
+        "  ```lua",
+        '  ["' .. module.name .. '"] = {',
+        "     config = { -- Note that this table is optional and doesn't need to be provided",
+        "         -- Configuration here",
+        "     }",
+        "  }",
+        "  ```",
+        "  Consult the [configuration](#Configuration) section to see how you can configure `"
+            .. module.name
+            .. "` to your liking.",
         "",
         "## Developer Usage",
         "### Examples",
@@ -135,6 +172,7 @@ docgen.generate_md_file = function(buf, path, comment)
                                 end
 
                                 local text = ts_utils.get_node_text(start_node)
+
                                 -- Remove the function() and "end" keywords
                                 table.remove(text, 1)
                                 table.remove(text)
@@ -188,6 +226,8 @@ docgen.generate_md_file = function(buf, path, comment)
                     table.insert(comment, str)
                 end
             end
+        elseif type(item) == "function" then
+            vim.list_extend(comment, item() or {})
         end
     end
 
@@ -198,15 +238,18 @@ docgen.generate_md_file = function(buf, path, comment)
     vim.api.nvim_buf_call(output_buffer, function()
         vim.cmd("write!")
     end)
+    vim.api.nvim_buf_delete(output_buffer, { force = true })
 end
 
 local files = docgen.find_modules()
 
-for _, file in ipairs(files) do
-    local buf, comment = docgen.get_module_top_comment(file)
+for i = 1, 2 do
+    for _, file in ipairs(files) do
+        local buf, comment = docgen.get_module_top_comment(file)
 
-    if comment then
-        docgen.generate_md_file(buf, file, comment)
+        if comment then
+            docgen.generate_md_file(buf, file, comment)
+        end
     end
 end
 
