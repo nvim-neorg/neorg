@@ -1,12 +1,9 @@
 --[[
     File: Getting-Things-Done
-    Short Description: Manage your tasks with Neorg, using the Getting Things Done methodology
+    Title: Base module for the Getting Things Done methodology
+    Summary: Manages your tasks with Neorg using the Getting Things Done methodology.
     ---
-# Base module for Getting Things Done methodology
-
 It's here where the keybinds and commands are created in order to interact with GTD stuff
-
-## Summary
 
 - Call the command `:Neorg gtd views` to nicely show your tasks and projects
 - Create a new task with `:Neorg gtd capture`
