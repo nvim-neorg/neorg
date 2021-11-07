@@ -89,7 +89,7 @@ module.public = {
         end
     end,
 
-    version = "0.0.9",
+    version = "0.0.8",
 }
 
 -- All the subscribeable events for core.autocommands
