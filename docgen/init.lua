@@ -135,7 +135,14 @@ docgen.generate_md_file = function(buf, path, comment)
                                 end
 
                                 while start_node do
-                                    vim.list_extend(result[index], ts_utils.get_node_text(start_node))
+                                    local text = ts_utils.get_node_text(start_node)
+                                    local start = ts.get_node_range(start_node).column_start
+
+                                    for i = 2, #text do
+                                        text[i] = text[i]:sub(start + 1)
+                                    end
+
+                                    vim.list_extend(result[index], text)
 
                                     start_node = start_node:next_named_sibling()
 
