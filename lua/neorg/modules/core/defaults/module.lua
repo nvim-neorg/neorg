@@ -1,7 +1,7 @@
 --[[
     File: Defaults
+    Summary: Metamodule for storing the most necessary modules.
     ---
-
 This file contains all of the most important
 modules that any user would want to have a "just works" experience.
 --]]
