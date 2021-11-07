@@ -37,8 +37,6 @@ jobs:
 
       - name: Run Documentation Generator
         run: |
-          pwd
-          cd ./neorg
           make documentation
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -52,7 +50,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
-          directory: ./neorg
+          directory: .
 
       - name: Clone Wiki
         uses: actions/checkout@v2
@@ -62,7 +60,7 @@ jobs:
 
       - name: Move Wiki Files
         run: |
-          mv ./neorg/wiki/**.md ./neorg-wiki -f
+          mv ./wiki/**.md ./neorg-wiki -f
       
       - name: Commit Wiki Changes
         run: |
