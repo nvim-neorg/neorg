@@ -1,5 +1,6 @@
 --[[
     File: Getting-Things-Done
+    ---
 # Base module for Getting Things Done methodology
 
 It's here where the keybinds and commands are created in order to interact with GTD stuff
