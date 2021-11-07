@@ -55,7 +55,7 @@ jobs:
 
       - name: Move Wiki Files
         run: |
-          mv ./neorg/wiki/**.md ./neorg-wiki -f
+          mv ./wiki/**.md ./neorg-wiki -f
 
       - name: Commit Wiki Changes
         run: |
