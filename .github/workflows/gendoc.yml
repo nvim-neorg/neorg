@@ -37,6 +37,8 @@ jobs:
 
       - name: Run Documentation Generator
         run: |
+          ls
+          pwd
           make documentation
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
