@@ -12,7 +12,10 @@ jobs:
     name: Generate Markdown Docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+           path: neorg 
       - name: Install Plenary
         uses: actions/checkout@v2
         with:
