@@ -55,17 +55,19 @@ jobs:
 
       - name: Copy Wiki Files
         run: |
-          ls ./neorg/wiki ./neorg-wiki
-          cp ./neorg/wiki/**.md ./neorg-wiki
-          ls ./neorg/wiki ./neorg-wiki
+          ls ../neorg/wiki ./neorg-wiki
+          cp ../neorg/wiki/**.md ./neorg-wiki
+          ls ../neorg/wiki ./neorg-wiki
 
       - name: Commit Wiki Changes
         run: |
           cd neorg-wiki
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add .
-          git commit -m "chore: autoupdate github wiki"
+          if [[ ! -z $(git status -s) ]]; then
+            git add .
+            git commit -m "chore: autoupdate github wiki"
+          fi
 
       - name: Push Wiki to Github
         uses: ad-m/github-push-action@master
