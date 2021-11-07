@@ -37,6 +37,7 @@ jobs:
 
       - name: Run Documentation Generator
         run: |
+          pwd
           cd ./neorg
           make documentation
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
