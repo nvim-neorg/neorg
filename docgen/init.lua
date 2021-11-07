@@ -75,6 +75,17 @@ docgen.generate_md_file = function(buf, path, comment)
     modules[module.name] = module
 
     local structure = {
+        function()
+            return { module.title and "# " .. module.title or ("# The `" .. module.name .. "` Module") }
+        end,
+        "",
+        "## Summary",
+        function()
+            return { (module.summary or "*no summary provided*") }
+        end,
+        "",
+        "## Overview",
+        "<comment>",
         "",
         "## Usage",
         "### How to Apply",
@@ -221,7 +232,7 @@ docgen.generate_md_file = function(buf, path, comment)
                         .. "`](https://github.com/nvim-neorg/neorg/wiki/"
                         .. modules[name].filename
                         .. ") - "
-                        .. (modules[name].short_description or "no description")
+                        .. (modules[name].summary or "no description")
                 else
                     ret[#ret + 1] = "- `" .. name .. "` - undocumented module"
                 end
@@ -261,16 +272,22 @@ docgen.generate_md_file = function(buf, path, comment)
 
     -- Populate the module with some extra info
     module.filename = arguments.file
-    module.short_description = arguments.short_description
-    module.description = arguments.description
+    module.summary = arguments.summary
+    module.title = arguments.title
 
     -- Construct the desired filename
     local output_filename = module.filename .. ".md"
 
+    local output = {}
+
     -- Generate structure
     for _, item in ipairs(structure) do
         if type(item) == "string" then
-            table.insert(comment, item)
+            if item == "<comment>" then
+                vim.list_extend(output, comment)
+            else
+                table.insert(output, item)
+            end
         elseif type(item) == "table" then
             local query = docgen.get_module_queries(buf, item.query)
 
@@ -278,18 +295,18 @@ docgen.generate_md_file = function(buf, path, comment)
                 local ret = item.callback(query)
 
                 for _, str in ipairs(ret) do
-                    table.insert(comment, str)
+                    table.insert(output, str)
                 end
             end
         elseif type(item) == "function" then
-            vim.list_extend(comment, item() or {})
+            vim.list_extend(output, item() or {})
         end
     end
 
     local output_buffer = vim.api.nvim_create_buf(false, false)
     local output_path = vim.fn.getcwd() .. "/" .. docgen.output_dir .. "/" .. output_filename
     vim.api.nvim_buf_set_name(output_buffer, output_path)
-    vim.api.nvim_buf_set_lines(output_buffer, 0, -1, false, comment)
+    vim.api.nvim_buf_set_lines(output_buffer, 0, -1, false, output)
     vim.api.nvim_buf_call(output_buffer, function()
         vim.cmd("write!")
     end)
