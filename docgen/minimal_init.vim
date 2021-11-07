@@ -4,8 +4,9 @@
 set rtp+=.
 
 " For test suites
-set rtp+=../plenary.nvim
-set rtp+=../nvim-treesitter
+set rtp+=/tmp/lua
+set rtp+=./plenary.nvim
+set rtp+=./nvim-treesitter
 
 " If you use vim-plug if you got it locally
 set rtp+=~/.vim/plugged/plenary.nvim
@@ -26,6 +27,8 @@ lua << EOF
 P = function(...)
     print(vim.inspect(...))
 end
+
+require('nvim-treesitter.configs').setup({})
 EOF
 
 runtime! plugin/plenary.vim

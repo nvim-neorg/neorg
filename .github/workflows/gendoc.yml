@@ -12,22 +12,17 @@ jobs:
     name: Generate Markdown Docs
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v2
-        with:
-           path: neorg 
+      - uses: actions/checkout@v2
       - name: Install Plenary
         uses: actions/checkout@v2
         with:
           repository: nvim-lua/plenary.nvim
           path: plenary.nvim
-
       - name: Install Treesitter
         uses: actions/checkout@v2
         with:
           repository: nvim-treesitter/nvim-treesitter
           path: nvim-treesitter
-
       - name: Install Neovim
         uses: rhysd/action-setup-vim@v1
         id: neovim
@@ -37,10 +32,7 @@ jobs:
 
       - name: Run Documentation Generator
         run: |
-          ls
-          pwd
-          cd neorg
-          make documentation
+          make ci-doc
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           if [[ ! -z $(git status -s) ]]; then
@@ -63,8 +55,8 @@ jobs:
 
       - name: Move Wiki Files
         run: |
-          mv ./wiki/**.md ./neorg-wiki -f
-      
+          mv ./neorg/wiki/**.md ./neorg-wiki -f
+
       - name: Commit Wiki Changes
         run: |
           cd neorg-wiki
