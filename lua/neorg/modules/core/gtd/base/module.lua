@@ -1,5 +1,6 @@
 --[[
     File: Getting-Things-Done
+    Short Description: Manage your tasks with Neorg, using the Getting Things Done methodology
     ---
 # Base module for Getting Things Done methodology
 
@@ -10,13 +11,6 @@ It's here where the keybinds and commands are created in order to interact with 
 - Call the command `:Neorg gtd views` to nicely show your tasks and projects
 - Create a new task with `:Neorg gtd capture`
 - Edit the task under the cursor with `:Neorg gtd edit`
-
-## Requires
-
-- `core.norg.dirman`: in order to get full path to the workspace
-- `core.keybinds`: (check KEYBINDS for usage)
-- `core.gtd.ui`: for gtd UI components
-- `core.neorgcmd`: to add commands capabilities
 --]]
 
 require("neorg.modules.base")
