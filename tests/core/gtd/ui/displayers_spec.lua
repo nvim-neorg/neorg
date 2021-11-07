@@ -10,6 +10,7 @@ describe("CORE.GTD.UI - Displayers:", function()
             { content = "test_task", contexts = { "today", "mac" }, state = "undone" },
             { content = "done_task", contexts = { "today", "home" }, state = "done" },
             { content = "test_task2", contexts = { "today", "home" }, state = "undone" },
+            { content = "test_task3", contexts = { "today" }, state = "undone" },
         }
         local buf = ui.display_today_tasks(tasks)
         assert.is_number(buf)
@@ -21,6 +22,7 @@ describe("CORE.GTD.UI - Displayers:", function()
         assert.is_false(vim.tbl_contains(lines, "- done_task"))
         assert.is_true(vim.tbl_contains(lines, "- test_task"))
         assert.is_true(vim.tbl_contains(lines, "- test_task2"))
+        assert.is_true(vim.tbl_contains(lines, "- test_task3"))
 
         assert.equals(1, #vim.tbl_filter(function(t)
             return t == "- test_task2"

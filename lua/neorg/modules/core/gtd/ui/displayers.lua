@@ -41,20 +41,44 @@ module.public = {
             tasks = vim.tbl_filter(exclude_tasks, tasks)
         end
 
+        tasks = vim.tbl_filter(module.private.today_task, tasks)
+
+        -- Sort tasks by contexts
         local contexts_tasks = module.required["core.gtd.queries"].sort_by("contexts", tasks)
 
+        -- Remove duplicated tasks in today
+        contexts_tasks.today = vim.tbl_filter(function(t)
+            return #t.contexts == 1
+        end, contexts_tasks.today)
+
+        -- Merge today context with "No contexts" tasks
+        if not contexts_tasks["_"] then
+            contexts_tasks["_"] = contexts_tasks.today
+        else
+            for _, task in pairs(contexts_tasks.today) do
+                table.insert(contexts_tasks["_"], task)
+            end
+        end
+        contexts_tasks.today = nil
+
+        -- Prioritize the contexts below
         local contexts = vim.tbl_keys(contexts_tasks)
+        local priority = { "_" }
+        local contexts_sorter = function(a, _)
+            return vim.tbl_contains(priority, a)
+        end
+        table.sort(contexts, contexts_sorter)
 
-        contexts = vim.tbl_filter(function(c)
-            return c ~= "today"
-        end, contexts)
+        for _, context in ipairs(contexts) do
+            local _tasks = contexts_tasks[context]
+            if #_tasks > 0 then
+                local inserted_context = context
+                if context == "_" then
+                    inserted_context = "/(No contexts)/"
+                end
+                table.insert(res, "** " .. inserted_context)
 
-        for _, c in ipairs(contexts) do
-            local today_tasks = vim.tbl_filter(module.private.today_task, contexts_tasks[c])
-            if #today_tasks > 0 then
-                table.insert(res, "** " .. c)
-
-                for _, t in pairs(today_tasks) do
+                for _, t in pairs(_tasks) do
                     local content = "- " .. t.content
                     if t.project then
                         content = content .. " `in " .. t.project .. "`"
@@ -569,7 +593,7 @@ module.private = {
             today_context = vim.tbl_contains(task.contexts, "today")
         end
 
-        local today_state = task.state ~= "done"
+        local state = task.state ~= "done"
 
         local already_started = true
         local starting_today = false
@@ -585,11 +609,7 @@ module.private = {
             due_today = diff.days <= 0 and diff.weeks <= 0
         end
 
-        -- all not done tasks:
-        --   - marked as today and starting after today
-        --   - starting today
-        --   - due for today
-        return today_state and (starting_today or due_today or (today_context and already_started))
+        return state and (starting_today or due_today or (today_context and already_started))
     end,
 
     set_vars_to_buf = function(buf, data)
