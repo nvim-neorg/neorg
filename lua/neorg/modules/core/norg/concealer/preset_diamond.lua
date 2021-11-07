@@ -500,7 +500,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         query = "(bold) @icon",
         render = function(self, text, node)
             return {
-                { text:gsub("*", self.icon), self.highlight },
+                { text:gsub("^*", self.icon):gsub("*$", self.icon), self.highlight },
             }
         end,
     },
@@ -512,7 +512,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         query = "(italic) @icon",
         render = function(self, text, node)
             return {
-                { text:gsub("/", self.icon), self.highlight },
+                { text:gsub("^/", self.icon):gsub("/$", self.icon), self.highlight },
             }
         end,
     },
@@ -524,7 +524,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         query = "(underline) @icon",
         render = function(self, text, node)
             return {
-                { text:gsub("_", self.icon), self.highlight },
+                { text:gsub("^_", self.icon):gsub("_$", self.icon), self.highlight },
             }
         end,
     },
@@ -536,7 +536,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         query = "(strikethrough) @icon",
         render = function(self, text, node)
             return {
-                { text:gsub("-", self.icon), self.highlight },
+                { text:gsub("^-", self.icon):gsub("-$", self.icon), self.highlight },
             }
         end,
     },
@@ -548,7 +548,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         query = "(subscript) @icon",
         render = function(self, text)
             return {
-                { text:gsub(",", self.icon), self.highlight },
+                { text:gsub("^,", self.icon):gsub(",$", self.icon), self.highlight },
             }
         end,
     },
@@ -561,7 +561,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         render = function(self, text)
             return {
                 -- NOTE: `^` must be escaped!
-                { text:gsub("%^", self.icon), self.highlight },
+                { text:gsub("^%^", self.icon):gsub("%^$", self.icon), self.highlight },
             }
         end,
     },
@@ -573,7 +573,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         query = "(verbatim) @icon",
         render = function(self, text)
             return {
-                { text:gsub("`", self.icon), self.highlight },
+                { text:gsub("^`", self.icon):gsub("`$", self.icon), self.highlight },
             }
         end,
     },
@@ -585,7 +585,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         query = "(inline_comment) @icon",
         render = function(self, text)
             return {
-                { text:gsub("+", self.icon), self.highlight },
+                { text:gsub("^+", self.icon):gsub("+$", self.icon), self.highlight },
             }
         end,
     },
@@ -598,7 +598,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         render = function(self, text)
             return {
                 -- NOTE: `$` must be escaped!
-                { text:gsub("%$", self.icon), self.highlight },
+                { text:gsub("^%$", self.icon):gsub("%$$", self.icon), self.highlight },
             }
         end,
     },
@@ -610,7 +610,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         query = "(variable) @icon",
         render = function(self, text)
             return {
-                { text:gsub("=", self.icon), self.highlight },
+                { text:gsub("^=", self.icon):gsub("=$", self.icon), self.highlight },
             }
         end,
     },
