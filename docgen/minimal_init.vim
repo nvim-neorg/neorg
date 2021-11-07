@@ -4,10 +4,8 @@
 set rtp+=.
 
 " For test suites
-set rtp+=/tmp/neorg
-set rtp+=./plenary.nvim
-set rtp+=./nvim-treesitter
-set rtp+=./docgen
+set rtp+=../plenary.nvim
+set rtp+=../nvim-treesitter
 
 " If you use vim-plug if you got it locally
 set rtp+=~/.vim/plugged/plenary.nvim
