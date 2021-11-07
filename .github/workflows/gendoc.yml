@@ -21,30 +21,22 @@ jobs:
         run: |
           cd ./neorg
           make documentation
-
-      - name: Clone Wiki
-        uses: actions/checkout@v2
-        with:
-          repository: "nvim-neorg/neorg.wiki"
-          path: neorg-wiki
-
-      - name: Move Wiki Files
-        run: |
-          mv ./neorg/wiki/**.md ./neorg-wiki/ -f
-      
-      - name: Commit Wiki Changes
-        run: |
-          cd neorg-wiki
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add .
-          git commit -m "chore: autoupdate github wiki"
+          if [[ ! -z $(git status -s) ]]; then
+            git add wiki/
+            git commit -m "chore: autogenerate wiki pages"
+          fi
 
-      - name: Push Wiki to Github
+      - name: Push Documentation to Github
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          repository: "nvim-neorg/neorg.wiki"
-          branch: master
-          force: true
-          directory: ./neorg-wiki
+          branch: ${{ github.ref }}
+          directory: ./neorg
+
+      - uses: SwiftDocOrg/github-wiki-publish-action@v1
+        with:
+          path: ./neorg/wiki/
+        env:
+          GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
