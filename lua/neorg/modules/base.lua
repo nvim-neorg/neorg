@@ -82,7 +82,6 @@ neorg.modules.module_base = {
     -- If you ever require a module through the return value of the setup() function,
     -- All of the modules' public APIs will become available here
     required = {
-
         --[[
 
 			["core.test"] = {
@@ -94,6 +93,15 @@ neorg.modules.module_base = {
 			}
 
 		--]]
+    },
+
+    -- Example bits of code that the user can look through
+    examples = {
+        --[[
+            a_cool_test = function()
+                print("Some code!")
+            end
+        --]]
     },
 }
 

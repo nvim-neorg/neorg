@@ -14,8 +14,13 @@ require("neorg").setup({
 
 -- Start neorg
 neorg.org_file_entered(false)
+
+-- Extract treesitter utility functions provided by Neorg and nvim-treesitter.ts_utils
 local ts = neorg.modules.get_module("core.integrations.treesitter")
 local ts_utils = ts.get_ts_utils()
+
+-- Store all parsed modules in this variable
+local modules = {}
 
 docgen.find_modules = function()
     local path = vim.fn.getcwd()
@@ -56,10 +61,93 @@ docgen.get_module_top_comment = function(path)
     table.remove(comment, 1)
     table.remove(comment, #comment)
 
-    return comment
+    return buf, comment
 end
 
-docgen.generate_md_file = function(comment)
+docgen.get_module_queries = function(buf, query)
+    vim.api.nvim_set_current_buf(buf)
+
+    return vim.treesitter.parse_query("lua", query)
+end
+
+docgen.generate_md_file = function(buf, path, comment)
+    local module = dofile(path)
+
+    local structure = {
+        "",
+        "## Developer Usage",
+        "### Examples",
+        {
+            query = [[
+                (variable_declaration
+                    (variable_declarator
+                        (field_expression) @_field
+                        (#eq? @_field "module.examples")
+                    )
+                ) @declaration
+            ]],
+
+            callback = function(main_query)
+                if vim.tbl_isempty(module.examples) then
+                    return { "None Provided" }
+                end
+
+                local tree = vim.treesitter.get_parser(buf, "lua"):parse()[1]
+                local result = {}
+                local index = 0
+
+                for _, variable_declaration in main_query:iter_captures(tree:root(), buf) do
+                    if variable_declaration:type() == "variable_declaration" then
+                        local query = vim.treesitter.parse_query("lua", [[
+                            (table
+                                (field
+                                    [
+                                        (identifier)
+                                        (string)
+                                    ] @identifier
+                                    (function_definition
+                                        (parameters)
+                                    )
+                                )
+                            )
+                        ]])
+
+                        for id, node in query:iter_captures(variable_declaration, buf) do
+                            local capture = query.captures[id]
+
+                            if capture == "identifier" then
+                                index = index + 1
+                                local identifier_text = ts.get_node_text(node)
+                                identifier_text = identifier_text:gsub("[\"'](.+)[\"']", "%1") or identifier_text
+
+                                result[index] = {
+                                    "#### " .. identifier_text,
+                                    "```lua",
+                                }
+
+                                local start_node = node:next_named_sibling():named_child(1)
+
+                                if not start_node then
+                                    table.insert(result[index], "-- empty code block")
+                                end
+
+                                while start_node do
+                                    vim.list_extend(result[index], ts_utils.get_node_text(start_node))
+                                    start_node = start_node:next_named_sibling()
+                                end
+
+                                table.insert(result[index], "```")
+                                table.insert(result[index], "")
+                            end
+                        end
+                    end
+                end
+
+                return vim.tbl_flatten(result)
+            end,
+        }
+    }
+
     if not comment or #comment == 0 then
         return
     end
@@ -75,21 +163,39 @@ docgen.generate_md_file = function(comment)
     local output_filename = string.gsub(comment[1], "^File: ", "") .. ".md"
     table.remove(comment, 1)
 
-    local buf = vim.api.nvim_create_buf(false, false)
-    local path = vim.fn.getcwd() .. "/" .. docgen.output_dir .. "/" .. output_filename
-    vim.api.nvim_buf_set_name(buf, path)
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, comment)
-    vim.api.nvim_buf_call(buf, function()
+    -- Generate structure
+    for _, item in ipairs(structure) do
+        if type(item) == "string" then
+            table.insert(comment, item)
+        elseif type(item) == "table" then
+            local query = docgen.get_module_queries(buf, item.query)
+
+            if query then
+                local ret = item.callback(query)
+
+                for _, str in ipairs(ret) do
+                    table.insert(comment, str)
+                end
+            end
+        end
+    end
+
+    local output_buffer = vim.api.nvim_create_buf(false, false)
+    local output_path = vim.fn.getcwd() .. "/" .. docgen.output_dir .. "/" .. output_filename
+    vim.api.nvim_buf_set_name(output_buffer, output_path)
+    vim.api.nvim_buf_set_lines(output_buffer, 0, -1, false, comment)
+    vim.api.nvim_buf_call(output_buffer, function()
         vim.cmd("write!")
     end)
 end
 
 local files = docgen.find_modules()
+
 for _, file in ipairs(files) do
-    local comment = docgen.get_module_top_comment(file)
+    local buf, comment = docgen.get_module_top_comment(file)
 
     if comment then
-        docgen.generate_md_file(comment)
+        docgen.generate_md_file(buf, file, comment)
     end
 end
 
