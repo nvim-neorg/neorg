@@ -143,12 +143,13 @@ docgen.generate_md_file = function(buf, path, comment)
                         table.insert(results, "- `" .. function_name .. "`")
                     end
                 end
+                if #results == 0 then
+                    table.insert(results, "No public functions exposed.")
+                end
+
                 table.insert(results, "")
             end
 
-            if #results == 0 then
-                table.insert(results, "No public functions exposed.")
-            end
             return results
         end,
         "### Examples",
