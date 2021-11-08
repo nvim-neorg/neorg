@@ -315,6 +315,33 @@ docgen.generate_md_file = function(buf, path, comment)
 
             for _, name in ipairs(required) do
                 if modules[name] and modules[name].filename then
+                    modules[name].required_by = modules[name].required_by or {}
+                    table.insert(modules[name].required_by, module.name)
+
+                    ret[#ret + 1] = "- [`"
+                        .. name
+                        .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                        .. modules[name].filename
+                        .. ") - "
+                        .. (modules[name].summary or "no description")
+                else
+                    ret[#ret + 1] = "- `" .. name .. "` - undocumented module"
+                end
+            end
+
+            return ret
+        end,
+        "",
+        "### Required by",
+        function()
+            if not module.required_by or vim.tbl_isempty(module.required_by) then
+                return { "This module isn't required by any other module." }
+            end
+
+            local ret = {}
+
+            for _, name in ipairs(module.required_by) do
+                if modules[name] and modules[name].filename then
                     ret[#ret + 1] = "- [`"
                         .. name
                         .. "`](https://github.com/nvim-neorg/neorg/wiki/"

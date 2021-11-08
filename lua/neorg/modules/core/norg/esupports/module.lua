@@ -1,14 +1,11 @@
 --[[
-	Module for supporting the user while editing. Esupports -> Editing Supports
-	Currently provides custom and configurable indenting for Neorg files
+    File: Editing-Supports
+	Summary: Module for supporting the user while editing.
+	---
 
-USAGE:
-	Esupports is part of the `core.defaults` metamodule, and hence should be available to most
-	users right off the bat.
-CONFIGURATION:
-	<TODO>
-REQUIRES:
-	`core.autocommands` - for detecting whenever a new .norg file is entered
+This module provides all of the most important supports to aid the user
+on their note taking journey.
+It currently provides custom indentation and hop functionality.
 --]]
 
 require("neorg.modules.base")
