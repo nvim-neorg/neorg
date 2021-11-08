@@ -136,7 +136,6 @@ docgen.generate_md_file = function(buf, path, comment)
             if not vim.tbl_isempty(api) then
                 for function_name, item in pairs(api) do
                     if type(item) == "function" then
-
                         table.insert(results, "- `" .. function_name .. "`")
                     end
                 end
