@@ -1,27 +1,10 @@
 --[[
-    UI GTD components
+    File: GTD-UI
+    Title: GTD UI module
+    Summary: Nicely display GTD related informations
+    ---
 
-REQUIRES:
-    - core.ui                       to use ui stuff
-    - core.norg.dirman              for file operations
-    - core.gtd.queries              to use gtd queries
-
-SUBMODULES:
-    * DISPLAYERS:
-        UI components to display gtd's useful data
-        - display_today_tasks
-        - display_waiting_for
-        - display_contexts
-        - display_projects
-
-    * HELPERS:
-        Some helpers...
-
-    * SELECTION_POPUPS:
-        UI components that use selection popups
-        - show_views_popup
-        - edit_task
-
+This module is like a sub-module for `norg.gtd.base` , exposing public functions to display nicely aggregated stuff, like tasks and projects.
 --]]
 
 require("neorg.modules.base")
