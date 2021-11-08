@@ -8,6 +8,8 @@ local scan = require("plenary.scandir")
 
 require("neorg").setup({
     load = {
+        ["core.defaults"] = {},
+        ["core.gtd.base"] = {},
         ["core.integrations.treesitter"] = {},
     },
 })
@@ -126,6 +128,22 @@ docgen.generate_md_file = function(buf, path, comment)
             .. "` to your liking.",
         "",
         "## Developer Usage",
+        "### Public API",
+        function()
+            local api = neorg.modules.get_module(module.name)
+            local results = {}
+
+            if not vim.tbl_isempty(api) then
+                for function_name, item in pairs(api) do
+                    if type(item) == "function" then
+
+                        table.insert(results, "- `" .. function_name .. "`")
+                    end
+                end
+                table.insert(results, "")
+            end
+            return results
+        end,
         "### Examples",
         {
             query = [[
