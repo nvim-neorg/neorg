@@ -288,7 +288,8 @@ docgen.generate_md_file = function(buf, path, comment)
 
                 local trimmed = import_module.path:sub(import_module.path:find("/lua/") + 1, -1)
 
-                table.insert(ret,
+                table.insert(
+                    ret,
                     "- [`"
                         .. module.name
                         .. "."
