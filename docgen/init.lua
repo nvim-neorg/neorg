@@ -127,6 +127,25 @@ docgen.generate_md_file = function(buf, path, comment)
             .. module.name
             .. "` to your liking.",
         "",
+        "### Configuration",
+        function()
+            local results = {}
+            local configs = neorg.modules.get_module_config(module.name)
+            for config, value in pairs(configs) do
+                table.insert(results, "- `" .. config .. "`")
+
+                table.insert(results, "```lua")
+                local inserted = vim.split(vim.inspect(value), "\n")
+                vim.list_extend(results, inserted)
+                table.insert(results, "```")
+            end
+
+            if #results == 0 then
+                table.insert(results, "No configuration provided")
+            end
+
+            return results
+        end,
         "## Developer Usage",
         "### Public API",
         "This segment will detail all of the functions `"
