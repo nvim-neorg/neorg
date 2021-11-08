@@ -192,6 +192,8 @@ function neorg.modules.extend(name, parent)
 
     module.setreal(realmodule)
 
+    module.extension = true
+
     return module
 end
 
