@@ -74,6 +74,16 @@ end
 
 docgen.generate_md_file = function(buf, path, comment)
     local module = dofile(path)
+    neorg.modules.load_module(module.name)
+    module = neorg.modules.loaded_modules[module.name].real()
+
+    for _, import in ipairs(module.setup().imports or {}) do
+        local import_path = vim.fn.fnamemodify(path, ":p:h") .. "/" .. import .. ".lua"
+        local imported_extension = dofile(import_path).real()
+        imported_extension.path = import_path
+        modules[imported_extension.name] = imported_extension
+    end
+
     modules[module.name] = module
 
     local structure = {
@@ -259,6 +269,39 @@ docgen.generate_md_file = function(buf, path, comment)
         "This module supports at least version **" .. module.public.version .. "**.",
         "The current Neorg version is **" .. neorg.configuration.version .. "**.",
         "",
+        "### Imports",
+        function()
+            local imports = module.setup().imports
+
+            if not imports or vim.tbl_isempty(imports) then
+                return { "This module does not import any other files." }
+            end
+
+            local ret = {}
+
+            for _, import in ipairs(imports) do
+                local import_module = modules[module.name .. "." .. import]
+
+                if not import_module then
+                    return
+                end
+
+                local trimmed = import_module.path:sub(import_module.path:find("/lua/") + 1, -1)
+
+                table.insert(ret,
+                    "- [`"
+                        .. module.name
+                        .. "."
+                        .. import
+                        .. "`](https://github.com/nvim-neorg/neorg/tree/unstable/"
+                        .. trimmed
+                        .. ")"
+                )
+            end
+
+            return ret
+        end,
+        "",
         "### Requires",
         function()
             local required = module.setup().requires
@@ -359,7 +402,7 @@ end
 
 local files = docgen.find_modules()
 
-for i = 1, 2 do
+for _ = 1, 2 do
     for _, file in ipairs(files) do
         local buf, comment = docgen.get_module_top_comment(file)
 
