@@ -62,11 +62,6 @@ the rules for regular (attached) modifiers:
 - Delimiting modifiers - delimiting modifiers are those that delimit one paragraph from another and change where the paragraph
   resides in the syntax tree. A delimiting modifier must exist at the beginning of a line (with optional whitespace beforehand), must consist of *at least* 3 consecutive modifiers
   of the same type and must *not* be followed by any extra characters (this includes whitespace but excludes a newline).
-- The concept of foreplay and the document content - I'm still laughing writing this. The document is split up into two main sections, those being the aforementioned foreplay and document content.
-  The foreplay is called that way because it's a preliminary introduction to the document
-  that tells the parser how the rest of the document will play out: fore, play. Makes sense, right? No?
-
-  The foreplay consists of an arbitrary amount of newlines, ranged tags and insertions (more on them later). As soon as anything else is encountered the document content will begin.
 
 ### Examples:
 
@@ -647,8 +642,8 @@ changes:
 
 ### Insertions
   Insertions can be thought of as a motion of sorts. It inserts some text either into the document or into a variable.
-  Insertions happen through the `=` detached modifier, and can exist anywhere in the document - in the foreplay, in the document content
-  or under headings and such. The syntax looks like this:
+  Insertions happen through the `=` detached modifier, and can exist anywhere in the document.
+  The syntax looks like this:
 
   ```
   = single_word Parameters go here

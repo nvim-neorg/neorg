@@ -48,11 +48,9 @@ module.public = {
         local query = vim.treesitter.parse_query(
             "norg",
             [[
-                 (foreplay
-                     (ranged_tag
-                         (tag_name) @name
-                         (#eq? @name "document.meta")
-                     )
+                 (ranged_tag
+                     (tag_name) @name
+                     (#eq? @name "document.meta")
                  )
             ]]
         )
