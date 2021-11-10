@@ -10,7 +10,7 @@
 = TOC
 
 * The `.norg` file-format
-  If you find the [spec](https://github.com/vhyrro/neorg/blob/main/docs/NFF-0.1-spec.md)
+  If you find the {https://github.com/vhyrro/neorg/blob/main/docs/NFF-0.1-spec.md}[spec]
   too long and want to jump-start your Neorg skills, you've come to the right place!
 
  ** Basic Markup
@@ -23,8 +23,8 @@
     - \`inline code\`: `inline code`
     - \^superscript\^: ^superscript^    | cannot exist within a subscript block
     - \,subscript\,: ,subscript,        | cannot exist within a superscript block
-    - \$inline math\$: $f(x) = y$ (see also [Math](#math))
-    - \=variable\=: =variable= (see also [Variables](#variables))
+    - \$inline math\$: $f(x) = y$ (see also {#math})
+    - \=variable\=: =variable= (see also {#variables})
     - \+inline comment\+: +inline comment+
 
     This also immediately shows you how to escape a special character using the backslash, \\.
@@ -132,7 +132,7 @@
 
  ** Links
     For more info on links check the
-    [spec](https://github.com/nvim-neorg/neorg/blob/main/docs/NFF-0.1-spec.md#links).
+    {https://github.com/nvim-neorg/neorg/blob/main/docs/NFF-0.1-spec.md#links}[spec].
 
   *** Link Targets
       The following things can be used as link /targets/:
@@ -186,18 +186,18 @@
 
       @code norg
       +unordered links+
-      -> [link to a level 1 heading](*The `.norg` file-format)
-      --> [link to a level 2 heading](**links)
-      -> [link to a marker](|some marker)
-      -> [link to any element with the text definitions](#definitions)
+      -> {*The `.norg` file-format}[link to a level 1 heading]
+      --> {**links}[link to a level 2 heading]
+      -> {|some marker}[link to a marker]
+      -> {#definitions}[link to any element with the text definitions]
       +these links will be ordered:+
-      ~> [link to a cool plugin](https://github.com/vhyrro/taurivim)
-      ~> [another cool plugin](https://github.com/danymat/neogen)
+      ~> {https://github.com/vhyrro/taurivim}[link to a cool plugin]
+      ~> {https://github.com/danymat/neogen}[another cool plugin]
       +links to files+
-      [link to file.norg](:file:)
-      [link to target in file_2.norg](:file_2:#target)
-      [link to a target from the root of the workspace](:/my/file:#target)
-      [link to non neorg file notes.txt](@notes.txt)
+      {:file:}[link to file.norg]
+      {:file_2:#target}[link to target in file_2.norg]
+      {:/my/file:#target}[link to a target from the root of the workspace]
+      {@notes.txt}[link to non neorg file notes.txt]
       @end
 
  ** Markers
@@ -213,63 +213,63 @@
   *** Single-paragraph definitions
       $ Object to be defined
       The definition of the object in a single paragraph.
-      
+
       This is already the next paragraph.
-      
+
   *** Multi-paragraph definitions
       $$ Object to be defined
       Here, I can place any number of paragraphs or other format objects.
-      
+
       Even a code example:
       @code lua
       print("Hello world!")
       @end
       $$
       This is no longer part of the definition because the `::` on the previous line marked its end.
-      
+
  ** Data Tags
     Neorg supports a number of tags. The general format is:
     @data possible parameters
     contents
     @end
-      
+
   *** Carryover
       There is also an infectious carryover variant which allows shorter syntax. Its format is:
       `#data possible parameters`, which will apply the `data` tag *only* to the following
       paragraph or element.
-      
+
   *** Comments
       #comment
       This is a comment.
       This is also still a comment because the paragraph has not ended, yet.
-      
+
       The double line break ended the paragraph so this is no longer part of the comment.
-      
+
       Note, that you can also add in-line comments using the `#`-attached modifier. #E.g. like this#
-      
+
   *** Name
       #name foreplay
       > The foreplay is called that way because it's a preliminary introduction to the document
       > tells the parser how the rest of the document will play out: fore, play.
       > Makes sense, right? - Vhyrro
-      
+
       This quote now has a /name/!
-      
+
   *** List ordering
       You can affect ordered lists and specify their /start/, /step/ and /spacing/ values (all of
       them default to 1).
-      
+
       #ordered 2 2 2
       ~ First entry
       ~ Second entry
-      
+
       This will render as:
       @code
       2. First entry
       
       4. Second entry
       @end
-      
+
   *** Tables
       @table
       Column 1 | Column 2
@@ -277,30 +277,30 @@
       This is in a new row | which got separated by a horizontal line
       And check this out: I can span the columns!
       @end
-      
+
       Tables will become OP in the future!
-      
+
   *** Code Blocks
       @code
       console.log("But I want syntax highlighting...")
       @end
-      
+
       @code javascript
       console.log("Thank you!")
       @end
-      
+
   *** Media
       You can embed images directly in base64 format like so:
       @image png svg jpeg jfif exif
       <base64-encoded image data>
       @end
       Obviously you need to pick one of the available formats.
-      
+
       You can embed external image or video files like so:
       @embed image
       https://github.com/vhyrro/neorg/blob/main/res/neorg.svg
       @end
-      
+
   *** Math
       There are two ways of typesetting mathematics:
       ~ Inline mathematics using the `$` attached modifier like so: $f(x) = y$.
@@ -310,23 +310,23 @@
       @end
       A `numbered` carryover tag in a similar vain to the `ordered` one for lists is planned to add
       easy equation numbering support.
-      
+
  ** Advanced markup
     There are some more advanced markup features:
-      
+
   *** The Link modifier
       If you want to mark-up text which is not surrounded by punctuation or whitespace, you need to
       use the *link* modifier, `:`, like so:
-      
+
       W:*h*:y w:/oul/:d a:_nyon_:e w:-an-:t to do t:`hi`:s?
-      
+
   *** Object continuation
       The `~` trailing modifier causes the line break to be ignored. This allows you to do things
       like this:
-      
+
    **** This is a super duper long heading which I am so proud of and I absolutely cannot shorten~
         to fit onto a single line
-      
+
   *** Variables
       You can define variables which you can access later in your document like so:
       @code norg
@@ -337,7 +337,7 @@
       @code norg
       Insert my =variable=.
       @end
-      
+
   *** Insertions
       These are dynamically expanded objects which you can add to your document.
       The simplest example of an insertion is the /table of contents/ which looks like
@@ -345,12 +345,12 @@
       = ToC Table of Contents
       @end
       This shows the basic syntax `= <capitalized insertion name> <arguments>` and it also explains
-      why [Variables](#variables) have to be lowercased.
+      why {#variables} have to be lowercased.
       
   *** Foreplay
       If you read the quote above, you already heard this before. The /foreplay/ is located at the
-      beginning of your document. It can contain ranged tags ([data tags](#data tags) which are not
-      written in their [carryover](#carryover) syntax), insertions and an arbitrary number of empty
+      beginning of your document. It can contain ranged tags ({#data tags} which are not
+      written in their {#carryover} syntax), insertions and an arbitrary number of empty
       lines. Most importantly is the `document.meta` tag which we skipped over previously. You can
       find an example of it at the top of this file.
       
