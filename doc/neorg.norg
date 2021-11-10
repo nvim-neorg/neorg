@@ -60,27 +60,41 @@
 
   *** Tasks
       @code norg
-      - [ ] Undone task
-      - [*] Undone task
-      - [x] Undone task
+      - [ ] Undone -> not done yet
+      - [x] Done -> done with that
+      - [?] Needs further input
+            
+      - [!] Urgent -> high priority task
+      - [+] Recurring task with children
+            
+      - [-] Pending -> currently in progress
+      - [=] Task put on hold
+      - [_] Task cancelled (put down)
       @end
-      - [ ] Undone Task
-      - [*] Pending Task
-      - [x] Done Task
-      
+      - [ ] Undone
+      - [x] Done
+      - [?] Needs further input
+
+      - [!] Urgent
+      - [+] Recurring task
+
+      - [-] Pending
+      - [=] Task put on hold
+      - [_] Task cancelled
+
       You can also nest tasks:
       -- [ ] Nested task level 2
       --- [ ] Nested task level 3
       ---- [ ] Nested task level 4
       ----- [ ] Nested task level 5
       ------ [ ] Nested task level 6
-      
+
       @code norg
       - [ ] Undone Task, Nested level 1
       -- [*] Pending Task, Nested level 2
       --- [x] Done Task, Nested level 3
       @end
-      
+
   *** Quotes
       @code norg
       > 1. level quote
@@ -92,7 +106,7 @@
       >>>> 4. level quote
       >>>>> 5. level quote
       >>>>>> 6. level quote
-      
+
   *** Headings
       You already saw headings up to the third out of six levels. I assume by now you know how they
       work. But now...
