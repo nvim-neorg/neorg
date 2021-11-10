@@ -84,6 +84,68 @@
     )?
 ) @NeorgLink
 
+; Anchors
+(anchor_declaration
+    ("_begin") @NeorgAnchorDeclarationDelimiter
+    text: (anchor_declaration_text) @NeorgAnchorDeclarationText
+    ("_end") @NeorgAnchorDeclarationDelimiter
+) @NeorgAnchor
+
+(anchor_definition
+    (anchor_declaration)
+    ("_begin") @NeorgAnchorDefinitionDelimiter
+    (link_file
+        ("_begin") @NeorgLinkFileDelimiter
+        location: (link_file_text) @NeorgLinkFile
+        ("_end") @NeorgLinkFileDelimiter
+    )?
+    (link_location
+        [
+            (
+                (link_location_url) ; Doesn't require a highlight since it's a 0-width node
+                (link_location_text) @NeorgLinkLocationURL
+            )
+            (
+                (link_location_generic) @NeorgLinkLocationGenericPrefix
+                (link_location_text) @NeorgLinkLocationGeneric
+            )
+            (
+                (link_location_external_file) @NeorgLinkLocationExternalFilePrefix
+                (link_location_text) @NeorgLinkLocationExternalFile
+            )
+            (
+                (link_location_marker) @NeorgLinkLocationMarkerPrefix
+                (link_location_text) @NeorgLinkLocationMarker
+            )
+            (
+                (link_location_heading1) @NeorgLinkLocationHeading1Prefix
+                (link_location_text) @NeorgLinkLocationHeading1
+            )
+            (
+                (link_location_heading2) @NeorgLinkLocationHeading2Prefix
+                (link_location_text) @NeorgLinkLocationHeading2
+            )
+            (
+                (link_location_heading3) @NeorgLinkLocationHeading3Prefix
+                (link_location_text) @NeorgLinkLocationHeading3
+            )
+            (
+                (link_location_heading4) @NeorgLinkLocationHeading4Prefix
+                (link_location_text) @NeorgLinkLocationHeading4
+            )
+            (
+                (link_location_heading5) @NeorgLinkLocationHeading5Prefix
+                (link_location_text) @NeorgLinkLocationHeading5
+            )
+            (
+                (link_location_heading6) @NeorgLinkLocationHeading6Prefix
+                (link_location_text) @NeorgLinkLocationHeading6
+            )
+        ]
+    )?
+    ("_end") @NeorgAnchorDefinitionDelimiter
+) @NeorgAnchor
+
 ; Headings
 (heading1 (heading1_prefix) @NeorgHeading1Prefix title: (paragraph_segment) @NeorgHeading1Title) @NeorgHeading1
 (heading2 (heading2_prefix) @NeorgHeading2Prefix title: (paragraph_segment) @NeorgHeading2Title) @NeorgHeading2
