@@ -273,13 +273,13 @@ module.config.public = {
                 Delimiter = "+mkdDelimiter",
             },
 
+            File = {
+                [""] = "+TSComment",
+                Delimiter = "+mkdDelimiter",
+            },
+
             Location = {
                 Delimiter = "+mkdDelimiter",
-
-                File = {
-                    [""] = "+TSComment",
-                    Delimiter = "+mkdDelimiter",
-                },
 
                 URL = "+TSURI",
 
