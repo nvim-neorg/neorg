@@ -4,30 +4,91 @@ module.config.private.icon_preset_basic = {
     todo = {
         enabled = true,
 
-        undone = {
+        done = {
             enabled = true,
-            icon = "×",
-            query = "(todo_item_undone) @icon",
+            icon = "",
+            highlight = "NeorgTodoItemDoneMark",
+            query = "(todo_item_done) @icon",
             extract = function(content)
-                return 1
+                local column = content:find("x")
+                return column and column - 1
             end,
         },
 
         pending = {
             enabled = true,
             icon = "",
+            highlight = "NeorgTodoItemPendingMark",
             query = "(todo_item_pending) @icon",
             extract = function(content)
-                return 1
+                local column = content:find("-")
+                return column and column - 1
             end,
         },
 
-        done = {
+        undone = {
             enabled = true,
-            icon = "",
-            query = "(todo_item_done) @icon",
-            extract = function()
-                return 1
+            icon = "×",
+            highlight = "NeorgTodoItemUndoneMark",
+            query = "(todo_item_undone) @icon",
+            extract = function(content)
+                local match = content:match("%s+")
+                return match and math.floor((match:len() + 1) / 2)
+            end,
+        },
+
+        uncertain = {
+            enabled = true,
+            icon = "?",  -- TODO: better icon
+            highlight = "NeorgTodoItemUncertainMark",
+            query = "(todo_item_uncertain) @icon",
+            extract = function(content)
+                local column = content:find("?")
+                return column and column - 1
+            end,
+        },
+
+        on_hold = {
+            enabled = true,
+            icon = "=",  -- TODO: icon
+            highlight = "NeorgTodoItemOnHoldMark",
+            query = "(todo_item_on_hold) @icon",
+            extract = function(content)
+                local column = content:find("=")
+                return column and column - 1
+            end,
+        },
+
+        cancelled = {
+            enabled = true,
+            icon = "_",  -- TODO: icon
+            highlight = "NeorgTodoItemCancelledMark",
+            query = "(todo_item_cancelled) @icon",
+            extract = function(content)
+                local column = content:find("_")
+                return column and column - 1
+            end,
+        },
+
+        recurring = {
+            enabled = true,
+            icon = "⟳",
+            highlight = "NeorgTodoItemRecurringMark",
+            query = "(todo_item_recurring) @icon",
+            extract = function(content)
+                local column = content:find("+")
+                return column and column - 1
+            end,
+        },
+
+        urgent = {
+            enabled = true,
+            icon = "⚠",
+            highlight = "NeorgTodoItemUrgentMark",
+            query = "(todo_item_urgent) @icon",
+            extract = function(content)
+                local column = content:find("!")
+                return column and column - 1
             end,
         },
     },
