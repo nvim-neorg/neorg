@@ -33,7 +33,10 @@ neorg.modules.module_base = {
     -- Every module can expose any set of information it sees fit through the public field
     -- All functions and variables declared in this table will be visible to any other module loaded
     public = {
-        version = "0.0.1", -- A good practice is to expose version information
+        -- Current neorg version. Your module will use this version if not specified, but you can override it.
+        -- Overriding it will mean that your module is only compatible with the overriden neorg version
+        -- E.g: setting version = "1.3.0" will mean that your module requires norg 1.3.0+ to operate
+        version = require("neorg.config").version,
     },
 
     -- Configuration for the module
@@ -82,7 +85,6 @@ neorg.modules.module_base = {
     -- If you ever require a module through the return value of the setup() function,
     -- All of the modules' public APIs will become available here
     required = {
-
         --[[
 
 			["core.test"] = {
@@ -94,6 +96,15 @@ neorg.modules.module_base = {
 			}
 
 		--]]
+    },
+
+    -- Example bits of code that the user can look through
+    examples = {
+        --[[
+            a_cool_test = function()
+                print("Some code!")
+            end
+        --]]
     },
 }
 
@@ -180,6 +191,8 @@ function neorg.modules.extend(name, parent)
     realmodule.neorg_post_load = nil
 
     module.setreal(realmodule)
+
+    module.extension = true
 
     return module
 end

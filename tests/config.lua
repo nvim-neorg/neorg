@@ -12,7 +12,7 @@ require("neorg").setup({
         ["core.norg.dirman"] = {
             config = {
                 workspaces = {
-                    gtd = path .. "/tests/core/gtd/queries",
+                    gtd = path .. "/tests/mocks",
                 },
             },
         },

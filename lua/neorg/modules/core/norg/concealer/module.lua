@@ -880,7 +880,7 @@ module.on_event = function(event)
         )
     elseif event.type == "core.autocommands.events.insertleave" then
         vim.schedule(function()
-            module.public.trigger_icons(event.cursor_position[1])
+            module.public.trigger_icons()
             module.public.trigger_completion_levels()
         end)
     elseif event.type == "core.autocommands.events.textchangedi" then

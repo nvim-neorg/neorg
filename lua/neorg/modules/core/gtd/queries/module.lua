@@ -1,30 +1,10 @@
 --[[
-Custom gtd queries, that respect the neorg GTD specs (:h neorg-gtd-format)
+    File: GTD-Queries
+    Title: GTD Queries module
+    Summary: Get tasks, projects and useful informations for GTD
+    ---
 
-REQUIRES:
-- core.norg.dirman              for file operations
-- core.queries.native           to use queries and customize them
-- core.integrations.treesitter  to use ts_utils
-
-SUBMODULES:
-* RETRIEVERS:
-Exposes functions to retrieve useful stuff from gtd files
-- get                           retrieve a table of { node, bufnr } for the type specified
-- get_at_cursor                 retrieve the content under the cursor ({ node, bufnr}) for the type specified
-- add_metadatas                 add metadatas to the content returned by `get`
-- sort_by                       sort tasks and projects by metadata
-
-* CREATORS:
-Exposes functions to create stuff in files
-- create                        create (task, project,...) in specified location in file
-- get_end_project               get the end col of a metadata completed project node
-- get_end_document_content      get the end col of the document content
-- insert_tag                    insert a metadata in a specific location
-* MODIFIERS:
-Exposes functions to modify gtd stuff
-- modify                        modify a specific node from a project or task
-- update                        update a specific node from a project or task
-- delete                        delete a specific node from a project or task
+Custom gtd queries, that respect the neorg GTD specs (`:h neorg-gtd-format`)
 --]]
 
 require("neorg.modules.base")
@@ -47,6 +27,21 @@ module.setup = function()
     }
 end
 
-module.public = {}
+module.examples = {
+    ["Get all tasks and projets from buffer"] = function()
+        local buf = 1 -- The buffer to query informations
+
+        local queries = module.required["core.gtd.queries"]
+
+        local tasks = queries.get("tasks", { bufnr = buf })
+        local projects = queries.get("projects", { bufnr = buf })
+
+        print(tasks, projects)
+    end,
+}
+
+module.public = {
+    version = "0.0.8",
+}
 
 return module
