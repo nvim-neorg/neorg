@@ -239,7 +239,7 @@
       print("Hello world!")
       @end
       $$
-      This is no longer part of the definition because the `::` on the previous line marked its end.
+      This is no longer part of the definition because the `$$` on the previous line marked its end.
 
  ** Data Tags
     Neorg supports a number of tags. The general format is:
@@ -262,11 +262,10 @@
       Note, that you can also add in-line comments using the `#`-attached modifier. #E.g. like this#
 
   *** Name
-      #name foreplay
-      > The foreplay is called that way because it's a preliminary introduction to the document
-      > tells the parser how the rest of the document will play out: fore, play.
-      > Makes sense, right? - Vhyrro
-
+      #name quotes
+      > This is a quote.
+      > We can talk about anything we like
+      
       This quote now has a /name/!
 
   *** List ordering
@@ -360,13 +359,6 @@
       @end
       This shows the basic syntax `= <capitalized insertion name> <arguments>` and it also explains
       why {#variables} have to be lowercased.
-      
-  *** Foreplay
-      If you read the quote above, you already heard this before. The /foreplay/ is located at the
-      beginning of your document. It can contain ranged tags ({#data tags} which are not
-      written in their {#carryover} syntax), insertions and an arbitrary number of empty
-      lines. Most importantly is the `document.meta` tag which we skipped over previously. You can
-      find an example of it at the top of this file.
       
 #comment
 vim:tw=100:ft=norg:norl:

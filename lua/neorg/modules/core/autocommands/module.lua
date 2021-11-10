@@ -1,32 +1,37 @@
 --[[
---	AUTOCOMMAND MODULE FOR NEORG
---	This module exposes functionality for subscribing to autocommands and performing actions based on those autocommands
+    File: Autocommands
+    Summary: Handles the creation and management of Neovim's autocommands.
+    ---
+This module exposes functionality for subscribing to autocommands and performing actions based on those autocommands.
 
-USAGE:
+In your `module.setup()`, make sure to require core.autocommands (requires = { "core.autocommands" })
+Afterwards in a function of your choice that gets called *after* core.autocommmands gets intialized e.g. load():
 
-	In your module.setup(), make sure to require core.autocommands (requires = { "core.autocommands" })
-	Afterwards in a function of your choice that gets called *after* core.autocommmands gets intialized e.g. load():
+```lua
+module.load = function()
+    module.required["core.autocommands"].enable_autocommand("VimLeavePre") -- Substitute VimLeavePre for any valid neovim autocommand
+end
+```
 
-	module.load = function()
-		module.required["core.autocommands"].enable_autocommand("VimLeavePre") -- Substitute VimLeavePre for any valid neovim autocommand
-	end
+Afterwards, be sure to subscribe to the event:
 
-	Afterwards, be sure to subscribe to the event:
+```lua
+module.events.subscribed = {
 
-	module.events.subscribed = {
+    ["core.autocommands"] = {
+        vimleavepre = true
+    }
 
-		["core.autocommands"] = {
-			vimleavepre = true
-		}
+}
+```
 
-	}
-
-	Upon receiving an event, it will come in this format:
-	{
-		type = "core.autocommands.events.<name of autocommand, e.g. vimleavepre>",
-		broadcast = true
-	}
-
+Upon receiving an event, it will come in this format:
+```lua
+{
+    type = "core.autocommands.events.<name of autocommand, e.g. vimleavepre>",
+    broadcast = true
+}
+```
 --]]
 
 require("neorg.modules.base")
@@ -84,7 +89,7 @@ module.public = {
         end
     end,
 
-    version = "0.0.9",
+    version = "0.0.8",
 }
 
 -- All the subscribeable events for core.autocommands
@@ -322,6 +327,42 @@ module.events.defined = {
     winleave = module.autocmd_base("winleave"),
     winnew = module.autocmd_base("winnew"),
     winscrolled = module.autocmd_base("winscrolled"),
+}
+
+module.examples = {
+    ["Binding to an Autocommand"] = function()
+        local mymodule = neorg.modules.create("my.module")
+
+        mymodule.setup = function()
+            return {
+                success = true,
+                requires = {
+                    "core.autocommands", -- Be sure to require the module!
+                },
+            }
+        end
+
+        mymodule.load = function()
+            -- Enable an autocommand (in this case InsertLeave)
+            module.required["core.autocommands"].enable_autocommand("InsertLeave")
+        end
+
+        -- Listen for any incoming events
+        mymodule.on_event = function(event)
+            -- If it's the event we're looking for then do something!
+            if event.type == "core.autocommands.events.insertleave" then
+                log.warn("We left insert mode!")
+            end
+        end
+
+        mymodule.events.subscribed = {
+            ["core.autocommands"] = {
+                insertleave = true, -- Be sure to listen in for this event!
+            },
+        }
+
+        return mymodule
+    end,
 }
 
 return module
