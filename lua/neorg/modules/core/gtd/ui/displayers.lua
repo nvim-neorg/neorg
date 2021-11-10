@@ -47,19 +47,21 @@ module.public = {
         local contexts_tasks = module.required["core.gtd.queries"].sort_by("contexts", tasks)
 
         -- Remove duplicated tasks in today
-        contexts_tasks.today = vim.tbl_filter(function(t)
-            return #t.contexts == 1
-        end, contexts_tasks.today)
+        if contexts_tasks.today then
+            contexts_tasks.today = vim.tbl_filter(function(t)
+                return #t.contexts == 1
+            end, contexts_tasks.today)
 
-        -- Merge today context with "No contexts" tasks
-        if not contexts_tasks["_"] then
-            contexts_tasks["_"] = contexts_tasks.today
-        else
-            for _, task in pairs(contexts_tasks.today) do
-                table.insert(contexts_tasks["_"], task)
+            -- Merge today context with "No contexts" tasks
+            if not contexts_tasks["_"] then
+                contexts_tasks["_"] = contexts_tasks.today
+            else
+                for _, task in pairs(contexts_tasks.today) do
+                    table.insert(contexts_tasks["_"], task)
+                end
             end
+            contexts_tasks.today = nil
         end
-        contexts_tasks.today = nil
 
         -- Prioritize the contexts below
         local contexts = vim.tbl_keys(contexts_tasks)
