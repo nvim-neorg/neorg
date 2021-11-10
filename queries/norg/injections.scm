@@ -3,3 +3,5 @@
 (ranged_tag (tag_name) @_tagname (tag_parameters)? (ranged_tag_content) @latex (#eq? @_tagname "math"))
 
 (inline_math) @latex
+
+(ranged_tag (tag_name) @_tagname (ranged_tag_content) @norg_meta (#eq? @_tagname "document.meta"))
