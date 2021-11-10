@@ -121,40 +121,85 @@
       ===
       back to root level
       @end
-      
-      
-      
-And using 3 or more `=` signs will drop you right back to the root level!
-      
-You can also place horizontal lines using three or more underscores like so:
-      
-This will never affect the indentation level of the following text, but it will immediately
-terminate the paragraph which is why this is a new paragraph despite the absence of two (or more)
-consective new lines.
-      
+
+    And using 3 or more `=` signs will drop you right back to the root level!
+
+    You can also place horizontal lines using three or more underscores like so:
+
+    This will never affect the indentation level of the following text, but it will immediately
+    terminate the paragraph which is why this is a new paragraph despite the absence of two (or more)
+    consective new lines.
+
  ** Links
     For more info on links check the
     [spec](https://github.com/nvim-neorg/neorg/blob/main/docs/NFF-0.1-spec.md#links).
+
+  *** Link Targets
+      The following things can be used as link /targets/:
+      - `* Headin1` (+ nesting levels)
+      - `| Marker`
+      - `> Quote` (+ nesting levels)
+      - `^ Footnote`
+      - `$ Definiton`
+      - `# magic` (any of the above)
+      - `:path:# magic` (target in another norg file at a given path)
+      - `:path:` (another norg file at a given path without specific target)
+      - `@path` (a non-norg file at a given path)
+      - `https://github.com`
+      - `file:///some/path` (any file, opened via `(xdg-)open`)
+
+      Any of the paths used in `:path:` or `@path` can be formatted in either of the following ways:
+      - `:path/to/norg/file:` relative to the file which contains this link
+      - `:/path/from/root:` absolute w.r.t. the entire filesystem
+      - `:~/path/from/user/home:` relative to the user's home directory (e.g. `/home/user` on Linux machines)
+      - `:../path/to/norg/file:` these paths also understand `../`
+      - `:$/path/from/current/workspace:` relative to current workspace root
+      - `:$gtd/path/in/gtd/workspace:` relative to `gtd`-workspace root
+
+      (All of the above can also use `@...` instead of `:...:` when linking to non-norg files.)
+
+    There are multiple ways of using links.
+  *** Pure link location
+      @code norg
+      An inline link to {| my marker}.
+      @end
+      The text used for this link can be inferred from the /target/.
+      If it is not a norg-target, this falls back to the URL or filename, etc.
+
+  *** Custom link text
+      @code norg
+      An inline link {| my marker}[with custom text].
+      @end
+      This links to the same marker but uses a custom link text.
+
+  *** Anchors
+      @code norg
+      A link to [our website].
       
-    We borrow the basic link syntax from markdown: `[link text](link source)`
-    Here is an example for links with the special syntax for lists.
-      
-    @code norg
-    +unordered links+
-    -> [link to a level 1 heading](*The `.norg` file-format)
-    --> [link to a level 2 heading](**links)
-    -> [link to a marker](|some marker)
-    -> [link to any element with the text definitions](#definitions)
-    +these links will be ordered:+
-    ~> [link to a cool plugin](https://github.com/vhyrro/taurivim)
-    ~> [another cool plugin](https://github.com/danymat/neogen)
-    +links to files+
-    [link to file.norg](:file:)
-    [link to target in file_2.norg](:file_2:#target)
-    [link to a target from the root of the workspace](:/my/file:#target)
-    [link to non neorg file notes.txt](@notes.txt)
-    @end
-      
+      [our website]{https://github.com/nvim-neorg/neorg}
+      @end
+      The standalone link /text/ is called an *anchor declaration*.
+      It requires an *anchor definition* (last line in the code block) which defines where an anchored link points to.
+      This is very useful when you find yourself refering to the same target often.
+
+  *** Link Lists
+
+      @code norg
+      +unordered links+
+      -> [link to a level 1 heading](*The `.norg` file-format)
+      --> [link to a level 2 heading](**links)
+      -> [link to a marker](|some marker)
+      -> [link to any element with the text definitions](#definitions)
+      +these links will be ordered:+
+      ~> [link to a cool plugin](https://github.com/vhyrro/taurivim)
+      ~> [another cool plugin](https://github.com/danymat/neogen)
+      +links to files+
+      [link to file.norg](:file:)
+      [link to target in file_2.norg](:file_2:#target)
+      [link to a target from the root of the workspace](:/my/file:#target)
+      [link to non neorg file notes.txt](@notes.txt)
+      @end
+
  ** Markers
     You can mark specific locations in your file with markers:
     @code norg
