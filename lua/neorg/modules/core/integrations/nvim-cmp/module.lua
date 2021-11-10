@@ -1,6 +1,13 @@
 --[[
-        A module for integrating nvim-cmp with Neorg
-        Works with core.norg.completion to provide intelligent completions
+    File: Nvim-Cmp
+    Title: Integrating Neorg with `nvim-cmp`
+    Summary: A module for integrating nvim-cmp with Neorg
+    ---
+
+This module works with the `core.norg.completion` module to attempt
+to provide intelligent completions.
+Note that integrations like this are second-class citizens and may not work
+in 100% of scenarios. If they don't then please file a bug report!
 --]]
 
 require("neorg.modules.base")
