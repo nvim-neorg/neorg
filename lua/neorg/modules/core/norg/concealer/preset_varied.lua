@@ -21,7 +21,7 @@ module.config.private.icon_preset_varied = {
             highlight = "NeorgTodoItemPendingMark",
             query = "(todo_item_pending) @icon",
             extract = function(content)
-                local column = content:find("*")
+                local column = content:find("-")
                 return column and column - 1
             end,
         },
@@ -34,6 +34,61 @@ module.config.private.icon_preset_varied = {
             extract = function(content)
                 local match = content:match("%s+")
                 return match and math.floor((match:len() + 1) / 2)
+            end,
+        },
+
+        uncertain = {
+            enabled = true,
+            icon = "?",  -- TODO: better icon
+            highlight = "NeorgTodoItemUncertainMark",
+            query = "(todo_item_uncertain) @icon",
+            extract = function(content)
+                local column = content:find("?")
+                return column and column - 1
+            end,
+        },
+
+        on_hold = {
+            enabled = true,
+            icon = "=",  -- TODO: icon
+            highlight = "NeorgTodoItemOnHoldMark",
+            query = "(todo_item_on_hold) @icon",
+            extract = function(content)
+                local column = content:find("=")
+                return column and column - 1
+            end,
+        },
+
+        cancelled = {
+            enabled = true,
+            icon = "_",  -- TODO: icon
+            highlight = "NeorgTodoItemCancelledMark",
+            query = "(todo_item_cancelled) @icon",
+            extract = function(content)
+                local column = content:find("_")
+                return column and column - 1
+            end,
+        },
+
+        recurring = {
+            enabled = true,
+            icon = "⟳",
+            highlight = "NeorgTodoItemRecurringMark",
+            query = "(todo_item_recurring) @icon",
+            extract = function(content)
+                local column = content:find("+")
+                return column and column - 1
+            end,
+        },
+
+        urgent = {
+            enabled = true,
+            icon = "⚠",
+            highlight = "NeorgTodoItemUrgentMark",
+            query = "(todo_item_urgent) @icon",
+            extract = function(content)
+                local column = content:find("!")
+                return column and column - 1
             end,
         },
     },
