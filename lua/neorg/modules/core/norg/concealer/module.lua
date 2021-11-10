@@ -159,6 +159,10 @@ module.private = {
                 (todo_item_pending) @pending
                 (todo_item_done) @done
                 (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item2
@@ -167,6 +171,10 @@ module.private = {
                 (todo_item_pending) @pending
                 (todo_item_done) @done
                 (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item3
@@ -175,6 +183,10 @@ module.private = {
                 (todo_item_pending) @pending
                 (todo_item_done) @done
                 (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item4
@@ -183,6 +195,10 @@ module.private = {
                 (todo_item_pending) @pending
                 (todo_item_done) @done
                 (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item5
@@ -191,6 +207,10 @@ module.private = {
                 (todo_item_pending) @pending
                 (todo_item_done) @done
                 (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item6
@@ -199,6 +219,10 @@ module.private = {
                 (todo_item_pending) @pending
                 (todo_item_done) @done
                 (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
     ]+
