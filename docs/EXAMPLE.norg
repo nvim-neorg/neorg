@@ -123,21 +123,21 @@ consective new lines.
     There are two kinds of defintions:
 
   *** Single-paragraph definitions
-      : Object to be defined
+      $ Object to be defined
       The definition of the object in a single paragraph.
 
       This is already the next paragraph.
 
   *** Multi-paragraph definitions
-      :: Object to be defined
+      $$ Object to be defined
       Here, I can place any number of paragraphs or other format objects.
 
       Even a code example:
       @code lua
       print("Hello world!")
       @end
-      ::
-      This is no longer part of the definition because the `::` on the previous line marked its end.
+      $$
+      This is no longer part of the definition because the `$$` on the previous line marked its end.
 
  ** Data Tags
     Neorg supports a number of tags. The general format is:
@@ -151,7 +151,7 @@ consective new lines.
       paragraph.
 
   *** Comments
-      $comment
+      #comment
       This is a comment.
       This is also still a comment because the paragraph has not ended, yet.
 
@@ -264,5 +264,5 @@ consective new lines.
       lines. Most importantly is the `document.meta` tag which we skipped over previously. You can
       find an example of it at the top of this file.
 
-$comment
+#comment
 vim:tw=100:ft=norg:norl:

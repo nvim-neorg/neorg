@@ -1,28 +1,13 @@
 --[[
-    Base module for Getting Things Done methodology
-    It's here where the keybinds and commands are created in order to interact with GTD stuff
+    File: Getting-Things-Done
+    Title: Base module for GTD workflow
+    Summary: Manages your tasks with Neorg using the Getting Things Done methodology.
+    ---
+It's here where the keybinds and commands are created in order to interact with GTD stuff
 
-USAGE:
-    - Quick actions for gtd stuff:
-        - Call the command :Neorg gtd views
-    - Edit the task under the cursor:
-        - Call the command :Neorg gtd edit
-
-REQUIRES:
-    This module requires:
-        - core.norg.dirman      in order to get full path to the workspace
-        - core.keybinds         (check KEYBINDS for usage)
-        - core.gtd.ui           for gtd UI components
-        - core.neorgcmd         to add commands capabilities
-
-KEYBINDS:
-    - core.gtd.base.add_to_inbox: Will call the function add_task_to_inbox()
-
-COMMANDS:
-    - Neorg gtd views           to show the views popup
-    - Neorg gtd edit            to edit the task under the cursor
-    - Neorg gtd capture         to create tasks and projects in the gtd workspace
-
+- Call the command `:Neorg gtd views` to nicely show your tasks and projects
+- Create a new task with `:Neorg gtd capture`
+- Edit the task under the cursor with `:Neorg gtd edit`
 --]]
 
 require("neorg.modules.base")
@@ -45,14 +30,16 @@ end
 module.config.public = {
     -- Workspace name to use for gtd related lists
     workspace = "default",
+    -- Filenames to use for default lists
     default_lists = {
         inbox = "inbox.norg",
     },
+    -- You can exclude files from gtd parsing by passing them here
     exclude = {},
 }
 
 module.public = {
-    version = "0.1",
+    version = "0.0.8",
 }
 
 module.private = {
