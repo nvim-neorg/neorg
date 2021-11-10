@@ -63,10 +63,10 @@
       - [ ] Undone -> not done yet
       - [x] Done -> done with that
       - [?] Needs further input
-            
+
       - [!] Urgent -> high priority task
       - [+] Recurring task with children
-            
+
       - [-] Pending -> currently in progress
       - [=] Task put on hold
       - [_] Task cancelled (put down)
@@ -110,20 +110,20 @@
   *** Headings
       You already saw headings up to the third out of six levels. I assume by now you know how they
       work. But now...
-      
+
    **** ... prepare to have your mind blown!
         Because here is something very special and unique to Neorg:
-      
+
     ***** Indentation reversion
           As you would expect, this paragraph belongs to the fifth level heading.
-      
+
       ****** Final heading level
              And this paragraph belongs to the sixth level. But by using the following modifier:
              ---
-      
+
           We can move this text to the fifth level again! 🤯
           ---
-      
+
         So using 3 or more `-` signs not followed by anything, you move *one* level backwards in the
         indentation.
         ---
@@ -189,7 +189,7 @@
   *** Anchors
       @code norg
       A link to [our website].
-      
+
       [our website]{https://github.com/nvim-neorg/neorg}
       @end
       The standalone link /text/ is called an *anchor declaration*.
@@ -220,10 +220,10 @@
     | some marker
     @end
     | some marker
-      
+
  ** Definitions
     There are two kinds of defintions:
-      
+
   *** Single-paragraph definitions
       $ Object to be defined
       The definition of the object in a single paragraph.
@@ -265,7 +265,7 @@
       #name quotes
       > This is a quote.
       > We can talk about anything we like
-      
+
       This quote now has a /name/!
 
   *** List ordering
@@ -279,7 +279,7 @@
       This will render as:
       @code
       2. First entry
-      
+
       4. Second entry
       @end
 
@@ -359,6 +359,6 @@
       @end
       This shows the basic syntax `= <capitalized insertion name> <arguments>` and it also explains
       why {# variables} have to be lowercased.
-      
+
 #comment
 vim:tw=100:ft=norg:norl:
