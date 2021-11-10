@@ -23,8 +23,8 @@
     - \`inline code\`: `inline code`
     - \^superscript\^: ^superscript^    | cannot exist within a subscript block
     - \,subscript\,: ,subscript,        | cannot exist within a superscript block
-    - \$inline math\$: $f(x) = y$ (see also {#math})
-    - \=variable\=: =variable= (see also {#variables})
+    - \$inline math\$: $f(x) = y$ (see also {# math})
+    - \=variable\=: =variable= (see also {# variables})
     - \+inline comment\+: +inline comment+
 
     This also immediately shows you how to escape a special character using the backslash, \\.
@@ -200,17 +200,17 @@
 
       @code norg
       +unordered links+
-      -> {*The `.norg` file-format}[link to a level 1 heading]
-      --> {**links}[link to a level 2 heading]
-      -> {|some marker}[link to a marker]
-      -> {#definitions}[link to any element with the text definitions]
+      -> {* The `.norg` file-format}[link to a level 1 heading]
+      --> {** links}[link to a level 2 heading]
+      -> {| some marker}[link to a marker]
+      -> {# definitions}[link to any element with the text definitions]
       +these links will be ordered:+
       ~> {https://github.com/vhyrro/taurivim}[link to a cool plugin]
       ~> {https://github.com/danymat/neogen}[another cool plugin]
       +links to files+
       {:file:}[link to file.norg]
-      {:file_2:#target}[link to target in file_2.norg]
-      {:/my/file:#target}[link to a target from the root of the workspace]
+      {:file_2:# target}[link to target in file_2.norg]
+      {:/my/file:# target}[link to a target from the root of the workspace]
       {@notes.txt}[link to non neorg file notes.txt]
       @end
 
@@ -358,7 +358,7 @@
       = ToC Table of Contents
       @end
       This shows the basic syntax `= <capitalized insertion name> <arguments>` and it also explains
-      why {#variables} have to be lowercased.
+      why {# variables} have to be lowercased.
       
 #comment
 vim:tw=100:ft=norg:norl:
