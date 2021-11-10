@@ -91,7 +91,7 @@
 
       @code norg
       - [ ] Undone Task, Nested level 1
-      -- [*] Pending Task, Nested level 2
+      -- [-] Pending Task, Nested level 2
       --- [x] Done Task, Nested level 3
       @end
 
