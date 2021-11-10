@@ -10,8 +10,7 @@ module.config.private.icon_preset_diamond = {
             highlight = "NeorgTodoItemDoneMark",
             query = "(todo_item_done) @icon",
             extract = function(content)
-                local column = content:find("x")
-                return column and column - 1
+                return 1
             end,
         },
 
@@ -21,8 +20,7 @@ module.config.private.icon_preset_diamond = {
             highlight = "NeorgTodoItemPendingMark",
             query = "(todo_item_pending) @icon",
             extract = function(content)
-                local column = content:find("-")
-                return column and column - 1
+                return 1
             end,
         },
 
@@ -32,8 +30,7 @@ module.config.private.icon_preset_diamond = {
             highlight = "NeorgTodoItemUndoneMark",
             query = "(todo_item_undone) @icon",
             extract = function(content)
-                local match = content:match("%s+")
-                return match and math.floor((match:len() + 1) / 2)
+                return 1
             end,
         },
 
@@ -43,8 +40,7 @@ module.config.private.icon_preset_diamond = {
             highlight = "NeorgTodoItemUncertainMark",
             query = "(todo_item_uncertain) @icon",
             extract = function(content)
-                local column = content:find("?")
-                return column and column - 1
+                return 1
             end,
         },
 
@@ -54,8 +50,7 @@ module.config.private.icon_preset_diamond = {
             highlight = "NeorgTodoItemOnHoldMark",
             query = "(todo_item_on_hold) @icon",
             extract = function(content)
-                local column = content:find("=")
-                return column and column - 1
+                return 1
             end,
         },
 
@@ -65,8 +60,7 @@ module.config.private.icon_preset_diamond = {
             highlight = "NeorgTodoItemCancelledMark",
             query = "(todo_item_cancelled) @icon",
             extract = function(content)
-                local column = content:find("_")
-                return column and column - 1
+                return 1
             end,
         },
 
@@ -76,8 +70,7 @@ module.config.private.icon_preset_diamond = {
             highlight = "NeorgTodoItemRecurringMark",
             query = "(todo_item_recurring) @icon",
             extract = function(content)
-                local column = content:find("+")
-                return column and column - 1
+                return 1
             end,
         },
 
@@ -87,8 +80,7 @@ module.config.private.icon_preset_diamond = {
             highlight = "NeorgTodoItemUrgentMark",
             query = "(todo_item_urgent) @icon",
             extract = function(content)
-                local column = content:find("!")
-                return column and column - 1
+                return 1
             end,
         },
     },
