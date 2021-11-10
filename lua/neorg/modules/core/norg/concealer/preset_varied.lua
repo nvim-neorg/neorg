@@ -36,7 +36,7 @@ module.config.private.icon_preset_varied = {
 
         uncertain = {
             enabled = true,
-            icon = "?",  -- TODO: better icon
+            icon = "?", -- TODO: better icon
             highlight = "NeorgTodoItemUncertainMark",
             query = "(todo_item_uncertain) @icon",
             extract = function(content)
@@ -46,7 +46,7 @@ module.config.private.icon_preset_varied = {
 
         on_hold = {
             enabled = true,
-            icon = "=",  -- TODO: icon
+            icon = "=", -- TODO: icon
             highlight = "NeorgTodoItemOnHoldMark",
             query = "(todo_item_on_hold) @icon",
             extract = function(content)
@@ -56,7 +56,7 @@ module.config.private.icon_preset_varied = {
 
         cancelled = {
             enabled = true,
-            icon = "_",  -- TODO: icon
+            icon = "_", -- TODO: icon
             highlight = "NeorgTodoItemCancelledMark",
             query = "(todo_item_cancelled) @icon",
             extract = function(content)
