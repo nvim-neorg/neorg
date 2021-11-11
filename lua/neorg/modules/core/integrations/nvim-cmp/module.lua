@@ -59,9 +59,15 @@ module.public = {
             local completions = vim.deepcopy(completion_cache.items)
 
             for index, element in ipairs(completions) do
+                local word = element
+                local label = element
+                if type(element) == "table" then
+                    word = element[1]
+                    label = element.label
+                end
                 completions[index] = {
-                    word = element,
-                    label = element,
+                    word = word,
+                    label = label,
                     kind = module.private.completion_item_mapping[completion_cache.options.type],
                 }
             end
