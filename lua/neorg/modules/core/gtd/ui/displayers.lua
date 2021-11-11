@@ -221,7 +221,7 @@ module.public = {
             table.insert(res, "")
         end
 
-        module.private.generate_display(name, positions, res)
+        return module.private.generate_display(name, positions, res)
     end,
 
     --- Display formatted projects from `tasks` table. Uses `projects` table to find all projects
