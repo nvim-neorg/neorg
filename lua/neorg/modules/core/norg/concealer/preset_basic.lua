@@ -9,7 +9,7 @@ module.config.private.icon_preset_basic = {
             icon = "",
             highlight = "NeorgTodoItemDoneMark",
             query = "(todo_item_done) @icon",
-            extract = function(content)
+            extract = function()
                 return 1
             end,
         },
@@ -19,7 +19,7 @@ module.config.private.icon_preset_basic = {
             icon = "",
             highlight = "NeorgTodoItemPendingMark",
             query = "(todo_item_pending) @icon",
-            extract = function(content)
+            extract = function()
                 return 1
             end,
         },
@@ -29,37 +29,37 @@ module.config.private.icon_preset_basic = {
             icon = "×",
             highlight = "NeorgTodoItemUndoneMark",
             query = "(todo_item_undone) @icon",
-            extract = function(content)
+            extract = function()
                 return 1
             end,
         },
 
         uncertain = {
             enabled = true,
-            icon = "?", -- TODO: better icon
+            icon = "",
             highlight = "NeorgTodoItemUncertainMark",
             query = "(todo_item_uncertain) @icon",
-            extract = function(content)
+            extract = function()
                 return 1
             end,
         },
 
         on_hold = {
             enabled = true,
-            icon = "=", -- TODO: icon
+            icon = "",
             highlight = "NeorgTodoItemOnHoldMark",
             query = "(todo_item_on_hold) @icon",
-            extract = function(content)
+            extract = function()
                 return 1
             end,
         },
 
         cancelled = {
             enabled = true,
-            icon = "_", -- TODO: icon
+            icon = "",
             highlight = "NeorgTodoItemCancelledMark",
             query = "(todo_item_cancelled) @icon",
-            extract = function(content)
+            extract = function()
                 return 1
             end,
         },
@@ -69,7 +69,7 @@ module.config.private.icon_preset_basic = {
             icon = "⟳",
             highlight = "NeorgTodoItemRecurringMark",
             query = "(todo_item_recurring) @icon",
-            extract = function(content)
+            extract = function()
                 return 1
             end,
         },
@@ -79,7 +79,7 @@ module.config.private.icon_preset_basic = {
             icon = "⚠",
             highlight = "NeorgTodoItemUrgentMark",
             query = "(todo_item_urgent) @icon",
-            extract = function(content)
+            extract = function()
                 return 1
             end,
         },
