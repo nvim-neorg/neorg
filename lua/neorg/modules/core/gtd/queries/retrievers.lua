@@ -27,28 +27,18 @@ module.public = {
         if type == "projects" then
             tree = {
                 {
-                    query = { "first", "document_content" },
-                    subtree = {
-                        {
-                            query = { "all", "heading1" },
-                            recursive = true,
-                        },
-                    },
+                    query = { "all", "heading1" },
+                    recursive = true,
                 },
             }
         elseif type == "tasks" then
             tree = {
                 {
-                    query = { "first", "document_content" },
+                    query = { "all", "generic_list" },
+                    recursive = true,
                     subtree = {
                         {
-                            query = { "all", "generic_list" },
-                            recursive = true,
-                            subtree = {
-                                {
-                                    query = { "all", "todo_item1" },
-                                },
-                            },
+                            query = { "all", "todo_item1" },
                         },
                     },
                 },
