@@ -367,6 +367,22 @@ module.config.public = {
         StrongParagraphDelimiter = "+TSPunctDelimiter",
         WeakParagraphDelimiter = "+TSPunctDelimiter",
         HorizontalLine = "+TSPunctDelimiter",
+
+        DocumentMeta = {
+            Key = "+TSField",
+            Value = "+TSString",
+            Carryover = "+TSRepeat",
+            Title = "+TSTitle",
+
+            Object = {
+                Bracket = "+TSPunctBracket",
+            },
+
+            Array = {
+                Bracket = "+TSPunctBracket",
+                Value = "+Normal",
+            },
+        },
     },
 
     dim = {
