@@ -235,7 +235,7 @@ module.public = {
 
         local name = "Projects"
         local res = {
-            "* " .. name,
+            "| " .. name,
             "",
         }
         local positions = {}
@@ -261,7 +261,7 @@ module.public = {
             end, tasks_project)
 
             if project ~= "_" and not vim.tbl_contains(added_projects, project.content) then
-                table.insert(res, "** " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)")
+                table.insert(res, "* " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)")
                 table.insert(positions, { line = #res, data = project })
 
                 local percent_completed = (function()
