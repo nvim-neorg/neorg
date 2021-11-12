@@ -27,7 +27,15 @@ end
 module.load = function()
     module.required["core.keybinds"].register_keybinds(
         module.name,
-        { "todo.task_undone", "todo.task_pending", "todo.task_done", "todo.task_wont_complete", "todo.task_cycle" }
+        (function()
+            local keys = vim.tbl_keys(module.events.subscribed["core.keybinds"])
+
+            for i, key in ipairs(keys) do
+                keys[i] = key:sub(module.name:len() + 2)
+            end
+
+            return keys
+        end)()
     )
 end
 
@@ -35,8 +43,7 @@ module.config.public = {
     order = {
         { "undone", " " },
         { "done", "x" },
-        { "pending", "*" },
-        { "wont_complete", "-" },
+        { "pending", "-" },
     },
 }
 
@@ -89,20 +96,20 @@ module.public = {
         local resulting_char = ""
 
         if pending_item_count > 0 then
-            resulting_char = "*"
+            resulting_char = "-"
         elseif (counter - 1) == done_item_count then
             resulting_char = "x"
         elseif done_item_count == 0 then
             resulting_char = " "
         elseif done_item_count < (counter - 1) then
-            resulting_char = "*"
+            resulting_char = "-"
         end
 
         local range = module.required["core.integrations.treesitter"].get_node_range(list_node_at_cursor)
 
         -- Replace the line where the todo item is situated
         local current_line = vim.fn.getline(range.row_start + 1):gsub(
-            "^(%s*%-+%s+%[%s*)[%-x%*%s](%s*%]%s+)",
+            "^(%s*%-+%s+%[%s*)[+!=%_%-x%*%s](%s*%]%s+)",
             "%1" .. resulting_char .. "%2"
         )
 
@@ -161,7 +168,7 @@ module.public = {
             -- and we should handle those too
             if node:named_child_count() <= 3 then
                 local current_line = vim.fn.getline(position + 1):gsub(
-                    "^(%s*%-+%s+%[%s*)[%-x%*%s](%s*%]%s+)",
+                    "^(%s*%-+%s+%[%s*)[+!=%_%-x%*%s](%s*%]%s+)",
                     "%1" .. char .. "%2"
                 )
 
@@ -169,7 +176,7 @@ module.public = {
                 return
             else
                 local current_line = vim.fn.getline(position + 1):gsub(
-                    "^(%s*%-+%s+%[%s*)[%-x%*%s](%s*%]%s+)",
+                    "^(%s*%-+%s+%[%s*)[+!=%_%-x%*%s](%s*%]%s+)",
                     "%1" .. char .. "%2"
                 )
 
@@ -203,17 +210,20 @@ module.on_event = function(event)
             return
         end
 
-        if event.split_type[2] == todo_str .. "task_done" then
-            module.public.make_all(todo_item_at_cursor, "done", "x")
-            module.public.update_parent(0)
-        elseif event.split_type[2] == todo_str .. "task_undone" then
-            module.public.make_all(todo_item_at_cursor, "undone", " ")
-            module.public.update_parent(0)
-        elseif event.split_type[2] == todo_str .. "task_pending" and todo_item_at_cursor:named_child_count() <= 3 then
-            module.public.make_all(todo_item_at_cursor, "pending", "*")
-            module.public.update_parent(0)
-        elseif event.split_type[2] == todo_str .. "task_wont_complete" then
-            module.public.make_all(todo_item_at_cursor, "wont_complete", "-")
+        local map_of_names_to_symbols = {
+            undone = " ",
+            pending = "-",
+            on_hold = "=",
+            cancelled = "_",
+            done = "x",
+            important = "!",
+            recurring = "+",
+        }
+
+        local match = event.split_type[2]:match(todo_str .. "task_(.+)")
+
+        if match and match ~= "cycle" then
+            module.public.make_all(todo_item_at_cursor, match, map_of_names_to_symbols[match] or "<unsupported>")
             module.public.update_parent(0)
         elseif event.split_type[2] == todo_str .. "task_cycle" then
             local todo_item_type = module.public.get_todo_item_type(todo_item_at_cursor)
@@ -234,7 +244,7 @@ module.on_event = function(event)
 
             local index = get_index(types, todo_item_type)
 
-            local next = types[index]
+            local next = types[index] or types[1]
 
             if todo_item_at_cursor:named_child_count() > 3 then
                 if (index + 1) >= #types then
@@ -255,7 +265,10 @@ module.events.subscribed = {
         ["core.norg.qol.todo_items.todo.task_done"] = true,
         ["core.norg.qol.todo_items.todo.task_undone"] = true,
         ["core.norg.qol.todo_items.todo.task_pending"] = true,
-        ["core.norg.qol.todo_items.todo.task_wont_complete"] = true,
+        ["core.norg.qol.todo_items.todo.task_on_hold"] = true,
+        ["core.norg.qol.todo_items.todo.task_cancelled"] = true,
+        ["core.norg.qol.todo_items.todo.task_important"] = true,
+        ["core.norg.qol.todo_items.todo.task_recurring"] = true,
         ["core.norg.qol.todo_items.todo.task_cycle"] = true,
     },
 
