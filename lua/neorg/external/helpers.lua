@@ -278,6 +278,12 @@ neorg.lib = {
             return function_pointer(unpack(params))
         end
     end,
+
+    add = function(amount)
+        return function(value)
+            return value + amount
+        end
+    end,
 }
 
 return neorg.utils
