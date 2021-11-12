@@ -123,11 +123,19 @@ module.public = {
     get_list_item_from_cursor = function()
         local node_at_cursor = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
 
-        while node_at_cursor:type() ~= "document_content" and not node_at_cursor:type():match("todo_item%d") do
+        if not node_at_cursor then
+            return
+        end
+
+        while
+            node_at_cursor
+            and node_at_cursor:type() ~= "document_content"
+            and not node_at_cursor:type():match("todo_item%d")
+        do
             node_at_cursor = node_at_cursor:parent()
         end
 
-        if node_at_cursor:type() == "document_content" then
+        if not node_at_cursor or node_at_cursor:type() == "document_content" then
             log.trace("Could not find TODO item under cursor, aborting...")
             return
         end
