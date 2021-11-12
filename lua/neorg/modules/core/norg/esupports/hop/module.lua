@@ -110,19 +110,23 @@ module.public = {
         for id, node in query:iter_captures(document_root, 0, range.row_start, range.row_end + 1) do
             local capture = query.captures[id]
 
-            local extract_node_text = neorg.lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
+            local extract_node_text = neorg.lib.wrap(
+                module.required["core.integrations.treesitter"].get_node_text,
+                node
+            )
 
-            parsed_link_information[capture] = parsed_link_information[capture] or neorg.lib.match({
-                capture,
-                link_file_text = extract_node_text,
-                link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_location_") + 1),
-                link_location_text = extract_node_text,
-                link_description = extract_node_text,
+            parsed_link_information[capture] = parsed_link_information[capture]
+                or neorg.lib.match({
+                    capture,
+                    link_file_text = extract_node_text,
+                    link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_location_") + 1),
+                    link_location_text = extract_node_text,
+                    link_description = extract_node_text,
 
-                default = function()
-                    log.error("Unknown capture type encountered when parsing link:", capture)
-                end,
-            })
+                    default = function()
+                        log.error("Unknown capture type encountered when parsing link:", capture)
+                    end,
+                })
         end
 
         return parsed_link_information

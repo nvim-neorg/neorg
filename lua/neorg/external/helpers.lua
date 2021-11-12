@@ -246,10 +246,11 @@ neorg.lib = {
     insert_or = function(tbl, value)
         local item = neorg.lib.find(tbl, value)
 
-        return item and tbl[item] or (function()
-            table.insert(tbl, value)
-            return value
-        end)()
+        return item and tbl[item]
+            or (function()
+                table.insert(tbl, value)
+                return value
+            end)()
     end,
 
     pick = function(tbl, values)
