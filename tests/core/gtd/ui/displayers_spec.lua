@@ -221,7 +221,7 @@ describe("CORE.GTD.UI - Displayers:", function()
             },
             {
                 content = "task2",
-                contexts = { "home", "mac", "someday"},
+                contexts = { "home", "mac", "someday" },
                 state = "done",
             },
             {
@@ -230,13 +230,13 @@ describe("CORE.GTD.UI - Displayers:", function()
             },
             {
                 content = "task4",
-                contexts = { "home", "someday"},
+                contexts = { "home", "someday" },
                 state = "pending",
             },
             {
                 content = "task5",
                 state = "undone",
-                contexts = { "mac", "someday"},
+                contexts = { "mac", "someday" },
                 ["time.start"] = { os.date("%Y-%m-%d") },
             },
             {
@@ -257,7 +257,6 @@ describe("CORE.GTD.UI - Displayers:", function()
         assert.is_true(vim.tbl_contains(lines, "- task4 (`home`)"))
         assert.is_true(vim.tbl_contains(lines, "- task5 (`mac`)"))
         assert.is_true(vim.tbl_contains(lines, "- task6 (`mac`)"))
-
 
         vim.api.nvim_buf_delete(buf, {})
     end)
