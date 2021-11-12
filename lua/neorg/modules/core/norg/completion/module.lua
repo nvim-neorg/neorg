@@ -221,6 +221,7 @@ module.public = {
                 { "[!] ", label = "[!] (important)" },
                 { "[+] ", label = "[+] (recurring)" },
                 { "[=] ", label = "[=] (on hold)" },
+                { "[?] ", label = "[?] (uncertain)" },
             },
 
             options = {
