@@ -260,4 +260,35 @@ describe("CORE.GTD.UI - Displayers:", function()
 
         vim.api.nvim_buf_delete(buf, {})
     end)
+
+    it("Displays weekly summary", function()
+        local tasks = {
+            {
+                content = "task1",
+                contexts = { "home", "mac" },
+                state = "undone",
+            },
+            {
+                content = "task2",
+                contexts = { "home", "mac", "today"},
+                state = "undone",
+            },
+            {
+                content = "task5",
+                state = "undone",
+                contexts = { "mac" },
+                ["time.start"] = { os.date("%Y-%m-%d") },
+            },
+        }
+
+        local buf = ui.display_weekly_summary(tasks)
+        assert.is_number(buf)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+
+        assert.is_true(vim.tbl_contains(lines, "- task2, `marked as today`"))
+        assert.is_true(vim.tbl_contains(lines, "- task5, `starting today`"))
+
+
+        vim.api.nvim_buf_delete(buf, {})
+    end)
 end)
