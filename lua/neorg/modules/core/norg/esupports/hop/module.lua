@@ -2,6 +2,7 @@
 --]]
 
 require("neorg.modules.base")
+require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.norg.esupports.hop")
 
@@ -69,57 +70,62 @@ module.public = {
             return
         end
 
-        local structure = {
-            link_text = {
-                child = 0,
-                optional = false,
-                extract = function(node, ts)
-                    return ts.get_node_text(node:named_child(0))
-                end,
-            },
+        local query_text = [[
+            (link
+                (link_file
+                    location: (link_file_text) @link_file_text
+                )?
+                (link_location
+                    type: [
+                        (link_location_url)
+                        (link_location_generic)
+                        (link_location_external_file)
+                        (link_location_marker)
+                        (link_location_heading1)
+                        (link_location_heading2)
+                        (link_location_heading3)
+                        (link_location_heading4)
+                        (link_location_heading5)
+                        (link_location_heading6)
+                    ] @link_type
+                    text: (link_location_text) @link_location_text
+                )?
+                (link_description
+                    text: (link_text) @link_description
+                )?
+            )
+        ]]
 
-            link_location = {
-                child = 1,
-                optional = false,
-                extract = function(node, ts)
-                    if node:named_child(0):type() == "link_file" then
-                        return {
-                            link_file = ts.get_node_text(node:named_child(0):named_child(0)),
-                            link_end = node:named_child(1) and {
-                                type = node:named_child(1):named_child(0):type(),
-                                text = ts.get_node_text(node:named_child(1):named_child(1)),
-                            },
-                        }
-                    end
+        local document_root = module.required["core.integrations.treesitter"].get_document_root()
 
-                    return {
-                        link_end = {
-                            type = node:named_child(0):named_child(0):type(),
-                            text = ts.get_node_text(node:named_child(0):named_child(1)),
-                        },
-                    }
-                end,
-            },
-        }
-
-        local result = {}
-        local index = 0
-
-        for name, data in pairs(structure) do
-            local child = link_node:named_child(data.child - index)
-
-            if not child then
-                if not data.optional then
-                    return
-                end
-
-                index = index + 1
-            end
-
-            result[name] = data.extract(child, module.required["core.integrations.treesitter"])
+        if not document_root then
+            return
         end
 
-        return result
+        local query = vim.treesitter.parse_query("norg", query_text)
+        local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
+
+        local parsed_link_information = {}
+
+        for id, node in query:iter_captures(document_root, 0, range.row_start, range.row_end + 1) do
+            local capture = query.captures[id]
+
+            local extract_node_text = neorg.lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
+
+            parsed_link_information[capture] = parsed_link_information[capture] or neorg.lib.match({
+                capture,
+                link_file_text = extract_node_text,
+                link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_location_") + 1),
+                link_location_text = extract_node_text,
+                link_description = extract_node_text,
+
+                default = function()
+                    log.error("Unknown capture type encountered when parsing link:", capture)
+                end,
+            })
+        end
+
+        return parsed_link_information
     end,
 }
 

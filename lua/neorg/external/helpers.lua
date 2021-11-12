@@ -167,4 +167,110 @@ neorg.utils = {
     end,
 }
 
+neorg.lib = {
+    match = function(statements)
+        local item = statements[1]
+
+        if not item then
+            return
+        end
+
+        local compare = statements[2] or function(lhs, rhs)
+            return lhs == rhs
+        end
+
+        for case, action in pairs(statements) do
+            if type(case) ~= "number" and compare(item, case) then
+                local action_type = type(action)
+
+                if action_type == "function" then
+                    return action(item)
+                end
+
+                return action
+            end
+        end
+
+        if statements.default then
+            local action = statements.default
+            local action_type = type(action)
+
+            if action_type == "function" then
+                return action(item)
+            end
+
+            return action
+        end
+    end,
+
+    when = function(comparison, when_true, when_false)
+        return neorg.lib.match({
+            type(comparison) == "table" and unpack(comparison) or comparison,
+            ["true"] = when_true,
+            ["false"] = when_false,
+        })
+    end,
+
+    map = function(tbl, callback)
+        local copy = vim.deepcopy(tbl)
+
+        for k, v in pairs(tbl) do
+            local cb = callback(k, v)
+
+            if cb then
+                copy[k] = cb
+            end
+        end
+
+        return copy
+    end,
+
+    filter = function(tbl, callback)
+        for k, v in pairs(tbl) do
+            local cb = callback(k, v)
+
+            if cb then
+                return cb
+            end
+        end
+    end,
+
+    find = function(tbl, element)
+        return neorg.lib.filter(tbl, function(key, value)
+            if value == element then
+                return key
+            end
+        end)
+    end,
+
+    insert_or = function(tbl, value)
+        local item = neorg.lib.find(tbl, value)
+
+        return item and tbl[item] or (function()
+            table.insert(tbl, value)
+            return value
+        end)()
+    end,
+
+    pick = function(tbl, values)
+        local result = {}
+
+        for _, value in ipairs(values) do
+            if tbl[value] then
+                table.insert(result, tbl[value])
+            end
+        end
+
+        return result
+    end,
+
+    wrap = function(function_pointer, ...)
+        local params = { ... }
+
+        return function()
+            return function_pointer(unpack(params))
+        end
+    end,
+}
+
 return neorg.utils
