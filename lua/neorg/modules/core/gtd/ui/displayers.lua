@@ -347,7 +347,7 @@ module.public = {
             local result = "- " .. t.content
             if t.contexts then
                 if vim.tbl_contains(t.contexts, "today") then
-                    result = result .. " `marked as today`"
+                    result = result .. ", `marked as today`"
                 end
             end
             if t["time.start"] then
@@ -415,7 +415,7 @@ module.public = {
             end
         end
 
-        module.private.generate_display(name, positions, res)
+        return module.private.generate_display(name, positions, res)
     end,
 
     --- Get the corresponding task from the buffer variable in the current line
