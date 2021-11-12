@@ -175,12 +175,18 @@ neorg.lib = {
             return
         end
 
+        table.remove(statements, 1)
+
         local compare = statements[2] or function(lhs, rhs)
             return lhs == rhs
         end
 
+        if statements[2] then
+            table.remove(statements, 2)
+        end
+
         for case, action in pairs(statements) do
-            if type(case) ~= "number" and compare(item, case) then
+            if compare(item, case) then
                 local action_type = type(action)
 
                 if action_type == "function" then
@@ -270,6 +276,12 @@ neorg.lib = {
 
         return function()
             return function_pointer(unpack(params))
+        end
+    end,
+
+    add = function(amount)
+        return function(value)
+            return value + amount
         end
     end,
 }

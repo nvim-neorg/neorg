@@ -1,5 +1,0 @@
-#/bin/sh
-make format
-git add -u
-
-# vim:ft=sh:

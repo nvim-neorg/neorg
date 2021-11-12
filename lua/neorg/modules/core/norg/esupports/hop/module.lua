@@ -37,6 +37,7 @@ module.public = {
             or (module.config.public.lookahead and module.public.lookahead_link_node())
     end,
 
+    -- TODO: Make work for new links and stop it from always jumping to latest `[` when there is no link
     lookahead_link_node = function()
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
@@ -131,6 +132,83 @@ module.public = {
 
         return parsed_link_information
     end,
+
+    locate_link_target = function(parsed_link_information)
+        --- A pointer to the target buffer we will be parsing.
+        -- This may change depending on the target file the user gave.
+        local buf_pointer = vim.api.nvim_get_current_buf()
+
+        -- Check whether our target is from a different file
+        if parsed_link_information.link_file_text then
+            if vim.fn.fnamemodify(parsed_link_information.link_file_text .. ".norg", ":p") ~= vim.fn.expand("%:p") then
+                -- We are dealing with a foreign file
+                log.warn("We are dealing with a foreign file")
+                -- TODO: Create a new unlisted buffer here
+            end
+        end
+
+        return neorg.lib.match({
+            parsed_link_information.link_type,
+
+            url = function()
+                local destination = parsed_link_information.link_location_text
+
+                if neorg.configuration.os_info == "linux" then
+                    vim.cmd('silent !xdg-open "' .. vim.fn.fnameescape(destination) .. '"')
+                elseif neorg.configuration.os_info == "mac" then
+                    vim.cmd('silent !open "' .. vim.fn.fnameescape(destination) .. '"')
+                else
+                    vim.cmd('silent !start "' .. vim.fn.fnameescape(destination) .. '"')
+                end
+            end,
+
+            external_file = neorg.lib.wrap(
+                vim.cmd,
+                "e " .. vim.fn.fnameescape(parsed_link_information.link_location_text)
+            ),
+
+            default = function()
+                -- Dynamically forge query
+
+                local query_str = string.format(
+                    [[
+                    (%s
+                        (%s_prefix)
+                        title: (paragraph_segment) @title
+                    )
+                ]],
+                    parsed_link_information.link_type,
+                    parsed_link_information.link_type
+                )
+
+                local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
+
+                if not document_root then
+                    return
+                end
+
+                local query = vim.treesitter.parse_query("norg", query_str)
+
+                for id, node in query:iter_captures(document_root, buf_pointer) do
+                    local capture = query.captures[id]
+
+                    if capture == "title" then
+                        local original_title = module.required["core.integrations.treesitter"].get_node_text(node)
+                        local title = original_title:gsub("[%s\\]", "")
+                        local target = parsed_link_information.link_location_text:gsub("[%s\\]", "")
+
+                        if title == target then
+                            return {
+                                original_title = original_title,
+                                node = node,
+                                buffer = buf_pointer,
+                            }
+                        end
+                    end
+                end
+            end,
+        })
+    end,
 }
 
 module.on_event = function(event)
@@ -148,7 +226,13 @@ module.on_event = function(event)
             return
         end
 
-        log.warn(parsed_link)
+        local located_link_information = module.public.locate_link_target(parsed_link)
+
+        if located_link_information then
+            -- vim.api.nvim_set_current_buf(located_link_information.buffer)
+            local range = module.required["core.integrations.treesitter"].get_node_range(located_link_information.node)
+            vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+        end
     end
 end
 
