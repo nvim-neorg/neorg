@@ -270,7 +270,7 @@ describe("CORE.GTD.UI - Displayers:", function()
             },
             {
                 content = "task2",
-                contexts = { "home", "mac", "today"},
+                contexts = { "home", "mac", "today" },
                 state = "undone",
             },
             {
@@ -287,7 +287,6 @@ describe("CORE.GTD.UI - Displayers:", function()
 
         assert.is_true(vim.tbl_contains(lines, "- task2, `marked as today`"))
         assert.is_true(vim.tbl_contains(lines, "- task5, `starting today`"))
-
 
         vim.api.nvim_buf_delete(buf, {})
     end)
