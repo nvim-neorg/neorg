@@ -283,7 +283,7 @@ module.public = {
         end
 
         module.private.extras = projects_tasks
-        module.private.generate_display(name, positions, res)
+        return module.private.generate_display(name, positions, res)
     end,
 
     display_someday = function(tasks)
