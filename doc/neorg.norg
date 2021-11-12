@@ -211,7 +211,7 @@
       {:file:}[link to file.norg]
       {:file_2:# target}[link to target in file_2.norg]
       {:/my/file:# target}[link to a target from the root of the workspace]
-      {@notes.txt}[link to non neorg file notes.txt]
+      {@ notes.txt}[link to non neorg file notes.txt]
       @end
 
  ** Markers
