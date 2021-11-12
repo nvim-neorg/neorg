@@ -103,9 +103,10 @@ module.public = {
 
                 -- If the highlight already exists then assume the user doesn't want it to be
                 -- overwritten
-                if vim.fn.hlexists(full_highlight_name) == 1 then
-                    return
-                end
+                -- TODO: Reinstantiate ASAP. Currently it causes problems with highlights not applying.
+                -- if vim.fn.hlexists(full_highlight_name) == 1 then
+                --     return
+                -- end
 
                 vim.cmd("highlight! link " .. full_highlight_name .. " " .. highlight:sub(2))
             else -- Otherwise simply apply the highlight options the user provided

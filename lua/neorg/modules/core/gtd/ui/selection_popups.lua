@@ -27,7 +27,7 @@ module.public = {
             return
         end
 
-        local task = module.public.refetch_data_not_extracted(task_node, "task")
+        local task = module.private.refetch_data_not_extracted(task_node, "task")
         module.public.edit_task(task)
     end,
 
