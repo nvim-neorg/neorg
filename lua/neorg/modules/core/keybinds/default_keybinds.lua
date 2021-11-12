@@ -16,7 +16,10 @@ module.public = {
                     { "gtu", "core.norg.qol.todo_items.todo.task_undone" },
                     { "gtp", "core.norg.qol.todo_items.todo.task_pending" },
                     { "gtd", "core.norg.qol.todo_items.todo.task_done" },
-                    { "gtw", "core.norg.qol.todo_items.todo.task_wont_complete" },
+                    { "gth", "core.norg.qol.todo_items.todo.task_on_hold" },
+                    { "gtc", "core.norg.qol.todo_items.todo.task_cancelled" },
+                    { "gtr", "core.norg.qol.todo_items.todo.task_recurring" },
+                    { "gti", "core.norg.qol.todo_items.todo.task_important" },
                     { "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" },
 
                     -- Keys for managing GTD
