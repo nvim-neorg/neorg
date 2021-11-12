@@ -24,6 +24,9 @@
         target: (_)+ @NeorgCarryoverTagTarget
 )
 
+; Trailing Modifier
+("_trailing_modifier") @NeorgTrailingModifier
+
 ; Links
 (link
     ("_begin") @NeorgLinkLocationDelimiter

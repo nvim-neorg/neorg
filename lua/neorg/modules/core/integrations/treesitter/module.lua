@@ -368,6 +368,8 @@ module.config.public = {
         WeakParagraphDelimiter = "+TSPunctDelimiter",
         HorizontalLine = "+TSPunctDelimiter",
 
+        TrailingModifier = "+TSPunctDelimiter",
+
         DocumentMeta = {
             Key = "+TSField",
             Value = "+TSString",
