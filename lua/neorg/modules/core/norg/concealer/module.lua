@@ -140,6 +140,11 @@ module.private = {
                         (todo_item_undone) @undone
                         (todo_item_pending) @pending
                         (todo_item_done) @done
+                        (todo_item_cancelled) @cancelled
+                        (todo_item_urgent) @urgent
+                        (todo_item_on_hold) @onhold
+                        (todo_item_recurring) @recurring
+                        (todo_item_uncertain) @uncertain
                     ]
                 )
             ]],
@@ -444,7 +449,7 @@ module.public = {
             local nodes = {}
             local last_node
 
-            local total, done, pending, undone = 0, 0, 0, 0
+            local total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled = 0, 0, 0, 0, 0, 0, 0, 0, 0
 
             for id, node in query_object:iter_captures(document_root, 0, from, -1) do
                 local name = query_object.captures[id]
@@ -457,9 +462,14 @@ module.public = {
                             done = done,
                             pending = pending,
                             undone = undone,
+                            uncertain = uncertain,
+                            urgen = urgent,
+                            recurring = recurring,
+                            onhold = onhold,
+                            cancelled = cancelled,
                         })
 
-                        total, done, pending, undone = 0, 0, 0, 0
+                        total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled = 0, 0, 0, 0, 0, 0, 0, 0, 0
                     end
 
                     last_node = node
@@ -472,6 +482,21 @@ module.public = {
                 elseif name == "pending" then
                     pending = pending + 1
                     total = total + 1
+                elseif name == "uncertain" then
+                    uncertain = uncertain + 1
+                    total = total + 1
+                elseif name == "urgent" then
+                    urgent = urgent + 1
+                    total = total + 1
+                elseif name == "recurring" then
+                    recurring = recurring + 1
+                    total = total + 1
+                elseif name == "onhold" then
+                    onhold = onhold + 1
+                    total = total + 1
+                elseif name == "cancelled" then
+                    cancelled = cancelled + 1
+                    -- total = total + 1
                 end
             end
 
@@ -482,6 +507,11 @@ module.public = {
                     done = done,
                     pending = pending,
                     undone = undone,
+                    uncertain = uncertain,
+                    urgent = urgent,
+                    recurring = recurring,
+                    onhold = onhold,
+                    cancelled = cancelled,
                 })
 
                 for _, node_information in ipairs(nodes) do
@@ -496,6 +526,11 @@ module.public = {
                             data = data:gsub("<done>", tostring(node_information.done))
                             data = data:gsub("<pending>", tostring(node_information.pending))
                             data = data:gsub("<undone>", tostring(node_information.undone))
+                            data = data:gsub("<uncertain>", tostring(node_information.uncertain))
+                            data = data:gsub("<urgent>", tostring(node_information.urgent))
+                            data = data:gsub("<recurring>", tostring(node_information.recurring))
+                            data = data:gsub("<onhold>", tostring(node_information.onhold))
+                            data = data:gsub("<cancelled>", tostring(node_information.cancelled))
                             data = data:gsub(
                                 "<percentage>",
                                 tostring(math.floor(node_information.done / node_information.total * 100))
