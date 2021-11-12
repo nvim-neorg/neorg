@@ -37,6 +37,7 @@ module.public = {
             or (module.config.public.lookahead and module.public.lookahead_link_node())
     end,
 
+    -- TODO: Make work for new links and stop it from always jumping to latest `[` when there is no link
     lookahead_link_node = function()
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
@@ -119,7 +120,7 @@ module.public = {
                 or neorg.lib.match({
                     capture,
                     link_file_text = extract_node_text,
-                    link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_location_") + 1),
+                    link_type = node:type(),
                     link_location_text = extract_node_text,
                     link_description = extract_node_text,
 
@@ -130,6 +131,43 @@ module.public = {
         end
 
         return parsed_link_information
+    end,
+
+    locate_link_target = function(parsed_link_information)
+        --- A pointer to the target buffer we will be parsing.
+        -- This may change depending on the target file the user gave.
+        local buf_pointer = vim.api.nvim_get_current_buf()
+
+        -- Check whether our target is from a different file
+        if parsed_link_information.link_file_text then
+            if vim.fn.fnamemodify(parsed_link_information.link_file_text .. ".norg", ":p") ~= vim.fn.expand("%:p") then
+                -- We are dealing with a foreign file
+                log.warn("We are dealing with a foreign file")
+                -- TODO: Create a new unlisted buffer here
+            end
+        end
+
+        -- local query_str = string.format([[
+
+        -- ]])
+
+        return neorg.lib.match({
+            parsed_link_information.link_type,
+
+            link_location_url = function()
+                local destination = parsed_link_information.link_location_text
+
+                if neorg.configuration.os_info == "linux" then
+                    vim.cmd('silent !xdg-open "' .. vim.fn.fnameescape(destination) .. '"')
+                elseif neorg.configuration.os_info == "mac" then
+                    vim.cmd('silent !open "' .. vim.fn.fnameescape(destination) .. '"')
+                else
+                    vim.cmd('silent !start "' .. vim.fn.fnameescape(destination) .. '"')
+                end
+            end,
+
+            link_location_external_file = neorg.lib.wrap(vim.cmd, "e " .. vim.fn.fnameescape(parsed_link_information.link_location_text))
+        })
     end,
 }
 
@@ -148,7 +186,9 @@ module.on_event = function(event)
             return
         end
 
-        log.warn(parsed_link)
+        local found_location = module.public.locate_link_target(parsed_link)
+
+        log.warn(found_location)
     end
 end
 
