@@ -120,7 +120,7 @@ module.public = {
                 or neorg.lib.match({
                     capture,
                     link_file_text = extract_node_text,
-                    link_type = node:type(),
+                    link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_location_") + 1),
                     link_location_text = extract_node_text,
                     link_description = extract_node_text,
 
@@ -147,14 +147,10 @@ module.public = {
             end
         end
 
-        -- local query_str = string.format([[
-
-        -- ]])
-
         return neorg.lib.match({
             parsed_link_information.link_type,
 
-            link_location_url = function()
+            url = function()
                 local destination = parsed_link_information.link_location_text
 
                 if neorg.configuration.os_info == "linux" then
@@ -166,10 +162,51 @@ module.public = {
                 end
             end,
 
-            link_location_external_file = neorg.lib.wrap(
+            external_file = neorg.lib.wrap(
                 vim.cmd,
                 "e " .. vim.fn.fnameescape(parsed_link_information.link_location_text)
             ),
+
+            default = function()
+                -- Dynamically forge query
+
+                local query_str = string.format(
+                    [[
+                    (%s
+                        (%s_prefix)
+                        title: (paragraph_segment) @title
+                    )
+                ]],
+                    parsed_link_information.link_type,
+                    parsed_link_information.link_type
+                )
+
+                local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
+
+                if not document_root then
+                    return
+                end
+
+                local query = vim.treesitter.parse_query("norg", query_str)
+
+                for id, node in query:iter_captures(document_root, buf_pointer) do
+                    local capture = query.captures[id]
+
+                    if capture == "title" then
+                        local original_title = module.required["core.integrations.treesitter"].get_node_text(node)
+                        local title = original_title:gsub("[%s\\]", "")
+                        local target = parsed_link_information.link_location_text:gsub("[%s\\]", "")
+
+                        if title == target then
+                            return {
+                                original_title = original_title,
+                                node = node,
+                                buffer = buf_pointer,
+                            }
+                        end
+                    end
+                end
+            end,
         })
     end,
 }
@@ -189,9 +226,13 @@ module.on_event = function(event)
             return
         end
 
-        local found_location = module.public.locate_link_target(parsed_link)
+        local located_link_information = module.public.locate_link_target(parsed_link)
 
-        log.warn(found_location)
+        if located_link_information then
+            -- vim.api.nvim_set_current_buf(located_link_information.buffer)
+            local range = module.required["core.integrations.treesitter"].get_node_range(located_link_information.node)
+            vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+        end
     end
 end
 
