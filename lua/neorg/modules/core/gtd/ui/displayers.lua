@@ -530,7 +530,7 @@ module.public = {
                         elseif task.state == "onhold" then
                             return "- [=] "
                         elseif task.state == "cancelled" then
-                            return "- [-] "
+                            return "- [_] "
                         end
                     end)()
                     table.insert(res, "  " .. state .. task.content)
