@@ -519,8 +519,18 @@ module.public = {
                             return "- [x] "
                         elseif task.state == "undone" then
                             return "- [ ] "
-                        else
-                            return "- [*] "
+                        elseif task.state == "pending" then
+                            return "- [-] "
+                        elseif task.state == "uncertain" then
+                            return "- [?] "
+                        elseif task.state == "urgent" then
+                            return "- [!] "
+                        elseif task.state == "recurring" then
+                            return "- [+] "
+                        elseif task.state == "onhold" then
+                            return "- [=] "
+                        elseif task.state == "cancelled" then
+                            return "- [_] "
                         end
                     end)()
                     table.insert(res, "  " .. state .. task.content)
