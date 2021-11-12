@@ -327,7 +327,7 @@ module.public = {
             end
         end
 
-        module.private.generate_display(name, positions, res)
+        return module.private.generate_display(name, positions, res)
     end,
 
     display_weekly_summary = function(tasks)
