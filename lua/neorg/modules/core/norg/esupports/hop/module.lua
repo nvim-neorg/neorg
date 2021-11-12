@@ -166,7 +166,10 @@ module.public = {
                 end
             end,
 
-            link_location_external_file = neorg.lib.wrap(vim.cmd, "e " .. vim.fn.fnameescape(parsed_link_information.link_location_text))
+            link_location_external_file = neorg.lib.wrap(
+                vim.cmd,
+                "e " .. vim.fn.fnameescape(parsed_link_information.link_location_text)
+            ),
         })
     end,
 }
