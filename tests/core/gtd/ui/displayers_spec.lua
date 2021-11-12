@@ -194,11 +194,11 @@ describe("CORE.GTD.UI - Displayers:", function()
         local projects = {
             {
                 content = "project1",
-                contexts = { "home"}
+                contexts = { "home" },
             },
             {
                 content = "project2",
-            }
+            },
         }
 
         local buf = ui.display_projects(tasks, projects)
