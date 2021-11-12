@@ -211,4 +211,54 @@ describe("CORE.GTD.UI - Displayers:", function()
 
         vim.api.nvim_buf_delete(buf, {})
     end)
+
+    it("Displays someday tasks", function()
+        local tasks = {
+            {
+                content = "task1",
+                contexts = { "home", "mac" },
+                state = "undone",
+            },
+            {
+                content = "task2",
+                contexts = { "home", "mac", "someday"},
+                state = "done",
+            },
+            {
+                content = "task3",
+                state = "undone",
+            },
+            {
+                content = "task4",
+                contexts = { "home", "someday"},
+                state = "pending",
+            },
+            {
+                content = "task5",
+                state = "undone",
+                contexts = { "mac", "someday"},
+                ["time.start"] = { os.date("%Y-%m-%d") },
+            },
+            {
+                content = "task6",
+                state = "undone",
+                contexts = { "mac", "someday" },
+                ["time.start"] = { "2100-01-01" },
+            },
+        }
+
+        local buf = ui.display_someday(tasks)
+        assert.is_number(buf)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+
+        assert.is_false(vim.tbl_contains(lines, "- task1 (`mac`)"))
+        assert.is_false(vim.tbl_contains(lines, "- task2 (`home`, `mac`)"))
+        assert.is_false(vim.tbl_contains(lines, "- task3"))
+        assert.is_true(vim.tbl_contains(lines, "- task4 (`home`)"))
+        assert.is_true(vim.tbl_contains(lines, "- task5 (`mac`)"))
+        assert.is_true(vim.tbl_contains(lines, "- task6 (`mac`)"))
+
+
+        vim.api.nvim_buf_delete(buf, {})
+    end)
 end)
