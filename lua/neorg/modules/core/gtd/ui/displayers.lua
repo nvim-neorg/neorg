@@ -417,6 +417,90 @@ module.public = {
 
         return module.private.generate_display(name, positions, res)
     end,
+}
+
+module.private = {
+    data = {},
+    current_bufnr = nil,
+    display_namespace_nr = nil,
+
+    today_task = function(task)
+        local today_context = false
+        if task.contexts then
+            today_context = vim.tbl_contains(task.contexts, "today")
+        end
+
+        local state = task.state ~= "done"
+
+        local already_started = true
+        local starting_today = false
+        if task["time.start"] then
+            already_started = not module.required["core.gtd.queries"].starting_after_today(task["time.start"][1], true)
+            local diff = module.required["core.gtd.queries"].diff_with_today(task["time.start"][1])
+            starting_today = diff.days == 0 and diff.weeks == 0
+        end
+
+        local due_today = false
+        if task["time.due"] then
+            local diff = module.required["core.gtd.queries"].diff_with_today(task["time.due"][1])
+            due_today = diff.days <= 0 and diff.weeks <= 0
+        end
+
+        return state and (starting_today or due_today or (today_context and already_started))
+    end,
+
+    set_vars_to_buf = function(buf, data)
+        for _, var in ipairs(data) do
+            vim.api.nvim_buf_set_var(buf, tostring(var.line), { bufnr = var.data.bufnr, position = var.data.position })
+            table.insert(module.private.data, var.data)
+        end
+    end,
+
+    --- Create the buffer and attach options to it
+    --- @param name string the buffer name
+    --- @param vars table the variables to add in the buffer
+    --- @param res table the lines to add
+    generate_display = function(name, vars, res)
+        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr", nil, false)
+        module.required["core.mode"].set_mode("gtd-displays")
+
+        module.private.set_vars_to_buf(buf, vars)
+        module.private.current_bufnr = buf
+        module.private.display_namespace_nr = vim.api.nvim_create_namespace("neorg display")
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
+        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+
+        return buf
+    end,
+
+    --- Update created variables inside the buffer (will offset the variables depending of the lines_inserted)
+    --- @param lines_inserted table the lines inserted
+    --- @param line number the position of the line we inserted the values from
+    --- @param remove boolean|nil if true, will offset the variables negatively
+    update_vars = function(lines_inserted, line, remove)
+        local lines = vim.api.nvim_buf_line_count(module.private.current_bufnr)
+        local updated_vars = {}
+
+        for i = line, lines do
+            local ok, var = pcall(vim.api.nvim_buf_get_var, module.private.current_bufnr, tostring(i))
+            -- Remove the var at positions after the line, and save them to updated_vars
+            if ok then
+                table.insert(updated_vars, { var = var, line_nr = i })
+                vim.api.nvim_buf_del_var(module.private.current_bufnr, tostring(i))
+            end
+        end
+
+        for _, var in pairs(updated_vars) do
+            local new_line
+            if remove then
+                new_line = var.line_nr - #lines_inserted
+            else
+                new_line = var.line_nr + #lines_inserted
+            end
+
+            vim.api.nvim_buf_set_var(module.private.current_bufnr, tostring(new_line), var.var)
+        end
+    end,
 
     --- Get the corresponding task from the buffer variable in the current line
     --- @return table the task node
@@ -442,13 +526,13 @@ module.public = {
     end,
 
     goto_node = function()
-        local data = module.public.get_by_var()
+        local data = module.private.get_by_var()
 
         if not data then
             return
         end
 
-        module.public.close_buffer()
+        module.private.close_buffer()
 
         -- Go to the node
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
@@ -458,20 +542,6 @@ module.public = {
         -- Reset the data
         module.private.data = {}
         module.private.extras = {}
-    end,
-
-    close_buffer = function()
-        -- Closes the display
-        vim.cmd(":bd")
-
-        -- Go back to previous mode
-        local previous_mode = module.required["core.mode"].get_previous_mode()
-        module.required["core.mode"].set_mode(previous_mode)
-
-        module.private.data = {}
-        module.private.extras = {}
-        module.private.current_bufnr = nil
-        module.private.display_namespace_nr = nil
     end,
 
     refetch_data_not_extracted = function(node, _type)
@@ -493,8 +563,22 @@ module.public = {
         return found_data[1]
     end,
 
+    close_buffer = function()
+        -- Closes the display
+        vim.cmd(":bd")
+
+        -- Go back to previous mode
+        local previous_mode = module.required["core.mode"].get_previous_mode()
+        module.required["core.mode"].set_mode(previous_mode)
+
+        module.private.data = {}
+        module.private.extras = {}
+        module.private.current_bufnr = nil
+        module.private.display_namespace_nr = nil
+    end,
+
     toggle_details = function()
-        local data = module.public.get_by_var()
+        local data = module.private.get_by_var()
         local res = {}
         local offset = 0
 
@@ -581,90 +665,6 @@ module.public = {
 
         vim.api.nvim_buf_set_var(module.private.current_bufnr, tostring(current_line), var)
         vim.api.nvim_buf_set_option(module.private.current_bufnr, "modifiable", false)
-    end,
-}
-
-module.private = {
-    data = {},
-    current_bufnr = nil,
-    display_namespace_nr = nil,
-
-    today_task = function(task)
-        local today_context = false
-        if task.contexts then
-            today_context = vim.tbl_contains(task.contexts, "today")
-        end
-
-        local state = task.state ~= "done"
-
-        local already_started = true
-        local starting_today = false
-        if task["time.start"] then
-            already_started = not module.required["core.gtd.queries"].starting_after_today(task["time.start"][1], true)
-            local diff = module.required["core.gtd.queries"].diff_with_today(task["time.start"][1])
-            starting_today = diff.days == 0 and diff.weeks == 0
-        end
-
-        local due_today = false
-        if task["time.due"] then
-            local diff = module.required["core.gtd.queries"].diff_with_today(task["time.due"][1])
-            due_today = diff.days <= 0 and diff.weeks <= 0
-        end
-
-        return state and (starting_today or due_today or (today_context and already_started))
-    end,
-
-    set_vars_to_buf = function(buf, data)
-        for _, var in ipairs(data) do
-            vim.api.nvim_buf_set_var(buf, tostring(var.line), { bufnr = var.data.bufnr, position = var.data.position })
-            table.insert(module.private.data, var.data)
-        end
-    end,
-
-    --- Create the buffer and attach options to it
-    --- @param name string the buffer name
-    --- @param vars table the variables to add in the buffer
-    --- @param res table the lines to add
-    generate_display = function(name, vars, res)
-        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr", nil, false)
-        module.required["core.mode"].set_mode("gtd-displays")
-
-        module.private.set_vars_to_buf(buf, vars)
-        module.private.current_bufnr = buf
-        module.private.display_namespace_nr = vim.api.nvim_create_namespace("neorg display")
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
-        vim.api.nvim_buf_set_option(buf, "modifiable", false)
-
-        return buf
-    end,
-
-    --- Update created variables inside the buffer (will offset the variables depending of the lines_inserted)
-    --- @param lines_inserted table the lines inserted
-    --- @param line number the position of the line we inserted the values from
-    --- @param remove boolean|nil if true, will offset the variables negatively
-    update_vars = function(lines_inserted, line, remove)
-        local lines = vim.api.nvim_buf_line_count(module.private.current_bufnr)
-        local updated_vars = {}
-
-        for i = line, lines do
-            local ok, var = pcall(vim.api.nvim_buf_get_var, module.private.current_bufnr, tostring(i))
-            -- Remove the var at positions after the line, and save them to updated_vars
-            if ok then
-                table.insert(updated_vars, { var = var, line_nr = i })
-                vim.api.nvim_buf_del_var(module.private.current_bufnr, tostring(i))
-            end
-        end
-
-        for _, var in pairs(updated_vars) do
-            local new_line
-            if remove then
-                new_line = var.line_nr - #lines_inserted
-            else
-                new_line = var.line_nr + #lines_inserted
-            end
-
-            vim.api.nvim_buf_set_var(module.private.current_bufnr, tostring(new_line), var.var)
-        end
     end,
 }
 
