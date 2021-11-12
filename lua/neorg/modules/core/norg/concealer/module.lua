@@ -449,7 +449,8 @@ module.public = {
             local nodes = {}
             local last_node
 
-            local total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled = 0, 0, 0, 0, 0, 0, 0, 0, 0
+            local total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled =
+                0, 0, 0, 0, 0, 0, 0, 0, 0
 
             for id, node in query_object:iter_captures(document_root, 0, from, -1) do
                 local name = query_object.captures[id]
@@ -469,7 +470,8 @@ module.public = {
                             cancelled = cancelled,
                         })
 
-                        total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled = 0, 0, 0, 0, 0, 0, 0, 0, 0
+                        total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled =
+                            0, 0, 0, 0, 0, 0, 0, 0, 0
                     end
 
                     last_node = node
