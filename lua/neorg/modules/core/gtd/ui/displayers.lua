@@ -520,7 +520,7 @@ module.public = {
                         elseif task.state == "undone" then
                             return "- [ ] "
                         elseif task.state == "pending" then
-                            return "- [*] "
+                            return "- [-] "
                         elseif task.state == "uncertain" then
                             return "- [?] "
                         elseif task.state == "urgent" then
