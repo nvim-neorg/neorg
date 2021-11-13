@@ -12,6 +12,7 @@ module.setup = function()
         requires = {
             "core.keybinds",
             "core.integrations.treesitter",
+            "core.ui",
         },
     }
 end
@@ -232,7 +233,46 @@ module.on_event = function(event)
             -- vim.api.nvim_set_current_buf(located_link_information.buffer)
             local range = module.required["core.integrations.treesitter"].get_node_range(located_link_information.node)
             vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+            return
         end
+
+        local selection = module.required["core.ui"].begin_selection(
+            module.required["core.ui"].create_split("link-not-found")
+        )
+            :listener("delete-buffer", {
+                "<Esc>",
+            }, function(self)
+                self:destroy()
+            end)
+            :apply({
+                warning = function(self, text)
+                    return self:text("WARNING: " .. text, "TSWarning")
+                end,
+                desc = function(self, text)
+                    return self:text(text, "TSComment")
+                end,
+            })
+
+        selection
+            :title("Link not found - what do we do now?")
+            :blank()
+            :text("There are a few actions that you can perform whenever a link cannot be located.", "Normal")
+            :text("Press one of the available keys to perform your desired action.")
+            :warning("These flags currently do not work, this is a beta build.")
+            :blank()
+            :desc("The most common action will be to try and fix the link.")
+            :desc("Fixing the link will perform a fuzzy search on every item in the file")
+            :desc("and make the link point to the closest match:")
+            :flag("f", "Attempt to fix the link")
+            :blank()
+            :desc("Does the same as the above keybind, however limits matches to those")
+            :desc("of the same type as the link. This means that if your link points to")
+            :desc("a level-1 heading a fuzzy search will be done only for level-1 headings:")
+            :flag("F", "Attempt to fix the link (with stricter searches)")
+            :blank()
+            :desc("Instead of fixing the link you may actually want to create the target:")
+            :flag("a", "Place target above current link parent")
+            :flag("b", "Place target below current link parent")
     end
 end
 
