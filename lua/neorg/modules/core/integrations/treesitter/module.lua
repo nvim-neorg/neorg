@@ -32,7 +32,8 @@ module.config.public = {
             },
 
             Parameter = "+TSType",
-            Content = "+Normal",
+            -- this is seemingly needed to fix regex fallback from not showing
+            -- Content = "+Normal",
         },
 
         CarryoverTag = {
