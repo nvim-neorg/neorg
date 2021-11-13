@@ -141,6 +141,31 @@ module.public = {
 
         -- Check whether our target is from a different file
         if parsed_link_information.link_file_text then
+            -- Expand special chars like `$`
+            local workspace, custom_workspace_path = parsed_link_information.link_file_text:match("^($([^/]*))")
+
+            local dirman = neorg.modules.get_module("core.norg.dirman")
+
+            if not dirman then
+                log.error("Unable to read file stored in link: core.norg.dirman was not loaded.")
+                return
+            end
+
+            if custom_workspace_path and custom_workspace_path:len() > 0 then
+                local path = dirman.get_workspace(custom_workspace_path)
+
+                if not path then
+                    log.trace("Unable to go to link: workspace does not exist")
+                    return
+                end
+
+                parsed_link_information.link_file_text = path
+                    .. parsed_link_information.link_file_text:sub(custom_workspace_path:len() + 2)
+            elseif workspace then
+                parsed_link_information.link_file_text = dirman.get_current_workspace()[2]
+                    .. parsed_link_information.link_file_text:sub(workspace:len() + 1)
+            end
+
             if vim.fn.fnamemodify(parsed_link_information.link_file_text .. ".norg", ":p") ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
                 log.warn("We are dealing with a foreign file")
