@@ -17,6 +17,13 @@ module.private = {
                 :title(title)
                 :blank()
                 :text("Static Times:")
+                :flag("d", "Today", {
+                    destroy = false,
+                    callback = function()
+                        task[mode] = module.required["core.gtd.queries"].date_converter("today")
+                        selection:pop_page()
+                    end,
+                })
                 :flag("t", "Tomorrow", {
                     destroy = false,
                     callback = function()
