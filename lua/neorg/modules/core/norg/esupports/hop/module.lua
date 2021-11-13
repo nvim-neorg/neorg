@@ -166,10 +166,18 @@ module.public = {
                     .. parsed_link_information.link_file_text:sub(workspace:len() + 1)
             end
 
-            if vim.fn.fnamemodify(parsed_link_information.link_file_text .. ".norg", ":p") ~= vim.fn.expand("%:p") then
+            parsed_link_information.link_file_text = vim.fn.fnamemodify(
+                parsed_link_information.link_file_text .. ".norg",
+                ":p"
+            )
+
+            if parsed_link_information.link_file_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
                 log.warn("We are dealing with a foreign file")
-                -- TODO: Create a new unlisted buffer here
+
+                -- WARNING: Something goes wrong. This returns a valid value but the code
+                -- later on doesn't seem to respect this properly?
+                buf_pointer = vim.uri_to_bufnr("file://" .. parsed_link_information.link_file_text)
             end
         end
 
@@ -186,16 +194,17 @@ module.public = {
                 else
                     vim.cmd('silent !start "' .. vim.fn.fnameescape(destination) .. '"')
                 end
+
+                return {}
             end,
 
-            external_file = neorg.lib.wrap(
-                vim.cmd,
-                "e " .. vim.fn.fnameescape(parsed_link_information.link_location_text)
-            ),
+            external_file = function()
+                vim.cmd("e " .. vim.fn.fnameescape(parsed_link_information.link_location_text))
+                return {}
+            end,
 
             default = function()
                 -- Dynamically forge query
-
                 local query_str = string.format(
                     [[
                     (%s
@@ -255,9 +264,19 @@ module.on_event = function(event)
         local located_link_information = module.public.locate_link_target(parsed_link)
 
         if located_link_information then
-            -- vim.api.nvim_set_current_buf(located_link_information.buffer)
-            local range = module.required["core.integrations.treesitter"].get_node_range(located_link_information.node)
-            vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+            if not vim.tbl_isempty(located_link_information) then
+                if located_link_information.buffer ~= vim.api.nvim_get_current_buf() then
+                    -- TODO: Change this behaviour to work with splits too!
+                    vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
+                    vim.api.nvim_set_current_buf(located_link_information.buffer)
+                end
+
+                local range = module.required["core.integrations.treesitter"].get_node_range(
+                    located_link_information.node
+                )
+                vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+            end
+
             return
         end
 
