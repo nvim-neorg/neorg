@@ -284,16 +284,25 @@ module.public = {
 
             default = function()
                 -- Dynamically forge query
-                local query_str = string.format(
-                    [[
-                        (%s
-                            (%s_prefix)
+                local query_str = neorg.lib.match({
+                    parsed_link_information.link_type,
+                    generic = [[
+                        (_
                             title: (paragraph_segment) @title
                         )
                     ]],
-                    parsed_link_information.link_type,
-                    parsed_link_information.link_type
-                )
+
+                    default = string.format(
+                        [[
+                            (%s
+                                (%s_prefix)
+                                title: (paragraph_segment) @title
+                            )
+                        ]],
+                        parsed_link_information.link_type,
+                        parsed_link_information.link_type
+                    ),
+                })
 
                 local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
 
