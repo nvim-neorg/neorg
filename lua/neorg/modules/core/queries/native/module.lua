@@ -24,6 +24,52 @@ module.setup = function()
 end
 
 module.public = {
+    --- Recursively generates results from a `parent` node, following a `tree` table
+    --- @see First implementation in: https://github.com/danymat/neogen/blob/main/lua/neogen/utilities/nodes.lua
+    --- @param parent userdata
+    --- @param tree table
+    --- @param results table|nil
+    --- @return table
+    query_from_tree = function(parent, tree, bufnr, results)
+        local res = results or {}
+
+        for _, subtree in pairs(tree) do
+            local matched, how_to_fix = module.private.matching_nodes(parent, subtree, bufnr)
+
+            if type(matched) == "string" then
+                log.error(
+                    "Oh no! There's been an error in the query. It seems that we've received some malformed input at one of the subtrees present in parent node of type",
+                    parent:type()
+                )
+                log.error("Here's the error message:", matched)
+
+                if how_to_fix then
+                    log.warn("To fix the issue:", vim.trim(how_to_fix))
+                end
+
+                return
+            end
+
+            -- We extract matching nodes that doesn't have subtree
+            if not subtree.subtree then
+                for _, v in pairs(matched) do
+                    table.insert(res, { v, bufnr })
+                end
+            else
+                for _, node in pairs(matched) do
+                    local nodes = module.public.query_from_tree(node, subtree.subtree, bufnr, res)
+
+                    if not nodes then
+                        return {}
+                    end
+
+                    res = vim.tbl_extend("force", res, nodes)
+                end
+            end
+        end
+
+        return res
+    end,
 
     --- Use a `tree` to query all required nodes from a `bufnr`. Returns a list of nodes of type { node, bufnr }
     --- @param tree table
@@ -80,81 +126,6 @@ module.public = {
             end
             parent = parent:parent()
         end
-        return res
-    end,
-
-    --- Finds the first sibling `node` (type { node, bufnr } ) that match `node_type`. Returns a node of type { node, bufnr }
-    --- @param node table
-    --- @param node_type string
-    --- @param opts table
-    ---   - opts.where (table):     if provided will try the where stateement supplied
-    --- @return table
-    find_sibling_node = function(node, node_type, opts)
-        opts = opts or {}
-        local parent = node[1]:parent()
-
-        if not parent or parent:child_count() == 1 then
-            return { nil, node[2] }
-        end
-
-        for child in parent:iter_children() do
-            if child:type() == node_type then
-                if opts.where and module.private.predicate_where(child, opts.where, { bufnr = node[2] }) then
-                    return { child, node[2] }
-                end
-                if not opts.where then
-                    return { child, node[2] }
-                end
-            end
-        end
-
-        return { nil, node[2] }
-    end,
-
-    --- Recursively generates results from a `parent` node, following a `tree` table
-    --- @see First implementation in: https://github.com/danymat/neogen/blob/main/lua/neogen/utilities/nodes.lua
-    --- @param parent userdata
-    --- @param tree table
-    --- @param results table|nil
-    --- @return table
-    query_from_tree = function(parent, tree, bufnr, results)
-        local res = results or {}
-
-        for _, subtree in pairs(tree) do
-            local matched, how_to_fix = module.private.matching_nodes(parent, subtree, bufnr)
-
-            if type(matched) == "string" then
-                log.error(
-                    "Oh no! There's been an error in the query. It seems that we've received some malformed input at one of the subtrees present in parent node of type",
-                    parent:type()
-                )
-                log.error("Here's the error message:", matched)
-
-                if how_to_fix then
-                    log.warn("To fix the issue:", vim.trim(how_to_fix))
-                end
-
-                return
-            end
-
-            -- We extract matching nodes that doesn't have subtree
-            if not subtree.subtree then
-                for _, v in pairs(matched) do
-                    table.insert(res, { v, bufnr })
-                end
-            else
-                for _, node in pairs(matched) do
-                    local nodes = module.public.query_from_tree(node, subtree.subtree, bufnr, res)
-
-                    if not nodes then
-                        return {}
-                    end
-
-                    res = vim.tbl_extend("force", res, nodes)
-                end
-            end
-        end
-
         return res
     end,
 }
