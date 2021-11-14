@@ -279,38 +279,31 @@ module.public = {
                 local query_str = neorg.lib.match({
                     parsed_link_information.link_type,
                     generic = [[
-                        [
-                            ; TODO: Fix this :P
-                            ; (carryover_tag_set
-                            ;     (carryover_tag
-                            ;         name: (tag_name) @tag_name
-                            ;         (tag_parameters) @title
-                            ;         (#eq? @tag_name "name")
-                            ;     )
-                            ;     target: (_)
-                            ; )
-                            (_
-                                title: (paragraph_segment) @title
+                        (carryover_tag_set
+                            (carryover_tag
+                                name: (tag_name) @tag_name
+                                (tag_parameters) @title
+                                (#eq? @tag_name "name")
                             )
-                        ]
+                        )?
+                        (_
+                            title: (paragraph_segment) @title
+                        )?
                     ]],
 
                     default = string.format(
                         [[
-                            [
-                                ; (carryover_tag_set
-                                ;     (carryover_tag
-                                ;         name: (tag_name) @tag_name
-                                ;         (tag_parameters) @title
-                                ;         (#eq? @tag_name "name")
-                                ;     )
-                                ;     target: (%s)
-                                ; )
-                                (%s
-                                    (%s_prefix)
-                                    title: (paragraph_segment) @title
+                            (carryover_tag_set
+                                (carryover_tag
+                                    name: (tag_name) @tag_name
+                                    (tag_parameters) @title
+                                    (#eq? @tag_name "name")
                                 )
-                            ]
+                            )?
+                            (%s
+                                (%s_prefix)
+                                title: (paragraph_segment) @title
+                            )?
                         ]],
                         neorg.lib.reparg(parsed_link_information.link_type, 3)
                     ),
@@ -373,6 +366,7 @@ module.on_event = function(event)
             )
 
             vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+            return
         end
 
         local parsed_link = module.public.parse_link(link_node_at_cursor)
