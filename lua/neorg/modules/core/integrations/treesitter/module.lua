@@ -755,7 +755,7 @@ module.public = {
     --- @return string The contents of the node in the form of a string
     get_node_text = function(node, buf)
         if not node then
-            return nil
+            return
         end
 
         local text = module.private.ts_utils.get_node_text(node, buf or 0)
