@@ -346,12 +346,13 @@ module.public = {
 						goto continue
 					end
 
-					-- reset current syntax definition since some files break
-					-- TODO: test if this is needed with treesitter
-					-- if vim.fn.exists("b:current_syntax") == 1 then
-					--     local current_syntax = vim.b.current_syntax
-					--     vim.g.current_syntax = ""
-					-- end
+					-- pass off the current syntax buffer var so things can load
+					local current_syntax = ""
+					if vim.b.current_syntax ~= '' or vim.b.current_syntax ~= nil then
+						vim.b.current_syntax = regex_language
+					    current_syntax = vim.b.current_syntax
+						vim.b.current_syntax = nil
+					end
 
 					-- temporarily pass off keywords in case they get messed up
 					local is_keyword = vim.api.nvim_buf_get_option(0, "iskeyword")
@@ -372,12 +373,20 @@ module.public = {
 
 					vim.api.nvim_buf_set_option(0, "iskeyword", is_keyword)
 
+					-- reset it after
+					if current_syntax ~= '' or current_syntax ~= nil then
+						vim.b.current_syntax = current_syntax
+					else
+						vim.b.current_syntax = ''
+					end
+
 					-- set highlight groups
 					local regex_fallback_hl = "syntax region "..snip.." matchgroup=Snip start=\""..start_marker.."\" end=\""..end_marker.."\" contains=@"..group
 					vim.cmd(regex_fallback_hl)
 
 					-- resync syntax, fixes some slow loading
 					vim.cmd("syntax sync fromstart")
+					vim.b.current_syntax = 'norg'
 
 					-- continue on from for loop if a language with parser is found or another syntax might be loaded
 					::continue::
