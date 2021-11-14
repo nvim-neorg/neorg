@@ -360,14 +360,14 @@ module.public = {
 					-- see if the syntax files even exist before we try to call them
 					-- NOTE: this is what fails for the second language
 					-- TODO: replace with non-vimL functions
-					local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "syntax/"..regex_language..".vim")
+					local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "syntax/"..regex_language..".vim", false, true)
 					if vim.fn.empty(output) == 0 then
-						local command = "syntax include @"..group.." "..output
+						local command = "syntax include @"..group.." "..output[1]
 						vim.cmd(command)
 					end
-					local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "after/syntax/"..regex_language..".vim")
+					local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "after/syntax/"..regex_language..".vim", false, true)
 					if vim.fn.empty(output) == 0 then
-						local command = "syntax include @"..group.." "..output
+						local command = "syntax include @"..group.." "..output[1]
 						vim.cmd(command)
 					end
 
@@ -381,12 +381,12 @@ module.public = {
 					end
 
 					-- set highlight groups
-					local regex_fallback_hl = "syntax region "..snip.." matchgroup=Snip start=\""..start_marker.."\" end=\""..end_marker.."\" contains=@"..group
+					local regex_fallback_hl = "syntax region "..snip.." matchgroup=Snip start=\""..start_marker.."\" end='"..end_marker.."' contains=@"..group.." keepend"
 					vim.cmd(regex_fallback_hl)
 
 					-- resync syntax, fixes some slow loading
 					vim.cmd("syntax sync fromstart")
-					vim.b.current_syntax = 'norg'
+					vim.b.current_syntax = ''
 
 					-- continue on from for loop if a language with parser is found or another syntax might be loaded
 					::continue::
