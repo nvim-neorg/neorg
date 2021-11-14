@@ -209,6 +209,11 @@ neorg.lib = {
         end
     end,
 
+    --- Wrapped around `match()` that performs an action based on a condition
+    --- @param comparison boolean #The comparison to perform
+    --- @param when_true function|any #The value to return when `comparison` is true
+    --- @param when_false function|any #The value to return when `comparison` is false
+    --- @return any #The value that either `when_true` or `when_false` returned
     when = function(comparison, when_true, when_false)
         return neorg.lib.match({
             type(comparison) == "table" and unpack(comparison) or comparison,
@@ -217,6 +222,12 @@ neorg.lib = {
         })
     end,
 
+    --- Maps a function to every element of a table
+    --  The function can return a value, in which case that specific element will be assigned
+    --  the return value of that function.
+    --- @param tbl table #The table to iterate over
+    --- @param callback function #The callback that should be invoked on every iteration
+    --- @return table #A modified version of the original `tbl`.
     map = function(tbl, callback)
         local copy = vim.deepcopy(tbl)
 
@@ -231,6 +242,11 @@ neorg.lib = {
         return copy
     end,
 
+    --- Iterates over all elements of a table and returns the first value returned by the callback.
+    --- @param tbl table #The table to iterate over
+    --- @param callback function #The callback function that should be invoked on each iteration.
+    --  Can return a value in which case that value will be returned from the `filter()` call.
+    --- @return any|nil #The value returned by `callback`, if any
     filter = function(tbl, callback)
         for k, v in pairs(tbl) do
             local cb = callback(k, v)
@@ -241,6 +257,10 @@ neorg.lib = {
         end
     end,
 
+    --- Finds any key in an array
+    --- @param tbl array #An array of values to iterate over
+    --- @param element any #The item to find
+    --- @return any|nil #The found value or `nil` if nothing could be found
     find = function(tbl, element)
         return neorg.lib.filter(tbl, function(key, value)
             if value == element then
@@ -249,6 +269,10 @@ neorg.lib = {
         end)
     end,
 
+    --- Inserts a value into a table if it doesn't exist, else returns the existing value.
+    --- @param tbl table #The table to insert into
+    --- @param value number|string #The value to insert
+    --- @return any #The item to return
     insert_or = function(tbl, value)
         local item = neorg.lib.find(tbl, value)
 
@@ -259,6 +283,10 @@ neorg.lib = {
             end)()
     end,
 
+    --- Picks a set of values from a table and returns them in an array
+    --- @param tbl table #The table to extract the keys from
+    --- @param values array[string] #An array of strings, these being the keys you'd like to extract
+    --- @return array[any] #The picked values from the table
     pick = function(tbl, values)
         local result = {}
 
@@ -271,6 +299,10 @@ neorg.lib = {
         return result
     end,
 
+    --- Wraps a function in a callback
+    --- @param function_pointer function #The function to wrap
+    --- @vararg ... #The arguments to pass to the wrapped function
+    --- @return function #The wrapped function in a callback
     wrap = function(function_pointer, ...)
         local params = { ... }
 
@@ -279,12 +311,21 @@ neorg.lib = {
         end
     end,
 
+    --- Wrapper function to add two values
+    --  This function only takes in one argument because the second value
+    --  to add is provided as a parameter in the callback.
+    --- @param amount number #The number to add
+    --- @return function #A callback adding the static value to the dynamic amount
     add = function(amount)
         return function(value)
             return value + amount
         end
     end,
 
+    --- Repeats an arguments `index` amount of times
+    --- @param value any #The value to repeat
+    --- @param index number #The amount of times to repeat the argument
+    --- @return ... #An expanded vararg with the repeated argument
     reparg = function(value, index)
         if index == 1 then
             return value
