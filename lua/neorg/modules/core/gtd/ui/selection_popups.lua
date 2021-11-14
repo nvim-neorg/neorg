@@ -1,7 +1,7 @@
 local module = neorg.modules.extend("core.gtd.ui.selection_popups")
 
 module.public = {
-    show_views_popup = function(configs)
+    show_views_popup = function()
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_split("Quick Actions")
         local selection = module.required["core.ui"].begin_selection(buffer):listener(
@@ -13,6 +13,7 @@ module.public = {
         )
 
         selection:title("Views"):blank():concat(function(_selection)
+            local configs = neorg.modules.get_module_config("core.gtd.base")
             return module.private.generate_display_flags(_selection, configs)
         end)
 
