@@ -1,15 +1,9 @@
 --[[
-    Module for requesting content from files in a workspace using treesitter
-
-REQUIRES:
-    - core.integrations.treesitter  for treesitter purposes
-
-EXPOSES:
-    - query_nodes_from_buf      query nodes from a file
-    - query_from_tree           query nodes specified by a tree table
-    - extract_nodes             extract nodes contents
-    - find_parent_node          find a parent node recursively
-    - find_sibling_node         find sibling nodes that match a query from a specified node
+    File: Queries-Module
+    Title: Queries Module
+    Summary: TS wrapper in order to fetch nodes using a custom tree table
+    ---
+This module uses tree-like tables in order to fetch useful informations from a TS tree.
 --]]
 
 require("neorg.modules.base")
@@ -22,6 +16,34 @@ module.setup = function()
         requires = { "core.integrations.treesitter" },
     }
 end
+
+module.examples = {
+    ["Get the content of all todo_item1 in a norg file"] = function()
+        local buf = 1 -- The buffer to query informations
+        local tree = {
+            {
+                query = { "first", "document_content" },
+                subtree = {
+                    {
+                        query = { "all", "generic_list" },
+                        recursive = true,
+                        subtree = {
+                            {
+                                query = { "all", "todo_item1" },
+                            },
+                        },
+                    },
+                },
+            },
+        }
+
+        -- Get a list of { node, buf }
+        local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, buf)
+        local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
+
+        print(nodes, extracted_nodes)
+    end,
+}
 
 module.public = {
     --- Recursively generates results from a `parent` node, following a `tree` table
