@@ -280,6 +280,16 @@ module.config.public = {
             },
         },
 
+        Anchor = {
+            Declaration = {
+                Delimiter = "+Normal",
+                Text = "+TSTextReference",
+            },
+            Definition = {
+                Delimiter = "+Normal",
+            },
+        },
+
         Insertion = {
             [""] = "cterm=bold gui=bold",
             Prefix = "+TSPunctDelimiter",
@@ -294,16 +304,16 @@ module.config.public = {
         Link = {
             Text = {
                 [""] = "+TSURI",
-                Delimiter = "+mkdDelimiter",
+                Delimiter = "+Normal",
             },
 
             File = {
                 [""] = "+TSComment",
-                Delimiter = "+mkdDelimiter",
+                Delimiter = "+Normal",
             },
 
             Location = {
-                Delimiter = "+mkdDelimiter",
+                Delimiter = "+Normal",
 
                 URL = "+TSURI",
 
