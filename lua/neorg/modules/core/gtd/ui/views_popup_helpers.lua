@@ -3,7 +3,7 @@ local module = neorg.modules.extend("core.gtd.ui.views_popup_helpers")
 module.private = {
     --- Generate flags for specific mode (date related)
     --- @param selection table
-    --- @param task table #Task to add due/start date
+    --- @param task core.gtd.queries.task
     --- @param mode string #Date mode to use: start|due
     --- @param flag string #The flag to use
     --- @return table #`selection`
@@ -90,7 +90,7 @@ module.private = {
 
     --- Generate flags for specific mode
     --- @param selection table
-    --- @param task table #Task to add contexts or waiting fors
+    --- @param task core.gtd.queries.task
     --- @param mode string #Date mode to use: waiting_for|contexts
     --- @param flag string #The flag to use
     --- @return table #`selection`

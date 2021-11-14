@@ -1,5 +1,25 @@
 local module = neorg.modules.extend("core.gtd.queries.retrievers")
 
+---@class core.gtd.queries.task
+---@field bufnr number
+---@field node userdata
+---@field content string
+---@field project string|nil
+---@field state string
+---@field contexts string[]|nil
+---@field waiting.for string[]|nil
+---@field time.start string[]|nil
+---@field time.due string[]|nil
+---@field position number
+
+---@class core.gtd.queries.project
+---@field content string
+---@field contexts string[]|nil
+---@field waiting.for string[]|nil
+---@field time.start string[]|nil
+---@field time.due string[]|nil
+---@field position number
+
 module.public = {
     --- Get a table of all `type` in workspace
     --- @param type string
@@ -127,7 +147,7 @@ module.public = {
     ---   - opts.extract (bool):   if false does not extract the content from the nodes
     ---   - opts.same_node (bool): if true, will only fetch metadatas from the node and not parent ones.
     ---   It will not fetch metadatas that group tasks or projects
-    --- @return table
+    --- @return core.gtd.queries.project|core.gtd.queries.task
     add_metadata = function(nodes, type, opts)
         vim.validate({
             nodes = { nodes, "table" },
@@ -159,10 +179,14 @@ module.public = {
                 exported.state = module.private.get_task_state(exported, opts)
             end
 
-            exported.contexts = module.private.get_tag("contexts", exported, type, opts)
-            exported["time.start"] = module.private.get_tag("time.start", exported, type, opts)
-            exported["time.due"] = module.private.get_tag("time.due", exported, type, opts)
-            exported["waiting.for"] = module.private.get_tag("waiting.for", exported, type, opts)
+            ---@type core.gtd.base.config
+            local config = neorg.modules.get_module_config("core.gtd.base")
+            local syntax = config.syntax
+
+            exported.contexts = module.private.get_tag(string.sub(syntax.context, 2), exported, type, opts)
+            exported["time.start"] = module.private.get_tag(string.sub(syntax.start, 2), exported, type, opts)
+            exported["time.due"] = module.private.get_tag(string.sub(syntax.due, 2), exported, type, opts)
+            exported["waiting.for"] = module.private.get_tag(string.sub(syntax.waiting,2), exported, type, opts)
 
             -- Add position in file for each node
             if not previous_bufnr_tbl[exported.bufnr] then

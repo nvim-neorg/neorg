@@ -52,10 +52,14 @@ module.public = {
             log.error("Error in inserting new content")
         end
 
-        module.private.insert_tag({ node.node, bufnr }, node.contexts, "#contexts")
-        module.private.insert_tag({ node.node, bufnr }, node["time.start"], "#time.start")
-        module.private.insert_tag({ node.node, bufnr }, node["time.due"], "#time.due")
-        module.private.insert_tag({ node.node, bufnr }, node["waiting.for"], "#waiting.for")
+        ---@type core.gtd.base.config
+        local config = neorg.modules.get_module_config("core.gtd.base")
+        local syntax = config.syntax
+
+        module.private.insert_tag({ node.node, bufnr }, node.contexts, syntax.context)
+        module.private.insert_tag({ node.node, bufnr }, node["time.start"], syntax.start)
+        module.private.insert_tag({ node.node, bufnr }, node["time.due"], syntax.due)
+        module.private.insert_tag({ node.node, bufnr }, node["waiting.for"], syntax.waiting)
 
         if not opts.no_save then
             vim.api.nvim_buf_call(bufnr, function()
