@@ -8,6 +8,11 @@ This module uses tree-like tables in order to fetch useful informations from a T
 
 require("neorg.modules.base")
 
+---@class core.queries.native.tree_node
+---@field query string[]
+---@field subtree core.queries.native.tree_node[]|nil
+---@field recursive boolean|nil
+
 local module = neorg.modules.create("core.queries.native")
 
 module.setup = function()
@@ -20,6 +25,8 @@ end
 module.examples = {
     ["Get the content of all todo_item1 in a norg file"] = function()
         local buf = 1 -- The buffer to query informations
+
+        --- @type core.queries.native.tree_node[]
         local tree = {
             {
                 query = { "first", "document_content" },
@@ -49,7 +56,7 @@ module.public = {
     --- Recursively generates results from a `parent` node, following a `tree` table
     --- @see First implementation in: https://github.com/danymat/neogen/blob/main/lua/neogen/utilities/nodes.lua
     --- @param parent userdata
-    --- @param tree table
+    --- @param tree core.queries.native.tree_node
     --- @param results table|nil
     --- @return table
     query_from_tree = function(parent, tree, bufnr, results)
@@ -94,7 +101,7 @@ module.public = {
     end,
 
     --- Use a `tree` to query all required nodes from a `bufnr`. Returns a list of nodes of type { node, bufnr }
-    --- @param tree table
+    --- @param tree core.queries.native.tree_node
     --- @param bufnr number
     --- @return table
     query_nodes_from_buf = function(tree, bufnr)
@@ -164,7 +171,7 @@ module.private = {
 
     --- Returns a list of child nodes (from `parent`) that matches a `tree`
     --- @param parent userdata
-    --- @param tree table
+    --- @param tree core.queries.native.tree_node
     --- @return table
     matching_nodes = function(parent, tree, bufnr)
         local res = {}
@@ -201,11 +208,13 @@ module.private = {
     ---   - opts.recursive (bool):      if true will recursively find the matching query
     --- @return table
     matching_query = function(parent, query, opts)
+        vim.validate({
+            parent = { parent, "userdata" },
+            query = { query, "table" },
+            opts = { opts, "table", true },
+        })
         opts = opts or {}
         local res = {}
-
-        -- TODO Error when query is not a table
-        -- DISPLAY ERROR MESSAGES
 
         if not query then
             return "No 'queries' value present in the query object!",
