@@ -34,8 +34,20 @@ module.public = {
         end
 
         local current_node = ts_utils.get_node_at_cursor()
-        return module.required["core.integrations.treesitter"].find_parent(current_node, { "link", "strict_link" })
-            or (module.config.public.lookahead and module.public.lookahead_link_node())
+        local found_node = module.required["core.integrations.treesitter"].find_parent(
+            current_node,
+            { "link", "anchor_declaration", "anchor_definition" }
+        )
+
+        if found_node then
+            if found_node:parent():type() == "anchor_definition" then
+                return found_node:parent()
+            end
+
+            return found_node
+        end
+
+        return module.config.public.lookahead and module.public.lookahead_link_node()
     end,
 
     -- TODO: Make work for new links and stop it from always jumping to latest `[` when there is no link
@@ -56,10 +68,14 @@ module.public = {
             local current_node = ts_utils.get_node_at_cursor()
             local link_node = module.required["core.integrations.treesitter"].find_parent(
                 current_node,
-                { "link", "strict_link" }
+                { "link", "anchor_declaration", "anchor_definition" }
             )
 
             if link_node then
+                if link_node:type() == "anchor_declaration" and link_node:parent():type() == "anchor_definition" then
+                    return link_node:parent()
+                end
+
                 return link_node
             end
 
@@ -67,35 +83,94 @@ module.public = {
         end
     end,
 
+    locate_anchor_declaration_target = function(anchor_decl_node)
+        local target =
+            module.required["core.integrations.treesitter"].get_node_text(
+                anchor_decl_node:named_child(0)
+            ):gsub("[%s\\]", "")
+
+        local query_str = [[
+            (anchor_definition
+                (anchor_declaration
+                    text: (anchor_declaration_text) @text
+                )
+            )
+        ]]
+
+        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+        local query = vim.treesitter.parse_query("norg", query_str)
+
+        for id, node in query:iter_captures(document_root, 0) do
+            local capture = query.captures[id]
+
+            if capture == "text" then
+                local original_title = module.required["core.integrations.treesitter"].get_node_text(node)
+                local title = original_title:gsub("[%s\\]", "")
+
+                if title == target then
+                    return {
+                        original_title = original_title,
+                        node = node,
+                    }
+                end
+            end
+        end
+    end,
+
     parse_link = function(link_node)
-        if not link_node or not vim.tbl_contains({ "link", "strict_link" }, link_node:type()) then
+        if not link_node or not vim.tbl_contains({ "link", "anchor_definition" }, link_node:type()) then
             return
         end
 
         local query_text = [[
-            (link
-                (link_file
-                    location: (link_file_text) @link_file_text
-                )?
-                (link_location
-                    type: [
-                        (link_location_url)
-                        (link_location_generic)
-                        (link_location_external_file)
-                        (link_location_marker)
-                        (link_location_heading1)
-                        (link_location_heading2)
-                        (link_location_heading3)
-                        (link_location_heading4)
-                        (link_location_heading5)
-                        (link_location_heading6)
-                    ] @link_type
-                    text: (link_location_text) @link_location_text
-                )?
-                (link_description
-                    text: (link_text) @link_description
-                )?
-            )
+            [
+                (link
+                    (link_file
+                        location: (link_file_text) @link_file_text
+                    )?
+                    (link_location
+                        type: [
+                            (link_location_url)
+                            (link_location_generic)
+                            (link_location_external_file)
+                            (link_location_marker)
+                            (link_location_heading1)
+                            (link_location_heading2)
+                            (link_location_heading3)
+                            (link_location_heading4)
+                            (link_location_heading5)
+                            (link_location_heading6)
+                        ] @link_type
+                        text: (link_location_text) @link_location_text
+                    )?
+                    (link_description
+                        text: (link_text) @link_description
+                    )?
+                )
+                (anchor_definition
+                    (anchor_declaration
+                        text: (anchor_declaration_text)
+                    )
+                    (link_file
+                        location: (link_file_text) @link_file_text
+                    )?
+                    (link_location
+                        type: [
+                            (link_location_url)
+                            (link_location_generic)
+                            (link_location_external_file)
+                            (link_location_marker)
+                            (link_location_heading1)
+                            (link_location_heading2)
+                            (link_location_heading3)
+                            (link_location_heading4)
+                            (link_location_heading5)
+                            (link_location_heading6)
+                        ] @link_type
+                        text: (link_location_text) @link_location_text
+                    )
+                )
+            ]
         ]]
 
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
@@ -266,6 +341,20 @@ module.on_event = function(event)
         if not link_node_at_cursor then
             log.trace("No link under cursor.")
             return
+        end
+
+        if link_node_at_cursor:type() == "anchor_declaration" then
+            local located_anchor_declaration = module.public.locate_anchor_declaration_target(link_node_at_cursor)
+
+            if not located_anchor_declaration then
+                return
+            end
+
+            local range = module.required["core.integrations.treesitter"].get_node_range(
+                located_anchor_declaration.node
+            )
+
+            vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
         end
 
         local parsed_link = module.public.parse_link(link_node_at_cursor)
