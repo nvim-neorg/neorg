@@ -284,6 +284,14 @@ neorg.lib = {
             return value + amount
         end
     end,
+
+    reparg = function(value, index)
+        if index == 1 then
+            return value
+        end
+
+        return value, neorg.lib.reparg(value, index - 1)
+    end,
 }
 
 return neorg.utils
