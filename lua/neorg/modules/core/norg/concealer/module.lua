@@ -312,9 +312,6 @@ module.public = {
                 )]]
             )
 
-            -- this will hold our regex language for parsing
-            local regex_language = ""
-
             -- look for language name in code blocks
             -- this will not finish if a treesitter parser exists for the current language found
             for id, node in code_lang:iter_captures(tree:root(), 0, from or 0, -1) do
@@ -322,8 +319,7 @@ module.public = {
 
                 -- only look at nodes that have the language query
                 if lang_name == "language" then
-                    regex_language = vim.treesitter.get_node_text(node, 0)
-
+                    local regex_language = vim.treesitter.get_node_text(node, 0)
                     -- see if parser exists
                     local ok, result = pcall(
                         vim.treesitter.require_language,
@@ -336,11 +332,19 @@ module.public = {
                         goto continue
                     end
 
+
                     -- NOTE: the regex fallback code was mostly adapted from Vimwiki
                     -- It's a very good implementation of nested vim regex
                     local group = "textGroup" .. string.upper(regex_language)
+					local snip = "textSnip"..string.upper(regex_language)
                     local start_marker = "@code "..regex_language
                     local end_marker = "@end"
+
+					-- if our region syntax group exists, quit out
+					-- this stops repeat groups from forming on text update
+					if vim.fn.hlexists(snip) == 1 then
+					  goto continue
+					end
 
                     -- reset current syntax definition since some files break
                     -- TODO: test if this is needed with treesitter
@@ -353,26 +357,28 @@ module.public = {
                     local is_keyword = vim.api.nvim_buf_get_option(0, "iskeyword")
 
                     -- see if the syntax files even exist before we try to call them
+					-- NOTE: this is what fails for the second language
                     if vim.fn.empty(vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "syntax/"..regex_language..".vim")) == 0 then
-                        local command = "syntax include @"..group.." syntax/"..regex_language..".vim"
+						local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "syntax/"..regex_language..".vim")
+                        local command = "syntax include @"..group.." "..output
                         vim.cmd(command)
                     end
                     if vim.fn.empty(vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "after/syntax/"..regex_language..".vim")) == 0 then
-                        local command = "syntax include @"..group.." after/syntax/"..regex_language..".vim"
+						local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "after/syntax/"..regex_language..".vim")
+                        local command = "syntax include @"..group.." "..output
                         vim.cmd(command)
                     end
 
                     vim.api.nvim_buf_set_option(0, "iskeyword", is_keyword)
 
                     -- set highlight groups
-                    local regex_fallback_hl = "syntax region textSnip"..string.upper(regex_language).." matchgroup=Snip start=\""..start_marker.."\" end=\""..end_marker.."\" contains=@"..group
+                    local regex_fallback_hl = "syntax region "..snip.." matchgroup=Snip start=\""..start_marker.."\" end=\""..end_marker.."\" contains=@"..group
                     vim.cmd(regex_fallback_hl)
 
-										-- resync syntax, fixes some slow loading
-										vim.cmd("syntax sync fromstart")
+					-- resync syntax, fixes some slow loading
+					vim.cmd("syntax sync fromstart")
 
-                    -- katawful NOTE: I don't know if this is accepted syntax?
-                    -- I need to be able to do a continue, not a full break or return
+					-- continue on from for loop if a language with parser is found or another syntax might be loaded
                     ::continue::
                 end
             end
