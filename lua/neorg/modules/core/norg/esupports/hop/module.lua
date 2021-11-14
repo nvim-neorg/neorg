@@ -175,9 +175,13 @@ module.public = {
                 -- We are dealing with a foreign file
                 log.warn("We are dealing with a foreign file")
 
-                -- WARNING: Something goes wrong. This returns a valid value but the code
-                -- later on doesn't seem to respect this properly?
+                -- HACK(vhyrro): This is a hacky way of making what we want work
+                -- For some reason if we don't set the buf_pointer to the current buffer
+                -- then treesitter cannot parse it at all. Loading the buffer with
+                -- vim.fn.bufload() does not help either. Sad times.
                 buf_pointer = vim.uri_to_bufnr("file://" .. parsed_link_information.link_file_text)
+                vim.api.nvim_set_current_buf(buf_pointer)
+                vim.api.nvim_buf_set_option(buf_pointer, "buflisted", true)
             end
         end
 
@@ -207,11 +211,11 @@ module.public = {
                 -- Dynamically forge query
                 local query_str = string.format(
                     [[
-                    (%s
-                        (%s_prefix)
-                        title: (paragraph_segment) @title
-                    )
-                ]],
+                        (%s
+                            (%s_prefix)
+                            title: (paragraph_segment) @title
+                        )
+                    ]],
                     parsed_link_information.link_type,
                     parsed_link_information.link_type
                 )
@@ -219,6 +223,11 @@ module.public = {
                 local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
 
                 if not document_root then
+                    -- Because of the above hack we then have to forcefully
+                    -- delete the buffer every time we can't find the item.
+                    vim.api.nvim_buf_delete(buf_pointer, {
+                        force = true,
+                    })
                     return
                 end
 
@@ -241,6 +250,10 @@ module.public = {
                         end
                     end
                 end
+
+                vim.api.nvim_buf_delete(buf_pointer, {
+                    force = true,
+                })
             end,
         })
     end,
