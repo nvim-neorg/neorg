@@ -186,7 +186,7 @@ module.public = {
             exported.contexts = module.private.get_tag(string.sub(syntax.context, 2), exported, type, opts)
             exported["time.start"] = module.private.get_tag(string.sub(syntax.start, 2), exported, type, opts)
             exported["time.due"] = module.private.get_tag(string.sub(syntax.due, 2), exported, type, opts)
-            exported["waiting.for"] = module.private.get_tag(string.sub(syntax.waiting,2), exported, type, opts)
+            exported["waiting.for"] = module.private.get_tag(string.sub(syntax.waiting, 2), exported, type, opts)
 
             -- Add position in file for each node
             if not previous_bufnr_tbl[exported.bufnr] then
