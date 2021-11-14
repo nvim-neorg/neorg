@@ -34,7 +34,7 @@ module.config.public = {
     default_lists = {
         inbox = "inbox.norg",
     },
-    -- You can exclude files from gtd parsing by passing them here
+    -- You can exclude files from gtd parsing by passing them here (relative file path from workspace root)
     exclude = {},
 }
 
@@ -82,7 +82,7 @@ end
 module.on_event = function(event)
     if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.split_type[1]) then
         if vim.tbl_contains({ "gtd.views", "core.gtd.base.views" }, event.split_type[2]) then
-            module.required["core.gtd.ui"].show_views_popup(module.config.public)
+            module.required["core.gtd.ui"].show_views_popup()
         elseif vim.tbl_contains({ "gtd.edit", "core.gtd.base.edit" }, event.split_type[2]) then
             module.required["core.gtd.ui"].edit_task_at_cursor()
         elseif vim.tbl_contains({ "gtd.capture", "core.gtd.base.capture" }, event.split_type[2]) then
