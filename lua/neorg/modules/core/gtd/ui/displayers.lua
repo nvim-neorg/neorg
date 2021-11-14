@@ -2,9 +2,10 @@ local module = neorg.modules.extend("core.gtd.ui.displayers")
 
 module.public = {
     --- Display today view for `tasks`, grouped by contexts
-    --- @param tasks table
+    --- @param tasks core.gtd.queries.task
     --- @param opts table
     ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
+    --- @overload fun(tasks:table)
     display_today_tasks = function(tasks, opts)
         vim.validate({
             tasks = { tasks, "table" },
@@ -149,7 +150,7 @@ module.public = {
     end,
 
     --- Display contexts view for `tasks`
-    --- @param tasks table
+    --- @param tasks core.gtd.queries.task
     --- @param opts table
     ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
     ---   - opts.priority (table):  will prioritize in the display the contexts specified (order in priority contexts not guaranteed)
@@ -225,8 +226,8 @@ module.public = {
     end,
 
     --- Display formatted projects from `tasks` table. Uses `projects` table to find all projects
-    --- @param tasks table
-    --- @param projects table
+    --- @param tasks core.gtd.queries.task
+    --- @param projects core.gtd.queries.project
     display_projects = function(tasks, projects)
         vim.validate({
             tasks = { tasks, "table" },

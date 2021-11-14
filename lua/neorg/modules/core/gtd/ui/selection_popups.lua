@@ -52,7 +52,6 @@ module.public = {
             end
         )
 
-        -- TODO: Make the content prettier
         selection:title("Edit Task"):blank():text("Task: " .. task_extracted.content)
         if task_extracted.contexts then
             selection:text("Contexts: " .. table.concat(task_extracted.contexts, ", "))
