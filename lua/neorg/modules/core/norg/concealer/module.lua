@@ -365,9 +365,11 @@ module.public = {
                     vim.api.nvim_buf_set_option(0, "iskeyword", is_keyword)
 
                     -- set highlight groups
-                    local regex_fallback_hl = "syntax region textSnip"..regex_language.." matchgroup=Normal start=\""..start_marker.."\" end=\""..end_marker.."\" contains=@"..group
+                    local regex_fallback_hl = "syntax region textSnip"..string.upper(regex_language).." matchgroup=Snip start=\""..start_marker.."\" end=\""..end_marker.."\" contains=@"..group
                     vim.cmd(regex_fallback_hl)
 
+										-- resync syntax, fixes some slow loading
+										vim.cmd("syntax sync fromstart")
 
                     -- katawful NOTE: I don't know if this is accepted syntax?
                     -- I need to be able to do a continue, not a full break or return
