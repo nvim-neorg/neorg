@@ -675,14 +675,6 @@ module.public = {
     end,
 }
 
-local function reparg(value, index)
-    if index == 1 then
-        return value
-    end
-
-    return value, reparg(value, index - 1)
-end
-
 module.config.public = {
     icon_preset = "basic",
 
@@ -765,7 +757,7 @@ module.config.public = {
                             )+
                         ] @progress
                 ]],
-                    reparg(module.private.todo_list_query, 6 * 2)
+                    neorg.lib.reparg(module.private.todo_list_query, 6 * 2)
                 ),
                 text = module.private.completion_level_base,
                 highlight = "DiagnosticVirtualTextHint",
