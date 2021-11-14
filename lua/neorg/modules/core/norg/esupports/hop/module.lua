@@ -248,15 +248,7 @@ module.public = {
 
             if parsed_link_information.link_file_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
-                log.warn("We are dealing with a foreign file")
-
-                -- HACK(vhyrro): This is a hacky way of making what we want work
-                -- For some reason if we don't set the buf_pointer to the current buffer
-                -- then treesitter cannot parse it at all. Loading the buffer with
-                -- vim.fn.bufload() does not help either. Sad times.
                 buf_pointer = vim.uri_to_bufnr("file://" .. parsed_link_information.link_file_text)
-                vim.api.nvim_set_current_buf(buf_pointer)
-                vim.api.nvim_buf_set_option(buf_pointer, "buflisted", true)
             end
         end
 
@@ -287,31 +279,46 @@ module.public = {
                 local query_str = neorg.lib.match({
                     parsed_link_information.link_type,
                     generic = [[
-                        (_
-                            title: (paragraph_segment) @title
-                        )
+                        [
+                            ; TODO: Fix this :P
+                            ; (carryover_tag_set
+                            ;     (carryover_tag
+                            ;         name: (tag_name) @tag_name
+                            ;         (tag_parameters) @title
+                            ;         (#eq? @tag_name "name")
+                            ;     )
+                            ;     target: (_)
+                            ; )
+                            (_
+                                title: (paragraph_segment) @title
+                            )
+                        ]
                     ]],
 
                     default = string.format(
                         [[
-                            (%s
-                                (%s_prefix)
-                                title: (paragraph_segment) @title
-                            )
+                            [
+                                ; (carryover_tag_set
+                                ;     (carryover_tag
+                                ;         name: (tag_name) @tag_name
+                                ;         (tag_parameters) @title
+                                ;         (#eq? @tag_name "name")
+                                ;     )
+                                ;     target: (%s)
+                                ; )
+                                (%s
+                                    (%s_prefix)
+                                    title: (paragraph_segment) @title
+                                )
+                            ]
                         ]],
-                        parsed_link_information.link_type,
-                        parsed_link_information.link_type
+                        neorg.lib.reparg(parsed_link_information.link_type, 3)
                     ),
                 })
 
                 local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
 
                 if not document_root then
-                    -- Because of the above hack we then have to forcefully
-                    -- delete the buffer every time we can't find the item.
-                    vim.api.nvim_buf_delete(buf_pointer, {
-                        force = true,
-                    })
                     return
                 end
 
@@ -321,23 +328,25 @@ module.public = {
                     local capture = query.captures[id]
 
                     if capture == "title" then
-                        local original_title = module.required["core.integrations.treesitter"].get_node_text(node)
-                        local title = original_title:gsub("[%s\\]", "")
-                        local target = parsed_link_information.link_location_text:gsub("[%s\\]", "")
+                        local original_title = module.required["core.integrations.treesitter"].get_node_text(
+                            node,
+                            buf_pointer
+                        )
 
-                        if title == target then
-                            return {
-                                original_title = original_title,
-                                node = node,
-                                buffer = buf_pointer,
-                            }
+                        if original_title then
+                            local title = original_title:gsub("[%s\\]", "")
+                            local target = parsed_link_information.link_location_text:gsub("[%s\\]", "")
+
+                            if title == target then
+                                return {
+                                    original_title = original_title,
+                                    node = node,
+                                    buffer = buf_pointer,
+                                }
+                            end
                         end
                     end
                 end
-
-                vim.api.nvim_buf_delete(buf_pointer, {
-                    force = true,
-                })
             end,
         })
     end,
