@@ -27,6 +27,12 @@ runtime! plugin/plenary.vim
 runtime! plugin/nvim-treesitter.vim
 
 lua <<EOF
+function P(...)
+    local objects = vim.tbl_map(vim.inspect, {...})
+    print(unpack(objects))
+    return ...
+end
+
 
 local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
 

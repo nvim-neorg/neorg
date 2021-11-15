@@ -2,9 +2,10 @@ local module = neorg.modules.extend("core.gtd.ui.displayers")
 
 module.public = {
     --- Display today view for `tasks`, grouped by contexts
-    --- @param tasks table
+    --- @param tasks core.gtd.queries.task
     --- @param opts table
     ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
+    --- @overload fun(tasks:table)
     display_today_tasks = function(tasks, opts)
         vim.validate({
             tasks = { tasks, "table" },
@@ -149,7 +150,7 @@ module.public = {
     end,
 
     --- Display contexts view for `tasks`
-    --- @param tasks table
+    --- @param tasks core.gtd.queries.task
     --- @param opts table
     ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
     ---   - opts.priority (table):  will prioritize in the display the contexts specified (order in priority contexts not guaranteed)
@@ -225,8 +226,8 @@ module.public = {
     end,
 
     --- Display formatted projects from `tasks` table. Uses `projects` table to find all projects
-    --- @param tasks table
-    --- @param projects table
+    --- @param tasks core.gtd.queries.task
+    --- @param projects core.gtd.queries.project
     display_projects = function(tasks, projects)
         vim.validate({
             tasks = { tasks, "table" },
@@ -240,7 +241,7 @@ module.public = {
         }
         local positions = {}
 
-        local projects_tasks = module.required["core.gtd.queries"].sort_by("project", tasks)
+        local projects_tasks = module.required["core.gtd.queries"].sort_by("project_node", tasks)
 
         -- Show informations for tasks without projects
         local unknown_project = projects_tasks["_"]
@@ -253,14 +254,14 @@ module.public = {
         end
 
         local added_projects = {}
-        for _, project in ipairs(projects) do
-            local tasks_project = projects_tasks[project.content] or {}
+        for _, project in pairs(projects) do
+            local tasks_project = module.private.find_project(projects_tasks, project.node) or {}
 
             local completed = vim.tbl_filter(function(t)
                 return t.state == "done"
             end, tasks_project)
 
-            if project ~= "_" and not vim.tbl_contains(added_projects, project.content) then
+            if project ~= "_" and not vim.tbl_contains(added_projects, project.node) then
                 table.insert(res, "* " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)")
                 table.insert(positions, { line = #res, data = project })
 
@@ -277,7 +278,7 @@ module.public = {
                     .. string.rep(" ", 10 - completed_over_10)
                     .. "]"
                 table.insert(res, "   " .. percent_completed_visual .. " " .. percent_completed .. "% done")
-                table.insert(added_projects, project.content)
+                table.insert(added_projects, project.node)
                 table.insert(res, "")
             end
         end
@@ -590,10 +591,15 @@ module.private = {
             return "*" .. v .. "*"
         end
 
+        if not data or vim.tbl_count(data) == 0 then
+            return
+        end
+
         -- For displaying projects, we assume that there is no data.state in it
         if not data.state then
             offset = 1
-            local tasks = module.private.extras[data.content]
+            local tasks = module.private.find_project(module.private.extras, data.node)
+            -- local tasks = module.private.extras[data.content]
             if not tasks then
                 table.insert(res, "  - /No tasks found for this project/")
             else
@@ -675,6 +681,18 @@ module.private = {
 
         vim.api.nvim_buf_set_var(module.private.current_bufnr, tostring(current_line), var)
         vim.api.nvim_buf_set_option(module.private.current_bufnr, "modifiable", false)
+    end,
+
+    find_project = function(_tasks, node)
+        if type(node) ~= "userdata" then
+            return
+        end
+
+        for _node_id, tasks in pairs(_tasks) do
+            if _node_id == node:id() then
+                return tasks
+            end
+        end
     end,
 }
 
