@@ -240,8 +240,10 @@ module.public = {
                     for _, s in pairs(t[sorter]) do
                         insert(res, s, t)
                     end
-                elseif type(t[sorter]) == "string" or type(t[sorter]) == "userdata" then
+                elseif type(t[sorter]) == "string" then
                     insert(res, t[sorter], t)
+                elseif type(t[sorter]) == "userdata" then
+                    insert(res, t[sorter]:id(), t)
                 end
             end
         end
