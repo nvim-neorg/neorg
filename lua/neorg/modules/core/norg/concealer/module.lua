@@ -140,6 +140,11 @@ module.private = {
                         (todo_item_undone) @undone
                         (todo_item_pending) @pending
                         (todo_item_done) @done
+                        (todo_item_cancelled) @cancelled
+                        (todo_item_urgent) @urgent
+                        (todo_item_on_hold) @onhold
+                        (todo_item_recurring) @recurring
+                        (todo_item_uncertain) @uncertain
                     ]
                 )
             ]],
@@ -158,6 +163,11 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item2
@@ -165,6 +175,11 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item3
@@ -172,6 +187,11 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item4
@@ -179,6 +199,11 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item5
@@ -186,6 +211,11 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item6
@@ -193,6 +223,11 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
     ]+
@@ -400,39 +435,6 @@ module.public = {
         vim.api.nvim_buf_clear_namespace(0, module.private.code_block_namespace, from or 0, -1)
     end,
 
-    -- @Summary Triggers conceals for the current buffer
-    -- @Description Reads through the user configuration and enables concealing for the current buffer
-    trigger_conceals = function()
-        local conceals = module.config.public.conceals
-
-        -- TODO: requires TS-support for an actual trailing modifier item
-        if conceals.trailing then
-            vim.schedule(function()
-                vim.cmd([[
-                syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
-                ]])
-            end)
-        end
-
-        -- TODO: requires TS-support for link modifiers
-        if conceals.link then
-            vim.schedule(function()
-                vim.cmd([[
-                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgBold,NeorgItalic,NeorgUnderline,NeorgStrikethrough,NeorgSubscript,NeorgSuperscript,NeorgConcealVerbatim oneline concealends
-                ]])
-            end)
-        end
-    end,
-
-    -- @Summary Clears conceals for the current buffer
-    -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
-    clear_conceals = function()
-        vim.cmd([[
-        silent! syn clear NeorgConcealTrailing
-        silent! syn clear NeorgConcealLink
-        ]])
-    end,
-
     trigger_completion_levels = function(from)
         from = from or 0
 
@@ -451,7 +453,8 @@ module.public = {
             local nodes = {}
             local last_node
 
-            local total, done, pending, undone = 0, 0, 0, 0
+            local total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled =
+                0, 0, 0, 0, 0, 0, 0, 0, 0
 
             for id, node in query_object:iter_captures(document_root, 0, from, -1) do
                 local name = query_object.captures[id]
@@ -464,9 +467,15 @@ module.public = {
                             done = done,
                             pending = pending,
                             undone = undone,
+                            uncertain = uncertain,
+                            urgen = urgent,
+                            recurring = recurring,
+                            onhold = onhold,
+                            cancelled = cancelled,
                         })
 
-                        total, done, pending, undone = 0, 0, 0, 0
+                        total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled =
+                            0, 0, 0, 0, 0, 0, 0, 0, 0
                     end
 
                     last_node = node
@@ -479,6 +488,21 @@ module.public = {
                 elseif name == "pending" then
                     pending = pending + 1
                     total = total + 1
+                elseif name == "uncertain" then
+                    uncertain = uncertain + 1
+                    total = total + 1
+                elseif name == "urgent" then
+                    urgent = urgent + 1
+                    total = total + 1
+                elseif name == "recurring" then
+                    recurring = recurring + 1
+                    total = total + 1
+                elseif name == "onhold" then
+                    onhold = onhold + 1
+                    total = total + 1
+                elseif name == "cancelled" then
+                    cancelled = cancelled + 1
+                    -- total = total + 1
                 end
             end
 
@@ -489,6 +513,11 @@ module.public = {
                     done = done,
                     pending = pending,
                     undone = undone,
+                    uncertain = uncertain,
+                    urgent = urgent,
+                    recurring = recurring,
+                    onhold = onhold,
+                    cancelled = cancelled,
                 })
 
                 for _, node_information in ipairs(nodes) do
@@ -503,6 +532,11 @@ module.public = {
                             data = data:gsub("<done>", tostring(node_information.done))
                             data = data:gsub("<pending>", tostring(node_information.pending))
                             data = data:gsub("<undone>", tostring(node_information.undone))
+                            data = data:gsub("<uncertain>", tostring(node_information.uncertain))
+                            data = data:gsub("<urgent>", tostring(node_information.urgent))
+                            data = data:gsub("<recurring>", tostring(node_information.recurring))
+                            data = data:gsub("<onhold>", tostring(node_information.onhold))
+                            data = data:gsub("<cancelled>", tostring(node_information.cancelled))
                             data = data:gsub(
                                 "<percentage>",
                                 tostring(math.floor(node_information.done / node_information.total * 100))
@@ -645,23 +679,10 @@ module.public = {
     end,
 }
 
-local function reparg(value, index)
-    if index == 1 then
-        return value
-    end
-
-    return value, reparg(value, index - 1)
-end
-
 module.config.public = {
     icon_preset = "basic",
 
     icons = {},
-
-    conceals = {
-        trailing = true,
-        link = true,
-    },
 
     dim_code_blocks = true,
 
@@ -740,7 +761,7 @@ module.config.public = {
                             )+
                         ] @progress
                 ]],
-                    reparg(module.private.todo_list_query, 6 * 2)
+                    neorg.lib.reparg(module.private.todo_list_query, 6 * 2)
                 ),
                 text = module.private.completion_level_base,
                 highlight = "DiagnosticVirtualTextHint",
@@ -887,10 +908,6 @@ module.on_event = function(event)
     -- Explain priorities and how we only schedule less important things to improve the average user
     -- experience
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        if module.config.public.conceals then
-            module.public.trigger_conceals()
-        end
-
         module.public.trigger_code_block_highlights()
         module.public.trigger_completion_levels()
         module.public.trigger_icons()

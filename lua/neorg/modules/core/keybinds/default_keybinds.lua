@@ -13,9 +13,13 @@ module.public = {
                 n = { -- Bind keys in normal mode
 
                     -- Keys for managing TODO items and setting their states
-                    { "gtd", "core.norg.qol.todo_items.todo.task_done" },
                     { "gtu", "core.norg.qol.todo_items.todo.task_undone" },
                     { "gtp", "core.norg.qol.todo_items.todo.task_pending" },
+                    { "gtd", "core.norg.qol.todo_items.todo.task_done" },
+                    { "gth", "core.norg.qol.todo_items.todo.task_on_hold" },
+                    { "gtc", "core.norg.qol.todo_items.todo.task_cancelled" },
+                    { "gtr", "core.norg.qol.todo_items.todo.task_recurring" },
+                    { "gti", "core.norg.qol.todo_items.todo.task_important" },
                     { "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" },
 
                     -- Keys for managing GTD
@@ -26,16 +30,10 @@ module.public = {
                     -- Keys for managing notes
                     { neorg_leader .. "nn", "core.norg.dirman.new.note" },
 
-                    { "<CR>", "core.norg.esupports.goto_link" },
-
-                    { "<C-s>", "core.integrations.telescope.find_linkable" },
+                    { "<CR>", "core.norg.esupports.hop.hop-link" },
 
                     { "<M-k>", "core.norg.manoeuvre.item_up" },
                     { "<M-j>", "core.norg.manoeuvre.item_down" },
-                },
-
-                i = {
-                    { "<C-l>", "core.integrations.telescope.insert_link" },
                 },
 
                 o = {

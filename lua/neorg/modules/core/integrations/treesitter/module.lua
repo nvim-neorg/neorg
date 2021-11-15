@@ -93,7 +93,7 @@ module.config.public = {
         },
 
         Marker = {
-            [""] = "+TSLabel",
+            Prefix = "+TSLabel",
             Title = "+Normal",
         },
 
@@ -114,6 +114,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
             ["2"] = {
                 [""] = "+NeorgUnorderedList2",
@@ -121,6 +126,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
             ["3"] = {
                 [""] = "+NeorgUnorderedList3",
@@ -128,6 +138,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
             ["4"] = {
                 [""] = "+NeorgUnorderedList4",
@@ -135,6 +150,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
             ["5"] = {
                 [""] = "+NeorgUnorderedList5",
@@ -142,6 +162,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
             ["6"] = {
                 [""] = "+NeorgUnorderedList6",
@@ -149,6 +174,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
         },
 
@@ -267,6 +297,16 @@ module.config.public = {
             },
         },
 
+        Anchor = {
+            Declaration = {
+                Delimiter = "+Normal",
+                Text = "+TSTextReference",
+            },
+            Definition = {
+                Delimiter = "+Normal",
+            },
+        },
+
         Insertion = {
             [""] = "cterm=bold gui=bold",
             Prefix = "+TSPunctDelimiter",
@@ -278,9 +318,100 @@ module.config.public = {
             Parameters = "+TSComment",
         },
 
+        Link = {
+            Text = {
+                [""] = "+TSURI",
+                Delimiter = "+Normal",
+            },
+
+            File = {
+                [""] = "+TSComment",
+                Delimiter = "+Normal",
+            },
+
+            Location = {
+                Delimiter = "+Normal",
+
+                URL = "+TSURI",
+
+                Generic = {
+                    [""] = "+TSType",
+                    Prefix = "+TSType",
+                },
+
+                ExternalFile = {
+                    [""] = "+TSLabel",
+                    Prefix = "+TSLabel",
+                },
+
+                Marker = {
+                    [""] = "+NeorgMarkerTitle",
+                    Prefix = "+NeorgMarkerPrefix",
+                },
+
+                Heading = {
+                    ["1"] = {
+                        [""] = "+NeorgHeading1Title",
+                        Prefix = "+NeorgHeading1Prefix",
+                    },
+
+                    ["2"] = {
+                        [""] = "+NeorgHeading2Title",
+                        Prefix = "+NeorgHeading2Prefix",
+                    },
+
+                    ["3"] = {
+                        [""] = "+NeorgHeading3Title",
+                        Prefix = "+NeorgHeading3Prefix",
+                    },
+
+                    ["4"] = {
+                        [""] = "+NeorgHeading4Title",
+                        Prefix = "+NeorgHeading4Prefix",
+                    },
+
+                    ["5"] = {
+                        [""] = "+NeorgHeading5Title",
+                        Prefix = "+NeorgHeading5Prefix",
+                    },
+
+                    ["6"] = {
+                        [""] = "+NeorgHeading6Title",
+                        Prefix = "+NeorgHeading6Prefix",
+                    },
+                },
+            },
+        },
+
+        Markup = {
+            Bold = "cterm=bold gui=bold",
+            Italic = "cterm=italic gui=italic",
+            Strikethrough = "cterm=strikethrough gui=strikethrough",
+            Underline = "cterm=underline gui=underline",
+            Variable = "+NeorgInsertionVariable",
+        },
+
         StrongParagraphDelimiter = "+TSPunctDelimiter",
         WeakParagraphDelimiter = "+TSPunctDelimiter",
         HorizontalLine = "+TSPunctDelimiter",
+
+        TrailingModifier = "+TSPunctDelimiter",
+
+        DocumentMeta = {
+            Key = "+TSField",
+            Value = "+TSString",
+            Carryover = "+TSRepeat",
+            Title = "+TSTitle",
+
+            Object = {
+                Bracket = "+TSPunctBracket",
+            },
+
+            Array = {
+                Bracket = "+TSPunctBracket",
+                Value = "+Normal",
+            },
+        },
     },
 
     dim = {
@@ -592,30 +723,6 @@ module.public = {
         descend(root)
     end,
 
-    get_link_info = function()
-        local node = module.private.ts_utils.get_node_at_cursor(0)
-
-        if not node then
-            return nil
-        end
-
-        local parent = node:parent()
-
-        if not parent then
-            return nil
-        end
-
-        if parent:type() == "link" and parent:named_child_count() > 1 then
-            return {
-                text = module.private.ts_utils.get_node_text(parent:named_child(0))[1],
-                location = module.private.ts_utils.get_node_text(parent:named_child(1))[1],
-                type = parent:named_child(1):type(),
-                range = module.public.get_node_range(parent),
-                node = parent,
-            }
-        end
-    end,
-
     -- Gets the range of a given node
     get_node_range = function(node)
         if not node then
@@ -665,16 +772,32 @@ module.public = {
     --- @return string The contents of the node in the form of a string
     get_node_text = function(node, buf)
         if not node then
-            return nil
+            return
         end
 
         local text = module.private.ts_utils.get_node_text(node, buf or 0)
 
         if not text then
-            return nil
+            return
         end
 
-        return text[1]
+        return text[#text] == "\n" and table.concat(vim.list_slice(text, 0, -2), " ") or table.concat(text, " ")
+    end,
+
+    find_parent = function(node, types)
+        local _node = node
+
+        while _node do
+            if type(types) == "string" then
+                if _node:type():match(types) then
+                    return _node
+                end
+            elseif vim.tbl_contains(types, _node:type()) then
+                return _node
+            end
+
+            _node = _node:parent()
+        end
     end,
 }
 

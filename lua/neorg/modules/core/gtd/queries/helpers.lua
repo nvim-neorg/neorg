@@ -162,15 +162,19 @@ module.public = {
 
     --- Checks whether the date starts after today
     --- @param date string
-    --- @param strict boolean #If today must be counted or not
+    --- @param strict boolean #if true, do not count today as started
     --- @return boolean
     starting_after_today = function(date, strict)
         local diff = module.public.diff_with_today(date)
+
         if strict then
-            return diff.days > 0 and diff.weeks > 0
-        else
-            return diff.days >= 0 and diff.weeks >= 0
+            local today = diff.days == 0 and diff.weeks == 0
+            if today then
+                return false
+            end
         end
+
+        return diff.days >= 0 and diff.weeks >= 0
     end,
 }
 
