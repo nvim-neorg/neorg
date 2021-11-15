@@ -96,6 +96,8 @@ module.public = {
         module.private.nodes = results
         results = queries.extract_nodes(results, { all_lines = true })
 
+        results = module.private.remove_blanklines(results)
+
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_norg_buffer("Norg Presenter", "nosplit", nil, false)
         vim.api.nvim_buf_call(buffer, function()
@@ -172,6 +174,29 @@ module.public = {
         module.private.current_page = 1
         module.private.buf = nil
         module.private.nodes = {}
+    end,
+}
+
+module.private = {
+    remove_blanklines = function(t)
+        local copy = t
+        for k, _t in pairs(copy) do
+            -- Stops at the first non-blankline text
+            local found_non_blankline = false
+
+            for i = #_t, 1, -1 do
+                if not found_non_blankline then
+                    local value = _t[i]
+                    value = string.gsub(value, "%s*", "")
+                    if value == "" then
+                        table.remove(copy[k], i)
+                    else
+                        found_non_blankline = true
+                    end
+                end
+            end
+        end
+        return copy
     end,
 }
 
