@@ -69,6 +69,7 @@ module.public = {
     end,
 
     --- Returns the end of the `project`
+    --- If the project has blank lines at the end, will not take them ino account
     --- @param project table
     --- @return number
     get_end_project = function(project)
@@ -76,8 +77,19 @@ module.public = {
             project = { project, "table" },
         })
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        local _, _, end_row, _ = ts_utils.get_node_range(project.node)
-        return end_row + 1
+        local sr = ts_utils.get_node_range(project.node)
+
+        -- Do not count blank lines at end of a project
+        local lines = ts_utils.get_node_text(project.node, project.bufnr)
+        local blank_lines = 0
+        for i = #lines, 1, -1 do
+            local value = lines[i]
+            value = string.gsub(value, "%s*", "")
+            if value == "" then
+                blank_lines = blank_lines + 1
+            end
+        end
+        return sr + #lines - blank_lines
     end,
 
     --- Returns the end of the document content position of a `file`
