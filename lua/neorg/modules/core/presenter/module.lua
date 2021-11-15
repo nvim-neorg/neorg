@@ -21,6 +21,10 @@ module.load = function()
     ---@diagnostic disable-next-line: unused-local
     local keybinds = module.required["core.keybinds"]
 
+    if module.config.public.truezen_mode == true then
+        neorg.modules.load_module("core.integrations.truezen", module.name)
+    end
+
     module.required["core.keybinds"].register_keybinds(module.name, { "next_page", "previous_page", "close" })
     -- Add neorgcmd capabilities
     module.required["core.neorgcmd"].add_commands_from_table({
@@ -43,7 +47,9 @@ module.load = function()
 end
 
 ---@class core.presenter.config
-module.config.public = {}
+module.config.public = {
+    truezen_mode = false,
+}
 
 module.private = {
     data = {},
@@ -56,9 +62,16 @@ module.private = {
 module.public = {
     version = "0.0.8",
     present = function()
+        if module.private.buf then
+            log.warn("Presentation already started")
+            return
+        end
         ---@type core.queries.native
         local queries = module.required["core.queries.native"]
 
+        if neorg.modules.is_module_loaded("core.integrations.truezen") then
+            neorg.modules.get_module("core.integrations.truezen").toggle_ataraxis()
+        end
         -- Get current file and check if it's a norg one
         local uri = vim.uri_from_bufnr(0)
         local fname = vim.uri_to_fname(uri)
@@ -91,13 +104,13 @@ module.public = {
 
         vim.api.nvim_buf_set_option(buffer, "modifiable", true)
         vim.api.nvim_buf_set_lines(buffer, 0, -1, false, results[1])
-        vim.api.nvim_buf_call(buffer, function()
-            vim.cmd("set scrolloff=999")
-        end)
+        -- vim.api.nvim_buf_call(buffer, function()
+        --     vim.cmd("set scrolloff=999")
+        -- end)
+
         vim.api.nvim_buf_set_option(buffer, "modifiable", false)
 
         module.required["core.mode"].set_mode("presenter")
-
         module.private.buf = buffer
         module.private.data = results
     end,
@@ -149,6 +162,10 @@ module.public = {
         -- Go back to previous mode
         local previous_mode = module.required["core.mode"].get_previous_mode()
         module.required["core.mode"].set_mode(previous_mode)
+
+        if neorg.modules.is_module_loaded("core.integrations.truezen") then
+            neorg.modules.get_module("core.integrations.truezen").toggle_ataraxis()
+        end
 
         vim.api.nvim_buf_delete(module.private.buf, {})
         module.private.data = {}
