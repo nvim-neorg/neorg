@@ -1,5 +1,28 @@
 local module = neorg.modules.extend("core.gtd.queries.retrievers")
 
+---@class core.gtd.queries.task
+---@field bufnr number
+---@field node userdata
+---@field content string
+---@field project string|nil
+---@field project_node userdata|nil
+---@field state string
+---@field contexts string[]|nil
+---@field waiting.for string[]|nil
+---@field time.start string[]|nil
+---@field time.due string[]|nil
+---@field position number
+
+---@class core.gtd.queries.project
+---@field bufnr number
+---@field node userdata
+---@field content string
+---@field contexts string[]|nil
+---@field waiting.for string[]|nil
+---@field time.start string[]|nil
+---@field time.due string[]|nil
+---@field position number
+
 module.public = {
     --- Get a table of all `type` in workspace
     --- @param type string
@@ -55,7 +78,7 @@ module.public = {
             local configs = neorg.modules.get_module_config("core.gtd.base")
             local files = module.required["core.norg.dirman"].get_norg_files(configs.workspace)
 
-            if not files then
+            if vim.tbl_isempty(files) then
                 log.error("No files found in " .. configs.workspace .. " workspace.")
                 return
             end
@@ -117,7 +140,7 @@ module.public = {
     ---   - opts.extract (bool):   if false does not extract the content from the nodes
     ---   - opts.same_node (bool): if true, will only fetch metadatas from the node and not parent ones.
     ---   It will not fetch metadatas that group tasks or projects
-    --- @return table
+    --- @return core.gtd.queries.project|core.gtd.queries.task
     add_metadata = function(nodes, type, opts)
         vim.validate({
             nodes = { nodes, "table" },
@@ -146,13 +169,18 @@ module.public = {
 
             if type == "task" then
                 exported.project = module.private.get_task_project(exported, opts)
+                exported.project_node = module.private.get_task_project(exported, { project_node = true })
                 exported.state = module.private.get_task_state(exported, opts)
             end
 
-            exported.contexts = module.private.get_tag("contexts", exported, type, opts)
-            exported["time.start"] = module.private.get_tag("time.start", exported, type, opts)
-            exported["time.due"] = module.private.get_tag("time.due", exported, type, opts)
-            exported["waiting.for"] = module.private.get_tag("waiting.for", exported, type, opts)
+            ---@type core.gtd.base.config
+            local config = neorg.modules.get_module_config("core.gtd.base")
+            local syntax = config.syntax
+
+            exported.contexts = module.private.get_tag(string.sub(syntax.context, 2), exported, type, opts)
+            exported["time.start"] = module.private.get_tag(string.sub(syntax.start, 2), exported, type, opts)
+            exported["time.due"] = module.private.get_tag(string.sub(syntax.due, 2), exported, type, opts)
+            exported["waiting.for"] = module.private.get_tag(string.sub(syntax.waiting, 2), exported, type, opts)
 
             -- Add position in file for each node
             if not previous_bufnr_tbl[exported.bufnr] then
@@ -178,9 +206,9 @@ module.public = {
             sorter = {
                 sorter,
                 function(s)
-                    return vim.tbl_contains({ "waiting.for", "contexts", "project" }, s)
+                    return vim.tbl_contains({ "waiting.for", "contexts", "project", "project_node" }, s)
                 end,
-                "waiting.for|contexts|projects",
+                "waiting.for|contexts|projects|project_node",
             },
             tasks = { nodes, "table" },
         })
@@ -204,6 +232,8 @@ module.public = {
                     end
                 elseif type(t[sorter]) == "string" then
                     insert(res, t[sorter], t)
+                elseif type(t[sorter]) == "userdata" then
+                    insert(res, t[sorter]:id(), t)
                 end
             end
         end
@@ -281,6 +311,10 @@ module.private = {
 
         if not project_node[1] then
             return nil
+        end
+
+        if not opts.extract and opts.project_node then
+            return project_node[1]
         end
 
         local tree = {

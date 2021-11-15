@@ -41,6 +41,7 @@ module.config.public = {
     neorg_leader = "<Leader>o",
 }
 
+---@class core.keybinds
 module.public = {
 
     -- Define neorgcmd autocompletions and commands
@@ -60,10 +61,9 @@ module.public = {
 
     keybinds = {},
 
-    -- @Summary Registers a new keybind
-    -- @Description Adds a new keybind to the database of known keybinds
-    -- @Param  module_name (string) - the name of the module that owns the keybind. Make sure it's an absolute path.
-    -- @Param  name (string) - the name of the keybind. The module_name will be prepended to this string to form a unique name.
+    -- Adds a new keybind to the database of known keybinds
+    -- @param module_name string #the name of the module that owns the keybind. Make sure it's an absolute path.
+    -- @param name string  #the name of the keybind. The module_name will be prepended to this string to form a unique name.
     register_keybind = function(module_name, name)
         -- Create the full keybind name
         local keybind_name = module_name .. "." .. name

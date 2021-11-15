@@ -2,7 +2,7 @@ local module = neorg.modules.extend("core.gtd.queries.modifiers")
 
 module.public = {
     --- Modifies an `option` from `object` (the content must not be extracted!) with new `value`
-    --- @param object table
+    --- @param object core.gtd.queries.task|core.gtd.queries.project
     --- @param node_type string
     --- @param option string
     --- @param value string|table
@@ -78,7 +78,7 @@ module.public = {
     end,
 
     --- Delete a node from an `object` with `option` key
-    --- @param object table
+    --- @param object core.gtd.queries.project|core.gtd.queries.task
     --- @param option string
     delete = function(object, node_type, option)
         vim.validate({
@@ -129,7 +129,7 @@ module.public = {
 
     --- Update a specific `node` with `type`.
     --- Note: other nodes don't get updated ! If you want to update all nodes, just redo a module.required["core.gtd.queries"].get
-    --- @param node table #A task/project with metadatas
+    --- @param node core.gtd.queries.project|core.gtd.queries.task
     --- @param node_type string
     update = function(node, node_type)
         vim.validate({
