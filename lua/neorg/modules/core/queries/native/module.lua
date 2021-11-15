@@ -52,6 +52,7 @@ module.examples = {
     end,
 }
 
+---@class core.queries.native
 module.public = {
     --- Recursively generates results from a `parent` node, following a `tree` table
     --- @see First implementation in: https://github.com/danymat/neogen/blob/main/lua/neogen/utilities/nodes.lua
@@ -116,14 +117,22 @@ module.public = {
 
     --- Extract content from `nodes` of type { node, bufnr }
     --- @param nodes table
+    --- @param opts table
+    ---   - opts.all_lines (bool)    if true, will return all lines instead of the first one
     --- @return table
-    extract_nodes = function(nodes)
+    extract_nodes = function(nodes, opts)
+        opts = opts or {}
         local res = {}
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         for _, node in ipairs(nodes) do
             local extracted = ts_utils.get_node_text(node[1], node[2])
-            table.insert(res, extracted[1])
+
+            if opts.all_lines then
+                table.insert(res, extracted)
+            else
+                table.insert(res, extracted[1])
+            end
         end
         return res
     end,
