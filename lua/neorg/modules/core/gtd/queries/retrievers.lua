@@ -88,7 +88,7 @@ module.public = {
             local configs = neorg.modules.get_module_config("core.gtd.base")
             local files = module.required["core.norg.dirman"].get_norg_files(configs.workspace)
 
-            if not files then
+            if vim.tbl_isempty(files) then
                 log.error("No files found in " .. configs.workspace .. " workspace.")
                 return
             end
