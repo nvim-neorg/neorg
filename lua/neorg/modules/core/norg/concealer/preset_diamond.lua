@@ -676,25 +676,44 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
     url = {
         enabled = true,
-        text = {
+
+        link = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgURLText",
-            query = "(link_text) @icon",
-            render = function(self, text)
+            highlight = "NeorgLinkText",
+            query = "(link) @icon",
+            render = function(self, text, node)
+                local concealed_text = ""
+                local highlight = self.highlight
+                local ts = module.required["core.integrations.treesitter"]
+                local location = node:named_child(0)
+                local description = node:named_child(1)
+                if description ~= nil then
+                    concealed_text = ts.get_node_text(description:named_child(0))
+                else
+                    concealed_text = ts.get_node_text(location)
+                    highlight = ""
+                    -- TODO: perform concealing + highlighting based on link_type
+                end
                 return {
-                    { text:gsub("%[(.+)%]", self.icon .. "%1" .. self.icon), self.highlight },
+                    { concealed_text .. string.rep(self.icon, #text - #concealed_text), highlight },
                 }
             end,
         },
-        location = {
+
+        anchor = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgURLLocation",
-            query = "(link_location) @icon",
-            render = function(self, text)
+            highlight = "NeorgAnchorDeclerationText",
+            query = "(anchor_declaration) @icon",
+            render = function(self, text, node)
+                local ts = module.required["core.integrations.treesitter"]
+                local addon = ""
+                if node:parent():type() == "anchor_definition" then
+                    addon = string.rep(self.icon, 2 + #ts.get_node_text(node:parent():named_child(1)))
+                end
                 return {
-                    { string.rep(self.icon, #text), self.highlight },
+                    { text:gsub("%[(.+)%]", self.icon .. "%1" .. self.icon) .. addon, highlight },
                 }
             end,
         },
