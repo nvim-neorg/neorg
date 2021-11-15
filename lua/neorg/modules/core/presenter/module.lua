@@ -21,8 +21,10 @@ module.load = function()
     ---@diagnostic disable-next-line: unused-local
     local keybinds = module.required["core.keybinds"]
 
-    if module.config.public.truezen_mode == true then
+    if module.config.public.zen_mode == "truezen" then
         neorg.modules.load_module("core.integrations.truezen", module.name)
+    elseif module.config.public.zen_mode == "zen-mode" then
+        neorg.modules.load_module("core.integrations.zen_mode", module.name)
     end
 
     module.required["core.keybinds"].register_keybinds(module.name, { "next_page", "previous_page", "close" })
@@ -48,7 +50,7 @@ end
 
 ---@class core.presenter.config
 module.config.public = {
-    truezen_mode = false,
+    zen_mode = "",
 }
 
 module.private = {
@@ -69,8 +71,14 @@ module.public = {
         ---@type core.queries.native
         local queries = module.required["core.queries.native"]
 
-        if neorg.modules.is_module_loaded("core.integrations.truezen") then
+        if
+            module.config.public.zen_mode == "truezen" and neorg.modules.is_module_loaded("core.integrations.truezen")
+        then
             neorg.modules.get_module("core.integrations.truezen").toggle_ataraxis()
+        elseif
+            module.config.public.zen_mode == "zen-mode" and neorg.modules.is_module_loaded("core.integrations.zen_mode")
+        then
+            neorg.modules.get_module("core.integrations.zen_mode").toggle()
         end
         -- Get current file and check if it's a norg one
         local uri = vim.uri_from_bufnr(0)
@@ -165,8 +173,14 @@ module.public = {
         local previous_mode = module.required["core.mode"].get_previous_mode()
         module.required["core.mode"].set_mode(previous_mode)
 
-        if neorg.modules.is_module_loaded("core.integrations.truezen") then
+        if
+            module.config.public.zen_mode == "truezen" and neorg.modules.is_module_loaded("core.integrations.truezen")
+        then
             neorg.modules.get_module("core.integrations.truezen").toggle_ataraxis()
+        elseif
+            module.config.public.zen_mode == "zen-mode" and neorg.modules.is_module_loaded("core.integrations.zen_mode")
+        then
+            neorg.modules.get_module("core.integrations.zen_mode").toggle()
         end
 
         vim.api.nvim_buf_delete(module.private.buf, {})
