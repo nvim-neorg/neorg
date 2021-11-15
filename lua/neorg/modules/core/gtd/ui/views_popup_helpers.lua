@@ -132,12 +132,48 @@ module.private = {
     end,
 
     generate_project_flags = function(selection, task, flag)
-        return selection:flag("p", "Add to project", {
+        return selection:flag(flag, "Add to project", {
             callback = function()
-                --[[ selection
-                    :listener("go-back", { "<BS>" }, selection.pop_page)
-                    :text("Helo") ]]
-                log.warn("Unimplemented :(")
+                selection:push_page()
+
+                selection:title("Add to project"):blank():text("Append task to existing project")
+
+                -- Get all projects
+                local projects = module.required["core.gtd.queries"].get("projects")
+                --- @type core.gtd.queries.project
+                projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
+
+                -- Use the alphabet to generate flag keys
+                -- NOTE: If there is more than 26 projects, will stop there
+                local alphabet = "abcdefghijklmnopqrstuvwxyz"
+                local index = 0
+
+                for _, project in pairs(projects) do
+                    index = (index % #alphabet) + 1
+                    if index == 0 then
+                        selection:text("Too much projects to display...")
+                        break
+                    end
+                    local f = alphabet:sub(index, index)
+                    selection:flag(f, project.content, function()
+                        local location = module.required["core.gtd.queries"].get_end_project(project)
+                        module.required["core.gtd.queries"].create(
+                            "task",
+                            task,
+                            project.bufnr,
+                            location,
+                            false,
+                            { newline = false }
+                        )
+                        vim.cmd(string.format([[echom '%s']], 'Task added to "' .. project.content .. '".'))
+                    end)
+                end
+
+                selection:blank():text("Create new project"):flag("x", "Create new project", {
+                    callback = function()
+                        log.warn("Unimplemented :(")
+                    end,
+                })
             end,
             destroy = false,
         })
@@ -172,10 +208,10 @@ module.private = {
                         return module.private.generate_date_flags(selection, task, "time.start", "s")
                     end)
                     :blank()
+                    :text("Insert")
                     :concat(function()
                         return module.private.generate_project_flags(selection, task, "p")
                     end)
-                    :blank()
                     :flag("x", "Add to cursor position", function()
                         local cursor = vim.api.nvim_win_get_cursor(0)
                         local location = cursor[1] - 1
