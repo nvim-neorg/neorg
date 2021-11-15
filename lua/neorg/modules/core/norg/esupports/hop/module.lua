@@ -345,6 +345,52 @@ module.public = {
     end,
 }
 
+module.private = {
+    calculate_similarity = function(lhs, rhs)
+        -- Damerau-levenstein implementation
+        -- https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
+        local str1 = string.lower(lhs)
+        local str2 = string.lower(rhs)
+        local matrix = {}
+        local cost
+
+        -- build matrix
+        for i = 0, #str1 do
+            matrix[i] = {}
+            matrix[i][0] = i
+        end
+
+        for j = 0, #str2 do
+            matrix[0][j] = j
+        end
+
+        for j = 1, #str2 do
+            for i = 1, #str1 do
+                if str1:sub(i, i) == str2:sub(j, j) then
+                    cost = 0
+                else
+                    cost = 1
+                end
+                matrix[i][j] = math.min(matrix[i-1][j] + 1, matrix[i][j-1] + 1, matrix[i-1][j-1] + cost)
+                if i > 1 and j > 1 and str1:sub(i, i) == str2:sub(j-1, j-1) and str1:sub(i-1, i-1) == str2:sub(j, j) then
+                    matrix[i][j] = math.min(matrix[i][j], matrix[i-2][j-2] + cost)
+                end
+            end
+        end
+
+        return matrix[#str1][#str2] / (#str1 + #str2)
+    end,
+
+    fix_link_loose = function(parsed_link_information)
+    end,
+
+    fix_link_strict = function(parsed_link_information)
+    end,
+
+    fix_link = function()
+    end,
+}
+
 module.on_event = function(event)
     if event.split_type[2] == "core.norg.esupports.hop.hop-link" then
         local link_node_at_cursor = module.public.extract_link_node()
@@ -421,12 +467,12 @@ module.on_event = function(event)
             :desc("The most common action will be to try and fix the link.")
             :desc("Fixing the link will perform a fuzzy search on every item in the file")
             :desc("and make the link point to the closest match:")
-            :flag("f", "Attempt to fix the link")
+            :flag("f", "Attempt to fix the link", neorg.lib.wrap(module.private.fix_link_loose, parsed_link))
             :blank()
             :desc("Does the same as the above keybind, however limits matches to those")
             :desc("of the same type as the link. This means that if your link points to")
             :desc("a level-1 heading a fuzzy search will be done only for level-1 headings:")
-            :flag("F", "Attempt to fix the link (with stricter searches)")
+            :flag("F", "Attempt to fix the link (with stricter searches)", neorg.lib.wrap(module.private.fix_link_strict, parsed_link))
             :blank()
             :desc("Instead of fixing the link you may actually want to create the target:")
             :flag("a", "Place target above current link parent")
