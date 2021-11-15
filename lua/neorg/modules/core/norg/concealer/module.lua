@@ -361,12 +361,12 @@ module.public = {
 					-- NOTE: this is what fails for the second language
 					-- TODO: replace with non-vimL functions
 					local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "syntax/"..regex_language..".vim", false, true)
-					if output[1] ~= nil or output[1] ~= '' then
+					if output[1] ~= nil then
 						local command = "syntax include @"..group.." "..output[1]
 						vim.cmd(command)
 					end
 					local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "after/syntax/"..regex_language..".vim", false, true)
-					if output[1] ~= nil or output[1] ~= '' then
+					if output[1] ~= nil then
 						local command = "syntax include @"..group.." "..output[1]
 						vim.cmd(command)
 					end
