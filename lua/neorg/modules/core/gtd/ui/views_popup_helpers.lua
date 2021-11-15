@@ -219,7 +219,6 @@ module.private = {
     end,
 
     generate_display_flags = function(selection, tasks, projects)
-
         selection
             :text("Top priorities")
             :flag("s", "Weekly Summary", function()
