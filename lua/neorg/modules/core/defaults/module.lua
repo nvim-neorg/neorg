@@ -1,7 +1,9 @@
 --[[
     File: Defaults
-    This file contains all of the most important
-    modules that any user would want to have a "just works" experience.
+    Summary: Metamodule for storing the most necessary modules.
+    ---
+This file contains all of the most important
+modules that any user would want to have a "just works" experience.
 --]]
 
 require("neorg.modules.base")
@@ -15,6 +17,7 @@ return neorg.modules.create_meta(
     "core.norg.qol.todo_items",
     "core.norg.esupports",
     "core.norg.esupports.metagen",
+    "core.norg.esupports.hop",
     "core.integrations.treesitter",
     "core.norg.manoeuvre"
 )

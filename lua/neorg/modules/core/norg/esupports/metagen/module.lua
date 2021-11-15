@@ -31,7 +31,7 @@ module.config.public = {
             end,
         },
         { "description", "" },
-        { "author", require("neorg.external.helpers").get_username },
+        { "authors", require("neorg.external.helpers").get_username },
         { "categories", "" },
         {
             "created",
@@ -48,11 +48,9 @@ module.public = {
         local query = vim.treesitter.parse_query(
             "norg",
             [[
-                 (foreplay
-                     (ranged_tag
-                         (tag_name) @name
-                         (#eq? @name "document.meta")
-                     )
+                 (ranged_tag
+                     (tag_name) @name
+                     (#eq? @name "document.meta")
                  )
             ]]
         )
@@ -120,7 +118,7 @@ module.on_event = function(event)
         and event.content.norg
         and module.config.public.type == "auto"
     then
-        module.public.inject_metadata()
+        -- module.public.inject_metadata()
     end
 end
 

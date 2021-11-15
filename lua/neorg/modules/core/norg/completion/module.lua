@@ -214,9 +214,14 @@ module.public = {
             regex = "^%s*%-+%s+%[([x%*%s]?)",
 
             complete = {
-                "[ ] ",
-                "[*] ",
-                "[x] ",
+                { "[ ] ", label = "[ ] (undone)" },
+                { "[-] ", label = "[-] (pending)" },
+                { "[x] ", label = "[x] (done)" },
+                { "[_] ", label = "[_] (cancelled)" },
+                { "[!] ", label = "[!] (important)" },
+                { "[+] ", label = "[+] (recurring)" },
+                { "[=] ", label = "[=] (on hold)" },
+                { "[?] ", label = "[?] (uncertain)" },
             },
 
             options = {

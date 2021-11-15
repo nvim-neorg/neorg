@@ -1,10 +1,8 @@
 --[[
-   File: Autocommands
-# Autocommand module for Neorg
-
-This module exposes functionality for subscribing to autocommands and performing actions based on those autocommands
-
-## Summary
+    File: Autocommands
+    Summary: Handles the creation and management of Neovim's autocommands.
+    ---
+This module exposes functionality for subscribing to autocommands and performing actions based on those autocommands.
 
 In your `module.setup()`, make sure to require core.autocommands (requires = { "core.autocommands" })
 Afterwards in a function of your choice that gets called *after* core.autocommmands gets intialized e.g. load():
@@ -91,7 +89,7 @@ module.public = {
         end
     end,
 
-    version = "0.0.9",
+    version = "0.0.8",
 }
 
 -- All the subscribeable events for core.autocommands
