@@ -586,9 +586,7 @@ module.public = {
                 -- Set up the configuration by properly merging everything
                 local configuration = vim.tbl_deep_extend("force", {
                     highlight = "Normal",
-                }, self:options_for(
-                    "stateof"
-                ))
+                }, self:options_for("stateof"))
 
                 self:add("stateof", key, format)
 
