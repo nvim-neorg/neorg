@@ -678,15 +678,10 @@ module.private = {
             return
         end
 
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        local a, b, c, d = ts_utils.get_node_range(node)
-        _tasks["_"] = nil
-        local nodes = vim.tbl_keys(_tasks)
-        for _, _node in pairs(nodes) do
-            local a1, b1, c1, d1 = ts_utils.get_node_range(_node)
-            if a == a1 and b == b1 and c == c1 and d == d1 then
-                return _tasks[_node]
-            end
+        for _node_id, tasks in pairs(_tasks) do
+           if _node_id == node:id()  then
+               return tasks
+           end
         end
     end,
 }
