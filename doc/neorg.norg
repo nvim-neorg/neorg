@@ -23,8 +23,8 @@
     - \`inline code\`: `inline code`
     - \^superscript\^: ^superscript^    | cannot exist within a subscript block
     - \,subscript\,: ,subscript,        | cannot exist within a superscript block
-    - \$inline math\$: $f(x) = y$ (see also {# math})
-    - \=variable\=: =variable= (see also {# variables})
+    - \$inline math\$: $f(x) = y$ (see also {# Math})
+    - \=variable\=: =variable= (see also {# Variables})
     - \+inline comment\+: +inline comment+
 
     This also immediately shows you how to escape a special character using the backslash, \\.
@@ -358,7 +358,7 @@
       = ToC Table of Contents
       @end
       This shows the basic syntax `= <capitalized insertion name> <arguments>` and it also explains
-      why {# variables} have to be lowercased.
+      why {# Variables} have to be lowercased.
 
 #comment
 vim:tw=100:ft=norg:norl:
