@@ -75,23 +75,6 @@ module.config.public = {
 
         Error = "+TSError",
 
-        Bold = "+TSStrong",
-        Italic = "+TSEmphasis",
-        Underline = "+TSUnderline",
-        Strikethrough = "+TSStrike",
-        Spoiler = "+TSDanger",
-        Subscript = "+TSString",
-        Superscript = "+TSNumber",
-
-        Math = "+TSMath",
-        Variable = "+TSKeyword",
-        Comment = "+TSComment",
-
-        URL = {
-            Text = "+TSURI",
-            Location = "+TSType",
-        },
-
         Marker = {
             Prefix = "+TSLabel",
             Title = "+Normal",
@@ -384,10 +367,14 @@ module.config.public = {
         },
 
         Markup = {
-            Bold = "cterm=bold gui=bold",
-            Italic = "cterm=italic gui=italic",
-            Strikethrough = "cterm=strikethrough gui=strikethrough",
-            Underline = "cterm=underline gui=underline",
+            Bold = "+TSStrong",
+            Italic = "+TSEmphasis",
+            Underline = "+TSUnderline",
+            Strikethrough = "+TSStrike",
+            Spoiler = "+TSDanger",
+            Subscript = "+TSLabel",
+            Superscript = "+TSNumber",
+            Math = "+TSMath",
             Variable = "+NeorgInsertionVariable",
         },
 
