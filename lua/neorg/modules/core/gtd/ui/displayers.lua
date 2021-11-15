@@ -679,9 +679,9 @@ module.private = {
         end
 
         for _node_id, tasks in pairs(_tasks) do
-           if _node_id == node:id()  then
-               return tasks
-           end
+            if _node_id == node:id() then
+                return tasks
+            end
         end
     end,
 }
