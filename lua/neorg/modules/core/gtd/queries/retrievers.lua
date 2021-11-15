@@ -5,6 +5,7 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 ---@field node userdata
 ---@field content string
 ---@field project string|nil
+---@field project_node userdata|nil
 ---@field state string
 ---@field contexts string[]|nil
 ---@field waiting.for string[]|nil
@@ -13,6 +14,8 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 ---@field position number
 
 ---@class core.gtd.queries.project
+---@field bufnr number
+---@field node userdata
 ---@field content string
 ---@field contexts string[]|nil
 ---@field waiting.for string[]|nil
@@ -176,6 +179,7 @@ module.public = {
 
             if type == "task" then
                 exported.project = module.private.get_task_project(exported, opts)
+                exported.project_node = module.private.get_task_project(exported, { project_node = true })
                 exported.state = module.private.get_task_state(exported, opts)
             end
 
@@ -212,9 +216,9 @@ module.public = {
             sorter = {
                 sorter,
                 function(s)
-                    return vim.tbl_contains({ "waiting.for", "contexts", "project" }, s)
+                    return vim.tbl_contains({ "waiting.for", "contexts", "project", "project_node" }, s)
                 end,
-                "waiting.for|contexts|projects",
+                "waiting.for|contexts|projects|project_node",
             },
             tasks = { nodes, "table" },
         })
@@ -236,7 +240,7 @@ module.public = {
                     for _, s in pairs(t[sorter]) do
                         insert(res, s, t)
                     end
-                elseif type(t[sorter]) == "string" then
+                elseif type(t[sorter]) == "string" or type(t[sorter]) == "userdata" then
                     insert(res, t[sorter], t)
                 end
             end
@@ -315,6 +319,10 @@ module.private = {
 
         if not project_node[1] then
             return nil
+        end
+
+        if not opts.extract and opts.project_node then
+            return project_node[1]
         end
 
         local tree = {
