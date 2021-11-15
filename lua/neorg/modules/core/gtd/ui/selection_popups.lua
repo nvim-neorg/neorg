@@ -2,6 +2,23 @@ local module = neorg.modules.extend("core.gtd.ui.selection_popups")
 
 module.public = {
     show_views_popup = function()
+        -- Exlude files explicitely provided by the user, and the inbox file
+        local configs = neorg.modules.get_module_config("core.gtd.base")
+        local exclude_files = configs.exclude
+        table.insert(exclude_files, configs.default_lists.inbox)
+
+        -- Get tasks and projects
+        local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = exclude_files })
+        local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = exclude_files })
+
+        -- Error out when no projects
+        if not tasks or not projects then
+            return
+        end
+
+        tasks = module.required["core.gtd.queries"].add_metadata(tasks, "task")
+        projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
+
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_split("Quick Actions")
         local selection = module.required["core.ui"].begin_selection(buffer):listener(
@@ -13,8 +30,7 @@ module.public = {
         )
 
         selection:title("Views"):blank():concat(function(_selection)
-            local configs = neorg.modules.get_module_config("core.gtd.base")
-            return module.private.generate_display_flags(_selection, configs)
+            return module.private.generate_display_flags(_selection, tasks, projects)
         end)
 
         module.private.display_messages()
