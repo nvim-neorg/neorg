@@ -334,6 +334,7 @@ module.public = {
 
 					-- NOTE: the regex fallback code was mostly adapted from Vimwiki
 					-- It's a very good implementation of nested vim regex
+					regex_language = regex_language:gsub("%s+", "") -- need to trim out whitespace
 					local group = "textGroup" .. string.upper(regex_language)
 					local snip = "textSnip"..string.upper(regex_language)
 					local start_marker = "@code "..regex_language
