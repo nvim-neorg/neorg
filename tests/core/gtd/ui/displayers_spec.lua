@@ -3,6 +3,7 @@ require("tests.config")
 
 -- Get the required module
 local ui = neorg.modules.get_module("core.gtd.ui")
+local queries = neorg.modules.get_module("core.gtd.queries")
 
 local t = function(str)
     return vim.api.nvim_replace_termcodes(str, true, true, true)
@@ -168,46 +169,17 @@ describe("CORE.GTD.UI - Displayers:", function()
     end)
 
     it("Displays projects", function()
-        local tasks = {
-            {
-                content = "task1",
-                contexts = { "home", "mac" },
-                project = "project1",
-                state = "undone",
-            },
-            {
-                content = "task2",
-                contexts = { "home", "mac" },
-                project = "project2",
-                state = "done",
-            },
-            {
-                content = "task3",
-                project = "project2",
-                state = "undone",
-            },
-            {
-                content = "task4",
-                state = "undone",
-            },
-        }
-        local projects = {
-            {
-                content = "project1",
-                contexts = { "home" },
-            },
-            {
-                content = "project2",
-            },
-        }
+        local tasks = queries.get("tasks")
+        tasks = queries.add_metadata(tasks, "task")
+        local projects = queries.get("projects")
+        projects = queries.add_metadata(projects, "project")
 
         local buf = ui.display_projects(tasks, projects)
         assert.is_number(buf)
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 
-        assert.is_true(vim.tbl_contains(lines, "* project1 (0/1 done)"))
-        assert.is_true(vim.tbl_contains(lines, "* project2 (1/2 done)"))
-        assert.is_true(vim.tbl_contains(lines, "- /1 tasks don't have a project assigned/"))
+        assert.is_true(vim.tbl_contains(lines, "* Project (1/3 done)"))
+        assert.is_true(vim.tbl_contains(lines, "* Project2 (0/2 done)"))
 
         vim.api.nvim_buf_delete(buf, {})
     end)

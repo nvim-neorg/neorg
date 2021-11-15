@@ -98,6 +98,7 @@ module.private = {
     current_workspace = { "default", vim.fn.getcwd() },
 }
 
+---@class core.norg.dirman
 module.public = {
 
     -- @Summary Returns a list of all the workspaces
