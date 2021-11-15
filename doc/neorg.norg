@@ -177,6 +177,8 @@ consective new lines.
       @code norg
       An inline link to {| my marker}.
       @end
+      An inline link to {| my marker}.
+
       The text used for this link can be inferred from the /target/.
       If it is not a norg-target, this falls back to the URL or filename, etc.
 
@@ -184,6 +186,8 @@ consective new lines.
       @code norg
       An inline link {| my marker}[with custom text].
       @end
+      An inline link {| my marker}[with custom text].
+
       This links to the same marker but uses a custom link text.
 
   *** Anchors
@@ -192,6 +196,10 @@ consective new lines.
 
       [our website]{https://github.com/nvim-neorg/neorg}
       @end
+      A link to [our website].
+
+      [our website]{https://github.com/nvim-neorg/neorg}
+
       The standalone link /text/ is called an *anchor declaration*.
       It requires an *anchor definition* (last line in the code block) which defines where an anchored link points to.
       This is very useful when you find yourself refering to the same target often.
