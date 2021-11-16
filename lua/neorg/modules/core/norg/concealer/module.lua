@@ -314,85 +314,86 @@ module.public = {
 
             -- look for language name in code blocks
             -- this will not finish if a treesitter parser exists for the current language found
-			for id, node in code_lang:iter_captures(tree:root(), 0, from or 0, -1) do
-				local lang_name = code_lang.captures[id]
+						for id, node in code_lang:iter_captures(tree:root(), 0, from or 0, -1) do
+							local lang_name = code_lang.captures[id]
 
-				-- only look at nodes that have the language query
-				if lang_name == "language" then
-					local regex_language = vim.treesitter.get_node_text(node, 0)
-					-- see if parser exists
-					local ok, result = pcall(
-						vim.treesitter.require_language,
-						regex_language,
-						true
-					)
+							-- only look at nodes that have the language query
+							if lang_name == "language" then
+								local regex_language = vim.treesitter.get_node_text(node, 0)
+								-- see if parser exists
+								local ok, result = pcall(
+									vim.treesitter.require_language,
+									regex_language,
+									true
+								)
 
-					-- if pcall was true we had parser, skip the rest
-					if ok and result then
-						goto continue
-					end
+								-- if pcall was true we had parser, skip the rest
+								if ok and result then
+									goto continue
+								end
 
-					-- NOTE: the regex fallback code was mostly adapted from Vimwiki
-					-- It's a very good implementation of nested vim regex
-					regex_language = regex_language:gsub("%s+", "") -- need to trim out whitespace
-					local group = "textGroup" .. string.upper(regex_language)
-					local snip = "textSnip"..string.upper(regex_language)
-					local start_marker = "@code "..regex_language
-					local end_marker = "@end"
+								-- NOTE: the regex fallback code was mostly adapted from Vimwiki
+								-- It's a very good implementation of nested vim regex
+								regex_language = regex_language:gsub("%s+", "") -- need to trim out whitespace
+								local group = "textGroup" .. string.upper(regex_language)
+								local snip = "textSnip"..string.upper(regex_language)
+								local start_marker = "@code "..regex_language
+								local end_marker = "@end"
 
-					-- if our region syntax group exists, quit out
-					-- this stops repeat groups from forming on text update
-					-- NOTE: potenial nvim api call can be used here
-					if vim.fn.hlexists(snip) == 1 then
-						goto continue
-					end
+								-- if our region syntax group exists, quit out
+								-- this stops repeat groups from forming on text update
+								-- NOTE: potenial nvim api call can be used here
+								if vim.fn.hlexists(snip) == 1 then
+									goto continue
+								end
 
-					-- pass off the current syntax buffer var so things can load
-					local current_syntax = ""
-					if vim.b.current_syntax ~= '' or vim.b.current_syntax ~= nil then
-						vim.b.current_syntax = regex_language
-					    current_syntax = vim.b.current_syntax
-						vim.b.current_syntax = nil
-					end
+								-- pass off the current syntax buffer var so things can load
+								local current_syntax = ""
+								if vim.b.current_syntax ~= '' or vim.b.current_syntax ~= nil then
+									vim.b.current_syntax = regex_language
+										current_syntax = vim.b.current_syntax
+									vim.b.current_syntax = nil
+								end
 
-					-- temporarily pass off keywords in case they get messed up
-					local is_keyword = vim.api.nvim_buf_get_option(0, "iskeyword")
+								-- temporarily pass off keywords in case they get messed up
+								local is_keyword = vim.api.nvim_buf_get_option(0, "iskeyword")
 
-					-- see if the syntax files even exist before we try to call them
-					-- NOTE: this is what fails for the second language
-					-- TODO: replace with non-vimL functions
-					local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "syntax/"..regex_language..".vim", false, true)
-					if output[1] ~= nil then
-						local command = "syntax include @"..group.." "..output[1]
-						vim.cmd(command)
-					end
-					local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "after/syntax/"..regex_language..".vim", false, true)
-					if output[1] ~= nil then
-						local command = "syntax include @"..group.." "..output[1]
-						vim.cmd(command)
-					end
+								-- see if the syntax files even exist before we try to call them
+								-- NOTE: this is what fails for the second language
+								-- TODO: replace with non-vimL functions
+								local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "syntax/"..regex_language..".vim", false, true)
+								if output[1] ~= nil then
+									local command = "syntax include @"..group.." "..output[1]
+									vim.cmd(command)
+								end
+								local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "after/syntax/"..regex_language..".vim", false, true)
+								if output[1] ~= nil then
+									local command = "syntax include @"..group.." "..output[1]
+									vim.cmd(command)
+								end
 
-					vim.api.nvim_buf_set_option(0, "iskeyword", is_keyword)
+								vim.api.nvim_buf_set_option(0, "iskeyword", is_keyword)
 
-					-- reset it after
-					if current_syntax ~= '' or current_syntax ~= nil then
-						vim.b.current_syntax = current_syntax
-					else
-						vim.b.current_syntax = ''
-					end
+								-- reset it after
+								if current_syntax ~= '' or current_syntax ~= nil then
+									vim.b.current_syntax = current_syntax
+								else
+									vim.b.current_syntax = ''
+								end
 
-					-- set highlight groups
-					local regex_fallback_hl = "syntax region "..snip.." matchgroup=Snip start=\""..start_marker.."\" end='"..end_marker.."' contains=@"..group.." keepend"
-					vim.cmd(regex_fallback_hl)
+								-- set highlight groups
+								local regex_fallback_hl = "syntax region "..snip.." matchgroup=Snip start=\""..start_marker.."\" end='"..end_marker.."' contains=@"..group.." keepend"
+								vim.cmd(regex_fallback_hl)
 
-					-- resync syntax, fixes some slow loading
-					vim.cmd("syntax sync fromstart")
-					vim.b.current_syntax = ''
+								-- resync syntax, fixes some slow loading
+								vim.cmd("syntax sync fromstart")
+								vim.b.current_syntax = ''
 
-					-- continue on from for loop if a language with parser is found or another syntax might be loaded
-					::continue::
-				end
-			end
+								-- continue on from for loop if a language with parser is found or another syntax might be loaded
+								::continue::
+							end
+						end
+
             -- Go through every found capture
             for id, node in query:iter_captures(tree:root(), 0, from or 0, -1) do
                 local id_name = query.captures[id]
