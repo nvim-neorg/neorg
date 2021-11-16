@@ -361,12 +361,12 @@ module.public = {
 								-- see if the syntax files even exist before we try to call them
 								-- NOTE: this is what fails for the second language
 								-- TODO: replace with non-vimL functions
-								local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "syntax/"..regex_language..".vim", false, true)
+								local output = vim.api.nvim_get_runtime_file("syntax/"..regex_language..".vim", false)
 								if output[1] ~= nil then
 									local command = "syntax include @"..group.." "..output[1]
 									vim.cmd(command)
 								end
-								local output = vim.fn.globpath(vim.api.nvim_get_option("runtimepath"), "after/syntax/"..regex_language..".vim", false, true)
+								local output = vim.api.nvim_get_runtime_file("after/syntax/"..regex_language..".vim", false)
 								if output[1] ~= nil then
 									local command = "syntax include @"..group.." "..output[1]
 									vim.cmd(command)
