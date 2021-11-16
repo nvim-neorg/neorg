@@ -82,13 +82,8 @@ module.public = {
 
         local tree = {
             {
-                query = { "first", "document_content" },
-                subtree = {
-                    {
-                        query = { "all", "heading1" },
-                        recursive = true,
-                    },
-                },
+                query = { "all", "heading1" },
+                recursive = true,
             },
         }
         local results = queries.query_nodes_from_buf(tree, 0)
