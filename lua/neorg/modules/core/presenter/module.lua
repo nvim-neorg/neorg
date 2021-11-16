@@ -71,15 +71,6 @@ module.public = {
         ---@type core.queries.native
         local queries = module.required["core.queries.native"]
 
-        if
-            module.config.public.zen_mode == "truezen" and neorg.modules.is_module_loaded("core.integrations.truezen")
-        then
-            neorg.modules.get_module("core.integrations.truezen").toggle_ataraxis()
-        elseif
-            module.config.public.zen_mode == "zen-mode" and neorg.modules.is_module_loaded("core.integrations.zen_mode")
-        then
-            neorg.modules.get_module("core.integrations.zen_mode").toggle()
-        end
         -- Get current file and check if it's a norg one
         local uri = vim.uri_from_bufnr(0)
         local fname = vim.uri_to_fname(uri)
@@ -101,10 +92,26 @@ module.public = {
             },
         }
         local results = queries.query_nodes_from_buf(tree, 0)
+
+        if vim.tbl_isempty(results) then
+            log.warn("Could not generate the presenter mode (no heading1 present on this file)")
+            return
+        end
+
         module.private.nodes = results
         results = queries.extract_nodes(results, { all_lines = true })
 
         results = module.private.remove_blanklines(results)
+
+        if
+            module.config.public.zen_mode == "truezen" and neorg.modules.is_module_loaded("core.integrations.truezen")
+        then
+            neorg.modules.get_module("core.integrations.truezen").toggle_ataraxis()
+        elseif
+            module.config.public.zen_mode == "zen-mode" and neorg.modules.is_module_loaded("core.integrations.zen_mode")
+        then
+            neorg.modules.get_module("core.integrations.zen_mode").toggle()
+        end
 
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_norg_buffer("Norg Presenter", "nosplit", nil, false)
