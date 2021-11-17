@@ -202,7 +202,9 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
         level_1 = {
             enabled = true,
-            icon = module.public.concealing.ordered.enumerator.numeric,
+            icon = module.public.concealing.ordered.punctuation.unicode_dot(
+                module.public.concealing.ordered.enumerator.numeric
+            ),
             highlight = "NeorgOrderedList1",
             query = "(ordered_list1_prefix) @icon",
             render = function(self, _, node)
@@ -241,7 +243,9 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
         level_4 = {
             enabled = true,
-            icon = module.public.concealing.ordered.enumerator.numeric,
+            icon = module.public.concealing.ordered.punctuation.unicode_double_parenthesis(
+                module.public.concealing.ordered.enumerator.numeric
+            ),
             highlight = "NeorgOrderedList4",
             query = "(ordered_list4_prefix) @icon",
             render = function(self, _, node)
@@ -267,13 +271,103 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
         level_6 = {
             enabled = true,
-            icon = module.public.concealing.ordered.enumerator.latin_lowercase,
+            icon = module.public.concealing.ordered.punctuation.unicode_double_parenthesis(
+                module.public.concealing.ordered.enumerator.latin_lowercase
+            ),
             highlight = "NeorgOrderedList6",
             query = "(ordered_list6_prefix) @icon",
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_list6")
                 return {
                     { "     " .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+    },
+
+    ordered_link = {
+        enabled = true,
+        level_1 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.numeric
+            ),
+            highlight = "NeorgOrderedLink1",
+            query = "(ordered_link1_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link1")
+                return {
+                    { "" .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+        level_2 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.latin_uppercase
+            ),
+            highlight = "NeorgOrderedLink2",
+            query = "(ordered_link2_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link2")
+                return {
+                    { " " .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+        level_3 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.latin_lowercase
+            ),
+            highlight = "NeorgOrderedLink3",
+            query = "(ordered_link3_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link3")
+                return {
+                    { "  " .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+        level_4 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.numeric
+            ),
+            highlight = "NeorgOrderedLink4",
+            query = "(ordered_link4_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link4")
+                return {
+                    { "   " .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+        level_5 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.latin_uppercase
+            ),
+            highlight = "NeorgOrderedLink5",
+            query = "(ordered_link5_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link5")
+                return {
+                    { "    " .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+        level_6 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.latin_lowercase
+            ),
+            highlight = "NeorgOrderedLink6",
+            query = "(ordered_link6_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link6")
+                return {
+                    { "     " .. self.icon(count), self.highlight },
                 }
             end,
         },
