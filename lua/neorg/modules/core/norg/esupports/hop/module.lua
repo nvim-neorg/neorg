@@ -23,6 +23,7 @@ end
 
 module.config.public = {
     lookahead = true,
+    fuzzing_threshold = 0.5,
 }
 
 module.public = {
@@ -305,7 +306,7 @@ module.public = {
                                 title: (paragraph_segment) @title
                             )?
                         ]],
-                        neorg.lib.reparg(parsed_link_information.link_type, 3)
+                        neorg.lib.reparg(parsed_link_information.link_type, 2)
                     ),
                 })
 
@@ -346,11 +347,11 @@ module.public = {
 }
 
 module.private = {
+    --- Damerau-levenstein implementation
     calculate_similarity = function(lhs, rhs)
-        -- Damerau-levenstein implementation
         -- https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
-        local str1 = string.lower(lhs)
-        local str2 = string.lower(rhs)
+        local str1 = lhs
+        local str2 = rhs
         local matrix = {}
         local cost
 
@@ -371,23 +372,161 @@ module.private = {
                 else
                     cost = 1
                 end
-                matrix[i][j] = math.min(matrix[i-1][j] + 1, matrix[i][j-1] + 1, matrix[i-1][j-1] + cost)
-                if i > 1 and j > 1 and str1:sub(i, i) == str2:sub(j-1, j-1) and str1:sub(i-1, i-1) == str2:sub(j, j) then
-                    matrix[i][j] = math.min(matrix[i][j], matrix[i-2][j-2] + cost)
+                matrix[i][j] = math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost)
+                if
+                    i > 1
+                    and j > 1
+                    and str1:sub(i, i) == str2:sub(j - 1, j - 1)
+                    and str1:sub(i - 1, i - 1) == str2:sub(j, j)
+                then
+                    matrix[i][j] = math.min(matrix[i][j], matrix[i - 2][j - 2] + cost)
                 end
             end
         end
 
-        return matrix[#str1][#str2] / (#str1 + #str2)
+        return matrix[#str1][#str2]
+            / (
+                (#str1 + #str2)
+                + (function()
+                    local index = 1
+                    local ret = 0
+
+                    while index < #str1 do
+                        if str1:sub(index, index) == str2:sub(index, index) then
+                            ret = ret + 0.1
+                        end
+
+                        index = index + 1
+                    end
+
+                    return ret
+                end)()
+            )
     end,
 
     fix_link_loose = function(parsed_link_information)
+        local generic_query = [[
+            (carryover_tag_set
+                (carryover_tag
+                    name: (tag_name) @tag_name
+                    (tag_parameters) @title
+                    (#eq? @tag_name "name")
+                )
+            )?
+            (_
+                title: (paragraph_segment) @title
+            )?
+        ]]
+
+        return module.private.fix_link(parsed_link_information, generic_query)
     end,
 
     fix_link_strict = function(parsed_link_information)
+        local query = string.format(
+            [[
+            (carryover_tag_set
+                (carryover_tag
+                    name: (tag_name) @tag_name
+                    (tag_parameters) @title
+                    (#eq? @tag_name "name")
+                    (#set! "type" "generic")
+                )
+            )?
+            (%s
+                (%s_prefix)
+                title: (paragraph_segment) @title
+            )?
+        ]],
+            neorg.lib.reparg(parsed_link_information.link_type, 2)
+        )
+
+        return module.private.fix_link(parsed_link_information, query)
     end,
 
-    fix_link = function()
+    fix_link = function(parsed_link_information, query_str)
+        local query = vim.treesitter.parse_query("norg", query_str)
+
+        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+
+        if not document_root then
+            return
+        end
+
+        local similarities = {
+            -- Example: { 0.6, "title", node }
+        }
+
+        for id, node in query:iter_captures(document_root, 0) do
+            local capture_name = query.captures[id]
+
+            if capture_name == "title" then
+                local text = module.required["core.integrations.treesitter"].get_node_text(node)
+                local similarity = module.private.calculate_similarity(parsed_link_information.link_location_text, text)
+
+                -- If our match is similar enough then add it to the list
+                if similarity < module.config.public.fuzzing_threshold then
+                    table.insert(similarities, { similarity = similarity, text = text, node = node:parent() })
+                end
+            end
+        end
+
+        if vim.tbl_isempty(similarities) then
+            vim.notify("Sorry, Neorg couldn't fix that link :(")
+        end
+
+        table.sort(similarities, function(lhs, rhs)
+            return lhs.similarity < rhs.similarity
+        end)
+
+        return similarities
+    end,
+
+    write_fixed_link = function(link_node, parsed_link_information, similarities)
+        local most_similar = similarities[1]
+
+        if not link_node or not most_similar then
+            return
+        end
+
+        local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
+
+        local prefix = neorg.lib.match({
+            most_similar.node:type(),
+
+            heading1 = "*",
+            heading2 = "**",
+            heading3 = "***",
+            heading4 = "****",
+            heading5 = "*****",
+            heading6 = "******",
+            marker = "|",
+            -- single_definition = "$",
+            -- multi_definition = "$",
+            default = "#",
+        }) .. " "
+
+        local function callback(replace)
+            vim.api.nvim_buf_set_text(
+                0,
+                range.row_start,
+                range.column_start,
+                range.row_end,
+                range.column_end,
+                { replace }
+            )
+        end
+
+        callback(
+            "{"
+                .. prefix
+                .. most_similar.text
+                .. "}"
+                .. neorg.lib.when(
+                    parsed_link_information.link_description ~= nil,
+                    neorg.lib.lazy_string_concat("[", parsed_link_information.link_description, "]"),
+                    ""
+                )
+        )
     end,
 }
 
@@ -467,12 +606,24 @@ module.on_event = function(event)
             :desc("The most common action will be to try and fix the link.")
             :desc("Fixing the link will perform a fuzzy search on every item in the file")
             :desc("and make the link point to the closest match:")
-            :flag("f", "Attempt to fix the link", neorg.lib.wrap(module.private.fix_link_loose, parsed_link))
+            :flag("f", "Attempt to fix the link", function()
+                local similarities = module.private.fix_link_loose(parsed_link)
+
+                if not similarities or vim.tbl_isempty(similarities) then
+                    return
+                end
+
+                module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities)
+            end)
             :blank()
             :desc("Does the same as the above keybind, however limits matches to those")
             :desc("of the same type as the link. This means that if your link points to")
             :desc("a level-1 heading a fuzzy search will be done only for level-1 headings:")
-            :flag("F", "Attempt to fix the link (with stricter searches)", neorg.lib.wrap(module.private.fix_link_strict, parsed_link))
+            :flag(
+                "F",
+                "Attempt to fix the link (with stricter searches)",
+                neorg.lib.wrap(module.private.fix_link_strict, parsed_link)
+            )
             :blank()
             :desc("Instead of fixing the link you may actually want to create the target:")
             :flag("a", "Place target above current link parent")
