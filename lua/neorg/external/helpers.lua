@@ -171,15 +171,20 @@ neorg.lib = {
     match = function(statements)
         local item = statements[1]
 
-        if not item then
+        if item == nil then
             return
         end
 
         table.remove(statements, 1)
 
-        local compare = statements[2] or function(lhs, rhs)
-            return lhs == rhs
-        end
+        local compare = statements[2]
+            or function(lhs, rhs)
+                if type(lhs) == "boolean" then
+                    return tostring(lhs) == rhs
+                end
+
+                return lhs == rhs
+            end
 
         if statements[2] then
             table.remove(statements, 2)
@@ -332,6 +337,18 @@ neorg.lib = {
         end
 
         return value, neorg.lib.reparg(value, index - 1)
+    end,
+
+    lazy_string_concat = function(...)
+        local strings = { ... }
+
+        local result = ""
+
+        for _, str in ipairs(strings) do
+            result = result .. str
+        end
+
+        return result
     end,
 }
 
