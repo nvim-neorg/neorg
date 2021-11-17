@@ -339,16 +339,21 @@ neorg.lib = {
         return value, neorg.lib.reparg(value, index - 1)
     end,
 
+    --- Lazily concatenates a string to prevent runtime errors where an object may not exist
+    --  Consider the following example:
+    --
+    --      neorg.lib.when(str ~= nil, str .. " extra text", "")
+    --
+    --  This would fail, simply because the string concatenation will still be evaluated in order
+    --  to be placed inside the variable. You may use:
+    --
+    --      neorg.lib.when(str ~= nil, neorg.lib.lazy_string_concat(str, " extra text"), "")
+    --
+    --  To mitigate this issue directly.
+    --- @vararg string #An unlimited number of strings
+    --- @return string #The result of all the strings concatenateA.
     lazy_string_concat = function(...)
-        local strings = { ... }
-
-        local result = ""
-
-        for _, str in ipairs(strings) do
-            result = result .. str
-        end
-
-        return result
+        return table.concat({ ... })
     end,
 }
 
