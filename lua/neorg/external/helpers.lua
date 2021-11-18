@@ -171,15 +171,20 @@ neorg.lib = {
     match = function(statements)
         local item = statements[1]
 
-        if not item then
+        if item == nil then
             return
         end
 
         table.remove(statements, 1)
 
-        local compare = statements[2] or function(lhs, rhs)
-            return lhs == rhs
-        end
+        local compare = statements[2]
+            or function(lhs, rhs)
+                if type(lhs) == "boolean" then
+                    return tostring(lhs) == rhs
+                end
+
+                return lhs == rhs
+            end
 
         if statements[2] then
             table.remove(statements, 2)
@@ -332,6 +337,23 @@ neorg.lib = {
         end
 
         return value, neorg.lib.reparg(value, index - 1)
+    end,
+
+    --- Lazily concatenates a string to prevent runtime errors where an object may not exist
+    --  Consider the following example:
+    --
+    --      neorg.lib.when(str ~= nil, str .. " extra text", "")
+    --
+    --  This would fail, simply because the string concatenation will still be evaluated in order
+    --  to be placed inside the variable. You may use:
+    --
+    --      neorg.lib.when(str ~= nil, neorg.lib.lazy_string_concat(str, " extra text"), "")
+    --
+    --  To mitigate this issue directly.
+    --- @vararg string #An unlimited number of strings
+    --- @return string #The result of all the strings concatenateA.
+    lazy_string_concat = function(...)
+        return table.concat({ ... })
     end,
 }
 
