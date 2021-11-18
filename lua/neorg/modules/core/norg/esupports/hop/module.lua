@@ -13,6 +13,7 @@ module.setup = function()
             "core.keybinds",
             "core.integrations.treesitter",
             "core.ui",
+            "core.norg.dirman",
         },
     }
 end
@@ -217,39 +218,11 @@ module.public = {
 
         -- Check whether our target is from a different file
         if parsed_link_information.link_file_text then
-            -- Expand special chars like `$`
-            local workspace, custom_workspace_path = parsed_link_information.link_file_text:match("^($([^/]*))")
+            local expanded_link_text = module.required["core.norg.dirman"].expand_path(parsed_link_information.link_file_text)
 
-            local dirman = neorg.modules.get_module("core.norg.dirman")
-
-            if not dirman then
-                log.error("Unable to read file stored in link: core.norg.dirman was not loaded.")
-                return
-            end
-
-            if custom_workspace_path and custom_workspace_path:len() > 0 then
-                local path = dirman.get_workspace(custom_workspace_path)
-
-                if not path then
-                    log.trace("Unable to go to link: workspace does not exist")
-                    return
-                end
-
-                parsed_link_information.link_file_text = path
-                    .. parsed_link_information.link_file_text:sub(custom_workspace_path:len() + 2)
-            elseif workspace then
-                parsed_link_information.link_file_text = dirman.get_current_workspace()[2]
-                    .. parsed_link_information.link_file_text:sub(workspace:len() + 1)
-            end
-
-            parsed_link_information.link_file_text = vim.fn.fnamemodify(
-                parsed_link_information.link_file_text .. ".norg",
-                ":p"
-            )
-
-            if parsed_link_information.link_file_text ~= vim.fn.expand("%:p") then
+            if expanded_link_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
-                buf_pointer = vim.uri_to_bufnr("file://" .. parsed_link_information.link_file_text)
+                buf_pointer = vim.uri_to_bufnr("file://" .. expanded_link_text)
             end
         end
 
@@ -444,9 +417,20 @@ module.private = {
     end,
 
     fix_link = function(parsed_link_information, query_str)
+        local buffer = vim.api.nvim_get_current_buf()
+
+        if parsed_link_information.link_file_text then
+            local expanded_link_text = module.required["core.norg.dirman"].expand_path(parsed_link_information.link_file_text)
+
+            if expanded_link_text ~= vim.fn.expand("%:p") then
+                -- We are dealing with a foreign file
+                buffer = vim.uri_to_bufnr("file://" .. expanded_link_text)
+            end
+        end
+
         local query = vim.treesitter.parse_query("norg", query_str)
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+        local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
 
         if not document_root then
             return
@@ -456,11 +440,11 @@ module.private = {
             -- Example: { 0.6, "title", node }
         }
 
-        for id, node in query:iter_captures(document_root, 0) do
+        for id, node in query:iter_captures(document_root, buffer) do
             local capture_name = query.captures[id]
 
             if capture_name == "title" then
-                local text = module.required["core.integrations.treesitter"].get_node_text(node)
+                local text = module.required["core.integrations.treesitter"].get_node_text(node, buffer)
                 local similarity = module.private.calculate_similarity(parsed_link_information.link_location_text, text)
 
                 -- If our match is similar enough then add it to the list
@@ -518,11 +502,16 @@ module.private = {
 
         callback(
             "{"
+                .. neorg.lib.when(
+                    parsed_link_information.link_file_text,
+                    neorg.lib.lazy_string_concat(":", parsed_link_information.link_file_text, ":"),
+                    ""
+                )
                 .. prefix
                 .. most_similar.text
                 .. "}"
                 .. neorg.lib.when(
-                    parsed_link_information.link_description ~= nil,
+                    parsed_link_information.link_description,
                     neorg.lib.lazy_string_concat("[", parsed_link_information.link_description, "]"),
                     ""
                 )
@@ -563,9 +552,15 @@ module.on_event = function(event)
         local located_link_information = module.public.locate_link_target(parsed_link)
 
         if located_link_information then
+            if event.content[1] then
+                if event.content[1] == "vsplit" then
+                    vim.cmd("vsplit")
+                end
+                -- TODO: Add support for hsplit in the future
+            end
+
             if not vim.tbl_isempty(located_link_information) then
                 if located_link_information.buffer ~= vim.api.nvim_get_current_buf() then
-                    -- TODO: Change this behaviour to work with splits too!
                     vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
                     vim.api.nvim_set_current_buf(located_link_information.buffer)
                 end
