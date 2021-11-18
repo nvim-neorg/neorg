@@ -312,8 +312,8 @@ module.public = {
                 )]]
             )
 
-            -- look for language name in code blocks
-            -- this will not finish if a treesitter parser exists for the current language found
+						-- look for language name in code blocks
+						-- this will not finish if a treesitter parser exists for the current language found
 						for id, node in code_lang:iter_captures(tree:root(), 0, from or 0, -1) do
 							local lang_name = code_lang.captures[id]
 
@@ -339,13 +339,13 @@ module.public = {
 								local snip = "textSnip"..string.upper(regex_language)
 								local start_marker = "@code "..regex_language
 								local end_marker = "@end"
+								local has_syntax = "syntax list "..snip
 
-								-- if our region syntax group exists, quit out
-								-- this stops repeat groups from forming on text update
-								-- NOTE: potenial nvim api call can be used here
-								if vim.fn.hlexists(snip) == 1 then
-									goto continue
-								end
+								local ok, result = pcall(
+									vim.api.nvim_exec,
+									has_syntax,
+									true
+								)
 
 								-- pass off the current syntax buffer var so things can load
 								local current_syntax = ""
@@ -359,17 +359,19 @@ module.public = {
 								local is_keyword = vim.api.nvim_buf_get_option(0, "iskeyword")
 
 								-- see if the syntax files even exist before we try to call them
-								-- NOTE: this is what fails for the second language
-								-- TODO: replace with non-vimL functions
-								local output = vim.api.nvim_get_runtime_file("syntax/"..regex_language..".vim", false)
-								if output[1] ~= nil then
-									local command = "syntax include @"..group.." "..output[1]
-									vim.cmd(command)
-								end
-								local output = vim.api.nvim_get_runtime_file("after/syntax/"..regex_language..".vim", false)
-								if output[1] ~= nil then
-									local command = "syntax include @"..group.." "..output[1]
-									vim.cmd(command)
+								local count = select(2, result:gsub('\n', '\n')) -- get length of result from syn list
+								-- if syn list was an error, or if it was an empty result
+								if ok == false or (ok == true and (string.sub(result, 1, 1) == 'N') or count == 0) then
+									local output = vim.api.nvim_get_runtime_file("syntax/"..regex_language..".vim", false)
+									if output[1] ~= nil then
+										local command = "syntax include @"..group.." "..output[1]
+										vim.cmd(command)
+									end
+									local output = vim.api.nvim_get_runtime_file("after/syntax/"..regex_language..".vim", false)
+									if output[1] ~= nil then
+										local command = "syntax include @"..group.." "..output[1]
+										vim.cmd(command)
+									end
 								end
 
 								vim.api.nvim_buf_set_option(0, "iskeyword", is_keyword)
