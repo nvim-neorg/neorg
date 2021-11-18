@@ -341,7 +341,7 @@ module.public = {
 					local end_marker = "@end"
 					local has_syntax = "syntax list "..snip
 
-					local ok, result = pcall(
+					ok, result = pcall(
 						vim.api.nvim_exec,
 						has_syntax,
 						true
@@ -367,7 +367,7 @@ module.public = {
 							local command = "syntax include @"..group.." "..output[1]
 							vim.cmd(command)
 						end
-						local output = vim.api.nvim_get_runtime_file("after/syntax/"..regex_language..".vim", false)
+						output = vim.api.nvim_get_runtime_file("after/syntax/"..regex_language..".vim", false)
 						if output[1] ~= nil then
 							local command = "syntax include @"..group.." "..output[1]
 							vim.cmd(command)
