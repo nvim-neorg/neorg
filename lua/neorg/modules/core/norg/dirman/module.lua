@@ -442,6 +442,38 @@ module.public = {
             vim.cmd("e " .. ws_match .. "/" .. module.config.public.index)
         end
     end,
+
+    expand_path = function(path)
+        -- Expand special chars like `$`
+        local workspace, custom_workspace_path = path:match("^($([^/]*))")
+
+        local dirman = neorg.modules.get_module("core.norg.dirman")
+
+        if not dirman then
+            log.error("Unable to read file stored in link: core.norg.dirman was not loaded.")
+            return
+        end
+
+        if custom_workspace_path and custom_workspace_path:len() > 0 then
+            local workspace_path = dirman.get_workspace(custom_workspace_path)
+
+            if not workspace_path then
+                log.trace("Unable to go to link: workspace does not exist")
+                return
+            end
+
+            workspace_path = workspace_path
+                .. workspace_path:sub(custom_workspace_path:len() + 2)
+        elseif workspace then
+            path = dirman.get_current_workspace()[2]
+                .. path:sub(workspace:len() + 1)
+        end
+
+        return vim.fn.fnamemodify(
+            path .. ".norg",
+            ":p"
+        )
+    end,
 }
 
 module.on_event = function(event)
