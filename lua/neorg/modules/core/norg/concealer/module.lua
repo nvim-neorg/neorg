@@ -276,14 +276,7 @@ module.public = {
         end
     end,
 
-    trigger_code_block_highlights = function(from)
-        -- If the code block dimming is disabled, return right away.
-        if not module.config.public.dim_code_blocks then
-            return
-        end
-
-        module.public.clear_code_block_dimming(from)
-
+	trigger_highlight_regex_code_block = function(from)
         -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
 
@@ -308,7 +301,7 @@ module.public = {
             local code_lang = vim.treesitter.parse_query(
                 "norg",
                 [[(
-                (ranged_tag (tag_name) @_tagname (tag_parameters) @language)
+					(ranged_tag (tag_name) @_tagname (tag_parameters) @language)
                 )]]
             )
 
@@ -395,6 +388,36 @@ module.public = {
 					::continue::
 				end
 			end
+        end
+	end,
+
+    trigger_code_block_highlights = function(from)
+        -- If the code block dimming is disabled, return right away.
+        if not module.config.public.dim_code_blocks then
+            return
+        end
+
+        module.public.clear_code_block_dimming(from)
+
+        -- The next block of code will be responsible for dimming code blocks accordingly
+        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+        -- If the tree is valid then attempt to perform the query
+        if tree then
+            -- Query all code blocks
+            local ok, query = pcall(
+                vim.treesitter.parse_query,
+                "norg",
+                [[(
+                    (ranged_tag (tag_name) @_name) @tag
+                    (#eq? @_name "code")
+                )]]
+            )
+
+            -- If something went wrong then go bye bye
+            if not ok or not query then
+                return
+            end
 
             -- Go through every found capture
             for id, node in query:iter_captures(tree:root(), 0, from or 0, -1) do
@@ -1051,6 +1074,7 @@ module.on_event = function(event)
         end
 
         module.public.trigger_code_block_highlights()
+		module.public.trigger_highlight_regex_code_block()
         module.public.trigger_completion_levels()
         module.public.trigger_icons()
 
@@ -1064,6 +1088,7 @@ module.on_event = function(event)
         -- If the content of a line has changed in normal mode then reparse the file
         module.public.trigger_icons()
         module.public.trigger_code_block_highlights()
+		module.public.trigger_highlight_regex_code_block()
         vim.schedule(module.public.trigger_completion_levels)
     elseif event.type == "core.autocommands.events.insertenter" then
         vim.api.nvim_buf_clear_namespace(
@@ -1084,6 +1109,8 @@ module.on_event = function(event)
             module.public.trigger_completion_levels()
         end)
     elseif event.type == "core.autocommands.events.textchangedi" then
+		-- vim.schedule(module.public.trigger_highlight_regex_code_block)
+		module.public.trigger_highlight_regex_code_block()
         vim.schedule(module.public.trigger_code_block_highlights)
     end
 end
