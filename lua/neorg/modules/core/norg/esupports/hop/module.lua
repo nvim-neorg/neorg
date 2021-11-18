@@ -218,7 +218,9 @@ module.public = {
 
         -- Check whether our target is from a different file
         if parsed_link_information.link_file_text then
-            local expanded_link_text = module.required["core.norg.dirman"].expand_path(parsed_link_information.link_file_text)
+            local expanded_link_text = module.required["core.norg.dirman"].expand_path(
+                parsed_link_information.link_file_text
+            )
 
             if expanded_link_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
@@ -420,7 +422,9 @@ module.private = {
         local buffer = vim.api.nvim_get_current_buf()
 
         if parsed_link_information.link_file_text then
-            local expanded_link_text = module.required["core.norg.dirman"].expand_path(parsed_link_information.link_file_text)
+            local expanded_link_text = module.required["core.norg.dirman"].expand_path(
+                parsed_link_information.link_file_text
+            )
 
             if expanded_link_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file

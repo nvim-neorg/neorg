@@ -462,17 +462,12 @@ module.public = {
                 return
             end
 
-            workspace_path = workspace_path
-                .. workspace_path:sub(custom_workspace_path:len() + 2)
+            workspace_path = workspace_path .. workspace_path:sub(custom_workspace_path:len() + 2)
         elseif workspace then
-            path = dirman.get_current_workspace()[2]
-                .. path:sub(workspace:len() + 1)
+            path = dirman.get_current_workspace()[2] .. path:sub(workspace:len() + 1)
         end
 
-        return vim.fn.fnamemodify(
-            path .. ".norg",
-            ":p"
-        )
+        return vim.fn.fnamemodify(path .. ".norg", ":p")
     end,
 }
 
