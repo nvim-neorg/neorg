@@ -367,8 +367,8 @@ module.private = {
                     local ret = 0
 
                     while index < #str1 do
-                        if str1:sub(index, index) == str2:sub(index, index) then
-                            ret = ret + 0.1
+                        if str1:sub(index, index):lower() == str2:sub(index, index):lower() then
+                            ret = ret + 0.2
                         end
 
                         index = index + 1
