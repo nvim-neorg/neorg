@@ -397,8 +397,23 @@ module.private = {
     end,
 
     fix_link_strict = function(parsed_link_information)
-        local query = string.format(
+        local query = neorg.lib.when(
+            parsed_link_information.link_type == "generic",
             [[
+                (carryover_tag_set
+                    (carryover_tag
+                        name: (tag_name) @tag_name
+                        (tag_parameters) @title
+                        (#eq? @tag_name "name")
+                        (#set! "type" "generic")
+                    )
+                )?
+                (_
+                    title: (paragraph_segment) @title
+                )?
+            ]],
+            string.format(
+                [[
             (carryover_tag_set
                 (carryover_tag
                     name: (tag_name) @tag_name
@@ -412,7 +427,8 @@ module.private = {
                 title: (paragraph_segment) @title
             )?
         ]],
-            neorg.lib.reparg(parsed_link_information.link_type, 2)
+                neorg.lib.reparg(parsed_link_information.link_type, 2)
+            )
         )
 
         return module.private.fix_link(parsed_link_information, query)
@@ -469,7 +485,7 @@ module.private = {
         return similarities
     end,
 
-    write_fixed_link = function(link_node, parsed_link_information, similarities)
+    write_fixed_link = function(link_node, parsed_link_information, similarities, force_type)
         local most_similar = similarities[1]
 
         if not link_node or not most_similar then
@@ -478,20 +494,24 @@ module.private = {
 
         local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
 
-        local prefix = neorg.lib.match({
-            most_similar.node:type(),
+        local prefix = neorg.lib.when(
+            parsed_link_information.link_type == "generic" and not force_type,
+            "#",
+            neorg.lib.match({
+                most_similar.node:type(),
 
-            heading1 = "*",
-            heading2 = "**",
-            heading3 = "***",
-            heading4 = "****",
-            heading5 = "*****",
-            heading6 = "******",
-            marker = "|",
-            -- single_definition = "$",
-            -- multi_definition = "$",
-            default = "#",
-        }) .. " "
+                heading1 = "*",
+                heading2 = "**",
+                heading3 = "***",
+                heading4 = "****",
+                heading5 = "*****",
+                heading6 = "******",
+                marker = "|",
+                -- single_definition = "$",
+                -- multi_definition = "$",
+                default = "#",
+            })
+        ) .. " "
 
         local function callback(replace)
             vim.api.nvim_buf_set_text(
@@ -600,13 +620,13 @@ module.on_event = function(event)
             :blank()
             :text("There are a few actions that you can perform whenever a link cannot be located.", "Normal")
             :text("Press one of the available keys to perform your desired action.")
-            :warning("These flags currently do not work, this is a beta build.")
+            :warning("Some flags currently do not work, this is a beta build.")
             :blank()
             :desc("The most common action will be to try and fix the link.")
-            :desc("Fixing the link will perform a fuzzy search on every item in the file")
+            :desc("Fixing the link will perform a fuzzy search on every item of the same type in the file")
             :desc("and make the link point to the closest match:")
             :flag("f", "Attempt to fix the link", function()
-                local similarities = module.private.fix_link_loose(parsed_link)
+                local similarities = module.private.fix_link_strict(parsed_link)
 
                 if not similarities or vim.tbl_isempty(similarities) then
                     return
@@ -615,14 +635,18 @@ module.on_event = function(event)
                 module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities)
             end)
             :blank()
-            :desc("Does the same as the above keybind, however limits matches to those")
-            :desc("of the same type as the link. This means that if your link points to")
-            :desc("a level-1 heading a fuzzy search will be done only for level-1 headings:")
-            :flag(
-                "F",
-                "Attempt to fix the link (with stricter searches)",
-                neorg.lib.wrap(module.private.fix_link_strict, parsed_link)
-            )
+            :desc("Does the same as the above keybind, however doesn't limit matches to those")
+            :desc("defined by the link type. This means that even if the link points to a level 1")
+            :desc("heading this fixing algorithm will be able to match any other item type:")
+            :flag("F", "Attempt to fix the link (loose fuzzing)", function()
+                local similarities = module.private.fix_link_loose(parsed_link)
+
+                if not similarities or vim.tbl_isempty(similarities) then
+                    return
+                end
+
+                module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities, true)
+            end)
             :blank()
             :desc("Instead of fixing the link you may actually want to create the target:")
             :flag("a", "Place target above current link parent")
