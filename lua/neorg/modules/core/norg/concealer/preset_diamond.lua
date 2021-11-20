@@ -297,7 +297,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link1")
                 return {
-                    { "" .. self.icon(count), self.highlight },
+                    { " " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -311,7 +311,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link2")
                 return {
-                    { " " .. self.icon(count), self.highlight },
+                    { "  " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -325,7 +325,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link3")
                 return {
-                    { "  " .. self.icon(count), self.highlight },
+                    { "   " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -339,7 +339,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link4")
                 return {
-                    { "   " .. self.icon(count), self.highlight },
+                    { "    " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -353,7 +353,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link5")
                 return {
-                    { "    " .. self.icon(count), self.highlight },
+                    { "     " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -367,7 +367,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link6")
                 return {
-                    { "     " .. self.icon(count), self.highlight },
+                    { "      " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -777,21 +777,61 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             highlight = "NeorgLinkText",
             query = "(link) @icon",
             render = function(self, text, node)
-                local concealed_text = ""
-                local highlight = self.highlight
+                local concealed_chars = 0
                 local ts = module.required["core.integrations.treesitter"]
-                local location = node:named_child(0)
-                local description = node:named_child(1)
-                if description ~= nil then
-                    concealed_text = ts.get_node_text(description:named_child(0))
+                local location = nil
+                local description = nil
+                local file = node:named_child(0)
+
+                if file:type() == "link_file" then
+                    location = node:named_child(1)
+                    description = node:named_child(2)
                 else
-                    concealed_text = ts.get_node_text(location)
-                    highlight = ""
-                    -- TODO: perform concealing + highlighting based on link_type
+                    location = file
+                    file = nil
+                    description = node:named_child(1)
                 end
-                return {
-                    { concealed_text .. string.rep(self.icon, #text - #concealed_text), highlight },
-                }
+
+                if location ~= nil and location:type() == "link_description" then
+                    description = location
+                    location = nil
+                end
+
+                if description ~= nil then
+                    local description_text = ts.get_node_text(description:named_child(0))
+                    concealed_chars = #description_text
+                    return {
+                        { description_text, self.highlight },
+                        { string.rep(self.icon, #text - concealed_chars), "" },
+                    }
+                end
+
+                local extmark_text = {}
+
+                if file ~= nil then
+                    local file_text = ts.get_node_text(file)
+                    concealed_chars = #file_text
+                    table.insert(extmark_text, { file_text, "NeorgLinkFile" })
+                end
+
+                if location ~= nil then
+                    local location_type = location:named_child(0)
+                    local location_text = location:named_child(1)
+
+                    local type = ts.get_node_text(location_type)
+                    local text = ts.get_node_text(location_text)
+
+                    local type_name = location_type:type()
+                    type_name = vim.fn.substitute(type_name, [[\(_\|^\)\(\w\)]], [[\u\2]], "g")
+
+                    concealed_chars = concealed_chars + #type + #text
+
+                    table.insert(extmark_text, { type, "Neorg" .. type_name .. "Prefix" })
+                    table.insert(extmark_text, { text, "Neorg" .. type_name })
+                end
+
+                table.insert(extmark_text, { string.rep(self.icon, #text - concealed_chars), "" })
+                return extmark_text
             end,
         },
 
