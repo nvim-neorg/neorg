@@ -799,7 +799,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
                     concealed_text = concealed_text .. ts.get_node_text(file)
                 end
                 if description ~= nil then
-                    concealed_text = concealed_text .. ts.get_node_text(description:named_child(0))
+                    concealed_text = ts.get_node_text(description:named_child(0))
                 elseif location ~= nil then
                     concealed_text = concealed_text .. ts.get_node_text(location)
                 end
