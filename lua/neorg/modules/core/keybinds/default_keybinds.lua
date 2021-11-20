@@ -31,6 +31,7 @@ module.public = {
                     { neorg_leader .. "nn", "core.norg.dirman.new.note" },
 
                     { "<CR>", "core.norg.esupports.hop.hop-link" },
+                    { "<M-CR>", "core.norg.esupports.hop.hop-link", "vsplit" },
 
                     { "<M-k>", "core.norg.manoeuvre.item_up" },
                     { "<M-j>", "core.norg.manoeuvre.item_down" },

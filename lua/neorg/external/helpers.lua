@@ -220,6 +220,10 @@ neorg.lib = {
     --- @param when_false function|any #The value to return when `comparison` is false
     --- @return any #The value that either `when_true` or `when_false` returned
     when = function(comparison, when_true, when_false)
+        if type(comparison) ~= "boolean" then
+            comparison = (comparison ~= nil)
+        end
+
         return neorg.lib.match({
             type(comparison) == "table" and unpack(comparison) or comparison,
             ["true"] = when_true,

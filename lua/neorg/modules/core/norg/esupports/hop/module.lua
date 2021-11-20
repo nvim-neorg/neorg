@@ -13,6 +13,7 @@ module.setup = function()
             "core.keybinds",
             "core.integrations.treesitter",
             "core.ui",
+            "core.norg.dirman",
         },
     }
 end
@@ -217,39 +218,13 @@ module.public = {
 
         -- Check whether our target is from a different file
         if parsed_link_information.link_file_text then
-            -- Expand special chars like `$`
-            local workspace, custom_workspace_path = parsed_link_information.link_file_text:match("^($([^/]*))")
-
-            local dirman = neorg.modules.get_module("core.norg.dirman")
-
-            if not dirman then
-                log.error("Unable to read file stored in link: core.norg.dirman was not loaded.")
-                return
-            end
-
-            if custom_workspace_path and custom_workspace_path:len() > 0 then
-                local path = dirman.get_workspace(custom_workspace_path)
-
-                if not path then
-                    log.trace("Unable to go to link: workspace does not exist")
-                    return
-                end
-
-                parsed_link_information.link_file_text = path
-                    .. parsed_link_information.link_file_text:sub(custom_workspace_path:len() + 2)
-            elseif workspace then
-                parsed_link_information.link_file_text = dirman.get_current_workspace()[2]
-                    .. parsed_link_information.link_file_text:sub(workspace:len() + 1)
-            end
-
-            parsed_link_information.link_file_text = vim.fn.fnamemodify(
-                parsed_link_information.link_file_text .. ".norg",
-                ":p"
+            local expanded_link_text = module.required["core.norg.dirman"].expand_path(
+                parsed_link_information.link_file_text
             )
 
-            if parsed_link_information.link_file_text ~= vim.fn.expand("%:p") then
+            if expanded_link_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
-                buf_pointer = vim.uri_to_bufnr("file://" .. parsed_link_information.link_file_text)
+                buf_pointer = vim.uri_to_bufnr("file://" .. expanded_link_text)
             end
         end
 
@@ -392,8 +367,8 @@ module.private = {
                     local ret = 0
 
                     while index < #str1 do
-                        if str1:sub(index, index) == str2:sub(index, index) then
-                            ret = ret + 0.1
+                        if str1:sub(index, index):lower() == str2:sub(index, index):lower() then
+                            ret = ret + 0.2
                         end
 
                         index = index + 1
@@ -422,8 +397,23 @@ module.private = {
     end,
 
     fix_link_strict = function(parsed_link_information)
-        local query = string.format(
+        local query = neorg.lib.when(
+            parsed_link_information.link_type == "generic",
             [[
+                (carryover_tag_set
+                    (carryover_tag
+                        name: (tag_name) @tag_name
+                        (tag_parameters) @title
+                        (#eq? @tag_name "name")
+                        (#set! "type" "generic")
+                    )
+                )?
+                (_
+                    title: (paragraph_segment) @title
+                )?
+            ]],
+            string.format(
+                [[
             (carryover_tag_set
                 (carryover_tag
                     name: (tag_name) @tag_name
@@ -437,16 +427,30 @@ module.private = {
                 title: (paragraph_segment) @title
             )?
         ]],
-            neorg.lib.reparg(parsed_link_information.link_type, 2)
+                neorg.lib.reparg(parsed_link_information.link_type, 2)
+            )
         )
 
         return module.private.fix_link(parsed_link_information, query)
     end,
 
     fix_link = function(parsed_link_information, query_str)
+        local buffer = vim.api.nvim_get_current_buf()
+
+        if parsed_link_information.link_file_text then
+            local expanded_link_text = module.required["core.norg.dirman"].expand_path(
+                parsed_link_information.link_file_text
+            )
+
+            if expanded_link_text ~= vim.fn.expand("%:p") then
+                -- We are dealing with a foreign file
+                buffer = vim.uri_to_bufnr("file://" .. expanded_link_text)
+            end
+        end
+
         local query = vim.treesitter.parse_query("norg", query_str)
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+        local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
 
         if not document_root then
             return
@@ -456,11 +460,11 @@ module.private = {
             -- Example: { 0.6, "title", node }
         }
 
-        for id, node in query:iter_captures(document_root, 0) do
+        for id, node in query:iter_captures(document_root, buffer) do
             local capture_name = query.captures[id]
 
             if capture_name == "title" then
-                local text = module.required["core.integrations.treesitter"].get_node_text(node)
+                local text = module.required["core.integrations.treesitter"].get_node_text(node, buffer)
                 local similarity = module.private.calculate_similarity(parsed_link_information.link_location_text, text)
 
                 -- If our match is similar enough then add it to the list
@@ -481,7 +485,7 @@ module.private = {
         return similarities
     end,
 
-    write_fixed_link = function(link_node, parsed_link_information, similarities)
+    write_fixed_link = function(link_node, parsed_link_information, similarities, force_type)
         local most_similar = similarities[1]
 
         if not link_node or not most_similar then
@@ -490,20 +494,24 @@ module.private = {
 
         local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
 
-        local prefix = neorg.lib.match({
-            most_similar.node:type(),
+        local prefix = neorg.lib.when(
+            parsed_link_information.link_type == "generic" and not force_type,
+            "#",
+            neorg.lib.match({
+                most_similar.node:type(),
 
-            heading1 = "*",
-            heading2 = "**",
-            heading3 = "***",
-            heading4 = "****",
-            heading5 = "*****",
-            heading6 = "******",
-            marker = "|",
-            -- single_definition = "$",
-            -- multi_definition = "$",
-            default = "#",
-        }) .. " "
+                heading1 = "*",
+                heading2 = "**",
+                heading3 = "***",
+                heading4 = "****",
+                heading5 = "*****",
+                heading6 = "******",
+                marker = "|",
+                -- single_definition = "$",
+                -- multi_definition = "$",
+                default = "#",
+            })
+        ) .. " "
 
         local function callback(replace)
             vim.api.nvim_buf_set_text(
@@ -518,11 +526,16 @@ module.private = {
 
         callback(
             "{"
+                .. neorg.lib.when(
+                    parsed_link_information.link_file_text,
+                    neorg.lib.lazy_string_concat(":", parsed_link_information.link_file_text, ":"),
+                    ""
+                )
                 .. prefix
                 .. most_similar.text
                 .. "}"
                 .. neorg.lib.when(
-                    parsed_link_information.link_description ~= nil,
+                    parsed_link_information.link_description,
                     neorg.lib.lazy_string_concat("[", parsed_link_information.link_description, "]"),
                     ""
                 )
@@ -563,9 +576,15 @@ module.on_event = function(event)
         local located_link_information = module.public.locate_link_target(parsed_link)
 
         if located_link_information then
+            if event.content[1] then
+                if event.content[1] == "vsplit" then
+                    vim.cmd("vsplit")
+                end
+                -- TODO: Add support for hsplit in the future
+            end
+
             if not vim.tbl_isempty(located_link_information) then
                 if located_link_information.buffer ~= vim.api.nvim_get_current_buf() then
-                    -- TODO: Change this behaviour to work with splits too!
                     vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
                     vim.api.nvim_set_current_buf(located_link_information.buffer)
                 end
@@ -601,13 +620,13 @@ module.on_event = function(event)
             :blank()
             :text("There are a few actions that you can perform whenever a link cannot be located.", "Normal")
             :text("Press one of the available keys to perform your desired action.")
-            :warning("These flags currently do not work, this is a beta build.")
+            :warning("Some flags currently do not work, this is a beta build.")
             :blank()
             :desc("The most common action will be to try and fix the link.")
-            :desc("Fixing the link will perform a fuzzy search on every item in the file")
+            :desc("Fixing the link will perform a fuzzy search on every item of the same type in the file")
             :desc("and make the link point to the closest match:")
             :flag("f", "Attempt to fix the link", function()
-                local similarities = module.private.fix_link_loose(parsed_link)
+                local similarities = module.private.fix_link_strict(parsed_link)
 
                 if not similarities or vim.tbl_isempty(similarities) then
                     return
@@ -616,14 +635,18 @@ module.on_event = function(event)
                 module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities)
             end)
             :blank()
-            :desc("Does the same as the above keybind, however limits matches to those")
-            :desc("of the same type as the link. This means that if your link points to")
-            :desc("a level-1 heading a fuzzy search will be done only for level-1 headings:")
-            :flag(
-                "F",
-                "Attempt to fix the link (with stricter searches)",
-                neorg.lib.wrap(module.private.fix_link_strict, parsed_link)
-            )
+            :desc("Does the same as the above keybind, however doesn't limit matches to those")
+            :desc("defined by the link type. This means that even if the link points to a level 1")
+            :desc("heading this fixing algorithm will be able to match any other item type:")
+            :flag("F", "Attempt to fix the link (loose fuzzing)", function()
+                local similarities = module.private.fix_link_loose(parsed_link)
+
+                if not similarities or vim.tbl_isempty(similarities) then
+                    return
+                end
+
+                module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities, true)
+            end)
             :blank()
             :desc("Instead of fixing the link you may actually want to create the target:")
             :flag("a", "Place target above current link parent")
