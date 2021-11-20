@@ -226,6 +226,14 @@ module.public = {
                 -- We are dealing with a foreign file
                 buf_pointer = vim.uri_to_bufnr("file://" .. expanded_link_text)
             end
+
+            if not parsed_link_information.link_type then
+                return {
+                    original_title = nil,
+                    node = nil,
+                    buffer = buf_pointer,
+                }
+            end
         end
 
         return neorg.lib.match({
@@ -589,9 +597,14 @@ module.on_event = function(event)
                     vim.api.nvim_set_current_buf(located_link_information.buffer)
                 end
 
+                if not located_link_information.node then
+                    return
+                end
+
                 local range = module.required["core.integrations.treesitter"].get_node_range(
                     located_link_information.node
                 )
+
                 vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
             end
 
@@ -649,7 +662,7 @@ module.on_event = function(event)
             end)
             :blank()
             :desc("Instead of fixing the link you may actually want to create the target:")
-            :flag("a", "Place target above current link parent")
+            :flag("a", "Place target above current link parent", function() end)
             :flag("b", "Place target below current link parent")
     end
 end
