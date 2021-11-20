@@ -780,14 +780,28 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
                 local concealed_text = ""
                 local highlight = self.highlight
                 local ts = module.required["core.integrations.treesitter"]
-                local location = node:named_child(0)
-                local description = node:named_child(1)
-                if description ~= nil then
-                    concealed_text = ts.get_node_text(description:named_child(0))
+                local location = nil
+                local description = nil
+                local file = node:named_child(0)
+                if file:type() == "link_file" then
+                    location = node:named_child(1)
+                    description = node:named_child(2)
                 else
-                    concealed_text = ts.get_node_text(location)
-                    highlight = ""
-                    -- TODO: perform concealing + highlighting based on link_type
+                    location = file
+                    file = nil
+                    description = node:named_child(1)
+                end
+                if location ~= nil and location:type() == "link_description" then
+                    description = location
+                    location = nil
+                end
+                if file ~= nil then
+                    concealed_text = concealed_text .. ts.get_node_text(file)
+                end
+                if description ~= nil then
+                    concealed_text = concealed_text .. ts.get_node_text(description:named_child(0))
+                elseif location ~= nil then
+                    concealed_text = concealed_text .. ts.get_node_text(location)
                 end
                 return {
                     { concealed_text .. string.rep(self.icon, #text - #concealed_text), highlight },
