@@ -777,12 +777,12 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             highlight = "NeorgLinkText",
             query = "(link) @icon",
             render = function(self, text, node)
-                local concealed_text = ""
-                local highlight = self.highlight
+                local concealed_chars = 0
                 local ts = module.required["core.integrations.treesitter"]
                 local location = nil
                 local description = nil
                 local file = node:named_child(0)
+
                 if file:type() == "link_file" then
                     location = node:named_child(1)
                     description = node:named_child(2)
@@ -791,21 +791,47 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
                     file = nil
                     description = node:named_child(1)
                 end
+
                 if location ~= nil and location:type() == "link_description" then
                     description = location
                     location = nil
                 end
-                if file ~= nil then
-                    concealed_text = concealed_text .. ts.get_node_text(file)
-                end
+
                 if description ~= nil then
-                    concealed_text = ts.get_node_text(description:named_child(0))
-                elseif location ~= nil then
-                    concealed_text = concealed_text .. ts.get_node_text(location)
+                    local description_text = ts.get_node_text(description:named_child(0))
+                    concealed_chars = #description_text
+                    return {
+                        { description_text, self.highlight },
+                        { string.rep(self.icon, #text - concealed_chars), "" },
+                    }
                 end
-                return {
-                    { concealed_text .. string.rep(self.icon, #text - #concealed_text), highlight },
-                }
+
+                local extmark_text = {}
+
+                if file ~= nil then
+                    local file_text = ts.get_node_text(file)
+                    concealed_chars = #file_text
+                    table.insert(extmark_text, { file_text, "NeorgLinkFile" })
+                end
+
+                if location ~= nil then
+                    local location_type = location:named_child(0)
+                    local location_text = location:named_child(1)
+
+                    local type = ts.get_node_text(location_type)
+                    local text = ts.get_node_text(location_text)
+
+                    local type_name = location_type:type()
+                    type_name = vim.fn.substitute(type_name, [[\(_\|^\)\(\w\)]], [[\u\2]], "g")
+
+                    concealed_chars = concealed_chars + #type + #text
+
+                    table.insert(extmark_text, { type, "Neorg" .. type_name .. "Prefix" })
+                    table.insert(extmark_text, { text, "Neorg" .. type_name })
+                end
+
+                table.insert(extmark_text, { string.rep(self.icon, #text - concealed_chars), "" })
+                return extmark_text
             end,
         },
 
