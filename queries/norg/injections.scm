@@ -5,3 +5,5 @@
 (inline_math) @latex
 
 (ranged_tag (tag_name) @_tagname (ranged_tag_content) @norg_meta (#eq? @_tagname "document.meta"))
+
+(ranged_tag (tag_name) @_tagname (ranged_tag_content) @norg_table (#eq? @_tagname "table"))
