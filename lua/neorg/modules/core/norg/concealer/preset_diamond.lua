@@ -297,7 +297,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link1")
                 return {
-                    { "" .. self.icon(count), self.highlight },
+                    { " " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -311,7 +311,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link2")
                 return {
-                    { " " .. self.icon(count), self.highlight },
+                    { "  " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -325,7 +325,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link3")
                 return {
-                    { "  " .. self.icon(count), self.highlight },
+                    { "   " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -339,7 +339,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link4")
                 return {
-                    { "   " .. self.icon(count), self.highlight },
+                    { "    " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -353,7 +353,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link5")
                 return {
-                    { "    " .. self.icon(count), self.highlight },
+                    { "     " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -367,7 +367,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_link6")
                 return {
-                    { "     " .. self.icon(count), self.highlight },
+                    { "      " .. self.icon(count), self.highlight },
                 }
             end,
         },
