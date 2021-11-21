@@ -27,20 +27,19 @@ module.config.public = {
             ["End"] = "+TSKeyword",
 
             Name = {
-                [""] = "+Normal",
+                [""] = "+TSNone",
                 Word = "+TSKeyword",
             },
 
             Parameter = "+TSType",
-            -- this is seemingly needed to fix regex fallback from not showing
-            -- Content = "+Normal",
+            Content = "+TSNone",
         },
 
         CarryoverTag = {
             Begin = "+TSLabel",
 
             Name = {
-                [""] = "+Normal",
+                [""] = "+TSNone",
                 Word = "+TSLabel",
             },
 
@@ -78,7 +77,7 @@ module.config.public = {
 
         Marker = {
             [""] = "+TSLabel",
-            Title = "+Normal",
+            Title = "+TSNone",
         },
 
         Definition = {

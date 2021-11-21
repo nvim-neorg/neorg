@@ -28,7 +28,6 @@ module.setup = function()
         },
         imports = {
             "displayers",
-            "helpers",
             "views_popup_helpers",
             "edit_popup_helpers",
             "selection_popups",
@@ -61,5 +60,8 @@ module.events.subscribed = {
         ["core.gtd.ui.details"] = true,
     },
 }
+
+---@class core.gtd.ui
+module.public = {}
 
 return module
