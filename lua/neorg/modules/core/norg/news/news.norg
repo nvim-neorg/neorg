@@ -1,0 +1,168 @@
+@document.meta
+    title: news
+    description: 
+    author: vhyrro
+    categories: 
+    created: 2021-11-21
+    version: 0.0.8
+@end
+
+                                 * _We got some new news for you!_
+     Welcome to the Neorg news page. This page displays whenever there's any piece of important
+                 information that we need to convey, without having to rely on git.
+                         To exit this prompt, press either `<Esc>` or `q`.
+
+* *Most Important Changes*
+  There are quite a few breaking changes ahead. Pay attention here, you don't wanna miss this.
+
+ ** Upcoming Changes
+    _In the next few days (or in the coming weeks)_ we will be pushing /several/ changes to the Neorg
+    syntax. From the very moment you see this the migration process will have begun. You have a few
+    days to get ready - either pin Neorg to the current commit or be prepared to have to do some
+    converting soon.
+
+    Here are all the things that we've changed:
+
+  *** Link Syntax
+      *This one is probably the most impactful and important.*
+      We've realized that the markdown style of defining a link... isn't particularly the best.
+      You must always define a link description, even if you just want a location. Besides,
+      `*location` kind of breaks our syntax rules, right? There should always be a space after a
+      detached modifier like that. Anyway here's the new syntax:
+
+      @code norg
+      This is a regular link with no special description:
+      {* A link to a level-1 heading}
+      You can add a description at the end of the link:
+      {* A link to a level-1 heading}[link text]      
+      @end
+
+      Apart from only defining a level-1 heading you can link to all of the items you could
+      previously, this includes:
+
+      @code norg
+      Linking to markers, definitions:
+      {| Link to a marker}
+      {$ Link to a definition}
+      @end
+
+      Not only that, we have the one, the only, magic link. It links to any item type:
+
+      @code norg
+      {# Any item}
+      @end
+
+      Linking to URLs requires no special symbol:
+
+      @code norg
+      {https://github.com/nvim-neorg/neorg}
+      @end
+
+      It's important to note that the link location is whitespace independent, however the link
+      system is case and punctuation sensitive. `{* Linklocation}` and `{* Link   location}` link to
+      the same place, however `{* Link, location}` does not.
+
+      *There have been some additions too:*
+      - You can now specify a link without a location and only a file (`{:neorg-file:}`)
+        -- Specifying a location with a file still works the same way: `{:neorg-file:* Location}`.
+           Don't forget the space between `*` and `Location`!
+      - You can now link to non-neorg files through the `@` symbol: `{@ non-neorg-file.txt}`
+      - Links now allow absolute paths
+        -- Doing `{:/some/file:* Location}` will now point directly to the root of your filesystem.
+           Beforehand Neorg would convert the `/` to the root of the workspace.
+        -- If you want to reference the root of your workspace you can use the `$` symbol:
+           `{:$/some/neorg/file:}`.
+        -- You can now also reference different workspaces altogether:
+           `{:$workspace-name/some/neorg/file:}`
+      - You can no longer specify several paths to search within links, only a single one.
+        i.e. you can no longer do `{:file:another file:* Location}`. It's unnecessarily complex and
+        won't be used by many people.
+
+  *** TODO Items
+      TODO items have seen a beautiful buff during our latest updates.
+      First of all, we've changed the pending symbol from `- [*]` to `- [-]`. This is for a few
+      reasons. First of all, it makes it easy for org users to transition; second of all, it's cause
+      we've added several new TODO item types:
+
+      @code norg
+      - [ ] I'm an undone item
+      - [-] I'm a pending item
+      - [x] I'm a done item
+      - [?] I'm an uncertain item. Will I ever have to perform this task? I need further input.
+      - [!] *Urgent* task. Do it now!
+      - [=] On-hold task. If pending is one horizontal line, then an equal sign (two horizontal
+            lines) are one step further than pending. Use this for when you have to temporarily halt
+            what you're doing and have no way of completing the task.
+      - [_] Cancelled task. The underscore is supposed to signify a "put down" state. Useful for
+            when you don't want to delete the task from the buffer (in case you need it for future
+            reference) but also don't want it to counted as an real task you have to do.
+      - [+] Recurring task. This task doesn't have a deadline nor a reset timer. It's what we call a
+            "basic" recurrence. Whenever you complete all of the subtasks of this task it will
+            simply reset.
+      @end
+
+  *** Definitions
+      We've also changed the syntax for definitions, although you may have already realized this
+      one. We've changed the `:` char to `$` to signify a definition:
+
+      @code norg
+      $ Definition
+      This is now considered a definition, compared to the previous syntax that used `:`
+      @end
+
+  *** Carryover Tags
+      We've changed the syntax for carryover tags - they are no longer `$tags like this`, however
+      they are now `#tags like this`.
+
+  *** Inline Comments
+      We've changed inline comments to now be +comment+ instead of #comment#. The hashtag is
+      reserved for carryover tags.
+
+ ** Bold, Italic and the Rest of the Family
+    We're making some experimental changes to the way attached modifiers function. Attached
+    modifiers will now only be able to span a single line... kind of. Basically a single attached
+    modifier can only span for a single line, however you can use the trailing modifier to extend
+    the lifespan of said modifier. This means:
+
+    @code norg
+    *this will not
+    work*
+    *but this will~
+    work*
+    @end
+
+    Notice how in the second example there is a trailing modifier (`~`). If you don't see it it
+    could be because of the current concealing implementation.
+
+    > B-but what am I gonna do now if I want to make a whole paragraph bold?
+    > I'm not gonna make 6 thousand trailing modifiers. That's ugly.
+    Yup! It is. This is why we also now have /ranged attached modifiers/.
+    Take a look at this stuff:
+
+    @code norg
+    this is some text  
+    i want to **make all of this
+    bold
+    
+    I even want this paragraph to be bold**.
+    @end
+
+    Done, your wish has been granted. By repeating the modifier you want to apply exactly twice you
+    can make it span a very long distance, including across paragraphs! This is important as now
+    parsers can see beforehand that you want your modifier to span for a long while.
+
+    *This change is very experimental*, we're still playing around with the idea. We're trying to
+    find a perfect compromise between parseability and human comfort. The exact /reason/ we even
+    chose to think of this change is because it was a hit and miss for a parser. Sometimes it may
+    have guessed correctly that you want something to be e.g. bold but sometimes it may have
+    accidentally overshot and plowed through an entire paragraph only to realize "oh, that one thing
+    that looked like an opening attached modifier actually ended up not being one".
+
+                                          * *That's all!*
+    Thanks a bunch for sticking with us, we may still make more changes before 0.1 and before we
+                   stabilize. Have any ideas, any objections? Hit us up either on
+                   {https://discord.gg/T6EgTAX7ht}[discord] or on github itself.
+                                        /Happy organizing! 💜/
+
+$comment
+vim:norl:tw=100:
