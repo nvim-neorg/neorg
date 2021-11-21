@@ -431,6 +431,86 @@ module.public = {
         vim.api.nvim_buf_clear_namespace(0, module.private.code_block_namespace, from or 0, -1)
     end,
 
+    -- @Summary Triggers conceals for the current buffer
+    -- @Description Reads through the user configuration and enables concealing for the current buffer
+    trigger_conceals = function()
+        local conceals = module.config.public.conceals
+
+        if conceals.url then
+            vim.cmd(
+                'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
+            )
+            vim.cmd(
+                'syn region NeorgConcealURL matchgroup=mkdDelimiter start="\\([^\\\\]\\|\\_^\\)\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
+            )
+        end
+
+        if conceals.bold then
+            vim.cmd([[
+                syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+            ]])
+        end
+
+        if conceals.italic then
+            vim.cmd([[
+                syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+            ]])
+        end
+
+        if conceals.underline then
+            vim.cmd([[
+                syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\|^\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+            ]])
+        end
+
+        if conceals.strikethrough then
+            vim.cmd([[
+                syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+            ]])
+        end
+
+        if conceals.verbatim then
+            vim.cmd([[
+                syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=@NoSpell oneline concealends
+            ]])
+        end
+
+        if conceals.comment then
+            vim.cmd([[
+                syn region NeorgConcealComment matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=#\%\([^ \t\n#]\)\@=" end="[^ \t\n\\]\@<=#\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
+            ]])
+        end
+
+        if conceals.trailing then
+            vim.cmd([[
+                syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
+            ]])
+        end
+
+        if conceals.link then
+            vim.cmd([[
+                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
+            ]])
+        end
+    end,
+
+    -- @Summary Clears conceals for the current buffer
+    -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
+    clear_conceals = function()
+        vim.cmd([[
+            silent! syn clear NeorgConcealURL
+            silent! syn clear NeorgConcealURLValue
+            silent! syn clear NeorgConcealItalic
+            silent! syn clear NeorgConcealBold
+            silent! syn clear NeorgConcealUnderline
+            silent! syn clear NeorgConcealMonospace
+            silent! syn clear NeorgConcealComment
+            silent! syn clear NeorgConcealStrikethrough
+            silent! syn clear NeorgConcealTrailing
+            silent! syn clear NeorgConcealLink
+        ]])
+    end,
+
     trigger_completion_levels = function(from)
         from = from or 0
 
