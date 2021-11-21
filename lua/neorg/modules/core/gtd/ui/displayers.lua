@@ -236,7 +236,7 @@ module.public = {
 
         local name = "Projects"
         local res = {
-            "| " .. name,
+            "*" .. name .. "*",
             "",
         }
         local positions = {}
@@ -253,33 +253,54 @@ module.public = {
             table.insert(res, "")
         end
 
+        local projects_by_aof = module.required["core.gtd.queries"].sort_by("area_of_focus", projects)
+
+        -- Prioritize the contexts below
+        local aofs = vim.tbl_keys(projects_by_aof)
+        local sorter = function(a, _)
+            return a == "_"
+        end
+
+        table.sort(aofs, sorter)
         local added_projects = {}
-        for _, project in pairs(projects) do
-            local tasks_project = module.private.find_project(projects_tasks, project.node) or {}
+        for _, aof in ipairs(aofs) do
+            local _projects = projects_by_aof[aof]
+            if aof == "_" then
+                table.insert(res, "| /Projects with no Area Of Focus/")
+            else
+                table.insert(res, "| " .. aof)
+            end
+            table.insert(res, "")
+            for _, project in pairs(_projects) do
+                local tasks_project = module.private.find_project(projects_tasks, project.node) or {}
 
-            local completed = vim.tbl_filter(function(t)
-                return t.state == "done"
-            end, tasks_project)
+                local completed = vim.tbl_filter(function(t)
+                    return t.state == "done"
+                end, tasks_project)
 
-            if project ~= "_" and not vim.tbl_contains(added_projects, project.node) then
-                table.insert(res, "* " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)")
-                table.insert(positions, { line = #res, data = project })
+                if project ~= "_" and not vim.tbl_contains(added_projects, project.node) then
+                    table.insert(
+                        res,
+                        "* " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)"
+                    )
+                    table.insert(positions, { line = #res, data = project })
 
-                local percent_completed = (function()
-                    if #tasks_project == 0 then
-                        return 0
-                    end
-                    return math.floor(#completed * 100 / #tasks_project)
-                end)()
+                    local percent_completed = (function()
+                        if #tasks_project == 0 then
+                            return 0
+                        end
+                        return math.floor(#completed * 100 / #tasks_project)
+                    end)()
 
-                local completed_over_10 = math.floor(percent_completed / 10)
-                local percent_completed_visual = "["
-                    .. string.rep("=", completed_over_10)
-                    .. string.rep(" ", 10 - completed_over_10)
-                    .. "]"
-                table.insert(res, "   " .. percent_completed_visual .. " " .. percent_completed .. "% done")
-                table.insert(added_projects, project.node)
-                table.insert(res, "")
+                    local completed_over_10 = math.floor(percent_completed / 10)
+                    local percent_completed_visual = "["
+                        .. string.rep("=", completed_over_10)
+                        .. string.rep(" ", 10 - completed_over_10)
+                        .. "]"
+                    table.insert(res, "   " .. percent_completed_visual .. " " .. percent_completed .. "% done")
+                    table.insert(added_projects, project.node)
+                    table.insert(res, "")
+                end
             end
         end
 
