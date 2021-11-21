@@ -93,12 +93,6 @@ module.config.public = {
     },
 }
 
-module.neorg_post_load = function()
-    vim.schedule(function()
-        module.public.display_news(module.public.parse_source("news"))
-    end)
-end
-
 module.public = {
     parse_source = function(name)
         local source = module.config.public.sources[name]
@@ -148,10 +142,22 @@ module.public = {
         vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bdelete<CR>", { silent = true, noremap = true })
         vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bdelete<CR>", { silent = true, noremap = true })
 
-        return vim.api.nvim_open_win(buf, true, parsed_source.config)
+        return vim.api.nvim_open_win(buf, false, parsed_source.config), buf
     end,
 
     parse_all_sources = function() end,
+}
+
+module.on_event = function(event)
+    if event.type == "core.started" then
+        module.public.display_news(module.public.parse_source("news"))
+    end
+end
+
+module.events.subscribed = {
+    core = {
+        started = true,
+    },
 }
 
 return module
