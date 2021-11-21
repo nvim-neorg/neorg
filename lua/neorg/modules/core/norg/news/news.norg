@@ -1,7 +1,7 @@
 @document.meta
-    title: news
-    description: 
-    author: vhyrro
+    title: Neorg News
+    description: Any important information that you probably wanna see.
+    author: nvim-neorg
     categories: 
     created: 2021-11-21
     version: 0.0.8
@@ -10,7 +10,8 @@
                                  * _We got some new news for you!_
      Welcome to the Neorg news page. This page displays whenever there's any piece of important
                  information that we need to convey, without having to rely on git.
-                         To exit this prompt, press either `<Esc>` or `q`.
+                             To /enter/ this prompt, press `<C-w><C-w>`.
+                         To /exit/ this prompt, press either `<Esc>` or `q`.
 
 * *Most Important Changes*
   There are quite a few breaking changes ahead. Pay attention here, you don't wanna miss this.
