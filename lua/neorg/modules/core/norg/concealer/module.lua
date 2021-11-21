@@ -517,78 +517,60 @@ module.public = {
         local conceals = module.config.public.conceals
 
         if conceals.url then
-            vim.schedule(function()
-                vim.cmd(
-                    'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
-                )
-                vim.cmd(
-                    'syn region NeorgConcealURL matchgroup=mkdDelimiter start="\\([^\\\\]\\|\\_^\\)\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
-                )
-            end)
+            vim.cmd(
+                'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
+            )
+            vim.cmd(
+                'syn region NeorgConcealURL matchgroup=mkdDelimiter start="\\([^\\\\]\\|\\_^\\)\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
+            )
         end
 
         if conceals.bold then
-            vim.schedule(function()
-                vim.cmd([[
+            vim.cmd([[
                 syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
+            ]])
         end
 
         if conceals.italic then
-            vim.schedule(function()
-                vim.cmd([[
+            vim.cmd([[
                 syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
+            ]])
         end
 
         if conceals.underline then
-            vim.schedule(function()
-                vim.cmd([[
+            vim.cmd([[
                 syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\|^\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
+            ]])
         end
 
         if conceals.strikethrough then
-            vim.schedule(function()
-                vim.cmd([[
+            vim.cmd([[
                 syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
+            ]])
         end
 
         if conceals.verbatim then
-            vim.schedule(function()
-                vim.cmd([[
+            vim.cmd([[
                 syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=@NoSpell oneline concealends
-                ]])
-            end)
+            ]])
         end
 
         if conceals.comment then
-            vim.schedule(function()
-                vim.cmd([[
+            vim.cmd([[
                 syn region NeorgConcealComment matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=#\%\([^ \t\n#]\)\@=" end="[^ \t\n\\]\@<=#\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-                ]])
-            end)
+            ]])
         end
 
         if conceals.trailing then
-            vim.schedule(function()
-                vim.cmd([[
+            vim.cmd([[
                 syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
-                ]])
-            end)
+            ]])
         end
 
         if conceals.link then
-            vim.schedule(function()
-                vim.cmd([[
+            vim.cmd([[
                 syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
-                ]])
-            end)
+            ]])
         end
     end,
 
