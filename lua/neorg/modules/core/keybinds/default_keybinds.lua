@@ -79,7 +79,7 @@ module.public = {
                 nowait = true,
             })
 
-            -- Map the below keys on gtd displays
+            -- Map the below keys on presenter mode
             keybinds.map_event_to_mode("presenter", {
                 n = {
                     { "<CR>", "core.presenter.next_page" },
