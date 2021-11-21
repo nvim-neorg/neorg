@@ -354,7 +354,7 @@ module.public = {
 					-- see if the syntax files even exist before we try to call them
 					local count = select(2, result:gsub('\n', '\n')) -- get length of result from syn list
 					-- if syn list was an error, or if it was an empty result
-					if ok == false or (ok == true and (string.sub(result, 1, 1) == 'N') or count == 0) then
+					if ok == false or (ok == true and (string.sub(result, 1, 1) == 'N' or count == 0)) then
 						local output = vim.api.nvim_get_runtime_file("syntax/"..regex_language..".vim", false)
 						if output[1] ~= nil then
 							local command = "syntax include @"..group.." "..output[1]
