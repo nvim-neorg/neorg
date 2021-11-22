@@ -78,13 +78,11 @@ module.public = {
                 smaller_value = (next_square_bracket < next_curly_bracket and next_square_bracket or next_curly_bracket)
             end
 
-            vim.api.nvim_win_set_cursor(
-                0,
-                {
-                    current_line,
-                    smaller_value - 1
-                }
-            )
+            vim.api.nvim_win_set_cursor(0, {
+                current_line,
+                smaller_value - 1,
+            })
+
             local node_under_cursor = ts_utils.get_node_at_cursor()
 
             resulting_node = neorg.lib.match({
