@@ -340,6 +340,9 @@ module.public = {
 						true
 					)
 					local count = select(2, result:gsub('\n', '\n')) -- get length of result from syn list
+					if ok == true and count > 0 then
+						goto continue
+					end
 
 					-- pass off the current syntax buffer var so things can load
 					local current_syntax = ""
