@@ -166,18 +166,12 @@ You can install through any plugin manager (it can even be vimscript plugin mana
 
   ```lua
   use {
-    "nvim-neorg/neorg", 
+    "nvim-neorg/neorg",
     -- in case you turn off filetype detection when startup neovim, or ft detection failure for norg
     setup = vim.cmd("autocmd BufRead,BufNewFile *.norg setlocal filetype=norg"),
+    after = {"nvim-treesitter"},  -- you may also specify telescope
     ft = "norg",
     config = function()
-      local loader = require"packer".loader
-      -- lazy load treesitter
-      if not packer_plugins['nvim-treesitter'].loaded then
-        loader("nvim-treesitter")
-      end
-      -- lazy load other modules, e.g. telescope etc
-      ...
       -- setup neorg
       require('neorg').setup {
         ...
@@ -201,7 +195,7 @@ You can install through any plugin manager (it can even be vimscript plugin mana
    ```
    
    Afterwards resource the current file and to install plugins run `:PlugInstall`.
-   
+
    You can put this initial configuration in your init.vim file:
    ```vim
    lua << EOF
