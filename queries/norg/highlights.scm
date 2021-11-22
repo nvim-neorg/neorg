@@ -1,8 +1,8 @@
 (ranged_tag ("_prefix") @NeorgTagBegin
-        name: (tag_name [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
-        (tag_parameters parameter: (word) @NeorgTagParameter)? @NeorgTagParameters
-        content: (ranged_tag_content)?
-        (ranged_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)) @NeorgTag
+	name: (tag_name [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
+	(tag_parameters parameter: (word) @NeorgTagParameter)? @NeorgTagParameters
+	content: (ranged_tag_content)?
+	(ranged_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)) @NeorgTag
 
 ; TODO: Make the content of @comment darker
 

@@ -32,7 +32,6 @@ module.config.public = {
             },
 
             Parameter = "+TSType",
-            Content = "+TSNone",
         },
 
         CarryoverTag = {
