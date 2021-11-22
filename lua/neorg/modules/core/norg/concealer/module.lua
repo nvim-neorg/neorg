@@ -277,36 +277,36 @@ module.public = {
     end,
 
 	trigger_highlight_regex_code_block = function(from)
-        -- The next block of code will be responsible for dimming code blocks accordingly
-        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+		-- The next block of code will be responsible for dimming code blocks accordingly
+		local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
 
-        -- If the tree is valid then attempt to perform the query
-        if tree then
-            -- Query all code blocks
-            local ok, query = pcall(
-                vim.treesitter.parse_query,
-                "norg",
-                [[(
-                    (ranged_tag (tag_name) @_name) @tag
-                    (#eq? @_name "code")
-                )]]
-            )
+		-- If the tree is valid then attempt to perform the query
+		if tree then
+			-- Query all code blocks
+			local ok, query = pcall(
+				vim.treesitter.parse_query,
+				"norg",
+				[[(
+				(ranged_tag (tag_name) @_name) @tag
+				(#eq? @_name "code")
+				)]]
+			)
 
-            -- If something went wrong then go bye bye
-            if not ok or not query then
-                return
-            end
+			-- If something went wrong then go bye bye
+			if not ok or not query then
+				return
+			end
 
-            -- get the language used by the code block
-            local code_lang = vim.treesitter.parse_query(
-                "norg",
-                [[(
-					(ranged_tag (tag_name) @_tagname (tag_parameters) @language)
-                )]]
-            )
+			-- get the language used by the code block
+			local code_lang = vim.treesitter.parse_query(
+				"norg",
+				[[(
+				(ranged_tag (tag_name) @_tagname (tag_parameters) @language)
+				)]]
+			)
 
-            -- look for language name in code blocks
-            -- this will not finish if a treesitter parser exists for the current language found
+			-- look for language name in code blocks
+			-- this will not finish if a treesitter parser exists for the current language found
 			for id, node in code_lang:iter_captures(tree:root(), 0, from or 0, -1) do
 				local lang_name = code_lang.captures[id]
 
@@ -339,12 +339,13 @@ module.public = {
 						has_syntax,
 						true
 					)
+					local count = select(2, result:gsub('\n', '\n')) -- get length of result from syn list
 
 					-- pass off the current syntax buffer var so things can load
 					local current_syntax = ""
 					if vim.b.current_syntax ~= '' or vim.b.current_syntax ~= nil then
 						vim.b.current_syntax = regex_language
-							current_syntax = vim.b.current_syntax
+						current_syntax = vim.b.current_syntax
 						vim.b.current_syntax = nil
 					end
 
@@ -352,7 +353,6 @@ module.public = {
 					local is_keyword = vim.api.nvim_buf_get_option(0, "iskeyword")
 
 					-- see if the syntax files even exist before we try to call them
-					local count = select(2, result:gsub('\n', '\n')) -- get length of result from syn list
 					-- if syn list was an error, or if it was an empty result
 					if ok == false or (ok == true and (string.sub(result, 1, 1) == 'N' or count == 0)) then
 						local output = vim.api.nvim_get_runtime_file("syntax/"..regex_language..".vim", false)
@@ -388,7 +388,7 @@ module.public = {
 					::continue::
 				end
 			end
-        end
+		end
 	end,
 
     trigger_code_block_highlights = function(from)
