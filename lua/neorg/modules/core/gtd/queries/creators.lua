@@ -4,7 +4,7 @@ module.public = {
     --- Creates a new project/task (depending of `type`) from the `node` table and insert it in `bufnr` at `location`
     --- supported `string`: project|task
     --- @param type string
-    --- @param node table
+    --- @param node core.gtd.queries.task|core.gtd.queries.project
     --- @param bufnr number
     --- @param location number
     --- @param delimit boolean #Add delimiter before the task/project if true
@@ -70,7 +70,7 @@ module.public = {
 
     --- Returns the end of the `project`
     --- If the project has blank lines at the end, will not take them ino account
-    --- @param project table
+    --- @param project core.gtd.queries.project
     --- @return number
     get_end_project = function(project)
         vim.validate({
@@ -85,10 +85,14 @@ module.public = {
         for i = #lines, 1, -1 do
             local value = lines[i]
             value = string.gsub(value, "%s*", "")
+
             if value == "" then
                 blank_lines = blank_lines + 1
+            else
+                break
             end
         end
+
         return sr + #lines - blank_lines
     end,
 
