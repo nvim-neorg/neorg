@@ -182,6 +182,7 @@ module.private = {
     capture_task = function(selection)
         return selection:title("Add a task"):blank():prompt("Task", {
             callback = function(text)
+                ---@type core.gtd.queries.task
                 local task = {}
                 task.content = text
 
