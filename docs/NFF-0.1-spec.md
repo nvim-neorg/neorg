@@ -116,7 +116,7 @@ changes:
   The Neorg lexer should read every modifier from left to right in the most logical order possible.
   This means that `*This bit* of text*` should be interpreted as "**This bit** of text\*", where the last asterisk
   is treated as regular text because it does not form a pair. Doing so avoids several edge cases and several problems
-  that the parser may have to overcome. Markdown implements this same parsing order.
+  that the parser may have to overcome. Several other formats implement this same parsing order.
 
 ### Attached Modifiers and Their Functions
   Attached modifiers are those that change the look of a piece of text. Their symbols and functions are described here:
@@ -129,67 +129,52 @@ changes:
   - `|some text|` - spoilers
   - \`some text\` - inline code block (verbatim)
   - `$some text$` - inline mathematics
-  - `#some text#` - inline comment
+  - `+some text+` - inline comment
   - `=variable=` - accesses a previously defined variable
 
 ### Detached Modifiers and Their Functions
-  Detached modifiers are those that change the way text is interpreted. Their symbols and functions are described in the format that follows:
+  Detached modifiers are those that change the way text is interpreted. Their symbols and functions are described in the following text:
 
-  **A visual representation of the text -> \<regex\>**
-  - `* Some text -> ^\s*\*\s+.+$` - marks text as a heading. Headings are one-line paragraphs
-  - `** Some text -> ^\s*\*\*\s+.+$` - marks text as a subheading. Subheadings are one-line paragraphs
-  - `*** Some text -> ^\s*\*\*\*\s+.+$` - marks text as a subsubheading. Subsubheadings are one-line paragraphs
-  - `**** Some text -> ^\s*\*\*\*\*\s+.+$` - marks text as a subsubsubheading. Subsubsubheadings are one-line paragraphs
-  - `***** Some text -> ^\s*\*\*\*\*\*\s+.+$` - marks text as a subsubsubsubheading. Subsubsubsubheadings are one-line paragraphs
-  - `****** Some text -> ^\s*\*\*\*\*\*\*\s+.+$` - marks text as a ..., you get the idea. Neorg can only go up to 6-level headings
-  - `- Do something -> ^\s*\-\s+.+$` - marks an unordered list
-  - `~ Do something -> ^\s*\~\s+.+$` - marks an ordered list
-  - `- [ ] -> ^\s*\-\s+\[\s+\]\s+.+$` - marks an undone task
-  - `- [*] -> ^\s*\-\s+\[\s*\*\s*\]\s+.+$` - marks a pending task
-  - `- [x] -> ^\s*\-\s+\[\s*x\s*\]\s+.+$` - marks a complete (done) task
-  - `| Important Information -> ^\s*\|\s+.+$` - symbolizes a marker
-  - `> That's what she said -> ^\s*\>\s+.+$` - marks a quote
+  - `* Some text` - marks text as a heading. Headings are one-line paragraphs
+  - `** Some text` - marks text as a subheading. Subheadings are one-line paragraphs
+  - `*** Some text` - marks text as a subsubheading. Subsubheadings are one-line paragraphs
+  - `**** Some text` - marks text as a subsubsubheading. Subsubsubheadings are one-line paragraphs
+  - `***** Some text` - marks text as a subsubsubsubheading. Subsubsubsubheadings are one-line paragraphs
+  - `****** Some text` - marks text as a ..., you get the idea. Neorg can only go up to 6-level headings
+  - `- Do something` - marks an unordered list
+  - `~ Do something` - marks an ordered list
+  - `- [ ]` - marks an undone task
+  - `- [-]` - marks a pending task
+  - `- [x]` - marks a complete (done) task
+  - `- [=]` - marks an on-hold item
+  - `- [_]` - marks a cancelled item
+  - `- [!]` - marks an urgent item
+  - `- [+]` - marks a recurring item
+  - `- [?]` - marks an uncertain item
+  - `| Important Information` - symbolizes a marker
+  - `> That's what she said` - marks a quote
 
   - ```
     @document.meta
 		<data>
     @end
-
-	->
-
-	^\s*\@[^\s]+\s*(([^\s]+\s*)*)$
-		.*
-	^\s*\@end\s*$
   	```
   	Marks a data tag, which you can read more about [here](#defining-data).
 
   - ```
-    A [link](#My Link).
-
-	->
-
-	regex too complex, not bothered to write it :P
+    A {# My Link}[link]
     ```
 	Marks a link to another segment of a document or to a link on the web. More about it can be read [here](#links).
 
   - ```
   	#comment
   	This is a comment!
-
-  	->
-
-  	^\s*\#[^\s]+\s*(([^\s]+\s*)*)$
-	.+
   	```
   	Marks a carryover tag, which is essentially syntax sugar for a regular tag.
   	You can read more about it [here](#carryover-tags).
 
   - ```
 	= ToC Table Of Contents:
-
-	->
-
-	^\s*\=\s+\w+\s+.*$
     ```
     Marks an `insertion`. Insertions, well, insert text into a document dynamically. You can read more about them [here](#insertions).
 
@@ -218,7 +203,7 @@ changes:
 
 ### Escaping Special Characters
   Sometimes you'll find yourself not wanting to have a certain character format your text, you can directly prevent this
-  by prefixing that character with a backslash `\`, like you would in Markdown. All characters are escapable in this fashion.
+  by prefixing that character with a backslash `\`. *All* characters are escapable in this fashion.
 
 ### Defining Data
   What divides simple markup files from more complex implementations is the ability to morph the document and define data inside the document.
@@ -244,9 +229,8 @@ changes:
   Tags must appear at the beginning of a line, and may optionally be preceded by whitespace. After that, any sort of text may be entered on as many lines
   as the user sees fit. The end of the data tag must be signalled with an `@end` token that must appear at the beginning of a line (with optional whitespace before it)
   and may not have any extra tokens after itself other than whitespace.
-  Also one important thing to note is that tags require **indent stability**, aka the `@end` of a tag *must* be on the same indentation level as the beginning,
-  and the content of the tag may not be indented less than the indentation level of the beginning/end of the tag.
-  This means that:
+   
+  Will all that said: 
   ```
 	VALID:
 		@some.tag
@@ -258,7 +242,7 @@ changes:
 		data goes here
 		blah blah blah
 		@end
-	INVALID (indent stability not preserved, @end does not have same indentation level as @some.tag):
+	VALID:
 			@some.tag
 			more data
 			blah blah blah
@@ -275,7 +259,7 @@ changes:
 		@some.tag
 			text here
 		the @end
-	INVALID (indent stability not preserved, content of the tag is less indented than the tag itself):
+	INVALID (content cannot be indented less than the starting tag):
 		@some.tag
 	   content
 		@end
@@ -320,53 +304,17 @@ changes:
 	* Reasons why dark chocolate is better than white chocolate
     Over the years, several people have been asking themselves...
   ```
-  Although both forms are correct. The `@` symbol for comments is only truly useful whenever you want to write mulitiline
+  Although both forms (in this scenario) are correct. The `@` symbol for comments is only truly useful whenever you want to write multiline
   comments that span over several paragraphs inside of your document. Inside of a carryover tag everything after the tag till the end of the line is counted as a
   parameter for that tag, and the body for that tag is the next paragraph.
 
 ##### Quirks
-  Carryover tags have an interesting property when applied to lines with detached modifiers - as long as no
-  hard line break (e.g. \n\n) is encountered, the carryover tag will "infect" all the other detached modifiers below it,
-  let me show an example. Let's say, hypothetically, we have a `#color` tag, which allows us to change the colour
-  of the next element. Because of this infectious property:
-
-  ```
-	#color red
-	- One element
-	- Another element
-  ```
-
-  Both the first and second list element will be affected by the `#color` tag, because the first element infected the other.
-  In this scenario, the infection does not happen, and only the first list element gets the `#color` tag applied:
-
-  ```
-	#color red
-	- One element
-
-	- Unaffected element
-  ```
-
-  Because of the hard line break the second unordered list element gets unaffected. Just for clarity, this:
-
-  ```
-	#color red
-	- One element
-	  with some content on a newline
-	- Another element
-  ```
-
-  **Will** cause the second element to get infected, because no hard line break occurs.
-
-  Obviously, this rule applies to every detached modifier, even headings:
-  ```
-	#color red
-	* A heading
-	  ** A subheading
-	     This regular text will be unaffected because it does not have a detached modifier.
-  ```
-
-  Both the heading and the subheading will become red, unless the subheading has a hard line break
-  disconnecting the two.
+  One of the interesting quirks about carryover tags is how they can sometimes be advantageous over
+  ranged tags when it comes to directly modifying markup. Ranged tags are basically *long range verbatim blocks*.
+  This means that anything within those tags won't be treated as Neorg markup - this makes sense.
+  Carryover tags, however, do allow for markup to naturally exist since they don't have a range, they
+  simply attach to whatever is below them in the document. Since the document is, well, markup, whatever
+  the carryover tag attaches to is still treated as normal markup.
 
   Another feature of carryover tags is their ability to carry themselves over and chain a bunch of
   tags together. For example, if I were to do:
@@ -378,15 +326,7 @@ changes:
   ```
 
   The `#color` carryover tag will carry over to the `#name` tag, which will in turn carry over to the heading,
-  creating a chain reaction. This is much more convenient than e.g. writing:
-
-  ```
-	@color red
-		@name my-heading
-			* I like tomatoes
-		@end
-	@end
-  ```
+  creating a chain reaction.
 
 ### Single-line Paragraphs
   Single-line paragraphs are a special type of paragraph as they only exist for one line.
@@ -545,16 +485,16 @@ changes:
   -- [x] Nested done item
 
   Unordered links:
-  -> [link](#to a location)
-  --> [nested link](*to another location)
+  -> {# To a location}[link]
+  --> {# To another location}[nested link]
 
   Ordered lists:
   ~ Ordered list item
     ~~ Nested ordered list
 
   Ordered links:
-  ~> [link](#to a location)
-  ~~> [nested link](*to another location)
+  ~> {# To a location}[link]
+  ~~> {# To another location}[nested link]
 
   Quotes:
   > A quote
@@ -564,15 +504,42 @@ changes:
   You can read more about Neorg's indentation philosophy [here](#indentation).
 
 ### TODO Lists
-  TODO Items can be managed in a way that is practically the same as Markdown syntactically.
+  TODO Items should be fairly intuitive. Here are the three basic TODO item types:
+
   ```
   - [ ] Do the dishes <- undone task
-  - [*] Do the dishes <- pending task
+  - [-] Do the dishes <- pending task
   - [x] Do the dishes <- done task
   ```
 
   It is also possible to nest these in the same way as described [above](#nesting).
-  The exact syntax (in regex) for these is described [here](#detached-modifiers-and-their-functions).
+
+Apart from those basic types existing we've also created *several* different TODO items to express
+several different occasions. Here they are:
+```
+- [ ] I am an undone task
+- [-] I am a pending task (in-progress)
+- [x] I am a done task
+- [=] I am an on-hold task (more on this later)
+- [_] I am a cancelled task
+- [!] I am an urgent task
+- [+] I am a generic recurring task
+- [?] I am an uncertain task (will I ever have to complete this?)
+```
+
+Let's expand on some of the TODO item types, as well as explain why we chose the characters we chose:
+- On-hold tasks (`[=]`). These are tasks that used to be pending, however you had to stop doing at this moment
+and postpone it to a later date. It's an equals sign because it's one step
+further (two horizontal lines (`=`)) than a pending item (which is a single horizontal line (`-`)).
+- Cancelled tasks (`[_]`). This one's pretty self-explanatory. It's a task that you end up cancelling (i.e. you won't do it)
+but you want to keep it around for future reference. We use an underscore here because an underscore looks
+like it's been "put down", which is exactly what a cancelled task is.
+- Urgent task (`[!]`). Simply marks a task that you should want to do ASAP.
+- Recurring task (`[+]`). This is an interesting type of task, as it requires children. If it doesn't have any
+children then it can be treated as a pending task instead. All children will be reset once every subtask
+becomes complete. This is only really useful within Neorg itself, and not while rendering it.
+- Uncertain task (`[?]`). Sometimes you don't know whether or not you will have to perform a task.
+This task is exactly a way to express that.
 
 ### Links
   Links are ways to connect several documents together and give the user access to special clickable hyperlinks.
