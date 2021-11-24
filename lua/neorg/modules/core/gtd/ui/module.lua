@@ -25,6 +25,7 @@ module.setup = function()
             "core.gtd.queries",
             "core.integrations.treesitter",
             "core.mode",
+            "core.queries.native"
         },
         imports = {
             "displayers",

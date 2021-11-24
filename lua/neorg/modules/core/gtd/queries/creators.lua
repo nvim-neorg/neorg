@@ -6,7 +6,7 @@ module.public = {
     --- @param type string
     --- @param node core.gtd.queries.task|core.gtd.queries.project
     --- @param bufnr number
-    --- @param location number
+    --- @param location table
     --- @param delimit boolean #Add delimiter before the task/project if true
     --- @param opts table|nil opts
     ---   - opts.new_line(boolean)   if false, do not add a newline before the content
@@ -16,7 +16,7 @@ module.public = {
             type = { type, "string" },
             node = { node, "table" },
             bufnr = { bufnr, "number" },
-            location = { location, "number" },
+            location = { location, "table" },
             opts = { opts, "table", true },
         })
 
@@ -70,17 +70,19 @@ module.public = {
 
     --- Returns the end of the `project`
     --- If the project has blank lines at the end, will not take them ino account
-    --- @param project core.gtd.queries.project
+    --- @param node userdata
+    --- @param bufnr number
     --- @return number
-    get_end_project = function(project)
+    get_end_project = function(node, bufnr)
         vim.validate({
-            project = { project, "table" },
+            node = { node, "userdata" },
+            bufnr = { bufnr, "number" },
         })
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        local sr = ts_utils.get_node_range(project.node)
+        local sr, sc = ts_utils.get_node_range(node)
 
         -- Do not count blank lines at end of a project
-        local lines = ts_utils.get_node_text(project.node, project.bufnr)
+        local lines = ts_utils.get_node_text(node, bufnr)
         local blank_lines = 0
         for i = #lines, 1, -1 do
             local value = lines[i]
@@ -93,7 +95,7 @@ module.public = {
             end
         end
 
-        return sr + #lines - blank_lines
+        return { sr + #lines - blank_lines, sc + 2 }
     end,
 
     --- Returns the end of the document content position of a `file`
@@ -147,7 +149,7 @@ module.private = {
         vim.validate({
             content = { content, "string" },
             bufnr = { bufnr, "number" },
-            location = { location, "number" },
+            location = { location, "table" },
             type = {
                 type,
                 function(t)
@@ -165,9 +167,10 @@ module.private = {
             table.insert(inserter, "")
         end
 
-        table.insert(inserter, prefix .. content)
+        local indendation = string.rep(" ", location[2])
+        table.insert(inserter, indendation .. prefix .. content)
 
-        vim.api.nvim_buf_set_lines(bufnr, location, location, false, inserter)
+        vim.api.nvim_buf_set_lines(bufnr, location[1], location[1], false, inserter)
 
         -- Get all nodes for `type` and return the one that is present at `location`
         local nodes = module.public.get(type .. "s", { bufnr = bufnr })
@@ -177,7 +180,7 @@ module.private = {
             local line = ts_utils.get_node_range(node[1])
 
             local count_newline = opts.newline and 1 or 0
-            if line == location + count_newline then
+            if line == location[1] + count_newline then
                 return node[1]
             end
         end

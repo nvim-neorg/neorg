@@ -143,30 +143,29 @@ module.private = {
                 --- @type core.gtd.queries.project
                 projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
-                -- Use the alphabet to generate flag keys
-                -- NOTE: If there is more than 26 projects, will stop there
-                local alphabet = "abcdefghijklmnopqrstuvwxyz"
-                local index = 0
-
-                for _, project in pairs(projects) do
-                    index = (index % #alphabet) + 1
-                    if index == 0 then
+                for i, project in pairs(projects) do
+                    local f = module.private.create_flag(i)
+                    -- NOTE: If there is more than 26 projects, will stop there
+                    if not f then
                         selection:text("Too much projects to display...")
                         break
                     end
-                    local f = alphabet:sub(index, index)
-                    selection:flag(f, project.content, function()
-                        local location = module.required["core.gtd.queries"].get_end_project(project)
-                        module.required["core.gtd.queries"].create(
-                            "task",
-                            task,
-                            project.bufnr,
-                            location,
-                            false,
-                            { newline = false }
-                        )
-                        vim.cmd(string.format([[echom '%s']], 'Task added to "' .. project.content .. '".'))
-                    end)
+
+                    selection:flag(f, project.content, {
+                        callback = function()
+                            selection:push_page()
+
+                            module.private.create_recursive_project_placement(
+                                selection,
+                                project.node,
+                                project.bufnr,
+                                project.content,
+                                task,
+                                true
+                            )
+                        end,
+                        destroy = false,
+                    })
                 end
 
                 selection:blank():text("Create new project"):flag("x", "Create new project", {
@@ -177,6 +176,99 @@ module.private = {
             end,
             destroy = false,
         })
+    end,
+
+    create_recursive_project_placement = function(selection, node, bufnr, project_title, task, is_project_root)
+        ---- Creates flags for generic lists from current node
+        --- @param node core.gtd.queries.project
+        local function get_generic_lists(node, bufnr)
+            local tree = {
+                { query = { "all", "generic_list" } },
+            }
+            local nodes = module.required["core.queries.native"].query_from_tree(node, tree, bufnr)
+
+            if nodes and not vim.tbl_isempty(nodes) then
+                return nodes
+            end
+        end
+
+        --- Recursively creates subheadings flags
+        ---@param node userdata
+        local function create_subheadings(selection, node, bufnr)
+            local node_type = node:type()
+            -- Get subheading level
+            local heading_level = string.sub(node_type, -1)
+            heading_level = tonumber(heading_level) + 1
+
+            -- Get all direct subheadings
+            local tree = {
+                {
+                    query = { "all", "heading" .. heading_level },
+                },
+            }
+
+            local nodes = module.required["core.queries.native"].query_from_tree(node, tree, bufnr)
+            local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
+
+            for i, node in pairs(extracted_nodes) do
+                local f = module.private.create_flag(i)
+                if not f then
+                    selection:title("Too much subheadings...")
+                    break
+                end
+                node = string.sub(node, heading_level + 2)
+                selection:flag(f, "Append to " .. node .. " (subheading)", {
+                    callback = function()
+                        selection:push_page()
+                        module.private.create_recursive_project_placement(
+                            selection,
+                            nodes[i][1],
+                            nodes[i][2],
+                            project_title,
+                            task,
+                            false
+                        )
+                    end,
+                    destroy = false,
+                })
+            end
+        end
+
+        selection:title(project_title):blank()
+
+        local description = is_project_root and "Project root" or "Root of current subheading"
+        local location
+
+        selection:text("Where do you want to add the task ?")
+        create_subheadings(selection, node, bufnr)
+        selection:flag("<CR>", description, {
+            callback = function()
+                local generic_lists = get_generic_lists(node, bufnr)
+                if generic_lists then
+                    local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+
+                    local last_list = generic_lists[#generic_lists]
+                    local _, sc, er, _ = ts_utils.get_node_range(last_list[1])
+                    location = { er + 1, sc }
+                else
+                    location = module.required["core.gtd.queries"].get_end_project(node, bufnr)
+                end
+
+                module.required["core.gtd.queries"].create("task", task, bufnr, location, false, { newline = false })
+                vim.cmd(string.format([[echom '%s']], 'Task added to "' .. project_title .. '".'))
+            end,
+            destroy = true,
+        })
+    end,
+
+    create_flag = function(index)
+        local alphabet = "abcdefghijklmnopqrstuvwxyz"
+        index = (index % #alphabet)
+        if index == 0 then
+            return
+        end
+
+        return alphabet:sub(index, index)
     end,
 
     capture_task = function(selection)
@@ -215,7 +307,7 @@ module.private = {
                     end)
                     :flag("x", "Add to cursor position", function()
                         local cursor = vim.api.nvim_win_get_cursor(0)
-                        local location = cursor[1] - 1
+                        local location = { cursor[1] - 1, 0 }
                         module.required["core.gtd.queries"].create(
                             "task",
                             task,
@@ -243,7 +335,7 @@ module.private = {
                         local buf = vim.uri_to_bufnr(uri)
                         local end_row, projectAtEnd = module.required["core.gtd.queries"].get_end_document_content(buf)
 
-                        module.required["core.gtd.queries"].create("task", task, buf, end_row, projectAtEnd)
+                        module.required["core.gtd.queries"].create("task", task, buf, { end_row, 0 }, projectAtEnd)
                     end)
 
                 return selection
