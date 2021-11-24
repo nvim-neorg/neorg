@@ -11,7 +11,7 @@ describe("CORE.GTD.QUERIES - Creators:", function()
             content = "test_content",
         }
         local buf = config.get_void_buf()
-        queries.create("task", task, buf, 0, false, { no_save = true })
+        queries.create("task", task, buf, { 0, 0 }, false, { no_save = true })
 
         local tasks = queries.get("tasks", { bufnr = buf })
         tasks = queries.add_metadata(tasks, "task")
@@ -30,7 +30,7 @@ describe("CORE.GTD.QUERIES - Creators:", function()
         }
         local buf = config.get_void_buf()
 
-        queries.create("project", project, buf, 0, false, { no_save = true, newline = true })
+        queries.create("project", project, buf, { 0, 0 }, false, { no_save = true, newline = true })
 
         local projects = queries.get("projects", { bufnr = buf })
         projects = queries.add_metadata(projects, "project")
@@ -46,9 +46,9 @@ describe("CORE.GTD.QUERIES - Creators:", function()
         local projects = queries.get("projects", { bufnr = config.temp_buf })
         projects = queries.add_metadata(projects, "project")
 
-        local location = queries.get_end_project(projects[1])
+        local location = queries.get_end_project(projects[1].node, projects[1].bufnr)
         local lines = vim.api.nvim_buf_line_count(config.temp_buf)
-        assert.equals(lines, location)
+        assert.equals(lines, location[1])
     end)
 
     it("Get the end of the document content", function()
