@@ -184,6 +184,7 @@ module.private = {
         local function get_generic_lists(node, bufnr)
             local tree = {
                 { query = { "all", "generic_list" } },
+                { query = { "all", "carryover_tag_set" } },
             }
             local nodes = module.required["core.queries.native"].query_from_tree(node, tree, bufnr)
 
@@ -248,8 +249,13 @@ module.private = {
                     local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
                     local last_list = generic_lists[#generic_lists]
+
                     local _, sc, er, _ = ts_utils.get_node_range(last_list[1])
-                    location = { er + 1, sc }
+                    if last_list[1]:type() == "carryover_tag_set" then
+                        location = { er + 2, sc }
+                    else
+                        location = { er + 1, sc }
+                    end
                 else
                     location = module.required["core.gtd.queries"].get_end_project(node, bufnr)
                 end
