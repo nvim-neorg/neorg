@@ -222,7 +222,11 @@ changes:
 		description: Document description
 		author: Vhyrro
 		created: 2021-06-23
-		categories: personal blogs neorg
+		categories: [
+		    personal
+		    blogs
+		    neorg
+		]
 		version: 0.1
 	@end
   ```
@@ -534,78 +538,97 @@ further (two horizontal lines (`=`)) than a pending item (which is a single hori
 - Cancelled tasks (`[_]`). This one's pretty self-explanatory. It's a task that you end up cancelling (i.e. you won't do it)
 but you want to keep it around for future reference. We use an underscore here because an underscore looks
 like it's been "put down", which is exactly what a cancelled task is.
-- Urgent task (`[!]`). Simply marks a task that you should want to do ASAP.
-- Recurring task (`[+]`). This is an interesting type of task, as it requires children. If it doesn't have any
+- Urgent tasks (`[!]`). Simply marks a task that you should want to do ASAP.
+- Recurring tasks (`[+]`). This is an interesting type of task, as it requires children. If it doesn't have any
 children then it can be treated as a pending task instead. All children will be reset once every subtask
-becomes complete. This is only really useful within Neorg itself, and not while rendering it.
-- Uncertain task (`[?]`). Sometimes you don't know whether or not you will have to perform a task.
-This task is exactly a way to express that.
+becomes complete. This is only really useful within Neorg itself, and not while rendering to e.g. HTML.
+- Uncertain tasks (`[?]`). Sometimes you don't know whether or not you will have to perform a task.
+This task type is exactly a way to express that.
 
 ### Links
   Links are ways to connect several documents together and give the user access to special clickable hyperlinks.
-  The syntax for links is derived from regular markdown, and looks as such:
+  The syntax for links is very unique, however we've tried making it as unobtrusive, simple and powerful as possible,
+  all at the same time.
   ```
-	This is a [link](<anything here>)!
+	This is a {<anything here>}[link]!
   ```
 
-  The modifiers that comprise the link syntax are attached modifiers, however, the attached modifier
-  rules only apply to the opening square bracket `[` and closing parenthesis `)`, aka the beginning and
-  end of the link syntax. The modifiers inbetween may break these rules unfortunately :sob:.
+  The modifiers that comprise the link syntax are attached modifiers, as they should be.
+  It's just that they have one [additional](#different-rules-for-different-modifiers) rule that states that
+  the closing `}` modifier and optional opening `[` modifier must be directly next to each other, that's it.
+
   There are several things that can go into a link, so let's discuss:
 
-#### The first segment
-  The first segment of the link are the square brackets, `[]`, where you can add some text to be displayed instead of the raw hyperlink.
-  If you want to make a ] character as part of the link text then escape it with a backslash `\`. If no data is present
-  inside the square brackets then the content of the second segment is used instead.
-
-#### The second segment
-  The second part is the one that comes after the square brackets and is supplied inbetween a pair of regular brackets `()`.
-  The contents of this second segment can be several different things, and those things will be discussed here:
-  ```
-	* Example Heading
-	** Example Subheading
-	*** Example Subsubheading
-	**** Example Subsubsubheading
-	***** Example Subsubsubsubheading
-	****** Example Subsubsubsubsubheading
-
-	| A marker
-
-	[text](https://github.com/vhyrro/neorg) - a regular domain name/hyperlink to a website
-	[text](#Example Heading) - a link to any element with the text example-heading
-
-	For more precision:
-		[text](*Example Heading) - a link to a regular heading
-		[text](**Example Subheading) - a link to a subheading
-		[text](***Example Subsubheading) - a link to a subsubheading
-		[text](****Example Subsubsubheading) - a link to a subsubsubheading
-		[text](*****Example Subsubsubsubheading) - a link to a subsubsubsubheading
-		[text](******Example Subsubsubsubsubheading) - a link to a subsubsubsubsubheading
-		[text](|A marker) - a link to a marker
-  ```
+#### The Link Location
+  The first segment of a link is the square brackets (`{<location>}`). This is referred to as
+  the *link location*.
 
   Neorg uses the first set of non-alphanumeric characters to determine what type of element it should link to.
   Afterwards, it will check the document from top to bottom for that element and provide the first found match as the link.
-  If there is no special non-alphanumeric character after the opening bracket `(` then the text is counted as a hyperlink,
+  If there is no special non-alphanumeric character after the opening bracket `{` then the text is counted as a hyperlink,
   even if it is an incorrect hyperlink.
 
-  Searching is case insensitive but punctuation sensitive, meaning `[text](*Example Heading)` and `[text](*example heading)` link to the same
-  location. Neorg will search through all files and directories recursively in the current workspace.
-  Workspaces can be defined by the application managing the .norg files or by e.g. a Neorg module.
-  The easiest implementation of a workspace would be to simply set the workspace root to the current working directory of
-  the file and search from there. You can explicitly specify the file where Neorg should look for the
-  link we specified. The syntax for it is as such:
+  Searching is case insensitive but punctuation sensitive, meaning `{# Example heading}` and `{# example heading}` link to the same
+  location. Since it's punctuation sensitive though `{# Example, heading}` and `{# Example heading}` will **not**
+  link to the same location.
 
+  Apart from linking to just any element (which is what you saw with the `#` symbol),
+  Neorg can also narrow down the scope of what you can link to.
+  Here are some examples:
   ```
-	[text](:file:#Location)
+  {# A link to any element (you've seen this before)}
+
+  {* A link to a heading-1 element only}
+  {** A link to a heading-2 element only}
+  {*** A link to a heading-3 element only}
+  {**** A link to a heading-4 element only}
+  {****** A link to a heading-5 element only}
+  {******* A link to a heading-6 element only}
+
+  {$ A link to a definition only}
+  {^ A link to a footnote only}
+  {@ link-to-a-non-neorg-file.txt}
+  {| Link to a marker only}
+  {https://github.com/nvim-neorg/neorg}
   ```
 
-  To specify several files to search through, you can do:
+  This can help whenever you have several types of objects in your document with the same name and you'd like
+  to address each one individually.
+
+  Apart from just providing a location, you can also provide a file at any moment. To do this, prepend your link location
+  with two colons and the filepath inbetween, like so:
   ```
-	[text](:file:other_file:#Location)
+  {:file:* This is a link location}
   ```
 
-  If a filename has any special characters that may interfere, you must escape those characters with a backslash `\`.
+  Whenever you use this syntax Neorg (and the parser) will *always* assume you're referencing a .norg file. You cannot
+  link to a non-neorg file using this syntax, and that's also why you don't provide the file extension at the end (i.e. `{:file.norg:* This is a link location}`).
+  To reference a non-neorg file you should use the designated syntax (`{@ my/custom/file.txt}`) instead.
+
+  Filepaths are relative to the norg file they're contained in by default, *unless* you decide on directly specifying a root.
+  There are three ways of defining a root:
+  - The first way of defining a root is the `/` symbol, which you know very well - it simply means *the root of your filesystem*.
+    i.e. if you were to do `{:/some/file:}` then Neorg will search at the very root of your computer's FS.
+  - The second way of defining a root is the `$` symbol, and this denotes a *workspace root*. This means if I do
+    `{:$/file/somewhere:}` I will be referencing `file/somewhere` from the root of the current workspace Neorg is in.
+  - You can also specify a root of a *different* workspace by providing a name inbetween the `$` and the `/`: `{:$my_workspace/my/file:}`.
+
+  As you may have seen, you can also entirely omit the location whenever you provide a filepath. `{:my_file:}` is perfectly
+  valid syntax, as it will simply point to `my_file.norg` *without* pointing to any element within it. Note that whenever
+  you supply a file you can no longer supply a URL nor an external file.
+
+#### The Link Description
+You may have realized this, however a link can actually be built of two different components.
+The first required component is the link location, which we've just described above. There is an optional segment, however,
+and that is the link description. When a link description isn't provided the content of the item the link was pointing to will
+be used as the text to render (i.e. if I did `{* a location}` during an export to html you will see the hyperlink render `a location`).
+You can obviously just provide a custom text to display using the below syntax:
+```
+{* Some location}[some custom text]
+```
+
+Now during an export you'll see the generated hyperlink have the text [some custom text]().
+
 
 ### Insertions
   Insertions can be thought of as a motion of sorts. It inserts some text either into the document or into a variable.
@@ -701,7 +724,7 @@ Take this as an example:
 Even more text
 ```
 
-What you may be inclined to think is that `Even more text` should not belong to the heading anymore, but this is where you'd be wrong. It's still part of the paragraph in Neorg!
+What you may be inclined to think is that `Even more text` should not belong to the heading anymore, but this is where you'd be wrong. It's still part of the heading in Neorg!
 So, uh, how do we break out? If you want to break out directly into the root of the document use the strong delimiting modifier aka `===`:
 
 ```
@@ -717,7 +740,7 @@ Even more text
 What we've done is terminated the heading and started out a new paragraph that is no longer "underneath" the heading itself.
 
 #### Consecutive Headings
-Neorg isn't dumb (believe it or not) and because of that you don't need to tell it to break out *every. single. time*.
+One good thing is that you don't need to tell Neorg to break out of a heading *every. single. time*.
 Let's say you have this scenario:
 
 ```
