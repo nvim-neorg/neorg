@@ -81,6 +81,19 @@ module.public = {
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
         local sr, sc = ts_utils.get_node_range(node)
 
+        local tree = {
+            { query = { "all", "heading2" } },
+            { query = { "all", "heading3" } },
+            { query = { "all", "heading4" } },
+            { query = { "all", "heading5" } },
+            { query = { "all", "heading6" } },
+        }
+        local nodes = module.required["core.queries.native"].query_from_tree(node, tree, bufnr)
+
+        if nodes and not vim.tbl_isempty(nodes) then
+            return { sr + 1, sc + 2 }
+        end
+
         -- Do not count blank lines at end of a project
         local lines = ts_utils.get_node_text(node, bufnr)
         local blank_lines = 0
