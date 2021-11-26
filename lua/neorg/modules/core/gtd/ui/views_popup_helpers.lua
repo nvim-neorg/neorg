@@ -238,8 +238,11 @@ module.private = {
                 bufnr,
                 { location, 0 },
                 false,
-                { newline = true }
+                { newline = false }
             )
+            module.required["core.gtd.queries"].create("task", task, bufnr, { location + 1, 2 }, false, {
+                newline = false,
+            })
         else
             selection:push_page()
             selection:title("Create a new project"):blank():text("Project name: " .. project.content):blank()
@@ -254,14 +257,18 @@ module.private = {
                 selection:flag(f, extracted_nodes[i]:sub(3), function()
                     local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
                     local _, _, er, _ = ts_utils.get_node_range(marker_node[1])
+                    P(er)
                     module.required["core.gtd.queries"].create(
                         "project",
                         project,
                         bufnr,
-                        { er + 1, 0 },
+                        { er, 0 },
                         false,
-                        { newline = true }
+                        { newline = false }
                     )
+                    module.required["core.gtd.queries"].create("task", task, bufnr, { er+1, 2 }, false, {
+                        newline = false,
+                    })
                 end)
             end
 
@@ -279,13 +286,13 @@ module.private = {
                     bufnr,
                     { location, 0 },
                     true,
-                    { newline = true }
+                    { newline = false }
                 )
+                module.required["core.gtd.queries"].create("task", task, bufnr, { location + 2, 2 }, false, {
+                    newline = false,
+                })
             end)
         end
-        module.required["core.gtd.queries"].create("task", task, bufnr, { location + 2, 0 }, false, {
-            newline = false,
-        })
     end,
 
     create_recursive_project_placement = function(selection, node, bufnr, project_title, task, is_project_root)
