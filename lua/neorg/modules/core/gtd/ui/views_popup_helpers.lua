@@ -53,14 +53,6 @@ module.private = {
                     end,
                 })
                 :blank()
-                :text("Other:")
-                :flag("s", "Someday", {
-                    destroy = false,
-                    callback = function()
-                        log.warn("Unimplemented :(")
-                        selection:pop_page()
-                    end,
-                })
                 :rflag("c", "Custom", {
                     destroy = false,
                     callback = function()
@@ -170,11 +162,129 @@ module.private = {
 
                 selection:blank():text("Create new project"):flag("x", "Create new project", {
                     callback = function()
-                        log.warn("Unimplemented :(")
+                        selection:push_page()
+                        selection:title("Create a new project"):blank():prompt("Project name", {
+                            callback = function(text)
+                                --- @type core.gtd.queries.project
+                                local project = {}
+                                project.content = text
+
+                                selection:push_page()
+                                selection
+                                    :title("Create a new project")
+                                    :blank()
+                                    :text("Project name: " .. project.content)
+                                    :blank()
+
+                                local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
+                                local files = module.required["core.norg.dirman"].get_norg_files(workspace)
+
+                                if vim.tbl_isempty(files) then
+                                    selection:text("No files found...")
+                                    return
+                                end
+
+                                selection:text("Select project location")
+                                for i, file in pairs(files) do
+                                    local f = module.private.create_flag(i)
+                                    if not f then
+                                        selection:title("Too much content...")
+                                        break
+                                    end
+                                    selection:flag(f, file, {
+                                        callback = function()
+                                            module.private.create_project(selection, file, task, project)
+                                        end,
+                                        destroy = false,
+                                    })
+                                end
+                            end,
+                            pop = false,
+                            destroy = false,
+                        })
                     end,
+                    destroy = false,
                 })
             end,
             destroy = false,
+        })
+    end,
+
+    create_project = function(selection, file, task, project)
+        local tree = {
+            {
+                query = { "all", "marker" },
+                recursive = true,
+            },
+        }
+
+        local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
+        local path = module.required["core.norg.dirman"].get_workspace(workspace)
+        local bufnr = module.required["core.norg.dirman"].get_file_bufnr(path .. "/" .. file)
+        local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
+        local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
+
+        local location
+        if vim.tbl_isempty(nodes) then
+            location = module.required["core.gtd.queries"].get_end_document_content(bufnr)
+            if not location then
+                log.error("Something is wrong in the " .. file .. " file")
+                return
+            end
+            selection:destroy()
+            module.required["core.gtd.queries"].create(
+                "project",
+                project,
+                bufnr,
+                { location, 0 },
+                false,
+                { newline = true }
+            )
+        else
+            selection:push_page()
+            selection:title("Create a new project"):blank():text("Project name: " .. project.content):blank()
+            selection:text("Select in which area of focus add this project")
+
+            for i, marker_node in pairs(nodes) do
+                local f = module.private.create_flag(i)
+                if not f then
+                    selection:title("Too much content...")
+                    break
+                end
+                selection:flag(f, extracted_nodes[i]:sub(3), function()
+                    local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+                    local _, _, er, _ = ts_utils.get_node_range(marker_node[1])
+                    module.required["core.gtd.queries"].create(
+                        "project",
+                        project,
+                        bufnr,
+                        { er + 1, 0 },
+                        false,
+                        { newline = true }
+                    )
+                end)
+            end
+
+            selection:flag("<CR>", "None", function()
+                location = module.required["core.gtd.queries"].get_end_document_content(bufnr)
+                if not location then
+                    log.error("Something is wrong in the " .. file .. " file")
+                    return
+                end
+                selection:destroy()
+
+                module.required["core.gtd.queries"].create(
+                    "project",
+                    project,
+                    bufnr,
+                    { location, 0 },
+                    true,
+                    { newline = true }
+                )
+            end)
+        end
+        module.required["core.gtd.queries"].create("task", task, bufnr, { location + 2, 0 }, false, {
+            newline = false,
         })
     end,
 

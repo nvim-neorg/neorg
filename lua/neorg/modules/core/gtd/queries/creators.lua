@@ -35,18 +35,19 @@ module.public = {
 
         table.insert(res, "")
 
-        if delimit then
-            table.insert(res, "===")
-            table.insert(res, "")
-        end
-
         local newline = true
 
         if opts.newline ~= nil then
             newline = opts.newline
         end
 
-        node.node = module.private.insert_content_new(node.content, bufnr, location, type, { newline = newline })
+        node.node = module.private.insert_content_new(
+            node.content,
+            bufnr,
+            location,
+            type,
+            { newline = newline, delimiter = delimit }
+        )
 
         if node.node == nil then
             log.error("Error in inserting new content")
@@ -157,6 +158,7 @@ module.private = {
     --- @param type string #project|task
     --- @param opts table
     ---   - opts.newline (bool):    is true, insert a newline before the content
+    ---   - opts.delimiter (bool):  if true, insert a delimiter before the content
     --- @return userdata|nil #the newly created node. Else returns nil
     insert_content_new = function(content, bufnr, location, type, opts)
         vim.validate({
@@ -176,6 +178,10 @@ module.private = {
         local inserter = {}
         local prefix = type == "project" and "* " or "- [ ] "
 
+        if opts.delimiter then
+            table.insert(inserter, "| _")
+        end
+
         if opts.newline then
             table.insert(inserter, "")
         end
@@ -193,7 +199,8 @@ module.private = {
             local line = ts_utils.get_node_range(node[1])
 
             local count_newline = opts.newline and 1 or 0
-            if line == location[1] + count_newline then
+            local count_delimiter = opts.delimiter and 1 or 0
+            if line == location[1] + count_newline + count_delimiter then
                 return node[1]
             end
         end
