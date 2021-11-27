@@ -257,7 +257,6 @@ module.private = {
                 selection:flag(f, extracted_nodes[i]:sub(3), function()
                     local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
                     local _, _, er, _ = ts_utils.get_node_range(marker_node[1])
-                    P(er)
                     module.required["core.gtd.queries"].create(
                         "project",
                         project,
