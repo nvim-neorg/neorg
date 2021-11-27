@@ -12,11 +12,13 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 ---@field time.start string[]|nil
 ---@field time.due string[]|nil
 ---@field position number
+---@field area_of_focus string|nil
 
 ---@class core.gtd.queries.project
 ---@field bufnr number
 ---@field node userdata
 ---@field content string
+---@field area_of_focus string|nil
 ---@field contexts string[]|nil
 ---@field waiting.for string[]|nil
 ---@field time.start string[]|nil
@@ -181,6 +183,7 @@ module.public = {
             exported["time.start"] = module.private.get_tag(string.sub(syntax.start, 2), exported, type, opts)
             exported["time.due"] = module.private.get_tag(string.sub(syntax.due, 2), exported, type, opts)
             exported["waiting.for"] = module.private.get_tag(string.sub(syntax.waiting, 2), exported, type, opts)
+            exported["area_of_focus"] = module.private.get_aof(exported, opts)
 
             -- Add position in file for each node
             if not previous_bufnr_tbl[exported.bufnr] then
@@ -206,9 +209,12 @@ module.public = {
             sorter = {
                 sorter,
                 function(s)
-                    return vim.tbl_contains({ "waiting.for", "contexts", "project", "project_node" }, s)
+                    return vim.tbl_contains(
+                        { "waiting.for", "contexts", "project", "project_node", "area_of_focus" },
+                        s
+                    )
                 end,
-                "waiting.for|contexts|projects|project_node",
+                "waiting.for|contexts|projects|project_node|area_of_focus",
             },
             tasks = { nodes, "table" },
         })
@@ -468,6 +474,42 @@ module.private = {
 
         local state = task_state_nodes[1][1]:type()
         return string.gsub(state, "todo_item_", "")
+    end,
+
+    get_aof = function(node, opts)
+        vim.validate({
+            node = { node, "table" },
+        })
+
+        local marker_node = module.required["core.queries.native"].find_parent_node({ node.node, node.bufnr }, "marker")
+
+        if #marker_node == 0 then
+            return nil
+        end
+
+        local tree = {
+            { query = { "first", "paragraph_segment" } },
+        }
+
+        marker_node = module.required["core.queries.native"].query_from_tree(marker_node[1], tree, node.bufnr)
+
+        if vim.tbl_isempty(marker_node) then
+            log.error("Error in fetching marker")
+            return
+        end
+
+        if not opts.extract then
+            return marker_node[1][1]
+        end
+
+        marker_node = module.required["core.queries.native"].extract_nodes(marker_node)
+
+        if vim.tbl_isempty(marker_node) then
+            log.error("Error in extracting area of focus")
+            return
+        end
+
+        return marker_node[1]
     end,
 
     --- Remove `el` from table `t`

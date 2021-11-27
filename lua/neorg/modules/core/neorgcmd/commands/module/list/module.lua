@@ -39,21 +39,15 @@ module.public = {
 
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.module.list" then
-        vim.schedule(function()
-            vim.cmd('echom "--- PRINTING ALL LOADED MODULES ---"')
-        end)
+        vim.cmd('echom "--- PRINTING ALL LOADED MODULES ---"')
 
         for _, mod in pairs(neorg.modules.loaded_modules) do
-            vim.schedule(function()
-                vim.cmd('echom "' .. mod.name .. '"')
-            end)
+            vim.cmd('echom "' .. mod.name .. '"')
         end
 
-        vim.schedule(function()
-            vim.cmd(
-                'echom "Execute :messages to see output. BETA PRINTER FOR LOADED MODULES. This is obviously not final :P. Soon modules will be shown in a floating window."'
-            )
-        end)
+        vim.cmd(
+            'echom "Execute :messages to see output. BETA PRINTER FOR LOADED MODULES. This is obviously not final :P. Soon modules will be shown in a floating window."'
+        )
     end
 end
 
