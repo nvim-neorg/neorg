@@ -27,19 +27,18 @@ module.config.public = {
             ["End"] = "+TSKeyword",
 
             Name = {
-                [""] = "+Normal",
+                [""] = "+TSNone",
                 Word = "+TSKeyword",
             },
 
             Parameter = "+TSType",
-            Content = "+Normal",
         },
 
         CarryoverTag = {
             Begin = "+TSLabel",
 
             Name = {
-                [""] = "+Normal",
+                [""] = "+TSNone",
                 Word = "+TSLabel",
             },
 
@@ -76,8 +75,8 @@ module.config.public = {
         Error = "+TSError",
 
         Marker = {
-            Prefix = "+TSLabel",
-            Title = "+Normal",
+            [""] = "+TSLabel",
+            Title = "+TSNone",
         },
 
         Definition = {

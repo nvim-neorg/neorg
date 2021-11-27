@@ -41,6 +41,10 @@ module.public = {
             { "link", "anchor_declaration", "anchor_definition" }
         )
 
+        if not found_node then
+            found_node = (module.config.public.lookahead and module.public.lookahead_link_node())
+        end
+
         if found_node then
             if found_node:parent():type() == "anchor_definition" then
                 return found_node:parent()
@@ -48,41 +52,49 @@ module.public = {
 
             return found_node
         end
-
-        return module.config.public.lookahead and module.public.lookahead_link_node()
     end,
 
-    -- TODO: Make work for new links and stop it from always jumping to latest `[` when there is no link
     lookahead_link_node = function()
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
-        if not ts_utils then
-            return
-        end
-
         local line = vim.api.nvim_get_current_line()
-        local current_row = vim.api.nvim_win_get_cursor(0)[1]
-        local index = line:find("%[")
+        local current_cursor_pos = vim.api.nvim_win_get_cursor(0)
+        local current_line = current_cursor_pos[1]
+        local index = current_cursor_pos[2]
+        local resulting_node
 
-        while index do
-            vim.api.nvim_win_set_cursor(0, { current_row, index - 1 })
+        while not resulting_node do
+            local next_square_bracket = line:find("%[", index)
+            local next_curly_bracket = line:find("{", index)
+            local smaller_value
 
-            local current_node = ts_utils.get_node_at_cursor()
-            local link_node = module.required["core.integrations.treesitter"].find_parent(
-                current_node,
-                { "link", "anchor_declaration", "anchor_definition" }
-            )
-
-            if link_node then
-                if link_node:type() == "anchor_declaration" and link_node:parent():type() == "anchor_definition" then
-                    return link_node:parent()
-                end
-
-                return link_node
+            if not next_square_bracket and not next_curly_bracket then
+                return
+            elseif not next_square_bracket and next_curly_bracket then
+                smaller_value = next_curly_bracket
+            elseif next_square_bracket and not next_curly_bracket then
+                smaller_value = next_square_bracket
+            else
+                smaller_value = (next_square_bracket < next_curly_bracket and next_square_bracket or next_curly_bracket)
             end
 
-            index = line:find("%[", index + 1)
+            vim.api.nvim_win_set_cursor(0, {
+                current_line,
+                smaller_value - 1,
+            })
+
+            local node_under_cursor = ts_utils.get_node_at_cursor()
+
+            resulting_node = neorg.lib.match({
+                node_under_cursor:type(),
+                link = node_under_cursor,
+                anchor_declaration = node_under_cursor,
+            })
+
+            index = index + 1
         end
+
+        return resulting_node
     end,
 
     locate_anchor_declaration_target = function(anchor_decl_node)
@@ -225,6 +237,14 @@ module.public = {
             if expanded_link_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
                 buf_pointer = vim.uri_to_bufnr("file://" .. expanded_link_text)
+            end
+
+            if not parsed_link_information.link_type then
+                return {
+                    original_title = nil,
+                    node = nil,
+                    buffer = buf_pointer,
+                }
             end
         end
 
@@ -414,19 +434,19 @@ module.private = {
             ]],
             string.format(
                 [[
-            (carryover_tag_set
-                (carryover_tag
-                    name: (tag_name) @tag_name
-                    (tag_parameters) @title
-                    (#eq? @tag_name "name")
-                    (#set! "type" "generic")
-                )
-            )?
-            (%s
-                (%s_prefix)
-                title: (paragraph_segment) @title
-            )?
-        ]],
+                    (carryover_tag_set
+                        (carryover_tag
+                            name: (tag_name) @tag_name
+                            (tag_parameters) @title
+                            (#eq? @tag_name "name")
+                            (#set! "type" "generic")
+                        )
+                    )?
+                    (%s
+                        (%s_prefix)
+                        title: (paragraph_segment) @title
+                    )?
+                ]],
                 neorg.lib.reparg(parsed_link_information.link_type, 2)
             )
         )
@@ -579,8 +599,9 @@ module.on_event = function(event)
             if event.content[1] then
                 if event.content[1] == "vsplit" then
                     vim.cmd("vsplit")
+                elseif event.content[1] == "split" then
+                    vim.cmd("split")
                 end
-                -- TODO: Add support for hsplit in the future
             end
 
             if not vim.tbl_isempty(located_link_information) then
@@ -589,9 +610,14 @@ module.on_event = function(event)
                     vim.api.nvim_set_current_buf(located_link_information.buffer)
                 end
 
+                if not located_link_information.node then
+                    return
+                end
+
                 local range = module.required["core.integrations.treesitter"].get_node_range(
                     located_link_information.node
                 )
+
                 vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
             end
 
