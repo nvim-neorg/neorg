@@ -32,6 +32,11 @@ module.public = {
 
                     { "<M-k>", "core.norg.manoeuvre.item_up" },
                     { "<M-j>", "core.norg.manoeuvre.item_down" },
+
+                    -- Key for managing zettelkasten
+                    { neorg_leader .. "zn", "core.zettelkasten.zettel.new" },
+                    { neorg_leader .. "zr", "core.zettelkasten.edit.random" },
+                    { neorg_leader .. "zi", "core.zettelkasten.edit.id" },
                 },
 
                 i = {
