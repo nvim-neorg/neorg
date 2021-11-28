@@ -21,6 +21,7 @@ module.public = {
             "- Task marked with `today` context, and already started",
             "- Task starting today",
             "- Task due for today",
+            "- Task marked as pending",
             "",
         }
         local positions = {}
@@ -468,7 +469,7 @@ module.private = {
             due_today = diff.days <= 0 and diff.weeks <= 0
         end
 
-        return state and (starting_today or due_today or (today_context and already_started))
+        return state and (starting_today or due_today or (today_context and already_started) or (task.state == "pending" and already_started))
     end,
 
     set_vars_to_buf = function(buf, data)
