@@ -597,9 +597,14 @@ module.private = {
         return found_data[1]
     end,
 
+    is_buffer_open = function()
+        return module.private.current_bufnr ~= nil
+    end,
+
     close_buffer = function()
-        -- Closes the display
-        vim.cmd(":bd")
+        if not module.private.is_buffer_open() then
+            return
+        end
 
         -- Go back to previous mode
         local previous_mode = module.required["core.mode"].get_previous_mode()
@@ -609,6 +614,9 @@ module.private = {
         module.private.extras = {}
         module.private.current_bufnr = nil
         module.private.display_namespace_nr = nil
+
+        -- Closes the display
+        vim.cmd(":bd")
     end,
 
     toggle_details = function()
