@@ -219,21 +219,7 @@ You can install through any plugin manager (it can even be vimscript plugin mana
 ##### :robot: For the latest and greatest check out the [unstable](https://github.com/nvim-neorg/neorg/tree/unstable) branch
 
 ### Setting up TreeSitter
-As of right now, the TreeSitter parser is in its early stage. To install it, you want to run this code snippet before you invoke
-`require('nvim-treesitter.configs').setup()`:
-
-```lua
-local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
-
-parser_configs.norg = {
-    install_info = {
-        url = "https://github.com/nvim-neorg/tree-sitter-norg",
-        files = { "src/parser.c", "src/scanner.cc" },
-        branch = "main"
-    },
-}
-```
-Then run `:TSInstall norg`.
+As of right now, the TreeSitter parser is included in `nvim-treesitter` so you can run `:TSInstall norg`.
 If you want the parser to be more persistent across different installations of your config make sure to set `norg` as a parser in the `ensure_installed` table, then run `:TSUpdate`.
 Here's an example config, yours will probably be different:
 ```lua
@@ -251,9 +237,6 @@ may not work right off the bat, however most commonly it's because of plugin loa
 With packer this can be achieved with an `after = "nvim-treesitter"` flag in your `use` call to Neorg.
 Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup. If nothing else works
 then try creating an `after/ftplugin/norg.lua` file and paste your Neorg configuration there.
-
-It's a bit hacky - it will unfortunately stay this way until we get first-class support in the `nvim-treesitter` repository.
-Sorry!
 
 ### Setting up a Completion Engine
 Neorg comes with its own API for completion. Users can then write integration modules to allow different plugins like `nvim-compe` and `nvim-cmp`
