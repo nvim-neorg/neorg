@@ -13,6 +13,7 @@ local module = neorg.modules.create("core.gtd.ui")
 
 module.load = function()
     module.required["core.keybinds"].register_keybinds(module.name, { "goto_task", "close", "edit_task", "details" })
+    module.required["core.autocommands"].enable_autocommand("BufLeave")
 end
 
 module.setup = function()
@@ -26,6 +27,7 @@ module.setup = function()
             "core.integrations.treesitter",
             "core.mode",
             "core.queries.native",
+            "core.autocommands",
         },
         imports = {
             "displayers",
@@ -50,6 +52,10 @@ module.on_event = function(event)
         elseif event.split_type[2] == "core.gtd.ui.details" then
             module.private.toggle_details()
         end
+    elseif event.split_type[1] == "core.autocommands" then
+        if event.split_type[2] == "bufleave" then
+            module.private.close_buffer()
+        end
     end
 end
 
@@ -59,6 +65,9 @@ module.events.subscribed = {
         ["core.gtd.ui.close"] = true,
         ["core.gtd.ui.edit_task"] = true,
         ["core.gtd.ui.details"] = true,
+    },
+    ["core.autocommands"] = {
+        bufleave = true,
     },
 }
 
