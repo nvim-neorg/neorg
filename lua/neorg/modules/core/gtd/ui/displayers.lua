@@ -251,6 +251,7 @@ module.public = {
                 return a.state ~= "done"
             end, unknown_project)
             table.insert(res, "- /" .. #undone .. " tasks don't have a project assigned/")
+            table.insert(positions, { line = #res, data = undone })
             table.insert(res, "")
         end
 
@@ -480,7 +481,13 @@ module.private = {
             due_today = diff.days <= 0 and diff.weeks <= 0
         end
 
-        return state and (starting_today or due_today or (today_context and already_started) or (task.state == "pending" and already_started))
+        return state
+            and (
+                starting_today
+                or due_today
+                or (today_context and already_started)
+                or (task.state == "pending" and already_started)
+            )
     end,
 
     set_vars_to_buf = function(buf, data)
@@ -636,8 +643,22 @@ module.private = {
             return
         end
 
-        -- For displaying projects, we assume that there is no data.state in it
-        if not data.state then
+        if #data > 1 then
+            for _, task in pairs(data) do
+                local state = (function()
+                    if task.state == "done" then
+                        return "- [x] "
+                    elseif task.state == "undone" then
+                        return "- [ ] "
+                    else
+                        return "- [*] "
+                    end
+                end)()
+                local inserted = "  " .. state .. task.content
+                table.insert(res, inserted)
+            end
+            -- For displaying projects, we assume that there is no data.state in it
+        elseif not data.state then
             offset = 1
             local tasks = module.private.find_project(module.private.extras, data.node)
             -- local tasks = module.private.extras[data.content]
