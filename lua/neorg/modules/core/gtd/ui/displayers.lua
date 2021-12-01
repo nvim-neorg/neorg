@@ -262,6 +262,8 @@ module.public = {
             return a == "_"
         end
 
+        local user_configs = neorg.modules.get_module_config("core.gtd.base").displayers.projects
+
         table.sort(aofs, sorter)
         local added_projects = {}
         for _, aof in ipairs(aofs) do
@@ -278,6 +280,14 @@ module.public = {
                 local completed = vim.tbl_filter(function(t)
                     return t.state == "done"
                 end, tasks_project)
+
+                if vim.tbl_isempty(tasks_project) and not user_configs.show_projects_without_tasks then
+                    goto continue
+                end
+
+                if not user_configs.show_completed_projects and #tasks_project > 0 and #completed == #tasks_project then
+                    goto continue
+                end
 
                 if project ~= "_" and not vim.tbl_contains(added_projects, project.node) then
                     table.insert(
@@ -302,6 +312,7 @@ module.public = {
                     table.insert(added_projects, project.node)
                     table.insert(res, "")
                 end
+                ::continue::
             end
         end
 

@@ -45,6 +45,13 @@ module.config.public = {
         due = "#time.due",
         waiting = "#waiting.for",
     },
+    -- User configurations for GTD views
+    displayers = {
+        projects = {
+            show_completed_projects = true,
+            show_projects_without_tasks = true,
+        },
+    },
 }
 
 module.public = {
