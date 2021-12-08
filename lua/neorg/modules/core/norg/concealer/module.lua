@@ -230,8 +230,8 @@ module.private = {
                 (todo_item_uncertain) @uncertain
             ]
         )
-    ]+
-)+
+    ]
+)
     ]],
 }
 
@@ -780,61 +780,61 @@ module.config.public = {
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
-                                ]+
-                            )+
+                                ]
+                            )
                             (heading2
                                 content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
                                 ]
-                            )+
+                            )
                             (heading3
                                 content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
                                 ]
-                            )+
+                            )
                             (heading4
                                 content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
                                 ]
-                            )+
+                            )
                             (heading5
                                 content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
                                 ]
-                            )+
+                            )
                             (heading6
                                 content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
                                 ]
-                            )+
+                            )
                         ] @progress
                 ]],
                     neorg.lib.reparg(module.private.todo_list_query, 6 * 2)
