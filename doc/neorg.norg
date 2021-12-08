@@ -21,8 +21,8 @@
     - \-strikethrough\-: -strikethrough-
     - \|spoiler\|: |spoiler|
     - \`inline code\`: `inline code`
-    - \^superscript\^: ^superscript^
-    - \,subscript\,: ,subscript,
+    - \^superscript\^: ^superscript^  (when nested into `subscript`, will highlight as an error)
+    - \,subscript\,: ,subscript,  (when nested into `superscript`, will highlight as an error)
     - \$inline math\$: $f(x) = y$ (see also {# Math})
     - \=variable\=: =variable= (see also {# Variables})
     - \+inline comment\+: +inline comment+
