@@ -9,20 +9,20 @@
 
 | Last changes:
 - 19/08/2021:
--- [Top-level organization](#Top-level organization): Added `reference` folder spec
+--> [Top-level organization](#Top-level organization): Added `reference` folder spec
 - 22/08/2021:
--- [Task format](#Task format):
+--> [Task format](#Task format):
 --- Removed task grouping by metadatas
 --- deleted the mandatory `last_review` field
 --- changed the notes format in a task
 --- Added subtasks
 --- Deleted `:` delimiter in #<due|start|contexts>
---- Added [Standard contexts](#Standard contexts)
---- Added [Working with dates](#Working with dates)
+---> Added [Standard contexts](#Standard contexts)
+---> Added [Working with dates](#Working with dates)
 --- Removed notes specification
 --- Added special tags for waiting-for and someday
--- [Top-level organization](#Top-level organization): Changed top-level organization with new files specs
--- [Projects management](#Projects management):
+--> [Top-level organization](#Top-level organization): Changed top-level organization with new files specs
+--> [Projects management](#Projects management):
 --- Added specs for projects
 --- Changed syntax
 
