@@ -5,8 +5,8 @@ local module = neorg.modules.extend("core.gtd.queries.helpers")
 --- @field days number
 
 module.public = {
-    -- @Summary Convert a date from text to YYYY-MM-dd format
-    -- @Description If the date is a quick capture (like 2w, 10d, 4m), it will convert to a standardized date
+    -- Convert a date from text to YYYY-MM-dd format
+    -- If the date is a quick capture (like 2w, 10d, 4m), it will convert to a standardized date
     -- Supported formats ($ treated as number):
     --   - $d: days from now (e.g 2d is 2 days from now)
     --   - $w: weeks from now (e.g 2w is 2 weeks from now)
@@ -14,7 +14,8 @@ module.public = {
     --   - tomorrow: tomorrow's date
     --   - today: today's date
     --   The format for date is YYYY-mm-dd
-    -- @Param  text (string) the text to use
+    -- @param text string #The text to use
+    -- @return string
     date_converter = function(text)
         vim.validate({ text = { text, "string" } })
 
@@ -162,15 +163,19 @@ module.public = {
 
     --- Checks whether the date starts after today
     --- @param date string
-    --- @param strict boolean #If today must be counted or not
+    --- @param strict boolean #if true, do not count today as started
     --- @return boolean
     starting_after_today = function(date, strict)
         local diff = module.public.diff_with_today(date)
+
         if strict then
-            return diff.days > 0 and diff.weeks > 0
-        else
-            return diff.days >= 0 and diff.weeks >= 0
+            local today = diff.days == 0 and diff.weeks == 0
+            if today then
+                return false
+            end
         end
+
+        return diff.days >= 0 and diff.weeks >= 0
     end,
 }
 

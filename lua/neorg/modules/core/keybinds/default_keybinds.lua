@@ -80,6 +80,22 @@ module.public = {
                 nowait = true,
             })
 
+            -- Map the below keys on presenter mode
+            keybinds.map_event_to_mode("presenter", {
+                n = {
+                    { "<CR>", "core.presenter.next_page" },
+                    { "l", "core.presenter.next_page" },
+                    { "h", "core.presenter.previous_page" },
+
+                    -- Keys for closing the current display
+                    { "q", "core.presenter.close" },
+                    { "<Esc>", "core.presenter.close" },
+                },
+            }, {
+                silent = true,
+                noremap = true,
+                nowait = true,
+            })
             -- Apply the below keys to all modes
             keybinds.map_to_mode("all", {
                 n = {
