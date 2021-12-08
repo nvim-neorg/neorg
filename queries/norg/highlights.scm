@@ -328,3 +328,6 @@
 (inline_comment) @NeorgMarkupInlineComment
 (inline_math) @NeorgMarkupInlineMath
 (variable) @NeorgMarkupVariable
+
+(superscript (subscript)) @NeorgError
+(subscript (superscript)) @NeorgError
