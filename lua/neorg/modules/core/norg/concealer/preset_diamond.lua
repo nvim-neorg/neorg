@@ -710,7 +710,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     verbatim = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgConcealVerbatim",
+        highlight = "NeorgMarkupVerbatim",
         query = "(verbatim) @icon",
         render = function(self, text)
             return {
@@ -722,7 +722,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     comment = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgComment",
+        highlight = "NeorgMarkupComment",
         query = "(inline_comment) @icon",
         render = function(self, text)
             return {
