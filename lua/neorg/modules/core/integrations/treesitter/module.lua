@@ -382,6 +382,7 @@ module.config.public = {
         HorizontalLine = "+TSPunctDelimiter",
 
         TrailingModifier = "+TSPunctDelimiter",
+        LinkModifier = "+TSPunctDelimiter",
 
         DocumentMeta = {
             Key = "+TSField",
