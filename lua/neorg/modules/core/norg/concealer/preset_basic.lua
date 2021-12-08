@@ -202,7 +202,9 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
         level_1 = {
             enabled = true,
-            icon = module.public.concealing.ordered.enumerator.numeric,
+            icon = module.public.concealing.ordered.punctuation.unicode_dot(
+                module.public.concealing.ordered.enumerator.numeric
+            ),
             highlight = "NeorgOrderedList1",
             query = "(ordered_list1_prefix) @icon",
             render = function(self, _, node)
@@ -241,7 +243,9 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
         level_4 = {
             enabled = true,
-            icon = module.public.concealing.ordered.enumerator.numeric,
+            icon = module.public.concealing.ordered.punctuation.unicode_double_parenthesis(
+                module.public.concealing.ordered.enumerator.numeric
+            ),
             highlight = "NeorgOrderedList4",
             query = "(ordered_list4_prefix) @icon",
             render = function(self, _, node)
@@ -267,13 +271,103 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
         level_6 = {
             enabled = true,
-            icon = module.public.concealing.ordered.enumerator.latin_lowercase,
+            icon = module.public.concealing.ordered.punctuation.unicode_double_parenthesis(
+                module.public.concealing.ordered.enumerator.latin_lowercase
+            ),
             highlight = "NeorgOrderedList6",
             query = "(ordered_list6_prefix) @icon",
             render = function(self, _, node)
                 local count = module.public.concealing.ordered.get_index(node, "ordered_list6")
                 return {
                     { "     " .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+    },
+
+    ordered_link = {
+        enabled = true,
+        level_1 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.numeric
+            ),
+            highlight = "NeorgOrderedLink1",
+            query = "(ordered_link1_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link1")
+                return {
+                    { " " .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+        level_2 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.latin_uppercase
+            ),
+            highlight = "NeorgOrderedLink2",
+            query = "(ordered_link2_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link2")
+                return {
+                    { "  " .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+        level_3 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.latin_lowercase
+            ),
+            highlight = "NeorgOrderedLink3",
+            query = "(ordered_link3_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link3")
+                return {
+                    { "   " .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+        level_4 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.numeric
+            ),
+            highlight = "NeorgOrderedLink4",
+            query = "(ordered_link4_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link4")
+                return {
+                    { "    " .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+        level_5 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.latin_uppercase
+            ),
+            highlight = "NeorgOrderedLink5",
+            query = "(ordered_link5_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link5")
+                return {
+                    { "     " .. self.icon(count), self.highlight },
+                }
+            end,
+        },
+        level_6 = {
+            enabled = true,
+            icon = module.public.concealing.ordered.punctuation.unicode_circle(
+                module.public.concealing.ordered.enumerator.latin_lowercase
+            ),
+            highlight = "NeorgOrderedLink6",
+            query = "(ordered_link6_prefix) @icon",
+            render = function(self, _, node)
+                local count = module.public.concealing.ordered.get_index(node, "ordered_link6")
+                return {
+                    { "      " .. self.icon(count), self.highlight },
                 }
             end,
         },
@@ -616,7 +710,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     verbatim = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgConcealVerbatim",
+        highlight = "NeorgMarkupVerbatim",
         query = "(verbatim) @icon",
         render = function(self, text)
             return {
@@ -628,7 +722,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     comment = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgComment",
+        highlight = "NeorgMarkupComment",
         query = "(inline_comment) @icon",
         render = function(self, text)
             return {
@@ -674,27 +768,98 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         end,
     },
 
+    link_modifier = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgLinkModifier",
+        query = "(link_modifier) @icon",
+        render = function(self)
+            return {
+                { self.icon, self.highlight },
+            }
+        end,
+    },
+
     url = {
         enabled = true,
-        text = {
+
+        link = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgURLText",
-            query = "(link_text) @icon",
-            render = function(self, text)
-                return {
-                    { text:gsub("%[(.+)%]", self.icon .. "%1" .. self.icon), self.highlight },
-                }
+            highlight = "NeorgLinkText",
+            query = "(link) @icon",
+            render = function(self, text, node)
+                local concealed_chars = 0
+                local ts = module.required["core.integrations.treesitter"]
+                local location = nil
+                local description = nil
+                local file = node:named_child(0)
+
+                if file:type() == "link_file" then
+                    location = node:named_child(1)
+                    description = node:named_child(2)
+                else
+                    location = file
+                    file = nil
+                    description = node:named_child(1)
+                end
+
+                if location ~= nil and location:type() == "link_description" then
+                    description = location
+                    location = nil
+                end
+
+                if description ~= nil then
+                    local description_text = ts.get_node_text(description:named_child(0))
+                    concealed_chars = #description_text
+                    return {
+                        { description_text, self.highlight },
+                        { string.rep(self.icon, #text - concealed_chars), "" },
+                    }
+                end
+
+                local extmark_text = {}
+
+                if file ~= nil then
+                    local file_text = ts.get_node_text(file)
+                    concealed_chars = #file_text
+                    table.insert(extmark_text, { file_text, "NeorgLinkFile" })
+                end
+
+                if location ~= nil then
+                    local location_type = location:named_child(0)
+                    local location_text = location:named_child(1)
+
+                    local type = ts.get_node_text(location_type)
+                    local text = ts.get_node_text(location_text)
+
+                    local type_name = location_type:type()
+                    type_name = vim.fn.substitute(type_name, [[\(_\|^\)\(\w\)]], [[\u\2]], "g")
+
+                    concealed_chars = concealed_chars + #type + #text
+
+                    table.insert(extmark_text, { type, "Neorg" .. type_name .. "Prefix" })
+                    table.insert(extmark_text, { text, "Neorg" .. type_name })
+                end
+
+                table.insert(extmark_text, { string.rep(self.icon, #text - concealed_chars), "" })
+                return extmark_text
             end,
         },
-        location = {
+
+        anchor = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgURLLocation",
-            query = "(link_location) @icon",
-            render = function(self, text)
+            highlight = "NeorgAnchorDeclerationText",
+            query = "(anchor_declaration) @icon",
+            render = function(self, text, node)
+                local ts = module.required["core.integrations.treesitter"]
+                local addon = ""
+                if node:parent():type() == "anchor_definition" then
+                    addon = string.rep(self.icon, 2 + #ts.get_node_text(node:parent():named_child(1)))
+                end
                 return {
-                    { string.rep(self.icon, #text), self.highlight },
+                    { text:gsub("%[(.+)%]", self.icon .. "%1" .. self.icon) .. addon, highlight },
                 }
             end,
         },
