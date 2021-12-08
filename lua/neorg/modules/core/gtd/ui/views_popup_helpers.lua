@@ -265,7 +265,7 @@ module.private = {
                         false,
                         { newline = false }
                     )
-                    module.required["core.gtd.queries"].create("task", task, bufnr, { er+1, 2 }, false, {
+                    module.required["core.gtd.queries"].create("task", task, bufnr, { er + 1, 2 }, false, {
                         newline = false,
                     })
                 end)
