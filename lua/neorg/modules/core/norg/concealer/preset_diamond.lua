@@ -637,7 +637,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     bold = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgBold",
+        highlight = "NeorgMarkupBold",
         query = "(bold) @icon",
         render = function(self, text, node)
             return {
@@ -649,7 +649,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     italic = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgItalic",
+        highlight = "NeorgMarkupItalic",
         query = "(italic) @icon",
         render = function(self, text, node)
             return {
@@ -661,7 +661,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     underline = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgUnderline",
+        highlight = "NeorgMarkupUnderline",
         query = "(underline) @icon",
         render = function(self, text, node)
             return {
@@ -673,7 +673,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     strikethrough = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgStrikethrough",
+        highlight = "NeorgMarkupStrikethrough",
         query = "(strikethrough) @icon",
         render = function(self, text, node)
             return {
@@ -685,7 +685,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     subscript = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgSubscript",
+        highlight = "NeorgMarkupSubscript",
         query = "(subscript) @icon",
         render = function(self, text)
             return {
@@ -697,7 +697,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     superscript = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgSuperscript",
+        highlight = "NeorgMarkupSuperscript",
         query = "(superscript) @icon",
         render = function(self, text)
             return {
@@ -722,7 +722,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     comment = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupComment",
+        highlight = "NeorgMarkupInlineComment",
         query = "(inline_comment) @icon",
         render = function(self, text)
             return {
@@ -734,7 +734,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     math = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMath",
+        highlight = "NeorgMarkupInlineMath",
         query = "(inline_math) @icon",
         render = function(self, text)
             return {
@@ -747,7 +747,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
     variable = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgVariable",
+        highlight = "NeorgMarkupVariable",
         query = "(variable) @icon",
         render = function(self, text)
             return {
