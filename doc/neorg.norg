@@ -351,7 +351,8 @@ consective new lines.
       @code norg
       ^,This should be super- and subscript.,^ Why though?
       @end
-      This is done by design for obvious reasons.
+      You will notice that this get's highlighted as an error:
+      ^,This should be super- and subscript.,^
 
   *** Object continuation
       The `~` trailing modifier causes the line break to be ignored. This allows you to do things
