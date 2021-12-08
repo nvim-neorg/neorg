@@ -780,6 +780,18 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         end,
     },
 
+    trailing_modifier = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgTrailingModifier",
+        query = '("_trailing_modifier") @icon',
+        render = function(self)
+            return {
+                { self.icon, self.highlight },
+            }
+        end,
+    },
+
     url = {
         enabled = true,
 
