@@ -15,20 +15,19 @@
 
  ** Basic Markup
     Here is how you can do very basic markup. First you see it raw, then rendered:
-    - \*bold\|: *bold|
-    - \/italic\|: /italic|
-    - \_underline\|: _underline|
-    - \-strikethrough\|: -strikethrough|
-    - \~spoiler\|: ~spoiler|
-    - \`inline code\|: `inline code|
-    - \^superscript\|: ^superscript|    | cannot exist within a subscript block
-    - \,subscript\|: ,subscript|        | cannot exist within a superscript block
-    - \$inline math\|: $f(x) = y| (see also {# Math})
-    - \=variable\|: =variable| (see also {# Variables})
-    - \+inline comment\|: +inline comment|
+    - \*bold\*: *bold*
+    - \/italic\/: /italic/
+    - \_underline\_: _underline_
+    - \-strikethrough\-: -strikethrough-
+    - \|spoiler\|: |spoiler|
+    - \`inline code\`: `inline code`
+    - \^superscript\^: ^superscript^
+    - \,subscript\,: ,subscript,
+    - \$inline math\$: $f(x) = y$ (see also {# Math})
+    - \=variable\=: =variable= (see also {# Variables})
+    - \+inline comment\+: +inline comment+
 
     This also immediately shows you how to escape a special character using the backslash, \\.
-    +TODO: Discuss the new rules used of attached modifier (i.e. ending them with `\||)|
 
  ** Things which you can nest
     Neorg generally does *NOT* care about indentation! 🎉
