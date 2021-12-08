@@ -27,6 +27,9 @@
 ; Trailing Modifier
 ("_trailing_modifier") @NeorgTrailingModifier
 
+; Link Modifier
+(link_modifier) @NeorgLinkModifier
+
 ; Links
 (link
     ("_begin") @NeorgLinkLocationDelimiter
