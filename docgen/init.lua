@@ -11,6 +11,7 @@ require("neorg").setup({
         ["core.defaults"] = {},
         ["core.gtd.base"] = {},
         ["core.integrations.treesitter"] = {},
+        ["core.norg.journal"] = {},
     },
 })
 
