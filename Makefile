@@ -20,3 +20,9 @@ ci-doc:
 
 documentation:
 	nvim --noplugin --headless -u docgen/minimal_init.vim -c "luafile ./docgen/init.lua" -c 'qa'
+
+format:
+	stylua -v --verify .
+
+install_pre_commit:
+	cp scripts/pre-commit "$$(git rev-parse --git-dir)/hooks/"

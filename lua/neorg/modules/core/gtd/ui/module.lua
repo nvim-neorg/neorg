@@ -13,6 +13,7 @@ local module = neorg.modules.create("core.gtd.ui")
 
 module.load = function()
     module.required["core.keybinds"].register_keybinds(module.name, { "goto_task", "close", "edit_task", "details" })
+    module.required["core.autocommands"].enable_autocommand("BufLeave")
 end
 
 module.setup = function()
@@ -25,10 +26,11 @@ module.setup = function()
             "core.gtd.queries",
             "core.integrations.treesitter",
             "core.mode",
+            "core.queries.native",
+            "core.autocommands",
         },
         imports = {
             "displayers",
-            "helpers",
             "views_popup_helpers",
             "edit_popup_helpers",
             "selection_popups",
@@ -39,16 +41,20 @@ end
 module.on_event = function(event)
     if event.split_type[1] == "core.keybinds" then
         if event.split_type[2] == "core.gtd.ui.goto_task" then
-            module.public.goto_node()
+            module.private.goto_node()
         elseif event.split_type[2] == "core.gtd.ui.close" then
-            module.public.close_buffer()
+            module.private.close_buffer()
         elseif event.split_type[2] == "core.gtd.ui.edit_task" then
-            local task = module.public.get_by_var()
-            module.public.close_buffer()
-            task = module.public.refetch_data_not_extracted({ task.node, task.bufnr }, "task")
+            local task = module.private.get_by_var()
+            module.private.close_buffer()
+            task = module.private.refetch_data_not_extracted({ task.node, task.bufnr }, "task")
             module.public.edit_task(task)
         elseif event.split_type[2] == "core.gtd.ui.details" then
-            module.public.toggle_details()
+            module.private.toggle_details()
+        end
+    elseif event.split_type[1] == "core.autocommands" then
+        if event.split_type[2] == "bufleave" then
+            module.private.close_buffer()
         end
     end
 end
@@ -60,6 +66,12 @@ module.events.subscribed = {
         ["core.gtd.ui.edit_task"] = true,
         ["core.gtd.ui.details"] = true,
     },
+    ["core.autocommands"] = {
+        bufleave = true,
+    },
 }
+
+---@class core.gtd.ui
+module.public = {}
 
 return module

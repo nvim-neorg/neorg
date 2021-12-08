@@ -27,6 +27,7 @@ module.setup = function()
     }
 end
 
+---@class core.gtd.base.config
 module.config.public = {
     -- Workspace name to use for gtd related lists
     workspace = "default",
@@ -34,8 +35,23 @@ module.config.public = {
     default_lists = {
         inbox = "inbox.norg",
     },
-    -- You can exclude files from gtd parsing by passing them here
+    -- You can exclude files from gtd parsing by passing them here (relative file path from workspace root)
     exclude = {},
+
+    -- The syntax to use for gtd.
+    syntax = {
+        context = "#contexts",
+        start = "#time.start",
+        due = "#time.due",
+        waiting = "#waiting.for",
+    },
+    -- User configurations for GTD views
+    displayers = {
+        projects = {
+            show_completed_projects = true,
+            show_projects_without_tasks = true,
+        },
+    },
 }
 
 module.public = {
@@ -47,14 +63,21 @@ module.private = {
 }
 
 module.load = function()
+    ---@type core.norg.dirman
+    ---@diagnostic disable-next-line: unused-local
+    local dirman = module.required["core.norg.dirman"]
+    ---@type core.keybinds
+    ---@diagnostic disable-next-line: unused-local
+    local keybinds = module.required["core.keybinds"]
+
     -- Get workspace for gtd files and save full path in private
     local workspace = module.config.public.workspace
-    module.private.workspace_full_path = module.required["core.norg.dirman"].get_workspace(workspace)
+    module.private.workspace_full_path = dirman.get_workspace(workspace)
 
     -- Register keybinds
-    module.required["core.keybinds"].register_keybind(module.name, "views")
-    module.required["core.keybinds"].register_keybind(module.name, "edit")
-    module.required["core.keybinds"].register_keybind(module.name, "capture")
+    keybinds.register_keybind(module.name, "views")
+    keybinds.register_keybind(module.name, "edit")
+    keybinds.register_keybind(module.name, "capture")
 
     -- Add neorgcmd capabilities
     -- All gtd commands start with :Neorg gtd ...
@@ -82,7 +105,7 @@ end
 module.on_event = function(event)
     if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.split_type[1]) then
         if vim.tbl_contains({ "gtd.views", "core.gtd.base.views" }, event.split_type[2]) then
-            module.required["core.gtd.ui"].show_views_popup(module.config.public)
+            module.required["core.gtd.ui"].show_views_popup()
         elseif vim.tbl_contains({ "gtd.edit", "core.gtd.base.edit" }, event.split_type[2]) then
             module.required["core.gtd.ui"].edit_task_at_cursor()
         elseif vim.tbl_contains({ "gtd.capture", "core.gtd.base.capture" }, event.split_type[2]) then
@@ -104,5 +127,7 @@ module.events.subscribed = {
     },
 }
 
+---@class core.gtd.base
 module.public = {}
+
 return module

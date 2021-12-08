@@ -102,7 +102,10 @@ module.public = {
 
                 -- If the highlight already exists then assume the user doesn't want it to be
                 -- overwritten
-                if vim.fn.hlexists(full_highlight_name) == 1 then
+                if
+                    vim.fn.hlexists(full_highlight_name) == 1
+                    and not vim.api.nvim_exec("highlight " .. full_highlight_name, true):match("xxx%s+cleared")
+                then
                     return
                 end
 

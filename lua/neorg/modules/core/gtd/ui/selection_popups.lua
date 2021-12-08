@@ -1,9 +1,31 @@
 local module = neorg.modules.extend("core.gtd.ui.selection_popups")
 
 module.public = {
-    show_views_popup = function(configs)
+    show_views_popup = function()
+        -- Exlude files explicitely provided by the user, and the inbox file
+        local configs = neorg.modules.get_module_config("core.gtd.base")
+        local exclude_files = configs.exclude
+        table.insert(exclude_files, configs.default_lists.inbox)
+
+        -- Get tasks and projects
+        local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = exclude_files })
+        local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = exclude_files })
+
+        -- Error out when no projects
+        if not tasks or not projects then
+            return
+        end
+
+        tasks = module.required["core.gtd.queries"].add_metadata(tasks, "task")
+        projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
+
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_split("Quick Actions")
+
+        if not buffer then
+            return
+        end
+
         local selection = module.required["core.ui"].begin_selection(buffer):listener(
             "destroy",
             { "<Esc>" },
@@ -13,7 +35,7 @@ module.public = {
         )
 
         selection:title("Views"):blank():concat(function(_selection)
-            return module.private.generate_display_flags(_selection, configs)
+            return module.private.generate_display_flags(_selection, tasks, projects)
         end)
 
         module.private.display_messages()
@@ -27,7 +49,7 @@ module.public = {
             return
         end
 
-        local task = module.public.refetch_data_not_extracted(task_node, "task")
+        local task = module.private.refetch_data_not_extracted(task_node, "task")
         module.public.edit_task(task)
     end,
 
@@ -43,6 +65,10 @@ module.public = {
 
         -- Create selection popup
         local buffer = module.required["core.ui"].create_split("Edit Task")
+
+        if not buffer then
+            return
+        end
         local selection = module.required["core.ui"].begin_selection(buffer):listener(
             "destroy",
             { "<Esc>" },
@@ -51,7 +77,6 @@ module.public = {
             end
         )
 
-        -- TODO: Make the content prettier
         selection:title("Edit Task"):blank():text("Task: " .. task_extracted.content)
         if task_extracted.contexts then
             selection:text("Contexts: " .. table.concat(task_extracted.contexts, ", "))
@@ -141,6 +166,11 @@ module.public = {
     show_capture_popup = function()
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_split("Quick Actions")
+
+        if not buffer then
+            return
+        end
+
         local selection = module.required["core.ui"].begin_selection(buffer):listener(
             "destroy",
             { "<Esc>" },

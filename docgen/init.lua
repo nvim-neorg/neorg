@@ -75,6 +75,16 @@ end
 
 docgen.generate_md_file = function(buf, path, comment)
     local module = dofile(path)
+    neorg.modules.load_module(module.name)
+    module = neorg.modules.loaded_modules[module.name].real()
+
+    for _, import in ipairs(module.setup().imports or {}) do
+        local import_path = vim.fn.fnamemodify(path, ":p:h") .. "/" .. import .. ".lua"
+        local imported_extension = dofile(import_path).real()
+        imported_extension.path = import_path
+        modules[imported_extension.name] = imported_extension
+    end
+
     modules[module.name] = module
 
     local structure = {
@@ -260,6 +270,40 @@ docgen.generate_md_file = function(buf, path, comment)
         "This module supports at least version **" .. module.public.version .. "**.",
         "The current Neorg version is **" .. neorg.configuration.version .. "**.",
         "",
+        "### Imports",
+        function()
+            local imports = module.setup().imports
+
+            if not imports or vim.tbl_isempty(imports) then
+                return { "This module does not import any other files." }
+            end
+
+            local ret = {}
+
+            for _, import in ipairs(imports) do
+                local import_module = modules[module.name .. "." .. import]
+
+                if not import_module then
+                    return
+                end
+
+                local trimmed = import_module.path:sub(import_module.path:find("/lua/") + 1, -1)
+
+                table.insert(
+                    ret,
+                    "- [`"
+                        .. module.name
+                        .. "."
+                        .. import
+                        .. "`](https://github.com/nvim-neorg/neorg/tree/unstable/"
+                        .. trimmed
+                        .. ")"
+                )
+            end
+
+            return ret
+        end,
+        "",
         "### Requires",
         function()
             local required = module.setup().requires
@@ -271,6 +315,33 @@ docgen.generate_md_file = function(buf, path, comment)
             local ret = {}
 
             for _, name in ipairs(required) do
+                if modules[name] and modules[name].filename then
+                    modules[name].required_by = modules[name].required_by or {}
+                    table.insert(modules[name].required_by, module.name)
+
+                    ret[#ret + 1] = "- [`"
+                        .. name
+                        .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                        .. modules[name].filename
+                        .. ") - "
+                        .. (modules[name].summary or "no description")
+                else
+                    ret[#ret + 1] = "- `" .. name .. "` - undocumented module"
+                end
+            end
+
+            return ret
+        end,
+        "",
+        "### Required by",
+        function()
+            if not module.required_by or vim.tbl_isempty(module.required_by) then
+                return { "This module isn't required by any other module." }
+            end
+
+            local ret = {}
+
+            for _, name in ipairs(module.required_by) do
                 if modules[name] and modules[name].filename then
                     ret[#ret + 1] = "- [`"
                         .. name
@@ -360,7 +431,7 @@ end
 
 local files = docgen.find_modules()
 
-for i = 1, 2 do
+for _ = 1, 2 do
     for _, file in ipairs(files) do
         local buf, comment = docgen.get_module_top_comment(file)
 
