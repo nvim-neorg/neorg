@@ -1,7 +1,7 @@
 local docgen = {}
 
+-- Create the directory if it does not exist
 docgen.output_dir = "wiki"
-
 pcall(vim.fn.mkdir, docgen.output_dir)
 
 local scan = require("plenary.scandir")
@@ -24,6 +24,8 @@ local ts_utils = ts.get_ts_utils()
 -- Store all parsed modules in this variable
 local modules = {}
 
+--- Get the list of every module.lua file in neorg
+--- @return table
 docgen.find_modules = function()
     local path = vim.fn.getcwd()
     local neorg_modules = "lua/neorg/modules"
@@ -31,6 +33,9 @@ docgen.find_modules = function()
     return scan.scan_dir(path .. "/" .. neorg_modules, { search_pattern = "module.lua$" })
 end
 
+--- Get bufnr from a filepath
+--- @param path string
+--- @return number
 docgen.get_buf_from_file = function(path)
     local uri = vim.uri_from_fname(path)
     local buf = vim.uri_to_bufnr(uri)
@@ -38,6 +43,9 @@ docgen.get_buf_from_file = function(path)
     return buf
 end
 
+--- Get the first comment (at line 0) from a module and get it's content
+--- @param path string
+--- @return number, table #Returns the buffer and the table of comment
 docgen.get_module_top_comment = function(path)
     local buf = docgen.get_buf_from_file(path)
     local node = ts.get_first_node_recursive("comment", { buf = buf, ft = "lua" })
@@ -66,124 +74,150 @@ docgen.get_module_top_comment = function(path)
     return buf, comment
 end
 
+--- Parses the query from a buffer
+--- @param buf number
+--- @param query string
+--- @return table
 docgen.get_module_queries = function(buf, query)
     vim.api.nvim_set_current_buf(buf)
 
     return vim.treesitter.parse_query("lua", query)
 end
 
-docgen.generate_md_file = function(buf, path, comment)
-    local module = dofile(path)
-    neorg.modules.load_module(module.name)
-    module = neorg.modules.loaded_modules[module.name].real()
+--- The actual code that generates a md file from a template
+--- @param buf number
+--- @param path string
+--- @param comment table
+docgen.generate_md_file = function(buf, path, comment, main_page)
+    local module = {}
+    if not main_page then
+        module = dofile(path)
+        neorg.modules.load_module(module.name)
+        module = neorg.modules.loaded_modules[module.name].real()
 
-    for _, import in ipairs(module.setup().imports or {}) do
-        local import_path = vim.fn.fnamemodify(path, ":p:h") .. "/" .. import .. ".lua"
-        local imported_extension = dofile(import_path).real()
-        imported_extension.path = import_path
-        modules[imported_extension.name] = imported_extension
+        for _, import in ipairs(module.setup().imports or {}) do
+            local import_path = vim.fn.fnamemodify(path, ":p:h") .. "/" .. import .. ".lua"
+            local imported_extension = dofile(import_path).real()
+            imported_extension.path = import_path
+            modules[imported_extension.name] = imported_extension
+        end
+
+        modules[module.name] = module
     end
 
-    modules[module.name] = module
+    local structure
+    if main_page == "Home" then
+        -- TODO:
+        structure = {
+            "<div align='center'>",
+            "# Welcome to the neorg wiki !",
+            "</div>",
+        }
+    elseif main_page == "_Sidebar" then
+        structure = {
+            "<div align='center'>",
+            "# :star2: Neorg",
+            "</div>",
+        }
+    else
+        structure = {
+            function()
+                return { module.title and "# " .. module.title or ("# The `" .. module.name .. "` Module") }
+            end,
+            "",
+            "## Summary",
+            function()
+                return { (module.summary or "*no summary provided*") }
+            end,
+            "",
+            "## Overview",
+            "<comment>",
+            "",
+            "## Usage",
+            "### How to Apply",
+            function()
+                local core_defaults = modules["core.defaults"]
 
-    local structure = {
-        function()
-            return { module.title and "# " .. module.title or ("# The `" .. module.name .. "` Module") }
-        end,
-        "",
-        "## Summary",
-        function()
-            return { (module.summary or "*no summary provided*") }
-        end,
-        "",
-        "## Overview",
-        "<comment>",
-        "",
-        "## Usage",
-        "### How to Apply",
-        function()
-            local core_defaults = modules["core.defaults"]
-
-            if not core_defaults then
-                return
-            end
-
-            if
-                not vim.tbl_isempty(vim.tbl_filter(function(elem)
-                    return elem == module.name
-                end, core_defaults.config.public.enable or {}))
-            then
-                return {
-                    "- This module is already present in the [`core.defaults`](https://github.com/nvim-neorg/neorg/wiki/"
-                        .. core_defaults.filename
-                        .. ") metamodule.",
-                    "  You can load the module with:",
-                    "  ```lua",
-                    '  ["core.defaults"] = {},',
-                    "  ```",
-                    "  In your Neorg setup.",
-                }
-            end
-        end,
-        "- To manually load the module, place this code in your Neorg setup:",
-        "  ```lua",
-        '  ["' .. module.name .. '"] = {',
-        "     config = { -- Note that this table is optional and doesn't need to be provided",
-        "         -- Configuration here",
-        "     }",
-        "  }",
-        "  ```",
-        "  Consult the [configuration](#Configuration) section to see how you can configure `"
-            .. module.name
-            .. "` to your liking.",
-        "",
-        "### Configuration",
-        function()
-            local results = {}
-            local configs = neorg.modules.get_module_config(module.name)
-            for config, value in pairs(configs) do
-                table.insert(results, "- `" .. config .. "`")
-
-                table.insert(results, "```lua")
-                local inserted = vim.split(vim.inspect(value), "\n")
-                vim.list_extend(results, inserted)
-                table.insert(results, "```")
-            end
-
-            if #results == 0 then
-                table.insert(results, "No configuration provided")
-            end
-
-            return results
-        end,
-        "## Developer Usage",
-        "### Public API",
-        "This segment will detail all of the functions `"
-            .. module.name
-            .. "` exposes. All of these functions reside in the `public` table.",
-        "",
-        function()
-            local api = neorg.modules.get_module(module.name)
-            local results = {}
-
-            if not vim.tbl_isempty(api) then
-                for function_name, item in pairs(api) do
-                    if type(item) == "function" then
-                        table.insert(results, "- `" .. function_name .. "`")
-                    end
+                if not core_defaults then
+                    return
                 end
+
+                if
+                    not vim.tbl_isempty(vim.tbl_filter(function(elem)
+                        return elem == module.name
+                    end, core_defaults.config.public.enable or {}))
+                then
+                    return {
+                        "- This module is already present in the [`core.defaults`](https://github.com/nvim-neorg/neorg/wiki/"
+                            .. core_defaults.filename
+                            .. ") metamodule.",
+                        "  You can load the module with:",
+                        "  ```lua",
+                        '  ["core.defaults"] = {},',
+                        "  ```",
+                        "  In your Neorg setup.",
+                    }
+                end
+            end,
+            "- To manually load the module, place this code in your Neorg setup:",
+            "  ```lua",
+            '  ["' .. module.name .. '"] = {',
+            "     config = { -- Note that this table is optional and doesn't need to be provided",
+            "         -- Configuration here",
+            "     }",
+            "  }",
+            "  ```",
+            "  Consult the [configuration](#Configuration) section to see how you can configure `"
+                .. module.name
+                .. "` to your liking.",
+            "",
+            "### Configuration",
+            function()
+                local results = {}
+                local configs = neorg.modules.get_module_config(module.name)
+                for config, value in pairs(configs) do
+                    table.insert(results, "- `" .. config .. "`")
+
+                    table.insert(results, "```lua")
+                    local inserted = vim.split(vim.inspect(value), "\n")
+                    vim.list_extend(results, inserted)
+                    table.insert(results, "```")
+                end
+
                 if #results == 0 then
-                    table.insert(results, "No public functions exposed.")
+                    table.insert(results, "No configuration provided")
                 end
 
-                table.insert(results, "")
-            end
+                return results
+            end,
+            "## Developer Usage",
+            "### Public API",
+            "This segment will detail all of the functions `"
+                .. module.name
+                .. "` exposes. All of these functions reside in the `public` table.",
+            "",
+            function()
+                local api = neorg.modules.get_module(module.name)
+                local results = {}
 
-            return results
-        end,
-        "### Examples",
-        {
-            query = [[
+                if not vim.tbl_isempty(api) then
+                    for function_name, item in pairs(api) do
+                        if type(item) == "function" then
+                            table.insert(results, "- `" .. function_name .. "`")
+                        end
+                    end
+                    if #results == 0 then
+                        table.insert(results, "No public functions exposed.")
+                    end
+
+                    table.insert(results, "")
+                end
+
+                return results
+            end,
+            "### Examples",
+            {
+                query = [[
                 (variable_declaration
                     (variable_declarator
                         (field_expression) @_field
@@ -192,20 +226,20 @@ docgen.generate_md_file = function(buf, path, comment)
                 ) @declaration
             ]],
 
-            callback = function(main_query)
-                if vim.tbl_isempty(module.examples) then
-                    return { "None Provided" }
-                end
+                callback = function(main_query)
+                    if vim.tbl_isempty(module.examples) then
+                        return { "None Provided" }
+                    end
 
-                local tree = vim.treesitter.get_parser(buf, "lua"):parse()[1]
-                local result = {}
-                local index = 0
+                    local tree = vim.treesitter.get_parser(buf, "lua"):parse()[1]
+                    local result = {}
+                    local index = 0
 
-                for _, variable_declaration in main_query:iter_captures(tree:root(), buf) do
-                    if variable_declaration:type() == "variable_declaration" then
-                        local query = vim.treesitter.parse_query(
-                            "lua",
-                            [[
+                    for _, variable_declaration in main_query:iter_captures(tree:root(), buf) do
+                        if variable_declaration:type() == "variable_declaration" then
+                            local query = vim.treesitter.parse_query(
+                                "lua",
+                                [[
                             (table
                                 (field
                                     [
@@ -218,175 +252,178 @@ docgen.generate_md_file = function(buf, path, comment)
                                 )
                             )
                         ]]
-                        )
+                            )
 
-                        for id, node in query:iter_captures(variable_declaration, buf) do
-                            local capture = query.captures[id]
+                            for id, node in query:iter_captures(variable_declaration, buf) do
+                                local capture = query.captures[id]
 
-                            if capture == "identifier" then
-                                index = index + 1
-                                local identifier_text = ts.get_node_text(node)
-                                identifier_text = identifier_text:gsub("[\"'](.+)[\"']", "%1") or identifier_text
+                                if capture == "identifier" then
+                                    index = index + 1
+                                    local identifier_text = ts.get_node_text(node)
+                                    identifier_text = identifier_text:gsub("[\"'](.+)[\"']", "%1") or identifier_text
 
-                                result[index] = {
-                                    "#### " .. identifier_text,
-                                    "```lua",
-                                }
+                                    result[index] = {
+                                        "#### " .. identifier_text,
+                                        "```lua",
+                                    }
 
-                                local start_node = node:next_named_sibling()
+                                    local start_node = node:next_named_sibling()
 
-                                if not start_node then
-                                    table.insert(result[index], "-- empty code block")
+                                    if not start_node then
+                                        table.insert(result[index], "-- empty code block")
+                                    end
+
+                                    local text = ts_utils.get_node_text(start_node)
+
+                                    -- Remove the function() and "end" keywords
+                                    table.remove(text, 1)
+                                    table.remove(text)
+
+                                    local start = vim.api.nvim_strwidth(text[1]:match("^%s*")) + 1
+
+                                    for i = 1, #text do
+                                        text[i] = text[i]:sub(start)
+                                    end
+
+                                    vim.list_extend(result[index], text)
+
+                                    table.insert(result[index], "```")
+                                    table.insert(result[index], "")
                                 end
-
-                                local text = ts_utils.get_node_text(start_node)
-
-                                -- Remove the function() and "end" keywords
-                                table.remove(text, 1)
-                                table.remove(text)
-
-                                local start = vim.api.nvim_strwidth(text[1]:match("^%s*")) + 1
-
-                                for i = 1, #text do
-                                    text[i] = text[i]:sub(start)
-                                end
-
-                                vim.list_extend(result[index], text)
-
-                                table.insert(result[index], "```")
-                                table.insert(result[index], "")
                             end
                         end
                     end
+
+                    return vim.tbl_flatten(result)
+                end,
+            },
+            "",
+            "## Extra Info",
+            "### Version",
+            "This module supports at least version **" .. module.public.version .. "**.",
+            "The current Neorg version is **" .. neorg.configuration.version .. "**.",
+            "",
+            "### Imports",
+            function()
+                local imports = module.setup().imports
+
+                if not imports or vim.tbl_isempty(imports) then
+                    return { "This module does not import any other files." }
                 end
 
-                return vim.tbl_flatten(result)
+                local ret = {}
+
+                for _, import in ipairs(imports) do
+                    local import_module = modules[module.name .. "." .. import]
+
+                    if not import_module then
+                        return
+                    end
+
+                    local trimmed = import_module.path:sub(import_module.path:find("/lua/") + 1, -1)
+
+                    table.insert(
+                        ret,
+                        "- [`"
+                            .. module.name
+                            .. "."
+                            .. import
+                            .. "`](https://github.com/nvim-neorg/neorg/tree/unstable/"
+                            .. trimmed
+                            .. ")"
+                    )
+                end
+
+                return ret
             end,
-        },
-        "",
-        "## Extra Info",
-        "### Version",
-        "This module supports at least version **" .. module.public.version .. "**.",
-        "The current Neorg version is **" .. neorg.configuration.version .. "**.",
-        "",
-        "### Imports",
-        function()
-            local imports = module.setup().imports
+            "",
+            "### Requires",
+            function()
+                local required = module.setup().requires
 
-            if not imports or vim.tbl_isempty(imports) then
-                return { "This module does not import any other files." }
-            end
-
-            local ret = {}
-
-            for _, import in ipairs(imports) do
-                local import_module = modules[module.name .. "." .. import]
-
-                if not import_module then
-                    return
+                if not required or vim.tbl_isempty(required) or not modules[required[1]] then
+                    return { "This module does not require any other modules to operate." }
                 end
 
-                local trimmed = import_module.path:sub(import_module.path:find("/lua/") + 1, -1)
+                local ret = {}
 
-                table.insert(
-                    ret,
-                    "- [`"
-                        .. module.name
-                        .. "."
-                        .. import
-                        .. "`](https://github.com/nvim-neorg/neorg/tree/unstable/"
-                        .. trimmed
-                        .. ")"
-                )
-            end
+                for _, name in ipairs(required) do
+                    if modules[name] and modules[name].filename then
+                        modules[name].required_by = modules[name].required_by or {}
+                        table.insert(modules[name].required_by, module.name)
 
-            return ret
-        end,
-        "",
-        "### Requires",
-        function()
-            local required = module.setup().requires
-
-            if not required or vim.tbl_isempty(required) or not modules[required[1]] then
-                return { "This module does not require any other modules to operate." }
-            end
-
-            local ret = {}
-
-            for _, name in ipairs(required) do
-                if modules[name] and modules[name].filename then
-                    modules[name].required_by = modules[name].required_by or {}
-                    table.insert(modules[name].required_by, module.name)
-
-                    ret[#ret + 1] = "- [`"
-                        .. name
-                        .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                        .. modules[name].filename
-                        .. ") - "
-                        .. (modules[name].summary or "no description")
-                else
-                    ret[#ret + 1] = "- `" .. name .. "` - undocumented module"
+                        ret[#ret + 1] = "- [`"
+                            .. name
+                            .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                            .. modules[name].filename
+                            .. ") - "
+                            .. (modules[name].summary or "no description")
+                    else
+                        ret[#ret + 1] = "- `" .. name .. "` - undocumented module"
+                    end
                 end
-            end
 
-            return ret
-        end,
-        "",
-        "### Required by",
-        function()
-            if not module.required_by or vim.tbl_isempty(module.required_by) then
-                return { "This module isn't required by any other module." }
-            end
-
-            local ret = {}
-
-            for _, name in ipairs(module.required_by) do
-                if modules[name] and modules[name].filename then
-                    ret[#ret + 1] = "- [`"
-                        .. name
-                        .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                        .. modules[name].filename
-                        .. ") - "
-                        .. (modules[name].summary or "no description")
-                else
-                    ret[#ret + 1] = "- `" .. name .. "` - undocumented module"
+                return ret
+            end,
+            "",
+            "### Required by",
+            function()
+                if not module.required_by or vim.tbl_isempty(module.required_by) then
+                    return { "This module isn't required by any other module." }
                 end
-            end
 
-            return ret
-        end,
-    }
+                local ret = {}
 
-    if not comment or #comment == 0 then
+                for _, name in ipairs(module.required_by) do
+                    if modules[name] and modules[name].filename then
+                        ret[#ret + 1] = "- [`"
+                            .. name
+                            .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                            .. modules[name].filename
+                            .. ") - "
+                            .. (modules[name].summary or "no description")
+                    else
+                        ret[#ret + 1] = "- `" .. name .. "` - undocumented module"
+                    end
+                end
+
+                return ret
+            end,
+        }
+    end
+
+    if (not comment or #comment == 0) and not main_page then
         return
     end
 
     local oldkey
     local arguments = {}
 
-    for i, line in ipairs(comment) do
-        if line:match("^%s*---$") then
-            comment = vim.list_slice(comment, i + 1)
-            break
-        end
+    if not main_page then
+        for i, line in ipairs(comment) do
+            if line:match("^%s*---$") then
+                comment = vim.list_slice(comment, i + 1)
+                break
+            end
 
-        local key, value = line:match("^%s*([%w%s]+)%:%s+(.+)$")
+            local key, value = line:match("^%s*([%w%s]+)%:%s+(.+)$")
 
-        if key and value then
-            key = key:lower():gsub("%s", "_")
-            arguments[key] = value
-            oldkey = key
-        elseif not line:match("^%s*$") and oldkey then
-            arguments[oldkey] = arguments[oldkey] .. " " .. vim.trim(line)
+            if key and value then
+                key = key:lower():gsub("%s", "_")
+                arguments[key] = value
+                oldkey = key
+            elseif not line:match("^%s*$") and oldkey then
+                arguments[oldkey] = arguments[oldkey] .. " " .. vim.trim(line)
+            end
         end
     end
 
-    if not arguments.file then
+    if not arguments.file and not main_page then
         return
     end
 
     -- Populate the module with some extra info
-    module.filename = arguments.file
+    module.filename = arguments.file or main_page
     module.summary = arguments.summary
     module.title = arguments.title
 
@@ -428,6 +465,10 @@ docgen.generate_md_file = function(buf, path, comment)
     vim.api.nvim_buf_delete(output_buffer, { force = true })
 end
 
+docgen.generate_main_file = function() end
+
+docgen.generate_sidebar_file = function() end
+
 local files = docgen.find_modules()
 
 for _ = 1, 2 do
@@ -439,5 +480,8 @@ for _ = 1, 2 do
         end
     end
 end
+
+docgen.generate_md_file(nil, nil, nil, "Home")
+docgen.generate_md_file(nil, nil, nil, "_Sidebar")
 
 return docgen
