@@ -308,36 +308,8 @@ function neorg.modules.get_module_version(module_name)
     -- If it can't be found then error out
     if not version then
         log.warn("Attempt to get module version with name", module_name, "failed - version variable not present.")
-        return nil
+        return
     end
 
-    -- Define variables that split the version up into 3 slices
-    local split_version, versions, ret =
-        vim.split(version, ".", true), { "major", "minor", "patch" }, { major = 0, minor = 0, patch = 0 }
-
-    -- If the sliced version string has more than 3 elements error out
-    if #split_version > 3 then
-        log.warn(
-            "Attempt to get module version with name",
-            module_name,
-            "failed - too many version numbers provided. Version should follow this layout: <major>.<minor>.<patch>"
-        )
-        return nil
-    end
-
-    -- Loop through all the versions and check whether they are valid numbers. If they are, add them to the return table
-    for i, ver in ipairs(versions) do
-        if split_version[i] then
-            local num = tonumber(split_version[i])
-
-            if not num then
-                log.warn("Invalid version provided, string cannot be converted to integral type.")
-                return nil
-            end
-
-            ret[ver] = num
-        end
-    end
-
-    return ret
+    return neorg.utils.parse_version_string(version)
 end
