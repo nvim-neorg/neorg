@@ -49,7 +49,7 @@ module.public = {
     end,
 
     retrieve = function(key)
-        return module.private.data[key]
+        return module.private.data[key] or {}
     end,
 
     flush = function()
