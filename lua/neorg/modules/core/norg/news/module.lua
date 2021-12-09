@@ -11,6 +11,7 @@ module.setup = function()
     return {
         requires = {
             "core.ui",
+            "core.storage",
         },
     }
 end
@@ -19,11 +20,32 @@ module.config.public = {
     sources = {
         news = {
             condition = function()
-                -- TODO: Once we're done with the implementation we should
-                -- make this bit check for the current Neorg version and the version
-                -- our Neorg News is targeted towards. We should make sure to only display
-                -- the Neorg news once, unless the user manually invokes :Neorg news
-                return false
+                local news = module.required["core.storage"].retrieve(module.name)
+
+                local parsed_neorg_version, parsed_news_state =
+                    neorg.utils.parse_version_string(neorg.configuration.version),
+                    neorg.utils.parse_version_string(news.news_state)
+
+                if
+                    not parsed_neorg_version
+                    or not parsed_news_state
+                    or (
+                        (
+                            parsed_news_state.major <= parsed_neorg_version.major
+                            and parsed_news_state.minor <= parsed_neorg_version.minor
+                            and parsed_news_state.patch <= parsed_neorg_version.patch
+                        )
+                        and (
+                            parsed_news_state.major < parsed_neorg_version.major
+                            or parsed_news_state.minor < parsed_neorg_version.minor
+                            or parsed_news_state.patch < parsed_neorg_version.patch
+                        )
+                    )
+                then
+                    news.news_state = neorg.configuration.version
+                    module.required["core.storage"].store(module.name, news)
+                    return true
+                end
             end,
             config = {
                 window = {
@@ -45,14 +67,18 @@ module.config.public = {
                     local file = io.open(source .. "/news.norg", "r")
 
                     if not file then
-                        return { "Unable to read Neorg news, some error occurred :(" }
+                        return {
+                            "Unable to read Neorg news, it seems the `news.norg` file doesn't exist?",
+                            "To exit this window press either `<Esc>` or `q`.",
+                        }
                     end
 
-                    local content = vim.split(file:read("*a"), "\n", true)
+                    local content_as_whole_str = file:read("*a")
+                    local content = vim.split(content_as_whole_str, "\n", true)
 
                     io.close(file)
 
-                    return content
+                    return content, not content_as_whole_str:match("display:%s+true\n")
                 end,
             },
         },
@@ -116,7 +142,13 @@ module.public = {
             local item_type = type(item)
 
             if item_type == "function" then
-                vim.list_extend(parsed_text, item())
+                local ret, halt = item()
+
+                if halt then
+                    return
+                end
+
+                vim.list_extend(parsed_text, ret)
             elseif item_type == "string" then
                 table.insert(parsed_text, item)
             end
@@ -142,7 +174,7 @@ module.public = {
         vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bdelete<CR>", { silent = true, noremap = true })
         vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bdelete<CR>", { silent = true, noremap = true })
 
-        return vim.api.nvim_open_win(buf, false, parsed_source.config), buf
+        return vim.api.nvim_open_win(buf, true, parsed_source.config), buf
     end,
 
     parse_all_sources = function() end,
@@ -150,7 +182,14 @@ module.public = {
 
 module.on_event = function(event)
     if event.type == "core.started" then
-        module.public.display_news(module.public.parse_source("news"))
+        local timer = vim.loop.new_timer()
+        timer:start(
+            1000,
+            0,
+            vim.schedule_wrap(function()
+                module.public.display_news(module.public.parse_source("news"))
+            end)
+        )
     end
 end
 
