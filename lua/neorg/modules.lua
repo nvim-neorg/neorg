@@ -266,7 +266,7 @@ end
 function neorg.modules.get_module(module_name)
     if not neorg.modules.is_module_loaded(module_name) then
         log.warn("Attempt to get module with name", module_name, "failed - module is not loaded.")
-        return nil
+        return
     end
 
     return neorg.modules.loaded_modules[module_name].public
@@ -278,7 +278,7 @@ end
 function neorg.modules.get_module_config(module_name)
     if not neorg.modules.is_module_loaded(module_name) then
         log.warn("Attempt to get module configuration with name", module_name, "failed - module is not loaded.")
-        return nil
+        return
     end
 
     return neorg.modules.loaded_modules[module_name].config.public
@@ -299,7 +299,7 @@ function neorg.modules.get_module_version(module_name)
     -- If the module isn't loaded then don't bother retrieving its version
     if not neorg.modules.is_module_loaded(module_name) then
         log.warn("Attempt to get module version with name", module_name, "failed - module is not loaded.")
-        return nil
+        return
     end
 
     -- Grab the version of the module
