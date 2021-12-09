@@ -45,7 +45,7 @@ module.public = {
     end,
 
     remove = function(key)
-        module.private[key] = nil
+        module.private.data[key] = nil
     end,
 
     retrieve = function(key)
