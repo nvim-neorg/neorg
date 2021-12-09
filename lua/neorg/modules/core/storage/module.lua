@@ -18,7 +18,7 @@ module.setup = function()
 end
 
 module.config.public = {
-    path = vim.fn.stdpath("data") .. "/neorg.json",
+    path = vim.fn.stdpath("data") .. "/neorg.mpack",
 }
 
 module.private = {
@@ -37,7 +37,7 @@ module.public = {
 
         io.close(file)
 
-        module.private.data = vim.json.decode(content)
+        module.private.data = vim.mpack.unpack(content)
     end,
 
     store = function(key, data)
@@ -59,7 +59,7 @@ module.public = {
             return
         end
 
-        file:write(vim.json.encode(module.private.data))
+        file:write(vim.mpack.pack(module.private.data))
 
         io.close(file)
     end,
