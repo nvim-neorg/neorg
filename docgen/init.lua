@@ -84,6 +84,19 @@ docgen.get_module_queries = function(buf, query)
     return vim.treesitter.parse_query("lua", query)
 end
 
+--- Get module.config.public TS node from buffer
+--- @param buf number
+docgen.get_module_configs = function(buf)
+    local nodes = ts.get_all_nodes("variable_declaration", { ft = "lua", buf = buf })
+    for _, node in pairs(nodes) do
+        local _node = ts.get_first_node_recursive("variable_declarator", { ft = "lua", buf = buf, parent = node })
+        local text = ts_utils.get_node_text(_node, buf)[1]
+        if text == "module.config.public" then
+            return _node
+        end
+    end
+end
+
 --- The actual code that generates a md file from a template
 --- @param buf number
 --- @param path string
