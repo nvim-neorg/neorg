@@ -279,6 +279,11 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                         elseif child:type() == "field" and not vim.tbl_isempty(current_key) then
                             local name = ts_utils.get_node_text(child:named_child(0), buf)[1]
                             local value = ts_utils.get_node_text(child:named_child(1), buf)
+
+                            if child:named_child(1):type() == "table" then
+                                value[#value] = string.gsub(value[#value], "%s*", "")
+                            end
+
                             table.insert(inserted, { comment = current_key, value = value, name = name })
                             current_key = {}
                         else
@@ -286,10 +291,15 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                         end
                     end
 
+                    if vim.tbl_isempty(inserted) then
+                        table.insert(results, "No public configuration")
+                    end
                     for _, insert in pairs(inserted) do
                         table.insert(results, "- `" .. insert.name .. "`")
+                        table.insert(results, "")
                         for _, _value in pairs(insert.comment) do
                             table.insert(results, string.sub(_value, 4))
+                            table.insert(results, "")
                         end
                         table.insert(results, "```lua")
                         for _, _value in pairs(insert.value) do
