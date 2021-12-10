@@ -92,7 +92,8 @@ docgen.get_module_configs = function(buf)
         local _node = ts.get_first_node_recursive("variable_declarator", { ft = "lua", buf = buf, parent = node })
         local text = ts_utils.get_node_text(_node, buf)[1]
         if text == "module.config.public" then
-            return node
+            _node = ts.get_first_node_recursive("table", { ft = "lua", buf = buf, parent = node })
+            return _node
         end
     end
 end
@@ -269,12 +270,33 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 if not configs then
                     table.insert(results, "No configuration provided")
                 else
-                    table.insert(results, "```lua")
-                    local inserted = ts_utils.get_node_text(configs, buf)
-                    for _, insert in pairs(inserted) do
-                        table.insert(results, insert)
+                    local inserted = {}
+                    local current_key = {}
+                    for child, _ in configs:iter_children() do
+                        if child:type() == "comment" then
+                            local insert = ts_utils.get_node_text(child, buf)
+                            current_key = current_key and vim.list_extend(current_key, insert)
+                        elseif child:type() == "field" and not vim.tbl_isempty(current_key) then
+                            local name = ts_utils.get_node_text(child:named_child(0), buf)[1]
+                            local value = ts_utils.get_node_text(child:named_child(1), buf)
+                            table.insert(inserted, { comment = current_key, value = value, name = name })
+                            current_key = {}
+                        else
+                            current_key = {}
+                        end
                     end
-                    table.insert(results, "```")
+
+                    for _, insert in pairs(inserted) do
+                        table.insert(results, "- `" .. insert.name .. "`")
+                        for _, _value in pairs(insert.comment) do
+                            table.insert(results, string.sub(_value, 4))
+                        end
+                        table.insert(results, "```lua")
+                        for _, _value in pairs(insert.value) do
+                            table.insert(results, _value)
+                        end
+                        table.insert(results, "```")
+                    end
                 end
 
                 return results
