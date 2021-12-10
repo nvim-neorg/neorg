@@ -557,9 +557,25 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
         return
     end
 
+    -- Perform linting on both the summary and title
+    local function lint(input)
+        if not input then
+            return
+        end
+
+        local error_prefix = "Error in " .. module.name .. ": '" .. input .. "' "
+        assert(input:sub(-1, -1) == ".", error_prefix .. "didn't have a full stop at the end of the sentence.")
+        assert(
+            not input:find("neorg"),
+            error_prefix .. "had a lowercase 'neorg' word. Type 'Neorg' with an uppercase N"
+        )
+
+        return input
+    end
+
     -- Populate the module with some extra info
     module.filename = arguments.file or main_page
-    module.summary = arguments.summary
+    module.summary = lint(arguments.summary)
     module.title = arguments.title
 
     -- Construct the desired filename
