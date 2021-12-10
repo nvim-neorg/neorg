@@ -19,7 +19,7 @@ ci-doc:
 	make documentation
 
 documentation:
-	nvim --noplugin --headless -u docgen/minimal_init.vim -c "luafile ./docgen/init.lua" -c 'qa'
+	nvim --clean --noplugin --headless -u docgen/minimal_init.vim -c "luafile ./docgen/init.lua" -c 'qa'
 
 format:
 	stylua -v --verify .
