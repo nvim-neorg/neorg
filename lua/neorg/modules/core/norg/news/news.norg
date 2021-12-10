@@ -9,13 +9,15 @@
     display: true
 @end
 
-                                 * _We got some new news for you!_
-     Welcome to the Neorg news page. This page displays whenever there's any piece of important
-                 information that we need to convey, without having to rely on git.
-                         To /exit/ this prompt, press either `<Esc>` or `q`.
+<
+* _We got some new news for you!_
+Welcome to the Neorg news page. This page displays whenever there's any piece of important
+information that we need to convey, without having to rely on git.
+To /exit/ this prompt, press either `<Esc>` or `q`.
 
-         We promise not to abuse this! This is strictly a prompt for important or breaking
-                                              changes.
+We promise not to abuse this! This is strictly a prompt for important or breaking
+changes.
+>
 
 If you're reading this then it means Neorg has undergone some changes that may break quite a few
 things. A lot of these changes are syntactical changes, meaning a decent chunk of documents may be
@@ -68,30 +70,29 @@ surely.
       {https://github.com/nvim-neorg/neorg}
       @end
 
-      It's important to note that the link location is whitespace independent, however the link
-      system is case and punctuation sensitive. `{* Linklocation}` and `{* Link   location}` link to
-      the same place, however `{* Link, location}` does not.
+      It's important to note that the link location is whitespace independent, however the
+      link system is case and punctuation sensitive. `{* Linklocation}` and `{* Link location}`
+      link to the same place, however `{* Link, location}` does not.
 
       *There have been some additions too:*
       - You can now specify a link without a location and only a file (`{:neorg-file:}`)
-        -- Specifying a location with a file still works the same way: `{:neorg-file:* Location}`.
-           Don't forget the space between `*` and `Location`!
+       -- Specifying a location with a file still works the same way: `{:neorg-file:* Location}`.
+          Don't forget the space between `*` and `Location`!
       - You can now link to non-neorg files through the `@` symbol: `{@ non-neorg-file.txt}`
       - Links now allow absolute paths
-        -- Doing `{:/some/file:* Location}` will now point directly to the root of your filesystem.
-           Beforehand Neorg would convert the `/` to the root of the workspace.
-        -- If you want to reference the root of your workspace you can use the `$` symbol:
-           `{:$/some/neorg/file:}`.
-        -- You can now also reference different workspaces altogether:
-           `{:$workspace-name/some/neorg/file:}`
+       -- Doing `{:/some/file:* Location}` will now point directly to the root of your
+          filesystem. Beforehand Neorg would convert the `/` to the root of the workspace.
+       -- If you want to reference the root of your workspace you can use the `$` symbol:
+          `{:$/some/neorg/file:}`. -- You can now also reference different workspaces
+          altogether: `{:$workspace-name/some/neorg/file:}`
       - You can no longer specify several paths to search within links, only a single one.
-        i.e. you can no longer do `{:file:another file:* Location}`. It's unnecessarily complex and
-        won't be used by many people.
+        i.e. you can no longer do `{:file:another file:* Location}`. It's unnecessarily
+        complex and won't be used by many people.
 
   *** TODO Items
-      TODO items have seen a beautiful buff during our latest updates.
-      First of all, we've changed the pending symbol from `- [*]` to `- [-]`. This is for a few
-      reasons. First of all, it makes it easy for org users to transition; second of all, it's cause
+      TODO items have seen a beautiful buff during our latest updates. First of all, we've
+      changed the pending symbol from `- [*]` to `- [-]`. This is for a few reasons. First
+      of all, it makes it easy for org users to transition; second of all, it's cause
       we've added several new TODO item types:
 
       @code norg
@@ -112,8 +113,8 @@ surely.
       @end
 
   *** Definitions
-      We've also changed the syntax for definitions, although you may have already realized this
-      one. We've changed the `:` char to `$` to signify a definition:
+      We've also changed the syntax for definitions, although you may have already
+      realized this one. We've changed the `:` char to `$` to signify a definition:
 
       @code norg
       $ Definition
@@ -121,19 +122,19 @@ surely.
       @end
 
   *** Carryover Tags
-      We've changed the syntax for carryover tags - they are no longer `$tags like this`, however
-      they are now `#tags like this`.
+      We've changed the syntax for carryover tags - they are no longer `$tags like this`,
+      however they are now `#tags like this`.
 
   *** Inline Comments
-      We've changed inline comments to now be +comment+ instead of #comment#. The hashtag is
-      reserved for carryover tags. You can think of `+comment+` as being an addition to your
-      document, one that doesn't get rendered, hence the `+` symbol.
+      We've changed inline comments to now be +comment+ instead of #comment#. The hashtag
+      is reserved for carryover tags. You can think of `+comment+` as being an addition to
+      your document, one that doesn't get rendered, hence the `+` symbol.
 
   *** Anchors
-      This isn't really a change, however it is a new syntax addition.
-      Apart from just links we've also created the idea of anchors! They're like a cross between
-      links and something like references or pointers if you know your programming terms.
-      Basically you can link to a name several times, then define the link location only once.
+      This isn't really a change, however it is a new syntax addition. Apart from just
+      links we've also created the idea of anchors! They're like a cross between links and
+      something like references or pointers if you know your programming terms. Basically
+      you can link to a name several times, then define the link location only once.
       
       Here's an example:
       @code norg
@@ -142,30 +143,30 @@ surely.
       Man, if only you guys visited our [github]{https://github.com/nvim-neorg/neorg} :P
       @end
       
-      Did you see what was done here? We created two /anchor declarations/ called `github`.
-      After that, we created an /anchor definition/ that actually defined the link location.
-      See? We no longer need to duplicate our links locations, since we can define them only once!
+      Did you see what was done here? We created two /anchor declarations/ called
+      `github`. After that, we created an /anchor definition/ that actually defined the
+      link location. See? We no longer need to duplicate our links locations, since we can
+      define them only once!
 
    **** Don't get confused!
-        There's a *difference* between anchors and links, and I don't want people getting confused
-        here. Regular links have `{location}[text]` as an order. This is because in links we care
-        about emphasising the /location/. Anchors on the other hand have `[text]{location}` as an
-        order, and that's because we care about emphasising the /text/. We bind text to a location,
-        not a location to text.
+        There's a *difference* between anchors and links, and I don't want people getting
+        confused here. Regular links have `{location}[text]` as an order. This is because
+        in links we care about emphasising the /location/. Anchors on the other hand have
+        `[text]{location}` as an order, and that's because we care about emphasising the
+        /text/. We bind text to a location, not a location to text.
 
-        You may have also noticed another design choice. With links, you can completely omit the
-        description, like `{this}`, it's made like this for convenience. The text is the second
-        element of the link construct in that context.
-        In `[description]{this scenario}` you can omit the second element as well, however then you
-        get `[description]`, which is an anchor declaration. Do you see the difference now? It's
-        subtle, but makes a world of difference. Please don't confuse anchors with links, and slap
-        all your friends who get it wrong 😛.
+        You may have also noticed another design choice. With links, you can completely
+        omit the description, like `{this}`, it's made like this for convenience. The text
+        is the second element of the link construct in that context. In
+        `[description]{this scenario}` you can omit the second element as well, however
+        then you get `[description]`, which is an anchor declaration. Do you see the
+        difference now? It's subtle, but makes a world of difference. Please don't confuse
+        anchors with links, and slap all your friends who get it wrong 😛.
 
-                                          * *That's all!*
-    Thanks a bunch for sticking with us, we may still make more changes before 0.1 and before we
-                   stabilize. Have any ideas, any objections? Hit us up either on
-                   {https://discord.gg/T6EgTAX7ht}[discord] or on github itself.
-                                        /Happy organizing! 💜/
-      
-#comment
-vim:norl:tw=100:
+<
+* *That's all!*
+Thanks a bunch for sticking with us, we may still make more changes before 0.1 and before we
+stabilize. Have any ideas, any objections? Hit us up either on
+{https://discord.gg/T6EgTAX7ht}[discord] or on github itself.
+/Happy organizing! 💜/
+>
