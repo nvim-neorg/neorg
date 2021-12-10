@@ -192,12 +192,21 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "- [Hotswapping modules](https://github.com/nvim-neorg/neorg/wiki/Hotswapping-Modules)",
             "- [Difference between module.public and module.config.public](https://github.com/nvim-neorg/neorg/wiki/Public-vs-Public-Config)",
             "- [Metamodules](https://github.com/nvim-neorg/neorg/wiki/Metamodules)",
-            "- Inbuilt modules:",
+            "",
+            "<details>",
+            "<summary>Inbuilt modules:</summary>",
+            "",
             function()
                 local res = {}
                 -- P(modules)
-                for _module, _config in pairs(modules) do
-                    local insert = "\t"
+                names = {}
+                for n in pairs(modules) do
+                    table.insert(names, n)
+                end
+                table.sort(names)
+                for i, name in ipairs(names) do
+                    _config = modules[name]
+                    local insert = ""
                     if _config.filename then
                         insert = insert
                             .. "- [`"
@@ -206,13 +215,14 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                             .. _config.filename
                             .. ")"
                     else
-                        insert = insert .. "- `" .. _module .. "`"
+                        insert = insert .. "- `" .. name .. "`"
                     end
 
                     table.insert(res, insert)
                 end
                 return res
             end,
+            "</details>",
         }
     else
         structure = {
