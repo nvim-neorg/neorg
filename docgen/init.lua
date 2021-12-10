@@ -281,7 +281,13 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                             local value = ts_utils.get_node_text(child:named_child(1), buf)
 
                             if child:named_child(1):type() == "table" then
-                                value[#value] = string.gsub(value[#value], "%s*", "")
+                                local count
+                                -- Remove whitespaces
+                                value[#value], count = string.gsub(value[#value], "%s*", "")
+                                for i, _value in pairs(value) do
+                                    local pattern = string.rep("%s", count)
+                                    value[i] = string.gsub(_value, pattern, "")
+                                end
                             end
 
                             table.insert(inserted, { comment = current_key, value = value, name = name })
