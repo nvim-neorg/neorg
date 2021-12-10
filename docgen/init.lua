@@ -92,7 +92,7 @@ docgen.get_module_configs = function(buf)
         local _node = ts.get_first_node_recursive("variable_declarator", { ft = "lua", buf = buf, parent = node })
         local text = ts_utils.get_node_text(_node, buf)[1]
         if text == "module.config.public" then
-            return _node
+            return node
         end
     end
 end
@@ -264,18 +264,17 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "### Configuration",
             function()
                 local results = {}
-                local configs = neorg.modules.get_module_config(module.name)
-                for config, value in pairs(configs) do
-                    table.insert(results, "- `" .. config .. "`")
+                local configs = docgen.get_module_configs(buf)
 
-                    table.insert(results, "```lua")
-                    local inserted = vim.split(vim.inspect(value), "\n")
-                    vim.list_extend(results, inserted)
-                    table.insert(results, "```")
-                end
-
-                if #results == 0 then
+                if not configs then
                     table.insert(results, "No configuration provided")
+                else
+                    table.insert(results, "```lua")
+                    local inserted = ts_utils.get_node_text(configs, buf)
+                    for _, insert in pairs(inserted) do
+                        table.insert(results, insert)
+                    end
+                    table.insert(results, "```")
                 end
 
                 return results
