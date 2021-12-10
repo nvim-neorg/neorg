@@ -325,6 +325,10 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "",
             function()
                 local api = neorg.modules.get_module(module.name)
+
+                -- sort api in order to not shuffle each time we want to commit
+                table.sort(api)
+
                 local results = {}
 
                 if not vim.tbl_isempty(api) then
