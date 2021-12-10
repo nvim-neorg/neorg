@@ -37,7 +37,7 @@ module.public = {
 
         io.close(file)
 
-        module.private.data = vim.mpack.decode(content)
+        module.private.data = vim.mpack.decode and vim.mpack.decode(content) or vim.mpack.unpack(content)
     end,
 
     store = function(key, data)
@@ -59,7 +59,7 @@ module.public = {
             return
         end
 
-        file:write(vim.mpack.encode(module.private.data))
+        file:write(vim.mpack.encode and vim.mpack.encode(module.private.data) or vim.mpack.pack(module.private.data))
 
         io.close(file)
     end,
