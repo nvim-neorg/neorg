@@ -1,10 +1,10 @@
 --[[
     File: GTD-UI
     Title: GTD UI module
-    Summary: Nicely display GTD related informations
+    Summary: Nicely displays GTD related information.
     ---
 
-This module is like a sub-module for `norg.gtd.base` , exposing public functions to display nicely aggregated stuff, like tasks and projects.
+This module is like a sub-module for `core.gtd.base`, exposing public functions to display nicely aggregated stuff like tasks and projects.
 --]]
 
 require("neorg.modules.base")
