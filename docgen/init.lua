@@ -144,7 +144,15 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "",
             "# Default Modules",
             "",
-            "Neorg come with some default modules that will be automatically loaded if you require `core.defaults` module:",
+            function()
+                local core_defaults = modules["core.defaults"]
+                local link = "[`core.defaults`](https://github.com/nvim-neorg/neorg/wiki/" .. core_defaults.filename .. ")"
+                return {
+                    "Neorg come with some default modules that will be automatically loaded if you require "
+                        .. link
+                        .. " module:",
+                }
+            end,
             "",
             function()
                 local core_defaults = modules["core.defaults"]
