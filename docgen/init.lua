@@ -142,12 +142,47 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "There's a whole tutorial dedicated to making modules [right here](https://github.com/nvim-neorg/neorg/wiki/Creating-Modules).",
             "There everything you need will be explained - think of it as a walkthrough.",
             "",
-            "# Builtin Modules",
+            "# Default Modules",
+            "",
+            "Neorg come with some default modules that will be automatically loaded if you require `core.defaults` module:",
+            "",
+            function()
+                local core_defaults = modules["core.defaults"]
+
+                if not core_defaults then
+                    return
+                end
+
+                local res = {}
+                for _module, _config in pairs(modules) do
+                    if vim.tbl_contains(core_defaults.config.public.enable, _config.name) then
+                        local insert
+                        if _config.filename then
+                            insert = "- [`"
+                                .. _config.name
+                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                                .. _config.filename
+                                .. ")"
+                        else
+                            insert = "- `" .. _module .. "`"
+                        end
+                        if _config.summary then
+                            insert = insert .. " - " .. _config.summary
+                        else
+                            insert = insert .. " - undocumented module"
+                        end
+
+                        table.insert(res, insert)
+                    end
+                end
+                return res
+            end,
+            "",
+            "# All Neorg Modules",
             "",
             "Neorg comes with its own builtin modules to make development easier. Below is a list of all currently implemented builtin modules:",
             function()
                 local res = {}
-                -- P(modules)
                 for _module, _config in pairs(modules) do
                     local insert
                     if _config.filename then
