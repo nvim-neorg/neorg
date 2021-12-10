@@ -210,6 +210,17 @@ module.public = {
         return res
     end,
 
+    --- Ensure t[k] is a table and then add v to the end of t[k]
+    --- @param t table
+    --- @param k key
+    --- @param v value
+    insert = function(t, k, v)
+        if not t[k] then
+            t[k] = {}
+        end
+        table.insert(t[k], v)
+    end,
+
     --- Sort `nodes` list by specified `sorter`
     --- @param sorter string
     --- @param nodes table
@@ -231,25 +242,18 @@ module.public = {
 
         local res = {}
 
-        local insert = function(t, k, v)
-            if not t[k] then
-                t[k] = {}
-            end
-            table.insert(t[k], v)
-        end
-
         for _, t in pairs(nodes) do
             if not t[sorter] then
-                insert(res, "_", t)
+                module.public.insert(res, "_", t)
             else
                 if type(t[sorter]) == "table" then
                     for _, s in pairs(t[sorter]) do
-                        insert(res, s, t)
+                        module.public.insert(res, s, t)
                     end
                 elseif type(t[sorter]) == "string" then
-                    insert(res, t[sorter], t)
+                    module.public.insert(res, t[sorter], t)
                 elseif type(t[sorter]) == "userdata" then
-                    insert(res, t[sorter]:id(), t)
+                    module.public.insert(res, t[sorter]:id(), t)
                 end
             end
         end
