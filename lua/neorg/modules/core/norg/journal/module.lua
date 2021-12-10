@@ -1,13 +1,13 @@
 --[[
-    File: journal_module
-    Title: Journal module for neorg
-    Summary: Easily create files for a journal
+    File: Journal
+    Title: Journal module for Neorg
+    Summary: Easily create files for a journal.
     ---
 How to use this module:
 This module creates four commands.
-- `Neorg journal today`
-- `Neorg journal yesterday`
-- `Neorg journal tomorrow`
+- `:Neorg journal today`
+- `:Neorg journal yesterday`
+- `:Neorg journal tomorrow`
 With this commands you can open the config files for the dates.
 
 - `Neorg journal custom`
