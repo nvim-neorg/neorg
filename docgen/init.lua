@@ -122,13 +122,17 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
     local structure
     if main_page == "Home" then
         structure = {
-            "<div align='center'>",
-            "# Welcome to the neorg wiki !",
+            '<div align="center">',
+            "",
+            "# Welcome to the Neorg wiki!",
+            "Want to know how to properly use Neorg? Your answers are contained here.",
+            "",
             "</div>",
             "",
             "# Using Neorg",
             "",
-            "At first configuring Neorg might be rather scary. I have to define what modules I want to use in the `require('neorg').setup()` function? I don't even know what the default available values are.",
+            "At first configuring Neorg might be rather scary. I have to define what modules I want to use in the `require('neorg').setup()` function?",
+            "I don't even know what the default available values are!",
             "Don't worry, an installation guide is present [here](https://github.com/nvim-neorg/neorg/wiki/Installation), so go ahead and read it!",
             "",
             "# Contributing to Neorg",
