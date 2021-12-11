@@ -634,126 +634,144 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         },
     },
 
-    bold = {
+    bold_open = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupBold",
-        query = "(bold) @icon",
-        render = function(self, text, node)
-            return {
-                { text:gsub("^*", self.icon):gsub("*$", self.icon), self.highlight },
-            }
-        end,
+        query = '(bold ("_open") @icon)',
     },
 
-    italic = {
+    bold_close = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgMarkupBold",
+        query = '(bold ("_close") @icon)',
+    },
+
+    italic_open = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupItalic",
-        query = "(italic) @icon",
-        render = function(self, text, node)
-            return {
-                { text:gsub("^/", self.icon):gsub("/$", self.icon), self.highlight },
-            }
-        end,
+        query = '(italic ("_open") @icon)',
     },
 
-    underline = {
+    italic_close = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgMarkupItalic",
+        query = '(italic ("_close") @icon)',
+    },
+
+    underline_open = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupUnderline",
-        query = "(underline) @icon",
-        render = function(self, text, node)
-            return {
-                { text:gsub("^_", self.icon):gsub("_$", self.icon), self.highlight },
-            }
-        end,
+        query = '(underline ("_open") @icon)',
     },
 
-    strikethrough = {
+    underline_close = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgMarkupUnderline",
+        query = '(underline ("_close") @icon)',
+    },
+
+    strikethrough_open = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupStrikethrough",
-        query = "(strikethrough) @icon",
-        render = function(self, text, node)
-            return {
-                { text:gsub("^-", self.icon):gsub("-$", self.icon), self.highlight },
-            }
-        end,
+        query = '(strikethrough ("_open") @icon)',
     },
 
-    subscript = {
+    strikethrough_close = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgMarkupStrikethrough",
+        query = '(strikethrough ("_close") @icon)',
+    },
+
+    subscript_open = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupSubscript",
-        query = "(subscript) @icon",
-        render = function(self, text)
-            return {
-                { text:gsub("^,", self.icon):gsub(",$", self.icon), self.highlight },
-            }
-        end,
+        query = '(subscript ("_open") @icon)',
     },
 
-    superscript = {
+    subscript_close = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgMarkupSubscript",
+        query = '(subscript ("_close") @icon)',
+    },
+
+    superscript_open = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupSuperscript",
-        query = "(superscript) @icon",
-        render = function(self, text)
-            return {
-                -- NOTE: `^` must be escaped!
-                { text:gsub("^%^", self.icon):gsub("%^$", self.icon), self.highlight },
-            }
-        end,
+        query = '(superscript ("_open") @icon)',
     },
 
-    verbatim = {
+    superscript_close = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgMarkupSuperscript",
+        query = '(superscript ("_close") @icon)',
+    },
+
+    verbatim_open = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupVerbatim",
-        query = "(verbatim) @icon",
-        render = function(self, text)
-            return {
-                { text:gsub("^`", self.icon):gsub("`$", self.icon), self.highlight },
-            }
-        end,
+        query = '(verbatim ("_open") @icon)',
     },
 
-    comment = {
+    verbatim_close = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgMarkupVerbatim",
+        query = '(verbatim ("_close") @icon)',
+    },
+
+    comment_open = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupInlineComment",
-        query = "(inline_comment) @icon",
-        render = function(self, text)
-            return {
-                { text:gsub("^+", self.icon):gsub("+$", self.icon), self.highlight },
-            }
-        end,
+        query = '(inline_comment ("_open") @icon)',
     },
 
-    math = {
+    comment_close = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgMarkupInlineComment",
+        query = '(inline_comment ("_close") @icon)',
+    },
+
+    math_open = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupInlineMath",
-        query = "(inline_math) @icon",
-        render = function(self, text)
-            return {
-                -- NOTE: `$` must be escaped!
-                { text:gsub("^%$", self.icon):gsub("%$$", self.icon), self.highlight },
-            }
-        end,
+        query = '(inline_math ("_open") @icon)',
     },
 
-    variable = {
+    math_close = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgMarkupInlineMath",
+        query = '(inline_math ("_close") @icon)',
+    },
+
+    variable_open = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupVariable",
-        query = "(variable) @icon",
-        render = function(self, text)
-            return {
-                { text:gsub("^=", self.icon):gsub("=$", self.icon), self.highlight },
-            }
-        end,
+        query = '(variable ("_open") @icon)',
+    },
+
+    variable_close = {
+        enabled = true,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        highlight = "NeorgMarkupVariable",
+        query = '(variable ("_close") @icon)',
     },
 
     spoiler = {
