@@ -359,8 +359,6 @@ module.public = {
     set_completion_callback = function(callback)
         _neorgcmd_generate_completions = callback
     end,
-
-    version = "0.0.9",
 }
 
 module.neorg_post_load = module.public.sync
