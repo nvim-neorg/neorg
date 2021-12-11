@@ -11,18 +11,17 @@
 
 <
 * _We got some new news for you!_
-Welcome to the Neorg news page. This page displays whenever there's any piece of important
-information that we need to convey, without having to rely on git.
+Welcome to the Neorg news page. This page is for any piece of important
+information that we may need to convey, without having to rely on git.
 To /exit/ this prompt, press either `<Esc>` or `q`.
-
-We promise not to abuse this! This is strictly a prompt for important or breaking
-changes.
 >
 
 If you're reading this then it means Neorg has undergone some changes that may break quite a few
 things. A lot of these changes are syntactical changes, meaning a decent chunk of documents may be
 rendered invalid after an update. This is bound to happen fairly often as we approach 0.1 slowly but
 surely.
+If you ever update Neorg and find that your syntax highlight doesn't work be sure to also run
+`:TSUpdate` :)
 
 * *Most Important Changes*
   There are quite a few breaking changes ahead. Pay attention here, you don't wanna miss this.
