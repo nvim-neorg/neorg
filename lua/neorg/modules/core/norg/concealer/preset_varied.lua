@@ -634,144 +634,74 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         },
     },
 
-    bold_open = {
+    bold = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupBold",
-        query = '(bold ("_open") @icon)',
+        query = '(bold (["_open" "_close"]) @icon)',
     },
 
-    bold_close = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupBold",
-        query = '(bold ("_close") @icon)',
-    },
-
-    italic_open = {
+    italic = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupItalic",
-        query = '(italic ("_open") @icon)',
+        query = '(italic (["_open" "_close"]) @icon)',
     },
 
-    italic_close = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupItalic",
-        query = '(italic ("_close") @icon)',
-    },
-
-    underline_open = {
+    underline = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupUnderline",
-        query = '(underline ("_open") @icon)',
+        query = '(underline (["_open" "_close"]) @icon)',
     },
 
-    underline_close = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupUnderline",
-        query = '(underline ("_close") @icon)',
-    },
-
-    strikethrough_open = {
+    strikethrough = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupStrikethrough",
-        query = '(strikethrough ("_open") @icon)',
+        query = '(strikethrough (["_open" "_close"]) @icon)',
     },
 
-    strikethrough_close = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupStrikethrough",
-        query = '(strikethrough ("_close") @icon)',
-    },
-
-    subscript_open = {
+    subscript = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupSubscript",
-        query = '(subscript ("_open") @icon)',
+        query = '(subscript (["_open" "_close"]) @icon)',
     },
 
-    subscript_close = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupSubscript",
-        query = '(subscript ("_close") @icon)',
-    },
-
-    superscript_open = {
+    superscript = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupSuperscript",
-        query = '(superscript ("_open") @icon)',
+        query = '(superscript (["_open" "_close"]) @icon)',
     },
 
-    superscript_close = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupSuperscript",
-        query = '(superscript ("_close") @icon)',
-    },
-
-    verbatim_open = {
+    verbatim = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupVerbatim",
-        query = '(verbatim ("_open") @icon)',
+        query = '(verbatim (["_open" "_close"]) @icon)',
     },
 
-    verbatim_close = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupVerbatim",
-        query = '(verbatim ("_close") @icon)',
-    },
-
-    comment_open = {
+    comment = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupInlineComment",
-        query = '(inline_comment ("_open") @icon)',
+        query = '(inline_comment (["_open" "_close"]) @icon)',
     },
 
-    comment_close = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupInlineComment",
-        query = '(inline_comment ("_close") @icon)',
-    },
-
-    math_open = {
+    math = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupInlineMath",
-        query = '(inline_math ("_open") @icon)',
+        query = '(inline_math (["_open" "_close"]) @icon)',
     },
 
-    math_close = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupInlineMath",
-        query = '(inline_math ("_close") @icon)',
-    },
-
-    variable_open = {
+    variable = {
         enabled = true,
         icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
         highlight = "NeorgMarkupVariable",
-        query = '(variable ("_open") @icon)',
-    },
-
-    variable_close = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupVariable",
-        query = '(variable ("_close") @icon)',
+        query = '(variable (["_open" "_close"]) @icon)',
     },
 
     spoiler = {
