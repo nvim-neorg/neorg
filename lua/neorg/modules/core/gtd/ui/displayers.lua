@@ -239,14 +239,10 @@ module.public = {
     --- make a progress bar from a percentage
     --- @param pct number
     percent_string = function(pct)
-        local percent_completed = (function()
-        end)()
+        local percent_completed = (function() end)()
 
         local completed_over_10 = math.floor(pct / 10)
-        return "["
-            .. string.rep("=", completed_over_10)
-            .. string.rep(" ", 10 - completed_over_10)
-            .. "]"
+        return "[" .. string.rep("=", completed_over_10) .. string.rep(" ", 10 - completed_over_10) .. "]"
     end,
 
     --- Display formatted projects from `tasks` table. Uses `projects` table to find all projects
