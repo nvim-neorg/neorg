@@ -269,7 +269,6 @@ module.public = {
     --- @param extra_tag_names type string additional elements that tag_name can be
     --- @return table
     get_tag = function(tag_name, node, type, opts, extra_tag_names)
-
         local allowed_tag_names = { "time.due", "time.start", "contexts", "waiting.for" }
         if extra_tag_names ~= nil then
             for _, tag_name in pairs(extra_tag_names) do
@@ -279,7 +278,7 @@ module.public = {
 
         local allowed_string = allowed_tag_names[1]
         for _, tag_name in pairs(allowed_tag_names) do
-            allowed_string = allowed_string .. '|' .. tag_name
+            allowed_string = allowed_string .. "|" .. tag_name
         end
 
         vim.validate({
@@ -373,7 +372,6 @@ module.public = {
 
         return extracted
     end,
-
 }
 
 module.private = {
