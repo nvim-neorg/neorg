@@ -226,6 +226,29 @@ module.public = {
         return module.private.generate_display(name, positions, res)
     end,
 
+    --- integer percent calculation with check for zero in denominator
+    --- @param numerator number
+    --- @param denominator number
+    percent = function(numerator, denominator)
+        if denominator == 0 then
+            return 0
+        end
+        return math.floor(numerator * 100 / denominator)
+    end,
+
+    --- make a progress bar from a percentage
+    --- @param pct number
+    percent_string = function(pct)
+        local percent_completed = (function()
+        end)()
+
+        local completed_over_10 = math.floor(pct / 10)
+        return "["
+            .. string.rep("=", completed_over_10)
+            .. string.rep(" ", 10 - completed_over_10)
+            .. "]"
+    end,
+
     --- Display formatted projects from `tasks` table. Uses `projects` table to find all projects
     --- @param tasks core.gtd.queries.task
     --- @param projects core.gtd.queries.project
@@ -297,19 +320,9 @@ module.public = {
                     )
                     table.insert(positions, { line = #res, data = project })
 
-                    local percent_completed = (function()
-                        if #tasks_project == 0 then
-                            return 0
-                        end
-                        return math.floor(#completed * 100 / #tasks_project)
-                    end)()
-
-                    local completed_over_10 = math.floor(percent_completed / 10)
-                    local percent_completed_visual = "["
-                        .. string.rep("=", completed_over_10)
-                        .. string.rep(" ", 10 - completed_over_10)
-                        .. "]"
-                    table.insert(res, "   " .. percent_completed_visual .. " " .. percent_completed .. "% done")
+                    local pct = module.public.percent(#completed, #tasks_project)
+                    local pct_str = module.public.percent_string(pct)
+                    table.insert(res, "   " .. pct_str .. " " .. pct .. "% done")
                     table.insert(added_projects, project.node)
                     table.insert(res, "")
                 end
