@@ -175,20 +175,6 @@ module.public = {
             },
 
             descend = {
-                {
-                    regex = "contexts%s+%w*",
-
-                    complete = {
-                        "today",
-                        "someday",
-                    },
-
-                    options = {
-                        type = "GTDContext",
-                    },
-
-                    descend = {},
-                },
             },
         },
         {
