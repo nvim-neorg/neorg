@@ -249,7 +249,9 @@ module.public = {
         -- Loop through every completion
         for _, completion_data in ipairs(completions) do
             -- Construct a variable that will be returned on a successful match
-            local ret_completions = { items = completion_data.complete, options = completion_data.options or {} }
+            local items = type(completion_data.complete) == "table"
+                and completion_data.complete or completion_data.complete(context, prev, saved)
+            local ret_completions = { items = items, options = completion_data.options or {} }
 
             -- If the completion data has a regex variable
             if completion_data.regex then
