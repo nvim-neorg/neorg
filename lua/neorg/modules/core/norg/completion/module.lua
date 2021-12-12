@@ -174,8 +174,7 @@ module.public = {
                 type = "Tag",
             },
 
-            descend = {
-            },
+            descend = {},
         },
         {
             regex = "^%s*@e?n?",
