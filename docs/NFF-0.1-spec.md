@@ -25,6 +25,7 @@ some small changes.
     - [Links](#links)
         - [The first segment](#the-first-segment)
         - [The second segment](#the-second-segment)
+    - [Anchors](#anchors)
     - [Markers](#markers)
 - [Data tags](#data-tags)
     - [Unsupported tags](#unsupported-tags)
@@ -290,27 +291,9 @@ changes:
 #### Carryover Tags
   Neorg provides a more convenient method of defining tags, one that does not require an `@end` token. These are called carryover tags,
   because they carry over and apply only to the next paragraph. They can be denoted with a `#` token, rather than a `@` token.
-  Carryover tags are most commonly used with the `comment` tag, as writing:
-  ```
-    #comment
-    This part of the document needs refactoring
-
-    * Reasons why dark chocolate is better than white chocolate
-    Over the years, several people have been asking themselves...
-  ```
-
-  Is much more convenient than writing:
-  ```
-    @comment
-        This part of the document needs refactoring
-    @end
-
-    * Reasons why dark chocolate is better than white chocolate
-    Over the years, several people have been asking themselves...
-  ```
-  Although both forms (in this scenario) are correct. The `@` symbol for comments is only truly useful whenever you want to write multiline
-  comments that span over several paragraphs inside of your document. Inside of a carryover tag everything after the tag till the end of the line is counted as a
-  parameter for that tag, and the body for that tag is the next paragraph.
+  Inside of a carryover tag everything after the tag till the end of the line is counted as a
+  parameter for that tag, and the body for that tag is the next element, be it a paragraph or detached
+  modifier.
 
 ##### Quirks
   One of the interesting quirks about carryover tags is how they can sometimes be advantageous over
@@ -618,7 +601,7 @@ This task type is exactly a way to express that.
   you supply a file you can no longer supply a URL nor an external file.
 
 #### The Link Description
-You may have realized this, however a link can actually be built of two different components.
+You may have realized this, however a link can actually be constructed with two different components.
 The first required component is the link location, which we've just described above. There is an optional segment, however,
 and that is the link description. When a link description isn't provided the content of the item the link was pointing to will
 be used as the text to render (i.e. if I did `{* a location}` during an export to html you will see the hyperlink render `a location`).
@@ -629,6 +612,30 @@ You can obviously just provide a custom text to display using the below syntax:
 
 Now during an export you'll see the generated hyperlink have the text [some custom text]().
 
+### Anchors
+Anchors are basically a twist on links. They're there to reduce the duplication of link locations, should you want to link to the same place
+several times.
+
+Let's talk a little about their syntax:
+```
+Hello, would you like to visit my [website]?
+...
+If you have any problems, feel free to contact me via my [website]{https://some.website}.
+```
+
+You may notice something interesting here: the order of elements in the anchor is swapped!
+Instead of having a location first and then an optional description, you now have the description
+first and the optional location second.
+Anchors without the optional second location are called *anchor declarations*
+whilst full anchors with the location are called *anchor definitions*.
+You can have as many anchor declarations as you like within a document
+but should only have one anchor declaration. In the case where several anchor
+declarations have been made the first anchor declaration in the document should
+be prioritised.
+
+Clicking on an anchor declaration should take you to the anchor definition, and
+clicking the anchor definition should take you to the location that was defined
+there.
 
 ### Insertions
   Insertions can be thought of as a motion of sorts. It inserts some text either into the document or into a variable.
@@ -805,8 +812,8 @@ ___
 This is an entirely different paragraph despite of the absence of two (or more) consecutive new lines because of the `___` delimiter.
 ```
 
-# Data Tags
-Neorg provides several inbuilt data tags to represent different things. Those exact things will be detailed here:
+# Tags
+Neorg provides several inbuilt tags to represent different things. Those exact things will be detailed here:
 - `@document.meta` - describes metadata about the document. Attributes are stored as key-value pairs. Values may have
   attached and trailing modifiers in them. The trailing modifiers should be respected and the attached modifiers
   should only really be taken into account if that metadata is being rendered somewhere.
@@ -825,40 +832,6 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
     ```
 
   It is not recommended to use the `#` equivalent for this tag but hey, you do you.
-
-- `@comment` - simply signals a comment. Using the comment tag with the `@` symbol makes
-               it a multi-paragraph comment, however using carryover tags allows you to supply only
-               a single-paragraph comment.
-
-<!-- Gotta love markdown formatting, I can't indent the below code block further: -->
-
-  Examples:
-
-  ```
-  @comment
-    This is a comment!
-
-    And it can span across multiple paragraphs too!
-  @end
-
-  #comment
-  And this is a single-paragraph comment, because they're cool!
-  I can write as much as I like here as long as I don't terminate the paragraph.
-  ```
-
-  You can also write any set of text as parameters to the comment - this can be useful to summarize or categorize
-  your comment:
-
-
-  ```
-    @comment TODO Stuff
-        Things that I should do with the below segment:
-        - Reword
-        - Format some stuff
-    @end
-  ```
-
-  The same ability (obviously) also applies with the carryover tag version.
 
 - `@table` - defines a Neorg table. Tables do not currently have the immense power of org-mode tables,
   however serve a basic function for now. They simply contain some text. Here's the format for said tables:
@@ -899,10 +872,10 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 
   If the content of the cell has a newline then that newline gets converted into a `\n` sequence.
 
-- `@ordered` - changes the way that ordered lists are viewed during render
+- `#ordered` - changes the way that ordered lists are viewed during render
 
-  The `@ordered` tag has a few parameters, and they are:
-  `@ordered start step spacing`.
+  The `#ordered` tag has a few parameters, and they are:
+  `#ordered start step spacing`.
   - `start` - signifies where to start counting from, default is `1`.
   - `step` - signifies how much to add between each list element, default step is `1`,
     if it were e.g. `2`, then the numbering would look like:
@@ -930,28 +903,6 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 
 - `@image format` - stores an image within the file. The content of this image should be a base64 encoded jpeg, png, svg, jfif or exif file.
   The only parameter, `format`, specifies which format the image was encoded in. Defaults to `PNG` if unspecified.
-
-- `#embed type` - embeds an element directly into the document, for example an image, a GIF, or any other kind of media that is supported.
-  The `type` parameter can be one of two values: `video` or `image`.
-
-  The body symbolizes the link to the actual media to be embedded. This can be a link to a local file or to a remote resource.
-
-  ```
-  #embed image
-  /my/image
-  ```
-
-  or
-
-  ```
-  @embed image
-    /my/image
-  @end
-  ```
-  The root, `/`, should be the root of the current workspace, not the root of the filesystem.
-  You'll usually find yourself using the carryover tag version since it's a lot cleaner to write.
-  Note that several URIs on several lines mean a list of media to be embedded one after the other.
-  You may also use URLs to media not present on the local filesystem.
 
 - `@code language` - creates a mulitiline code block. The only parameters, `language`, is optional.
 Code placed within this tag will be rendered with the language's own syntax highlighter or simply rendered verbatim if no language parameter was given.
