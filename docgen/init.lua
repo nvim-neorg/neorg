@@ -122,13 +122,17 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
     local structure
     if main_page == "Home" then
         structure = {
-            "<div align='center'>",
-            "# Welcome to the neorg wiki !",
+            '<div align="center">',
+            "",
+            "# Welcome to the Neorg wiki!",
+            "Want to know how to properly use Neorg? Your answers are contained here.",
+            "",
             "</div>",
             "",
             "# Using Neorg",
             "",
-            "At first configuring Neorg might be rather scary. I have to define what modules I want to use in the `require('neorg').setup()` function? I don't even know what the default available values are.",
+            "At first configuring Neorg might be rather scary. I have to define what modules I want to use in the `require('neorg').setup()` function?",
+            "I don't even know what the default available values are!",
             "Don't worry, an installation guide is present [here](https://github.com/nvim-neorg/neorg/wiki/Installation), so go ahead and read it!",
             "",
             "# Contributing to Neorg",
@@ -138,12 +142,57 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "There's a whole tutorial dedicated to making modules [right here](https://github.com/nvim-neorg/neorg/wiki/Creating-Modules).",
             "There everything you need will be explained - think of it as a walkthrough.",
             "",
-            "# Builtin Modules",
+            "# Default Modules",
+            "",
+            function()
+                local core_defaults = modules["core.defaults"]
+                local link = "[`core.defaults`](https://github.com/nvim-neorg/neorg/wiki/"
+                    .. core_defaults.filename
+                    .. ")"
+                return {
+                    "Neorg come with some default modules that will be automatically loaded if you require "
+                        .. link
+                        .. " module:",
+                }
+            end,
+            "",
+            function()
+                local core_defaults = modules["core.defaults"]
+
+                if not core_defaults then
+                    return
+                end
+
+                local res = {}
+                for _module, _config in pairs(modules) do
+                    if vim.tbl_contains(core_defaults.config.public.enable, _config.name) then
+                        local insert
+                        if _config.filename then
+                            insert = "- [`"
+                                .. _config.name
+                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                                .. _config.filename
+                                .. ")"
+                        else
+                            insert = "- `" .. _module .. "`"
+                        end
+                        if _config.summary then
+                            insert = insert .. " - " .. _config.summary
+                        else
+                            insert = insert .. " - undocumented module"
+                        end
+
+                        table.insert(res, insert)
+                    end
+                end
+                return res
+            end,
+            "",
+            "# All Neorg Modules",
             "",
             "Neorg comes with its own builtin modules to make development easier. Below is a list of all currently implemented builtin modules:",
             function()
                 local res = {}
-                -- P(modules)
                 for _module, _config in pairs(modules) do
                     local insert
                     if _config.filename then
@@ -335,6 +384,10 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "",
             function()
                 local api = neorg.modules.get_module(module.name)
+
+                -- sort api in order to not shuffle each time we want to commit
+                table.sort(api)
+
                 local results = {}
 
                 if not vim.tbl_isempty(api) then
@@ -559,9 +612,25 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
         return
     end
 
+    -- Perform linting on both the summary and title
+    local function lint(input)
+        if not input then
+            return
+        end
+
+        local error_prefix = "Error in " .. module.name .. ": '" .. input .. "' "
+        assert(input:sub(-1, -1) == ".", error_prefix .. "didn't have a full stop at the end of the sentence.")
+        assert(
+            not input:find("neorg"),
+            error_prefix .. "had a lowercase 'neorg' word. Type 'Neorg' with an uppercase N"
+        )
+
+        return input
+    end
+
     -- Populate the module with some extra info
     module.filename = arguments.file or main_page
-    module.summary = arguments.summary
+    module.summary = lint(arguments.summary)
     module.title = arguments.title
 
     -- Construct the desired filename
