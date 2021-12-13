@@ -21,6 +21,14 @@ set rtp+=~/.local/share/nvim/site/pack/packer/opt/plenary.nvim
 set rtp+=~/.local/share/nvim/site/pack/packer/opt/nvim-treesitter
 set rtp+=~/.local/share/nvim/site/pack/packer/opt/neorg
 
+" If you are using minpac
+set rtp+=~/.config/nvim/pack/minpac/start/plenary.nvim
+set rtp+=~/.config/nvim/pack/minpac/start/nvim-treesitter
+set rtp+=~/.config/nvim/pack/minpac/start/neorg
+set rtp+=~/.config/nvim/pack/minpac/opt/plenary.nvim
+set rtp+=~/.config/nvim/pack/minpac/opt/nvim-treesitter
+set rtp+=~/.config/nvim/pack/minpac/opt/neorg
+
 set noswapfile
 
 lua << EOF

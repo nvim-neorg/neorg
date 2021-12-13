@@ -21,6 +21,11 @@ module.public = {
 
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_split("Quick Actions")
+
+        if not buffer then
+            return
+        end
+
         local selection = module.required["core.ui"].begin_selection(buffer):listener(
             "destroy",
             { "<Esc>" },
@@ -60,6 +65,10 @@ module.public = {
 
         -- Create selection popup
         local buffer = module.required["core.ui"].create_split("Edit Task")
+
+        if not buffer then
+            return
+        end
         local selection = module.required["core.ui"].begin_selection(buffer):listener(
             "destroy",
             { "<Esc>" },
@@ -157,6 +166,11 @@ module.public = {
     show_capture_popup = function()
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_split("Quick Actions")
+
+        if not buffer then
+            return
+        end
+
         local selection = module.required["core.ui"].begin_selection(buffer):listener(
             "destroy",
             { "<Esc>" },

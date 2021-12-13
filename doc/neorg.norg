@@ -21,8 +21,8 @@
     - \-strikethrough\-: -strikethrough-
     - \|spoiler\|: |spoiler|
     - \`inline code\`: `inline code`
-    - \^superscript\^: ^superscript^    | cannot exist within a subscript block
-    - \,subscript\,: ,subscript,        | cannot exist within a superscript block
+    - \^superscript\^: ^superscript^  (when nested into `subscript`, will highlight as an error)
+    - \,subscript\,: ,subscript,  (when nested into `superscript`, will highlight as an error)
     - \$inline math\$: $f(x) = y$ (see also {# Math})
     - \=variable\=: =variable= (see also {# Variables})
     - \+inline comment\+: +inline comment+
@@ -63,10 +63,10 @@
       - [ ] Undone -> not done yet
       - [x] Done -> done with that
       - [?] Needs further input
-
+      
       - [!] Urgent -> high priority task
       - [+] Recurring task with children
-
+      
       - [-] Pending -> currently in progress
       - [=] Task put on hold
       - [_] Task cancelled (put down)
@@ -119,6 +119,9 @@
 
       ****** Final heading level
              And this paragraph belongs to the sixth level. But by using the following modifier:
+             @code norg
+             ---
+             @end
              ---
 
           We can move this text to the fifth level again! 🤯
@@ -150,7 +153,7 @@ consective new lines.
 
   *** Link Targets
       The following things can be used as link /targets/:
-      - `* Headin1` (+ nesting levels)
+      - `* Heading1` (+ nesting levels)
       - `| Marker`
       - `> Quote` (+ nesting levels)
       - `^ Footnote`
@@ -193,7 +196,7 @@ consective new lines.
   *** Anchors
       @code norg
       A link to [our website].
-
+      
       [our website]{https://github.com/nvim-neorg/neorg}
       @end
       A link to [our website].
@@ -287,7 +290,7 @@ consective new lines.
       This will render as:
       @code
       2. First entry
-
+      
       4. Second entry
       @end
 
@@ -351,7 +354,8 @@ consective new lines.
       @code norg
       ^,This should be super- and subscript.,^ Why though?
       @end
-      This is done by design for obvious reasons.
+      You will notice that this get's highlighted as an error:
+      ^,This should be super- and subscript.,^
 
   *** Object continuation
       The `~` trailing modifier causes the line break to be ignored. This allows you to do things

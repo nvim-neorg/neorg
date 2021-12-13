@@ -4,9 +4,9 @@ module.public = {
     --- Creates a new project/task (depending of `type`) from the `node` table and insert it in `bufnr` at `location`
     --- supported `string`: project|task
     --- @param type string
-    --- @param node table
+    --- @param node core.gtd.queries.task|core.gtd.queries.project
     --- @param bufnr number
-    --- @param location number
+    --- @param location table
     --- @param delimit boolean #Add delimiter before the task/project if true
     --- @param opts table|nil opts
     ---   - opts.new_line(boolean)   if false, do not add a newline before the content
@@ -16,7 +16,7 @@ module.public = {
             type = { type, "string" },
             node = { node, "table" },
             bufnr = { bufnr, "number" },
-            location = { location, "number" },
+            location = { location, "table" },
             opts = { opts, "table", true },
         })
 
@@ -35,18 +35,19 @@ module.public = {
 
         table.insert(res, "")
 
-        if delimit then
-            table.insert(res, "===")
-            table.insert(res, "")
-        end
-
         local newline = true
 
         if opts.newline ~= nil then
             newline = opts.newline
         end
 
-        node.node = module.private.insert_content_new(node.content, bufnr, location, type, { newline = newline })
+        node.node = module.private.insert_content_new(
+            node.content,
+            bufnr,
+            location,
+            type,
+            { newline = newline, delimiter = delimit }
+        )
 
         if node.node == nil then
             log.error("Error in inserting new content")
@@ -70,26 +71,45 @@ module.public = {
 
     --- Returns the end of the `project`
     --- If the project has blank lines at the end, will not take them ino account
-    --- @param project table
+    --- @param node userdata
+    --- @param bufnr number
     --- @return number
-    get_end_project = function(project)
+    get_end_project = function(node, bufnr)
         vim.validate({
-            project = { project, "table" },
+            node = { node, "userdata" },
+            bufnr = { bufnr, "number" },
         })
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        local sr = ts_utils.get_node_range(project.node)
+        local sr, sc = ts_utils.get_node_range(node)
+
+        local tree = {
+            { query = { "all", "heading2" } },
+            { query = { "all", "heading3" } },
+            { query = { "all", "heading4" } },
+            { query = { "all", "heading5" } },
+            { query = { "all", "heading6" } },
+        }
+        local nodes = module.required["core.queries.native"].query_from_tree(node, tree, bufnr)
+
+        if nodes and not vim.tbl_isempty(nodes) then
+            return { sr + 1, sc + 2 }
+        end
 
         -- Do not count blank lines at end of a project
-        local lines = ts_utils.get_node_text(project.node, project.bufnr)
+        local lines = ts_utils.get_node_text(node, bufnr)
         local blank_lines = 0
         for i = #lines, 1, -1 do
             local value = lines[i]
             value = string.gsub(value, "%s*", "")
+
             if value == "" then
                 blank_lines = blank_lines + 1
+            else
+                break
             end
         end
-        return sr + #lines - blank_lines
+
+        return { sr + #lines - blank_lines, sc + 2 }
     end,
 
     --- Returns the end of the document content position of a `file`
@@ -138,12 +158,13 @@ module.private = {
     --- @param type string #project|task
     --- @param opts table
     ---   - opts.newline (bool):    is true, insert a newline before the content
+    ---   - opts.delimiter (bool):  if true, insert a delimiter before the content
     --- @return userdata|nil #the newly created node. Else returns nil
     insert_content_new = function(content, bufnr, location, type, opts)
         vim.validate({
             content = { content, "string" },
             bufnr = { bufnr, "number" },
-            location = { location, "number" },
+            location = { location, "table" },
             type = {
                 type,
                 function(t)
@@ -157,13 +178,18 @@ module.private = {
         local inserter = {}
         local prefix = type == "project" and "* " or "- [ ] "
 
+        if opts.delimiter then
+            table.insert(inserter, "| _")
+        end
+
         if opts.newline then
             table.insert(inserter, "")
         end
 
-        table.insert(inserter, prefix .. content)
+        local indendation = string.rep(" ", location[2])
+        table.insert(inserter, indendation .. prefix .. content)
 
-        vim.api.nvim_buf_set_lines(bufnr, location, location, false, inserter)
+        vim.api.nvim_buf_set_lines(bufnr, location[1], location[1], false, inserter)
 
         -- Get all nodes for `type` and return the one that is present at `location`
         local nodes = module.public.get(type .. "s", { bufnr = bufnr })
@@ -173,7 +199,8 @@ module.private = {
             local line = ts_utils.get_node_range(node[1])
 
             local count_newline = opts.newline and 1 or 0
-            if line == location + count_newline then
+            local count_delimiter = opts.delimiter and 1 or 0
+            if line == location[1] + count_newline + count_delimiter then
                 return node[1]
             end
         end

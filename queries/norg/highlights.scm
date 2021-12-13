@@ -1,7 +1,7 @@
 (ranged_tag ("_prefix") @NeorgTagBegin
 	name: (tag_name [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
-	(tag_parameters parameter: (word) @NeorgTagParameter)? @NeorgTagParameters
-	content: (ranged_tag_content)? @NeorgTagContent
+	(tag_parameters parameter: (tag_param) @NeorgTagParameter)? @NeorgTagParameters
+	content: (ranged_tag_content)?
 	(ranged_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)) @NeorgTag
 
 ; TODO: Make the content of @comment darker
@@ -17,7 +17,7 @@
                 ]+
             ) @NeorgCarryoverTagName
         (tag_parameters
-            parameter: (word) @NeorgCarryoverTagParameter
+            parameter: (tag_param) @NeorgCarryoverTagParameter
         )? @NeorgCarryoverTagParameters
     ) @NeorgCarryoverTag
 
@@ -26,6 +26,9 @@
 
 ; Trailing Modifier
 ("_trailing_modifier") @NeorgTrailingModifier
+
+; Link Modifier
+(link_modifier) @NeorgLinkModifier
 
 ; Links
 (link
@@ -328,3 +331,6 @@
 (inline_comment) @NeorgMarkupInlineComment
 (inline_math) @NeorgMarkupInlineMath
 (variable) @NeorgMarkupVariable
+
+(superscript (subscript)) @NeorgError
+(subscript (superscript)) @NeorgError
