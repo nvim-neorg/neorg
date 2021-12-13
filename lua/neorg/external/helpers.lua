@@ -1,6 +1,6 @@
 --[[
 --	HELPER FUNCTIONS FOR NEORG
---	This file contains some simple helper function improve quality of life
+--	This file contains some simple helper functions to improve QOL
 --]]
 
 neorg.utils = {
@@ -40,6 +40,7 @@ neorg.utils = {
             ["cpp"] = {},
             ["css"] = {},
             ["cuda"] = {},
+            ["d"] = {},
             ["dart"] = {},
             ["devicetree"] = {},
             ["dockerfile"] = {},
@@ -52,6 +53,7 @@ neorg.utils = {
             ["fortran"] = {},
             ["gdscript"] = {},
             ["glimmer"] = {},
+            ["glsl"] = {},
             ["go"] = {},
             ["gdresource"] = {},
             ["gomod"] = {},
@@ -59,6 +61,7 @@ neorg.utils = {
             ["haskell"] = {},
             ["hcl"] = {},
             ["heex"] = {},
+            ["hjson"] = {},
             ["html"] = {},
             ["java"] = {},
             ["javascript"] = {},
@@ -70,11 +73,13 @@ neorg.utils = {
             ["kotlin"] = {},
             ["latex"] = {},
             ["ledger"] = {},
+            ["llvm"] = {},
             ["lua"] = {},
             ["nix"] = {},
             ["ocaml"] = {},
             ["ocaml_interface"] = {},
             ["ocamllex"] = {},
+            ["perl"] = {},
             ["php"] = {},
             ["pioasm"] = {},
             ["python"] = {},
@@ -159,6 +164,45 @@ neorg.utils = {
         local version = vim.version()
 
         return major <= version.major and minor <= version.minor and patch <= version.patch
+    end,
+
+    --- Parses a version string like "0.4.2" and provides back a table like { major = <number>, minor = <number>, patch = <number> }
+    --- @param version_string string #The input string
+    --- @return table #The parsed version string, or `nil` if a failure occurred during parsing
+    parse_version_string = function(version_string)
+        if not version_string then
+            return
+        end
+
+        -- Define variables that split the version up into 3 slices
+        local split_version, versions, ret =
+            vim.split(version_string, ".", true), { "major", "minor", "patch" }, { major = 0, minor = 0, patch = 0 }
+
+        -- If the sliced version string has more than 3 elements error out
+        if #split_version > 3 then
+            log.warn(
+                "Attempt to parse version:",
+                version_string,
+                "failed - too many version numbers provided. Version should follow this layout: <major>.<minor>.<patch>"
+            )
+            return
+        end
+
+        -- Loop through all the versions and check whether they are valid numbers. If they are, add them to the return table
+        for i, ver in ipairs(versions) do
+            if split_version[i] then
+                local num = tonumber(split_version[i])
+
+                if not num then
+                    log.warn("Invalid version provided, string cannot be converted to integral type.")
+                    return
+                end
+
+                ret[ver] = num
+            end
+        end
+
+        return ret
     end,
 }
 
