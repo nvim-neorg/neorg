@@ -36,8 +36,8 @@
 
   *** Unordered lists
       @code norg
-      - Unordered list level 1
-      -- Unordered list level 2
+        - Unordered list level 1
+        -- Unordered list level 2
       @end
       - Unordered list level 1
       -- Unordered list level 2
@@ -48,8 +48,8 @@
 
   *** Ordered lists
       @code norg
-      ~ Unordered list level 1
-      ~~ Unordered list level 2
+        ~ Unordered list level 1
+        ~~ Unordered list level 2
       @end
       ~ Ordered list level 1
       ~~ Ordered list level 2
@@ -90,15 +90,15 @@
       ------ [ ] Nested task level 6
 
       @code norg
-      - [ ] Undone Task, Nested level 1
+        - [ ] Undone Task, Nested level 1
       -- [-] Pending Task, Nested level 2
-      --- [x] Done Task, Nested level 3
+        --- [x] Done Task, Nested level 3
       @end
 
   *** Quotes
       @code norg
-      > 1. level quote
-      >> 2. level quote
+        > 1. level quote
+        >> 2. level quote
       @end
       > 1. level quote
       >> 2. level quote
@@ -131,21 +131,21 @@
         indentation.
         ---
       @code norg
-      **** 4. level heading
-      ***** 5. level heading
-            ---
-           back to level 4
-      ===
-      back to root level
+        **** 4. level heading
+        ***** 5. level heading
+        ---
+        back to level 4
+        ===
+        back to root level
       @end
 
-    And using 3 or more `=` signs will drop you right back to the root level!
+And using 3 or more `=` signs will drop you right back to the root level!
 
-    You can also place horizontal lines using three or more underscores like so:
+You can also place horizontal lines using three or more underscores like so:
 
-    This will never affect the indentation level of the following text, but it will immediately
-    terminate the paragraph which is why this is a new paragraph despite the absence of two (or more)
-    consective new lines.
+This will never affect the indentation level of the following text, but it will immediately
+terminate the paragraph which is why this is a new paragraph despite the absence of two (or more)
+consective new lines.
 
  ** Links
     For more info on links check the
@@ -180,6 +180,8 @@
       @code norg
       An inline link to {| my marker}.
       @end
+      An inline link to {| my marker}.
+
       The text used for this link can be inferred from the /target/.
       If it is not a norg-target, this falls back to the URL or filename, etc.
 
@@ -187,6 +189,8 @@
       @code norg
       An inline link {| my marker}[with custom text].
       @end
+      An inline link {| my marker}[with custom text].
+
       This links to the same marker but uses a custom link text.
 
   *** Anchors
@@ -195,13 +199,17 @@
       
       [our website]{https://github.com/nvim-neorg/neorg}
       @end
+      A link to [our website].
+
+      [our website]{https://github.com/nvim-neorg/neorg}
+
       The standalone link /text/ is called an *anchor declaration*.
       It requires an *anchor definition* (last line in the code block) which defines where an anchored link points to.
       This is very useful when you find yourself refering to the same target often.
 
   *** Link Lists
 
-      @code norg
+    @code norg
       +unordered links+
       -> {* The `.norg` file-format}[link to a level 1 heading]
       --> {** links}[link to a level 2 heading]
@@ -215,12 +223,12 @@
       {:file_2:# target}[link to target in file_2.norg]
       {:/my/file:# target}[link to a target from the root of the workspace]
       {@ notes.txt}[link to non neorg file notes.txt]
-      @end
+    @end
 
  ** Markers
     You can mark specific locations in your file with markers:
     @code norg
-    | some marker
+     | some marker
     @end
     | some marker
 
@@ -335,6 +343,19 @@
       use the *link* modifier, `:`, like so:
 
       W:*h*:y w:/oul/:d a:_nyon_:e w:-an-:t to do t:`hi`:s?
+
+  *** Nested markup
+      You can nest multiple markup groups to combine their effect. Some examples:
+      - *Text can be bold _and underlined_!*
+      - You can create ,/italic subscripts/,.
+      - If you want to shout in the internet, use */_DOUBLY EMPHASIZED AND UNDERLINED CAPS_/*
+
+      Note: You can:*not*: combine sub- and superscripts like so:
+      @code norg
+      ^,This should be super- and subscript.,^ Why though?
+      @end
+      You will notice that this get's highlighted as an error:
+      ^,This should be super- and subscript.,^
 
   *** Object continuation
       The `~` trailing modifier causes the line break to be ignored. This allows you to do things

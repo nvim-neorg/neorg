@@ -248,7 +248,11 @@ module.public = {
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
 
         -- Loop through all icons that the user has enabled
-        for _, icon_data in ipairs(module.private.icons) do
+        local icon_set
+        local namespace
+        icon_set = module.private.icons
+        namespace = module.private.namespace
+        for _, icon_data in ipairs(icon_set) do
             if icon_data.query then
                 -- Attempt to parse the query provided by `icon_data.query`
                 -- A query must have at least one capture, e.g. "(test_node) @icon"
@@ -274,7 +278,7 @@ module.public = {
                         -- The extract function is used exactly to calculate this offset
                         -- If that function is present then run it and grab the return value
                         if icon_data.extract then
-                            offset = icon_data.extract(text) or 0
+                            offset = icon_data.extract(text, node) or 0
                         end
 
                         -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
@@ -549,86 +553,6 @@ module.public = {
         vim.api.nvim_buf_clear_namespace(0, module.private.code_block_namespace, from or 0, -1)
     end,
 
-    -- @Summary Triggers conceals for the current buffer
-    -- @Description Reads through the user configuration and enables concealing for the current buffer
-    trigger_conceals = function()
-        local conceals = module.config.public.conceals
-
-        if conceals.url then
-            vim.cmd(
-                'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
-            )
-            vim.cmd(
-                'syn region NeorgConcealURL matchgroup=mkdDelimiter start="\\([^\\\\]\\|\\_^\\)\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
-            )
-        end
-
-        if conceals.bold then
-            vim.cmd([[
-                syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-            ]])
-        end
-
-        if conceals.italic then
-            vim.cmd([[
-                syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-            ]])
-        end
-
-        if conceals.underline then
-            vim.cmd([[
-                syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\|^\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-            ]])
-        end
-
-        if conceals.strikethrough then
-            vim.cmd([[
-                syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-            ]])
-        end
-
-        if conceals.verbatim then
-            vim.cmd([[
-                syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=@NoSpell oneline concealends
-            ]])
-        end
-
-        if conceals.comment then
-            vim.cmd([[
-                syn region NeorgConcealComment matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=#\%\([^ \t\n#]\)\@=" end="[^ \t\n\\]\@<=#\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-            ]])
-        end
-
-        if conceals.trailing then
-            vim.cmd([[
-                syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
-            ]])
-        end
-
-        if conceals.link then
-            vim.cmd([[
-                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
-            ]])
-        end
-    end,
-
-    -- @Summary Clears conceals for the current buffer
-    -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
-    clear_conceals = function()
-        vim.cmd([[
-            silent! syn clear NeorgConcealURL
-            silent! syn clear NeorgConcealURLValue
-            silent! syn clear NeorgConcealItalic
-            silent! syn clear NeorgConcealBold
-            silent! syn clear NeorgConcealUnderline
-            silent! syn clear NeorgConcealMonospace
-            silent! syn clear NeorgConcealComment
-            silent! syn clear NeorgConcealStrikethrough
-            silent! syn clear NeorgConcealTrailing
-            silent! syn clear NeorgConcealLink
-        ]])
-    end,
-
     trigger_completion_levels = function(from)
         from = from or 0
 
@@ -798,6 +722,52 @@ module.public = {
                 latin_uppercase = function(count)
                     return string.char(64 + count)
                 end,
+
+                -- NOTE: only supports number up to 12
+                roman_lowercase = function(count)
+                    local chars = {
+                        [1] = "ⅰ",
+                        [2] = "ⅱ",
+                        [3] = "ⅲ",
+                        [4] = "ⅳ",
+                        [5] = "ⅴ",
+                        [6] = "ⅵ",
+                        [7] = "ⅶ",
+                        [8] = "ⅷ",
+                        [9] = "ⅸ",
+                        [10] = "ⅹ",
+                        [11] = "ⅺ",
+                        [12] = "ⅻ",
+                        [50] = "ⅼ",
+                        [100] = "ⅽ",
+                        [500] = "ⅾ",
+                        [1000] = "ⅿ",
+                    }
+                    return chars[count]
+                end,
+
+                -- NOTE: only supports number up to 12
+                roman_uppwercase = function(count)
+                    local chars = {
+                        [1] = "Ⅰ",
+                        [2] = "Ⅱ",
+                        [3] = "Ⅲ",
+                        [4] = "Ⅳ",
+                        [5] = "Ⅴ",
+                        [6] = "Ⅵ",
+                        [7] = "Ⅶ",
+                        [8] = "Ⅷ",
+                        [9] = "Ⅸ",
+                        [10] = "Ⅹ",
+                        [11] = "Ⅺ",
+                        [12] = "Ⅻ",
+                        [50] = "Ⅼ",
+                        [100] = "Ⅽ",
+                        [500] = "Ⅾ",
+                        [1000] = "Ⅿ",
+                    }
+                    return chars[count]
+                end,
             },
 
             punctuation = {
@@ -816,6 +786,171 @@ module.public = {
                 double_parenthesis = function(renderer)
                     return function(count)
                         return "(" .. renderer(count) .. ")"
+                    end
+                end,
+
+                -- NOTE: only supports arabic numbers up to 20
+                unicode_dot = function(renderer)
+                    return function(count)
+                        local chars = {
+                            ["1"] = "⒈",
+                            ["2"] = "⒉",
+                            ["3"] = "⒊",
+                            ["4"] = "⒋",
+                            ["5"] = "⒌",
+                            ["6"] = "⒍",
+                            ["7"] = "⒎",
+                            ["8"] = "⒏",
+                            ["9"] = "⒐",
+                            ["10"] = "⒑",
+                            ["11"] = "⒒",
+                            ["12"] = "⒓",
+                            ["13"] = "⒔",
+                            ["14"] = "⒕",
+                            ["15"] = "⒖",
+                            ["16"] = "⒗",
+                            ["17"] = "⒘",
+                            ["18"] = "⒙",
+                            ["19"] = "⒚",
+                            ["20"] = "⒛",
+                        }
+                        return chars[renderer(count)]
+                    end
+                end,
+
+                -- NOTE: only supports arabic numbers up to 20 or lowercase latin characters
+                unicode_double_parenthesis = function(renderer)
+                    return function(count)
+                        local chars = {
+                            ["1"] = "⑴",
+                            ["2"] = "⑵",
+                            ["3"] = "⑶",
+                            ["4"] = "⑷",
+                            ["5"] = "⑸",
+                            ["6"] = "⑹",
+                            ["7"] = "⑺",
+                            ["8"] = "⑻",
+                            ["9"] = "⑼",
+                            ["10"] = "⑽",
+                            ["11"] = "⑾",
+                            ["12"] = "⑿",
+                            ["13"] = "⒀",
+                            ["14"] = "⒁",
+                            ["15"] = "⒂",
+                            ["16"] = "⒃",
+                            ["17"] = "⒄",
+                            ["18"] = "⒅",
+                            ["19"] = "⒆",
+                            ["20"] = "⒇",
+                            ["a"] = "⒜",
+                            ["b"] = "⒝",
+                            ["c"] = "⒞",
+                            ["d"] = "⒟",
+                            ["e"] = "⒠",
+                            ["f"] = "⒡",
+                            ["g"] = "⒢",
+                            ["h"] = "⒣",
+                            ["i"] = "⒤",
+                            ["j"] = "⒥",
+                            ["k"] = "⒦",
+                            ["l"] = "⒧",
+                            ["m"] = "⒨",
+                            ["n"] = "⒩",
+                            ["o"] = "⒪",
+                            ["p"] = "⒫",
+                            ["q"] = "⒬",
+                            ["r"] = "⒭",
+                            ["s"] = "⒮",
+                            ["t"] = "⒯",
+                            ["u"] = "⒰",
+                            ["v"] = "⒱",
+                            ["w"] = "⒲",
+                            ["x"] = "⒳",
+                            ["y"] = "⒴",
+                            ["z"] = "⒵",
+                        }
+                        return chars[renderer(count)]
+                    end
+                end,
+
+                -- NOTE: only supports arabic numbers up to 20 or latin characters
+                unicode_circle = function(renderer)
+                    return function(count)
+                        local chars = {
+                            ["1"] = "①",
+                            ["2"] = "②",
+                            ["3"] = "③",
+                            ["4"] = "④",
+                            ["5"] = "⑤",
+                            ["6"] = "⑥",
+                            ["7"] = "⑦",
+                            ["8"] = "⑧",
+                            ["9"] = "⑨",
+                            ["10"] = "⑩",
+                            ["11"] = "⑪",
+                            ["12"] = "⑫",
+                            ["13"] = "⑬",
+                            ["14"] = "⑭",
+                            ["15"] = "⑮",
+                            ["16"] = "⑯",
+                            ["17"] = "⑰",
+                            ["18"] = "⑱",
+                            ["19"] = "⑲",
+                            ["20"] = "⑳",
+                            ["A"] = "Ⓐ",
+                            ["B"] = "Ⓑ",
+                            ["C"] = "Ⓒ",
+                            ["D"] = "Ⓓ",
+                            ["E"] = "Ⓔ",
+                            ["F"] = "Ⓕ",
+                            ["G"] = "Ⓖ",
+                            ["H"] = "Ⓗ",
+                            ["I"] = "Ⓘ",
+                            ["J"] = "Ⓙ",
+                            ["K"] = "Ⓚ",
+                            ["L"] = "Ⓛ",
+                            ["M"] = "Ⓜ",
+                            ["N"] = "Ⓝ",
+                            ["O"] = "Ⓞ",
+                            ["P"] = "Ⓟ",
+                            ["Q"] = "Ⓠ",
+                            ["R"] = "Ⓡ",
+                            ["S"] = "Ⓢ",
+                            ["T"] = "Ⓣ",
+                            ["U"] = "Ⓤ",
+                            ["V"] = "Ⓥ",
+                            ["W"] = "Ⓦ",
+                            ["X"] = "Ⓧ",
+                            ["Y"] = "Ⓨ",
+                            ["Z"] = "Ⓩ",
+                            ["a"] = "ⓐ",
+                            ["b"] = "ⓑ",
+                            ["c"] = "ⓒ",
+                            ["d"] = "ⓓ",
+                            ["e"] = "ⓔ",
+                            ["f"] = "ⓕ",
+                            ["g"] = "ⓖ",
+                            ["h"] = "ⓗ",
+                            ["i"] = "ⓘ",
+                            ["j"] = "ⓙ",
+                            ["k"] = "ⓚ",
+                            ["l"] = "ⓛ",
+                            ["m"] = "ⓜ",
+                            ["n"] = "ⓝ",
+                            ["o"] = "ⓞ",
+                            ["p"] = "ⓟ",
+                            ["q"] = "ⓠ",
+                            ["r"] = "ⓡ",
+                            ["s"] = "ⓢ",
+                            ["t"] = "ⓣ",
+                            ["u"] = "ⓤ",
+                            ["v"] = "ⓥ",
+                            ["w"] = "ⓦ",
+                            ["x"] = "ⓧ",
+                            ["y"] = "ⓨ",
+                            ["z"] = "ⓩ",
+                        }
+                        return chars[renderer(count)]
                     end
                 end,
             },
@@ -1084,11 +1219,12 @@ module.load = function()
     end
 
     -- Set the module.private.icons variable to the values of the enabled icons
-    module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
+    module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons, false))
 
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
 
+    module.required["core.autocommands"].enable_autocommand("CursorMoved")
     module.required["core.autocommands"].enable_autocommand("TextChanged")
     module.required["core.autocommands"].enable_autocommand("TextChangedI")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
@@ -1145,6 +1281,7 @@ end
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
+        cursormoved = true,
         textchanged = true,
         textchangedi = true,
         insertenter = true,
