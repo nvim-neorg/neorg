@@ -145,6 +145,7 @@ here. For a better viewing experience, we recommend reading it opening it from `
     - [ ] Add fancy UI elements for the true user experience
 
   *** New GTD features
+      - [ ] Clarify Popup: helps the user in the process of the GTD clarify step (see `:h neorg-gtd-clarify`)
       - [ ] Add support for recurring actions, and update the GTD specs
       - [ ] Add support for sequential projects (see `:h neorg-gtd-projects`)
       - [ ] Add support for the daily and weekly review (see `:h neorg-gtd-reflect`)

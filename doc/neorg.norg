@@ -119,6 +119,9 @@
 
       ****** Final heading level
              And this paragraph belongs to the sixth level. But by using the following modifier:
+             @code norg
+             ---
+             @end
              ---
 
           We can move this text to the fifth level again! 🤯
@@ -150,7 +153,7 @@ consective new lines.
 
   *** Link Targets
       The following things can be used as link /targets/:
-      - `* Headin1` (+ nesting levels)
+      - `* Heading1` (+ nesting levels)
       - `| Marker`
       - `> Quote` (+ nesting levels)
       - `^ Footnote`

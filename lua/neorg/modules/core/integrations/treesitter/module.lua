@@ -503,14 +503,23 @@ module.public = {
         end
     end,
 
-    -- @Summary Gets all nodes of a given type from the AST
-    -- @Description Retrieves all nodes in the form of a list
-    -- @Param  type (string) - the type of node to filter out
-    get_all_nodes = function(type)
+    ---  Gets all nodes of a given type from the AST
+    --- @param  type string #the type of node to filter out
+    --- @param opts? table
+    get_all_nodes = function(type, opts)
         local result = {}
+        opts = opts or {}
+
+        if not opts.buf then
+            opts.buf = 0
+        end
+
+        if not opts.ft then
+            opts.ft = "norg"
+        end
 
         -- Do we need to go through each tree? lol
-        vim.treesitter.get_parser(0, "norg"):for_each_tree(function(tree)
+        vim.treesitter.get_parser(opts.buf, opts.ft):for_each_tree(function(tree)
             -- Get the root for that tree
             local root = tree:root()
 
@@ -577,7 +586,12 @@ module.public = {
         -- Do we need to go through each tree? lol
         vim.treesitter.get_parser(opts.buf, opts.ft):for_each_tree(function(tree)
             -- Get the root for that tree
-            local root = tree:root()
+            local root
+            if opts.parent then
+                root = opts.parent
+            else
+                root = tree:root()
+            end
 
             -- @Summary Function to recursively descend down the syntax tree
             -- @Description Recursively searches for a node of a given type

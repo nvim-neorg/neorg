@@ -3,6 +3,9 @@
     Title: Base module for GTD workflow
     Summary: Manages your tasks with Neorg using the Getting Things Done methodology.
     ---
+GTD ("Getting Things Done") is a system designed to make collecting and executing ideas simple.
+You can read more about the GTD implementation [here](https://www.ionos.com/startupguide/productivity/getting-things-done-gtd)!
+
 It's here where the keybinds and commands are created in order to interact with GTD stuff
 
 - Call the command `:Neorg gtd views` to nicely show your tasks and projects
@@ -44,6 +47,13 @@ module.config.public = {
         start = "#time.start",
         due = "#time.due",
         waiting = "#waiting.for",
+    },
+    -- User configurations for GTD views
+    displayers = {
+        projects = {
+            show_completed_projects = true,
+            show_projects_without_tasks = true,
+        },
     },
 }
 

@@ -11,25 +11,46 @@ module.setup = function()
     return {
         requires = {
             "core.ui",
+            "core.storage",
+            "core.neorgcmd",
         },
     }
 end
 
 module.config.public = {
     sources = {
-        news = {
+        breaking_changes = {
             condition = function()
-                -- TODO: Once we're done with the implementation we should
-                -- make this bit check for the current Neorg version and the version
-                -- our Neorg News is targeted towards. We should make sure to only display
-                -- the Neorg news once, unless the user manually invokes :Neorg news
-                return false
+                local news = module.required["core.storage"].retrieve(module.name)
+
+                local parsed_neorg_version, parsed_news_state =
+                    neorg.utils.parse_version_string(neorg.configuration.version),
+                    neorg.utils.parse_version_string(news.news_state)
+
+                if
+                    not parsed_neorg_version
+                    or not parsed_news_state
+                    or (
+                        (
+                            parsed_news_state.major <= parsed_neorg_version.major
+                            and parsed_news_state.minor <= parsed_neorg_version.minor
+                            and parsed_news_state.patch <= parsed_neorg_version.patch
+                        )
+                        and (
+                            parsed_news_state.major < parsed_neorg_version.major
+                            or parsed_news_state.minor < parsed_neorg_version.minor
+                            or parsed_news_state.patch < parsed_neorg_version.patch
+                        )
+                    )
+                then
+                    news.news_state = neorg.configuration.version
+                    module.required["core.storage"].store(module.name, news)
+                    return true
+                end
             end,
             config = {
                 window = {
                     relative = "win",
-                    width = 100,
-                    height = 40,
                     border = "single",
                     style = "minimal",
                 },
@@ -37,6 +58,9 @@ module.config.public = {
                     center_x = true,
                     center_y = true,
                 },
+
+                message = "There will be some breaking changes soon!",
+                check_at_startup = true,
             },
             template = {
                 function()
@@ -45,14 +69,19 @@ module.config.public = {
                     local file = io.open(source .. "/news.norg", "r")
 
                     if not file then
-                        return { "Unable to read Neorg news, some error occurred :(" }
+                        return {
+                            "Unable to read Neorg news, it seems the `news.norg` file doesn't exist?",
+                            "To exit this window press either `<Esc>` or `q`.",
+                            "You can run `:Neorg news breaking_changes` at any time to try again.",
+                        }
                     end
 
-                    local content = vim.split(file:read("*a"), "\n", true)
+                    local content_as_whole_str = file:read("*a")
+                    local content = vim.split(content_as_whole_str, "\n", true)
 
                     io.close(file)
 
-                    return content
+                    return content, not content_as_whole_str:match("display:%s+true\n")
                 end,
             },
         },
@@ -93,18 +122,36 @@ module.config.public = {
     },
 }
 
+module.load = function()
+    module.required["core.neorgcmd"].add_commands_from_table({
+        definitions = {
+            news = module.config.public.sources,
+        },
+
+        data = {
+            news = {
+                max_args = 1,
+                name = "news",
+            },
+        },
+    })
+end
+
 module.public = {
-    parse_source = function(name)
+    parse_source = function(name, force)
         local source = module.config.public.sources[name]
 
-        if not source or not source.condition or not source.condition() then
+        if not source or ((not source.condition or not source.condition()) and not force) then
             return
         end
 
         source = vim.tbl_deep_extend("keep", source, {
             condition = false,
             config = {
-                window = {},
+                window = {
+                    width = vim.opt_local.columns:get(),
+                    height = vim.opt_local.lines:get(),
+                },
                 custom = {},
             },
             template = {},
@@ -116,7 +163,13 @@ module.public = {
             local item_type = type(item)
 
             if item_type == "function" then
-                vim.list_extend(parsed_text, item())
+                local ret, halt = item()
+
+                if halt then
+                    return
+                end
+
+                vim.list_extend(parsed_text, ret)
             elseif item_type == "string" then
                 table.insert(parsed_text, item)
             end
@@ -125,6 +178,8 @@ module.public = {
         return {
             text = parsed_text,
             config = module.required["core.ui"].apply_custom_options(source.config.custom, source.config.window),
+            message = source.config.message,
+            check_at_startup = source.config.check_at_startup,
         }
     end,
 
@@ -136,27 +191,111 @@ module.public = {
         local buf = vim.api.nvim_create_buf(false, true)
         vim.api.nvim_buf_set_option(buf, "filetype", "norg")
         vim.api.nvim_buf_set_name(buf, "popup.norg")
-        vim.api.nvim_buf_set_lines(buf, 0, -1, true, parsed_source.text)
-        vim.api.nvim_buf_set_option(buf, "modifiable", false)
 
         vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bdelete<CR>", { silent = true, noremap = true })
         vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bdelete<CR>", { silent = true, noremap = true })
 
-        return vim.api.nvim_open_win(buf, false, parsed_source.config), buf
+        local center = {}
+        local should_center = false
+
+        for i, line in ipairs(parsed_source.text) do
+            if line == "<" then
+                table.remove(parsed_source.text, i)
+                should_center = true
+            elseif line == ">" then
+                table.remove(parsed_source.text, i)
+                should_center = false
+            end
+
+            if should_center then
+                table.insert(center, i)
+            end
+        end
+
+        local win = vim.api.nvim_open_win(buf, true, parsed_source.config)
+
+        vim.api.nvim_buf_set_lines(buf, 0, -1, true, parsed_source.text)
+        vim.api.nvim_buf_set_option(buf, "textwidth", parsed_source.config.width)
+
+        for _, i in ipairs(center) do
+            vim.api.nvim_win_set_cursor(win, { i, 0 })
+            vim.cmd("center")
+        end
+
+        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+        vim.api.nvim_win_set_cursor(win, { 1, 0 })
+
+        return win, buf
     end,
 
-    parse_all_sources = function() end,
+    parse_all_sources = function(is_startup)
+        local sources = {}
+
+        for name, source in pairs(module.config.public.sources) do
+            if is_startup and not source.config.check_at_startup then
+                goto continue
+            end
+
+            local parsed_source = module.public.parse_source(name)
+
+            if parsed_source then
+                sources[name] = parsed_source
+            end
+
+            ::continue::
+        end
+
+        return sources
+    end,
+
+    -- TODO: Add functions that dynamically add sources
 }
 
 module.on_event = function(event)
     if event.type == "core.started" then
-        module.public.display_news(module.public.parse_source("news"))
+        local timer = vim.loop.new_timer()
+        timer:start(
+            1000,
+            0,
+            vim.schedule_wrap(function()
+                for name, source in pairs(module.public.parse_all_sources(true)) do
+                    if source.check_at_startup then
+                        vim.notify(
+                            source.message .. " - see ':Neorg news " .. name .. "' for details.",
+                            vim.log.levels.WARN
+                        )
+                    end
+                end
+            end)
+        )
+    elseif event.type == "core.neorgcmd.events.news" then
+        if vim.tbl_isempty(event.content) then
+            vim.notify("Displaying all available Neorg news:")
+            for name, source in pairs(module.public.parse_all_sources()) do
+                vim.notify(source.message .. " - see ':Neorg news " .. name .. "' for details.", vim.log.levels.WARN)
+            end
+            vim.notify("Execute :messages or press `g<` for more info.")
+            return
+        end
+
+        local source = module.public.parse_source(event.content[1], true)
+
+        if not source then
+            vim.notify('No news available for "' .. event.content[1] .. '"')
+            return
+        end
+
+        module.public.display_news(source)
     end
 end
 
 module.events.subscribed = {
     core = {
         started = true,
+    },
+
+    ["core.neorgcmd"] = {
+        news = true,
     },
 }
 
