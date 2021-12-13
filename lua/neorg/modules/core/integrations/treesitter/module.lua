@@ -27,19 +27,18 @@ module.config.public = {
             ["End"] = "+TSKeyword",
 
             Name = {
-                [""] = "+Normal",
+                [""] = "+TSNone",
                 Word = "+TSKeyword",
             },
 
             Parameter = "+TSType",
-            Content = "+Normal",
         },
 
         CarryoverTag = {
             Begin = "+TSLabel",
 
             Name = {
-                [""] = "+Normal",
+                [""] = "+TSNone",
                 Word = "+TSLabel",
             },
 
@@ -77,7 +76,7 @@ module.config.public = {
 
         Marker = {
             [""] = "+TSLabel",
-            Title = "+Normal",
+            Title = "+TSNone",
         },
 
         Definition = {
@@ -97,6 +96,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
             ["2"] = {
                 [""] = "+NeorgUnorderedList2",
@@ -104,6 +108,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
             ["3"] = {
                 [""] = "+NeorgUnorderedList3",
@@ -111,6 +120,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
             ["4"] = {
                 [""] = "+NeorgUnorderedList4",
@@ -118,6 +132,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
             ["5"] = {
                 [""] = "+NeorgUnorderedList5",
@@ -125,6 +144,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
             ["6"] = {
                 [""] = "+NeorgUnorderedList6",
@@ -132,6 +156,11 @@ module.config.public = {
                 Undone = "+TSPunctDelimiter",
                 Pending = "+TSNamespace",
                 Done = "+TSString",
+                Cancelled = "+Whitespace",
+                Urgent = "+TSDanger",
+                OnHold = "+TSNote",
+                Recurring = "+TSRepeat",
+                Uncertain = "+TSBoolean",
             },
         },
 
@@ -250,6 +279,16 @@ module.config.public = {
             },
         },
 
+        Anchor = {
+            Declaration = {
+                Delimiter = "+Normal",
+                Text = "+TSTextReference",
+            },
+            Definition = {
+                Delimiter = "+Normal",
+            },
+        },
+
         Insertion = {
             [""] = "cterm=bold gui=bold",
             Prefix = "+TSPunctDelimiter",
@@ -261,9 +300,105 @@ module.config.public = {
             Parameters = "+TSComment",
         },
 
+        Link = {
+            Text = {
+                [""] = "+TSURI",
+                Delimiter = "+Normal",
+            },
+
+            File = {
+                [""] = "+TSComment",
+                Delimiter = "+Normal",
+            },
+
+            Location = {
+                Delimiter = "+Normal",
+
+                URL = "+TSURI",
+
+                Generic = {
+                    [""] = "+TSType",
+                    Prefix = "+TSType",
+                },
+
+                ExternalFile = {
+                    [""] = "+TSLabel",
+                    Prefix = "+TSLabel",
+                },
+
+                Marker = {
+                    [""] = "+NeorgMarkerTitle",
+                    Prefix = "+NeorgMarkerPrefix",
+                },
+
+                Heading = {
+                    ["1"] = {
+                        [""] = "+NeorgHeading1Title",
+                        Prefix = "+NeorgHeading1Prefix",
+                    },
+
+                    ["2"] = {
+                        [""] = "+NeorgHeading2Title",
+                        Prefix = "+NeorgHeading2Prefix",
+                    },
+
+                    ["3"] = {
+                        [""] = "+NeorgHeading3Title",
+                        Prefix = "+NeorgHeading3Prefix",
+                    },
+
+                    ["4"] = {
+                        [""] = "+NeorgHeading4Title",
+                        Prefix = "+NeorgHeading4Prefix",
+                    },
+
+                    ["5"] = {
+                        [""] = "+NeorgHeading5Title",
+                        Prefix = "+NeorgHeading5Prefix",
+                    },
+
+                    ["6"] = {
+                        [""] = "+NeorgHeading6Title",
+                        Prefix = "+NeorgHeading6Prefix",
+                    },
+                },
+            },
+        },
+
+        Markup = {
+            Bold = "+TSStrong",
+            Italic = "+TSEmphasis",
+            Underline = "+TSUnderline",
+            Strikethrough = "+TSStrike",
+            Spoiler = "+TSDanger",
+            Subscript = "+TSLabel",
+            Superscript = "+TSNumber",
+            Math = "+TSMath",
+            Variable = "+NeorgInsertionVariable",
+        },
+
         StrongParagraphDelimiter = "+TSPunctDelimiter",
         WeakParagraphDelimiter = "+TSPunctDelimiter",
         HorizontalLine = "+TSPunctDelimiter",
+
+        TrailingModifier = "+TSPunctDelimiter",
+        LinkModifier = "+TSPunctDelimiter",
+
+        DocumentMeta = {
+            Key = "+TSField",
+            Value = "+TSString",
+            Carryover = "+TSRepeat",
+            Title = "+TSTitle",
+
+            Object = {
+                Bracket = "+TSPunctBracket",
+            },
+
+            Array = {
+                Bracket = "+TSPunctBracket",
+                Value = "+Normal",
+            },
+        },
     },
 
     dim = {
@@ -368,14 +503,23 @@ module.public = {
         end
     end,
 
-    -- @Summary Gets all nodes of a given type from the AST
-    -- @Description Retrieves all nodes in the form of a list
-    -- @Param  type (string) - the type of node to filter out
-    get_all_nodes = function(type)
+    ---  Gets all nodes of a given type from the AST
+    --- @param  type string #the type of node to filter out
+    --- @param opts? table
+    get_all_nodes = function(type, opts)
         local result = {}
+        opts = opts or {}
+
+        if not opts.buf then
+            opts.buf = 0
+        end
+
+        if not opts.ft then
+            opts.ft = "norg"
+        end
 
         -- Do we need to go through each tree? lol
-        vim.treesitter.get_parser(0, "norg"):for_each_tree(function(tree)
+        vim.treesitter.get_parser(opts.buf, opts.ft):for_each_tree(function(tree)
             -- Get the root for that tree
             local root = tree:root()
 
@@ -405,12 +549,16 @@ module.public = {
     -- @Summary Returns the first occurence of a node in the AST
     -- @Description Returns the first node of given type if present
     -- @Param  type (string) - the type of node to search for
-    get_first_node = function(type)
+    get_first_node = function(type, buf)
         local ret = nil
+
+        if not buf then
+            buf = 0
+        end
 
         -- I'm starting to doubt that we need to loop through each tree
         -- Core Devs plz help
-        vim.treesitter.get_parser(0, "norg"):for_each_tree(function(tree)
+        vim.treesitter.get_parser(buf, "norg"):for_each_tree(function(tree)
             -- Iterate over all top-level children and attempt to find a match
             for child, _ in tree:root():iter_children() do
                 if child:type() == type then
@@ -423,13 +571,27 @@ module.public = {
         return ret
     end,
 
-    get_first_node_recursive = function(type)
+    get_first_node_recursive = function(type, opts)
+        opts = opts or {}
         local result
 
+        if not opts.buf then
+            opts.buf = 0
+        end
+
+        if not opts.ft then
+            opts.ft = "norg"
+        end
+
         -- Do we need to go through each tree? lol
-        vim.treesitter.get_parser(0, "norg"):for_each_tree(function(tree)
+        vim.treesitter.get_parser(opts.buf, opts.ft):for_each_tree(function(tree)
             -- Get the root for that tree
-            local root = tree:root()
+            local root
+            if opts.parent then
+                root = opts.parent
+            else
+                root = tree:root()
+            end
 
             -- @Summary Function to recursively descend down the syntax tree
             -- @Description Recursively searches for a node of a given type
@@ -562,30 +724,6 @@ module.public = {
         descend(root)
     end,
 
-    get_link_info = function()
-        local node = module.private.ts_utils.get_node_at_cursor(0)
-
-        if not node then
-            return nil
-        end
-
-        local parent = node:parent()
-
-        if not parent then
-            return nil
-        end
-
-        if parent:type() == "link" and parent:named_child_count() > 1 then
-            return {
-                text = module.private.ts_utils.get_node_text(parent:named_child(0))[1],
-                location = module.private.ts_utils.get_node_text(parent:named_child(1))[1],
-                type = parent:named_child(1):type(),
-                range = module.public.get_node_range(parent),
-                node = parent,
-            }
-        end
-    end,
-
     -- Gets the range of a given node
     get_node_range = function(node)
         if not node then
@@ -596,7 +734,17 @@ module.public = {
                 column_end = 0,
             }
         end
-        local rs, cs, re, ce = node:range()
+
+        local rs, cs, re, ce = 0, 0, 0, 0
+
+        if type(node) == "table" then -- We're dealing with a node range
+            local brs, bcs, _, _ = node[1]:range()
+            local _, _, ere, ece = node[#node]:range()
+            rs, cs, re, ce = brs, bcs, ere, ece
+        else
+            rs, cs, re, ce = node:range()
+        end
+
         return {
             row_start = rs,
             column_start = cs,
@@ -625,16 +773,32 @@ module.public = {
     --- @return string The contents of the node in the form of a string
     get_node_text = function(node, buf)
         if not node then
-            return nil
+            return
         end
 
         local text = module.private.ts_utils.get_node_text(node, buf or 0)
 
         if not text then
-            return nil
+            return
         end
 
-        return text[1]
+        return text[#text] == "\n" and table.concat(vim.list_slice(text, 0, -2), " ") or table.concat(text, " ")
+    end,
+
+    find_parent = function(node, types)
+        local _node = node
+
+        while _node do
+            if type(types) == "string" then
+                if _node:type():match(types) then
+                    return _node
+                end
+            elseif vim.tbl_contains(types, _node:type()) then
+                return _node
+            end
+
+            _node = _node:parent()
+        end
     end,
 }
 
