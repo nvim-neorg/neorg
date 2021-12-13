@@ -170,10 +170,23 @@ You can install through any plugin manager (it can even be vimscript plugin mana
   Here's an example:
 
   ```lua
-  use { "nvim-neorg/neorg", ft = "norg", config = ... }
+  use {
+    "nvim-neorg/neorg",
+    -- in case you turn off filetype detection when startup neovim, or ft detection failure for norg
+    setup = vim.cmd("autocmd BufRead,BufNewFile *.norg setlocal filetype=norg"),
+    after = {"nvim-treesitter"},  -- you may also specify telescope
+    ft = "norg",
+    config = function()
+      -- setup neorg
+      require('neorg').setup {
+        ...
+      }
+
+    end
+  }
   ```
 
-  **However don't expect everything to work**. TreeSitter highlights are known to fail, amongst other things.
+  However, don't expect everything to work. You might need additional setups depending on how your lazyloading system is configured.
   Neorg practically lazy loads itself - only a few lines of code are run on startup, these lines check whether the current
   extension is `.norg`, if it's not then nothing else loads. You shouldn't have to worry about performance issues.
   In fact by not lazy-loading Neorg on `ft` you can use `:NeorgStart` to jump to your notes from anywhere! Worth it.
@@ -188,8 +201,8 @@ You can install through any plugin manager (it can even be vimscript plugin mana
    ```
    
    Afterwards resource the current file and to install plugins run `:PlugInstall`.
-   
-   You can then place this initial configuration in your init.vim file:
+
+   You can put this initial configuration in your init.vim file:
    ```vim
    lua << EOF
        require('neorg').setup {
