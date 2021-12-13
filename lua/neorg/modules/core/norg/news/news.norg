@@ -3,7 +3,7 @@
     description: Breaking changes that you'll be~
     definitely interested in.
     author: nvim-neorg
-    categories: 
+    categories:
     created: 2021-11-21
     version: 0.0.8
 
@@ -27,7 +27,14 @@ If you ever update Neorg and find that your syntax highlight doesn't work be sur
 * *Most Important Changes*
   There are quite a few breaking changes ahead. Pay attention here, you don't wanna miss this.
 
- ** Upcoming Changes
+ ** Branch Changes
+    After this update we will soon be dropping the `unstable` branch of Neorg in favour of
+    utilizing PRs more.
+
+    This means that users of the `unstable` branch will no longer receive updates.
+    Please migrate over to the `main` branch - we have cookies.
+
+ ** Syntax Changes
     If you're seeing this then it means Neorg has undergone /several/ changes to its file format
     and/or internal structure. Be ready to refactor your documents. We'd love to provide tools
     to make the migration process automatic, but it would be difficult to execute well and we
@@ -47,7 +54,7 @@ If you ever update Neorg and find that your syntax highlight doesn't work be sur
       This is a regular link with no special description:
       {* A link to a level-1 heading}
       You can add a description at the end of the link:
-      {* A link to a level-1 heading}[link text]      
+      {* A link to a level-1 heading}[link text]
       @end
 
       Apart from only defining a level-1 heading you can link to all of the items you could
@@ -136,14 +143,14 @@ If you ever update Neorg and find that your syntax highlight doesn't work be sur
       links we've also created the idea of anchors! They're like a cross between links and
       something like references or pointers if you know your programming terms. Basically
       you can link to a name several times, then define the link location only once.
-      
+
       Here's an example:
       @code norg
       I sincerely hope you visit our [github]!.
       Have I mentioned our [github] yet? I think you'll like it.
       Man, if only you guys visited our [github]{https://github.com/nvim-neorg/neorg} :P
       @end
-      
+
       Did you see what was done here? We created two /anchor declarations/ called
       `github`. After that, we created an /anchor definition/ that actually defined the
       link location. See? We no longer need to duplicate our links locations, since we can
