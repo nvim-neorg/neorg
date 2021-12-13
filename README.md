@@ -240,14 +240,30 @@ parser_configs.norg = {
         branch = "main"
     },
 }
+
+parser_configs.norg_meta = {
+    install_info = {
+        url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
+        files = { "src/parser.c" },
+        branch = "main"
+    },
+}
+
+parser_configs.norg_table = {
+    install_info = {
+        url = "https://github.com/nvim-neorg/tree-sitter-norg-table",
+        files = { "src/parser.c" },
+        branch = "main"
+    },
+}
 ```
 
-Then run `:TSInstall norg`.
-If you want the parser to be more persistent across different installations of your config make sure to set `norg` as a parser in the `ensure_installed` table, then run `:TSUpdate`.
+Then run `:TSInstall norg norg_meta norg_table`.
+If you want the parser to be more persistent across different installations of your config make sure to set `norg`, `norg_meta` and `norg_table` as parsers in the `ensure_installed` table, then run `:TSUpdate`.
 Here's an example config, yours will probably be different:
 ```lua
 require('nvim-treesitter.configs').setup {
-    ensure_installed = { "norg", "haskell", "cpp", "c", "javascript", "markdown" },
+    ensure_installed = { "norg", "norg_meta", "norg_table", "haskell", "cpp", "c", "javascript", "markdown" },
     highlight = { -- Be sure to enable highlights if you haven't!
         enable = true,
     }
