@@ -1,0 +1,7 @@
+* Tables
+  @table
+  *Heading 1* | _Heading 2_ | /Heading 3/
+  -
+  1 | 2 | 3
+  1.0 | 2.0 | -3.0
+  @end

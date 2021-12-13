@@ -95,5 +95,28 @@
       This is considerably better.
       @end
 
+ ** Ranged Tags
+    With the new version of the TS parser ranged tags are now no longer "indent strict", and the
+    beginning of the tag can be placed at a different indentation level than the `@end` of that tag.
+
+ ** Inline Comments
+    Since carryover tags now utilise the `#` symbol we needed to change the syntax for inline
+    comments to avoid ambiguity. To do this `#inline comments like this#` have now been changed to
+    `+inline comment like this+`. We believe the symbol makes sense - it's like adding something
+    extra inbetween your text! Just for clarification:
+  *** Old
+      @code norg
+      This is some text
+      #a comment inbetween#
+      and some text below.
+      @end
+
+  *** New
+      @code norg
+      This is some text
+      +a comment inbetween+
+      and some text below.
+      @end
+      
 #comment
 vim:tw=100:ft=norg:norl:

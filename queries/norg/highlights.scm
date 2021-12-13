@@ -1,6 +1,6 @@
 (ranged_tag ("_prefix") @NeorgTagBegin
 	name: (tag_name [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
-	(tag_parameters parameter: (word) @NeorgTagParameter)? @NeorgTagParameters
+	(tag_parameters parameter: (tag_param) @NeorgTagParameter)? @NeorgTagParameters
 	content: (ranged_tag_content)?
 	(ranged_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)) @NeorgTag
 
@@ -17,12 +17,140 @@
                 ]+
             ) @NeorgCarryoverTagName
         (tag_parameters
-            parameter: (word) @NeorgCarryoverTagParameter
+            parameter: (tag_param) @NeorgCarryoverTagParameter
         )? @NeorgCarryoverTagParameters
     ) @NeorgCarryoverTag
 
 	target: (_)+ @NeorgCarryoverTagTarget
 )
+
+; Trailing Modifier
+("_trailing_modifier") @NeorgTrailingModifier
+
+; Link Modifier
+(link_modifier) @NeorgLinkModifier
+
+; Links
+(link
+    ("_begin") @NeorgLinkLocationDelimiter
+    (link_file
+        ("_begin") @NeorgLinkFileDelimiter
+        location: (link_file_text) @NeorgLinkFile
+        ("_end") @NeorgLinkFileDelimiter
+    )?
+    (link_location
+        [
+            (
+                (link_location_url) ; Doesn't require a highlight since it's a 0-width node
+                (link_location_text) @NeorgLinkLocationURL
+            )
+            (
+                (link_location_generic) @NeorgLinkLocationGenericPrefix
+                (link_location_text) @NeorgLinkLocationGeneric
+            )
+            (
+                (link_location_external_file) @NeorgLinkLocationExternalFilePrefix
+                (link_location_text) @NeorgLinkLocationExternalFile
+            )
+            (
+                (link_location_marker) @NeorgLinkLocationMarkerPrefix
+                (link_location_text) @NeorgLinkLocationMarker
+            )
+            (
+                (link_location_heading1) @NeorgLinkLocationHeading1Prefix
+                (link_location_text) @NeorgLinkLocationHeading1
+            )
+            (
+                (link_location_heading2) @NeorgLinkLocationHeading2Prefix
+                (link_location_text) @NeorgLinkLocationHeading2
+            )
+            (
+                (link_location_heading3) @NeorgLinkLocationHeading3Prefix
+                (link_location_text) @NeorgLinkLocationHeading3
+            )
+            (
+                (link_location_heading4) @NeorgLinkLocationHeading4Prefix
+                (link_location_text) @NeorgLinkLocationHeading4
+            )
+            (
+                (link_location_heading5) @NeorgLinkLocationHeading5Prefix
+                (link_location_text) @NeorgLinkLocationHeading5
+            )
+            (
+                (link_location_heading6) @NeorgLinkLocationHeading6Prefix
+                (link_location_text) @NeorgLinkLocationHeading6
+            )
+        ]
+    )?
+    ("_end") @NeorgLinkLocationDelimiter
+    (link_description
+        ("_begin") @NeorgLinkTextDelimiter
+        text: (link_text) @NeorgLinkText
+        ("_end") @NeorgLinkTextDelimiter
+    )?
+) @NeorgLink
+
+; Anchors
+(anchor_declaration
+    ("_begin") @NeorgAnchorDeclarationDelimiter
+    text: (anchor_declaration_text) @NeorgAnchorDeclarationText
+    ("_end") @NeorgAnchorDeclarationDelimiter
+) @NeorgAnchor
+
+(anchor_definition
+    (anchor_declaration)
+    ("_begin") @NeorgAnchorDefinitionDelimiter
+    (link_file
+        ("_begin") @NeorgLinkFileDelimiter
+        location: (link_file_text) @NeorgLinkFile
+        ("_end") @NeorgLinkFileDelimiter
+    )?
+    (link_location
+        [
+            (
+                (link_location_url) ; Doesn't require a highlight since it's a 0-width node
+                (link_location_text) @NeorgLinkLocationURL
+            )
+            (
+                (link_location_generic) @NeorgLinkLocationGenericPrefix
+                (link_location_text) @NeorgLinkLocationGeneric
+            )
+            (
+                (link_location_external_file) @NeorgLinkLocationExternalFilePrefix
+                (link_location_text) @NeorgLinkLocationExternalFile
+            )
+            (
+                (link_location_marker) @NeorgLinkLocationMarkerPrefix
+                (link_location_text) @NeorgLinkLocationMarker
+            )
+            (
+                (link_location_heading1) @NeorgLinkLocationHeading1Prefix
+                (link_location_text) @NeorgLinkLocationHeading1
+            )
+            (
+                (link_location_heading2) @NeorgLinkLocationHeading2Prefix
+                (link_location_text) @NeorgLinkLocationHeading2
+            )
+            (
+                (link_location_heading3) @NeorgLinkLocationHeading3Prefix
+                (link_location_text) @NeorgLinkLocationHeading3
+            )
+            (
+                (link_location_heading4) @NeorgLinkLocationHeading4Prefix
+                (link_location_text) @NeorgLinkLocationHeading4
+            )
+            (
+                (link_location_heading5) @NeorgLinkLocationHeading5Prefix
+                (link_location_text) @NeorgLinkLocationHeading5
+            )
+            (
+                (link_location_heading6) @NeorgLinkLocationHeading6Prefix
+                (link_location_text) @NeorgLinkLocationHeading6
+            )
+        ]
+    )?
+    ("_end") @NeorgAnchorDefinitionDelimiter
+) @NeorgAnchor
 
 ; Headings
 (heading1 (heading1_prefix) @NeorgHeading1Prefix title: (paragraph_segment) @NeorgHeading1Title) @NeorgHeading1
@@ -36,7 +164,7 @@
 (ERROR) @NeorgError
 
 ; Markers
-(marker (marker_prefix) @NeorgMarker (paragraph_segment) @NeorgMarkerTitle)
+(marker (marker_prefix) @NeorgMarkerPrefix (paragraph_segment) @NeorgMarkerTitle)
 
 ; Definitions
 (single_definition (single_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle definition: (_)* @NeorgDefinitionContent)
@@ -53,6 +181,11 @@
 			(todo_item_undone) @NeorgTodoItem1Undone
 			(todo_item_pending) @NeorgTodoItem1Pending
 			(todo_item_done) @NeorgTodoItem1Done
+                        (todo_item_on_hold) @NeorgTodoItem1OnHold
+                        (todo_item_cancelled) @NeorgTodoItem1Cancelled
+                        (todo_item_urgent) @NeorgTodoItem1Urgent
+                        (todo_item_uncertain) @NeorgTodoItem1Uncertain
+                        (todo_item_recurring) @NeorgTodoItem1Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem1Content)
@@ -64,6 +197,11 @@
 			(todo_item_undone) @NeorgTodoItem2Undone
 			(todo_item_pending) @NeorgTodoItem2Pending
 			(todo_item_done) @NeorgTodoItem2Done
+                        (todo_item_on_hold) @NeorgTodoItem2OnHold
+                        (todo_item_cancelled) @NeorgTodoItem2Cancelled
+                        (todo_item_urgent) @NeorgTodoItem2Urgent
+                        (todo_item_uncertain) @NeorgTodoItem2Uncertain
+                        (todo_item_recurring) @NeorgTodoItem2Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem2Content)
@@ -75,6 +213,11 @@
 			(todo_item_undone) @NeorgTodoItem3Undone
 			(todo_item_pending) @NeorgTodoItem3Pending
 			(todo_item_done) @NeorgTodoItem3Done
+                        (todo_item_on_hold) @NeorgTodoItem3OnHold
+                        (todo_item_cancelled) @NeorgTodoItem3Cancelled
+                        (todo_item_urgent) @NeorgTodoItem3Urgent
+                        (todo_item_uncertain) @NeorgTodoItem3Uncertain
+                        (todo_item_recurring) @NeorgTodoItem3Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem3Content)
@@ -86,6 +229,11 @@
 			(todo_item_undone) @NeorgTodoItem4Undone
 			(todo_item_pending) @NeorgTodoItem4Pending
 			(todo_item_done) @NeorgTodoItem4Done
+                        (todo_item_on_hold) @NeorgTodoItem4OnHold
+                        (todo_item_cancelled) @NeorgTodoItem4Cancelled
+                        (todo_item_urgent) @NeorgTodoItem4Urgent
+                        (todo_item_uncertain) @NeorgTodoItem4Uncertain
+                        (todo_item_recurring) @NeorgTodoItem4Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem4Content)
@@ -97,6 +245,11 @@
 			(todo_item_undone) @NeorgTodoItem5Undone
 			(todo_item_pending) @NeorgTodoItem5Pending
 			(todo_item_done) @NeorgTodoItem5Done
+                        (todo_item_on_hold) @NeorgTodoItem5OnHold
+                        (todo_item_cancelled) @NeorgTodoItem5Cancelled
+                        (todo_item_urgent) @NeorgTodoItem5Urgent
+                        (todo_item_uncertain) @NeorgTodoItem5Uncertain
+                        (todo_item_recurring) @NeorgTodoItem5Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem5Content)
@@ -108,6 +261,11 @@
 			(todo_item_undone) @NeorgTodoItem6Undone
 			(todo_item_pending) @NeorgTodoItem6Pending
 			(todo_item_done) @NeorgTodoItem6Done
+                        (todo_item_on_hold) @NeorgTodoItem6OnHold
+                        (todo_item_cancelled) @NeorgTodoItem6Cancelled
+                        (todo_item_urgent) @NeorgTodoItem6Urgent
+                        (todo_item_uncertain) @NeorgTodoItem6Uncertain
+                        (todo_item_recurring) @NeorgTodoItem6Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem6Content)
@@ -160,3 +318,19 @@
 (strong_paragraph_delimiter) @NeorgStrongParagraphDelimiter
 (weak_paragraph_delimiter) @NeorgWeakParagraphDelimiter
 (horizontal_line) @NeorgHorizontalLine
+
+; Markup
+(bold) @NeorgMarkupBold
+(italic) @NeorgMarkupItalic
+(strikethrough) @NeorgMarkupStrikethrough
+(underline) @NeorgMarkupUnderline
+(spoiler) @NeorgMarkupSpoiler
+(verbatim) @NeorgMarkupVerbatim
+(superscript) @NeorgMarkupSuperscript
+(subscript) @NeorgMarkupSubscript
+(inline_comment) @NeorgMarkupInlineComment
+(inline_math) @NeorgMarkupInlineMath
+(variable) @NeorgMarkupVariable
+
+(superscript (subscript)) @NeorgError
+(subscript (superscript)) @NeorgError

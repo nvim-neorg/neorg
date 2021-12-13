@@ -110,4 +110,8 @@ function neorg.org_file_entered(manual, arguments)
     })
 end
 
+function neorg.is_loaded()
+    return configuration.started
+end
+
 return neorg

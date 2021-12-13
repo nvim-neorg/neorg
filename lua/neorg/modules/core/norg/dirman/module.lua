@@ -452,6 +452,26 @@ module.public = {
             vim.cmd("e " .. ws_match .. "/" .. module.config.public.index)
         end
     end,
+
+    expand_path = function(path)
+        -- Expand special chars like `$`
+        local workspace, custom_workspace_path = path:match("^($([^/]*))")
+
+        if custom_workspace_path and custom_workspace_path:len() > 0 then
+            local workspace_path = module.public.get_workspace(custom_workspace_path)
+
+            if not workspace_path then
+                log.trace("Unable to expand path: workspace does not exist")
+                return
+            end
+
+            workspace_path = workspace_path .. workspace_path:sub(custom_workspace_path:len() + 2)
+        elseif workspace then
+            path = module.public.get_current_workspace()[2] .. path:sub(workspace:len() + 1)
+        end
+
+        return vim.fn.fnamemodify(path .. ".norg", ":p")
+    end,
 }
 
 module.on_event = function(event)
