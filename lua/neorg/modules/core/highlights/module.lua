@@ -17,17 +17,6 @@ local module = neorg.modules.create("core.highlights")
 --]]
 module.config.public = {
     highlights = {
-        ConcealURL = {
-            [""] = "+TSURI",
-            Value = "+TSType",
-        },
-        Conceal = {
-            Bold = "cterm=bold gui=bold",
-            Italic = "cterm=italic gui=italic",
-            Underline = "cterm=underline gui=underline",
-            Strikethrough = "cterm=strikethrough gui=strikethrough",
-        },
-
         SelectionWindow = {
             Heading = "+TSAnnotation",
             Arrow = "+Normal",
@@ -37,12 +26,13 @@ module.config.public = {
         },
     },
     dim = {
-        Conceal = {
-            Monospace = {
+        Markup = {
+            Verbatim = {
                 reference = "Normal",
                 percentage = 20,
             },
-            Comment = {
+
+            InlineComment = {
                 reference = "Normal",
                 percentage = 40,
             },
@@ -98,9 +88,28 @@ module.public = {
 
             -- If we are dealing with a link then link the highlights together (excluding the + symbol)
             if is_link then
-                vim.cmd("highlight! link Neorg" .. prefix .. hl_name .. " " .. highlight:sub(2))
+                local full_highlight_name = "Neorg" .. prefix .. hl_name
+
+                -- If the highlight already exists then assume the user doesn't want it to be
+                -- overwritten
+                if
+                    vim.fn.hlexists(full_highlight_name) == 1
+                    and not vim.api.nvim_exec("highlight " .. full_highlight_name, true):match("xxx%s+cleared")
+                then
+                    return
+                end
+
+                vim.cmd("highlight! link " .. full_highlight_name .. " " .. highlight:sub(2))
             else -- Otherwise simply apply the highlight options the user provided
-                vim.cmd("highlight! Neorg" .. prefix .. hl_name .. " " .. highlight)
+                local full_highlight_name = "Neorg" .. prefix .. hl_name
+
+                -- If the highlight already exists then assume the user doesn't want it to be
+                -- overwritten
+                if vim.fn.hlexists(full_highlight_name) == 1 then
+                    return
+                end
+
+                vim.cmd("highlight! " .. full_highlight_name .. " " .. highlight)
             end
         end, "")
 

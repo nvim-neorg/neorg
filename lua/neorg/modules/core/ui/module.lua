@@ -20,6 +20,7 @@ module.setup = function()
     }
 end
 
+---@class core.ui
 module.public = {
     -- TODO: Remove this. This is just a showcase
     test_display = function()
@@ -114,6 +115,15 @@ module.public = {
         -- Override the default options with the user provided options
         user_options = vim.tbl_extend("force", user_options, modifiers or {})
 
+        -- Assign some default values to certain config options in case they're not specified
+        config = vim.tbl_deep_extend("keep", config, {
+            relative = "win",
+            row = 0,
+            col = 0,
+            width = 100,
+            height = 100,
+        })
+
         -- Get the current window's dimensions except halved
         local halved_window_size = module.public.get_window_size(true)
 
@@ -163,6 +173,13 @@ module.public = {
             config = { config, "table", true },
         })
 
+        local bufname = "neorg://" .. name
+
+        if vim.fn.bufexists(bufname) == 1 then
+            log.error("Buffer '" .. name .. "' already exists")
+            return
+        end
+
         vim.cmd("below new")
 
         local buf = vim.api.nvim_win_get_buf(0)
@@ -174,7 +191,7 @@ module.public = {
             buflisted = false,
         }
 
-        vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
+        vim.api.nvim_buf_set_name(buf, bufname)
         vim.api.nvim_win_set_buf(0, buf)
 
         vim.api.nvim_win_set_option(0, "number", false)
@@ -309,7 +326,8 @@ module.public = {
     --- @param name string the name of the buffer *without* the .norg extension
     --- @param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
     --- @param config table a table of { option = value } pairs that set buffer-local options for the created Neorg buffer
-    create_norg_buffer = function(name, split_type, config)
+    --- @param no_keybinds boolean if false, will not use the default keybinds
+    create_norg_buffer = function(name, split_type, config, no_keybinds)
         vim.validate({
             name = { name, "string" },
             split_type = { split_type, "string" },
@@ -342,8 +360,11 @@ module.public = {
         end)()
 
         vim.api.nvim_win_set_buf(0, buf)
-        vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
-        vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
+
+        if no_keybinds then
+            vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
+            vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
+        end
 
         module.public.apply_buffer_options(buf, config or {})
 

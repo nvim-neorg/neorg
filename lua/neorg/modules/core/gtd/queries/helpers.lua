@@ -5,16 +5,17 @@ local module = neorg.modules.extend("core.gtd.queries.helpers")
 --- @field days number
 
 module.public = {
-    -- @Summary Convert a date from text to YY-MM-dd format
-    -- @Description If the date is a quick capture (like 2w, 10d, 4m), it will convert to a standardized date
+    -- Convert a date from text to YYYY-MM-dd format
+    -- If the date is a quick capture (like 2w, 10d, 4m), it will convert to a standardized date
     -- Supported formats ($ treated as number):
     --   - $d: days from now (e.g 2d is 2 days from now)
     --   - $w: weeks from now (e.g 2w is 2 weeks from now)
     --   - $m: months from now (e.g 2m is 2 months from now)
     --   - tomorrow: tomorrow's date
     --   - today: today's date
-    --   The format for date is YY-mm-dd
-    -- @Param  text (string) the text to use
+    --   The format for date is YYYY-mm-dd
+    -- @param text string #The text to use
+    -- @return string
     date_converter = function(text)
         vim.validate({ text = { text, "string" } })
 
@@ -43,8 +44,12 @@ module.public = {
             return os.date("%Y-%m-%d", time)
         end
 
-        local number, type = text:match("^(%d+)([hdwmy])$")
+        local year, month, day = text:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
+        if year and month and day then
+            return text
+        end
 
+        local number, type = text:match("^(%d+)([hdwmy])$")
         if not number or not type then
             return
         end
@@ -137,11 +142,15 @@ module.public = {
 
         -- Get today's date
         local now = os.date("%Y-%m-%d")
-        local y_now, m_now, d_now = now:match("(%d+)-(%d+)-(%d+)")
+        local y_now, m_now, d_now = now:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
         local now_timestamp = os.time({ year = y_now, month = m_now, day = d_now })
 
         -- Parse date parameter
-        local y, m, d = date:match("(%d+)-(%d+)-(%d+)")
+        local y, m, d = date:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
+        if not y or not m or not d then
+            return
+        end
+
         local date_timestamp = os.time({ year = y, month = m, day = d })
 
         -- Find out how many elapsed seconds between now and the date
@@ -154,15 +163,19 @@ module.public = {
 
     --- Checks whether the date starts after today
     --- @param date string
-    --- @param strict boolean #If today must be counted or not
+    --- @param strict boolean #if true, do not count today as started
     --- @return boolean
     starting_after_today = function(date, strict)
         local diff = module.public.diff_with_today(date)
+
         if strict then
-            return diff.days > 0 and diff.weeks > 0
-        else
-            return diff.days >= 0 and diff.weeks >= 0
+            local today = diff.days == 0 and diff.weeks == 0
+            if today then
+                return false
+            end
         end
+
+        return diff.days >= 0 and diff.weeks >= 0
     end,
 }
 

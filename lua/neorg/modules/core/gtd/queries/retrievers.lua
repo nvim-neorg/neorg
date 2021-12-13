@@ -1,5 +1,30 @@
 local module = neorg.modules.extend("core.gtd.queries.retrievers")
 
+---@class core.gtd.queries.task
+---@field bufnr number
+---@field node userdata
+---@field content string
+---@field project string|nil
+---@field project_node userdata|nil
+---@field state string
+---@field contexts string[]|nil
+---@field waiting.for string[]|nil
+---@field time.start string[]|nil
+---@field time.due string[]|nil
+---@field position number
+---@field area_of_focus string|nil
+
+---@class core.gtd.queries.project
+---@field bufnr number
+---@field node userdata
+---@field content string
+---@field area_of_focus string|nil
+---@field contexts string[]|nil
+---@field waiting.for string[]|nil
+---@field time.start string[]|nil
+---@field time.due string[]|nil
+---@field position number
+
 module.public = {
     --- Get a table of all `type` in workspace
     --- @param type string
@@ -27,28 +52,18 @@ module.public = {
         if type == "projects" then
             tree = {
                 {
-                    query = { "first", "document_content" },
-                    subtree = {
-                        {
-                            query = { "all", "heading1" },
-                            recursive = true,
-                        },
-                    },
+                    query = { "all", "heading1" },
+                    recursive = true,
                 },
             }
         elseif type == "tasks" then
             tree = {
                 {
-                    query = { "first", "document_content" },
+                    query = { "all", "generic_list" },
+                    recursive = true,
                     subtree = {
                         {
-                            query = { "all", "generic_list" },
-                            recursive = true,
-                            subtree = {
-                                {
-                                    query = { "all", "todo_item1" },
-                                },
-                            },
+                            query = { "all", "todo_item1" },
                         },
                     },
                 },
@@ -65,7 +80,7 @@ module.public = {
             local configs = neorg.modules.get_module_config("core.gtd.base")
             local files = module.required["core.norg.dirman"].get_norg_files(configs.workspace)
 
-            if not files then
+            if vim.tbl_isempty(files) then
                 log.error("No files found in " .. configs.workspace .. " workspace.")
                 return
             end
@@ -92,9 +107,8 @@ module.public = {
 
     --- Get the node `type` at cursor
     --- @param type string #Either project|task
-    --- @param opts table #Pass opts to add_metadata
     --- @return table #A table of type { node, bufnr }
-    get_at_cursor = function(type, opts)
+    get_at_cursor = function(type)
         vim.validate({
             type = {
                 type,
@@ -103,10 +117,7 @@ module.public = {
                 end,
                 "project|task",
             },
-            opts = { opts, "table", true },
         })
-
-        opts = opts or {}
 
         local filename = vim.api.nvim_buf_get_name(0)
         local bufnr = module.required["core.norg.dirman"].get_file_bufnr(filename)
@@ -131,7 +142,7 @@ module.public = {
     ---   - opts.extract (bool):   if false does not extract the content from the nodes
     ---   - opts.same_node (bool): if true, will only fetch metadatas from the node and not parent ones.
     ---   It will not fetch metadatas that group tasks or projects
-    --- @return table
+    --- @return core.gtd.queries.project|core.gtd.queries.task
     add_metadata = function(nodes, type, opts)
         vim.validate({
             nodes = { nodes, "table" },
@@ -160,13 +171,19 @@ module.public = {
 
             if type == "task" then
                 exported.project = module.private.get_task_project(exported, opts)
+                exported.project_node = module.private.get_task_project(exported, { project_node = true })
                 exported.state = module.private.get_task_state(exported, opts)
             end
 
-            exported.contexts = module.private.get_tag("contexts", exported, type, opts)
-            exported["time.start"] = module.private.get_tag("time.start", exported, type, opts)
-            exported["time.due"] = module.private.get_tag("time.due", exported, type, opts)
-            exported["waiting.for"] = module.private.get_tag("waiting.for", exported, type, opts)
+            ---@type core.gtd.base.config
+            local config = neorg.modules.get_module_config("core.gtd.base")
+            local syntax = config.syntax
+
+            exported.contexts = module.public.get_tag(string.sub(syntax.context, 2), exported, type, opts)
+            exported["time.start"] = module.public.get_tag(string.sub(syntax.start, 2), exported, type, opts)
+            exported["time.due"] = module.public.get_tag(string.sub(syntax.due, 2), exported, type, opts)
+            exported["waiting.for"] = module.public.get_tag(string.sub(syntax.waiting, 2), exported, type, opts)
+            exported["area_of_focus"] = module.private.get_aof(exported, opts)
 
             -- Add position in file for each node
             if not previous_bufnr_tbl[exported.bufnr] then
@@ -183,48 +200,167 @@ module.public = {
         return res
     end,
 
-    --- Sort `tasks` list by specified `sorter`
+    --- Ensure t[k] is a table and then add v to the end of t[k]
+    --- @param t table
+    --- @param k key
+    --- @param v value
+    insert = function(t, k, v)
+        if not t[k] then
+            t[k] = {}
+        end
+        table.insert(t[k], v)
+    end,
+
+    --- Sort `nodes` list by specified `sorter`
     --- @param sorter string
-    --- @param tasks table
+    --- @param nodes table
     --- @return table
-    sort_by = function(sorter, tasks, opts)
+    sort_by = function(sorter, nodes)
         vim.validate({
             sorter = {
                 sorter,
                 function(s)
-                    return vim.tbl_contains({ "waiting.for", "contexts", "project" }, s)
+                    return vim.tbl_contains(
+                        { "waiting.for", "contexts", "project", "project_node", "area_of_focus" },
+                        s
+                    )
                 end,
-                "waiting.for|contexts|projects",
+                "waiting.for|contexts|projects|project_node|area_of_focus",
             },
-            tasks = { tasks, "table" },
-            opts = { opts, "table", true },
+            tasks = { nodes, "table" },
         })
 
-        opts = opts or {}
         local res = {}
 
-        local insert = function(t, k, v)
-            if not t[k] then
-                t[k] = {}
-            end
-            table.insert(t[k], v)
-        end
-
-        for _, t in pairs(tasks) do
+        for _, t in pairs(nodes) do
             if not t[sorter] then
-                insert(res, "_", t)
+                module.public.insert(res, "_", t)
             else
                 if type(t[sorter]) == "table" then
                     for _, s in pairs(t[sorter]) do
-                        insert(res, s, t)
+                        module.public.insert(res, s, t)
                     end
                 elseif type(t[sorter]) == "string" then
-                    insert(res, t[sorter], t)
+                    module.public.insert(res, t[sorter], t)
+                elseif type(t[sorter]) == "userdata" then
+                    module.public.insert(res, t[sorter]:id(), t)
                 end
             end
         end
 
         return res
+    end,
+
+    --- Get a list of content for a specific `tag_name` in a `node`.
+    --- @param tag_name string
+    --- @param node table
+    --- @param type string #The current node type (task / project)
+    --- @param opts table #Options from add_metadata
+    --- @param extra_tag_names type string additional elements that tag_name can be
+    --- @return table
+    get_tag = function(tag_name, node, type, opts, extra_tag_names)
+        local allowed_tag_names = { "time.due", "time.start", "contexts", "waiting.for" }
+        if extra_tag_names ~= nil then
+            for _, tag_name in pairs(extra_tag_names) do
+                table.insert(allowed_tag_names, tag_name)
+            end
+        end
+
+        local allowed_string = allowed_tag_names[1]
+        for _, tag_name in pairs(allowed_tag_names) do
+            allowed_string = allowed_string .. "|" .. tag_name
+        end
+
+        vim.validate({
+            tag_name = {
+                tag_name,
+                function(t)
+                    return vim.tbl_contains(allowed_tag_names, t)
+                end,
+                allowed_string,
+            },
+            node = { node, "table" },
+            type = {
+                type,
+                function(t)
+                    return vim.tbl_contains({ "project", "task" }, t)
+                end,
+                "task|project",
+            },
+            opts = { opts, "table", true },
+        })
+
+        opts = opts or {}
+
+        -- Will fetch multiple parent tag sets if we did not explicitly add same_node.
+        -- Else, it'll only get the first upper tag_set from the current node
+        local fetch_multiple_sets = not opts.same_node
+
+        local tags_node = module.required["core.queries.native"].find_parent_node(
+            { node.node, node.bufnr },
+            "carryover_tag_set",
+            { multiple = fetch_multiple_sets }
+        )
+
+        if #tags_node == 0 then
+            return nil
+        end
+
+        local tree = {
+            {
+                query = { "all", "carryover_tag" },
+                where = { "child_content", "tag_name", tag_name },
+                subtree = {
+                    {
+                        query = { "all", "tag_parameters" },
+                        subtree = {
+                            { query = { "all", "tag_param" } },
+                        },
+                    },
+                },
+            },
+        }
+
+        local extract = function(_node, extracted)
+            local tag_content_nodes = module.required["core.queries.native"].query_from_tree(_node[1], tree, _node[2])
+
+            if #tag_content_nodes == 0 then
+                return nil
+            end
+
+            if not opts.extract then
+                -- Only keep the nodes and add them to the results
+                tag_content_nodes = vim.tbl_map(function(node)
+                    return node[1]
+                end, tag_content_nodes)
+                vim.list_extend(extracted, tag_content_nodes)
+            else
+                local res = module.required["core.queries.native"].extract_nodes(tag_content_nodes)
+
+                for _, res_tag in pairs(res) do
+                    if not vim.tbl_contains(extracted, res_tag) then
+                        table.insert(extracted, res_tag)
+                    end
+                end
+            end
+        end
+
+        local extracted = {}
+
+        if not fetch_multiple_sets then
+            -- If i don't fetch multiple sets, i only have one, so i cannot iterate
+            extract(tags_node, extracted)
+        else
+            for _, _node in pairs(tags_node) do
+                extract(_node, extracted)
+            end
+        end
+
+        if #extracted == 0 then
+            return nil
+        end
+
+        return extracted
     end,
 }
 
@@ -299,6 +435,10 @@ module.private = {
             return nil
         end
 
+        if not opts.extract and opts.project_node then
+            return project_node[1]
+        end
+
         local tree = {
             { query = { "all", "paragraph_segment" } },
         }
@@ -317,105 +457,6 @@ module.private = {
         return extracted[1]
     end,
 
-    --- Get a list of content for a specific `tag_name` in a `node`.
-    --- @param tag_name string
-    --- @param node table
-    --- @param type string #The current node type (task / project)
-    --- @param opts table #Options from add_metadata
-    --- @return table
-    get_tag = function(tag_name, node, type, opts)
-        vim.validate({
-            tag_name = {
-                tag_name,
-                function(t)
-                    return vim.tbl_contains({ "time.due", "time.start", "contexts", "waiting.for" }, t)
-                end,
-                "time.due|time.start|contexts|waiting.for",
-            },
-            node = { node, "table" },
-            type = {
-                type,
-                function(t)
-                    return vim.tbl_contains({ "project", "task" }, t)
-                end,
-                "task|project",
-            },
-            opts = { opts, "table", true },
-        })
-
-        opts = opts or {}
-
-        -- Will fetch multiple parent tag sets if we did not explicitly add same_node.
-        -- Else, it'll only get the first upper tag_set from the current node
-        local fetch_multiple_sets = not opts.same_node
-
-        local tags_node = module.required["core.queries.native"].find_parent_node(
-            { node.node, node.bufnr },
-            "carryover_tag_set",
-            { multiple = fetch_multiple_sets }
-        )
-
-        if #tags_node == 0 then
-            return nil
-        end
-
-        local tree = {
-            {
-                query = { "all", "carryover_tag" },
-                where = { "child_content", "tag_name", tag_name },
-                subtree = {
-                    {
-                        query = { "all", "tag_parameters" },
-                        subtree = {
-                            { query = { "all", "word" } },
-                        },
-                    },
-                },
-            },
-        }
-
-        local extract = function(_node, extracted)
-            local tag_content_nodes = module.required["core.queries.native"].query_from_tree(_node[1], tree, _node[2])
-
-            if #tag_content_nodes == 0 then
-                return nil
-            end
-
-            if not opts.extract then
-                -- Only keep the nodes and add them to the results
-                tag_content_nodes = vim.tbl_map(function(node)
-                    return node[1]
-                end, tag_content_nodes)
-                vim.list_extend(extracted, tag_content_nodes)
-            else
-                local res = module.required["core.queries.native"].extract_nodes(tag_content_nodes)
-
-                for _, res_tag in pairs(res) do
-                    if not vim.tbl_contains(extracted, res_tag) then
-                        table.insert(extracted, res_tag)
-                    end
-                end
-            end
-        end
-
-        local extracted = {}
-
-        if not fetch_multiple_sets then
-            -- If i don't fetch multiple sets, i only have one, so i cannot iterate
-            extract(tags_node, extracted)
-        else
-            for _, _node in pairs(tags_node) do
-                extract(_node, extracted)
-            end
-        end
-
-        if #extracted == 0 then
-            return nil
-        end
-
-        return extracted
-    end,
-
     --- Retrieve the state of the `task`. If `extract`, extracts the content of the node
     --- @param task table
     --- @param opts table #Options from add_metadata
@@ -428,14 +469,19 @@ module.private = {
 
         opts = opts or {}
         local tree = {
-            { query = { "all", "todo_item_done" } },
-            { query = { "all", "todo_item_undone" } },
-            { query = { "all", "todo_item_pending" } },
+            { query = { "first", "todo_item_done" } },
+            { query = { "first", "todo_item_undone" } },
+            { query = { "first", "todo_item_pending" } },
+            { query = { "first", "todo_item_on_hold" } },
+            { query = { "first", "todo_item_cancelled" } },
+            { query = { "first", "todo_item_urgent" } },
+            { query = { "first", "todo_item_uncertain" } },
+            { query = { "first", "todo_item_recurring" } },
         }
 
         local task_state_nodes = module.required["core.queries.native"].query_from_tree(task.node, tree, task.bufnr)
 
-        if #task_state_nodes ~= 1 then
+        if not task_state_nodes then
             log.error("This task does not contain any state !")
         end
 
@@ -445,6 +491,42 @@ module.private = {
 
         local state = task_state_nodes[1][1]:type()
         return string.gsub(state, "todo_item_", "")
+    end,
+
+    get_aof = function(node, opts)
+        vim.validate({
+            node = { node, "table" },
+        })
+
+        local marker_node = module.required["core.queries.native"].find_parent_node({ node.node, node.bufnr }, "marker")
+
+        if #marker_node == 0 then
+            return nil
+        end
+
+        local tree = {
+            { query = { "first", "paragraph_segment" } },
+        }
+
+        marker_node = module.required["core.queries.native"].query_from_tree(marker_node[1], tree, node.bufnr)
+
+        if vim.tbl_isempty(marker_node) then
+            log.error("Error in fetching marker")
+            return
+        end
+
+        if not opts.extract then
+            return marker_node[1][1]
+        end
+
+        marker_node = module.required["core.queries.native"].extract_nodes(marker_node)
+
+        if vim.tbl_isempty(marker_node) then
+            log.error("Error in extracting area of focus")
+            return
+        end
+
+        return marker_node[1]
     end,
 
     --- Remove `el` from table `t`

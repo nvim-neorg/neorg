@@ -170,10 +170,23 @@ You can install through any plugin manager (it can even be vimscript plugin mana
   Here's an example:
 
   ```lua
-  use { "nvim-neorg/neorg", ft = "norg", config = ... }
+  use {
+    "nvim-neorg/neorg",
+    -- in case you turn off filetype detection when startup neovim, or ft detection failure for norg
+    setup = vim.cmd("autocmd BufRead,BufNewFile *.norg setlocal filetype=norg"),
+    after = {"nvim-treesitter"},  -- you may also specify telescope
+    ft = "norg",
+    config = function()
+      -- setup neorg
+      require('neorg').setup {
+        ...
+      }
+
+    end
+  }
   ```
 
-  **However don't expect everything to work**. TreeSitter highlights are known to fail, amongst other things.
+  However, don't expect everything to work. You might need additional setups depending on how your lazyloading system is configured.
   Neorg practically lazy loads itself - only a few lines of code are run on startup, these lines check whether the current
   extension is `.norg`, if it's not then nothing else loads. You shouldn't have to worry about performance issues.
   In fact by not lazy-loading Neorg on `ft` you can use `:NeorgStart` to jump to your notes from anywhere! Worth it.
@@ -188,8 +201,8 @@ You can install through any plugin manager (it can even be vimscript plugin mana
    ```
    
    Afterwards resource the current file and to install plugins run `:PlugInstall`.
-   
-   You can then place this initial configuration in your init.vim file:
+
+   You can put this initial configuration in your init.vim file:
    ```vim
    lua << EOF
        require('neorg').setup {
@@ -227,14 +240,30 @@ parser_configs.norg = {
         branch = "main"
     },
 }
+
+parser_configs.norg_meta = {
+    install_info = {
+        url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
+        files = { "src/parser.c" },
+        branch = "main"
+    },
+}
+
+parser_configs.norg_table = {
+    install_info = {
+        url = "https://github.com/nvim-neorg/tree-sitter-norg-table",
+        files = { "src/parser.c" },
+        branch = "main"
+    },
+}
 ```
 
-Then run `:TSInstall norg`.
-If you want the parser to be more persistent across different installations of your config make sure to set `norg` as a parser in the `ensure_installed` table, then run `:TSUpdate`.
+Then run `:TSInstall norg norg_meta norg_table`.
+If you want the parser to be more persistent across different installations of your config make sure to set `norg`, `norg_meta` and `norg_table` as parsers in the `ensure_installed` table, then run `:TSUpdate`.
 Here's an example config, yours will probably be different:
 ```lua
 require('nvim-treesitter.configs').setup {
-    ensure_installed = { "norg", "haskell", "cpp", "c", "javascript", "markdown" },
+    ensure_installed = { "norg", "norg_meta", "norg_table", "haskell", "cpp", "c", "javascript", "markdown" },
     highlight = { -- Be sure to enable highlights if you haven't!
         enable = true,
     }
@@ -287,6 +316,31 @@ sources = {
 ```
 
 And that's it!
+
+### Lazy Loading Neorg Completion
+It's very much likely that you're lazy loading your favourite completion engine on an autocommand like `InsertEnter`.
+In this case loading the `core.norg.completion` module right away will flat out fail.
+To make Neorg work with your lazy loaded completion engine, you can simply defer the loading of the completion
+module when necessary. Place this code after you initialize your completion engine:
+
+```lua
+-- Get the current Neorg state
+local neorg = require('neorg')
+
+--- Loads the Neorg completion module
+local function load_completion()
+    neorg.modules.load_module("core.norg.completion", nil, {
+        engine = "nvim-cmp" -- Choose your completion engine here
+    })
+end
+
+-- If Neorg is loaded already then don't hesitate and load the completion
+if neorg.is_loaded() then
+    load_completion()
+else -- Otherwise wait until Neorg gets started and load the completion module then
+    neorg.callbacks.on_event("core.started", load_completion)
+end
+```
 
 # :question: Usage
 Simply drop into a .norg file and start typing!
@@ -386,6 +440,7 @@ heartwarming and fuels the urge to keep going :heart:. You can support me here:
 - [Donate directly via paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
 - [Support me on Patreon](https://patreon.com/vhyrro)
 - Donate to my monero wallet: `86CXbnPLa14F458FRQFe26PRfffZTZDbUeb4NzYiHDtzcyaoMnfq1TqVU1EiBFrbKqGshFomDzxWzYX2kMvezcNu9TaKd9t`
+- Donate via bitcoin: `bc1q4ey43t9hhstzdqh8kqcllxwnqlx9lfxqqh439s`
 
 # :green_heart: Credits
 Massive shoutouts to the people who supported the project! These are:
