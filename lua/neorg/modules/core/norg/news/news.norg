@@ -1,6 +1,7 @@
 @document.meta
     title: Neorg News
-    description: Any important information that you probably wanna see.
+    description: Breaking changes that you'll be~
+    definitely interested in.
     author: nvim-neorg
     categories: 
     created: 2021-11-21
@@ -17,8 +18,8 @@ To /exit/ this prompt, press either `<Esc>` or `q`.
 >
 
 If you're reading this then it means Neorg has undergone some changes that may break quite a few
-things. A lot of these changes are syntactical changes, meaning a decent chunk of documents may be
-rendered invalid after an update. This is bound to happen fairly often as we approach 0.1 slowly but
+things. A lot of these changes are syntactical changes, meaning a decent chunk of documents will be
+rendered invalid after this update. This is bound to happen fairly often as we approach 0.1 slowly but
 surely.
 If you ever update Neorg and find that your syntax highlight doesn't work be sure to also run
 `:TSUpdate` :)
@@ -27,10 +28,11 @@ If you ever update Neorg and find that your syntax highlight doesn't work be sur
   There are quite a few breaking changes ahead. Pay attention here, you don't wanna miss this.
 
  ** Upcoming Changes
-    _In the next few days (or in the coming weeks)_ we will be pushing /several/ changes to the
-    Neorg syntax. From the very moment you see this the migration period will have begun. You have
-    a few days to get ready - either pin Neorg to the current commit or be prepared to have to do
-    some converting soon.
+    If you're seeing this then it means Neorg has undergone /several/ changes to its file format
+    and/or internal structure. Be ready to refactor your documents. We'd love to provide tools
+    to make the migration process automatic, but it would be difficult to execute well and we
+    simply do not have the manpower to implement these sorts of things without taking several
+    weeks haha. Be sure to update your TreeSitter parser too!
 
     Here are all the things that we've changed:
 
