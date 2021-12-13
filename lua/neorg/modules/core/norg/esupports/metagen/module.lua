@@ -118,7 +118,7 @@ module.on_event = function(event)
         and event.content.norg
         and module.config.public.type == "auto"
     then
-        -- module.public.inject_metadata()
+        module.public.inject_metadata()
     end
 end
 

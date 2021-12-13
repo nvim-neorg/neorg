@@ -1,7 +1,7 @@
 --[[
     File: Nvim-Cmp
     Title: Integrating Neorg with `nvim-cmp`
-    Summary: A module for integrating nvim-cmp with Neorg
+    Summary: A module for integrating nvim-cmp with Neorg.
     ---
 
 This module works with the `core.norg.completion` module to attempt

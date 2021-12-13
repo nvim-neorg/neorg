@@ -21,6 +21,7 @@ module.public = {
             "- Task marked with `today` context, and already started",
             "- Task starting today",
             "- Task due for today",
+            "- Task marked as pending",
             "",
         }
         local positions = {}
@@ -225,6 +226,25 @@ module.public = {
         return module.private.generate_display(name, positions, res)
     end,
 
+    --- integer percent calculation with check for zero in denominator
+    --- @param numerator number
+    --- @param denominator number
+    percent = function(numerator, denominator)
+        if denominator == 0 then
+            return 0
+        end
+        return math.floor(numerator * 100 / denominator)
+    end,
+
+    --- make a progress bar from a percentage
+    --- @param pct number
+    percent_string = function(pct)
+        local percent_completed = (function() end)()
+
+        local completed_over_10 = math.floor(pct / 10)
+        return "[" .. string.rep("=", completed_over_10) .. string.rep(" ", 10 - completed_over_10) .. "]"
+    end,
+
     --- Display formatted projects from `tasks` table. Uses `projects` table to find all projects
     --- @param tasks core.gtd.queries.task
     --- @param projects core.gtd.queries.project
@@ -236,7 +256,7 @@ module.public = {
 
         local name = "Projects"
         local res = {
-            "| " .. name,
+            "*" .. name .. "*",
             "",
         }
         local positions = {}
@@ -250,36 +270,59 @@ module.public = {
                 return a.state ~= "done"
             end, unknown_project)
             table.insert(res, "- /" .. #undone .. " tasks don't have a project assigned/")
+            table.insert(positions, { line = #res, data = undone })
             table.insert(res, "")
         end
 
+        local projects_by_aof = module.required["core.gtd.queries"].sort_by("area_of_focus", projects)
+
+        -- Prioritize the contexts below
+        local aofs = vim.tbl_keys(projects_by_aof)
+        local sorter = function(a, _)
+            return a == "_"
+        end
+
+        local user_configs = neorg.modules.get_module_config("core.gtd.base").displayers.projects
+
+        table.sort(aofs, sorter)
         local added_projects = {}
-        for _, project in pairs(projects) do
-            local tasks_project = module.private.find_project(projects_tasks, project.node) or {}
+        for _, aof in ipairs(aofs) do
+            local _projects = projects_by_aof[aof]
+            if aof == "_" then
+                table.insert(res, "| /Projects with no Area Of Focus/")
+            else
+                table.insert(res, "| " .. aof)
+            end
+            table.insert(res, "")
+            for _, project in pairs(_projects) do
+                local tasks_project = module.private.find_project(projects_tasks, project.node) or {}
 
-            local completed = vim.tbl_filter(function(t)
-                return t.state == "done"
-            end, tasks_project)
+                local completed = vim.tbl_filter(function(t)
+                    return t.state == "done"
+                end, tasks_project)
 
-            if project ~= "_" and not vim.tbl_contains(added_projects, project.node) then
-                table.insert(res, "* " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)")
-                table.insert(positions, { line = #res, data = project })
+                if vim.tbl_isempty(tasks_project) and not user_configs.show_projects_without_tasks then
+                    goto continue
+                end
 
-                local percent_completed = (function()
-                    if #tasks_project == 0 then
-                        return 0
-                    end
-                    return math.floor(#completed * 100 / #tasks_project)
-                end)()
+                if not user_configs.show_completed_projects and #tasks_project > 0 and #completed == #tasks_project then
+                    goto continue
+                end
 
-                local completed_over_10 = math.floor(percent_completed / 10)
-                local percent_completed_visual = "["
-                    .. string.rep("=", completed_over_10)
-                    .. string.rep(" ", 10 - completed_over_10)
-                    .. "]"
-                table.insert(res, "   " .. percent_completed_visual .. " " .. percent_completed .. "% done")
-                table.insert(added_projects, project.node)
-                table.insert(res, "")
+                if project ~= "_" and not vim.tbl_contains(added_projects, project.node) then
+                    table.insert(
+                        res,
+                        "* " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)"
+                    )
+                    table.insert(positions, { line = #res, data = project })
+
+                    local pct = module.public.percent(#completed, #tasks_project)
+                    local pct_str = module.public.percent_string(pct)
+                    table.insert(res, "   " .. pct_str .. " " .. pct .. "% done")
+                    table.insert(added_projects, project.node)
+                    table.insert(res, "")
+                end
+                ::continue::
             end
         end
 
@@ -447,7 +490,13 @@ module.private = {
             due_today = diff.days <= 0 and diff.weeks <= 0
         end
 
-        return state and (starting_today or due_today or (today_context and already_started))
+        return state
+            and (
+                starting_today
+                or due_today
+                or (today_context and already_started)
+                or (task.state == "pending" and already_started)
+            )
     end,
 
     set_vars_to_buf = function(buf, data)
@@ -564,9 +613,14 @@ module.private = {
         return found_data[1]
     end,
 
+    is_buffer_open = function()
+        return module.private.current_bufnr ~= nil
+    end,
+
     close_buffer = function()
-        -- Closes the display
-        vim.cmd(":bd")
+        if not module.private.is_buffer_open() then
+            return
+        end
 
         -- Go back to previous mode
         local previous_mode = module.required["core.mode"].get_previous_mode()
@@ -576,6 +630,9 @@ module.private = {
         module.private.extras = {}
         module.private.current_bufnr = nil
         module.private.display_namespace_nr = nil
+
+        -- Closes the display
+        vim.cmd(":bd")
     end,
 
     toggle_details = function()
@@ -595,8 +652,22 @@ module.private = {
             return
         end
 
-        -- For displaying projects, we assume that there is no data.state in it
-        if not data.state then
+        if #data > 1 then
+            for _, task in pairs(data) do
+                local state = (function()
+                    if task.state == "done" then
+                        return "- [x] "
+                    elseif task.state == "undone" then
+                        return "- [ ] "
+                    else
+                        return "- [*] "
+                    end
+                end)()
+                local inserted = "  " .. state .. task.content
+                table.insert(res, inserted)
+            end
+            -- For displaying projects, we assume that there is no data.state in it
+        elseif not data.state then
             offset = 1
             local tasks = module.private.find_project(module.private.extras, data.node)
             -- local tasks = module.private.extras[data.content]
