@@ -634,194 +634,198 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         },
     },
 
-    bold = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupBold",
-        query = '(bold (["_open" "_close"]) @icon)',
-    },
-
-    italic = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupItalic",
-        query = '(italic (["_open" "_close"]) @icon)',
-    },
-
-    underline = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupUnderline",
-        query = '(underline (["_open" "_close"]) @icon)',
-    },
-
-    strikethrough = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupStrikethrough",
-        query = '(strikethrough (["_open" "_close"]) @icon)',
-    },
-
-    subscript = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupSubscript",
-        query = '(subscript (["_open" "_close"]) @icon)',
-    },
-
-    superscript = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupSuperscript",
-        query = '(superscript (["_open" "_close"]) @icon)',
-    },
-
-    verbatim = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupVerbatim",
-        query = '(verbatim (["_open" "_close"]) @icon)',
-    },
-
-    comment = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupInlineComment",
-        query = '(inline_comment (["_open" "_close"]) @icon)',
-    },
-
-    math = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupInlineMath",
-        query = '(inline_math (["_open" "_close"]) @icon)',
-    },
-
-    variable = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgMarkupVariable",
-        query = '(variable (["_open" "_close"]) @icon)',
-    },
-
-    spoiler = {
-        enabled = true,
-        icon = "●",
-        highlight = "NeorgSpoiler",
-        query = "(spoiler) @icon",
-        render = function(self, text, node)
-            return {
-                { string.rep(self.icon, #text), self.highlight },
-            }
-        end,
-    },
-
-    link_modifier = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgLinkModifier",
-        query = "(link_modifier) @icon",
-        render = function(self)
-            return {
-                { self.icon, self.highlight },
-            }
-        end,
-    },
-
-    trailing_modifier = {
-        enabled = true,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        highlight = "NeorgTrailingModifier",
-        query = '("_trailing_modifier") @icon',
-        render = function(self)
-            return {
-                { self.icon, self.highlight },
-            }
-        end,
-    },
-
-    url = {
+    markup = {
         enabled = true,
 
-        link = {
+        bold = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgLinkText",
-            query = "(link) @icon",
+            highlight = "NeorgMarkupBold",
+            query = '(bold (["_open" "_close"]) @icon)',
+        },
+
+        italic = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgMarkupItalic",
+            query = '(italic (["_open" "_close"]) @icon)',
+        },
+
+        underline = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgMarkupUnderline",
+            query = '(underline (["_open" "_close"]) @icon)',
+        },
+
+        strikethrough = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgMarkupStrikethrough",
+            query = '(strikethrough (["_open" "_close"]) @icon)',
+        },
+
+        subscript = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgMarkupSubscript",
+            query = '(subscript (["_open" "_close"]) @icon)',
+        },
+
+        superscript = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgMarkupSuperscript",
+            query = '(superscript (["_open" "_close"]) @icon)',
+        },
+
+        verbatim = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgMarkupVerbatim",
+            query = '(verbatim (["_open" "_close"]) @icon)',
+        },
+
+        comment = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgMarkupInlineComment",
+            query = '(inline_comment (["_open" "_close"]) @icon)',
+        },
+
+        math = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgMarkupInlineMath",
+            query = '(inline_math (["_open" "_close"]) @icon)',
+        },
+
+        variable = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgMarkupVariable",
+            query = '(variable (["_open" "_close"]) @icon)',
+        },
+
+        spoiler = {
+            enabled = true,
+            icon = "●",
+            highlight = "NeorgSpoiler",
+            query = "(spoiler) @icon",
             render = function(self, text, node)
-                local concealed_chars = 0
-                local ts = module.required["core.integrations.treesitter"]
-                local location = nil
-                local description = nil
-                local file = node:named_child(0)
-
-                if file:type() == "link_file" then
-                    location = node:named_child(1)
-                    description = node:named_child(2)
-                else
-                    location = file
-                    file = nil
-                    description = node:named_child(1)
-                end
-
-                if location ~= nil and location:type() == "link_description" then
-                    description = location
-                    location = nil
-                end
-
-                if description ~= nil then
-                    local description_text = ts.get_node_text(description:named_child(0))
-                    concealed_chars = #description_text
-                    return {
-                        { description_text, self.highlight },
-                        { string.rep(self.icon, #text - concealed_chars), "" },
-                    }
-                end
-
-                local extmark_text = {}
-
-                if file ~= nil then
-                    local file_text = ts.get_node_text(file)
-                    concealed_chars = #file_text
-                    table.insert(extmark_text, { file_text, "NeorgLinkFile" })
-                end
-
-                if location ~= nil then
-                    local location_type = location:named_child(0)
-                    local location_text = location:named_child(1)
-
-                    local type = ts.get_node_text(location_type)
-                    local text = ts.get_node_text(location_text)
-
-                    local type_name = location_type:type()
-                    type_name = vim.fn.substitute(type_name, [[\(_\|^\)\(\w\)]], [[\u\2]], "g")
-
-                    concealed_chars = concealed_chars + #type + #text
-
-                    table.insert(extmark_text, { type, "Neorg" .. type_name .. "Prefix" })
-                    table.insert(extmark_text, { text, "Neorg" .. type_name })
-                end
-
-                table.insert(extmark_text, { string.rep(self.icon, #text - concealed_chars), "" })
-                return extmark_text
+                return {
+                    { string.rep(self.icon, #text), self.highlight },
+                }
             end,
         },
 
-        anchor = {
+        link_modifier = {
             enabled = true,
             icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-            highlight = "NeorgAnchorDeclerationText",
-            query = "(anchor_declaration) @icon",
-            render = function(self, text, node)
-                local ts = module.required["core.integrations.treesitter"]
-                local addon = ""
-                if node:parent():type() == "anchor_definition" then
-                    addon = string.rep(self.icon, 2 + #ts.get_node_text(node:parent():named_child(1)))
-                end
+            highlight = "NeorgLinkModifier",
+            query = "(link_modifier) @icon",
+            render = function(self)
                 return {
-                    { text:gsub("%[(.+)%]", self.icon .. "%1" .. self.icon) .. addon, highlight },
+                    { self.icon, self.highlight },
                 }
             end,
+        },
+
+        trailing_modifier = {
+            enabled = true,
+            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+            highlight = "NeorgTrailingModifier",
+            query = '("_trailing_modifier") @icon',
+            render = function(self)
+                return {
+                    { self.icon, self.highlight },
+                }
+            end,
+        },
+
+        url = {
+            enabled = true,
+
+            link = {
+                enabled = true,
+                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+                highlight = "NeorgLinkText",
+                query = "(link) @icon",
+                render = function(self, text, node)
+                    local concealed_chars = 0
+                    local ts = module.required["core.integrations.treesitter"]
+                    local location = nil
+                    local description = nil
+                    local file = node:named_child(0)
+
+                    if file:type() == "link_file" then
+                        location = node:named_child(1)
+                        description = node:named_child(2)
+                    else
+                        location = file
+                        file = nil
+                        description = node:named_child(1)
+                    end
+
+                    if location ~= nil and location:type() == "link_description" then
+                        description = location
+                        location = nil
+                    end
+
+                    if description ~= nil then
+                        local description_text = ts.get_node_text(description:named_child(0))
+                        concealed_chars = #description_text
+                        return {
+                            { description_text, self.highlight },
+                            { string.rep(self.icon, #text - concealed_chars), "" },
+                        }
+                    end
+
+                    local extmark_text = {}
+
+                    if file ~= nil then
+                        local file_text = ts.get_node_text(file)
+                        concealed_chars = #file_text
+                        table.insert(extmark_text, { file_text, "NeorgLinkFile" })
+                    end
+
+                    if location ~= nil then
+                        local location_type = location:named_child(0)
+                        local location_text = location:named_child(1)
+
+                        local type = ts.get_node_text(location_type)
+                        local text = ts.get_node_text(location_text)
+
+                        local type_name = location_type:type()
+                        type_name = vim.fn.substitute(type_name, [[\(_\|^\)\(\w\)]], [[\u\2]], "g")
+
+                        concealed_chars = concealed_chars + #type + #text
+
+                        table.insert(extmark_text, { type, "Neorg" .. type_name .. "Prefix" })
+                        table.insert(extmark_text, { text, "Neorg" .. type_name })
+                    end
+
+                    table.insert(extmark_text, { string.rep(self.icon, #text - concealed_chars), "" })
+                    return extmark_text
+                end,
+            },
+
+            anchor = {
+                enabled = true,
+                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+                highlight = "NeorgAnchorDeclerationText",
+                query = "(anchor_declaration) @icon",
+                render = function(self, text, node)
+                    local ts = module.required["core.integrations.treesitter"]
+                    local addon = ""
+                    if node:parent():type() == "anchor_definition" then
+                        addon = string.rep(self.icon, 2 + #ts.get_node_text(node:parent():named_child(1)))
+                    end
+                    return {
+                        { text:gsub("%[(.+)%]", self.icon .. "%1" .. self.icon) .. addon, highlight },
+                    }
+                end,
+            },
         },
     },
 }
