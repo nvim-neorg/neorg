@@ -1,26 +1,61 @@
 neorg	neorg.norg	/* The `.norg` file-format
-neorg-basic-markup	neorg.norg	/** Basic Markup
-neorg-nesting	neorg.norg	/** Things which you can nest
-neorg-unordered-lists	neorg.norg	/*** Unordered lists
-neorg-ordered-lists	neorg.norg	/*** Ordered lists
-neorg-tasks	neorg.norg	/*** Tasks
-neorg-quotes	neorg.norg	/*** Quotes
-neorg-headings	neorg.norg	/*** Headings
-neorg-indentation-reversal	neorg.norg	/***** Indentation reversion
-neorg-links	neorg.norg	/** Links
-neorg-markers	neorg.norg	/** Markers
-neorg-data-tags	neorg.norg	/** Data Tags
-neorg-carryover-tags	neorg.norg	/*** Carryover
-neorg-comments	neorg.norg	/*** Comments
-neorg-name-tag	neorg.norg	/*** Name
-neorg-ordered-tag	neorg.norg	/*** List ordering
-neorg-tables	neorg.norg	/*** Tables
-neorg-code-blocks	neorg.norg	/*** Code Blocks
-neorg-media	neorg.norg	/*** Media
+neorg-advanced-markup	neorg.norg	/ ** Advanced markup
 neorg-advanced-markup	neorg.norg	/** Advanced markup
-neorg-link-modifier	neorg.norg	/*** The Link modifier
-neorg-continuation	neorg.norg	/*** Object continuation
-neorg-insertions	neorg.norg	/*** Insertions
-neorg-foreplay	neorg.norg	/*** Foreplay
-neorg-roadmap	roadmap.norg	/* The Neorg Roadmap
+neorg-basic-markup	neorg.norg	/ ** Basic Markup
+neorg-basic-markup	neorg.norg	/** Basic Markup
 neorg-breaking-changes	breaking-changes.norg	/* All the Breakages
+neorg-carryover-tags	neorg.norg	/  *** Carryover
+neorg-carryover-tags	neorg.norg	/*** Carryover
+neorg-code-blocks	neorg.norg	/  *** Code Blocks
+neorg-code-blocks	neorg.norg	/*** Code Blocks
+neorg-comments	neorg.norg	/  *** Comments
+neorg-comments	neorg.norg	/*** Comments
+neorg-continuation	neorg.norg	/  *** Object continuation
+neorg-continuation	neorg.norg	/*** Object continuation
+neorg-data-tags	neorg.norg	/ ** Data Tags
+neorg-data-tags	neorg.norg	/** Data Tags
+neorg-foreplay	neorg.norg	/  *** Foreplay
+neorg-foreplay	neorg.norg	/*** Foreplay
+neorg-gtd	gtd.norg	/* GTD in Neorg
+neorg-gtd-aof	gtd.norg	/  *** Area Of Focus
+neorg-gtd-capture	gtd.norg	/  *** Capture
+neorg-gtd-clarify	gtd.norg	/  *** Clarify
+neorg-gtd-engage	gtd.norg	/  *** Engage
+neorg-gtd-format	gtd.norg	/ ** Format
+neorg-gtd-format-tasks	gtd.norg	/  *** Task format
+neorg-gtd-organisation	gtd.norg	/  *** Top-level organization
+neorg-gtd-organize	gtd.norg	/  *** Organize
+neorg-gtd-projects	gtd.norg	/  *** Projects management
+neorg-gtd-reflect	gtd.norg	/  *** Reflect
+neorg-gtd-structuree	gtd.norg	/ ** GTD structure for neorg
+neorg-headings	neorg.norg	/  *** Headings
+neorg-headings	neorg.norg	/*** Headings
+neorg-indentation-reversal	neorg.norg	/    ***** Indentation reversion
+neorg-indentation-reversal	neorg.norg	/***** Indentation reversion
+neorg-insertions	neorg.norg	/  *** Insertions
+neorg-insertions	neorg.norg	/*** Insertions
+neorg-link-modifier	neorg.norg	/  *** The Link modifier
+neorg-link-modifier	neorg.norg	/*** The Link modifier
+neorg-links	neorg.norg	/ ** Links
+neorg-links	neorg.norg	/** Links
+neorg-markers	neorg.norg	/ ** Markers
+neorg-markers	neorg.norg	/** Markers
+neorg-media	neorg.norg	/  *** Media
+neorg-media	neorg.norg	/*** Media
+neorg-name-tag	neorg.norg	/  *** Name
+neorg-name-tag	neorg.norg	/*** Name
+neorg-nesting	neorg.norg	/ ** Things which you can nest
+neorg-nesting	neorg.norg	/** Things which you can nest
+neorg-ordered-lists	neorg.norg	/  *** Ordered lists
+neorg-ordered-lists	neorg.norg	/*** Ordered lists
+neorg-ordered-tag	neorg.norg	/  *** List ordering
+neorg-ordered-tag	neorg.norg	/*** List ordering
+neorg-quotes	neorg.norg	/  *** Quotes
+neorg-quotes	neorg.norg	/*** Quotes
+neorg-roadmap	roadmap.norg	/* The Neorg Roadmap
+neorg-tables	neorg.norg	/  *** Tables
+neorg-tables	neorg.norg	/*** Tables
+neorg-tasks	neorg.norg	/  *** Tasks
+neorg-tasks	neorg.norg	/*** Tasks
+neorg-unordered-lists	neorg.norg	/  *** Unordered lists
+neorg-unordered-lists	neorg.norg	/*** Unordered lists

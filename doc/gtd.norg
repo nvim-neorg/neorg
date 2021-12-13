@@ -1,0 +1,289 @@
+@document.meta
+    title: gtd_neorg
+    description: GTD specification for Neorg
+    author: danielmathiot
+    categories:
+    created: 2021-08-19
+    version: 1.0
+@end
+
+| Last changes:
+- 19/08/2021:
+-- [Top-level organization](#Top-level organization): Added `reference` folder spec
+- 22/08/2021:
+-- [Task format](#Task format):
+--- Removed task grouping by metadatas
+--- deleted the mandatory `last_review` field
+--- changed the notes format in a task
+--- Added subtasks
+--- Deleted `:` delimiter in #<due|start|contexts>
+--- Added [Standard contexts](#Standard contexts)
+--- Added [Working with dates](#Working with dates)
+--- Removed notes specification
+--- Added special tags for waiting-for and someday
+-- [Top-level organization](#Top-level organization): Changed top-level organization with new files specs
+-- [Projects management](#Projects management):
+--- Added specs for projects
+--- Changed syntax
+
+
+| *Disclaimers*:
+- This GTD workflow for Neorg is opinionated, and derives from 3+ years of using GTD.
+  It is a tradeoff between core GTD workflow and best practices found in notorious applications
+  implementing GTD.
+- Be aware that the lisibility of .norg files is important, but every part of the process should be
+  done via special commands. That means there is no required direct user interaction in the files.
+
+= TOC
+
+* GTD in Neorg
+
+ ** Format
+
+  *** Task format
+
+   **** Generalities
+        The format for a task is specified as follows (refering to [Syntax](#Syntax)):
+        /Note: the priority of the syntax is in this order/
+        /Note2: if a task has subtasks, it is considered done as soon as all substasks are done/
+        /Note3: You can go up to 6 subtask levels/
+
+        @code norg
+            #contexts §context_name§ §context_name§ ...
+            #time.start §date§
+            #time.due §date§
+            #waiting.for
+            - [ ] §Task description§
+            -- [ ] §Subtask description§
+        @end
+
+   **** Standard contexts
+        - Someday tasks are recognized with a context `someday`
+
+   **** Working with dates
+        The format for date is `YYYY-mm-dd`
+
+  *** Top-level organization
+
+      This is the proposed approach which is directly related to [Organize](#Organize).
+      - The inbox file is at the root of the workspace.
+      - Every `.norg` file is just a placeholder.
+      - The workspace allows an unlimited amount of nested folders, but they mean nothing except the
+        meaning the user wants for them.
+
+      One could create a workspace tree like this:
+
+      @code
+          .
+          ├── inbox.norg
+          ├── index.norg
+          ├── reference
+          │   └── next_house.norg
+          ├── personal
+          │   └── moving_to_next_home.norg
+          └── work
+              └── reunion_5_mai.norg
+      @end
+
+      And another one could use GTD very lightly like this:
+
+      @code
+          .
+          ├── inbox.norg
+          ├── active_projects.norg
+          ├── next_actions.norg
+          └── someday_maybe.norg
+      @end
+
+  *** Projects management
+
+      [Projects](#Project) are represented via [headings](:neorg:#headings) like so:
+
+      @code norg
+      
+          #contexts §context_name§ §context_name§ ...
+          #time.start §date§
+          #time.due §date§
+          * §Project name§
+          - [ ] §Task description§
+      @end
+
+      Here is a more concrete example:
+
+      @code norg
+      * This is a project
+      - [ ] This is a task inside a project
+      
+      * This is another project
+      - [ ] This is a task inside the other project
+      
+      * This is a very large project
+       ** This is a heading for the project
+          - [ ] This is a task
+       ** This is another heading for the project
+          - [ ] This is a task
+      @end
+
+      You can see that we can create headings for a project. 
+      In that way, we leverage neorg capabilities in order to divide tasks and content inside a
+      project.
+
+  *** Area Of Focus
+
+      An [area of focus](****Area of Focus) (AOF) is made with a [marker](:neorg:#markers) like so:
+
+      @code norg
+      | §Area Of Focus name§
+      @end
+
+      As markers (`|`) recognize everything below them as part of the markers, there's only one way
+      to get out of an AOF, which is with an "un-named" marker. We suggest representing that as:
+
+      @code norg
+      | _
+      @end
+
+      Below is an example with AOF's:
+
+      @code norg
+      | This is an AOF
+      
+      * This is a project
+      - [ ] This is a task inside a project
+      
+      * This is another project
+      - [ ] This is a task inside the other project
+      
+      * This is a very large project
+       ** This is a heading for the project
+          - [ ] This is a task
+       ** This is another heading for the project
+          - [ ] This is a task
+      
+      | _
+      
+      This is not in an AOF
+      @end
+
+ ** GTD Structure for Neorg
+
+  *** Capture
+      This is the first stage of GTD, and it involves placing all ideas/things to do/notes/reminders
+      in a centralized place, called /Inbox/.
+
+      - The capture file is called `inbox.norg` by default (but could be customized) and is placed at the root of the workspace.
+      - Everything in the Inbox is a task. So if a note is written in the inbox, it'll be
+        interpreted as a task.
+
+   **** Quick capture
+        Capturing should not take longer than actually doing the task.
+        Taking this into account, creating a task and putting it in Inbox should be very quick.
+        A quick capture workflow should:
+        - create a task on `<CR>`
+        - allow to add more information to the task being written
+        - be easy to open
+
+  *** Clarify
+      This part is what I commonly refer as:
+      > Processing the inbox
+
+      Is is a set of actions to take in order to process what each task means (and removing it from
+      the inbox in the process). A best practice is to process each task at a time, following a FIFO
+      convention. We should design the user interaction with that in mind.
+
+      We should allow the user to:
+      - Modify/Add fields of the task (this does not mean removing the task from inbox)
+      - Delete the task (called *Eliminate*)
+      - Move it to the someday/maybe list
+      - Make it a reference, removing it from all GTD views and moving it to an external note.
+      - Convert it to a project (see [Organize](***Organize))
+
+      A processed task should be deleted from the inbox, and moved to another place (see [Organize](#Organize)).
+
+  *** Organize
+      Where should all processed tasks go?
+
+      The user should have a view to see:
+      - All his next actions
+      - All his projects
+      -- entering on one should show him all of this project's tasks
+
+      In this view we should be able to filter tasks.
+
+   **** Area Of Focus
+        An area of focus is nothing more than an abstraction of your life, like categories.
+        They can contain projects.
+
+   **** Project
+        In GTD there is the concept of a project, which is something we must do in 2+ actions.
+        If something requires only one action, we do not need a project for it.
+        Current implementations introduce a concept of bullet list projects (or parallel tasks).
+
+    ***** Sequential projects
+          A sequential project is a project containing tasks that could be done in a sequential
+          manner. That means the second task in this project could only be shown to the user after
+          finishing the first task.
+
+    ***** Bullet list projects
+          A bullet list project is a project where all tasks can be done in parallel.
+          That means the user can see every task in his user view at the same time.
+
+   **** Next actions
+        A next action is one of the following:
+        - A task that is in a [Bullet list project](#Bullet list projects) and not in someday
+        - The first task of a [Sequential project](#Sequential projects)
+        That means it is the work we could do now.
+
+   **** Changes from base GTD
+    ***** Context Lists
+          There is no concept of context lists. Instead there are tags, e.g. `#contexts home`.
+          Special contexts:
+          - `#contexts today`: Marks a task to be done today, will have particular effects on [Quick view](#Quick view).
+    ***** Projects List
+          See [Project](#Project).
+    ***** Someday List:
+          A someday list is now a context called `@someday`.
+          - `#contexts someday`: Prevent the task from showing in the [Quick view](#Quick view).
+
+  *** Reflect
+      This part of the process is the /review/ part, which is a set of tools to help the user regain
+      clarity and focus on what needs to be done.
+
+   **** Daily review
+        The daily review is a process of shallowly reviewing:
+        - What's been done yesterday
+        - What's in the inbox
+
+        No user interaction per se is necessary for this part.
+
+   **** Weekly review
+        The weekly review is a central place of GTD, and consists of reviewing everything.
+        - Every week, ask the user to start a weekly review in order to keep track of things.
+
+        Every step of [GTD Weekly review](https://gettingthingsdone.com/wp-content/uploads/2014/10/Weekly_Review_Checklist.pdf) should be user interacted, and each step must present one
+        after the other:
+        - /Get Inbox to Zero/: [Clarify](#Clarify)
+        - Review action lists: Open a view to see all contexts (except `#waiting.for` and `#contexts someday`)
+        - Review waiting for lists: Open a view to see all `#waiting.for` tasks
+        - Review projects lists: Open a view to see all projects, with options to see their tasks
+        - Review someday/maybe list: Open a view to see all `#contexts someday` tasks
+
+        The weekly review is done when all steps are done.
+
+  *** Engage
+      This is the part when we go to see what to do and tick off the tasks.
+
+   **** Quick view
+        What we call quick view is a sort of dashboard comprising:
+        - Today's tasks
+        - Assigned for today with `#contexts today`
+        - Starting today (with `#time.start`)
+        - Due today (with `#time.due`)
+        - Calendar for next 7 days (with due dates)
+        - Adding a task to the inbox
+        - Opening a particular project view
+        - Opening a particular context view (or next actions)
+        - Doing a weekly review
+
+#comment
+vim:tw=100:ft=norg:norl:

@@ -63,13 +63,15 @@ module.load = function()
 
     -- If the user has supplied a custom workspace to start in (i.e. :NeorgStart workspace=<name>)
     -- then load that custom workspace here
-    if neorg.configuration.arguments.workspace then
-        module.public.open_workspace(neorg.configuration.arguments.workspace)
-        vim.notify("Start in custom workspace -> " .. neorg.configuration.arguments.workspace)
-        -- If we have loaded this module by invoking :NeorgStart then try jumping
-        -- to the last cached workspace
-    elseif neorg.configuration.manual then
-        module.public.set_last_workspace()
+    if not neorg.configuration.arguments.silent then
+        if neorg.configuration.arguments.workspace then
+            module.public.open_workspace(neorg.configuration.arguments.workspace)
+            vim.notify("Start in custom workspace -> " .. neorg.configuration.arguments.workspace)
+        elseif neorg.configuration.manual then
+            -- If we have loaded this module by invoking :NeorgStart then try jumping
+            -- to the last cached workspace
+            module.public.set_last_workspace()
+        end
     end
 
     -- Synchronize core.neorgcmd autocompletions
@@ -96,6 +98,7 @@ module.private = {
     current_workspace = { "default", vim.fn.getcwd() },
 }
 
+---@class core.norg.dirman
 module.public = {
 
     -- @Summary Returns a list of all the workspaces
@@ -200,8 +203,8 @@ module.public = {
         -- Find a matching workspace
         for workspace, location in pairs(module.config.public.workspaces) do
             if workspace ~= "default" then
-                -- Expand all special symbols like ~ etc.
-                local expanded = vim.fn.expand(location)
+                -- Expand all special symbols like ~ etc. and escape special characters
+                local expanded = string.gsub(vim.fn.expand(location), "%p", "%%%1")
 
                 -- If the workspace location is a parent directory of our current realcwd
                 -- or if the ws location is the same then set it as the real workspace
@@ -269,9 +272,19 @@ module.public = {
     -- @Summary Creates a new Neorg file
     -- @Description Takes in a path (can include directories) and creates a .norg file from that path
     -- @Param  path (string) - a path to place the .norg file in
-    create_file = function(path)
+    create_file = function(path, workspace)
         -- Grab the current workspace's full path
-        local fullpath = module.public.get_current_workspace()[2]
+        local fullpath
+        if workspace ~= nil then
+            fullpath = module.public.get_workspace(workspace)
+        else
+            fullpath = module.public.get_current_workspace()[2]
+        end
+
+        if fullpath == nil then
+            log.error("Error in fetching workspace path")
+            return
+        end
 
         -- Split the path at every /
         local split = vim.split(vim.trim(path), "/", true)
@@ -302,9 +315,11 @@ module.public = {
     -- @Param  path (string) - a path to open the file (e.g directory/filename.norg)
     open_file = function(workspace_name, path)
         local workspace = module.public.get_workspace(workspace_name)
+
         if workspace == nil then
             return
         end
+
         vim.cmd("e " .. workspace .. "/" .. path .. " | w")
     end,
 
@@ -395,13 +410,19 @@ module.public = {
         local res = {}
         local workspace = module.public.get_workspace(workspace_name)
         if workspace == nil then
+            log.error("Workspace " .. workspace_name .. "does not exist")
             return
         end
 
         local scanned_dir = scan.scan_dir(workspace)
 
+        -- We remove the workspace path and only keep relative path.
+        -- In order to prevent bugs with special characters (hyphens), we escapte them in the pattern
+        -- @see https://stackoverflow.com/questions/6705872/how-to-escape-a-variable-in-lua
+        local workspace_pattern = string.gsub(workspace, "%p", "%%%1")
+
         for _, file in pairs(scanned_dir) do
-            local remove_dir = string.gsub(file, workspace .. "/", "")
+            local remove_dir = string.gsub(file, workspace_pattern .. "/", "")
 
             if string.find(remove_dir, ".norg$") then
                 table.insert(res, remove_dir)
@@ -430,6 +451,26 @@ module.public = {
         if workspace ~= "default" then
             vim.cmd("e " .. ws_match .. "/" .. module.config.public.index)
         end
+    end,
+
+    expand_path = function(path)
+        -- Expand special chars like `$`
+        local workspace, custom_workspace_path = path:match("^($([^/]*))")
+
+        if custom_workspace_path and custom_workspace_path:len() > 0 then
+            local workspace_path = module.public.get_workspace(custom_workspace_path)
+
+            if not workspace_path then
+                log.trace("Unable to expand path: workspace does not exist")
+                return
+            end
+
+            workspace_path = workspace_path .. workspace_path:sub(custom_workspace_path:len() + 2)
+        elseif workspace then
+            path = module.public.get_current_workspace()[2] .. path:sub(workspace:len() + 1)
+        end
+
+        return vim.fn.fnamemodify(path .. ".norg", ":p")
     end,
 }
 
