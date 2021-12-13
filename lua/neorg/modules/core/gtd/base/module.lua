@@ -119,8 +119,16 @@ module.load = function()
                 return
             end
 
-            tasks = module.required["core.gtd.queries"].add_metadata(tasks, "task")
-            projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
+            tasks = module.required["core.gtd.queries"].add_metadata(
+                tasks,
+                "task",
+                { keys = { "contexts, waiting.for" } }
+            )
+            projects = module.required["core.gtd.queries"].add_metadata(
+                projects,
+                "project",
+                { keys = { "contexts, waiting.for" } }
+            )
 
             local contexts = module.private.find_by_key("contexts", tasks, projects, { "today", "someday" })
             local waiting_for = module.private.find_by_key("waiting.for", tasks, projects)

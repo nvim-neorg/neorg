@@ -142,6 +142,7 @@ module.public = {
     ---   - opts.extract (bool):   if false does not extract the content from the nodes
     ---   - opts.same_node (bool): if true, will only fetch metadatas from the node and not parent ones.
     ---   It will not fetch metadatas that group tasks or projects
+    ---   - opts.keys (table):     a table of keys to add to the node (e.g state, waiting.for, ...)
     --- @return core.gtd.queries.project|core.gtd.queries.task
     add_metadata = function(nodes, type, opts)
         vim.validate({
@@ -161,29 +162,70 @@ module.public = {
             extract = true,
         }
 
+        local function get_key(key, cb, ...)
+            if opts.keys and not vim.tbl_contains(opts.keys, key) then
+                return
+            end
+
+            return cb(...)
+        end
+
         local previous_bufnr_tbl = {}
         for _, node in ipairs(nodes) do
             local exported = {}
             exported.node = node[1]
             exported.bufnr = node[2]
 
-            exported.content = module.private.get_content(exported, type, opts)
+            exported.content = get_key("content", module.private.get_content, exported, type, opts)
 
             if type == "task" then
-                exported.project = module.private.get_task_project(exported, opts)
-                exported.project_node = module.private.get_task_project(exported, { project_node = true })
-                exported.state = module.private.get_task_state(exported, opts)
+                exported.project = get_key("project", module.private.get_task_project, exported, opts)
+                exported.project_node = get_key(
+                    "project_node",
+                    module.private.get_task_project,
+                    exported,
+                    { project_node = true }
+                )
+                exported.state = get_key("state", module.private.get_task_state, exported, opts)
             end
 
             ---@type core.gtd.base.config
             local config = neorg.modules.get_module_config("core.gtd.base")
             local syntax = config.syntax
 
-            exported.contexts = module.public.get_tag(string.sub(syntax.context, 2), exported, type, opts)
-            exported["time.start"] = module.public.get_tag(string.sub(syntax.start, 2), exported, type, opts)
-            exported["time.due"] = module.public.get_tag(string.sub(syntax.due, 2), exported, type, opts)
-            exported["waiting.for"] = module.public.get_tag(string.sub(syntax.waiting, 2), exported, type, opts)
-            exported["area_of_focus"] = module.private.get_aof(exported, opts)
+            exported.contexts = get_key(
+                "contexts",
+                module.public.get_tag,
+                string.sub(syntax.context, 2),
+                exported,
+                type,
+                opts
+            )
+            exported["time.start"] = get_key(
+                "time.start",
+                module.public.get_tag,
+                string.sub(syntax.start, 2),
+                exported,
+                type,
+                opts
+            )
+            exported["time.due"] = get_key(
+                "time.due",
+                module.public.get_tag,
+                string.sub(syntax.due, 2),
+                exported,
+                type,
+                opts
+            )
+            exported["waiting.for"] = get_key(
+                "waiting.for",
+                module.public.get_tag,
+                string.sub(syntax.waiting, 2),
+                exported,
+                type,
+                opts
+            )
+            exported["area_of_focus"] = get_key("area_of_focus", module.private.get_aof, exported, opts)
 
             -- Add position in file for each node
             if not previous_bufnr_tbl[exported.bufnr] then
