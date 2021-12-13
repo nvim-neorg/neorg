@@ -57,6 +57,10 @@ module.config.public = {
             show_projects_without_tasks = true,
         },
     },
+    -- Generates custom completion for tags: #contexts,#waiting.for
+    -- Generates it only once, when booting Neorg.
+    -- It gets all tasks and projects, and retrieve all user-created tag values
+    custom_tag_completion = false,
 }
 
 module.public = {
@@ -109,29 +113,35 @@ module.load = function()
     -- Generates completion for gtd
     for _, completion in pairs(module.required["core.norg.completion"].completions) do
         if vim.tbl_contains(completion.complete, "contexts") then
-            local exclude_files = module.config.public.exclude
-            table.insert(exclude_files, module.config.public.default_lists.inbox)
+            local contexts
+            local waiting_for
+            if module.config.public.custom_tag_completion then
+                local exclude_files = module.config.public.exclude
+                table.insert(exclude_files, module.config.public.default_lists.inbox)
+                local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = exclude_files })
+                local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = exclude_files })
 
-            local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = exclude_files })
-            local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = exclude_files })
+                if not tasks or not projects then
+                    return
+                end
 
-            if not tasks or not projects then
-                return
+                tasks = module.required["core.gtd.queries"].add_metadata(
+                    tasks,
+                    "task",
+                    { keys = { "contexts", "waiting.for" } }
+                )
+                projects = module.required["core.gtd.queries"].add_metadata(
+                    projects,
+                    "project",
+                    { keys = { "contexts", "waiting.for" } }
+                )
+
+                contexts = module.private.find_by_key("contexts", tasks, projects, { "today", "someday" })
+                waiting_for = module.private.find_by_key("waiting.for", tasks, projects)
+            else
+                contexts = { "today", "someday" }
+                waiting_for = {}
             end
-
-            tasks = module.required["core.gtd.queries"].add_metadata(
-                tasks,
-                "task",
-                { keys = { "contexts, waiting.for" } }
-            )
-            projects = module.required["core.gtd.queries"].add_metadata(
-                projects,
-                "project",
-                { keys = { "contexts, waiting.for" } }
-            )
-
-            local contexts = module.private.find_by_key("contexts", tasks, projects, { "today", "someday" })
-            local waiting_for = module.private.find_by_key("waiting.for", tasks, projects)
 
             local _completions = {
                 {

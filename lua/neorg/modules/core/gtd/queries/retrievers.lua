@@ -158,9 +158,7 @@ module.public = {
         })
 
         local res = {}
-        opts = opts or {
-            extract = true,
-        }
+        opts = vim.tbl_extend("force", { extract = true }, opts or {})
 
         local function get_key(key, cb, ...)
             if opts.keys and not vim.tbl_contains(opts.keys, key) then
