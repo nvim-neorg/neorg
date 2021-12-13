@@ -173,6 +173,13 @@ module.public = {
             config = { config, "table", true },
         })
 
+        local bufname = "neorg://" .. name
+
+        if vim.fn.bufexists(bufname) == 1 then
+            log.error("Buffer '" .. name .. "' already exists")
+            return
+        end
+
         vim.cmd("below new")
 
         local buf = vim.api.nvim_win_get_buf(0)
@@ -184,7 +191,7 @@ module.public = {
             buflisted = false,
         }
 
-        vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
+        vim.api.nvim_buf_set_name(buf, bufname)
         vim.api.nvim_win_set_buf(0, buf)
 
         vim.api.nvim_win_set_option(0, "number", false)

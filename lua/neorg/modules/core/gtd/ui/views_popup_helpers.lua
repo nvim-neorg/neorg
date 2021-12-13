@@ -53,14 +53,6 @@ module.private = {
                     end,
                 })
                 :blank()
-                :text("Other:")
-                :flag("s", "Someday", {
-                    destroy = false,
-                    callback = function()
-                        log.warn("Unimplemented :(")
-                        selection:pop_page()
-                    end,
-                })
                 :rflag("c", "Custom", {
                     destroy = false,
                     callback = function()
@@ -143,45 +135,268 @@ module.private = {
                 --- @type core.gtd.queries.project
                 projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
-                -- Use the alphabet to generate flag keys
-                -- NOTE: If there is more than 26 projects, will stop there
-                local alphabet = "abcdefghijklmnopqrstuvwxyz"
-                local index = 0
-
-                for _, project in pairs(projects) do
-                    index = (index % #alphabet) + 1
-                    if index == 0 then
+                for i, project in pairs(projects) do
+                    local f = module.private.create_flag(i)
+                    -- NOTE: If there is more than 26 projects, will stop there
+                    if not f then
                         selection:text("Too much projects to display...")
                         break
                     end
-                    local f = alphabet:sub(index, index)
-                    selection:flag(f, project.content, function()
-                        local location = module.required["core.gtd.queries"].get_end_project(project)
-                        module.required["core.gtd.queries"].create(
-                            "task",
-                            task,
-                            project.bufnr,
-                            location,
-                            false,
-                            { newline = false }
-                        )
-                        vim.cmd(string.format([[echom '%s']], 'Task added to "' .. project.content .. '".'))
-                    end)
+
+                    selection:flag(f, project.content, {
+                        callback = function()
+                            selection:push_page()
+
+                            module.private.create_recursive_project_placement(
+                                selection,
+                                project.node,
+                                project.bufnr,
+                                project.content,
+                                task,
+                                true
+                            )
+                        end,
+                        destroy = false,
+                    })
                 end
 
                 selection:blank():text("Create new project"):flag("x", "Create new project", {
                     callback = function()
-                        log.warn("Unimplemented :(")
+                        selection:push_page()
+                        selection:title("Create a new project"):blank():prompt("Project name", {
+                            callback = function(text)
+                                --- @type core.gtd.queries.project
+                                local project = {}
+                                project.content = text
+
+                                selection:push_page()
+                                selection
+                                    :title("Create a new project")
+                                    :blank()
+                                    :text("Project name: " .. project.content)
+                                    :blank()
+
+                                local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
+                                local files = module.required["core.norg.dirman"].get_norg_files(workspace)
+
+                                if vim.tbl_isempty(files) then
+                                    selection:text("No files found...")
+                                    return
+                                end
+
+                                selection:text("Select project location")
+                                for i, file in pairs(files) do
+                                    local f = module.private.create_flag(i)
+                                    if not f then
+                                        selection:title("Too much content...")
+                                        break
+                                    end
+                                    selection:flag(f, file, {
+                                        callback = function()
+                                            module.private.create_project(selection, file, task, project)
+                                        end,
+                                        destroy = false,
+                                    })
+                                end
+                            end,
+                            pop = false,
+                            destroy = false,
+                        })
                     end,
+                    destroy = false,
                 })
             end,
             destroy = false,
         })
     end,
 
+    create_project = function(selection, file, task, project)
+        local tree = {
+            {
+                query = { "all", "marker" },
+                recursive = true,
+            },
+        }
+
+        local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
+        local path = module.required["core.norg.dirman"].get_workspace(workspace)
+        local bufnr = module.required["core.norg.dirman"].get_file_bufnr(path .. "/" .. file)
+        local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
+        local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
+
+        local location
+        if vim.tbl_isempty(nodes) then
+            location = module.required["core.gtd.queries"].get_end_document_content(bufnr)
+            if not location then
+                log.error("Something is wrong in the " .. file .. " file")
+                return
+            end
+            selection:destroy()
+            module.required["core.gtd.queries"].create(
+                "project",
+                project,
+                bufnr,
+                { location, 0 },
+                false,
+                { newline = false }
+            )
+            module.required["core.gtd.queries"].create("task", task, bufnr, { location + 1, 2 }, false, {
+                newline = false,
+            })
+        else
+            selection:push_page()
+            selection:title("Create a new project"):blank():text("Project name: " .. project.content):blank()
+            selection:text("Select in which area of focus add this project")
+
+            for i, marker_node in pairs(nodes) do
+                local f = module.private.create_flag(i)
+                if not f then
+                    selection:title("Too much content...")
+                    break
+                end
+                selection:flag(f, extracted_nodes[i]:sub(3), function()
+                    local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+                    local _, _, er, _ = ts_utils.get_node_range(marker_node[1])
+                    module.required["core.gtd.queries"].create(
+                        "project",
+                        project,
+                        bufnr,
+                        { er, 0 },
+                        false,
+                        { newline = false }
+                    )
+                    module.required["core.gtd.queries"].create("task", task, bufnr, { er + 1, 2 }, false, {
+                        newline = false,
+                    })
+                end)
+            end
+
+            selection:flag("<CR>", "None", function()
+                location = module.required["core.gtd.queries"].get_end_document_content(bufnr)
+                if not location then
+                    log.error("Something is wrong in the " .. file .. " file")
+                    return
+                end
+                selection:destroy()
+
+                module.required["core.gtd.queries"].create(
+                    "project",
+                    project,
+                    bufnr,
+                    { location, 0 },
+                    true,
+                    { newline = false }
+                )
+                module.required["core.gtd.queries"].create("task", task, bufnr, { location + 2, 2 }, false, {
+                    newline = false,
+                })
+            end)
+        end
+    end,
+
+    create_recursive_project_placement = function(selection, node, bufnr, project_title, task, is_project_root)
+        ---- Creates flags for generic lists from current node
+        --- @param node core.gtd.queries.project
+        local function get_generic_lists(node, bufnr)
+            local tree = {
+                { query = { "all", "generic_list" } },
+                { query = { "all", "carryover_tag_set" } },
+            }
+            local nodes = module.required["core.queries.native"].query_from_tree(node, tree, bufnr)
+
+            if nodes and not vim.tbl_isempty(nodes) then
+                return nodes
+            end
+        end
+
+        --- Recursively creates subheadings flags
+        ---@param node userdata
+        local function create_subheadings(selection, node, bufnr)
+            local node_type = node:type()
+            -- Get subheading level
+            local heading_level = string.sub(node_type, -1)
+            heading_level = tonumber(heading_level) + 1
+
+            -- Get all direct subheadings
+            local tree = {
+                {
+                    query = { "all", "heading" .. heading_level },
+                },
+            }
+
+            local nodes = module.required["core.queries.native"].query_from_tree(node, tree, bufnr)
+            local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
+
+            for i, node in pairs(extracted_nodes) do
+                local f = module.private.create_flag(i)
+                if not f then
+                    selection:title("Too much subheadings...")
+                    break
+                end
+                node = string.sub(node, heading_level + 2)
+                selection:flag(f, "Append to " .. node .. " (subheading)", {
+                    callback = function()
+                        selection:push_page()
+                        module.private.create_recursive_project_placement(
+                            selection,
+                            nodes[i][1],
+                            nodes[i][2],
+                            project_title,
+                            task,
+                            false
+                        )
+                    end,
+                    destroy = false,
+                })
+            end
+        end
+
+        selection:title(project_title):blank()
+
+        local description = is_project_root and "Project root" or "Root of current subheading"
+        local location
+
+        selection:text("Where do you want to add the task ?")
+        create_subheadings(selection, node, bufnr)
+        selection:flag("<CR>", description, {
+            callback = function()
+                local generic_lists = get_generic_lists(node, bufnr)
+                if generic_lists then
+                    local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+
+                    local last_list = generic_lists[#generic_lists]
+
+                    local _, sc, er, _ = ts_utils.get_node_range(last_list[1])
+                    if last_list[1]:type() == "carryover_tag_set" then
+                        location = { er + 2, sc }
+                    else
+                        location = { er + 1, sc }
+                    end
+                else
+                    location = module.required["core.gtd.queries"].get_end_project(node, bufnr)
+                end
+
+                module.required["core.gtd.queries"].create("task", task, bufnr, location, false, { newline = false })
+                vim.cmd(string.format([[echom '%s']], 'Task added to "' .. project_title .. '".'))
+            end,
+            destroy = true,
+        })
+    end,
+
+    create_flag = function(index)
+        local alphabet = "abcdefghijklmnopqrstuvwxyz"
+        index = (index % #alphabet)
+        if index == 0 then
+            return
+        end
+
+        return alphabet:sub(index, index)
+    end,
+
     capture_task = function(selection)
         return selection:title("Add a task"):blank():prompt("Task", {
             callback = function(text)
+                ---@type core.gtd.queries.task
                 local task = {}
                 task.content = text
 
@@ -214,7 +429,7 @@ module.private = {
                     end)
                     :flag("x", "Add to cursor position", function()
                         local cursor = vim.api.nvim_win_get_cursor(0)
-                        local location = cursor[1] - 1
+                        local location = { cursor[1] - 1, 0 }
                         module.required["core.gtd.queries"].create(
                             "task",
                             task,
@@ -242,7 +457,7 @@ module.private = {
                         local buf = vim.uri_to_bufnr(uri)
                         local end_row, projectAtEnd = module.required["core.gtd.queries"].get_end_document_content(buf)
 
-                        module.required["core.gtd.queries"].create("task", task, buf, end_row, projectAtEnd)
+                        module.required["core.gtd.queries"].create("task", task, buf, { end_row, 0 }, projectAtEnd)
                     end)
 
                 return selection
