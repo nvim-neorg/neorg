@@ -99,9 +99,7 @@ function _neorgcmd_generate_completions(_, command)
     if #split_command == 2 then
         return vim.tbl_filter(function(key)
             return key ~= "__any__" and key:find(split_command[#split_command])
-        end, vim.tbl_keys(
-            ref
-        ))
+        end, vim.tbl_keys(ref))
     end
 
     -- Splice the command to omit the beginning :Neorg bit
@@ -130,9 +128,7 @@ function _neorgcmd_generate_completions(_, command)
     -- Return everything from ref that is a potential match
     return vim.tbl_filter(function(key)
         return key ~= "__any__" and key:find(split_command[#split_command])
-    end, vim.tbl_keys(
-        ref
-    ))
+    end, vim.tbl_keys(ref))
 end
 
 module.load = function()
@@ -363,8 +359,6 @@ module.public = {
     set_completion_callback = function(callback)
         _neorgcmd_generate_completions = callback
     end,
-
-    version = "0.0.9",
 }
 
 module.neorg_post_load = module.public.sync

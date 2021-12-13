@@ -13,9 +13,13 @@ module.public = {
                 n = { -- Bind keys in normal mode
 
                     -- Keys for managing TODO items and setting their states
-                    { "gtd", "core.norg.qol.todo_items.todo.task_done" },
                     { "gtu", "core.norg.qol.todo_items.todo.task_undone" },
                     { "gtp", "core.norg.qol.todo_items.todo.task_pending" },
+                    { "gtd", "core.norg.qol.todo_items.todo.task_done" },
+                    { "gth", "core.norg.qol.todo_items.todo.task_on_hold" },
+                    { "gtc", "core.norg.qol.todo_items.todo.task_cancelled" },
+                    { "gtr", "core.norg.qol.todo_items.todo.task_recurring" },
+                    { "gti", "core.norg.qol.todo_items.todo.task_important" },
                     { "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" },
 
                     -- Keys for managing GTD
@@ -26,16 +30,19 @@ module.public = {
                     -- Keys for managing notes
                     { neorg_leader .. "nn", "core.norg.dirman.new.note" },
 
-                    { "<CR>", "core.norg.esupports.goto_link" },
-
-                    { "<C-s>", "core.integrations.telescope.find_linkable" },
+                    { "<CR>", "core.norg.esupports.hop.hop-link" },
+                    { "<M-CR>", "core.norg.esupports.hop.hop-link", "vsplit" },
 
                     { "<M-k>", "core.norg.manoeuvre.item_up" },
                     { "<M-j>", "core.norg.manoeuvre.item_down" },
                 },
 
-                i = {
-                    { "<C-l>", "core.integrations.telescope.insert_link" },
+                o = {
+                    { "ah", "core.norg.manoeuvre.textobject.around-heading" },
+                    { "ih", "core.norg.manoeuvre.textobject.inner-heading" },
+                    { "at", "core.norg.manoeuvre.textobject.around-tag" },
+                    { "it", "core.norg.manoeuvre.textobject.inner-tag" },
+                    { "al", "core.norg.manoeuvre.textobject.around-whole-list" },
                 },
             }, {
                 silent = true,
@@ -54,11 +61,45 @@ module.public = {
                 noremap = true,
             })
 
+            -- Map the below keys on gtd displays
+            keybinds.map_event_to_mode("gtd-displays", {
+                n = {
+                    { "<CR>", "core.gtd.ui.goto_task" },
+
+                    -- Keys for closing the current display
+                    { "q", "core.gtd.ui.close" },
+                    { "<Esc>", "core.gtd.ui.close" },
+
+                    { "e", "core.gtd.ui.edit_task" },
+                    { "<Tab>", "core.gtd.ui.details" },
+                },
+            }, {
+                silent = true,
+                noremap = true,
+                nowait = true,
+            })
+
+            -- Map the below keys on presenter mode
+            keybinds.map_event_to_mode("presenter", {
+                n = {
+                    { "<CR>", "core.presenter.next_page" },
+                    { "l", "core.presenter.next_page" },
+                    { "h", "core.presenter.previous_page" },
+
+                    -- Keys for closing the current display
+                    { "q", "core.presenter.close" },
+                    { "<Esc>", "core.presenter.close" },
+                },
+            }, {
+                silent = true,
+                noremap = true,
+                nowait = true,
+            })
             -- Apply the below keys to all modes
             keybinds.map_to_mode("all", {
                 n = {
-                    { neorg_leader .. "mn", ":Neorg set-mode norg<CR>" },
-                    { neorg_leader .. "mh", ":Neorg set-mode traverse-heading<CR>" },
+                    { neorg_leader .. "mn", ":Neorg mode norg<CR>" },
+                    { neorg_leader .. "mh", ":Neorg mode traverse-heading<CR>" },
                 },
             }, {
                 silent = true,

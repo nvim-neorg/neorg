@@ -1,18 +1,17 @@
 --[[
-    Module for requesting content from files in a workspace using treesitter
-
-REQUIRES:
-    - core.integrations.treesitter  for treesitter purposes
-
-EXPOSES:
-    - query_nodes_from_buf      query nodes from a file
-    - query_from_tree           query nodes specified by a tree table
-    - extract_nodes             extract nodes contents
-    - find_parent_node          find a parent node recursively
-    - find_sibling_node         find sibling nodes that match a query from a specified node
+    File: Queries-Module
+    Title: Queries Module
+    Summary: TS wrapper in order to fetch nodes using a custom table.
+    ---
+This module uses tree-like tables in order to fetch useful informations from a TS tree.
 --]]
 
 require("neorg.modules.base")
+
+---@class core.queries.native.tree_node
+---@field query string[]
+---@field subtree core.queries.native.tree_node[]|nil
+---@field recursive boolean|nil
 
 local module = neorg.modules.create("core.queries.native")
 
@@ -23,92 +22,42 @@ module.setup = function()
     }
 end
 
+module.examples = {
+    ["Get the content of all todo_item1 in a norg file"] = function()
+        local buf = 1 -- The buffer to query informations
+
+        --- @type core.queries.native.tree_node[]
+        local tree = {
+            {
+                query = { "first", "document_content" },
+                subtree = {
+                    {
+                        query = { "all", "generic_list" },
+                        recursive = true,
+                        subtree = {
+                            {
+                                query = { "all", "todo_item1" },
+                            },
+                        },
+                    },
+                },
+            },
+        }
+
+        -- Get a list of { node, buf }
+        local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, buf)
+        local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
+
+        print(nodes, extracted_nodes)
+    end,
+}
+
+---@class core.queries.native
 module.public = {
-
-    --- Use a `tree` to query all required nodes from a `bufnr`. Returns a list of nodes of type { node, bufnr }
-    --- @param tree table
-    --- @param bufnr number
-    --- @return table
-    query_nodes_from_buf = function(tree, bufnr)
-        local root_node = module.private.get_buf_root_node(bufnr)
-        if not root_node then
-            return
-        end
-
-        local res = module.public.query_from_tree(root_node, tree, bufnr)
-        return res
-    end,
-
-    --- Extract content from `nodes` of type { node, bufnr }
-    --- @param nodes table
-    --- @return table
-    extract_nodes = function(nodes)
-        local res = {}
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-
-        for _, node in ipairs(nodes) do
-            local extracted = ts_utils.get_node_text(node[1], node[2])
-            table.insert(res, extracted[1])
-        end
-        return res
-    end,
-
-    --- Find the parent `node` that match `node_type`. Returns a node of type { node, bufnr }.
-    --- If `opts.multiple`, returns a table of parent nodes that mached `node_type`
-    --- `node` must be of type { node, bufnr }
-    --- @param node table
-    --- @param node_type string
-    --- @param opts table
-    ---   - opts.multiple (bool):  if true, will return all recursive parent nodes that match `node_type`
-    --- @return table
-    find_parent_node = function(node, node_type, opts)
-        opts = opts or {}
-        local res = {}
-        local parent = node[1]:parent()
-        while parent do
-            if parent:type() == node_type then
-                table.insert(res, { parent, node[2] })
-                if not opts.multiple then
-                    return res[1]
-                end
-            end
-            parent = parent:parent()
-        end
-        return res
-    end,
-
-    --- Finds the first sibling `node` (type { node, bufnr } ) that match `node_type`. Returns a node of type { node, bufnr }
-    --- @param node table
-    --- @param node_type string
-    --- @param opts table
-    ---   - opts.where (table):     if provided will try the where stateement supplied
-    --- @return table
-    find_sibling_node = function(node, node_type, opts)
-        opts = opts or {}
-        local parent = node[1]:parent()
-
-        if not parent or parent:child_count() == 1 then
-            return { nil, node[2] }
-        end
-
-        for child in parent:iter_children() do
-            if child:type() == node_type then
-                if opts.where and module.private.predicate_where(child, opts.where, { bufnr = node[2] }) then
-                    return { child, node[2] }
-                end
-                if not opts.where then
-                    return { child, node[2] }
-                end
-            end
-        end
-
-        return { nil, node[2] }
-    end,
-
     --- Recursively generates results from a `parent` node, following a `tree` table
     --- @see First implementation in: https://github.com/danymat/neogen/blob/main/lua/neogen/utilities/nodes.lua
     --- @param parent userdata
-    --- @param tree table
+    --- @param tree core.queries.native.tree_node
     --- @param results table|nil
     --- @return table
     query_from_tree = function(parent, tree, bufnr, results)
@@ -151,6 +100,72 @@ module.public = {
 
         return res
     end,
+
+    --- Use a `tree` to query all required nodes from a `bufnr`. Returns a list of nodes of type { node, bufnr }
+    --- @param tree core.queries.native.tree_node
+    --- @param bufnr number
+    --- @return table
+    query_nodes_from_buf = function(tree, bufnr)
+        local root_node = module.private.get_buf_root_node(bufnr)
+        if not root_node then
+            return
+        end
+
+        local res = module.public.query_from_tree(root_node, tree, bufnr)
+        return res
+    end,
+
+    --- Extract content from `nodes` of type { node, bufnr }
+    --- @param nodes table
+    --- @param opts table
+    ---   - opts.all_lines (bool)    if true, will return all lines instead of the first one
+    --- @return table
+    extract_nodes = function(nodes, opts)
+        opts = opts or {}
+        local res = {}
+        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+
+        for _, node in ipairs(nodes) do
+            local extracted = ts_utils.get_node_text(node[1], node[2])
+
+            if opts.all_lines then
+                table.insert(res, extracted)
+            else
+                table.insert(res, extracted[1])
+            end
+        end
+        return res
+    end,
+
+    --- Find the parent `node` that match `node_type`. Returns a node of type { node, bufnr }.
+    --- If `opts.multiple`, returns a table of parent nodes that mached `node_type`
+    --- `node` must be of type { node, bufnr }
+    --- @param node table
+    --- @param node_type string
+    --- @param opts table
+    ---   - opts.multiple (bool):  if true, will return all recursive parent nodes that match `node_type`
+    --- @return table
+    find_parent_node = function(node, node_type, opts)
+        vim.validate({
+            node = { node, "table" },
+            node_type = { node_type, "string" },
+            opts = { opts, "table", true },
+        })
+
+        opts = opts or {}
+        local res = {}
+        local parent = node[1]:parent()
+        while parent do
+            if parent:type() == node_type then
+                table.insert(res, { parent, node[2] })
+                if not opts.multiple then
+                    return res[1]
+                end
+            end
+            parent = parent:parent()
+        end
+        return res
+    end,
 }
 
 module.private = {
@@ -165,7 +180,7 @@ module.private = {
 
     --- Returns a list of child nodes (from `parent`) that matches a `tree`
     --- @param parent userdata
-    --- @param tree table
+    --- @param tree core.queries.native.tree_node
     --- @return table
     matching_nodes = function(parent, tree, bufnr)
         local res = {}
@@ -202,11 +217,13 @@ module.private = {
     ---   - opts.recursive (bool):      if true will recursively find the matching query
     --- @return table
     matching_query = function(parent, query, opts)
+        vim.validate({
+            parent = { parent, "userdata" },
+            query = { query, "table" },
+            opts = { opts, "table", true },
+        })
         opts = opts or {}
         local res = {}
-
-        -- TODO Error when query is not a table
-        -- DISPLAY ERROR MESSAGES
 
         if not query then
             return "No 'queries' value present in the query object!",

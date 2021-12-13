@@ -98,6 +98,7 @@ module.private = {
     current_workspace = { "default", vim.fn.getcwd() },
 }
 
+---@class core.norg.dirman
 module.public = {
 
     -- @Summary Returns a list of all the workspaces
@@ -202,8 +203,8 @@ module.public = {
         -- Find a matching workspace
         for workspace, location in pairs(module.config.public.workspaces) do
             if workspace ~= "default" then
-                -- Expand all special symbols like ~ etc.
-                local expanded = vim.fn.expand(location)
+                -- Expand all special symbols like ~ etc. and escape special characters
+                local expanded = string.gsub(vim.fn.expand(location), "%p", "%%%1")
 
                 -- If the workspace location is a parent directory of our current realcwd
                 -- or if the ws location is the same then set it as the real workspace
@@ -271,9 +272,19 @@ module.public = {
     -- @Summary Creates a new Neorg file
     -- @Description Takes in a path (can include directories) and creates a .norg file from that path
     -- @Param  path (string) - a path to place the .norg file in
-    create_file = function(path)
+    create_file = function(path, workspace)
         -- Grab the current workspace's full path
-        local fullpath = module.public.get_current_workspace()[2]
+        local fullpath
+        if workspace ~= nil then
+            fullpath = module.public.get_workspace(workspace)
+        else
+            fullpath = module.public.get_current_workspace()[2]
+        end
+
+        if fullpath == nil then
+            log.error("Error in fetching workspace path")
+            return
+        end
 
         -- Split the path at every /
         local split = vim.split(vim.trim(path), "/", true)
@@ -440,6 +451,26 @@ module.public = {
         if workspace ~= "default" then
             vim.cmd("e " .. ws_match .. "/" .. module.config.public.index)
         end
+    end,
+
+    expand_path = function(path)
+        -- Expand special chars like `$`
+        local workspace, custom_workspace_path = path:match("^($([^/]*))")
+
+        if custom_workspace_path and custom_workspace_path:len() > 0 then
+            local workspace_path = module.public.get_workspace(custom_workspace_path)
+
+            if not workspace_path then
+                log.trace("Unable to expand path: workspace does not exist")
+                return
+            end
+
+            workspace_path = workspace_path .. workspace_path:sub(custom_workspace_path:len() + 2)
+        elseif workspace then
+            path = module.public.get_current_workspace()[2] .. path:sub(workspace:len() + 1)
+        end
+
+        return vim.fn.fnamemodify(path .. ".norg", ":p")
     end,
 }
 

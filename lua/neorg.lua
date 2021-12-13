@@ -97,6 +97,21 @@ function neorg.org_file_entered(manual, arguments)
 
     -- Set this variable to prevent Neorg from loading twice
     configuration.started = true
+
+    neorg.events.broadcast_event({
+        type = "core.started",
+        split_type = { "core", "started" },
+        filename = "",
+        filehead = "",
+        cursor_position = { 0, 0 },
+        referrer = "core",
+        line_content = "",
+        broadcast = true,
+    })
+end
+
+function neorg.is_loaded()
+    return configuration.started
 end
 
 return neorg

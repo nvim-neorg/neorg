@@ -8,26 +8,27 @@ some small changes.
 ### Table of Contents
 - [Theory](#theory)
 - [Design decisions](#design-decisions)
-	- [Parsing order](#parsing-order)
-	- [Attached Modifiers and Their Functions](#attached-modifiers-and-their-functions)
-	- [Detached Modifiers and Their Functions](#detached-modifiers-and-their-functions)
-	- [Trailing modifiers](#trailing-modifiers)
-	- [Escaping special characters](#escaping-special-characters)
-	- [Defining data](#defining-data)
-		- [Tag parameters](#tag-parameters)
-		- [Carryover tags](#carryover-tags)
-			- [Quirks](#quirks)
-	- [Single-line paragraphs](#single-line-paragraphs)
-	- [Intersecting modifiers](#intersecting-modifiers)
-	- [Lists](#lists)
-	- [Nesting](#nesting)
-	- [TODO Lists](#todo-lists)
-	- [Links](#links)
-		- [The first segment](#the-first-segment)
-		- [The second segment](#the-second-segment)
-	- [Markers](#markers)
+    - [Parsing order](#parsing-order)
+    - [Attached Modifiers and Their Functions](#attached-modifiers-and-their-functions)
+    - [Detached Modifiers and Their Functions](#detached-modifiers-and-their-functions)
+    - [Trailing modifiers](#trailing-modifiers)
+    - [Escaping special characters](#escaping-special-characters)
+    - [Defining data](#defining-data)
+        - [Tag parameters](#tag-parameters)
+        - [Carryover tags](#carryover-tags)
+            - [Quirks](#quirks)
+    - [Single-line paragraphs](#single-line-paragraphs)
+    - [Intersecting modifiers](#intersecting-modifiers)
+    - [Lists](#lists)
+    - [Nesting](#nesting)
+    - [TODO Lists](#todo-lists)
+    - [Links](#links)
+        - [The first segment](#the-first-segment)
+        - [The second segment](#the-second-segment)
+    - [Anchors](#anchors)
+    - [Markers](#markers)
 - [Data tags](#data-tags)
-	- [Unsupported tags](#unsupported-tags)
+    - [Unsupported tags](#unsupported-tags)
 
 # Theory
 There are a few concepts that must be grasped in order to flawlessly interpret the specification, they
@@ -44,29 +45,24 @@ This can be the `*` modifier, which makes some text bold, the `/` modifier, whic
 must form a pair, where the first modifier `*in this text*` is the _opening modifier_, and the second (last) modifier is the
 _closing modifier_. Modifiers that do not form a pair are called detached modifiers, and have a different set of rules. Here are
 the rules for regular (attached) modifiers:
-	- An opening modifier may only be preceded by whitespace or by a punctuation mark, and may be followed by another modifier or by
-	  an alphanumeric character. An opening modifier cannot have whitespace after itself.
-	- A closing modifier may only be preceded with an alphanumeric character or by a modifier and may only be followed by whitespace
-	  or by a punctuation mark.
+    - An opening modifier may only be preceded by whitespace or by a punctuation mark, and may be followed by another modifier or by
+      an alphanumeric character. An opening modifier cannot have whitespace after itself.
+    - A closing modifier may only be preceded with an alphanumeric character or by a modifier and may only be followed by whitespace
+      or by a punctuation mark.
 - Detached modifiers - detached modifiers, similarly to regular modifiers, are characters that modify the behaviour of Neorg. However,
   rather than changing the way text is displayed, they change the way text is interpreted. Detached modifiers do not consist of an opening and closing modifier, but only of one single character,
   hence the name "detached". Such a modifier can be the `*` modifier, signalling a heading, or the `-` modifier, signalling an unordered list.
   The rules for detached modifiers are as follows:
-	- A detached modifier may exist at the very beginning of a line and may only be preceded by whitespace.
-	  It must have at least one character of whitespace or another detached modifier of the same type afterwards.
+    - A detached modifier may exist at the very beginning of a line and may only be preceded by whitespace.
+      It must have at least one character of whitespace or another detached modifier of the same type afterwards.
 - Trailing modifiers - trailing modifiers are those that exist at the end of a line, and impact how the next line should be interpreted. Trailing modifiers have a very
   few simple rules, and they are:
-	- A trailing modifier may only exist at the end of a line, and may not have any characters after itself.
-	- A trailing modifier may have either a punctuation mark or an alphanumeric character before itself but **not** whitespace.
+    - A trailing modifier may only exist at the end of a line, and may not have any characters after itself.
+    - A trailing modifier may have either a punctuation mark or an alphanumeric character before itself but **not** whitespace.
   Currently there is only one trailing modifier, and it is `~`. Its meaning will be discussed later on.
 - Delimiting modifiers - delimiting modifiers are those that delimit one paragraph from another and change where the paragraph
   resides in the syntax tree. A delimiting modifier must exist at the beginning of a line (with optional whitespace beforehand), must consist of *at least* 3 consecutive modifiers
   of the same type and must *not* be followed by any extra characters (this includes whitespace but excludes a newline).
-- The concept of foreplay and the document content - I'm still laughing writing this. The document is split up into two main sections, those being the aforementioned foreplay and document content.
-  The foreplay is called that way because it's a preliminary introduction to the document
-  that tells the parser how the rest of the document will play out: fore, play. Makes sense, right? No?
-
-  The foreplay consists of an arbitrary amount of newlines, ranged tags and insertions (more on them later). As soon as anything else is encountered the document content will begin.
 
 ### Examples:
 
@@ -83,7 +79,7 @@ As for detached modifier rules:
 - `** A heading` - VALID, the first detached modifier is followed by another detached modifier which is followed by whitespace
 - `Some* interesting text` - INVALID, will not yield any special result and will be treated as a regular `*` character.
 - `- A list` - VALID
-- `	- A list` - VALID, has preceding whitespace and also whitespace afterwards, treated as an unordered list
+- ` - A list` - VALID, has preceding whitespace and also whitespace afterwards, treated as an unordered list
 - `A list-` - INVALID, will be treated as a regular `-` character
 
 Regarding trailing modifier rules:
@@ -121,7 +117,7 @@ changes:
   The Neorg lexer should read every modifier from left to right in the most logical order possible.
   This means that `*This bit* of text*` should be interpreted as "**This bit** of text\*", where the last asterisk
   is treated as regular text because it does not form a pair. Doing so avoids several edge cases and several problems
-  that the parser may have to overcome. Markdown implements this same parsing order.
+  that the parser may have to overcome. Several other formats implement this same parsing order.
 
 ### Attached Modifiers and Their Functions
   Attached modifiers are those that change the look of a piece of text. Their symbols and functions are described here:
@@ -134,67 +130,52 @@ changes:
   - `|some text|` - spoilers
   - \`some text\` - inline code block (verbatim)
   - `$some text$` - inline mathematics
-  - `#some text#` - inline comment
+  - `+some text+` - inline comment
   - `=variable=` - accesses a previously defined variable
 
 ### Detached Modifiers and Their Functions
-  Detached modifiers are those that change the way text is interpreted. Their symbols and functions are described in the format that follows:
+  Detached modifiers are those that change the way text is interpreted. Their symbols and functions are described in the following text:
 
-  **A visual representation of the text -> \<regex\>**
-  - `* Some text -> ^\s*\*\s+.+$` - marks text as a heading. Headings are one-line paragraphs
-  - `** Some text -> ^\s*\*\*\s+.+$` - marks text as a subheading. Subheadings are one-line paragraphs
-  - `*** Some text -> ^\s*\*\*\*\s+.+$` - marks text as a subsubheading. Subsubheadings are one-line paragraphs
-  - `**** Some text -> ^\s*\*\*\*\*\s+.+$` - marks text as a subsubsubheading. Subsubsubheadings are one-line paragraphs
-  - `***** Some text -> ^\s*\*\*\*\*\*\s+.+$` - marks text as a subsubsubsubheading. Subsubsubsubheadings are one-line paragraphs
-  - `****** Some text -> ^\s*\*\*\*\*\*\*\s+.+$` - marks text as a ..., you get the idea. Neorg can only go up to 6-level headings
-  - `- Do something -> ^\s*\-\s+.+$` - marks an unordered list
-  - `~ Do something -> ^\s*\~\s+.+$` - marks an ordered list
-  - `- [ ] -> ^\s*\-\s+\[\s+\]\s+.+$` - marks an undone task
-  - `- [*] -> ^\s*\-\s+\[\s*\*\s*\]\s+.+$` - marks a pending task
-  - `- [x] -> ^\s*\-\s+\[\s*x\s*\]\s+.+$` - marks a complete (done) task
-  - `| Important Information -> ^\s*\|\s+.+$` - symbolizes a marker
-  - `> That's what she said -> ^\s*\>\s+.+$` - marks a quote
+  - `* Some text` - marks text as a heading. Headings are one-line paragraphs
+  - `** Some text` - marks text as a subheading. Subheadings are one-line paragraphs
+  - `*** Some text` - marks text as a subsubheading. Subsubheadings are one-line paragraphs
+  - `**** Some text` - marks text as a subsubsubheading. Subsubsubheadings are one-line paragraphs
+  - `***** Some text` - marks text as a subsubsubsubheading. Subsubsubsubheadings are one-line paragraphs
+  - `****** Some text` - marks text as a ..., you get the idea. Neorg can only go up to 6-level headings
+  - `- Do something` - marks an unordered list
+  - `~ Do something` - marks an ordered list
+  - `- [ ]` - marks an undone task
+  - `- [-]` - marks a pending task
+  - `- [x]` - marks a complete (done) task
+  - `- [=]` - marks an on-hold item
+  - `- [_]` - marks a cancelled item
+  - `- [!]` - marks an urgent item
+  - `- [+]` - marks a recurring item
+  - `- [?]` - marks an uncertain item
+  - `| Important Information` - symbolizes a marker
+  - `> That's what she said` - marks a quote
 
   - ```
     @document.meta
-		<data>
+        <data>
     @end
-
-	->
-
-	^\s*\@[^\s]+\s*(([^\s]+\s*)*)$
-		.*
-	^\s*\@end\s*$
-  	```
-  	Marks a data tag, which you can read more about [here](#defining-data).
-
-  - ```
-    A [link](#My Link).
-
-	->
-
-	regex too complex, not bothered to write it :P
     ```
-	Marks a link to another segment of a document or to a link on the web. More about it can be read [here](#links).
+    Marks a data tag, which you can read more about [here](#defining-data).
 
   - ```
-  	$comment
-  	This is a comment!
-
-  	->
-
-  	^\s*\$[^\s]+\s*(([^\s]+\s*)*)$
-	.+
-  	```
-  	Marks a carryover tag, which is essentially syntax sugar for a regular tag.
-  	You can read more about it [here](#carryover-tags).
+    A {# My Link}[link]
+    ```
+    Marks a link to another segment of a document or to a link on the web. More about it can be read [here](#links).
 
   - ```
-	= ToC Table Of Contents:
+    #comment
+    This is a comment!
+    ```
+    Marks a carryover tag, which is essentially syntax sugar for a regular tag.
+    You can read more about it [here](#carryover-tags).
 
-	->
-
-	^\s*\=\s+\w+\s+.*$
+  - ```
+    = ToC Table Of Contents:
     ```
     Marks an `insertion`. Insertions, well, insert text into a document dynamically. You can read more about them [here](#insertions).
 
@@ -215,75 +196,78 @@ changes:
   as if they were one line. `~` adds one whitespace character just like a regular soft line break would.
   This feature is very useful to prevent the parser from interpreting a bit of raw text as a modifier, for example:
   ```
-	And then I ventured through the forest~
-	- I couldn't believe what I saw
+    And then I ventured through the forest~
+    - I couldn't believe what I saw
   ```
   Using the `~` trailing modifier we prevent Neorg from interpreting the next line as an unordered list, and cause it to interpret
   the line as raw text instead, so the line becomes: `And then I ventured through the forest - I couldn't believe what I saw`.
 
 ### Escaping Special Characters
   Sometimes you'll find yourself not wanting to have a certain character format your text, you can directly prevent this
-  by prefixing that character with a backslash `\`, like you would in Markdown. All characters are escapable in this fashion.
+  by prefixing that character with a backslash `\`. *All* characters are escapable in this fashion.
 
 ### Defining Data
   What divides simple markup files from more complex implementations is the ability to morph the document and define data inside the document.
   Neorg has a few ways of defining data, however it is not ultimately that complex. Let's review the methods of defining data:
   ```
   @my_data
-	<any form of data>
+    <any form of data>
   @end
   ```
   The `@` symbol, which defines the beginning of a **data tag** (more commonly referred to simply as a **tag** or **ranged tag**), allows the user to specify any bit of arbitrary data
   and label it with said tag. Different modules can then access this data and perform different actions based on it.
   One of the most notable inbuilt tags for Neorg is the `@document.meta` tag. Metadata is defined as such:
   ```
-	@document.meta
-		title: My Document
-		description: Document description
-		author: Vhyrro
-		created: 2021-06-23
-		categories: personal blogs neorg
-		version: 0.1
-	@end
+    @document.meta
+        title: My Document
+        description: Document description
+        author: Vhyrro
+        created: 2021-06-23
+        categories: [
+            personal
+            blogs
+            neorg
+        ]
+        version: 0.1
+    @end
   ```
   Tags must appear at the beginning of a line, and may optionally be preceded by whitespace. After that, any sort of text may be entered on as many lines
   as the user sees fit. The end of the data tag must be signalled with an `@end` token that must appear at the beginning of a line (with optional whitespace before it)
   and may not have any extra tokens after itself other than whitespace.
-  Also one important thing to note is that tags require **indent stability**, aka the `@end` of a tag *must* be on the same indentation level as the beginning,
-  and the content of the tag may not be indented less than the indentation level of the beginning/end of the tag.
-  This means that:
+   
+  Will all that said: 
   ```
-	VALID:
-		@some.tag
-			data goes here
-			blah blah blah
-		@end
-	ALSO VALID:
-		@some.tag
-		data goes here
-		blah blah blah
-		@end
-	INVALID (indent stability not preserved, @end does not have same indentation level as @some.tag):
-			@some.tag
-			more data
-			blah blah blah
-				@end
-	INVALID (last line gets treated as a continuation of the data and no end marker gets located):
-		@some.tag
-			text
-		@end right now
-	INVALID (tag definition has non-whitespace characters before itself):
-		some pretext @some.tag
-			text here
-		@end
-	ALSO INVALID (end token has non-whitespace characters beforehand):
-		@some.tag
-			text here
-		the @end
-	INVALID (indent stability not preserved, content of the tag is less indented than the tag itself):
-		@some.tag
-	   content
-		@end
+    VALID:
+        @some.tag
+            data goes here
+            blah blah blah
+        @end
+    ALSO VALID:
+        @some.tag
+        data goes here
+        blah blah blah
+        @end
+    VALID:
+            @some.tag
+            more data
+            blah blah blah
+                @end
+    INVALID (last line gets treated as a continuation of the data and no end marker gets located):
+        @some.tag
+            text
+        @end right now
+    INVALID (tag definition has non-whitespace characters before itself):
+        some pretext @some.tag
+            text here
+        @end
+    ALSO INVALID (end token has non-whitespace characters beforehand):
+        @some.tag
+            text here
+        the @end
+    INVALID (content cannot be indented less than the starting tag):
+        @some.tag
+       content
+        @end
   ```
 
 #### Tag Parameters
@@ -292,106 +276,44 @@ changes:
   the language. Neorg does not have multiline code blocks \`\`\`like this\`\`\` because such modifiers would directly break
   the imposed rules for attached modifiers, instead it uses the code tag:
   ```
-	No parameter supplied, treated as a regular code block:
-	@code
-		console.log("Wow some code.")
-	@end
+    No parameter supplied, treated as a regular code block:
+    @code
+        console.log("Wow some code.")
+    @end
 
-	Parameter supplied, denotes the language via a parameter:
-	@code lua
-		print("Some awesome lua code!")
-	@end
+    Parameter supplied, denotes the language via a parameter:
+    @code lua
+        print("Some awesome lua code!")
+    @end
   ```
   Several parameters can be provided via space separation if the tag wants more than one parameter.
 
 #### Carryover Tags
   Neorg provides a more convenient method of defining tags, one that does not require an `@end` token. These are called carryover tags,
-  because they carry over and apply only to the next paragraph. They can be denoted with a `$` token, rather than a `@` token.
-  Carryover tags are most commonly used with the `comment` tag, as writing:
-  ```
-	$comment
-	This part of the document needs refactoring
-
-	* Reasons why dark chocolate is better than white chocolate
-    Over the years, several people have been asking themselves...
-  ```
-
-  Is much more convenient than writing:
-  ```
-	@comment
-		This part of the document needs refactoring
-	@end
-
-	* Reasons why dark chocolate is better than white chocolate
-    Over the years, several people have been asking themselves...
-  ```
-  Although both forms are correct. The `@` symbol for comments is only truly useful whenever you want to write mulitiline
-  comments that span over several paragraphs inside of your document. Inside of a carryover tag everything after the tag till the end of the line is counted as a
-  parameter for that tag, and the body for that tag is the next paragraph.
+  because they carry over and apply only to the next paragraph. They can be denoted with a `#` token, rather than a `@` token.
+  Inside of a carryover tag everything after the tag till the end of the line is counted as a
+  parameter for that tag, and the body for that tag is the next element, be it a paragraph or detached
+  modifier.
 
 ##### Quirks
-  Carryover tags have an interesting property when applied to lines with detached modifiers - as long as no
-  hard line break (e.g. \n\n) is encountered, the carryover tag will "infect" all the other detached modifiers below it,
-  let me show an example. Let's say, hypothetically, we have a `$color` tag, which allows us to change the colour
-  of the next element. Because of this infectious property:
-
-  ```
-	$color red
-	- One element
-	- Another element
-  ```
-
-  Both the first and second list element will be affected by the `$color` tag, because the first element infected the other.
-  In this scenario, the infection does not happen, and only the first list element gets the `$color` tag applied:
-
-  ```
-	$color red
-	- One element
-
-	- Unaffected element
-  ```
-
-  Because of the hard line break the second unordered list element gets unaffected. Just for clarity, this:
-
-  ```
-	$color red
-	- One element
-	  with some content on a newline
-	- Another element
-  ```
-
-  **Will** cause the second element to get infected, because no hard line break occurs.
-
-  Obviously, this rule applies to every detached modifier, even headings:
-  ```
-	$color red
-	* A heading
-	  ** A subheading
-	     This regular text will be unaffected because it does not have a detached modifier.
-  ```
-
-  Both the heading and the subheading will become red, unless the subheading has a hard line break
-  disconnecting the two.
+  One of the interesting quirks about carryover tags is how they can sometimes be advantageous over
+  ranged tags when it comes to directly modifying markup. Ranged tags are basically *long range verbatim blocks*.
+  This means that anything within those tags won't be treated as Neorg markup - this makes sense.
+  Carryover tags, however, do allow for markup to naturally exist since they don't have a range, they
+  simply attach to whatever is below them in the document. Since the document is, well, markup, whatever
+  the carryover tag attaches to is still treated as normal markup.
 
   Another feature of carryover tags is their ability to carry themselves over and chain a bunch of
   tags together. For example, if I were to do:
 
   ```
-	$color red
-	$name my-heading
-	* I like tomatoes
+    #color red
+    #name my-heading
+    * I like tomatoes
   ```
 
-  The `$color` carryover tag will carry over to the `$name` tag, which will in turn carry over to the heading,
-  creating a chain reaction. This is much more convenient than e.g. writing:
-
-  ```
-	@color red
-		@name my-heading
-			* I like tomatoes
-		@end
-	@end
-  ```
+  The `#color` carryover tag will carry over to the `#name` tag, which will in turn carry over to the heading,
+  creating a chain reaction.
 
 ### Single-line Paragraphs
   Single-line paragraphs are a special type of paragraph as they only exist for one line.
@@ -399,22 +321,22 @@ changes:
   A data tag definition (like `@document.meta`) instantly breaks off as soon as the end of the line
   is reached, meaning that:
   ```
-	@document
-		.meta
+    @document
+        .meta
   ```
   Will **not** result in the concatenation of both values to `@document.meta`, like it would in a normal paragraph,
   where:
   ```
-	Some awesome
-	text
+    Some awesome
+    text
   ```
   Gets concatenated into `Some awesome text`. This rule doesn't only apply to single-line paragraphs, as having to use a hard line-break
   like so:
   ```
-	@document.meta
+    @document.meta
 
-		key: value
-	@end
+        key: value
+    @end
   ```
   Would look incredibly ugly and would make it very confusing to people familiar with something called "logic".
   There are a few elements that use single-line paragraphs, these being:
@@ -425,14 +347,14 @@ changes:
 
   This design decision is very logical, as writing:
   ```
-	* Heading one
-	This is some subtext for heading one
+    * Heading one
+    This is some subtext for heading one
   ```
   Is a lot cleaner than having to place a hard line break:
   ```
-	* Heading one
+    * Heading one
 
-	This is some subtext for heading one
+    This is some subtext for heading one
   ```
   Obviously, it is still possible to supply a hard line break, however both options are permitted.
 
@@ -476,8 +398,8 @@ changes:
 
   To describe an unordered list, you may use the `-` detached modifier, which will result in this:
   ```
-	- Do something
-	- Do something else!
+    - Do something
+    - Do something else!
   ```
   There must be at least one bit of whitespace between the hyphen and the `D` for the unordered list to be considered as such.
 
@@ -492,22 +414,22 @@ changes:
   1. Ordered item
   2. Second ordered item
 
-  The `$ordered` tag controls how the ordered list will get rendered and has a few parameters, and they are:
-  `$ordered start step spacing`.
+  The `#ordered` tag controls how the ordered list will get rendered and has a few parameters, and they are:
+  `#ordered start step spacing`.
   - `start` - signifies where to start counting from, default is `1`.
   - `step` - signifies how much to add between each list element, default step is `1`,
     if it were e.g. `2`, then the numbering would look like:
     ```
-	1. First element
-	3. Second element
-	5. Third element
+    1. First element
+    3. Second element
+    5. Third element
     ```
   - `spacing` - signifies how many newlines to add between each list element during the render,
     default is `1`.
 
   Example:
   ```
-  $ordered 2 2 2
+  #ordered 2 2 2
   ~ Item 1
   ~ Item 2
   ```
@@ -525,8 +447,8 @@ changes:
   It is nice to be able to create e.g. nested lists, like so:
   ```
   - Do something
-	-- Another important thing
-	-- Another very important thing
+    -- Another important thing
+    -- Another very important thing
   ```
 
   In Neorg you repeat the modifier up to 6 times in order to mimic 6 different indentation levels.
@@ -550,16 +472,16 @@ changes:
   -- [x] Nested done item
 
   Unordered links:
-  -> [link](#to a location)
-  --> [nested link](*to another location)
+  -> {# To a location}[link]
+  --> {# To another location}[nested link]
 
   Ordered lists:
   ~ Ordered list item
     ~~ Nested ordered list
 
   Ordered links:
-  ~> [link](#to a location)
-  ~~> [nested link](*to another location)
+  ~> {# To a location}[link]
+  ~~> {# To another location}[nested link]
 
   Quotes:
   > A quote
@@ -569,86 +491,156 @@ changes:
   You can read more about Neorg's indentation philosophy [here](#indentation).
 
 ### TODO Lists
-  TODO Items can be managed in a way that is practically the same as Markdown syntactically.
+  TODO Items should be fairly intuitive. Here are the three basic TODO item types:
+
   ```
   - [ ] Do the dishes <- undone task
-  - [*] Do the dishes <- pending task
+  - [-] Do the dishes <- pending task
   - [x] Do the dishes <- done task
   ```
 
   It is also possible to nest these in the same way as described [above](#nesting).
-  The exact syntax (in regex) for these is described [here](#detached-modifiers-and-their-functions).
+
+Apart from those basic types existing we've also created *several* different TODO items to express
+several different occasions. Here they are:
+```
+- [ ] I am an undone task
+- [-] I am a pending task (in-progress)
+- [x] I am a done task
+- [=] I am an on-hold task (more on this later)
+- [_] I am a cancelled task
+- [!] I am an urgent task
+- [+] I am a generic recurring task
+- [?] I am an uncertain task (will I ever have to complete this?)
+```
+
+Let's expand on some of the TODO item types, as well as explain why we chose the characters we chose:
+- On-hold tasks (`[=]`). These are tasks that used to be pending, however you had to stop doing at this moment
+and postpone it to a later date. It's an equals sign because it's one step
+further (two horizontal lines (`=`)) than a pending item (which is a single horizontal line (`-`)).
+- Cancelled tasks (`[_]`). This one's pretty self-explanatory. It's a task that you end up cancelling (i.e. you won't do it)
+but you want to keep it around for future reference. We use an underscore here because an underscore looks
+like it's been "put down", which is exactly what a cancelled task is.
+- Urgent tasks (`[!]`). Simply marks a task that you should want to do ASAP.
+- Recurring tasks (`[+]`). This is an interesting type of task, as it requires children. If it doesn't have any
+children then it can be treated as a pending task instead. All children will be reset once every subtask
+becomes complete. This is only really useful within Neorg itself, and not while rendering to e.g. HTML.
+- Uncertain tasks (`[?]`). Sometimes you don't know whether or not you will have to perform a task.
+This task type is exactly a way to express that.
 
 ### Links
   Links are ways to connect several documents together and give the user access to special clickable hyperlinks.
-  The syntax for links is derived from regular markdown, and looks as such:
+  The syntax for links is very unique, however we've tried making it as unobtrusive, simple and powerful as possible,
+  all at the same time.
   ```
-	This is a [link](<anything here>)!
+    This is a {<anything here>}[link]!
   ```
 
-  The modifiers that comprise the link syntax are attached modifiers, however, the attached modifier
-  rules only apply to the opening square bracket `[` and closing parenthesis `)`, aka the beginning and
-  end of the link syntax. The modifiers inbetween may break these rules unfortunately :sob:.
+  The modifiers that comprise the link syntax are attached modifiers, as they should be.
+  It's just that they have one [additional](#different-rules-for-different-modifiers) rule that states that
+  the closing `}` modifier and optional opening `[` modifier must be directly next to each other, that's it.
+
   There are several things that can go into a link, so let's discuss:
 
-#### The first segment
-  The first segment of the link are the square brackets, `[]`, where you can add some text to be displayed instead of the raw hyperlink.
-  If you want to make a ] character as part of the link text then escape it with a backslash `\`. If no data is present
-  inside the square brackets then the content of the second segment is used instead.
-
-#### The second segment
-  The second part is the one that comes after the square brackets and is supplied inbetween a pair of regular brackets `()`.
-  The contents of this second segment can be several different things, and those things will be discussed here:
-  ```
-	* Example Heading
-	** Example Subheading
-	*** Example Subsubheading
-	**** Example Subsubsubheading
-	***** Example Subsubsubsubheading
-	****** Example Subsubsubsubsubheading
-
-	| A marker
-
-	[text](https://github.com/vhyrro/neorg) - a regular domain name/hyperlink to a website
-	[text](#Example Heading) - a link to any element with the text example-heading
-
-	For more precision:
-		[text](*Example Heading) - a link to a regular heading
-		[text](**Example Subheading) - a link to a subheading
-		[text](***Example Subsubheading) - a link to a subsubheading
-		[text](****Example Subsubsubheading) - a link to a subsubsubheading
-		[text](*****Example Subsubsubsubheading) - a link to a subsubsubsubheading
-		[text](******Example Subsubsubsubsubheading) - a link to a subsubsubsubsubheading
-		[text](|A marker) - a link to a marker
-  ```
+#### The Link Location
+  The first segment of a link is the square brackets (`{<location>}`). This is referred to as
+  the *link location*.
 
   Neorg uses the first set of non-alphanumeric characters to determine what type of element it should link to.
   Afterwards, it will check the document from top to bottom for that element and provide the first found match as the link.
-  If there is no special non-alphanumeric character after the opening bracket `(` then the text is counted as a hyperlink,
+  If there is no special non-alphanumeric character after the opening bracket `{` then the text is counted as a hyperlink,
   even if it is an incorrect hyperlink.
 
-  Searching is case insensitive but punctuation sensitive, meaning `[text](*Example Heading)` and `[text](*example heading)` link to the same
-  location. Neorg will search through all files and directories recursively in the current workspace.
-  Workspaces can be defined by the application managing the .norg files or by e.g. a Neorg module.
-  The easiest implementation of a workspace would be to simply set the workspace root to the current working directory of
-  the file and search from there. You can explicitly specify the file where Neorg should look for the
-  link we specified. The syntax for it is as such:
+  Searching is case insensitive but punctuation sensitive, meaning `{# Example heading}` and `{# example heading}` link to the same
+  location. Since it's punctuation sensitive though `{# Example, heading}` and `{# Example heading}` will **not**
+  link to the same location.
 
+  Apart from linking to just any element (which is what you saw with the `#` symbol),
+  Neorg can also narrow down the scope of what you can link to.
+  Here are some examples:
   ```
-	[text](:file:#Location)
+  {# A link to any element (you've seen this before)}
+
+  {* A link to a heading-1 element only}
+  {** A link to a heading-2 element only}
+  {*** A link to a heading-3 element only}
+  {**** A link to a heading-4 element only}
+  {****** A link to a heading-5 element only}
+  {******* A link to a heading-6 element only}
+
+  {$ A link to a definition only}
+  {^ A link to a footnote only}
+  {@ link-to-a-non-neorg-file.txt}
+  {| Link to a marker only}
+  {https://github.com/nvim-neorg/neorg}
   ```
 
-  To specify several files to search through, you can do:
+  This can help whenever you have several types of objects in your document with the same name and you'd like
+  to address each one individually.
+
+  Apart from just providing a location, you can also provide a file at any moment. To do this, prepend your link location
+  with two colons and the filepath inbetween, like so:
   ```
-	[text](:file:other_file:#Location)
+  {:file:* This is a link location}
   ```
 
-  If a filename has any special characters that may interfere, you must escape those characters with a backslash `\`.
+  Whenever you use this syntax Neorg (and the parser) will *always* assume you're referencing a .norg file. You cannot
+  link to a non-neorg file using this syntax, and that's also why you don't provide the file extension at the end (i.e. `{:file.norg:* This is a link location}`).
+  To reference a non-neorg file you should use the designated syntax (`{@ my/custom/file.txt}`) instead.
+
+  Filepaths are relative to the norg file they're contained in by default, *unless* you decide on directly specifying a root.
+  There are three ways of defining a root:
+  - The first way of defining a root is the `/` symbol, which you know very well - it simply means *the root of your filesystem*.
+    i.e. if you were to do `{:/some/file:}` then Neorg will search at the very root of your computer's FS.
+  - The second way of defining a root is the `$` symbol, and this denotes a *workspace root*. This means if I do
+    `{:$/file/somewhere:}` I will be referencing `file/somewhere` from the root of the current workspace Neorg is in.
+  - You can also specify a root of a *different* workspace by providing a name inbetween the `$` and the `/`: `{:$my_workspace/my/file:}`.
+
+  As you may have seen, you can also entirely omit the location whenever you provide a filepath. `{:my_file:}` is perfectly
+  valid syntax, as it will simply point to `my_file.norg` *without* pointing to any element within it. Note that whenever
+  you supply a file you can no longer supply a URL nor an external file.
+
+#### The Link Description
+You may have realized this, however a link can actually be constructed with two different components.
+The first required component is the link location, which we've just described above. There is an optional segment, however,
+and that is the link description. When a link description isn't provided the content of the item the link was pointing to will
+be used as the text to render (i.e. if I did `{* a location}` during an export to html you will see the hyperlink render `a location`).
+You can obviously just provide a custom text to display using the below syntax:
+```
+{* Some location}[some custom text]
+```
+
+Now during an export you'll see the generated hyperlink have the text [some custom text]().
+
+### Anchors
+Anchors are basically a twist on links. They're there to reduce the duplication of link locations, should you want to link to the same place
+several times.
+
+Let's talk a little about their syntax:
+```
+Hello, would you like to visit my [website]?
+...
+If you have any problems, feel free to contact me via my [website]{https://some.website}.
+```
+
+You may notice something interesting here: the order of elements in the anchor is swapped!
+Instead of having a location first and then an optional description, you now have the description
+first and the optional location second.
+Anchors without the optional second location are called *anchor declarations*
+whilst full anchors with the location are called *anchor definitions*.
+You can have as many anchor declarations as you like within a document
+but should only have one anchor declaration. In the case where several anchor
+declarations have been made the first anchor declaration in the document should
+be prioritised.
+
+Clicking on an anchor declaration should take you to the anchor definition, and
+clicking the anchor definition should take you to the location that was defined
+there.
 
 ### Insertions
   Insertions can be thought of as a motion of sorts. It inserts some text either into the document or into a variable.
-  Insertions happen through the `=` detached modifier, and can exist anywhere in the document - in the foreplay, in the document content
-  or under headings and such. The syntax looks like this:
+  Insertions happen through the `=` detached modifier, and can exist anywhere in the document.
+  The syntax looks like this:
 
   ```
   = single_word Parameters go here
@@ -669,27 +661,27 @@ changes:
   and can be jumped to at any time. To define a marker, we may use a single pipe symbol `|`.
 
   ```
-	I have some cool text here. You may be interested in checking out [this other cool text](|my-special-marker).
+    I have some cool text here. You may be interested in checking out [this other cool text](|my-special-marker).
 
-	* You won't believe how much money she made with this one simple trick!
+    * You won't believe how much money she made with this one simple trick!
 
 | My Special Marker
 
-	* Actual important things you should know about
-		I have some more cool text here.
-	* Work stuff:
-	  - [x] Throw banana at boss's massive 4head
+    * Actual important things you should know about
+        I have some more cool text here.
+    * Work stuff:
+      - [x] Throw banana at boss's massive 4head
   ```
 
-  It is also possible to give your marker a special name by using the `$name` tag to reference it in links, like so:
+  It is also possible to give your marker a special name by using the `#name` tag to reference it in links, like so:
   ```
-	$name marker1
-	| My Special Marker
+    #name marker1
+    | My Special Marker
 
-	$comment
-	Reference the marker with its custom name
+    #comment
+    Reference the marker with its custom name
 
-	I have a link to my marker right [here](#marker1).
+    I have a link to my marker right [here](#marker1).
   ```
 
 ### Definitions
@@ -699,7 +691,7 @@ The norg format supports two such kinds:
 #### Single-paragraph definitions
 These look like the following:
 ```
-: Object to be defined
+$ Object to be defined
 A single-paragraph definition of the object.
 
 This paragraph is no longer part of the definition.
@@ -707,14 +699,14 @@ This paragraph is no longer part of the definition.
 
 #### Multi-paragraph definitions
 ```
-:: Object to be defined
+$$ Object to be defined
 Here you have the freedom to write your definition in multiple paragraphs.
 
 You can even include other syntax elements:
 @code lua
 print("Hello world!")
 @end
-::
+$$
 This is no longer part of the definition.
 ```
 
@@ -739,7 +731,7 @@ Take this as an example:
 Even more text
 ```
 
-What you may be inclined to think is that `Even more text` should not belong to the heading anymore, but this is where you'd be wrong. It's still part of the paragraph in Neorg!
+What you may be inclined to think is that `Even more text` should not belong to the heading anymore, but this is where you'd be wrong. It's still part of the heading in Neorg!
 So, uh, how do we break out? If you want to break out directly into the root of the document use the strong delimiting modifier aka `===`:
 
 ```
@@ -755,7 +747,7 @@ Even more text
 What we've done is terminated the heading and started out a new paragraph that is no longer "underneath" the heading itself.
 
 #### Consecutive Headings
-Neorg isn't dumb (believe it or not) and because of that you don't need to tell it to break out *every. single. time*.
+One good thing is that you don't need to tell Neorg to break out of a heading *every. single. time*.
 Let's say you have this scenario:
 
 ```
@@ -820,71 +812,37 @@ ___
 This is an entirely different paragraph despite of the absence of two (or more) consecutive new lines because of the `___` delimiter.
 ```
 
-# Data Tags
-Neorg provides several inbuilt data tags to represent different things. Those exact things will be detailed here:
+# Tags
+Neorg provides several inbuilt tags to represent different things. Those exact things will be detailed here:
 - `@document.meta` - describes metadata about the document. Attributes are stored as key-value pairs. Values may have
   attached and trailing modifiers in them. The trailing modifiers should be respected and the attached modifiers
   should only really be taken into account if that metadata is being rendered somewhere.
 
   Example:
-	```
-	@document.meta
-		title: My Document <- The title of the document
-		description: This is my document that details the reasons~
-		why Neorg is the best file format. <- The description of the document
-		author: Vhyrro <- The name of the author
-		created: 2021-06-23 <- The date of creation in the Y-M-D format
-		categories: personal blogs neorg <- Space separated list of categories
-		version: 0.1 <- The version of the file format used to create the document
-	@end
-	```
+    ```
+    @document.meta
+        title: My Document <- The title of the document
+        description: This is my document that details the reasons~
+        why Neorg is the best file format. <- The description of the document
+        author: Vhyrro <- The name of the author
+        created: 2021-06-23 <- The date of creation in the Y-M-D format
+        categories: personal blogs neorg <- Space separated list of categories
+        version: 0.1 <- The version of the file format used to create the document
+    @end
+    ```
 
-  It is not recommended to use the `$` equivalent for this tag but hey, you do you.
-
-- `@comment` - simply signals a comment. Using the comment tag with the `@` symbol makes
-			   it a multi-paragraph comment, however using carryover tags allows you to supply only
-			   a single-paragraph comment.
-
-<!-- Gotta love markdown formatting, I can't indent the below code block further: -->
-
-  Examples:
-
-  ```
-  @comment
-  	This is a comment!
-
-  	And it can span across multiple paragraphs too!
-  @end
-
-  $comment
-  And this is a single-paragraph comment, because they're cool!
-  I can write as much as I like here as long as I don't terminate the paragraph.
-  ```
-
-  You can also write any set of text as parameters to the comment - this can be useful to summarize or categorize
-  your comment:
-
-
-  ```
-	@comment TODO Stuff
-		Things that I should do with the below segment:
-		- Reword
-		- Format some stuff
-	@end
-  ```
-
-  The same ability (obviously) also applies with the carryover tag version.
+  It is not recommended to use the `#` equivalent for this tag but hey, you do you.
 
 - `@table` - defines a Neorg table. Tables do not currently have the immense power of org-mode tables,
   however serve a basic function for now. They simply contain some text. Here's the format for said tables:
-	```
-	@table
-		This is a row | And another element of that row
-		This is a row on a new column | And another element of that row
-		-
-		The above line marks a delimiter
-	@end
-	```
+    ```
+    @table
+        This is a row | And another element of that row
+        This is a row on a new column | And another element of that row
+        -
+        The above line marks a delimiter
+    @end
+    ```
 
   After rendering the table it should look like:
   ```
@@ -896,12 +854,12 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 
   If you wanted to prevent the bottom line from filling up the entire space, you'd do:
   ```
-	@table
-		This is a row | And another element of that row
-		This is a row on a new column | And another element of that row
-		-
-		The above line marks a delimiter |
-	@end
+    @table
+        This is a row | And another element of that row
+        This is a row on a new column | And another element of that row
+        -
+        The above line marks a delimiter |
+    @end
   ```
 
   And you'd get:
@@ -914,30 +872,30 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 
   If the content of the cell has a newline then that newline gets converted into a `\n` sequence.
 
-- `@ordered` - changes the way that ordered lists are viewed during render
+- `#ordered` - changes the way that ordered lists are viewed during render
 
-  The `@ordered` tag has a few parameters, and they are:
-  `@ordered start step spacing`.
+  The `#ordered` tag has a few parameters, and they are:
+  `#ordered start step spacing`.
   - `start` - signifies where to start counting from, default is `1`.
   - `step` - signifies how much to add between each list element, default step is `1`,
     if it were e.g. `2`, then the numbering would look like:
     ```
-	1. First element
-	3. Second element
-	5. Third element
+    1. First element
+    3. Second element
+    5. Third element
     ```
   - `spacing` - signifies how many newlines to add between each list element during the render,
     default is `1`.
 
   The carryover tag version can be used with "infecting" to achieve a nice result.
 
-- `$name name` - gives the next element with a detached modifier a custom name that can then be used to
+- `#name name` - gives the next element with a detached modifier a custom name that can then be used to
   reference it in links if that next element has a detached modifier.
 
   Example:
   ```
-  $name mycustomname
-  $name anothername
+  #name mycustomname
+  #name anothername
   * My Heading
 
   You can reference the document [here](#mycustomname) and [here](#anothername).
@@ -946,33 +904,11 @@ Neorg provides several inbuilt data tags to represent different things. Those ex
 - `@image format` - stores an image within the file. The content of this image should be a base64 encoded jpeg, png, svg, jfif or exif file.
   The only parameter, `format`, specifies which format the image was encoded in. Defaults to `PNG` if unspecified.
 
-- `$embed type` - embeds an element directly into the document, for example an image, a GIF, or any other kind of media that is supported.
-  The `type` parameter can be one of two values: `video` or `image`.
-
-  The body symbolizes the link to the actual media to be embedded. This can be a link to a local file or to a remote resource.
-
-  ```
-  $embed image
-  /my/image
-  ```
-
-  or
-
-  ```
-  @embed image
-  	/my/image
-  @end
-  ```
-  The root, `/`, should be the root of the current workspace, not the root of the filesystem.
-  You'll usually find yourself using the carryover tag version since it's a lot cleaner to write.
-  Note that several URIs on several lines mean a list of media to be embedded one after the other.
-  You may also use URLs to media not present on the local filesystem.
-
 - `@code language` - creates a mulitiline code block. The only parameters, `language`, is optional.
 Code placed within this tag will be rendered with the language's own syntax highlighter or simply rendered verbatim if no language parameter was given.
 
 - `@math` - creates a multline LaTeX-typesetting environment for easy mathmatical equations.
-  This may be enhanced further with the `$numbered` carryover tag in a similar vain to the `$ordered` tag.
+  This may be enhanced further with the `#numbered` carryover tag in a similar vain to the `#ordered` tag.
 
 ### Unsupported Tags
   If a tag is encountered that is invalid it should simply be ignored and never showed in any render of the document.
