@@ -39,7 +39,7 @@ function neorg.events.split_event_type(type)
 
     if #split_event_type ~= 2 then
         log.warn("Invalid type name:", type)
-        return nil
+        return
     end
 
     return split_event_type
@@ -53,7 +53,7 @@ function neorg.events.get_event_template(module, type)
     -- You can't get the event template of a type if the type isn't loaded
     if not neorg.modules.is_module_loaded(module.name) then
         log.info("Unable to get event of type", type, "with module", module.name)
-        return nil
+        return
     end
 
     -- Split the event type into two
@@ -61,7 +61,7 @@ function neorg.events.get_event_template(module, type)
 
     if not split_type then
         log.warn("Unable to get event template for event", type, "and module", module.name)
-        return nil
+        return
     end
 
     log.trace("Returning", split_type[2], "for module", split_type[1])
@@ -107,7 +107,7 @@ function neorg.events.create(module, type, content)
 
     if not event_template then
         log.warn("Unable to create event of type", type, ". Returning nil...")
-        return nil
+        return
     end
 
     local new_event = vim.deepcopy(event_template)

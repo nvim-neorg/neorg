@@ -51,7 +51,7 @@ module.public = {
         },
         data = {
             keybind = {
-                args = 2,
+                min_args = 2,
                 name = "core.keybinds.trigger",
             },
         },
@@ -185,7 +185,11 @@ module.public = {
                             payload.map(
                                 neovim_mode,
                                 keymap[1],
-                                "<cmd>Neorg keybind " .. mode .. " " .. keymap[2] .. "<CR>",
+                                "<cmd>Neorg keybind "
+                                    .. mode
+                                    .. " "
+                                    .. table.concat(vim.list_slice(keymap, 2), " ")
+                                    .. "<CR>",
                                 opts
                             )
                         end
@@ -288,7 +292,13 @@ module.on_event = function(event)
 
         -- If it is defined then broadcast the event
         if module.events.defined[keybind_event_path] then
-            neorg.events.broadcast_event(neorg.events.create(module, "core.keybinds.events." .. keybind_event_path))
+            neorg.events.broadcast_event(
+                neorg.events.create(
+                    module,
+                    "core.keybinds.events." .. keybind_event_path,
+                    vim.list_slice(event.content, 3)
+                )
+            )
         else -- Otherwise throw an error
             log.error("Unable to trigger keybind", keybind_event_path, "- the keybind does not exist")
         end

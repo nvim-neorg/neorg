@@ -103,10 +103,11 @@ end
 
 module.private = {
     icon_namespace = vim.api.nvim_create_namespace("neorg-conceals"),
+    markup_namespace = vim.api.nvim_create_namespace("neorg-markup"),
     code_block_namespace = vim.api.nvim_create_namespace("neorg-code-blocks"),
     completion_level_namespace = vim.api.nvim_create_namespace("neorg-completion-level"),
-    extmarks = {},
     icons = {},
+    markup = {},
 
     completion_level_base = {
         {
@@ -140,6 +141,11 @@ module.private = {
                         (todo_item_undone) @undone
                         (todo_item_pending) @pending
                         (todo_item_done) @done
+                        (todo_item_cancelled) @cancelled
+                        (todo_item_urgent) @urgent
+                        (todo_item_on_hold) @onhold
+                        (todo_item_recurring) @recurring
+                        (todo_item_uncertain) @uncertain
                     ]
                 )
             ]],
@@ -158,6 +164,11 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item2
@@ -165,6 +176,11 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item3
@@ -172,6 +188,11 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item4
@@ -179,6 +200,11 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item5
@@ -186,6 +212,11 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
         (todo_item6
@@ -193,10 +224,15 @@ module.private = {
                 (todo_item_undone) @undone
                 (todo_item_pending) @pending
                 (todo_item_done) @done
+                (todo_item_cancelled) @cancelled
+                (todo_item_urgent) @urgent
+                (todo_item_on_hold) @onhold
+                (todo_item_recurring) @recurring
+                (todo_item_uncertain) @uncertain
             ]
         )
-    ]+
-)+
+    ]
+)
     ]],
 }
 
@@ -204,16 +240,18 @@ module.public = {
 
     -- @Summary Activates icons for the current window
     -- @Description Parses the user configuration and enables concealing for the current window.
+    -- @Param icon_set (table) - the icon set to trigger
+    -- @Param namespace
     -- @Param from (number) - the line number that we should start at (defaults to 0)
-    trigger_icons = function(from)
+    trigger_icons = function(icon_set, namespace, from)
         -- Clear all the conceals beforehand (so no overlaps occur)
-        module.public.clear_icons(from)
+        module.public.clear_icons(namespace, from)
 
         -- Get the root node of the document (required to iterate over query captures)
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
 
         -- Loop through all icons that the user has enabled
-        for _, icon_data in ipairs(module.private.icons) do
+        for _, icon_data in ipairs(icon_set) do
             if icon_data.query then
                 -- Attempt to parse the query provided by `icon_data.query`
                 -- A query must have at least one capture, e.g. "(test_node) @icon"
@@ -239,7 +277,7 @@ module.public = {
                         -- The extract function is used exactly to calculate this offset
                         -- If that function is present then run it and grab the return value
                         if icon_data.extract then
-                            offset = icon_data.extract(text) or 0
+                            offset = icon_data.extract(text, node) or 0
                         end
 
                         -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
@@ -504,94 +542,14 @@ module.public = {
     -- @Summary Clears all the conceals that neorg has defined
     -- @Description Simply clears the Neorg extmark namespace
     -- @Param from (number) - the line number to start clearing from
-    clear_icons = function(from)
-        vim.api.nvim_buf_clear_namespace(0, module.private.icon_namespace, from or 0, -1)
+    clear_icons = function(namespace, from)
+        vim.api.nvim_buf_clear_namespace(0, namespace, from or 0, -1)
     end,
 
     --- Clears all dimming applied to code blocks in the current buffer
     --- @param from number #The line number to start clearing from
     clear_code_block_dimming = function(from)
         vim.api.nvim_buf_clear_namespace(0, module.private.code_block_namespace, from or 0, -1)
-    end,
-
-    -- @Summary Triggers conceals for the current buffer
-    -- @Description Reads through the user configuration and enables concealing for the current buffer
-    trigger_conceals = function()
-        local conceals = module.config.public.conceals
-
-        if conceals.url then
-            vim.cmd(
-                'syn region NeorgConcealURLValue matchgroup=mkdDelimiter start="(" end=")" contained oneline conceal'
-            )
-            vim.cmd(
-                'syn region NeorgConcealURL matchgroup=mkdDelimiter start="\\([^\\\\]\\|\\_^\\)\\@<=\\[\\%\\(\\%\\(\\\\\\=[^\\]]\\)\\+\\](\\)\\@=" end="[^\\\\]\\@<=\\]" nextgroup=NeorgConcealURLValue oneline skipwhite concealends'
-            )
-        end
-
-        if conceals.bold then
-            vim.cmd([[
-                syn region NeorgConcealBold matchgroup=Normal start="\([?!:;,.<>()\[\]{}'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\*\%\([^ \t\n\*]\)\@=" end="[^ \t\n\\]\@<=\*\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-            ]])
-        end
-
-        if conceals.italic then
-            vim.cmd([[
-                syn region NeorgConcealItalic matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=/\%\([^ \t\n/]\)\@=" end="[^ \t\n\\]\@<=/\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-            ]])
-        end
-
-        if conceals.underline then
-            vim.cmd([[
-                syn region NeorgConcealUnderline matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-\~`\W \t\n]\&[^\\]\|^\)\@<=_\%\([^ \t\n_]\)\@=" end="[^ \t\n\\]\@<=_\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-            ]])
-        end
-
-        if conceals.strikethrough then
-            vim.cmd([[
-                syn region NeorgConcealStrikethrough matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=\-\%\([^ \t\n\-]\)\@=" end="[^ \t\n\\]\@<=\-\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-            ]])
-        end
-
-        if conceals.verbatim then
-            vim.cmd([[
-                syn region NeorgConcealMonospace matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/#%&$£€\-_\~\W \t\n]\&[^\\]\|^\)\@<=`\%\([^ \t\n`]\)\@=" end="[^ \t\n\\]\@<=`\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" contains=@NoSpell oneline concealends
-            ]])
-        end
-
-        if conceals.comment then
-            vim.cmd([[
-                syn region NeorgConcealComment matchgroup=Normal start="\([?!:;,.<>()\[\]{}\*'"/%&$£€\-_\~`\W \t\n]\&[^\\]\|^\)\@<=#\%\([^ \t\n#]\)\@=" end="[^ \t\n\\]\@<=#\%\([?!:;,.<>()\[\]{}\*'"/#%&$£\-_\~`\W \t\n]\)\@=" oneline concealends
-            ]])
-        end
-
-        if conceals.trailing then
-            vim.cmd([[
-                syn match NeorgConcealTrailing /[^\s]\@=\~$/ conceal
-            ]])
-        end
-
-        if conceals.link then
-            vim.cmd([[
-                syn region NeorgConcealLink matchgroup=Normal start=":[\*/_\-`]\@=" end="[\*/_\-`]\@<=:" contains=NeorgConcealBold,NeorgConcealItalic,NeorgConcealUnderline,NeorgConcealStrikethrough,NeorgConcealMonospace oneline concealends
-            ]])
-        end
-    end,
-
-    -- @Summary Clears conceals for the current buffer
-    -- @Description Clears all highlight groups related to the Neorg conceal higlight groups
-    clear_conceals = function()
-        vim.cmd([[
-            silent! syn clear NeorgConcealURL
-            silent! syn clear NeorgConcealURLValue
-            silent! syn clear NeorgConcealItalic
-            silent! syn clear NeorgConcealBold
-            silent! syn clear NeorgConcealUnderline
-            silent! syn clear NeorgConcealMonospace
-            silent! syn clear NeorgConcealComment
-            silent! syn clear NeorgConcealStrikethrough
-            silent! syn clear NeorgConcealTrailing
-            silent! syn clear NeorgConcealLink
-        ]])
     end,
 
     trigger_completion_levels = function(from)
@@ -612,7 +570,8 @@ module.public = {
             local nodes = {}
             local last_node
 
-            local total, done, pending, undone = 0, 0, 0, 0
+            local total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled =
+                0, 0, 0, 0, 0, 0, 0, 0, 0
 
             for id, node in query_object:iter_captures(document_root, 0, from, -1) do
                 local name = query_object.captures[id]
@@ -625,9 +584,15 @@ module.public = {
                             done = done,
                             pending = pending,
                             undone = undone,
+                            uncertain = uncertain,
+                            urgen = urgent,
+                            recurring = recurring,
+                            onhold = onhold,
+                            cancelled = cancelled,
                         })
 
-                        total, done, pending, undone = 0, 0, 0, 0
+                        total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled =
+                            0, 0, 0, 0, 0, 0, 0, 0, 0
                     end
 
                     last_node = node
@@ -640,6 +605,21 @@ module.public = {
                 elseif name == "pending" then
                     pending = pending + 1
                     total = total + 1
+                elseif name == "uncertain" then
+                    uncertain = uncertain + 1
+                    total = total + 1
+                elseif name == "urgent" then
+                    urgent = urgent + 1
+                    total = total + 1
+                elseif name == "recurring" then
+                    recurring = recurring + 1
+                    total = total + 1
+                elseif name == "onhold" then
+                    onhold = onhold + 1
+                    total = total + 1
+                elseif name == "cancelled" then
+                    cancelled = cancelled + 1
+                    -- total = total + 1
                 end
             end
 
@@ -650,6 +630,11 @@ module.public = {
                     done = done,
                     pending = pending,
                     undone = undone,
+                    uncertain = uncertain,
+                    urgent = urgent,
+                    recurring = recurring,
+                    onhold = onhold,
+                    cancelled = cancelled,
                 })
 
                 for _, node_information in ipairs(nodes) do
@@ -664,6 +649,11 @@ module.public = {
                             data = data:gsub("<done>", tostring(node_information.done))
                             data = data:gsub("<pending>", tostring(node_information.pending))
                             data = data:gsub("<undone>", tostring(node_information.undone))
+                            data = data:gsub("<uncertain>", tostring(node_information.uncertain))
+                            data = data:gsub("<urgent>", tostring(node_information.urgent))
+                            data = data:gsub("<recurring>", tostring(node_information.recurring))
+                            data = data:gsub("<onhold>", tostring(node_information.onhold))
+                            data = data:gsub("<cancelled>", tostring(node_information.cancelled))
                             data = data:gsub(
                                 "<percentage>",
                                 tostring(math.floor(node_information.done / node_information.total * 100))
@@ -731,6 +721,52 @@ module.public = {
                 latin_uppercase = function(count)
                     return string.char(64 + count)
                 end,
+
+                -- NOTE: only supports number up to 12
+                roman_lowercase = function(count)
+                    local chars = {
+                        [1] = "ⅰ",
+                        [2] = "ⅱ",
+                        [3] = "ⅲ",
+                        [4] = "ⅳ",
+                        [5] = "ⅴ",
+                        [6] = "ⅵ",
+                        [7] = "ⅶ",
+                        [8] = "ⅷ",
+                        [9] = "ⅸ",
+                        [10] = "ⅹ",
+                        [11] = "ⅺ",
+                        [12] = "ⅻ",
+                        [50] = "ⅼ",
+                        [100] = "ⅽ",
+                        [500] = "ⅾ",
+                        [1000] = "ⅿ",
+                    }
+                    return chars[count]
+                end,
+
+                -- NOTE: only supports number up to 12
+                roman_uppwercase = function(count)
+                    local chars = {
+                        [1] = "Ⅰ",
+                        [2] = "Ⅱ",
+                        [3] = "Ⅲ",
+                        [4] = "Ⅳ",
+                        [5] = "Ⅴ",
+                        [6] = "Ⅵ",
+                        [7] = "Ⅶ",
+                        [8] = "Ⅷ",
+                        [9] = "Ⅸ",
+                        [10] = "Ⅹ",
+                        [11] = "Ⅺ",
+                        [12] = "Ⅻ",
+                        [50] = "Ⅼ",
+                        [100] = "Ⅽ",
+                        [500] = "Ⅾ",
+                        [1000] = "Ⅿ",
+                    }
+                    return chars[count]
+                end,
             },
 
             punctuation = {
@@ -749,6 +785,171 @@ module.public = {
                 double_parenthesis = function(renderer)
                     return function(count)
                         return "(" .. renderer(count) .. ")"
+                    end
+                end,
+
+                -- NOTE: only supports arabic numbers up to 20
+                unicode_dot = function(renderer)
+                    return function(count)
+                        local chars = {
+                            ["1"] = "⒈",
+                            ["2"] = "⒉",
+                            ["3"] = "⒊",
+                            ["4"] = "⒋",
+                            ["5"] = "⒌",
+                            ["6"] = "⒍",
+                            ["7"] = "⒎",
+                            ["8"] = "⒏",
+                            ["9"] = "⒐",
+                            ["10"] = "⒑",
+                            ["11"] = "⒒",
+                            ["12"] = "⒓",
+                            ["13"] = "⒔",
+                            ["14"] = "⒕",
+                            ["15"] = "⒖",
+                            ["16"] = "⒗",
+                            ["17"] = "⒘",
+                            ["18"] = "⒙",
+                            ["19"] = "⒚",
+                            ["20"] = "⒛",
+                        }
+                        return chars[renderer(count)]
+                    end
+                end,
+
+                -- NOTE: only supports arabic numbers up to 20 or lowercase latin characters
+                unicode_double_parenthesis = function(renderer)
+                    return function(count)
+                        local chars = {
+                            ["1"] = "⑴",
+                            ["2"] = "⑵",
+                            ["3"] = "⑶",
+                            ["4"] = "⑷",
+                            ["5"] = "⑸",
+                            ["6"] = "⑹",
+                            ["7"] = "⑺",
+                            ["8"] = "⑻",
+                            ["9"] = "⑼",
+                            ["10"] = "⑽",
+                            ["11"] = "⑾",
+                            ["12"] = "⑿",
+                            ["13"] = "⒀",
+                            ["14"] = "⒁",
+                            ["15"] = "⒂",
+                            ["16"] = "⒃",
+                            ["17"] = "⒄",
+                            ["18"] = "⒅",
+                            ["19"] = "⒆",
+                            ["20"] = "⒇",
+                            ["a"] = "⒜",
+                            ["b"] = "⒝",
+                            ["c"] = "⒞",
+                            ["d"] = "⒟",
+                            ["e"] = "⒠",
+                            ["f"] = "⒡",
+                            ["g"] = "⒢",
+                            ["h"] = "⒣",
+                            ["i"] = "⒤",
+                            ["j"] = "⒥",
+                            ["k"] = "⒦",
+                            ["l"] = "⒧",
+                            ["m"] = "⒨",
+                            ["n"] = "⒩",
+                            ["o"] = "⒪",
+                            ["p"] = "⒫",
+                            ["q"] = "⒬",
+                            ["r"] = "⒭",
+                            ["s"] = "⒮",
+                            ["t"] = "⒯",
+                            ["u"] = "⒰",
+                            ["v"] = "⒱",
+                            ["w"] = "⒲",
+                            ["x"] = "⒳",
+                            ["y"] = "⒴",
+                            ["z"] = "⒵",
+                        }
+                        return chars[renderer(count)]
+                    end
+                end,
+
+                -- NOTE: only supports arabic numbers up to 20 or latin characters
+                unicode_circle = function(renderer)
+                    return function(count)
+                        local chars = {
+                            ["1"] = "①",
+                            ["2"] = "②",
+                            ["3"] = "③",
+                            ["4"] = "④",
+                            ["5"] = "⑤",
+                            ["6"] = "⑥",
+                            ["7"] = "⑦",
+                            ["8"] = "⑧",
+                            ["9"] = "⑨",
+                            ["10"] = "⑩",
+                            ["11"] = "⑪",
+                            ["12"] = "⑫",
+                            ["13"] = "⑬",
+                            ["14"] = "⑭",
+                            ["15"] = "⑮",
+                            ["16"] = "⑯",
+                            ["17"] = "⑰",
+                            ["18"] = "⑱",
+                            ["19"] = "⑲",
+                            ["20"] = "⑳",
+                            ["A"] = "Ⓐ",
+                            ["B"] = "Ⓑ",
+                            ["C"] = "Ⓒ",
+                            ["D"] = "Ⓓ",
+                            ["E"] = "Ⓔ",
+                            ["F"] = "Ⓕ",
+                            ["G"] = "Ⓖ",
+                            ["H"] = "Ⓗ",
+                            ["I"] = "Ⓘ",
+                            ["J"] = "Ⓙ",
+                            ["K"] = "Ⓚ",
+                            ["L"] = "Ⓛ",
+                            ["M"] = "Ⓜ",
+                            ["N"] = "Ⓝ",
+                            ["O"] = "Ⓞ",
+                            ["P"] = "Ⓟ",
+                            ["Q"] = "Ⓠ",
+                            ["R"] = "Ⓡ",
+                            ["S"] = "Ⓢ",
+                            ["T"] = "Ⓣ",
+                            ["U"] = "Ⓤ",
+                            ["V"] = "Ⓥ",
+                            ["W"] = "Ⓦ",
+                            ["X"] = "Ⓧ",
+                            ["Y"] = "Ⓨ",
+                            ["Z"] = "Ⓩ",
+                            ["a"] = "ⓐ",
+                            ["b"] = "ⓑ",
+                            ["c"] = "ⓒ",
+                            ["d"] = "ⓓ",
+                            ["e"] = "ⓔ",
+                            ["f"] = "ⓕ",
+                            ["g"] = "ⓖ",
+                            ["h"] = "ⓗ",
+                            ["i"] = "ⓘ",
+                            ["j"] = "ⓙ",
+                            ["k"] = "ⓚ",
+                            ["l"] = "ⓛ",
+                            ["m"] = "ⓜ",
+                            ["n"] = "ⓝ",
+                            ["o"] = "ⓞ",
+                            ["p"] = "ⓟ",
+                            ["q"] = "ⓠ",
+                            ["r"] = "ⓡ",
+                            ["s"] = "ⓢ",
+                            ["t"] = "ⓣ",
+                            ["u"] = "ⓤ",
+                            ["v"] = "ⓥ",
+                            ["w"] = "ⓦ",
+                            ["x"] = "ⓧ",
+                            ["y"] = "ⓨ",
+                            ["z"] = "ⓩ",
+                        }
+                        return chars[renderer(count)]
                     end
                 end,
             },
@@ -806,29 +1007,12 @@ module.public = {
     end,
 }
 
-local function reparg(value, index)
-    if index == 1 then
-        return value
-    end
-
-    return value, reparg(value, index - 1)
-end
-
 module.config.public = {
     icon_preset = "basic",
 
     icons = {},
-
-    conceals = {
-        url = true,
-        bold = true,
-        italic = true,
-        underline = true,
-        strikethrough = true,
-        verbatim = true,
-        comment = true,
-        trailing = true,
-        link = true,
+    markup = {
+        enable = true,
     },
 
     dim_code_blocks = true,
@@ -851,64 +1035,64 @@ module.config.public = {
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
-                                ]+
-                            )+
+                                ]
+                            )
                             (heading2
                                 content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
                                 ]
-                            )+
+                            )
                             (heading3
                                 content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
                                 ]
-                            )+
+                            )
                             (heading4
                                 content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
                                 ]
-                            )+
+                            )
                             (heading5
                                 content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
                                 ]
-                            )+
+                            )
                             (heading6
                                 content: (_)*
                                 content: [
                                     %s
                                     (carryover_tag_set
-                                        (carryover_tag)+
+                                        (carryover_tag)
                                         target: %s
                                     )
                                 ]
-                            )+
+                            )
                         ] @progress
                 ]],
-                    reparg(module.private.todo_list_query, 6 * 2)
+                    neorg.lib.reparg(module.private.todo_list_query, 6 * 2)
                 ),
                 text = module.private.completion_level_base,
                 highlight = "DiagnosticVirtualTextHint",
@@ -1021,7 +1205,7 @@ module.load = function()
         -- Go through every icon
         for name, icons in pairs(tbl) do
             -- If we're dealing with a table (which we should be) and if the current icon set is enabled then
-            if type(icons) == "table" and icons.enabled then
+            if type(icons) == "table" and icons.enabled and name ~= "markup" then
                 -- If we have defined an icon value then add that icon to the result
                 if icons.icon then
                     result[rec_name .. name] = icons
@@ -1037,11 +1221,13 @@ module.load = function()
     end
 
     -- Set the module.private.icons variable to the values of the enabled icons
-    module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
+    module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons, false))
+    module.private.markup = vim.tbl_values(get_enabled_icons(module.config.public.icons.markup, false))
 
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
 
+    module.required["core.autocommands"].enable_autocommand("CursorMoved")
     module.required["core.autocommands"].enable_autocommand("TextChanged")
     module.required["core.autocommands"].enable_autocommand("TextChangedI")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
@@ -1054,14 +1240,14 @@ module.on_event = function(event)
     -- Explain priorities and how we only schedule less important things to improve the average user
     -- experience
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        if module.config.public.conceals then
-            module.public.trigger_conceals()
-        end
-
         module.public.trigger_code_block_highlights()
         module.public.trigger_highlight_regex_code_block()
         module.public.trigger_completion_levels()
-        module.public.trigger_icons()
+        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+
+        if module.config.public.markup.enable then
+            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+        end
 
         if module.config.public.folds.enable then
             vim.opt_local.foldmethod = "expr"
@@ -1071,7 +1257,10 @@ module.on_event = function(event)
         end
     elseif event.type == "core.autocommands.events.textchanged" then
         -- If the content of a line has changed in normal mode then reparse the file
-        module.public.trigger_icons()
+        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+        if module.config.public.markup.enable then
+            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+        end
         module.public.trigger_code_block_highlights()
         module.public.trigger_highlight_regex_code_block()
         vim.schedule(module.public.trigger_completion_levels)
@@ -1084,13 +1273,22 @@ module.on_event = function(event)
         )
         vim.api.nvim_buf_clear_namespace(
             0,
+            module.private.markup_namespace,
+            event.cursor_position[1] - 1,
+            event.cursor_position[1]
+        )
+        vim.api.nvim_buf_clear_namespace(
+            0,
             module.private.completion_level_namespace,
             event.cursor_position[1] - 1,
             event.cursor_position[1]
         )
     elseif event.type == "core.autocommands.events.insertleave" then
         vim.schedule(function()
-            module.public.trigger_icons()
+            module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+            if module.config.public.markup.enable then
+                module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+            end
             module.public.trigger_completion_levels()
         end)
     elseif event.type == "core.autocommands.events.textchangedi" then
@@ -1102,6 +1300,7 @@ end
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
+        cursormoved = true,
         textchanged = true,
         textchangedi = true,
         insertenter = true,

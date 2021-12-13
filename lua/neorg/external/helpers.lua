@@ -1,6 +1,6 @@
 --[[
 --	HELPER FUNCTIONS FOR NEORG
---	This file contains some simple helper function improve quality of life
+--	This file contains some simple helper functions to improve QOL
 --]]
 
 neorg.utils = {
@@ -40,6 +40,7 @@ neorg.utils = {
             ["cpp"] = {},
             ["css"] = {},
             ["cuda"] = {},
+            ["d"] = {},
             ["dart"] = {},
             ["devicetree"] = {},
             ["dockerfile"] = {},
@@ -52,6 +53,7 @@ neorg.utils = {
             ["fortran"] = {},
             ["gdscript"] = {},
             ["glimmer"] = {},
+            ["glsl"] = {},
             ["go"] = {},
             ["gdresource"] = {},
             ["gomod"] = {},
@@ -59,6 +61,7 @@ neorg.utils = {
             ["haskell"] = {},
             ["hcl"] = {},
             ["heex"] = {},
+            ["hjson"] = {},
             ["html"] = {},
             ["java"] = {},
             ["javascript"] = {},
@@ -70,11 +73,13 @@ neorg.utils = {
             ["kotlin"] = {},
             ["latex"] = {},
             ["ledger"] = {},
+            ["llvm"] = {},
             ["lua"] = {},
             ["nix"] = {},
             ["ocaml"] = {},
             ["ocaml_interface"] = {},
             ["ocamllex"] = {},
+            ["perl"] = {},
             ["php"] = {},
             ["pioasm"] = {},
             ["python"] = {},
@@ -159,6 +164,239 @@ neorg.utils = {
         local version = vim.version()
 
         return major <= version.major and minor <= version.minor and patch <= version.patch
+    end,
+
+    --- Parses a version string like "0.4.2" and provides back a table like { major = <number>, minor = <number>, patch = <number> }
+    --- @param version_string string #The input string
+    --- @return table #The parsed version string, or `nil` if a failure occurred during parsing
+    parse_version_string = function(version_string)
+        if not version_string then
+            return
+        end
+
+        -- Define variables that split the version up into 3 slices
+        local split_version, versions, ret =
+            vim.split(version_string, ".", true), { "major", "minor", "patch" }, { major = 0, minor = 0, patch = 0 }
+
+        -- If the sliced version string has more than 3 elements error out
+        if #split_version > 3 then
+            log.warn(
+                "Attempt to parse version:",
+                version_string,
+                "failed - too many version numbers provided. Version should follow this layout: <major>.<minor>.<patch>"
+            )
+            return
+        end
+
+        -- Loop through all the versions and check whether they are valid numbers. If they are, add them to the return table
+        for i, ver in ipairs(versions) do
+            if split_version[i] then
+                local num = tonumber(split_version[i])
+
+                if not num then
+                    log.warn("Invalid version provided, string cannot be converted to integral type.")
+                    return
+                end
+
+                ret[ver] = num
+            end
+        end
+
+        return ret
+    end,
+}
+
+neorg.lib = {
+    match = function(statements)
+        local item = statements[1]
+
+        if item == nil then
+            return
+        end
+
+        table.remove(statements, 1)
+
+        local compare = statements[2]
+            or function(lhs, rhs)
+                if type(lhs) == "boolean" then
+                    return tostring(lhs) == rhs
+                end
+
+                return lhs == rhs
+            end
+
+        if statements[2] then
+            table.remove(statements, 2)
+        end
+
+        for case, action in pairs(statements) do
+            if compare(item, case) then
+                local action_type = type(action)
+
+                if action_type == "function" then
+                    return action(item)
+                end
+
+                return action
+            end
+        end
+
+        if statements.default then
+            local action = statements.default
+            local action_type = type(action)
+
+            if action_type == "function" then
+                return action(item)
+            end
+
+            return action
+        end
+    end,
+
+    --- Wrapped around `match()` that performs an action based on a condition
+    --- @param comparison boolean #The comparison to perform
+    --- @param when_true function|any #The value to return when `comparison` is true
+    --- @param when_false function|any #The value to return when `comparison` is false
+    --- @return any #The value that either `when_true` or `when_false` returned
+    when = function(comparison, when_true, when_false)
+        if type(comparison) ~= "boolean" then
+            comparison = (comparison ~= nil)
+        end
+
+        return neorg.lib.match({
+            type(comparison) == "table" and unpack(comparison) or comparison,
+            ["true"] = when_true,
+            ["false"] = when_false,
+        })
+    end,
+
+    --- Maps a function to every element of a table
+    --  The function can return a value, in which case that specific element will be assigned
+    --  the return value of that function.
+    --- @param tbl table #The table to iterate over
+    --- @param callback function #The callback that should be invoked on every iteration
+    --- @return table #A modified version of the original `tbl`.
+    map = function(tbl, callback)
+        local copy = vim.deepcopy(tbl)
+
+        for k, v in pairs(tbl) do
+            local cb = callback(k, v)
+
+            if cb then
+                copy[k] = cb
+            end
+        end
+
+        return copy
+    end,
+
+    --- Iterates over all elements of a table and returns the first value returned by the callback.
+    --- @param tbl table #The table to iterate over
+    --- @param callback function #The callback function that should be invoked on each iteration.
+    --  Can return a value in which case that value will be returned from the `filter()` call.
+    --- @return any|nil #The value returned by `callback`, if any
+    filter = function(tbl, callback)
+        for k, v in pairs(tbl) do
+            local cb = callback(k, v)
+
+            if cb then
+                return cb
+            end
+        end
+    end,
+
+    --- Finds any key in an array
+    --- @param tbl array #An array of values to iterate over
+    --- @param element any #The item to find
+    --- @return any|nil #The found value or `nil` if nothing could be found
+    find = function(tbl, element)
+        return neorg.lib.filter(tbl, function(key, value)
+            if value == element then
+                return key
+            end
+        end)
+    end,
+
+    --- Inserts a value into a table if it doesn't exist, else returns the existing value.
+    --- @param tbl table #The table to insert into
+    --- @param value number|string #The value to insert
+    --- @return any #The item to return
+    insert_or = function(tbl, value)
+        local item = neorg.lib.find(tbl, value)
+
+        return item and tbl[item]
+            or (function()
+                table.insert(tbl, value)
+                return value
+            end)()
+    end,
+
+    --- Picks a set of values from a table and returns them in an array
+    --- @param tbl table #The table to extract the keys from
+    --- @param values array[string] #An array of strings, these being the keys you'd like to extract
+    --- @return array[any] #The picked values from the table
+    pick = function(tbl, values)
+        local result = {}
+
+        for _, value in ipairs(values) do
+            if tbl[value] then
+                table.insert(result, tbl[value])
+            end
+        end
+
+        return result
+    end,
+
+    --- Wraps a function in a callback
+    --- @param function_pointer function #The function to wrap
+    --- @vararg ... #The arguments to pass to the wrapped function
+    --- @return function #The wrapped function in a callback
+    wrap = function(function_pointer, ...)
+        local params = { ... }
+
+        return function()
+            return function_pointer(unpack(params))
+        end
+    end,
+
+    --- Wrapper function to add two values
+    --  This function only takes in one argument because the second value
+    --  to add is provided as a parameter in the callback.
+    --- @param amount number #The number to add
+    --- @return function #A callback adding the static value to the dynamic amount
+    add = function(amount)
+        return function(value)
+            return value + amount
+        end
+    end,
+
+    --- Repeats an arguments `index` amount of times
+    --- @param value any #The value to repeat
+    --- @param index number #The amount of times to repeat the argument
+    --- @return ... #An expanded vararg with the repeated argument
+    reparg = function(value, index)
+        if index == 1 then
+            return value
+        end
+
+        return value, neorg.lib.reparg(value, index - 1)
+    end,
+
+    --- Lazily concatenates a string to prevent runtime errors where an object may not exist
+    --  Consider the following example:
+    --
+    --      neorg.lib.when(str ~= nil, str .. " extra text", "")
+    --
+    --  This would fail, simply because the string concatenation will still be evaluated in order
+    --  to be placed inside the variable. You may use:
+    --
+    --      neorg.lib.when(str ~= nil, neorg.lib.lazy_string_concat(str, " extra text"), "")
+    --
+    --  To mitigate this issue directly.
+    --- @vararg string #An unlimited number of strings
+    --- @return string #The result of all the strings concatenateA.
+    lazy_string_concat = function(...)
+        return table.concat({ ... })
     end,
 }
 

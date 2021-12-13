@@ -52,28 +52,18 @@ module.public = {
         if type == "projects" then
             tree = {
                 {
-                    query = { "first", "document_content" },
-                    subtree = {
-                        {
-                            query = { "all", "heading1" },
-                            recursive = true,
-                        },
-                    },
+                    query = { "all", "heading1" },
+                    recursive = true,
                 },
             }
         elseif type == "tasks" then
             tree = {
                 {
-                    query = { "first", "document_content" },
+                    query = { "all", "generic_list" },
+                    recursive = true,
                     subtree = {
                         {
-                            query = { "all", "generic_list" },
-                            recursive = true,
-                            subtree = {
-                                {
-                                    query = { "all", "todo_item1" },
-                                },
-                            },
+                            query = { "all", "todo_item1" },
                         },
                     },
                 },
@@ -324,7 +314,7 @@ module.public = {
                     {
                         query = { "all", "tag_parameters" },
                         subtree = {
-                            { query = { "all", "word" } },
+                            { query = { "all", "tag_param" } },
                         },
                     },
                 },
@@ -479,14 +469,19 @@ module.private = {
 
         opts = opts or {}
         local tree = {
-            { query = { "all", "todo_item_done" } },
-            { query = { "all", "todo_item_undone" } },
-            { query = { "all", "todo_item_pending" } },
+            { query = { "first", "todo_item_done" } },
+            { query = { "first", "todo_item_undone" } },
+            { query = { "first", "todo_item_pending" } },
+            { query = { "first", "todo_item_on_hold" } },
+            { query = { "first", "todo_item_cancelled" } },
+            { query = { "first", "todo_item_urgent" } },
+            { query = { "first", "todo_item_uncertain" } },
+            { query = { "first", "todo_item_recurring" } },
         }
 
         local task_state_nodes = module.required["core.queries.native"].query_from_tree(task.node, tree, task.bufnr)
 
-        if #task_state_nodes ~= 1 then
+        if not task_state_nodes then
             log.error("This task does not contain any state !")
         end
 
