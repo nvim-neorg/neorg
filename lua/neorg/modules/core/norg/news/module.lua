@@ -59,7 +59,7 @@ module.config.public = {
                     center_y = true,
                 },
 
-                message = "There will be some breaking changes soon!",
+                message = "There have been some breaking changes!",
                 check_at_startup = true,
             },
             template = {

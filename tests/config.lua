@@ -32,7 +32,7 @@ vim.api.nvim_buf_set_lines(config.temp_buf, 0, -1, false, {
     "- [ ] test1",
     "- [ ] test2",
     "- [x] test3",
-    "- [*] test4",
+    "- [-] test4",
     "#contexts test_context test_context2",
     "#time.due 2021-10-10",
     "#time.start 2021-10-11",
