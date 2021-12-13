@@ -103,10 +103,11 @@ end
 
 module.private = {
     icon_namespace = vim.api.nvim_create_namespace("neorg-conceals"),
+    markup_namespace = vim.api.nvim_create_namespace("neorg-markup"),
     code_block_namespace = vim.api.nvim_create_namespace("neorg-code-blocks"),
     completion_level_namespace = vim.api.nvim_create_namespace("neorg-completion-level"),
-    extmarks = {},
     icons = {},
+    markup = {},
 
     completion_level_base = {
         {
@@ -239,19 +240,17 @@ module.public = {
 
     -- @Summary Activates icons for the current window
     -- @Description Parses the user configuration and enables concealing for the current window.
+    -- @Param icon_set (table) - the icon set to trigger
+    -- @Param namespace
     -- @Param from (number) - the line number that we should start at (defaults to 0)
-    trigger_icons = function(from)
+    trigger_icons = function(icon_set, namespace, from)
         -- Clear all the conceals beforehand (so no overlaps occur)
-        module.public.clear_icons(from)
+        module.public.clear_icons(namespace, from)
 
         -- Get the root node of the document (required to iterate over query captures)
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
 
         -- Loop through all icons that the user has enabled
-        local icon_set
-        local namespace
-        icon_set = module.private.icons
-        namespace = module.private.namespace
         for _, icon_data in ipairs(icon_set) do
             if icon_data.query then
                 -- Attempt to parse the query provided by `icon_data.query`
@@ -543,8 +542,8 @@ module.public = {
     -- @Summary Clears all the conceals that neorg has defined
     -- @Description Simply clears the Neorg extmark namespace
     -- @Param from (number) - the line number to start clearing from
-    clear_icons = function(from)
-        vim.api.nvim_buf_clear_namespace(0, module.private.icon_namespace, from or 0, -1)
+    clear_icons = function(namespace, from)
+        vim.api.nvim_buf_clear_namespace(0, namespace, from or 0, -1)
     end,
 
     --- Clears all dimming applied to code blocks in the current buffer
@@ -1012,6 +1011,9 @@ module.config.public = {
     icon_preset = "basic",
 
     icons = {},
+    markup = {
+        enable = true,
+    },
 
     dim_code_blocks = true,
 
@@ -1203,7 +1205,7 @@ module.load = function()
         -- Go through every icon
         for name, icons in pairs(tbl) do
             -- If we're dealing with a table (which we should be) and if the current icon set is enabled then
-            if type(icons) == "table" and icons.enabled then
+            if type(icons) == "table" and icons.enabled and name ~= "markup" then
                 -- If we have defined an icon value then add that icon to the result
                 if icons.icon then
                     result[rec_name .. name] = icons
@@ -1220,6 +1222,7 @@ module.load = function()
 
     -- Set the module.private.icons variable to the values of the enabled icons
     module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons, false))
+    module.private.markup = vim.tbl_values(get_enabled_icons(module.config.public.icons.markup, false))
 
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
@@ -1240,7 +1243,11 @@ module.on_event = function(event)
         module.public.trigger_code_block_highlights()
         module.public.trigger_highlight_regex_code_block()
         module.public.trigger_completion_levels()
-        module.public.trigger_icons()
+        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+
+        if module.config.public.markup.enable then
+            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+        end
 
         if module.config.public.folds.enable then
             vim.opt_local.foldmethod = "expr"
@@ -1250,7 +1257,10 @@ module.on_event = function(event)
         end
     elseif event.type == "core.autocommands.events.textchanged" then
         -- If the content of a line has changed in normal mode then reparse the file
-        module.public.trigger_icons()
+        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+        if module.config.public.markup.enable then
+            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+        end
         module.public.trigger_code_block_highlights()
         module.public.trigger_highlight_regex_code_block()
         vim.schedule(module.public.trigger_completion_levels)
@@ -1263,13 +1273,22 @@ module.on_event = function(event)
         )
         vim.api.nvim_buf_clear_namespace(
             0,
+            module.private.markup_namespace,
+            event.cursor_position[1] - 1,
+            event.cursor_position[1]
+        )
+        vim.api.nvim_buf_clear_namespace(
+            0,
             module.private.completion_level_namespace,
             event.cursor_position[1] - 1,
             event.cursor_position[1]
         )
     elseif event.type == "core.autocommands.events.insertleave" then
         vim.schedule(function()
-            module.public.trigger_icons()
+            module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+            if module.config.public.markup.enable then
+                module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+            end
             module.public.trigger_completion_levels()
         end)
     elseif event.type == "core.autocommands.events.textchangedi" then
