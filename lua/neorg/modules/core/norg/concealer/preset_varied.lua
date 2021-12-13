@@ -584,6 +584,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
                     -- Grab the sibling before our current node in order to later
                     -- determine how much space it occupies in the buffer vertically
                     local prev_sibling = node:prev_sibling()
+                    local double_prev_sibling = prev_sibling:prev_sibling()
                     local ts = module.required["core.integrations.treesitter"].get_ts_utils()
 
                     if prev_sibling then
@@ -591,9 +592,13 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
                         local text = ts.get_node_text(prev_sibling)
                         local longest = 3
 
-                        if prev_sibling:parent() and prev_sibling:prev_sibling():type() == "marker_prefix" then
+                        if
+                            prev_sibling:parent()
+                            and double_prev_sibling
+                            and double_prev_sibling:type() == "marker_prefix"
+                        then
                             local range_of_prefix = module.required["core.integrations.treesitter"].get_node_range(
-                                prev_sibling:prev_sibling()
+                                double_prev_sibling
                             )
                             local range_of_title = module.required["core.integrations.treesitter"].get_node_range(
                                 prev_sibling
