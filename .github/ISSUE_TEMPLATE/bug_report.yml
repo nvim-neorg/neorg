@@ -38,7 +38,7 @@ body:
       label: "Loaded modules"
       description: |
         - Start neorg silently by doing `:NeorgStart silent=true`
-        - Get modules by doing `:Neorg modules list`
+        - Get modules by doing `:Neorg module list`
         - Type ':messages' and copy the list
     validations:
       required: true
