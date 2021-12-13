@@ -17,17 +17,6 @@ local module = neorg.modules.create("core.highlights")
 --]]
 module.config.public = {
     highlights = {
-        ConcealURL = {
-            [""] = "+TSURI",
-            Value = "+TSType",
-        },
-        Conceal = {
-            Bold = "cterm=bold gui=bold",
-            Italic = "cterm=italic gui=italic",
-            Underline = "cterm=underline gui=underline",
-            Strikethrough = "cterm=strikethrough gui=strikethrough",
-        },
-
         SelectionWindow = {
             Heading = "+TSAnnotation",
             Arrow = "+Normal",

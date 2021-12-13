@@ -366,10 +366,14 @@ module.config.public = {
         },
 
         Markup = {
-            Bold = "cterm=bold gui=bold",
-            Italic = "cterm=italic gui=italic",
-            Strikethrough = "cterm=strikethrough gui=strikethrough",
-            Underline = "cterm=underline gui=underline",
+            Bold = "+TSStrong",
+            Italic = "+TSEmphasis",
+            Underline = "+TSUnderline",
+            Strikethrough = "+TSStrike",
+            Spoiler = "+TSDanger",
+            Subscript = "+TSLabel",
+            Superscript = "+TSNumber",
+            Math = "+TSMath",
             Variable = "+NeorgInsertionVariable",
         },
 
@@ -378,6 +382,7 @@ module.config.public = {
         HorizontalLine = "+TSPunctDelimiter",
 
         TrailingModifier = "+TSPunctDelimiter",
+        LinkModifier = "+TSPunctDelimiter",
 
         DocumentMeta = {
             Key = "+TSField",
