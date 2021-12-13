@@ -314,7 +314,7 @@ module.public = {
                     {
                         query = { "all", "tag_parameters" },
                         subtree = {
-                            { query = { "all", "word" } },
+                            { query = { "all", "tag_param" } },
                         },
                     },
                 },
