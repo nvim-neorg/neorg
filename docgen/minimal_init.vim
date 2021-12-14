@@ -36,7 +36,10 @@ P = function(...)
     print(vim.inspect(...))
 end
 
-require('nvim-treesitter.configs').setup({})
+local ok, module = pcall(require,'nvim-treesitter.configs')
+if ok then
+    module.setup({})
+end
 EOF
 
 runtime! plugin/plenary.vim

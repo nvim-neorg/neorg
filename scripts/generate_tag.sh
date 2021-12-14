@@ -18,6 +18,10 @@ curl -s -X POST https://api.github.com/repos/nvim-neorg/neorg/git/refs \
 EOF
 }
 
+echo "Current neorg version: $current_version"
+echo "Last pushed tag: $last_tag"
+echo "Last commit: $commit"
+
 if [ -z "$last_tag" ]; then
     # git tag -a $current_version -m "Neorg version: $current_version"
     push_tag
