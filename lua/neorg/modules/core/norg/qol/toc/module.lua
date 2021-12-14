@@ -73,14 +73,16 @@ Type :messages to see full output
 
     --- Generates a Table Of Contents (doesn't display it)
     --- @param generator function the function to invoke for each node (used for building the toc)
+    --- @param display_as_links boolean
     --- @return table a table of { text, highlight_group } pairs
-    generate_toc = function(toc_data, generator)
+    generate_toc = function(toc_data, generator, display_as_links)
         vim.validate({
             toc_data = { toc_data, "table" },
             generator = { generator, "function", true },
         })
 
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+        local ts = module.required["core.integrations.treesitter"]
 
         -- Initialize the default generator if it can't be found
         generator = generator
@@ -105,10 +107,20 @@ Type :messages to see full output
                     end
 
                     local line, _, _ = node:start()
+                    local heading_text_node = ts.get_first_node("paragraph_segment", 0, node)
+                    local heading_text = ts_utils.get_node_text(heading_text_node, 0)
+
+                    local prefix = string.rep(display_as_links and "-" or "*", heading_level)
+                        .. (display_as_links and "> " or " ")
+                    local text = prefix
+                        .. (function()
+                            if display_as_links then
+                                return "{# " .. table.concat(heading_text, "") .. "}"
+                            end
+                            return join_text(heading_text)
+                        end)()
                     return {
-                        text = string.rep("*", heading_level) .. " " .. join_text(
-                            ts_utils.get_node_text(node:field("title")[1], 0)
-                        ),
+                        text = text,
                         highlight = "NeorgHeading" .. heading_level .. "Title",
                         level = heading_level,
                         state = state,
@@ -117,11 +129,11 @@ Type :messages to see full output
                 end
             end
 
-        local ts = module.required["core.integrations.treesitter"]
-
+        local title = toc_data.parameters and ts.get_node_text(toc_data.parameters)
+            or (display_as_links and "* " or "") .. "Table of Contents"
         local result = {
             {
-                text = (toc_data.parameters and ts.get_node_text(toc_data.parameters) or "Table of Contents"),
+                text = title,
                 highlight = "TSAnnotation",
                 level = 1,
             },
@@ -161,7 +173,7 @@ Type :messages to see full output
             return
         end
 
-        local generated_toc = module.public.generate_toc(found_toc)
+        local generated_toc = module.public.generate_toc(found_toc, nil, split)
 
         if not generated_toc then
             return
@@ -172,8 +184,8 @@ Type :messages to see full output
             table.insert(virt_lines, { { element.text, element.highlight } })
         end
 
-        if split == true then
-            local buf = module.required["core.ui"].create_norg_buffer("Neorg Toc", "vsplitr")
+        if split then
+            local buf = module.required["core.ui"].create_norg_buffer("Neorg Toc", "vsplitl")
 
             local filter = function(a)
                 return a.text
@@ -184,26 +196,8 @@ Type :messages to see full output
             return
         end
 
-        -- reformat ToC appearance for in-lined display
-        local new_virt_lines = {}
-        for num, virt_line in ipairs(virt_lines) do
-            if num > 2 then
-                local text = virt_line[1][1]
-                local link_text = string.gsub(text, "%*+", "")
-                local level = #text - #link_text
-                table.insert(new_virt_lines, {
-                    { string.rep("~", level) .. "> ", "NeorgOrderedLink" .. level },
-                    { "[", "" },
-                    { string.gsub(link_text, "^%s+", ""), "NeorgConcealURL" },
-                    { "](", "" },
-                    { text, "NeorgConcealURLValue" },
-                    { ")", "" },
-                })
-            end
-        end
-
         local namespace = vim.api.nvim_create_namespace("Neorg ToC")
-        vim.api.nvim_buf_set_extmark(0, namespace, found_toc.line, 0, { virt_lines = new_virt_lines })
+        vim.api.nvim_buf_set_extmark(0, namespace, found_toc.line, 0, { virt_lines = virt_lines })
     end,
 
     --- Populates the quickfix list with the table of contents

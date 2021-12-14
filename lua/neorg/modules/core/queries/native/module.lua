@@ -106,7 +106,7 @@ module.public = {
     --- @param bufnr number
     --- @return table
     query_nodes_from_buf = function(tree, bufnr)
-        local root_node = module.private.get_buf_root_node(bufnr)
+        local root_node = module.required["core.integrations.treesitter"].get_buf_root_node(bufnr)
         if not root_node then
             return
         end
@@ -169,14 +169,6 @@ module.public = {
 }
 
 module.private = {
-    --- Get the root node from a `bufnr`
-    --- @param bufnr number
-    --- @return userdata
-    get_buf_root_node = function(bufnr)
-        local parser = vim.treesitter.get_parser(bufnr, "norg")
-        local tstree = parser:parse()[1]
-        return tstree:root()
-    end,
 
     --- Returns a list of child nodes (from `parent`) that matches a `tree`
     --- @param parent userdata

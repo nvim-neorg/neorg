@@ -549,26 +549,27 @@ module.public = {
     -- @Summary Returns the first occurence of a node in the AST
     -- @Description Returns the first node of given type if present
     -- @Param  type (string) - the type of node to search for
-    get_first_node = function(type, buf)
-        local ret = nil
-
+    get_first_node = function(type, buf, parent)
         if not buf then
             buf = 0
         end
 
-        -- I'm starting to doubt that we need to loop through each tree
-        -- Core Devs plz help
-        vim.treesitter.get_parser(buf, "norg"):for_each_tree(function(tree)
-            -- Iterate over all top-level children and attempt to find a match
-            for child, _ in tree:root():iter_children() do
+        local function iterate(parent_node)
+            for child, _ in parent_node:iter_children() do
                 if child:type() == type then
-                    ret = child
-                    return
+                    return child
                 end
             end
-        end)
+        end
 
-        return ret
+        if parent then
+            return iterate(parent)
+        end
+
+        vim.treesitter.get_parser(buf, "norg"):for_each_tree(function(tree)
+            -- Iterate over all top-level children and attempt to find a match
+            return iterate(tree:root())
+        end)
     end,
 
     get_first_node_recursive = function(type, opts)
@@ -799,6 +800,15 @@ module.public = {
 
             _node = _node:parent()
         end
+    end,
+
+    --- Get the root node from a `bufnr`
+    --- @param bufnr number
+    --- @return userdata
+    get_buf_root_node = function(bufnr)
+        local parser = vim.treesitter.get_parser(bufnr, "norg")
+        local tstree = parser:parse()[1]
+        return tstree:root()
     end,
 }
 
