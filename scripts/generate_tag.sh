@@ -1,6 +1,6 @@
 #!/bin/bash
 
-current_version=$(nvim --headless -c 'luafile ./scripts/get_version.lua' -c 'qa' 2>&1 | tr -d \")
+current_version=$(nvim --headless --noplugin -u ./docgen/minimal_init.vim -c 'luafile ./scripts/get_version.lua' -c 'qa' 2>&1 | tr -d \")
 
 last_tag=$(git describe --tags `git rev-list --tags --max-count=1` 2>/dev/null)
 

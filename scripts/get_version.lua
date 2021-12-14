@@ -1,1 +1,1 @@
-P(neorg.configuration.version)
+P(require("neorg").configuration.version)
