@@ -24,11 +24,9 @@ body:
 
   - type: textarea
     attributes:
-      label: "Loaded modules"
+      label: "Neorg setup"
       description: |
-        - Start neorg silently by doing `:NeorgStart silent=true`
-        - Get modules by doing `:Neorg module list`
-        - Type ':messages' and copy the list
+        - Copy your entire "require("neorg").setup" function
     validations:
       required: true
 
