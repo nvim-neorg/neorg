@@ -30,4 +30,4 @@ jobs:
       - name: Run tag_gen
         run: make tag
         env:
-          GITHUB_REPO: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
