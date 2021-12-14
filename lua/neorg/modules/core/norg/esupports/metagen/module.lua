@@ -117,6 +117,7 @@ module.on_event = function(event)
         event.type == "core.autocommands.events.bufenter"
         and event.content.norg
         and module.config.public.type == "auto"
+        and vim.api.nvim_buf_get_option(0, "modifiable")
     then
         module.public.inject_metadata()
     end
