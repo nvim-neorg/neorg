@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  tests:
+  gen_tag:
     strategy:
       fail-fast: false
       matrix:
