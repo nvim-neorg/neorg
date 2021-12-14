@@ -26,3 +26,7 @@ format:
 
 install_pre_commit:
 	cp scripts/pre-commit "$$(git rev-parse --git-dir)/hooks/"
+
+tag:
+	./scripts/generate_tag.sh
+
