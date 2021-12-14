@@ -1,7 +1,7 @@
 --[[
 --	NEORG MODULE MANAGER
 --	This file is responsible for loading, calling and managing modules
---	Modules are internal mini-programs that execute on certain events, they build the foundation of neorg itself.
+--	Modules are internal mini-programs that execute on certain events, they build the foundation of Neorg itself.
 --]]
 
 -- Include the global logger instance
@@ -222,6 +222,7 @@ function neorg.modules.load_module(module_name, parent, config)
 
     -- Load the user-defined configuration
     if config and not vim.tbl_isempty(config) then
+        module.config.custom = config
         module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
     else
         module.config.public = vim.tbl_deep_extend(
