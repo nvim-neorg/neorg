@@ -174,22 +174,7 @@ module.public = {
                 type = "Tag",
             },
 
-            descend = {
-                {
-                    regex = "contexts%s+%w*",
-
-                    complete = {
-                        "today",
-                        "someday",
-                    },
-
-                    options = {
-                        type = "GTDContext",
-                    },
-
-                    descend = {},
-                },
-            },
+            descend = {},
         },
         {
             regex = "^%s*@e?n?",
