@@ -191,8 +191,12 @@ Type :messages to see full output
                 return a.text
             end
 
+            local size = math.floor(vim.api.nvim_win_get_width(0) / 3)
+            vim.api.nvim_win_set_width(0, size)
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.tbl_map(filter, generated_toc))
-            vim.api.nvim_buf_set_option(buf, "modifiable", false)
+            -- vim.api.nvim_buf_set_option(buf, "modifiable", false)
+
+            vim.cmd(string.format([[echom '%s']], "Press <ESC> or q to exit"))
             return
         end
 

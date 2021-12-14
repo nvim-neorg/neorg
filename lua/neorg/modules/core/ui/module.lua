@@ -326,7 +326,7 @@ module.public = {
     --- @param name string the name of the buffer *without* the .norg extension
     --- @param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
     --- @param config table a table of { option = value } pairs that set buffer-local options for the created Neorg buffer
-    --- @param no_keybinds boolean if false, will not use the default keybinds
+    --- @param keybinds boolean if false, will not use the default keybinds
     create_norg_buffer = function(name, split_type, config, keybinds)
         vim.validate({
             name = { name, "string" },
