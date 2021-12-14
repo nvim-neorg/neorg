@@ -327,7 +327,7 @@ module.public = {
     --- @param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
     --- @param config table a table of { option = value } pairs that set buffer-local options for the created Neorg buffer
     --- @param no_keybinds boolean if false, will not use the default keybinds
-    create_norg_buffer = function(name, split_type, config, no_keybinds)
+    create_norg_buffer = function(name, split_type, config, keybinds)
         vim.validate({
             name = { name, "string" },
             split_type = { split_type, "string" },
@@ -361,7 +361,7 @@ module.public = {
 
         vim.api.nvim_win_set_buf(0, buf)
 
-        if no_keybinds then
+        if not keybinds then
             vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
             vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
         end
