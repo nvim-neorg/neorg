@@ -1012,7 +1012,7 @@ module.config.public = {
 
     icons = {},
     markup = {
-        enable = true,
+        enable = false,
     },
 
     dim_code_blocks = true,
