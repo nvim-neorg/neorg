@@ -344,7 +344,7 @@ module.public = {
         end
 
         local buf = (function()
-            name = "buffer/" .. name .. ".norg"
+            name = "norg/" .. name .. ".norg"
 
             if split_type == "vsplitl" then
                 return module.public.create_vsplit(name, {}, true)
