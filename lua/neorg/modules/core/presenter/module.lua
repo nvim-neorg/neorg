@@ -112,7 +112,12 @@ module.public = {
         end
 
         -- Generate views selection popup
-        local buffer = module.required["core.ui"].create_norg_buffer("Norg Presenter", "nosplit", nil, false)
+        local buffer = module.required["core.ui"].create_norg_buffer(
+            "Norg Presenter",
+            "nosplit",
+            nil,
+            { keybinds = false }
+        )
         vim.api.nvim_buf_call(buffer, function()
             vim.cmd("set scrolloff=999")
         end)

@@ -511,7 +511,7 @@ module.private = {
     --- @param vars table the variables to add in the buffer
     --- @param res table the lines to add
     generate_display = function(name, vars, res)
-        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr", nil, false)
+        local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr", nil, { keybinds = false })
         module.required["core.mode"].set_mode("gtd-displays")
 
         module.private.set_vars_to_buf(buf, vars)
