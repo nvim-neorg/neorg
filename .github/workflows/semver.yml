@@ -33,5 +33,5 @@ jobs:
           version: ${{ matrix.version }}
       - name: Run tag_gen
         run: make tag
-      env:
-        GITHUB_REPO: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_REPO: ${{ secrets.GITHUB_TOKEN }}
