@@ -19,16 +19,35 @@ module.load = function()
     module.required["core.keybinds"].register_keybind(module.name, "hop-toc-link")
 end
 
+module.config.public = {}
+
+module.private = {
+    toc_bufnr = nil,
+    cur_bnr = nil,
+}
+
 module.public = {
-    follow_link_toc = function(split, close_toc_split)
+    follow_link_toc = function()
+        -- Get the link node from cursor
         local node = module.required["core.norg.esupports.hop"].lookahead_link_node()
+
+        if not node then
+            return
+        end
+
+        -- Go back to previous mode
         local previous_mode = module.required["core.mode"].get_previous_mode()
         module.required["core.mode"].set_mode(previous_mode)
-        print("node:")
-        print(vim.inspect(getmetatable(node)))
 
-        vim.cmd("wincmd l")
-        module.required["core.norg.esupports.hop"].follow_link(node)
+        -- Parse the link before jumping
+        local parsed_link = module.required["core.norg.esupports.hop"].parse_link(node, module.private.toc_bufnr)
+
+        -- Follow the link on main norg file
+        vim.api.nvim_win_set_buf(0, module.private.cur_bnr)
+        module.required["core.norg.esupports.hop"].follow_link(node, nil, parsed_link)
+
+        module.private.cur_bnr = nil
+        module.private.toc_bufnr = nil
     end,
 
     --- Find a Table of Contents insertions in the document and returns its data
@@ -209,7 +228,11 @@ module.public = {
         end
 
         if split then
+            module.private.cur_bnr = vim.api.nvim_get_current_buf()
+
             local buf = module.required["core.ui"].create_norg_buffer("Neorg Toc", "vsplitl")
+            module.private.toc_bufnr = buf
+
             module.required["core.mode"].set_mode("toc-split")
 
             local filter = function(a)
@@ -219,7 +242,7 @@ module.public = {
             local size = math.floor(vim.api.nvim_win_get_width(0) / 3)
             vim.api.nvim_win_set_width(0, size)
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.tbl_map(filter, generated_toc))
-            -- vim.api.nvim_buf_set_option(buf, "modifiable", false)
+            vim.api.nvim_buf_set_option(buf, "modifiable", false)
 
             vim.cmd(string.format([[echom '%s']], "Press <ESC> or q to exit"))
             return
@@ -273,8 +296,7 @@ module.public = {
 
 module.on_event = function(event)
     if event.split_type[2] == "core.norg.qol.toc.hop-toc-link" then
-        module.public.follow_link_toc(event.content[1])
-        -- print("keybinding executed")
+        module.public.follow_link_toc()
     end
 end
 

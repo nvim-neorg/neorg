@@ -31,7 +31,7 @@ module.public = {
     --- Follow link from a specific node
     --- @param node userdata
     --- @param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...)
-    follow_link = function(node, split)
+    follow_link = function(node, split, parsed_link)
         if node:type() == "anchor_declaration" then
             local located_anchor_declaration = module.public.locate_anchor_declaration_target(node)
 
@@ -47,11 +47,11 @@ module.public = {
             return
         end
 
-        local parsed_link = module.public.parse_link(node)
-
         if not parsed_link then
+            log.warn("Please parse your link before calling this function")
             return
         end
+
 
         local located_link_information = module.public.locate_link_target(parsed_link)
 
@@ -242,7 +242,8 @@ module.public = {
         end
     end,
 
-    parse_link = function(link_node)
+    parse_link = function(link_node, buf)
+        buf = buf or 0
         if not link_node or not vim.tbl_contains({ "link", "anchor_definition" }, link_node:type()) then
             return
         end
@@ -298,23 +299,27 @@ module.public = {
             ]
         ]]
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+        local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
         if not document_root then
             return
         end
+
+        P(vim.uri_from_bufnr(buf))
+        P(module.required["core.integrations.treesitter"].get_node_text(document_root, buf))
 
         local query = vim.treesitter.parse_query("norg", query_text)
         local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
 
         local parsed_link_information = {}
 
-        for id, node in query:iter_captures(document_root, 0, range.row_start, range.row_end + 1) do
+        for id, node in query:iter_captures(document_root, buf, range.row_start, range.row_end + 1) do
             local capture = query.captures[id]
 
             local extract_node_text = neorg.lib.wrap(
                 module.required["core.integrations.treesitter"].get_node_text,
-                node
+                node,
+                buf
             )
 
             parsed_link_information[capture] = parsed_link_information[capture]
@@ -686,7 +691,9 @@ module.on_event = function(event)
             return
         end
 
-        module.public.follow_link(link_node_at_cursor, split_mode)
+        local parsed_link = module.public.parse_link(link_node_at_cursor)
+
+        module.public.follow_link(link_node_at_cursor, split_mode, parsed_link)
     end
 end
 
