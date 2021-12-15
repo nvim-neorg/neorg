@@ -28,16 +28,12 @@ module.config.public = {
 }
 
 module.public = {
-    follow_link = function(split)
-        local link_node_at_cursor = module.public.extract_link_node()
-
-        if not link_node_at_cursor then
-            log.trace("No link under cursor.")
-            return
-        end
-
-        if link_node_at_cursor:type() == "anchor_declaration" then
-            local located_anchor_declaration = module.public.locate_anchor_declaration_target(link_node_at_cursor)
+    --- Follow link from a specific node
+    --- @param node userdata
+    --- @param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...)
+    follow_link = function(node, split)
+        if node:type() == "anchor_declaration" then
+            local located_anchor_declaration = module.public.locate_anchor_declaration_target(node)
 
             if not located_anchor_declaration then
                 return
@@ -51,7 +47,7 @@ module.public = {
             return
         end
 
-        local parsed_link = module.public.parse_link(link_node_at_cursor)
+        local parsed_link = module.public.parse_link(node)
 
         if not parsed_link then
             return
@@ -121,7 +117,7 @@ module.public = {
                     return
                 end
 
-                module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities)
+                module.private.write_fixed_link(node, parsed_link, similarities)
             end)
             :blank()
             :desc("Does the same as the above keybind, however doesn't limit matches to those")
@@ -134,7 +130,7 @@ module.public = {
                     return
                 end
 
-                module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities, true)
+                module.private.write_fixed_link(node, parsed_link, similarities, true)
             end)
             :blank()
             :warning("The below flags currently do not work, this is a beta build.")
@@ -680,7 +676,17 @@ module.private = {
 
 module.on_event = function(event)
     if event.split_type[2] == "core.norg.esupports.hop.hop-link" then
-        module.public.follow_link(event.content[1])
+        local split_mode = event.content[1]
+
+        -- Get link node at cursor
+        local link_node_at_cursor = module.public.extract_link_node()
+
+        if not link_node_at_cursor then
+            log.trace("No link under cursor.")
+            return
+        end
+
+        module.public.follow_link(link_node_at_cursor, split_mode)
     end
 end
 
