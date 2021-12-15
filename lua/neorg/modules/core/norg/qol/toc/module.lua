@@ -3,7 +3,11 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.norg.qol.toc")
 
 module.setup = function()
-    return { success = true, requires = { "core.integrations.treesitter", "core.ui" } }
+    return { success = true, requires = { "core.integrations.treesitter", "core.ui", "core.keybinds"} }
+end
+
+module.load = function()
+    module.required["core.keybinds"].register_keybind(module.name, "hop-toc-link")
 end
 
 module.public = {
@@ -201,7 +205,13 @@ Type :messages to see full output
         end
 
         local namespace = vim.api.nvim_create_namespace("Neorg ToC")
-        vim.api.nvim_buf_set_extmark(0, namespace, found_toc.line, 0, { virt_lines = virt_lines })
+        local extmarks = vim.api.nvim_buf_get_extmarks(0,namespace,0,-1,{})
+        if #extmarks == 0 then
+            vim.api.nvim_buf_set_extmark(0, namespace, found_toc.line, 0, { virt_lines = virt_lines })
+        else
+            vim.api.nvim_win_set_cursor(0, {found_toc.line+1,0})
+            return
+        end
     end,
 
     --- Populates the quickfix list with the table of contents
@@ -238,6 +248,19 @@ Type :messages to see full output
             vim.fn.setqflist(qflist, "r")
         end
     end,
+}
+
+module.on_event = function(event)
+    if event.split_type[2] == "core.norg.qol.toc.hop-toc-link" then
+        -- module.public.follow_link_toc(event.content[1])
+        print("keybinding executed")
+    end
+end
+
+module.events.subscribed = {
+    ["core.keybinds"] = {
+        ["core.norg.qol.toc.hop-toc-link"] = true,
+    },
 }
 
 return module
