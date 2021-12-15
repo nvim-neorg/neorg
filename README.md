@@ -222,8 +222,6 @@ You can install through any plugin manager (it can even be vimscript plugin mana
    EOF
    ```
 
-##### :robot: For the latest and greatest check out the [unstable](https://github.com/nvim-neorg/neorg/tree/unstable) branch
-
 ### Setting up TreeSitter
 ###### Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system!
 

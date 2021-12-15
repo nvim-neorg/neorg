@@ -174,22 +174,7 @@ module.public = {
                 type = "Tag",
             },
 
-            descend = {
-                {
-                    regex = "contexts%s+%w*",
-
-                    complete = {
-                        "today",
-                        "someday",
-                    },
-
-                    options = {
-                        type = "GTDContext",
-                    },
-
-                    descend = {},
-                },
-            },
+            descend = {},
         },
         {
             regex = "^%s*@e?n?",
@@ -291,7 +276,13 @@ module.public = {
                                 -- Is our other value "prev"? If so, compare the current node in the syntax tree with the previous node
                                 if split[2] == "prev" then
                                     -- Get the previous node
-                                    local previous_node = ts.get_previous_node(ts.get_node_at_cursor(), true, true)
+                                    local current_node = ts.get_node_at_cursor()
+
+                                    if not current_node then
+                                        return { items = {}, options = {} }
+                                    end
+
+                                    local previous_node = ts.get_previous_node(current_node, true, true)
 
                                     -- If the previous node is nil
                                     if not previous_node then
@@ -318,7 +309,13 @@ module.public = {
                                     -- Else if our second split is equal to "next" then it's time to inspect the next node in the AST
                                 elseif split[2] == "next" then
                                     -- Grab the next node
-                                    local next_node = ts.get_next_node(ts.get_node_at_cursor(), true, true)
+                                    local current_node = ts.get_node_at_cursor()
+
+                                    if not current_node then
+                                        return { items = {}, options = {} }
+                                    end
+
+                                    local next_node = ts.get_next_node(current_node, true, true)
 
                                     -- If it's nil
                                     if not next_node then
@@ -356,6 +353,12 @@ module.public = {
                         elseif type(completion_data.node) == "function" then
                             -- Grab all the necessary variables (current node, previous node, next node)
                             local current_node = ts.get_node_at_cursor()
+
+                            -- The file is blank, return completions
+                            if not current_node then
+                                return ret_completions
+                            end
+
                             local next_node = ts.get_next_node(current_node, true, true)
                             local previous_node = ts.get_previous_node(current_node, true, true)
 

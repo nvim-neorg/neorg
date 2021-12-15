@@ -26,6 +26,8 @@ module.setup = function()
             "core.keybinds",
             "core.gtd.ui",
             "core.neorgcmd",
+            "core.norg.completion",
+            "core.gtd.queries",
         },
     }
 end
@@ -55,6 +57,10 @@ module.config.public = {
             show_projects_without_tasks = true,
         },
     },
+    -- Generates custom completion for tags: #contexts,#waiting.for
+    -- Generates it only once, when booting Neorg.
+    -- It gets all tasks and projects, and retrieve all user-created tag values
+    custom_tag_completion = false,
 }
 
 module.public = {
@@ -103,7 +109,91 @@ module.load = function()
             },
         },
     })
+
+    -- Generates completion for gtd
+
+    vim.schedule(function()
+        for _, completion in pairs(module.required["core.norg.completion"].completions) do
+            if vim.tbl_contains(completion.complete, "contexts") then
+                local contexts
+                local waiting_for
+                if module.config.public.custom_tag_completion then
+                    local exclude_files = module.config.public.exclude
+                    table.insert(exclude_files, module.config.public.default_lists.inbox)
+                    local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = exclude_files })
+                    local projects = module.required["core.gtd.queries"].get(
+                        "projects",
+                        { exclude_files = exclude_files }
+                    )
+
+                    if not tasks or not projects then
+                        return
+                    end
+
+                    tasks = module.required["core.gtd.queries"].add_metadata(
+                        tasks,
+                        "task",
+                        { keys = { "contexts", "waiting.for" } }
+                    )
+                    projects = module.required["core.gtd.queries"].add_metadata(
+                        projects,
+                        "project",
+                        { keys = { "contexts", "waiting.for" } }
+                    )
+
+                    contexts = module.private.find_by_key("contexts", tasks, projects, { "today", "someday" })
+                    waiting_for = module.private.find_by_key("waiting.for", tasks, projects)
+                else
+                    contexts = { "today", "someday" }
+                    waiting_for = {}
+                end
+
+                local _completions = {
+                    {
+                        descend = {},
+                        options = {
+                            type = "GTDWaitingFor",
+                        },
+                        regex = "waiting.for%s+%w*",
+                        complete = waiting_for,
+                    },
+                    {
+                        descend = {},
+                        options = {
+                            type = "GTDContext",
+                        },
+                        regex = "contexts%s+%w*",
+                        complete = contexts,
+                    },
+                }
+                vim.list_extend(completion.descend, _completions)
+            end
+        end
+    end)
 end
+
+module.private = {
+    find_by_key = function(key, tasks, projects, default)
+        local key_tbl = default or {}
+
+        local function generate_if_present(tbl_src)
+            for _, el in pairs(tbl_src) do
+                if el[key] then
+                    for _, _el in pairs(el[key]) do
+                        if not vim.tbl_contains(key_tbl, _el) then
+                            table.insert(key_tbl, _el)
+                        end
+                    end
+                end
+            end
+        end
+
+        generate_if_present(tasks)
+        generate_if_present(projects)
+
+        return key_tbl
+    end,
+}
 
 module.on_event = function(event)
     if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.split_type[1]) then

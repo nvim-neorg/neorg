@@ -325,14 +325,22 @@ module.public = {
     --- Creates a new Neorg buffer in a split or in the main window
     --- @param name string the name of the buffer *without* the .norg extension
     --- @param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
-    --- @param config table a table of { option = value } pairs that set buffer-local options for the created Neorg buffer
-    --- @param keybinds boolean if false, will not use the default keybinds
-    create_norg_buffer = function(name, split_type, config, keybinds)
+    --- @param config table|nil a table of { option = value } pairs that set buffer-local options for the created Neorg buffer
+    --- @param opts table|nil
+    ---   - opts.keybinds (boolean)             if false, will not use the default keybinds
+    ---   - opts.del_on_autocommands (table)    delete buffer on specified autocommands
+    create_norg_buffer = function(name, split_type, config, opts)
         vim.validate({
             name = { name, "string" },
             split_type = { split_type, "string" },
             config = { config, "table", true },
+            opts = { opts, "table", true },
         })
+        opts = vim.tbl_deep_extend(
+            "force",
+            { keybinds = true, del_on_autocommands = { "BufLeave", "BufDelete", "BufUnload" } },
+            opts or {}
+        )
 
         if not vim.tbl_contains({ "nosplit", "vsplitl", "vsplitr", "split" }, split_type) then
             log.error(
@@ -361,7 +369,7 @@ module.public = {
 
         vim.api.nvim_win_set_buf(0, buf)
 
-        if not keybinds then
+        if not opts.keybinds then
             vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
             vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
         end
@@ -369,10 +377,14 @@ module.public = {
         module.public.apply_buffer_options(buf, config or {})
 
         -- Refresh the buffer forcefully and set up autocommands
-        vim.cmd(([[
-            edit
-            autocmd BufDelete,BufLeave,BufUnload <buffer=%s> silent! bd! %s
-        ]]):format(buf, buf))
+        vim.cmd("edit")
+        if opts.del_on_autocommands and #opts.del_on_autocommands ~= 0 then
+            vim.cmd(
+                "autocmd "
+                    .. table.concat(opts.del_on_autocommands, ",")
+                    .. (" <buffer=%s> silent! bd! %s"):format(buf, buf)
+            )
+        end
 
         return buf
     end,
