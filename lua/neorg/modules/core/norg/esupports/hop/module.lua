@@ -304,9 +304,6 @@ module.public = {
             return
         end
 
-        P(vim.uri_from_bufnr(buf))
-        P(module.required["core.integrations.treesitter"].get_node_text(document_root, buf))
-
         local query = vim.treesitter.parse_query("norg", query_text)
         local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
 
