@@ -60,6 +60,15 @@ module.public = {
                 silent = true,
                 noremap = true,
             })
+            keybinds.map_event_to_mode("toc-split", {
+                n = {
+                    { "<CR>", "core.norg.qol.toc.hop-toc-link" },
+                },
+            }, {
+                silent = true,
+                noremap = true,
+                nowait = true,
+            })
 
             -- Map the below keys on gtd displays
             keybinds.map_event_to_mode("gtd-displays", {
