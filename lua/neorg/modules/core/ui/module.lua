@@ -369,7 +369,7 @@ module.public = {
 
         vim.api.nvim_win_set_buf(0, buf)
 
-        if not opts.keybinds then
+        if opts.keybinds == true then
             vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
             vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
         end

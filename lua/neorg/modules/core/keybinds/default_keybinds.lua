@@ -63,6 +63,10 @@ module.public = {
             keybinds.map_event_to_mode("toc-split", {
                 n = {
                     { "<CR>", "core.norg.qol.toc.hop-toc-link" },
+
+                    -- Keys for closing the current display
+                    { "q", "core.norg.qol.toc.close" },
+                    { "<Esc>", "core.norg.qol.toc.close" },
                 },
             }, {
                 silent = true,

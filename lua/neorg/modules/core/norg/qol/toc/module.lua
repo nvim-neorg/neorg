@@ -17,6 +17,7 @@ end
 
 module.load = function()
     module.required["core.keybinds"].register_keybind(module.name, "hop-toc-link")
+    module.required["core.keybinds"].register_keybind(module.name, "close")
 end
 
 module.config.public = {}
@@ -153,8 +154,8 @@ module.public = {
                     local heading_text_node = ts.get_first_node("paragraph_segment", 0, node)
                     local heading_text = ts_utils.get_node_text(heading_text_node, 0)
 
-                    local prefix = string.rep(display_as_links and "-" or "*", heading_level)
-                        .. (display_as_links and "> " or " ")
+                    local prefix = string.rep(display_as_links and " " or "*", heading_level)
+                        .. (display_as_links and "" or " ")
                     local text = prefix
                         .. (function()
                             if display_as_links then
@@ -230,10 +231,8 @@ module.public = {
         if split then
             module.private.cur_bnr = vim.api.nvim_get_current_buf()
 
-            local buf = module.required["core.ui"].create_norg_buffer("Neorg Toc", "vsplitl")
+            local buf = module.required["core.ui"].create_norg_buffer("Neorg Toc", "vsplitl", nil, { keybinds = false })
             module.private.toc_bufnr = buf
-
-            module.required["core.mode"].set_mode("toc-split")
 
             local filter = function(a)
                 return a.text
@@ -244,6 +243,7 @@ module.public = {
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.tbl_map(filter, generated_toc))
             vim.api.nvim_buf_set_option(buf, "modifiable", false)
 
+            module.required["core.mode"].set_mode("toc-split")
             vim.cmd(string.format([[echom '%s']], "Press <ESC> or q to exit"))
             return
         end
@@ -297,12 +297,22 @@ module.public = {
 module.on_event = function(event)
     if event.split_type[2] == "core.norg.qol.toc.hop-toc-link" then
         module.public.follow_link_toc()
+    elseif event.split_type[2] == "core.norg.qol.toc.close" then
+        -- Go back to previous mode
+        local previous_mode = module.required["core.mode"].get_previous_mode()
+        module.required["core.mode"].set_mode(previous_mode)
+
+        vim.cmd(":bd")
+
+        module.private.cur_bnr = nil
+        module.private.toc_bufnr = nil
     end
 end
 
 module.events.subscribed = {
     ["core.keybinds"] = {
         ["core.norg.qol.toc.hop-toc-link"] = true,
+        ["core.norg.qol.toc.close"] = true,
     },
 }
 
