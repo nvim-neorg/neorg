@@ -354,8 +354,9 @@ module.public = {
                             -- Grab all the necessary variables (current node, previous node, next node)
                             local current_node = ts.get_node_at_cursor()
 
+                            -- The file is blank, return completions
                             if not current_node then
-                                return { items = {}, options = {} }
+                                return ret_completions
                             end
 
                             local next_node = ts.get_next_node(current_node, true, true)
