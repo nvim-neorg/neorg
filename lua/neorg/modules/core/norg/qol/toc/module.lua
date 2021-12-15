@@ -3,7 +3,7 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.norg.qol.toc")
 
 module.setup = function()
-    return { success = true, requires = { "core.integrations.treesitter", "core.ui", "core.keybinds"} }
+    return { success = true, requires = { "core.integrations.treesitter", "core.ui", "core.keybinds","core.mode"} }
 end
 
 module.load = function()
@@ -11,6 +11,442 @@ module.load = function()
 end
 
 module.public = {
+    follow_link_toc = function(split,close_toc_split)
+        print("mapping executed")
+        local previous_mode = module.required["core.mode"].get_previous_mode()
+        module.required["core.mode"].set_mode(previous_mode)
+        if true then return end
+
+        vim.fn.feedkeys("$", "n")
+        local link_node_at_cursor = module.public.extract_link_node()
+        vim.cmd("close")
+
+        if not link_node_at_cursor then
+            log.trace("No link under cursor.")
+            return
+        end
+
+        if link_node_at_cursor:type() == "anchor_declaration" then
+            local located_anchor_declaration = module.public.locate_anchor_declaration_target(link_node_at_cursor)
+
+            if not located_anchor_declaration then
+                return
+            end
+
+            local range = module.required["core.integrations.treesitter"].get_node_range(
+                located_anchor_declaration.node
+            )
+
+            vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+            return
+        end
+
+        local parsed_link = module.public.parse_link(link_node_at_cursor)
+
+
+        if not parsed_link then
+            return
+        end
+
+        local located_link_information = module.public.locate_link_target(parsed_link)
+
+        if located_link_information then
+            if close_toc_split then
+                if split then
+                    if split == "vsplit" then
+                        vim.cmd("vsplit")
+                    elseif split == "split" then
+                        vim.cmd("split")
+                    end
+                end
+            end
+
+            if not vim.tbl_isempty(located_link_information) then
+                if located_link_information.buffer ~= vim.api.nvim_get_current_buf() then
+                    vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
+                    vim.api.nvim_set_current_buf(located_link_information.buffer)
+                end
+
+                if not located_link_information.node then
+                    return
+                end
+
+                local range = module.required["core.integrations.treesitter"].get_node_range(
+                    located_link_information.node
+                )
+
+                vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+            end
+
+            return
+        end
+
+        local selection = module.required["core.ui"].begin_selection(
+            module.required["core.ui"].create_split("link-not-found")
+        )
+            :listener("delete-buffer", {
+                "<Esc>",
+            }, function(self)
+                    self:destroy()
+                end)
+            :apply({
+                warning = function(self, text)
+                    return self:text("WARNING: " .. text, "TSWarning")
+                end,
+                desc = function(self, text)
+                    return self:text(text, "TSComment")
+                end,
+            })
+
+        selection
+        :title("Link not found - what do we do now?")
+        :blank()
+        :text("There are a few actions that you can perform whenever a link cannot be located.", "Normal")
+        :text("Press one of the available keys to perform your desired action.")
+        :blank()
+        :desc("The most common action will be to try and fix the link.")
+        :desc("Fixing the link will perform a fuzzy search on every item of the same type in the file")
+        :desc("and make the link point to the closest match:")
+        :flag("f", "Attempt to fix the link", function()
+            local similarities = module.private.fix_link_strict(parsed_link)
+
+            if not similarities or vim.tbl_isempty(similarities) then
+                return
+            end
+
+            module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities)
+        end)
+        :blank()
+        :desc("Does the same as the above keybind, however doesn't limit matches to those")
+        :desc("defined by the link type. This means that even if the link points to a level 1")
+        :desc("heading this fixing algorithm will be able to match any other item type:")
+        :flag("F", "Attempt to fix the link (loose fuzzing)", function()
+            local similarities = module.private.fix_link_loose(parsed_link)
+
+            if not similarities or vim.tbl_isempty(similarities) then
+                return
+            end
+
+            module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities, true)
+        end)
+        :blank()
+        :warning("The below flags currently do not work, this is a beta build.")
+        :desc("Instead of fixing the link you may actually want to create the target:")
+        :flag("a", "Place target above current link parent")
+        :flag("b", "Place target below current link parent")
+    end,
+
+    extract_link_node = function()
+        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+
+        if not ts_utils then
+            return
+        end
+
+        local current_node = ts_utils.get_node_at_cursor()
+        local found_node = module.required["core.integrations.treesitter"].find_parent(
+            current_node,
+            { "link", "anchor_declaration", "anchor_definition" }
+        )
+
+        if not found_node then
+            found_node = (module.config.public.lookahead and module.public.lookahead_link_node())
+        end
+
+        if found_node then
+            if found_node:parent():type() == "anchor_definition" then
+                return found_node:parent()
+            end
+
+            return found_node
+        end
+    end,
+
+    lookahead_link_node = function()
+        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+
+        local line = vim.api.nvim_get_current_line()
+        local current_cursor_pos = vim.api.nvim_win_get_cursor(0)
+        local current_line = current_cursor_pos[1]
+        local index = current_cursor_pos[2]
+        local resulting_node
+
+        while not resulting_node do
+            local next_square_bracket = line:find("%[", index)
+            local next_curly_bracket = line:find("{", index)
+            local smaller_value
+
+            if not next_square_bracket and not next_curly_bracket then
+                return
+            elseif not next_square_bracket and next_curly_bracket then
+                smaller_value = next_curly_bracket
+            elseif next_square_bracket and not next_curly_bracket then
+                smaller_value = next_square_bracket
+            else
+                smaller_value = (next_square_bracket < next_curly_bracket and next_square_bracket or next_curly_bracket)
+            end
+
+            vim.api.nvim_win_set_cursor(0, {
+                current_line,
+                smaller_value - 1,
+            })
+
+            local node_under_cursor = ts_utils.get_node_at_cursor()
+
+            resulting_node = neorg.lib.match({
+                node_under_cursor:type(),
+                link = node_under_cursor,
+                anchor_declaration = node_under_cursor,
+            })
+
+            index = index + 1
+        end
+
+        return resulting_node
+    end,
+
+    locate_anchor_declaration_target = function(anchor_decl_node)
+        local target =
+            module.required["core.integrations.treesitter"].get_node_text(
+                anchor_decl_node:named_child(0)
+            ):gsub("[%s\\]", "")
+
+        local query_str = [[
+        (anchor_definition
+        (anchor_declaration
+        text: (anchor_declaration_text) @text
+        )
+        )
+        ]]
+
+        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+        local query = vim.treesitter.parse_query("norg", query_str)
+
+        for id, node in query:iter_captures(document_root, 0) do
+            local capture = query.captures[id]
+
+            if capture == "text" then
+                local original_title = module.required["core.integrations.treesitter"].get_node_text(node)
+                local title = original_title:gsub("[%s\\]", "")
+
+                if title == target then
+                    return {
+                        original_title = original_title,
+                        node = node,
+                    }
+                end
+            end
+        end
+    end,
+
+    parse_link = function(link_node)
+        if not link_node or not vim.tbl_contains({ "link", "anchor_definition" }, link_node:type()) then
+            return
+        end
+
+        local query_text = [[
+        [
+        (link
+        (link_file
+        location: (link_file_text) @link_file_text
+        )?
+        (link_location
+        type: [
+        (link_location_url)
+        (link_location_generic)
+        (link_location_external_file)
+        (link_location_marker)
+        (link_location_heading1)
+        (link_location_heading2)
+        (link_location_heading3)
+        (link_location_heading4)
+        (link_location_heading5)
+        (link_location_heading6)
+        ] @link_type
+        text: (link_location_text) @link_location_text
+        )?
+        (link_description
+        text: (link_text) @link_description
+        )?
+        )
+        (anchor_definition
+        (anchor_declaration
+        text: (anchor_declaration_text)
+        )
+        (link_file
+        location: (link_file_text) @link_file_text
+        )?
+        (link_location
+        type: [
+        (link_location_url)
+        (link_location_generic)
+        (link_location_external_file)
+        (link_location_marker)
+        (link_location_heading1)
+        (link_location_heading2)
+        (link_location_heading3)
+        (link_location_heading4)
+        (link_location_heading5)
+        (link_location_heading6)
+        ] @link_type
+        text: (link_location_text) @link_location_text
+        )
+        )
+        ]
+        ]]
+
+        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+
+        if not document_root then
+            return
+        end
+
+        local query = vim.treesitter.parse_query("norg", query_text)
+        local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
+
+        local parsed_link_information = {}
+
+        for id, node in query:iter_captures(document_root, 0, range.row_start, range.row_end + 1) do
+            local capture = query.captures[id]
+
+            local extract_node_text = neorg.lib.wrap(
+                module.required["core.integrations.treesitter"].get_node_text,
+                node
+            )
+
+            parsed_link_information[capture] = parsed_link_information[capture]
+                or neorg.lib.match({
+                    capture,
+                    link_file_text = extract_node_text,
+                    link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_location_") + 1),
+                    link_location_text = extract_node_text,
+                    link_description = extract_node_text,
+
+                    default = function()
+                        log.error("Unknown capture type encountered when parsing link:", capture)
+                    end,
+                })
+        end
+
+        return parsed_link_information
+    end,
+
+    locate_link_target = function(parsed_link_information)
+        --- A pointer to the target buffer we will be parsing.
+        -- This may change depending on the target file the user gave.
+        local buf_pointer = vim.api.nvim_get_current_buf()
+
+        -- Check whether our target is from a different file
+        if parsed_link_information.link_file_text then
+            local expanded_link_text = module.required["core.norg.dirman"].expand_path(
+                parsed_link_information.link_file_text
+            )
+
+            if expanded_link_text ~= vim.fn.expand("%:p") then
+                -- We are dealing with a foreign file
+                buf_pointer = vim.uri_to_bufnr("file://" .. expanded_link_text)
+            end
+
+            if not parsed_link_information.link_type then
+                return {
+                    original_title = nil,
+                    node = nil,
+                    buffer = buf_pointer,
+                }
+            end
+        end
+
+        return neorg.lib.match({
+            parsed_link_information.link_type,
+
+            url = function()
+                local destination = parsed_link_information.link_location_text
+
+                if neorg.configuration.os_info == "linux" then
+                    vim.cmd('silent !xdg-open "' .. vim.fn.fnameescape(destination) .. '"')
+                elseif neorg.configuration.os_info == "mac" then
+                    vim.cmd('silent !open "' .. vim.fn.fnameescape(destination) .. '"')
+                else
+                    vim.cmd('silent !start "' .. vim.fn.fnameescape(destination) .. '"')
+                end
+
+                return {}
+            end,
+
+            external_file = function()
+                vim.cmd("e " .. vim.fn.fnameescape(parsed_link_information.link_location_text))
+                return {}
+            end,
+
+            default = function()
+                -- Dynamically forge query
+                local query_str = neorg.lib.match({
+                    parsed_link_information.link_type,
+                    generic = [[
+                    (carryover_tag_set
+                    (carryover_tag
+                    name: (tag_name) @tag_name
+                    (tag_parameters) @title
+                    (#eq? @tag_name "name")
+                    )
+                    )?
+                    (_
+                    title: (paragraph_segment) @title
+                    )?
+                    ]],
+
+                    default = string.format(
+                        [[
+                        (carryover_tag_set
+                        (carryover_tag
+                        name: (tag_name) @tag_name
+                        (tag_parameters) @title
+                        (#eq? @tag_name "name")
+                        )
+                        )?
+                        (%s
+                        (%s_prefix)
+                        title: (paragraph_segment) @title
+                        )?
+                        ]],
+                        neorg.lib.reparg(parsed_link_information.link_type, 2)
+                    ),
+                })
+
+                local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
+
+                if not document_root then
+                    return
+                end
+
+                local query = vim.treesitter.parse_query("norg", query_str)
+
+                for id, node in query:iter_captures(document_root, buf_pointer) do
+                    local capture = query.captures[id]
+
+                    if capture == "title" then
+                        local original_title = module.required["core.integrations.treesitter"].get_node_text(
+                            node,
+                            buf_pointer
+                        )
+
+                        if original_title then
+                            local title = original_title:gsub("[%s\\]", "")
+                            local target = parsed_link_information.link_location_text:gsub("[%s\\]", "")
+
+                            if title == target then
+                                return {
+                                    original_title = original_title,
+                                    node = node,
+                                    buffer = buf_pointer,
+                                }
+                            end
+                        end
+                    end
+                end
+            end,
+        })
+    end,
     --- Find a Table of Contents insertions in the document and returns its data
     --- @return table A table that consist of two values: { item, parameters }.
     --- Parameters can be nil if no parameters to the insertion were given.
@@ -19,12 +455,12 @@ module.public = {
         local query = vim.treesitter.parse_query(
             "norg",
             [[
-                (insertion
-                    (insertion_prefix)
-                    item: (capitalized_word) @item
-                    parameters: (paragraph_segment)? @parameters
-                    (#match? @item "^[tT][oO][cC]$")
-                )
+            (insertion
+            (insertion_prefix)
+            item: (capitalized_word) @item
+            parameters: (paragraph_segment)? @parameters
+            (#match? @item "^[tT][oO][cC]$")
+            )
             ]]
         )
 
@@ -63,11 +499,11 @@ module.public = {
 
         if not exists then
             log.error(vim.trim([[
-Uh oh! We couldn't generate a Table of Contents because you didn't specify one in the document!
-You can do:
-    = TOC <Optional custom name for the table of contents>
-Anywhere in your document. Doing so will cause the ToC to appear in that location during render.
-Type :messages to see full output
+            Uh oh! We couldn't generate a Table of Contents because you didn't specify one in the document!
+            You can do:
+            = TOC <Optional custom name for the table of contents>
+            Anywhere in your document. Doing so will cause the ToC to appear in that location during render.
+            Type :messages to see full output
             ]]))
             return
         end
@@ -190,6 +626,7 @@ Type :messages to see full output
 
         if split then
             local buf = module.required["core.ui"].create_norg_buffer("Neorg Toc", "vsplitl")
+            module.required["core.mode"].set_mode("toc-split")
 
             local filter = function(a)
                 return a.text
@@ -252,8 +689,8 @@ Type :messages to see full output
 
 module.on_event = function(event)
     if event.split_type[2] == "core.norg.qol.toc.hop-toc-link" then
-        -- module.public.follow_link_toc(event.content[1])
-        print("keybinding executed")
+        module.public.follow_link_toc(event.content[1])
+        -- print("keybinding executed")
     end
 end
 
