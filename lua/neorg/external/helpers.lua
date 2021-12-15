@@ -207,6 +207,13 @@ neorg.utils = {
 }
 
 neorg.lib = {
+    --- Returns the item that matches the first item in statements
+    --- @param statements table
+    ---   - statements.default (any)    if present, then it's value will be returned if no match has been found.
+    --- statements[1] is the item to compare
+    --- other key=values: will compare each key and check for the one that maches the first item.
+    --- If we find one of them, then return the corresponding value
+    --- if value is a function, then return the result of execution with the item as parameter
     match = function(statements)
         local item = statements[1]
 
