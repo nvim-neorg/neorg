@@ -41,7 +41,6 @@ neorg.modules.module_base = {
 
     -- Configuration for the module
     config = {
-
         private = { -- Private module configuration, cannot be changed by other modules or by the user
             --[[
 				config_option = false,
@@ -59,6 +58,11 @@ neorg.modules.module_base = {
 				}
 			--]]
         },
+
+        -- This table houses all the changes the user made to the public table,
+        -- useful for when you want to know exactly what the user tinkered with.
+        -- Shouldn't be commonly used.
+        custom = {},
     },
 
     -- Event data regarding the current module

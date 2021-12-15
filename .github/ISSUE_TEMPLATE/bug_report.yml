@@ -22,27 +22,14 @@ body:
     validations:
       required: true
 
-  - type: dropdown
-    id: branch
+  - type: textarea
     attributes:
-      label: "Branch"
-      description: "Neorg branch you are on."
-      options:
-        - "master"
-        - "unstable"
+      label: "Neorg setup"
+      description: |
+        - Copy your entire "require("neorg").setup" function
     validations:
       required: true
 
-  - type: textarea
-    attributes:
-      label: "Loaded modules"
-      description: |
-        - Start neorg silently by doing `:NeorgStart silent=true`
-        - Get modules by doing `:Neorg modules list`
-        - Type ':messages' and copy the list
-    validations:
-      required: true
-      
   - type: textarea
     attributes:
       label: "Actual behavior"
@@ -54,6 +41,13 @@ body:
     attributes:
       label: "Expected behavior"
       description: "A description of the behavior you expected."
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Steps to reproduce"
+      description: "Please describe how we can reproduce the issue. Ideally you should provide the contents of a norg file which shows the issue."
     validations:
       required: true
 
