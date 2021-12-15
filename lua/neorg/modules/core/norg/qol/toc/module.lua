@@ -3,7 +3,7 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.norg.qol.toc")
 
 module.setup = function()
-    return { success = true, requires = { "core.integrations.treesitter", "core.ui", "core.keybinds","core.mode"} }
+    return { success = true, requires = { "core.integrations.treesitter", "core.ui", "core.keybinds","core.mode", "core.norg.esupports.hop"} }
 end
 
 module.load = function()
@@ -12,128 +12,12 @@ end
 
 module.public = {
     follow_link_toc = function(split,close_toc_split)
-        print("mapping executed")
+        local node = module.required["core.norg.esupports.hop"].lookahead_link_node()
         local previous_mode = module.required["core.mode"].get_previous_mode()
         module.required["core.mode"].set_mode(previous_mode)
-        if true then return end
 
-        vim.fn.feedkeys("$", "n")
-        local link_node_at_cursor = module.public.extract_link_node()
-        vim.cmd("close")
-
-        if not link_node_at_cursor then
-            log.trace("No link under cursor.")
-            return
-        end
-
-        if link_node_at_cursor:type() == "anchor_declaration" then
-            local located_anchor_declaration = module.public.locate_anchor_declaration_target(link_node_at_cursor)
-
-            if not located_anchor_declaration then
-                return
-            end
-
-            local range = module.required["core.integrations.treesitter"].get_node_range(
-                located_anchor_declaration.node
-            )
-
-            vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
-            return
-        end
-
-        local parsed_link = module.public.parse_link(link_node_at_cursor)
-
-
-        if not parsed_link then
-            return
-        end
-
-        local located_link_information = module.public.locate_link_target(parsed_link)
-
-        if located_link_information then
-            if close_toc_split then
-                if split then
-                    if split == "vsplit" then
-                        vim.cmd("vsplit")
-                    elseif split == "split" then
-                        vim.cmd("split")
-                    end
-                end
-            end
-
-            if not vim.tbl_isempty(located_link_information) then
-                if located_link_information.buffer ~= vim.api.nvim_get_current_buf() then
-                    vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
-                    vim.api.nvim_set_current_buf(located_link_information.buffer)
-                end
-
-                if not located_link_information.node then
-                    return
-                end
-
-                local range = module.required["core.integrations.treesitter"].get_node_range(
-                    located_link_information.node
-                )
-
-                vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
-            end
-
-            return
-        end
-
-        local selection = module.required["core.ui"].begin_selection(
-            module.required["core.ui"].create_split("link-not-found")
-        )
-            :listener("delete-buffer", {
-                "<Esc>",
-            }, function(self)
-                    self:destroy()
-                end)
-            :apply({
-                warning = function(self, text)
-                    return self:text("WARNING: " .. text, "TSWarning")
-                end,
-                desc = function(self, text)
-                    return self:text(text, "TSComment")
-                end,
-            })
-
-        selection
-        :title("Link not found - what do we do now?")
-        :blank()
-        :text("There are a few actions that you can perform whenever a link cannot be located.", "Normal")
-        :text("Press one of the available keys to perform your desired action.")
-        :blank()
-        :desc("The most common action will be to try and fix the link.")
-        :desc("Fixing the link will perform a fuzzy search on every item of the same type in the file")
-        :desc("and make the link point to the closest match:")
-        :flag("f", "Attempt to fix the link", function()
-            local similarities = module.private.fix_link_strict(parsed_link)
-
-            if not similarities or vim.tbl_isempty(similarities) then
-                return
-            end
-
-            module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities)
-        end)
-        :blank()
-        :desc("Does the same as the above keybind, however doesn't limit matches to those")
-        :desc("defined by the link type. This means that even if the link points to a level 1")
-        :desc("heading this fixing algorithm will be able to match any other item type:")
-        :flag("F", "Attempt to fix the link (loose fuzzing)", function()
-            local similarities = module.private.fix_link_loose(parsed_link)
-
-            if not similarities or vim.tbl_isempty(similarities) then
-                return
-            end
-
-            module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities, true)
-        end)
-        :blank()
-        :warning("The below flags currently do not work, this is a beta build.")
-        :desc("Instead of fixing the link you may actually want to create the target:")
-        :flag("a", "Place target above current link parent")
-        :flag("b", "Place target below current link parent")
+        vim.cmd("wincmd l")
+        module.required["core.norg.esupports.hop"].follow_link(node)
     end,
 
     extract_link_node = function()
