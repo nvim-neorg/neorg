@@ -411,7 +411,8 @@ and chat there.
 
 # :camera: Extra GIFs
 ### Language Injection
-Get syntax highlighting for any language that's supported by treesitter.
+Get syntax highlighting for any language supported by NeoVim.
+Neorg will use treesitter first, falling back to Vim regex for languages not supported by treesitter seamlessly.
 
 ![Injection](https://user-images.githubusercontent.com/13149513/125274035-5f7e1a80-e32f-11eb-8de3-060b6e752185.gif)
 
