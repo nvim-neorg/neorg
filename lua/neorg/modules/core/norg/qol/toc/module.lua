@@ -3,7 +3,16 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.norg.qol.toc")
 
 module.setup = function()
-    return { success = true, requires = { "core.integrations.treesitter", "core.ui", "core.keybinds","core.mode", "core.norg.esupports.hop"} }
+    return {
+        success = true,
+        requires = {
+            "core.integrations.treesitter",
+            "core.ui",
+            "core.keybinds",
+            "core.mode",
+            "core.norg.esupports.hop",
+        },
+    }
 end
 
 module.load = function()
@@ -11,7 +20,7 @@ module.load = function()
 end
 
 module.public = {
-    follow_link_toc = function(split,close_toc_split)
+    follow_link_toc = function(split, close_toc_split)
         local node = module.required["core.norg.esupports.hop"].lookahead_link_node()
         local previous_mode = module.required["core.mode"].get_previous_mode()
         module.required["core.mode"].set_mode(previous_mode)
@@ -217,11 +226,11 @@ module.public = {
         end
 
         local namespace = vim.api.nvim_create_namespace("Neorg ToC")
-        local extmarks = vim.api.nvim_buf_get_extmarks(0,namespace,0,-1,{})
+        local extmarks = vim.api.nvim_buf_get_extmarks(0, namespace, 0, -1, {})
         if #extmarks == 0 then
             vim.api.nvim_buf_set_extmark(0, namespace, found_toc.line, 0, { virt_lines = virt_lines })
         else
-            vim.api.nvim_win_set_cursor(0, {found_toc.line+1,0})
+            vim.api.nvim_win_set_cursor(0, { found_toc.line + 1, 0 })
             return
         end
     end,
