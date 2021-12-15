@@ -11,6 +11,7 @@ module.setup = function()
             "core.keybinds",
             "core.mode",
             "core.norg.esupports.hop",
+            "core.autocommands",
         },
     }
 end
@@ -18,13 +19,35 @@ end
 module.load = function()
     module.required["core.keybinds"].register_keybind(module.name, "hop-toc-link")
     module.required["core.keybinds"].register_keybind(module.name, "close")
+
+    module.required["core.autocommands"].enable_autocommand("BufLeave")
+    module.required["core.autocommands"].enable_autocommand("BufEnter")
 end
 
-module.config.public = {}
+module.config.public = {
+    -- default_toc_mode = "split",
+    close_split_on_jump = true,
+    toc_split_placement = "left",
+}
 
 module.private = {
     toc_bufnr = nil,
     cur_bnr = nil,
+    cur_win = nil,
+
+    close_buffer = function(opts)
+        opts = opts or {}
+        -- Go back to previous mode
+        local previous_mode = module.required["core.mode"].get_previous_mode()
+        module.required["core.mode"].set_mode(previous_mode)
+
+        if not opts.keep_buf then
+            vim.cmd(":bd")
+        end
+
+        module.private.cur_bnr = nil
+        module.private.toc_bufnr = nil
+    end,
 }
 
 module.public = {
@@ -36,19 +59,17 @@ module.public = {
             return
         end
 
-        -- Go back to previous mode
-        local previous_mode = module.required["core.mode"].get_previous_mode()
-        module.required["core.mode"].set_mode(previous_mode)
-
         -- Parse the link before jumping
         local parsed_link = module.required["core.norg.esupports.hop"].parse_link(node, module.private.toc_bufnr)
 
         -- Follow the link on main norg file
-        vim.api.nvim_win_set_buf(0, module.private.cur_bnr)
+        vim.api.nvim_set_current_win(module.private.cur_win)
+        -- vim.api.nvim_win_set_buf(0, module.private.cur_bnr)
         module.required["core.norg.esupports.hop"].follow_link(node, nil, parsed_link)
 
-        module.private.cur_bnr = nil
-        module.private.toc_bufnr = nil
+        -- Go back to previous mode
+        local previous_mode = module.required["core.mode"].get_previous_mode()
+        module.required["core.mode"].set_mode(previous_mode)
     end,
 
     --- Find a Table of Contents insertions in the document and returns its data
@@ -230,8 +251,26 @@ module.public = {
 
         if split then
             module.private.cur_bnr = vim.api.nvim_get_current_buf()
+            module.private.cur_win = vim.api.nvim_get_current_win()
 
-            local buf = module.required["core.ui"].create_norg_buffer("Neorg Toc", "vsplitl", nil, { keybinds = false })
+            local autocommands = neorg.lib.match({
+                module.config.public.close_split_on_jump,
+                ["true"] = { "BufDelete", "BufUnload", "BufLeave" },
+                ["false"] = { "BufDelete", "BufUnload" },
+            })
+
+            local placement = neorg.lib.match({
+                module.config.public.toc_split_placement,
+                right = "vsplitr",
+                left = "vsplitl",
+            })
+
+            local buf = module.required["core.ui"].create_norg_buffer(
+                "Neorg Toc",
+                placement,
+                nil,
+                { keybinds = false, del_on_autocommands = autocommands }
+            )
             module.private.toc_bufnr = buf
 
             local filter = function(a)
@@ -295,17 +334,18 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.split_type[2] == "core.norg.qol.toc.hop-toc-link" then
-        module.public.follow_link_toc()
-    elseif event.split_type[2] == "core.norg.qol.toc.close" then
-        -- Go back to previous mode
-        local previous_mode = module.required["core.mode"].get_previous_mode()
-        module.required["core.mode"].set_mode(previous_mode)
-
-        vim.cmd(":bd")
-
-        module.private.cur_bnr = nil
-        module.private.toc_bufnr = nil
+    if event.split_type[1] == "core.keybinds" then
+        if event.split_type[2] == "core.norg.qol.toc.hop-toc-link" then
+            module.public.follow_link_toc()
+        elseif event.split_type[2] == "core.norg.qol.toc.close" then
+            module.private.close_buffer()
+        end
+    elseif event.split_type[1] == "core.autocommands" and module.private.toc_bufnr ~= nil then
+        if event.split_type[2] == "bufleave" then
+            module.private.close_buffer({ keep_buf = not module.config.public.close_split_on_jump })
+        elseif event.split_type[2] == "bufenter" then
+            module.required["core.mode"].set_mode("toc-split")
+        end
     end
 end
 
@@ -313,6 +353,10 @@ module.events.subscribed = {
     ["core.keybinds"] = {
         ["core.norg.qol.toc.hop-toc-link"] = true,
         ["core.norg.qol.toc.close"] = true,
+    },
+    ["core.autocommands"] = {
+        bufleave = true,
+        bufenter = true,
     },
 }
 
