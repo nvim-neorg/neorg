@@ -43,7 +43,23 @@ module.config.public = {
     },
 }
 
+module.private = {
+    buffers = {},
+}
+
 module.public = {
+    neorg_commands = {
+        definitions = {
+            ["inject-metadata"] = {},
+        },
+        data = {
+            ["inject-metadata"] = {
+                args = 0,
+                name = "inject-metadata",
+            },
+        },
+    },
+
     is_metadata_present = function()
         local query = vim.treesitter.parse_query(
             "norg",
@@ -89,8 +105,8 @@ module.public = {
         return result
     end,
 
-    inject_metadata = function()
-        if not module.public.is_metadata_present() then
+    inject_metadata = function(force)
+        if force or not module.public.is_metadata_present() then
             local constructed_metadata = module.public.construct_metadata()
             vim.api.nvim_buf_set_lines(0, 0, 0, false, constructed_metadata)
         end
@@ -118,14 +134,22 @@ module.on_event = function(event)
         and event.content.norg
         and module.config.public.type == "auto"
         and vim.api.nvim_buf_get_option(0, "modifiable")
+        and not module.private.buffers[vim.api.nvim_get_current_buf()]
     then
         module.public.inject_metadata()
+        module.private.buffers[vim.api.nvim_get_current_buf()] = true
+    elseif event.type == "core.neorgcmd.events.inject-metadata" then
+        module.public.inject_metadata(true)
     end
 end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
+    },
+
+    ["core.neorgcmd"] = {
+        ["inject-metadata"] = true,
     },
 }
 
