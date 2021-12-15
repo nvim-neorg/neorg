@@ -25,8 +25,10 @@ module.load = function()
 end
 
 module.config.public = {
-    -- default_toc_mode = "split",
+    -- If you use `default_toc_mode = "split"`, you can decide if you want the toc to persist until you close it.
+    -- Else, it'll close automatically when following a link
     close_split_on_jump = true,
+    -- Where to place the TOC (`"left"`/`"right"`)
     toc_split_placement = "left",
 }
 
