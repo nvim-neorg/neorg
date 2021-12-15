@@ -52,7 +52,6 @@ module.public = {
             return
         end
 
-
         local located_link_information = module.public.locate_link_target(parsed_link)
 
         if located_link_information then
