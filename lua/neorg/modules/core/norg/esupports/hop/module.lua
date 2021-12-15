@@ -312,24 +312,34 @@ module.public = {
         for id, node in query:iter_captures(document_root, buf, range.row_start, range.row_end + 1) do
             local capture = query.captures[id]
 
-            local extract_node_text = neorg.lib.wrap(
-                module.required["core.integrations.treesitter"].get_node_text,
-                node,
-                buf
-            )
+            local capture_node_range = module.required["core.integrations.treesitter"].get_node_range(node)
 
-            parsed_link_information[capture] = parsed_link_information[capture]
-                or neorg.lib.match({
-                    capture,
-                    link_file_text = extract_node_text,
-                    link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_location_") + 1),
-                    link_location_text = extract_node_text,
-                    link_description = extract_node_text,
+            -- Check whether the node captured node is in bounds.
+            -- There are certain rare cases where incorrect nodes would be parsed.
+            if
+                capture_node_range.row_start >= range.row_start
+                and capture_node_range.row_end <= capture_node_range.row_end
+                and capture_node_range.column_start >= range.column_start
+                and capture_node_range.column_end <= range.column_end
+            then
+                local extract_node_text = neorg.lib.wrap(
+                    module.required["core.integrations.treesitter"].get_node_text,
+                    node
+                )
 
-                    default = function()
-                        log.error("Unknown capture type encountered when parsing link:", capture)
-                    end,
-                })
+                parsed_link_information[capture] = parsed_link_information[capture]
+                    or neorg.lib.match({
+                        capture,
+                        link_file_text = extract_node_text,
+                        link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_location_") + 1),
+                        link_location_text = extract_node_text,
+                        link_description = extract_node_text,
+
+                        default = function()
+                            log.error("Unknown capture type encountered when parsing link:", capture)
+                        end,
+                    })
+            end
         end
 
         return parsed_link_information
