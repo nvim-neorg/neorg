@@ -18,6 +18,7 @@ neorg-gtd-organisation	gtd.norg	/  *** Top-level organization
 neorg-gtd-organize	gtd.norg	/  *** Organize
 neorg-gtd-projects	gtd.norg	/  *** Projects management
 neorg-gtd-reflect	gtd.norg	/  *** Reflect
+neorg-gtd-structure	gtd.norg	/ ** GTD structure for neorg
 neorg-headings	neorg.norg	/  *** Headings
 neorg-indentation-reversal	neorg.norg	/    ***** Indentation reversion
 neorg-insertions	neorg.norg	/  *** Insertions
