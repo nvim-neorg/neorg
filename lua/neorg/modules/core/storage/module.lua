@@ -18,6 +18,7 @@ module.setup = function()
 end
 
 module.config.public = {
+    -- Full path to store data (saved in mpack data format)
     path = vim.fn.stdpath("data") .. "/neorg.mpack",
 }
 

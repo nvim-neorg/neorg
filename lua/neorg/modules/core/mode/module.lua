@@ -1,26 +1,16 @@
 --[[
-	MODE MANAGER FOR NEORG
-	Modes are a way of isolating different parts of neorg based on the current mode. For example, a "header-jump" mode may exist which
-	will rebind hjkl to move between headers instead of line-by-line.
+    File: Mode-Manager
+    Title: Mode manager for neorg
+    Summary: Modes are a way of isolating different parts of neorg based on the current mode.
+    ---
+- To add a mode to core.mode, use the public `add_mode("my-mode-name")`.
+- To set the current mode, use the public `set_mode("my-mode-name")`.
+- To retrieve the *current* mode name, use `get_mode()`.
+- To retrieve the *previous* mode name, use `get_previous_mode()`.
+- To retrieve *all* modes, use `get_modes()`.
 
-USAGE:
-	To add a mode to core.mode, use the public add_mode("my-mode-name").
-	To set the current mode, use the public set_mode("my-mode-name").
-	To retrieve the current mode name, use get_mode().
-	To retrieve the *previous* mode name, use get_previous_mode().
-	To retrieve *all* modes, use get_modes()
-
-	If core.neorgcmd is loaded, core.mode.public.add_mode() also updates the autocompletion for the :Neorg mode command,
-	which can be used by the user to switch modes.
-
-EVENTS:
-	core.mode.events.mode_created - invoked whenever a new mode is created.
-		- event.content -> a table containing `current`, which contains the current mode we're in and `new`, which contains the name of the newly created mode.
-	core.mode.events.mode_set - invoked whenever a mode is set.
-		- event.content -> a table containing `current`, which contains the current mode we're in and `new`, which contains the name of the mode we will be switching to.
-
-REQUIRES: core.mode does not require any modules to operate - it is standalone
-
+If `core.neorgcmd` is loaded, `core.mode.public.add_mode()` also updates the autocompletion for the :Neorg mode command,
+which can be used by the user to switch modes.
 --]]
 
 require("neorg.modules.base")
@@ -31,8 +21,9 @@ local module = neorg.modules.create("core.mode")
 local log = require("neorg.external.log")
 
 module.config.public = {
-    -- As the name suggests, stores the current and previous mode
+    -- Stores the current mode
     current_mode = "norg",
+    -- Stores the previous mode
     previous_mode = "norg",
 }
 
