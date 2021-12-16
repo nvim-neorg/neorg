@@ -1,3 +1,14 @@
+--[[
+    File: Qol-Toc
+    Title: ToC Generation
+    Summary: Generates a Table of Content from the Neorg file.
+    ---
+In order to use this feature, just add a `= TOC` at some place, and call:
+
+- `lua neorg.modules.get_module('core.norg.qol.toc').display_toc()`
+
+Calling display_toc with true (`...display_toc(true)`) will generate a split view of the Toc.
+--]]
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.qol.toc")
@@ -17,12 +28,12 @@ module.setup = function()
 end
 
 module.load = function()
-    module.required["core.keybinds"].register_keybind(module.name, "hop-toc-link")
-    module.required["core.keybinds"].register_keybind(module.name, "close")
+    module.required["core.keybinds"].register_keybinds(module.name, { "hop-toc-link", "close" })
 
     module.required["core.autocommands"].enable_autocommand("BufLeave")
     module.required["core.autocommands"].enable_autocommand("BufEnter")
     module.required["core.autocommands"].enable_autocommand("BufDelete")
+    module.required["core.autocommands"].enable_autocommand("QuitPre")
 end
 
 module.config.public = {
@@ -336,10 +347,11 @@ module.on_event = function(event)
             module.private.close_buffer()
         end
     elseif event.split_type[1] == "core.autocommands" and module.private.toc_bufnr ~= nil then
-        if event.split_type[2] == "bufleave" then
-            module.private.close_buffer({ keep_buf = not module.config.public.close_split_on_jump })
-
-            -- Go back to previous mode
+        if event.split_type[2] == "quitpre" then
+            local previous_mode = module.required["core.mode"].get_previous_mode()
+            module.required["core.mode"].set_mode(previous_mode)
+            module.private.close_buffer()
+        elseif event.split_type[2] == "bufleave" then
             local previous_mode = module.required["core.mode"].get_previous_mode()
             module.required["core.mode"].set_mode(previous_mode)
         elseif event.split_type[2] == "bufenter" and module.private.toc_bufnr == vim.api.nvim_get_current_buf() then
@@ -357,6 +369,7 @@ module.events.subscribed = {
         bufleave = true,
         bufenter = true,
         bufdelete = true,
+        quitpre = true,
     },
 }
 
