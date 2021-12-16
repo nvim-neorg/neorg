@@ -366,7 +366,10 @@ module.public = {
                             -- If we were successful in switching to that workspace then begin editing that workspace's index file
                             if module.public.set_workspace(read_data) then
                                 vim.cmd(
-                                    "e " .. module.public.get_workspace(read_data) .. neorg.configuration.pathsep .. module.config.public.index
+                                    "e "
+                                        .. module.public.get_workspace(read_data)
+                                        .. neorg.configuration.pathsep
+                                        .. module.config.public.index
                                 )
                             end
 
