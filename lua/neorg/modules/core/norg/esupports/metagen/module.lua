@@ -1,5 +1,7 @@
 --[[
--- A Neorg module for generating document metadata automatically
+    File: Metagen
+    Title: Generate Neorg metadata
+    Summary: A Neorg module for generating document metadata automatically.
 --]]
 
 require("neorg.modules.base")
@@ -11,8 +13,10 @@ module.setup = function()
 end
 
 module.config.public = {
-    type = "auto", -- One of "none"|"auto"|"<some-keybind>"
+    -- One of "none"|"auto"|"<some-keybind>"
+    type = "auto",
 
+    -- How to generate a tabulation inside the `@document.meta` tag
     tab = function()
         if not vim.opt_local.expandtab then
             return "	"
@@ -21,8 +25,10 @@ module.config.public = {
         end
     end,
 
+    -- Custom delimiter between tag and value
     delimiter = ": ",
 
+    -- Custom template to use for generating content inside `@document.meta` tag
     template = {
         {
             "title",

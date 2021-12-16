@@ -1,4 +1,7 @@
 --[[
+    File: Esupports-Hop
+    Title: Jump from Neorg links
+    Summary: "Hop" between Neorg links, following them with a single keypress.
 --]]
 
 require("neorg.modules.base")
