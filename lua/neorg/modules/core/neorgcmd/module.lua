@@ -1,6 +1,6 @@
 --[[
 	File: Neorgcmd-Module
-    Title: Neorgcmd module for Neorg
+    Title: Neorgcmd module for Neorg.
 	Summary: This module deals with handling everything related to the `:Neorg` command.
     ---
 --]]

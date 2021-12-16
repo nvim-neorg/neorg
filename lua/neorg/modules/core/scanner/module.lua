@@ -1,7 +1,7 @@
 --[[
     File: Scanner-Module
-    Title: Scanner module for Neorg
-	Summary: This module is an implementation of a scanner that can be used anywhere TS can't be used
+    Title: Scanner module for Neorg.
+	Summary: This module is an implementation of a scanner that can be used anywhere TS can't be used.
 --]]
 
 require("neorg.modules.base")
