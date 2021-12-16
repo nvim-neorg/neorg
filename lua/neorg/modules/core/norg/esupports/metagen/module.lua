@@ -2,6 +2,7 @@
     File: Metagen
     Title: Generate Neorg metadata
     Summary: A Neorg module for generating document metadata automatically.
+    ---
 --]]
 
 require("neorg.modules.base")
