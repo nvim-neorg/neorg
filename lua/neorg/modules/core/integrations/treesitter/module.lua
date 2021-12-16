@@ -1,7 +1,8 @@
 --[[
-	A module designed to integrate TreeSitter into Neorg.
-
-	If it seems that I don't know what I'm doing at times it's because I have no clue what I'm doing.
+    File: Integrations-Treesitter
+    Title: TreeSitter integration into Neorg
+	Summary: A module designed to integrate TreeSitter into Neorg.
+    ---
 --]]
 
 require("neorg.modules.base")
@@ -17,6 +18,7 @@ module.setup = function()
 end
 
 module.config.public = {
+    -- The TS highlights for each Neorg type
     highlights = {
         Tag = {
             -- The + tells neorg to link to an existing hl
@@ -401,6 +403,7 @@ module.config.public = {
         },
     },
 
+    -- Where and how to dim TS types
     dim = {
         CodeBlock = {
             reference = "Normal",
@@ -409,6 +412,7 @@ module.config.public = {
         },
     },
 
+    -- TODO: Document this
     generate_shorthands = true,
 }
 

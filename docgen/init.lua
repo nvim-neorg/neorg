@@ -231,7 +231,6 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "- [Customizing Icons](https://github.com/nvim-neorg/neorg/wiki/Concealing)",
             "### Usage",
             "- [Managing Workspaces](https://github.com/nvim-neorg/neorg/wiki/Workspace-Management)",
-            "- [Constructing a Workflow](https://github.com/nvim-neorg/neorg/wiki/Constructing-a-Workflow)",
             "### For the programmer",
             "- [Writing my own module](https://github.com/nvim-neorg/neorg/wiki/Creating-Modules)",
             "- [Hotswapping modules](https://github.com/nvim-neorg/neorg/wiki/Hotswapping-Modules)",

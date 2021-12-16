@@ -1,27 +1,17 @@
 --[[
-    Module for implementing todo lists.
-
-    Available binds:
-        - todo.task_done
-        - todo.task_undone
-        - todo.task_pending
-        - todo.task_on_hold
-        - todo.task_cancelled
-        - todo.task_recurring
-        - todo.task_important
-        - todo.task_cycle
-
-    The same as:
-        ["core.norg.qol.todo_items.todo"] = {
-            ["task_done"] = true
-            ["task_undone"] = true
-            ["task_pending"] = true
-            ["task_on_old"] = true
-            ["task_cancelled"] = true
-            ["task_recurring"] = true
-            ["task_important"] = true
-            ["task_cycle"] = true
-        }
+    File: Todo-Items
+    Title: Todo Items
+    Summary: Module for implementing todo lists.
+    ---
+Some available keybinds
+    - `todo.task_done`
+    - `todo.task_undone`
+    - `todo.task_pending`
+    - `todo.task_on_hold`
+    - `todo.task_cancelled`
+    - `todo.task_recurring`
+    - `todo.task_important`
+    - `todo.task_cycle`
 --]]
 
 require("neorg.modules.base")
@@ -48,6 +38,7 @@ module.load = function()
 end
 
 module.config.public = {
+    -- The order of cycling between todo items
     order = {
         { "undone", " " },
         { "done", "x" },
