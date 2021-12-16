@@ -1,7 +1,7 @@
 --[[
     File: Mode-Manager
-    Title: Mode manager for neorg
-    Summary: Modes are a way of isolating different parts of neorg based on the current mode.
+    Title: Mode manager for Neorg
+    Summary: Modes are a way of isolating different parts of Neorg based on the current mode.
     ---
 - To add a mode to core.mode, use the public `add_mode("my-mode-name")`.
 - To set the current mode, use the public `set_mode("my-mode-name")`.
