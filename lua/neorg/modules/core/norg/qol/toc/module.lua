@@ -22,12 +22,13 @@ module.load = function()
 
     module.required["core.autocommands"].enable_autocommand("BufLeave")
     module.required["core.autocommands"].enable_autocommand("BufEnter")
+    module.required["core.autocommands"].enable_autocommand("BufDelete")
 end
 
 module.config.public = {
     -- If you use `default_toc_mode = "split"`, you can decide if you want the toc to persist until you close it.
     -- Else, it'll close automatically when following a link
-    close_split_on_jump = true,
+    close_split_on_jump = false,
     -- Where to place the TOC (`"left"`/`"right"`)
     toc_split_placement = "left",
 }
@@ -39,16 +40,12 @@ module.private = {
 
     close_buffer = function(opts)
         opts = opts or {}
-        -- Go back to previous mode
-        local previous_mode = module.required["core.mode"].get_previous_mode()
-        module.required["core.mode"].set_mode(previous_mode)
 
         if not opts.keep_buf then
-            vim.cmd(":bd")
+            vim.api.nvim_buf_delete(0, { force = true })
+            module.private.cur_bnr = nil
+            module.private.toc_bufnr = nil
         end
-
-        module.private.cur_bnr = nil
-        module.private.toc_bufnr = nil
     end,
 }
 
@@ -68,10 +65,6 @@ module.public = {
         vim.api.nvim_set_current_win(module.private.cur_win)
         -- vim.api.nvim_win_set_buf(0, module.private.cur_bnr)
         module.required["core.norg.esupports.hop"].follow_link(node, nil, parsed_link)
-
-        -- Go back to previous mode
-        local previous_mode = module.required["core.mode"].get_previous_mode()
-        module.required["core.mode"].set_mode(previous_mode)
     end,
 
     --- Find a Table of Contents insertions in the document and returns its data
@@ -257,7 +250,7 @@ module.public = {
 
             local autocommands = neorg.lib.match({
                 module.config.public.close_split_on_jump,
-                ["true"] = { "BufDelete", "BufUnload", "BufLeave" },
+                ["true"] = { "BufDelete", "BufUnload" },
                 ["false"] = { "BufDelete", "BufUnload" },
             })
 
@@ -345,7 +338,11 @@ module.on_event = function(event)
     elseif event.split_type[1] == "core.autocommands" and module.private.toc_bufnr ~= nil then
         if event.split_type[2] == "bufleave" then
             module.private.close_buffer({ keep_buf = not module.config.public.close_split_on_jump })
-        elseif event.split_type[2] == "bufenter" then
+
+            -- Go back to previous mode
+            local previous_mode = module.required["core.mode"].get_previous_mode()
+            module.required["core.mode"].set_mode(previous_mode)
+        elseif event.split_type[2] == "bufenter" and module.private.toc_bufnr == vim.api.nvim_get_current_buf() then
             module.required["core.mode"].set_mode("toc-split")
         end
     end
@@ -359,6 +356,7 @@ module.events.subscribed = {
     ["core.autocommands"] = {
         bufleave = true,
         bufenter = true,
+        bufdelete = true,
     },
 }
 
