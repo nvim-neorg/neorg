@@ -3,6 +3,7 @@
     Title: The Keybinds Module
 	Summary: Module for managing keybindings with Neorg mode support.
     ---
+If you're a developer, check out the [examples](#examples).
 See https://github.com/vhyrro/neorg/wiki/User-Keybinds for more info.
 --]]
 
