@@ -2,6 +2,7 @@
     File: Norg-Manoeuvre
     Title: Move around elements easily
     Summary: A Neorg module for moving around different elements up and down.
+    ---
 --]]
 
 require("neorg.modules.base")

@@ -2,6 +2,7 @@
     File: Integrations-Treesitter
     Title: TreeSitter integration into Neorg
 	Summary: A module designed to integrate TreeSitter into Neorg.
+    ---
 --]]
 
 require("neorg.modules.base")
