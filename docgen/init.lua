@@ -195,23 +195,25 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             function()
                 local res = {}
                 for _module, _config in pairs(modules) do
-                    local insert
-                    if _config.filename then
-                        insert = "- [`"
-                            .. _config.name
-                            .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                            .. _config.filename
-                            .. ")"
-                    else
-                        insert = "- `" .. _module .. "`"
-                    end
-                    if _config.summary then
-                        insert = insert .. " - " .. _config.summary
-                    else
-                        insert = insert .. " - undocumented module"
-                    end
+                    if not _config.is_extension then
+                        local insert
+                        if _config.filename then
+                            insert = "- [`"
+                                .. _config.name
+                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                                .. _config.filename
+                                .. ")"
+                        else
+                            insert = "- `" .. _module .. "`"
+                        end
+                        if _config.summary then
+                            insert = insert .. " - " .. _config.summary
+                        else
+                            insert = insert .. " - undocumented module"
+                        end
 
-                    table.insert(res, insert)
+                        table.insert(res, insert)
+                    end
                 end
                 return res
             end,
