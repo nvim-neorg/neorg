@@ -78,7 +78,7 @@ module.config.public = {
 }
 
 module.public = {
-    version = "0.1",
+    version = "0.0.9",
 }
 
 module.load = function()
