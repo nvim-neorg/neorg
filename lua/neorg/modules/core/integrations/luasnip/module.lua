@@ -57,9 +57,7 @@ module.public = {
             norg[#norg + 1] = s({
                 trig = snippet.trigger,
                 dscr = snippet.description,
-            }, make_snippet(
-                snippet.body
-            ))
+            }, make_snippet(snippet.body))
         end
 
         module.private.luasnip.snippets.norg = norg
