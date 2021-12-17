@@ -9,20 +9,20 @@
 
 | Last changes:
 - 19/08/2021:
--- [Top-level organization](#Top-level organization): Added `reference` folder spec
+-- {# Top-level organization}[Top-level organization]: Added `reference` folder spec
 - 22/08/2021:
--- [Task format](#Task format):
+-- {# Task format}[Task format]:
 --- Removed task grouping by metadatas
 --- deleted the mandatory `last_review` field
 --- changed the notes format in a task
 --- Added subtasks
 --- Deleted `:` delimiter in #<due|start|contexts>
---- Added [Standard contexts](#Standard contexts)
---- Added [Working with dates](#Working with dates)
+--- Added {# Standard contexts}[Standard contexts]
+--- Added {# Working with dates}[Working with dates]
 --- Removed notes specification
 --- Added special tags for waiting-for and someday
--- [Top-level organization](#Top-level organization): Changed top-level organization with new files specs
--- [Projects management](#Projects management):
+-- {# Top-level organization}[Top-level organization]: Changed top-level organization with new files specs
+-- {# Projects management}[Projects management]:
 --- Added specs for projects
 --- Changed syntax
 
@@ -43,7 +43,7 @@
   *** Task format
 
    **** Generalities
-        The format for a task is specified as follows (refering to [Syntax](#Syntax)):
+        The format for a task is specified as follows (refering to {# Syntax}[Syntax]):
         /Note: the priority of the syntax is in this order/
         /Note2: if a task has subtasks, it is considered done as soon as all substasks are done/
         /Note3: You can go up to 6 subtask levels/
@@ -65,7 +65,7 @@
 
   *** Top-level organization
 
-      This is the proposed approach which is directly related to [Organize](#Organize).
+      This is the proposed approach which is directly related to {# Organize}[Organize].
       - The inbox file is at the root of the workspace.
       - Every `.norg` file is just a placeholder.
       - The workspace allows an unlimited amount of nested folders, but they mean nothing except the
@@ -97,7 +97,7 @@
 
   *** Projects management
 
-      [Projects](#Project) are represented via [headings](:neorg:#headings) like so:
+      {# Project}[Projects] are represented via {:neorg:# headings}[headings] like so:
 
       @code norg
       
@@ -130,7 +130,7 @@
 
   *** Area Of Focus
 
-      An [area of focus](****Area of Focus) (AOF) is made with a [marker](:neorg:#markers) like so:
+      An {**** Area of Focus}[area of focus] (AOF) is made with a {:neorg:# markers}[marker] like so:
 
       @code norg
       | §Area Of Focus name§
@@ -196,9 +196,9 @@
       - Delete the task (called *Eliminate*)
       - Move it to the someday/maybe list
       - Make it a reference, removing it from all GTD views and moving it to an external note.
-      - Convert it to a project (see [Organize](***Organize))
+      - Convert it to a project (see {*** Organize}[Organize])
 
-      A processed task should be deleted from the inbox, and moved to another place (see [Organize](#Organize)).
+      A processed task should be deleted from the inbox, and moved to another place (see {# Organize}[Organize]).
 
   *** Organize
       Where should all processed tasks go?
@@ -230,20 +230,21 @@
 
    **** Next actions
         A next action is one of the following:
-        - A task that is in a [Bullet list project](#Bullet list projects) and not in someday
-        - The first task of a [Sequential project](#Sequential projects)
+        - A task that is in a {# Bullet list projects}[Bullet list project] and not in someday
+        - The first task of a {# Sequential projects}[Sequential project]
         That means it is the work we could do now.
 
    **** Changes from base GTD
     ***** Context Lists
           There is no concept of context lists. Instead there are tags, e.g. `#contexts home`.
           Special contexts:
-          - `#contexts today`: Marks a task to be done today, will have particular effects on [Quick view](#Quick view).
+          - `#contexts today`: Marks a task to be done today, will have particular
+          effects on {# Quick view}[Quick View].
     ***** Projects List
-          See [Project](#Project).
+          See {# Project}[Project].
     ***** Someday List:
           A someday list is now a context called `@someday`.
-          - `#contexts someday`: Prevent the task from showing in the [Quick view](#Quick view).
+          - `#contexts someday`: Prevent the task from showing in the {# Quick view}[Quick view].
 
   *** Reflect
       This part of the process is the /review/ part, which is a set of tools to help the user regain
@@ -260,9 +261,9 @@
         The weekly review is a central place of GTD, and consists of reviewing everything.
         - Every week, ask the user to start a weekly review in order to keep track of things.
 
-        Every step of [GTD Weekly review](https://gettingthingsdone.com/wp-content/uploads/2014/10/Weekly_Review_Checklist.pdf) should be user interacted, and each step must present one
+        Every step of {https://gettingthingsdone.com/wp-content/uploads/2014/10/Weekly_Review_Checklist.pdf}[GTD Weekly review] should be user interacted, and each step must present one
         after the other:
-        - /Get Inbox to Zero/: [Clarify](#Clarify)
+        - /Get Inbox to Zero/: {# Clarify}[Clarify]
         - Review action lists: Open a view to see all contexts (except `#waiting.for` and `#contexts someday`)
         - Review waiting for lists: Open a view to see all `#waiting.for` tasks
         - Review projects lists: Open a view to see all projects, with options to see their tasks
