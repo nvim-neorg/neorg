@@ -187,7 +187,7 @@
       This part is what I commonly refer as:
       > Processing the inbox
 
-      Is is a set of actions to take in order to process what each task means (and removing it from
+      It is a set of actions to take in order to process what each task means (and removing it from
       the inbox in the process). A best practice is to process each task at a time, following a FIFO
       convention. We should design the user interaction with that in mind.
 
