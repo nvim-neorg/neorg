@@ -29,4 +29,6 @@ neorg.configuration.os_info = (function()
     end
 end)()
 
+neorg.configuration.pathsep = neorg.configuration.os_info == "windows" and "\\" or "/"
+
 return neorg.configuration
