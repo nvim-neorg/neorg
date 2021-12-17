@@ -113,6 +113,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             local import_path = vim.fn.fnamemodify(path, ":p:h") .. "/" .. import .. ".lua"
             local imported_extension = dofile(import_path).real()
             imported_extension.path = import_path
+            imported_extension.is_extension = true
             modules[imported_extension.name] = imported_extension
         end
 
@@ -242,10 +243,11 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "",
             function()
                 local res = {}
-                -- P(modules)
                 names = {}
-                for n in pairs(modules) do
-                    table.insert(names, n)
+                for n, config in pairs(modules) do
+                    if config.is_extension ~= true then
+                        table.insert(names, n)
+                    end
                 end
                 table.sort(names)
                 for i, name in ipairs(names) do
