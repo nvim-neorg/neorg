@@ -48,6 +48,9 @@ module.examples = {
         local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, buf)
         local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
 
+        -- Free the text in memory after reading nodes
+        module.required["core.queries.native"].reset_data()
+
         print(nodes, extracted_nodes)
     end,
 }
@@ -125,11 +128,7 @@ module.public = {
         local res = {}
 
         for _, node in ipairs(nodes) do
-            local uri = vim.uri_from_bufnr(node[2])
-            local fname = vim.uri_to_fname(uri)
-            local f = io.open(fname, "r")
-            local text = f:read("*a")
-            f:close()
+            local text = module.private.get_file_text(node[2])
             local extracted = vim.treesitter.get_node_text(node[1], text)
             extracted = vim.split(extracted, "\n")
 
@@ -171,18 +170,38 @@ module.public = {
         end
         return res
     end,
+
+    reset_data = function(buf)
+        if not buf then
+            module.private.bufnr_contents = {}
+        else
+            module.private.bufnr_contents[buf] = nil
+        end
+    end,
 }
 
 module.private = {
+    -- stores a text content in the form of bufnr = text
+    bufnr_contents = {},
+
+    get_file_text = function(buf)
+        if not module.private.bufnr_contents[buf] then
+            local uri = vim.uri_from_bufnr(buf)
+            local fname = vim.uri_to_fname(uri)
+            local f = io.open(fname, "r")
+            local lines = f:read("*a")
+            f:close()
+            module.private.bufnr_contents[buf] = lines
+        end
+
+        return module.private.bufnr_contents[buf]
+    end,
+
     --- Get the root node from a `bufnr`
     --- @param bufnr number
     --- @return userdata
     get_buf_root_node = function(bufnr)
-        local uri = vim.uri_from_bufnr(bufnr)
-        local fname = vim.uri_to_fname(uri)
-        local f = io.open(fname, "r")
-        local lines = f:read("*a")
-        f:close()
+        local lines = module.private.get_file_text(bufnr)
         local parser = vim.treesitter.get_string_parser(lines, "norg")
         local tstree = parser:parse()[1]
         return tstree:root()
@@ -302,7 +321,6 @@ With that in mind, you can do something like this (for example):
     --- @return boolean
     predicate_where = function(parent, where, opts)
         opts = opts or {}
-        local ts_utils = require("nvim-treesitter.ts_utils")
 
         if not where or #where == 0 then
             return true
@@ -317,11 +335,7 @@ With that in mind, you can do something like this (for example):
             end
 
             if where[1] == "child_content" then
-                local uri = vim.uri_from_bufnr(opts.bufnr)
-                local fname = vim.uri_to_fname(uri)
-                local f = io.open(fname, "r")
-                local text = f:read("*a")
-                f:close()
+                local text = module.private.get_file_text(opts.bufnr)
                 if node:type() == where[2] and vim.treesitter.get_node_text(node, text) == where[3] then
                     return true
                 end
