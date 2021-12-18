@@ -123,10 +123,15 @@ module.public = {
     extract_nodes = function(nodes, opts)
         opts = opts or {}
         local res = {}
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         for _, node in ipairs(nodes) do
-            local extracted = ts_utils.get_node_text(node[1], node[2])
+            local uri = vim.uri_from_bufnr(node[2])
+            local fname = vim.uri_to_fname(uri)
+            local f = io.open(fname, "r")
+            local text = f:read("*a")
+            f:close()
+            local extracted = vim.treesitter.get_node_text(node[1], text)
+            extracted = vim.split(extracted, "\n")
 
             if opts.all_lines then
                 table.insert(res, extracted)
@@ -173,7 +178,12 @@ module.private = {
     --- @param bufnr number
     --- @return userdata
     get_buf_root_node = function(bufnr)
-        local parser = vim.treesitter.get_parser(bufnr, "norg")
+        local uri = vim.uri_from_bufnr(bufnr)
+        local fname = vim.uri_to_fname(uri)
+        local f = io.open(fname, "r")
+        local lines = f:read("*a")
+        f:close()
+        local parser = vim.treesitter.get_string_parser(lines, "norg")
         local tstree = parser:parse()[1]
         return tstree:root()
     end,
@@ -307,7 +317,12 @@ With that in mind, you can do something like this (for example):
             end
 
             if where[1] == "child_content" then
-                if node:type() == where[2] and ts_utils.get_node_text(node, opts.bufnr)[1] == where[3] then
+                local uri = vim.uri_from_bufnr(opts.bufnr)
+                local fname = vim.uri_to_fname(uri)
+                local f = io.open(fname, "r")
+                local text = f:read("*a")
+                f:close()
+                if node:type() == where[2] and vim.treesitter.get_node_text(node, text) == where[3] then
                     return true
                 end
             end
