@@ -230,8 +230,8 @@
 
    **** Next actions
         A next action is one of the following:
-        - A task that is in a {# Bullet list projects} and not in someday
-        - The first task of a {# Sequential projects}
+        - A task that is in a {# Bullet list projects}[bullet list project] and not in someday
+        - The first task of a {# Sequential projects}[sequential project]
         That means it is the work we could do now.
 
    **** Changes from base GTD
