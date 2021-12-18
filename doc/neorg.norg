@@ -350,7 +350,7 @@ consective new lines.
       - You can create ,/italic subscripts/,.
       - If you want to shout in the internet, use */_DOUBLY EMPHASIZED AND UNDERLINED CAPS_/*
 
-      Note: You can:*not*: combine sub- and superscripts like so:
+      Note: You can:*not* combine sub- and superscripts like so:
       @code norg
       ^,This should be super- and subscript.,^ Why though?
       @end
