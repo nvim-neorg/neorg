@@ -237,6 +237,7 @@ module.public = {
             table.insert(res, exported)
         end
 
+        module.required["core.queries.native"].reset_data()
         return res
     end,
 
