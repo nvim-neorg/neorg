@@ -188,7 +188,11 @@ module.private = {
         if not module.private.bufnr_contents[buf] then
             local uri = vim.uri_from_bufnr(buf)
             local fname = vim.uri_to_fname(uri)
-            local f = io.open(fname, "r")
+            local f, err = io.open(fname, "r")
+            if not f then
+                log.error(err)
+                return
+            end
             local lines = f:read("*a")
             f:close()
             module.private.bufnr_contents[buf] = lines
