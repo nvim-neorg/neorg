@@ -257,58 +257,61 @@ module.public = {
                 -- A query must have at least one capture, e.g. "(test_node) @icon"
                 local query = vim.treesitter.parse_query("norg", icon_data.query)
 
+                local nvim_ts_query = require("nvim-treesitter.query")
+                local nvim_locals = require("nvim-treesitter.locals")
+
                 -- Go through every found node and try to apply an icon to it
-                for id, node in query:iter_captures(document_root, 0, from and from - 1 or 0, -1) do
-                    local capture = query.captures[id]
+                for match in nvim_ts_query.iter_prepared_matches(query, document_root, 0, from and from - 1 or 0, -1) do
+                    nvim_locals.recurse_local_nodes(match, function(_, node, capture)
+                        if capture == "icon" then
+                            -- Extract both the text and the range of the node
+                            local text = module.required["core.integrations.treesitter"].get_node_text(node)
+                            local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
-                    if capture == "icon" then
-                        -- Extract both the text and the range of the node
-                        local text = module.required["core.integrations.treesitter"].get_node_text(node)
-                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
+                            -- Set the offset to 0 here. The offset is a special value that, well, offsets
+                            -- the location of the icon column-wise
+                            -- It's used in scenarios where the node spans more than what we want to iconify.
+                            -- A prime example of this is the todo item, whose content looks like this: "[x]".
+                            -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
+                            -- to use an offset of 1 to start the icon at the "x"
+                            local offset = 0
 
-                        -- Set the offset to 0 here. The offset is a special value that, well, offsets
-                        -- the location of the icon column-wise
-                        -- It's used in scenarios where the node spans more than what we want to iconify.
-                        -- A prime example of this is the todo item, whose content looks like this: "[x]".
-                        -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
-                        -- to use an offset of 1 to start the icon at the "x"
-                        local offset = 0
+                            -- The extract function is used exactly to calculate this offset
+                            -- If that function is present then run it and grab the return value
+                            if icon_data.extract then
+                                offset = icon_data.extract(text, node) or 0
+                            end
 
-                        -- The extract function is used exactly to calculate this offset
-                        -- If that function is present then run it and grab the return value
-                        if icon_data.extract then
-                            offset = icon_data.extract(text, node) or 0
+                            -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
+                            -- This is primarily used in nested quotes
+                            -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
+                            if not icon_data.render then
+                                module.public._set_extmark(
+                                    icon_data.icon,
+                                    icon_data.highlight,
+                                    "icon",
+                                    range.row_start,
+                                    range.row_end,
+                                    range.column_start + offset,
+                                    range.column_end,
+                                    false,
+                                    "combine"
+                                )
+                            else
+                                module.public._set_extmark(
+                                    icon_data:render(text, node),
+                                    icon_data.highlight,
+                                    "icon",
+                                    range.row_start,
+                                    range.row_end,
+                                    range.column_start + offset,
+                                    range.column_end,
+                                    false,
+                                    "combine"
+                                )
+                            end
                         end
-
-                        -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
-                        -- This is primarily used in nested quotes
-                        -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
-                        if not icon_data.render then
-                            module.public._set_extmark(
-                                icon_data.icon,
-                                icon_data.highlight,
-                                "icon",
-                                range.row_start,
-                                range.row_end,
-                                range.column_start + offset,
-                                range.column_end,
-                                false,
-                                "combine"
-                            )
-                        else
-                            module.public._set_extmark(
-                                icon_data:render(text, node),
-                                icon_data.highlight,
-                                "icon",
-                                range.row_start,
-                                range.row_end,
-                                range.column_start + offset,
-                                range.column_end,
-                                false,
-                                "combine"
-                            )
-                        end
-                    end
+                    end)
                 end
             end
         end
