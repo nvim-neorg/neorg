@@ -71,7 +71,7 @@ module.public = {
         end
 
         if opts.filename then
-            local bufnr = module.private.get_bufnr_from_file(opts.filename)
+            local bufnr = module.public.get_bufnr_from_file(opts.filename)
             table.insert(bufnrs, bufnr)
         elseif opts.bufnr then
             local bufnr = opts.bufnr
@@ -92,7 +92,7 @@ module.public = {
             end
 
             for _, file in pairs(files) do
-                local bufnr = module.private.get_bufnr_from_file(file)
+                local bufnr = module.public.get_bufnr_from_file(file)
                 table.insert(bufnrs, bufnr)
             end
         end
@@ -403,9 +403,7 @@ module.public = {
 
         return extracted
     end,
-}
 
-module.private = {
     --- Gets a bufnr from a relative `file` path
     --- @param file string
     --- @return number
@@ -416,6 +414,9 @@ module.private = {
         local bufnr = module.required["core.norg.dirman"].get_file_bufnr(workspace .. "/" .. file)
         return bufnr
     end,
+}
+
+module.private = {
 
     --- Gets content from a `node` table. If `extract`, extracts the content of the node
     --- @param node table
