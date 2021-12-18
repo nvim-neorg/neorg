@@ -1750,65 +1750,64 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
             link = {
                 enabled = true,
-                highlight = "NeorgLinkText",
-                query = "(link) @icon",
-                render = function(self, text, node)
-                    local concealed_chars = 0
-                    local ts = module.required["core.integrations.treesitter"]
-                    local location = nil
-                    local description = nil
-                    local file = node:named_child(0)
 
-                    if file:type() == "link_file" then
-                        location = node:named_child(1)
-                        description = node:named_child(2)
-                    else
-                        location = file
-                        file = nil
-                        description = node:named_child(1)
-                    end
+                unnamed = {
+                    enabled = true,
+                    highlight = "NeorgLinkLocationDelimiter",
+                    query = [[
+                        [(
+                            (link
+                                ("_begin") @icon
+                                (_) @_last
+                                .
+                            )
+                            (#not-has-type? @_last "link_description")
+                        )
+                        (
+                            (link
+                                (_) @_last
+                                ("_end") @icon
+                                .
+                            )
+                            (#not-has-type? @_last "link_description")
+                        )]
+                    ]],
+                },
 
-                    if location ~= nil and location:type() == "link_description" then
-                        description = location
-                        location = nil
-                    end
+                named = {
+                    enabled = true,
 
-                    if description ~= nil then
-                        local description_text = ts.get_node_text(description:named_child(0))
-                        concealed_chars = #description_text
-                        return {
-                            { description_text, self.highlight },
-                            { string.rep(self.icon, #text - concealed_chars), "" },
-                        }
-                    end
+                    location = {
+                        enabled = true,
+                        highlight = "NeorgLinkLocationDelimiter",
+                        query = [[
+                            (link
+                                [
+                                    "_begin"
+                                    (link_file)?
+                                    (link_location)?
+                                    "_end"
+                                ] @icon
+                                (link_description)
+                            )
+                        ]],
+                        render = function(self, text)
+                            return {
+                                { string.rep(self.icon, #text), self.highlight },
+                            }
+                        end,
+                    },
 
-                    local extmark_text = {}
-
-                    if file ~= nil then
-                        local file_text = ts.get_node_text(file)
-                        concealed_chars = #file_text
-                        table.insert(extmark_text, { file_text, "NeorgLinkFile" })
-                    end
-
-                    if location ~= nil then
-                        local location_type = location:named_child(0)
-                        local location_text = location:named_child(1)
-
-                        local type = ts.get_node_text(location_type)
-                        local text = ts.get_node_text(location_text)
-
-                        local type_name = location_type:type()
-                        type_name = vim.fn.substitute(type_name, [[\(_\|^\)\(\w\)]], [[\u\2]], "g")
-
-                        concealed_chars = concealed_chars + #type + #text
-
-                        table.insert(extmark_text, { type, "Neorg" .. type_name .. "Prefix" })
-                        table.insert(extmark_text, { text, "Neorg" .. type_name })
-                    end
-
-                    table.insert(extmark_text, { string.rep(self.icon, #text - concealed_chars), "" })
-                    return extmark_text
-                end,
+                    text = {
+                        enabled = true,
+                        highlight = "NeorgLinkTextDelimiter",
+                        query = [[
+                            (link
+                                (link_description (["_begin" "_end"]) @icon)
+                            )
+                        ]],
+                    },
+                },
             },
 
             anchor = {
