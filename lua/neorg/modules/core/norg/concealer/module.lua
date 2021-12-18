@@ -1813,15 +1813,54 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
             anchor = {
                 enabled = true,
-                highlight = "NeorgAnchorDeclerationText",
-                query = [[
-                (
-                    (anchor_declaration
-                        (["_begin" "_end"]) @icon
-                    ) @_declaration
-                    (#not-has-parent? @_declaration "anchor_definition")
-                )
-                ]],
+
+                declaration = {
+                    enabled = true,
+                    highlight = "NeorgAnchorDeclarationDelimiter",
+                    query = [[(
+                        (anchor_declaration
+                            (["_begin" "_end"]) @icon
+                        ) @_declaration
+                        (#not-has-parent? @_declaration "anchor_definition")
+                    )]],
+                },
+
+                definition = {
+                    enabled = true,
+
+                    declaration = {
+                        enabled = true,
+                        highlight = "NeorgAnchorDeclarationDelimiter",
+                        query = [[(
+                            (anchor_declaration
+                                (["_begin" "_end"]) @icon
+                            ) @_declaration
+                            (#has-parent? @_declaration "anchor_definition")
+                        )]],
+                        -- NOTE: right now this is a duplicate of the above but
+                        -- we could envision concealing these two scenarios
+                        -- differently.
+                    },
+
+                    location = {
+                        enabled = true,
+                        highlight = "NeorgAnchorDefinitionDelimiter",
+                        query = [[
+                            (anchor_definition
+                                ([
+                                    "_begin"
+                                    (link_location)
+                                    "_end"
+                                ]) @icon
+                            )
+                        ]],
+                        render = function(self, text)
+                            return {
+                                { string.rep(self.icon, #text), self.highlight },
+                            }
+                        end,
+                    },
+                },
             },
         },
     },
