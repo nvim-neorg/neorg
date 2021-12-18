@@ -1811,17 +1811,14 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             anchor = {
                 enabled = true,
                 highlight = "NeorgAnchorDeclerationText",
-                query = "(anchor_declaration) @icon",
-                render = function(self, text, node)
-                    local ts = module.required["core.integrations.treesitter"]
-                    local addon = ""
-                    if node:parent():type() == "anchor_definition" then
-                        addon = string.rep(self.icon, 2 + #ts.get_node_text(node:parent():named_child(1)))
-                    end
-                    return {
-                        { text:gsub("%[(.+)%]", self.icon .. "%1" .. self.icon) .. addon, self.highlight },
-                    }
-                end,
+                query = [[
+                (
+                    (anchor_declaration
+                        (["_begin" "_end"]) @icon
+                    ) @_declaration
+                    (#not-has-parent? @_declaration "anchor_definition")
+                )
+                ]],
             },
         },
     },
