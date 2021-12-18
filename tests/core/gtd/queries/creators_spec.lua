@@ -11,7 +11,7 @@ describe("CORE.GTD.QUERIES - Creators:", function()
             content = "test_content",
         }
         local buf = config.get_void_buf()
-        queries.create("task", task, buf, { 0, 0 }, false, { no_save = true })
+        queries.create("task", task, buf, { 0, 0 }, false)
 
         local tasks = queries.get("tasks", { bufnr = buf })
         tasks = queries.add_metadata(tasks, "task")
@@ -20,7 +20,10 @@ describe("CORE.GTD.QUERIES - Creators:", function()
         assert.is_true(vim.tbl_contains(tasks[1]["waiting.for"], "test"))
         assert.equals("test_content", tasks[1].content)
 
-        vim.api.nvim_buf_delete(buf, { force = true })
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "" })
+        vim.api.nvim_buf_call(buf, function()
+            vim.cmd("write!")
+        end)
     end)
 
     it("Creates a project", function()
@@ -39,7 +42,10 @@ describe("CORE.GTD.QUERIES - Creators:", function()
         assert.is_true(vim.tbl_contains(projects[1]["contexts"], "test"))
         assert.equals("test_content", projects[1].content)
 
-        vim.api.nvim_buf_delete(buf, { force = true })
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "" })
+        vim.api.nvim_buf_call(buf, function()
+            vim.cmd("write!")
+        end)
     end)
 
     it("Get the end of the project", function()

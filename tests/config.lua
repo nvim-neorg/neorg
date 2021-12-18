@@ -27,7 +27,9 @@ neorg.modules.get_module("core.norg.dirman").set_workspace("gtd")
 config.temp_buf = neorg.modules.get_module("core.gtd.queries").get_bufnr_from_file("test_file_3.norg")
 
 config.get_void_buf = function()
-    return neorg.modules.get_module("core.gtd.queries").get_bufnr_from_file("blank_file.norg")
+    local buf = neorg.modules.get_module("core.gtd.queries").get_bufnr_from_file("blank_file.norg")
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "" })
+    return buf
 end
 
 return config

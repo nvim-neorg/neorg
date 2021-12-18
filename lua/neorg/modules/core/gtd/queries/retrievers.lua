@@ -98,6 +98,7 @@ module.public = {
         end
 
         for _, bufnr in pairs(bufnrs) do
+            module.required["core.queries.native"].reset_data(bufnr)
             local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
             vim.list_extend(res, nodes)
         end
