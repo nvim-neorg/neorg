@@ -1652,73 +1652,66 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
     markup = {
         enabled = false,
+        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
+        -- NOTE: if you're experiencing issues with this concealing, try using a
+        -- single whitespace instead.
 
         bold = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgMarkupBold",
             query = '(bold (["_open" "_close"]) @icon)',
         },
 
         italic = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgMarkupItalic",
             query = '(italic (["_open" "_close"]) @icon)',
         },
 
         underline = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgMarkupUnderline",
             query = '(underline (["_open" "_close"]) @icon)',
         },
 
         strikethrough = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgMarkupStrikethrough",
             query = '(strikethrough (["_open" "_close"]) @icon)',
         },
 
         subscript = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgMarkupSubscript",
             query = '(subscript (["_open" "_close"]) @icon)',
         },
 
         superscript = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgMarkupSuperscript",
             query = '(superscript (["_open" "_close"]) @icon)',
         },
 
         verbatim = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgMarkupVerbatim",
             query = '(verbatim (["_open" "_close"]) @icon)',
         },
 
         comment = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgMarkupInlineComment",
             query = '(inline_comment (["_open" "_close"]) @icon)',
         },
 
         math = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgMarkupInlineMath",
             query = '(inline_math (["_open" "_close"]) @icon)',
         },
 
         variable = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgMarkupVariable",
             query = '(variable (["_open" "_close"]) @icon)',
         },
@@ -1726,6 +1719,8 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         spoiler = {
             enabled = true,
             icon = "●",
+            -- NOTE: as you can see, you can still overwrite the parent-icon
+            -- inherited from above.
             highlight = "NeorgSpoiler",
             query = "(spoiler) @icon",
             render = function(self, text, node)
@@ -1737,7 +1732,6 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
         link_modifier = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgLinkModifier",
             query = "(link_modifier) @icon",
             render = function(self)
@@ -1749,7 +1743,6 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
         trailing_modifier = {
             enabled = true,
-            icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
             highlight = "NeorgTrailingModifier",
             query = '("_trailing_modifier") @icon',
             render = function(self)
@@ -1764,7 +1757,6 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
             link = {
                 enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
                 highlight = "NeorgLinkText",
                 query = "(link) @icon",
                 render = function(self, text, node)
@@ -1828,7 +1820,6 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
             anchor = {
                 enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
                 highlight = "NeorgAnchorDeclerationText",
                 query = "(anchor_declaration) @icon",
                 render = function(self, text, node)
@@ -2021,8 +2012,9 @@ module.load = function()
 
     -- @Summary Returns all the enabled icons from a table
     -- @Param  tbl (table) - the table to parse
+    -- @Param parent_icon (string) - Is used to pass icons from parents down to their table children to handle inheritance.
     -- @Param rec_name (string) - should not be set manually. Is used for Neorg to have information about all other previous recursions
-    local function get_enabled_icons(tbl, rec_name)
+    local function get_enabled_icons(tbl, parent_icon, rec_name)
         rec_name = rec_name or ""
 
         -- Create a result that we will return at the end of the function
@@ -2036,14 +2028,21 @@ module.load = function()
         -- Go through every icon
         for name, icons in pairs(tbl) do
             -- If we're dealing with a table (which we should be) and if the current icon set is enabled then
-            if type(icons) == "table" and icons.enabled and name ~= "markup" then
-                -- If we have defined an icon value then add that icon to the result
-                if icons.icon then
+            if type(icons) == "table" and icons.enabled then
+                -- If we have defined a query value then add that icon to the result
+                if icons.query then
                     result[rec_name .. name] = icons
+                    if icons.icon == nil then
+                        result[rec_name .. name].icon = parent_icon
+                    end
                 else
                     -- If we don't have an icon variable then we need to descend further down the lua table.
                     -- To do this we recursively call this very function and merge the results into the result table
-                    result = vim.tbl_deep_extend("force", result, get_enabled_icons(icons, rec_name .. name))
+                    result = vim.tbl_deep_extend(
+                        "force",
+                        result,
+                        get_enabled_icons(icons, parent_icon, rec_name .. name)
+                    )
                 end
             end
         end
@@ -2052,8 +2051,10 @@ module.load = function()
     end
 
     -- Set the module.private.icons variable to the values of the enabled icons
-    module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons, false))
-    module.private.markup = vim.tbl_values(get_enabled_icons(module.config.public.markup, false))
+    module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
+    module.private.markup = vim.tbl_values(
+        get_enabled_icons(module.config.public.markup, module.config.public.markup.icon)
+    )
 
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
