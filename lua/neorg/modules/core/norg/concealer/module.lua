@@ -1734,22 +1734,12 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             enabled = true,
             highlight = "NeorgLinkModifier",
             query = "(link_modifier) @icon",
-            render = function(self)
-                return {
-                    { self.icon, self.highlight },
-                }
-            end,
         },
 
         trailing_modifier = {
             enabled = true,
             highlight = "NeorgTrailingModifier",
             query = '("_trailing_modifier") @icon',
-            render = function(self)
-                return {
-                    { self.icon, self.highlight },
-                }
-            end,
         },
 
         url = {
