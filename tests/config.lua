@@ -21,7 +21,7 @@ require("neorg").setup({
 
 -- Start neorg
 neorg.org_file_entered(false)
-neorg.modules.get_module("core.norg.dirman").set_workspace("gtd")
+-- neorg.modules.get_module("core.norg.dirman").set_workspace("gtd")
 
 -- Create temporary buffer for quick use in test files
 config.temp_buf = neorg.modules.get_module("core.gtd.queries").get_bufnr_from_file("test_file_3.norg")
