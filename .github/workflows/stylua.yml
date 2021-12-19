@@ -1,0 +1,17 @@
+name: Formatting
+
+on: [push, pull_request_target]
+
+jobs:
+  format-with-stylua:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JohnnyMorganz/stylua-action@1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: .
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "chore: autoformat with stylua"
+          branch: ${{ github.head_ref }}

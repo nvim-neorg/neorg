@@ -1,5 +1,8 @@
 --[[
--- A Neorg module for generating document metadata automatically
+    File: Metagen
+    Title: Generate Neorg metadata
+    Summary: A Neorg module for generating document metadata automatically.
+    ---
 --]]
 
 require("neorg.modules.base")
@@ -11,8 +14,10 @@ module.setup = function()
 end
 
 module.config.public = {
-    type = "auto", -- One of "none"|"auto"|"<some-keybind>"
+    -- One of "none"|"auto"|"<some-keybind>"
+    type = "auto",
 
+    -- How to generate a tabulation inside the `@document.meta` tag
     tab = function()
         if not vim.opt_local.expandtab then
             return "	"
@@ -21,8 +26,10 @@ module.config.public = {
         end
     end,
 
+    -- Custom delimiter between tag and value
     delimiter = ": ",
 
+    -- Custom template to use for generating content inside `@document.meta` tag
     template = {
         {
             "title",
@@ -31,7 +38,7 @@ module.config.public = {
             end,
         },
         { "description", "" },
-        { "author", require("neorg.external.helpers").get_username },
+        { "authors", require("neorg.external.helpers").get_username },
         { "categories", "" },
         {
             "created",
@@ -43,16 +50,30 @@ module.config.public = {
     },
 }
 
+module.private = {
+    buffers = {},
+}
+
 module.public = {
+    neorg_commands = {
+        definitions = {
+            ["inject-metadata"] = {},
+        },
+        data = {
+            ["inject-metadata"] = {
+                args = 0,
+                name = "inject-metadata",
+            },
+        },
+    },
+
     is_metadata_present = function()
         local query = vim.treesitter.parse_query(
             "norg",
             [[
-                 (foreplay
-                     (ranged_tag
-                         (tag_name) @name
-                         (#eq? @name "document.meta")
-                     )
+                 (ranged_tag
+                     (tag_name) @name
+                     (#eq? @name "document.meta")
                  )
             ]]
         )
@@ -91,8 +112,8 @@ module.public = {
         return result
     end,
 
-    inject_metadata = function()
-        if not module.public.is_metadata_present() then
+    inject_metadata = function(force)
+        if force or not module.public.is_metadata_present() then
             local constructed_metadata = module.public.construct_metadata()
             vim.api.nvim_buf_set_lines(0, 0, 0, false, constructed_metadata)
         end
@@ -119,14 +140,23 @@ module.on_event = function(event)
         event.type == "core.autocommands.events.bufenter"
         and event.content.norg
         and module.config.public.type == "auto"
+        and vim.api.nvim_buf_get_option(0, "modifiable")
+        and not module.private.buffers[vim.api.nvim_get_current_buf()]
     then
         module.public.inject_metadata()
+        module.private.buffers[vim.api.nvim_get_current_buf()] = true
+    elseif event.type == "core.neorgcmd.events.inject-metadata" then
+        module.public.inject_metadata(true)
     end
 end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
+    },
+
+    ["core.neorgcmd"] = {
+        ["inject-metadata"] = true,
     },
 }
 

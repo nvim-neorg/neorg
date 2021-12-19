@@ -13,7 +13,7 @@ neorg.configuration = {
     manual = nil,
     arguments = {},
 
-    version = "0.1",
+    version = "0.0.9",
 }
 
 -- Grab OS info on startup
@@ -28,5 +28,7 @@ neorg.configuration.os_info = (function()
         return "linux"
     end
 end)()
+
+neorg.configuration.pathsep = neorg.configuration.os_info == "windows" and "\\" or "/"
 
 return neorg.configuration

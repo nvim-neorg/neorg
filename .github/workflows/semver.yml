@@ -1,0 +1,33 @@
+name: Generates Neorg tag
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  gen_tag:
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - nightly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Plenary
+        uses: actions/checkout@v2
+        with:
+          repository: nvim-lua/plenary.nvim
+          path: plenary.nvim
+      - name: Install Neovim
+        uses: rhysd/action-setup-vim@v1
+        id: neovim
+        with:
+          neovim: true
+          version: ${{ matrix.version }}
+      - uses: actions/checkout@v2
+      - name: Run tag_gen
+        run: make tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

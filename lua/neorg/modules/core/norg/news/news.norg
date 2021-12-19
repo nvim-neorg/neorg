@@ -1,0 +1,180 @@
+@document.meta
+    title: Neorg News
+    description: Breaking changes that you'll be~
+    definitely interested in.
+    author: nvim-neorg
+    categories:
+    created: 2021-11-21
+    version: 0.0.8
+
+    display: true
+@end
+
+<
+* _We got some new news for you!_
+Welcome to the Neorg news page. This page is for any piece of important
+information that we may need to convey, without having to rely on git.
+To /exit/ this prompt, press either `<Esc>` or `q`.
+>
+
+If you're reading this then it means Neorg has undergone some changes that may break quite a few
+things. A lot of these changes are syntactical changes, meaning a decent chunk of documents will be
+rendered invalid after this update. This is bound to happen fairly often as we approach 0.1 slowly but
+surely.
+If you ever update Neorg and find that your syntax highlight doesn't work be sure to also run
+`:TSUpdate` :)
+
+* *Most Important Changes*
+  There are quite a few breaking changes ahead. Pay attention here, you don't wanna miss this.
+
+ ** Branch Changes
+    After this update we will soon be dropping the `unstable` branch of Neorg in favour of
+    utilizing PRs more.
+
+    This means that users of the `unstable` branch will no longer receive updates.
+    Please migrate over to the `main` branch - we have cookies.
+
+ ** Syntax Changes
+    If you're seeing this then it means Neorg has undergone /several/ changes to its file format
+    and/or internal structure. Be ready to refactor your documents. We'd love to provide tools
+    to make the migration process automatic, but it would be difficult to execute well and we
+    simply do not have the manpower to implement these sorts of things without taking several
+    weeks haha. Be sure to update your TreeSitter parser too!
+
+    Here are all the things that we've changed:
+
+  *** Link Syntax
+      *This one is probably the most impactful and important.*
+      We've realized that the markdown style of defining a link... isn't particularly the best.
+      You must always define a link description, even if you just want a location. Besides,
+      `*location` kind of breaks our syntax rules, right? There should always be a space after a
+      detached modifier like that. Anyway here's the new syntax:
+
+      @code norg
+      This is a regular link with no special description:
+      {* A link to a level-1 heading}
+      You can add a description at the end of the link:
+      {* A link to a level-1 heading}[link text]
+      @end
+
+      Apart from only defining a level-1 heading you can link to all of the items you could
+      previously, this includes:
+
+      @code norg
+      Linking to markers, definitions:
+      {| Link to a marker}
+      {$ Link to a definition}
+      @end
+
+      Not only that, we have the one, the only, magic link. It links to any item type:
+
+      @code norg
+      {# Any item}
+      @end
+
+      Linking to URLs requires no special symbol:
+
+      @code norg
+      {https://github.com/nvim-neorg/neorg}
+      @end
+
+      It's important to note that the link location is whitespace independent, however the
+      link system is case and punctuation sensitive. `{* Linklocation}` and `{* Link location}`
+      link to the same place, however `{* Link, location}` does not.
+
+      *There have been some additions too:*
+      - You can now specify a link without a location and only a file (`{:neorg-file:}`)
+       -- Specifying a location with a file still works the same way: `{:neorg-file:* Location}`.
+          Don't forget the space between `*` and `Location`!
+      - You can now link to non-neorg files through the `@` symbol: `{@ non-neorg-file.txt}`
+      - Links now allow absolute paths
+       -- Doing `{:/some/file:* Location}` will now point directly to the root of your
+          filesystem. Beforehand Neorg would convert the `/` to the root of the workspace.
+       -- If you want to reference the root of your workspace you can use the `$` symbol:
+          `{:$/some/neorg/file:}`. -- You can now also reference different workspaces
+          altogether: `{:$workspace-name/some/neorg/file:}`
+      - You can no longer specify several paths to search within links, only a single one.
+        i.e. you can no longer do `{:file:another file:* Location}`. It's unnecessarily
+        complex and won't be used by many people.
+
+  *** TODO Items
+      TODO items have seen a beautiful buff during our latest updates. First of all, we've
+      changed the pending symbol from `- [*]` to `- [-]`. This is for a few reasons. First
+      of all, it makes it easy for org users to transition; second of all, it's cause
+      we've added several new TODO item types:
+
+      @code norg
+      - [ ] I'm an undone item
+      - [-] I'm a pending item
+      - [x] I'm a done item
+      - [?] I'm an uncertain item. Will I ever have to perform this task? I dunno.
+      - [!] *Urgent* task. Do it now!
+      - [=] On-hold task. If pending is one horizontal line, then an equals sign (two horizontal
+            lines) are one step further than pending. Use this for when you have to temporarily halt
+            what you were in the process of doing and have no way to complete the task.
+      - [_] Cancelled task. The underscore is supposed to signify a "put down" state. Useful for
+            when you don't want to delete the task from the buffer (in case you need it for future
+            reference) but also don't want it to counted as an real task you have to do.
+      - [+] Recurring task. This task doesn't have a deadline nor a reset timer. It's what we call a
+            "basic" recurrence. Whenever you complete all of the subtasks of this task it will
+            simply reset.
+      @end
+
+  *** Definitions
+      We've also changed the syntax for definitions, although you may have already
+      realized this one. We've changed the `:` char to `$` to signify a definition:
+
+      @code norg
+      $ Definition
+      This is now considered a definition, compared to the previous syntax that used `:`
+      @end
+
+  *** Carryover Tags
+      We've changed the syntax for carryover tags - they are no longer `$tags like this`,
+      however they are now `#tags like this`.
+
+  *** Inline Comments
+      We've changed inline comments to now be +comment+ instead of #comment#. The hashtag
+      is reserved for carryover tags. You can think of `+comment+` as being an addition to
+      your document, one that doesn't get rendered, hence the `+` symbol.
+
+  *** Anchors
+      This isn't really a change, however it is a new syntax addition. Apart from just
+      links we've also created the idea of anchors! They're like a cross between links and
+      something like references or pointers if you know your programming terms. Basically
+      you can link to a name several times, then define the link location only once.
+
+      Here's an example:
+      @code norg
+      I sincerely hope you visit our [github]!.
+      Have I mentioned our [github] yet? I think you'll like it.
+      Man, if only you guys visited our [github]{https://github.com/nvim-neorg/neorg} :P
+      @end
+
+      Did you see what was done here? We created two /anchor declarations/ called
+      `github`. After that, we created an /anchor definition/ that actually defined the
+      link location. See? We no longer need to duplicate our links locations, since we can
+      define them only once!
+
+   **** Don't get confused!
+        There's a *difference* between anchors and links, and I don't want people getting
+        confused here. Regular links have `{location}[text]` as an order. This is because
+        in links we care about emphasising the /location/. Anchors on the other hand have
+        `[text]{location}` as an order, and that's because we care about emphasising the
+        /text/. We bind text to a location, not a location to text.
+
+        You may have also noticed another design choice. With links, you can completely
+        omit the description, like `{this}`, it's made like this for convenience. The text
+        is the second element of the link construct in that context. In
+        `[description]{this scenario}` you can omit the second element as well, however
+        then you get `[description]`, which is an anchor declaration. Do you see the
+        difference now? It's subtle, but makes a world of difference. Please don't confuse
+        anchors with links, and slap all your friends who get it wrong 😛.
+
+<
+* *That's all!*
+Thanks a bunch for sticking with us, we may still make more changes before 0.1 and before we
+stabilize. Have any ideas, any objections? Hit us up either on
+{https://discord.gg/T6EgTAX7ht}[discord] or on github itself.
+/Happy organizing! 💜/
+>

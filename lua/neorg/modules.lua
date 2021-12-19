@@ -1,7 +1,7 @@
 --[[
 --	NEORG MODULE MANAGER
 --	This file is responsible for loading, calling and managing modules
---	Modules are internal mini-programs that execute on certain events, they build the foundation of neorg itself.
+--	Modules are internal mini-programs that execute on certain events, they build the foundation of Neorg itself.
 --]]
 
 -- Include the global logger instance
@@ -18,15 +18,12 @@ neorg.modules.loaded_module_count = 0
 --- The table of currently loaded modules
 neorg.modules.loaded_modules = {}
 
---- A cache to temporarily store modules before they're fully initialized
---- and placed in `neorg.modules.loaded_modules`
-neorg.modules.cache = {}
-
 --- Loads and enables a module
 -- Loads a specified module. If the module subscribes to any events then they will be activated too.
 --- @param module table #The actual module to load
+--- @param parent string #The name of a potential parent of the module
 --- @return boolean #Whether the module successfully loaded
-function neorg.modules.load_module_from_table(module)
+function neorg.modules.load_module_from_table(module, parent)
     log.info("Loading module with name", module.name)
 
     -- If our module is already loaded don't try loading it again
@@ -35,8 +32,19 @@ function neorg.modules.load_module_from_table(module)
         return true
     end
 
+    if parent then
+        module = module:from(neorg.modules.loaded_modules[parent])
+    end
+
     -- Invoke the setup function. This function returns whether or not the loading of the module was successful and some metadata.
-    local loaded_module = module.setup()
+    local loaded_module = module.setup and module.setup()
+        or {
+            success = true,
+            replaces = {},
+            replace_merge = false,
+            requires = {},
+            imports = {},
+        }
 
     -- We do not expect module.setup() to ever return nil, that's why this check is in place
     if not loaded_module then
@@ -125,7 +133,7 @@ function neorg.modules.load_module_from_table(module)
         -- previous module into our new one. This allows for practically seamless hotswapping, as it allows you to retain the data
         -- of the previous module.
         if loaded_module.replace_merge then
-            vim.tbl_deep_extend("force", module, {
+            module = vim.tbl_deep_extend("force", module, {
                 private = module_to_replace.private,
                 config = module_to_replace.config,
                 public = module_to_replace.public,
@@ -137,13 +145,33 @@ function neorg.modules.load_module_from_table(module)
         module.replaced = true
     end
 
+    if loaded_module.imports and not vim.tbl_isempty(loaded_module.imports) then
+        log.info("Module", module.name, "has imports. Including them...")
+
+        for _, import in ipairs(loaded_module.imports) do
+            if not neorg.modules.load_module(module.name .. "." .. import, module.name) then
+                log.error(
+                    "Unable to load",
+                    module.name,
+                    "- the module specified an import (" .. import .. ") but that import could not be found under",
+                    "neorg.modules." .. module.name .. "." .. import
+                )
+                return false
+            end
+
+            module = module:from(neorg.modules.loaded_modules[module.name .. "." .. import], "keep")
+        end
+    end
+
     log.info("Successfully loaded module", module.name)
 
     -- Keep track of the number of loaded modules
     neorg.modules.loaded_module_count = neorg.modules.loaded_module_count + 1
 
     -- Call the load function
-    module.load()
+    if module.load then
+        module.load()
+    end
 
     return true
 end
@@ -154,21 +182,23 @@ end
 --- @param module_name string #A path to a module on disk. A path seperator in neorg is '.', not '/'
 --- @param config table #A configuration that reflects the structure of `neorg.configuration.user_configuration.load["module.name"].config`
 --- @return boolean #Whether the module was successfully loaded
-function neorg.modules.load_module(module_name, config)
+function neorg.modules.load_module(module_name, parent, config)
     -- Don't bother loading the module from disk if it's already loaded
     if neorg.modules.is_module_loaded(module_name) then
         return true
     end
 
     -- Attempt to require the module, does not throw an error if the module doesn't exist
-    local exists, module
-
-    exists, module = pcall(require, "neorg.modules." .. module_name .. ".module")
+    local exists, module = pcall(require, "neorg.modules." .. module_name .. ".module")
 
     -- If the module doesn't exist then return false
     if not exists then
-        log.error("Unable to load module", module_name, "-", module)
-        return false
+        exists, module = pcall(require, "neorg.modules." .. module_name)
+
+        if not exists then
+            log.error("Unable to load module", module_name, "-", module)
+            return false
+        end
     end
 
     -- If the module is nil for some reason return false
@@ -181,8 +211,18 @@ function neorg.modules.load_module(module_name, config)
         return false
     end
 
+    if module == true then
+        log.error(
+            "An error has occurred when loading",
+            module_name,
+            "- loaded file didn't return anything meaningful. Be sure to return the table created by neorg.modules.create() at the end of your module.lua file!"
+        )
+        return false
+    end
+
     -- Load the user-defined configuration
     if config and not vim.tbl_isempty(config) then
+        module.config.custom = config
         module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
     else
         module.config.public = vim.tbl_deep_extend(
@@ -193,7 +233,7 @@ function neorg.modules.load_module(module_name, config)
     end
 
     -- Pass execution onto load_module_from_table() and let it handle the rest
-    return neorg.modules.load_module_from_table(module)
+    return neorg.modules.load_module_from_table(module, parent)
 end
 
 -- @Summary Loads a preloaded module as a dependency of another module.
@@ -227,7 +267,7 @@ end
 function neorg.modules.get_module(module_name)
     if not neorg.modules.is_module_loaded(module_name) then
         log.warn("Attempt to get module with name", module_name, "failed - module is not loaded.")
-        return nil
+        return
     end
 
     return neorg.modules.loaded_modules[module_name].public
@@ -239,7 +279,7 @@ end
 function neorg.modules.get_module_config(module_name)
     if not neorg.modules.is_module_loaded(module_name) then
         log.warn("Attempt to get module configuration with name", module_name, "failed - module is not loaded.")
-        return nil
+        return
     end
 
     return neorg.modules.loaded_modules[module_name].config.public
@@ -260,7 +300,7 @@ function neorg.modules.get_module_version(module_name)
     -- If the module isn't loaded then don't bother retrieving its version
     if not neorg.modules.is_module_loaded(module_name) then
         log.warn("Attempt to get module version with name", module_name, "failed - module is not loaded.")
-        return nil
+        return
     end
 
     -- Grab the version of the module
@@ -269,36 +309,8 @@ function neorg.modules.get_module_version(module_name)
     -- If it can't be found then error out
     if not version then
         log.warn("Attempt to get module version with name", module_name, "failed - version variable not present.")
-        return nil
+        return
     end
 
-    -- Define variables that split the version up into 3 slices
-    local split_version, versions, ret =
-        vim.split(version, ".", true), { "major", "minor", "patch" }, { major = 0, minor = 0, patch = 0 }
-
-    -- If the sliced version string has more than 3 elements error out
-    if #split_version > 3 then
-        log.warn(
-            "Attempt to get module version with name",
-            module_name,
-            "failed - too many version numbers provided. Version should follow this layout: <major>.<minor>.<patch>"
-        )
-        return nil
-    end
-
-    -- Loop through all the versions and check whether they are valid numbers. If they are, add them to the return table
-    for i, ver in ipairs(versions) do
-        if split_version[i] then
-            local num = tonumber(split_version[i])
-
-            if not num then
-                log.warn("Invalid version provided, string cannot be converted to integral type.")
-                return nil
-            end
-
-            ret[ver] = num
-        end
-    end
-
-    return ret
+    return neorg.utils.parse_version_string(version)
 end

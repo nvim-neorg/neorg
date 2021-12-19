@@ -1,73 +1,8 @@
 --[[
-	NEORGCMD MODULE FOR NEORG
-	This module deals with handling everything related to the :Neorg command.
-	Things like completion and dynamic function calling are what this module is all about.
-
-USAGE:
-
-	In your module.setup(), make sure to require core.neorgcmd (requires = { "core.neorgcmd" })
-	Afterwards in a function of your choice that gets called *after* core.neorgcmd gets intialized e.g. load():
-
-	module.load = function()
-
-module.required["core.neorgcmd"].add_commands_from_table({ definitions = { -- Used for completion
-				my_command = { -- Define a command called my_command
-					my_subcommand = {} -- Define a subcommand called my_subcommand
-				}
-			},
-			data = { -- Metadata about our commands, should follow the same structure as the definitions table
-				my_command = {
-					min_args = 1, -- Tells neorgcmd that we want at least one argument for this command
-					max_args = 1, -- Tells neorgcmd we want no more than one argument
-					args = 1, -- Setting this variable instead would be the equivalent of min_args = 1 and max_args = 1
-
-					subcommands = { -- Defines subcommands
-
-						-- Repeat the definition cycle again
-						my_subcommand = {
-							args = 0, -- We don't want any arguments
-							name = "my.command", -- The identifying name of this command
-
-							-- We do not define a subcommands table here because we don't have any more subcommands
-							-- Creating an empty subcommands table will cause errors so don't bother
-						}
-					}
-				}
-			}
-		})
-	end
-
-	Afterwards, you want to subscribe to the corresponding event:
-
-	module.events.subscribed = {
-		["core.neorgcmd"] = {
-			["my.command"] = true -- Has the same name as our "name" variable had in the "data" table
-		}
-	}
-
-
-	There's also another way to define your own custom commands that's a lot more automated. Such automation can be achieved
-	by putting your code in a special directory. That directory is in core.neorgcmd.commands. Creating your modules in this directory
-	will allow users to easily enable you as a "command module" without much hassle.
-
-	To enable a command in the commands/ directory, do this:
-
-	require('neorg').setup {
-		load = {
-			["core.neorgcmd"] = {
-				config = {
-					load = {
-						"some.neorgcmd" -- The name of a valid command
-					}
-				}
-			}
-		}
-	}
-
-	And that's it! You're good to go.
-
-Want to find out more? Read the wiki entry! https://github.com/vhyrro/neorg/wiki/Neorg-Command
-
+	File: Neorgcmd-Module
+    Title: Neorgcmd module for Neorg.
+	Summary: This module deals with handling everything related to the `:Neorg` command.
+    ---
 --]]
 
 require("neorg.modules.base")
@@ -77,6 +12,70 @@ require("neorg.events")
 local log = require("neorg.external.log")
 
 local module = neorg.modules.create("core.neorgcmd")
+
+module.examples = {
+    ["Adding a Neorg command"] = function()
+        -- In your module.setup(), make sure to require core.neorgcmd (requires = { "core.neorgcmd" })
+        -- Afterwards in a function of your choice that gets called *after* core.neorgcmd gets intialized e.g. load():
+
+        module.load = function()
+            module.required["core.neorgcmd"].add_commands_from_table({
+                definitions = { -- Used for completion
+                    my_command = { -- Define a command called my_command
+                        my_subcommand = {}, -- Define a subcommand called my_subcommand
+                    },
+                },
+                data = { -- Metadata about our commands, should follow the same structure as the definitions table
+                    my_command = {
+                        min_args = 1, -- Tells neorgcmd that we want at least one argument for this command
+                        max_args = 1, -- Tells neorgcmd we want no more than one argument
+                        args = 1, -- Setting this variable instead would be the equivalent of min_args = 1 and max_args = 1
+
+                        subcommands = { -- Defines subcommands
+
+                            -- Repeat the definition cycle again
+                            my_subcommand = {
+                                args = 0, -- We don't want any arguments
+                                name = "my.command", -- The identifying name of this command
+
+                                -- We do not define a subcommands table here because we don't have any more subcommands
+                                -- Creating an empty subcommands table will cause errors so don't bother
+                            },
+                        },
+                    },
+                },
+            })
+        end
+        -- Afterwards, you want to subscribe to the corresponding event:
+
+        module.events.subscribed = {
+            ["core.neorgcmd"] = {
+                ["my.command"] = true, -- Has the same name as our "name" variable had in the "data" table
+            },
+        }
+
+        -- There's also another way to define your own custom commands that's a lot more automated. Such automation can be achieved
+        -- by putting your code in a special directory. That directory is in core.neorgcmd.commands. Creating your modules in this directory
+        -- will allow users to easily enable you as a "command module" without much hassle.
+
+        -- To enable a command in the commands/ directory, do this:
+
+        require("neorg").setup({
+            load = {
+                ["core.neorgcmd"] = {
+                    config = {
+                        load = {
+                            "some.neorgcmd", -- The name of a valid command
+                        },
+                    },
+                },
+            },
+        })
+
+        -- And that's it! You're good to go.
+        -- Want to find out more? Read the wiki entry! https://github.com/vhyrro/neorg/wiki/Neorg-Command
+    end,
+}
 
 -- @Summary Generate autocompletions for the :Neorg command
 -- @Description This global function returns all available commands to be used for the :Neorg command
@@ -88,23 +87,18 @@ function _neorgcmd_generate_completions(_, command)
         return { "Unable to provide completions: core.neorgcmd is not loaded." }
     end
 
-    -- Since this is a global function we need to retrieve the neorgcmd module
-    local neorgcmd_module = require("neorg.modules.core.neorgcmd.module")
-
     -- Split the command into several smaller ones for easy parsing
     local split_command = vim.split(command, " ")
 
     -- Create a reference to the definitions table
-    local ref = neorgcmd_module.public.neorg_commands.definitions
+    local ref = module.public.neorg_commands.definitions
 
     -- If the split command contains only 2 values then don't bother with
     -- the code below, just return all the available completions and exit
     if #split_command == 2 then
         return vim.tbl_filter(function(key)
             return key ~= "__any__" and key:find(split_command[#split_command])
-        end, vim.tbl_keys(
-            ref
-        ))
+        end, vim.tbl_keys(ref))
     end
 
     -- Splice the command to omit the beginning :Neorg bit
@@ -133,9 +127,7 @@ function _neorgcmd_generate_completions(_, command)
     -- Return everything from ref that is a potential match
     return vim.tbl_filter(function(key)
         return key ~= "__any__" and key:find(split_command[#split_command])
-    end, vim.tbl_keys(
-        ref
-    ))
+    end, vim.tbl_keys(ref))
 end
 
 module.load = function()
@@ -156,7 +148,6 @@ module.load = function()
 end
 
 module.config.public = {
-
     load = {
         "default",
     },
@@ -367,8 +358,6 @@ module.public = {
     set_completion_callback = function(callback)
         _neorgcmd_generate_completions = callback
     end,
-
-    version = "0.0.9",
 }
 
 module.neorg_post_load = module.public.sync

@@ -24,19 +24,23 @@ neorg.modules.module_base = {
     -- The name of the module, note that modules beginning with core are neorg's inbuilt modules
     name = "core.default",
 
+    -- The path of the module, can be used in require() statements
+    path = "neorg.modules.core.default.module",
+
     -- A convenience table to place all of your private variables that you don't want to expose here.
     private = {},
 
     -- Every module can expose any set of information it sees fit through the public field
     -- All functions and variables declared in this table will be visible to any other module loaded
     public = {
-
-        version = "0.0.1", -- A good practice is to expose version information
+        -- Current neorg version. Your module will use this version if not specified, but you can override it.
+        -- Overriding it will mean that your module is only compatible with the overriden neorg version
+        -- E.g: setting version = "1.3.0" will mean that your module requires norg 1.3.0+ to operate
+        version = require("neorg.config").version,
     },
 
     -- Configuration for the module
     config = {
-
         private = { -- Private module configuration, cannot be changed by other modules or by the user
             --[[
 				config_option = false,
@@ -54,6 +58,11 @@ neorg.modules.module_base = {
 				}
 			--]]
         },
+
+        -- This table houses all the changes the user made to the public table,
+        -- useful for when you want to know exactly what the user tinkered with.
+        -- Shouldn't be commonly used.
+        custom = {},
     },
 
     -- Event data regarding the current module
@@ -80,7 +89,6 @@ neorg.modules.module_base = {
     -- If you ever require a module through the return value of the setup() function,
     -- All of the modules' public APIs will become available here
     required = {
-
         --[[
 
 			["core.test"] = {
@@ -93,6 +101,15 @@ neorg.modules.module_base = {
 
 		--]]
     },
+
+    -- Example bits of code that the user can look through
+    examples = {
+        --[[
+            a_cool_test = function()
+                print("Some code!")
+            end
+        --]]
+    },
 }
 
 -- @Summary Creates a new module
@@ -101,47 +118,87 @@ neorg.modules.module_base = {
 function neorg.modules.create(name)
     local new_module = vim.deepcopy(neorg.modules.module_base)
 
-    if name then
-        new_module.name = name
-    end
-
-    neorg.modules.cache[new_module.name] = new_module
-
-    return neorg.modules.cache[new_module.name]
-end
-
---- Extends a module and returns a temporary copy
---- @param name string #The name of the module to extend
---- @return table #A copy of the module
-function neorg.modules.extend(name)
-    local from_cache = neorg.modules.cache[name] or neorg.modules.create(name)
+    -- TODO: Comment this black magic
 
     local t = {
-        merge = function()
-            return from_cache
+        from = function(self, parent, type)
+            local prevname = self.real().name
+
+            local parent_copy = vim.deepcopy(parent.real())
+
+            for tbl_name, tbl in pairs(parent_copy) do
+                if _G.type(tbl) == "table" and vim.tbl_isempty(tbl) then
+                    parent_copy[tbl_name] = nil
+                end
+            end
+
+            new_module = vim.tbl_deep_extend(type or "force", new_module, parent_copy)
+
+            if not type then
+                new_module.setup = function()
+                    return { success = true }
+                end
+
+                new_module.load = function() end
+                new_module.on_event = function() end
+                new_module.neorg_post_load = function() end
+            end
+
+            new_module.name = prevname
+
+            return self
+        end,
+
+        real = function()
+            return new_module
+        end,
+
+        setreal = function(new)
+            new_module = new
         end,
     }
 
+    if name then
+        new_module.name = name
+        new_module.path = "neorg.modules." .. name
+    end
+
     return setmetatable(t, {
         __newindex = function(_, key, value)
-            neorg.modules.cache[name][key] = vim.tbl_deep_extend("force", from_cache[key] or {}, value)
+            if type(value) ~= "table" then
+                new_module[key] = value
+            else
+                new_module[key] = vim.tbl_deep_extend("force", new_module[key], value or {})
+            end
         end,
-        __index = from_cache,
+
+        __index = function(_, key)
+            return t.real()[key]
+        end,
     })
 end
 
---- Imports a new module by merging the original module table
---- @param module table #The module to import new files into
---- @param imports string[] #A list of files to import (relative to the `module.lua` file)
---- @return table #The newly extended module
-function neorg.modules.import(module, imports)
-    local cache = neorg.modules.cache[module.name]
+function neorg.modules.extend(name, parent)
+    local module = neorg.modules.create(name)
 
-    for _, file in ipairs(imports or {}) do
-        cache = vim.tbl_deep_extend("force", cache, require("neorg.modules." .. module.name .. "." .. file))
+    local realmodule = rawget(module, "real")()
+
+    if parent then
+        local path = realmodule.path
+        realmodule = vim.tbl_deep_extend("force", realmodule, neorg.modules.loaded_modules[parent].real())
+        realmodule.name, realmodule.path = name, path
     end
 
-    return cache
+    realmodule.setup = nil
+    realmodule.load = nil
+    realmodule.on_event = nil
+    realmodule.neorg_post_load = nil
+
+    module.setreal(realmodule)
+
+    module.extension = true
+
+    return module
 end
 
 -- @Summary Creates a metamodule

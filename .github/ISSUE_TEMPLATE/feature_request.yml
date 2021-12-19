@@ -1,7 +1,6 @@
 name: Feature request
-title: "[FEATURE REQUEST] "
-description: Request an enhancement for neorg
-labels: [enhancement]
+description: Request a feature for Neorg
+labels: [feature]
 body:
 
   - type: checkboxes

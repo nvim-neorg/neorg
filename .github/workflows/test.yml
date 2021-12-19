@@ -1,0 +1,33 @@
+name: Test Suite
+
+on: [push, pull_request]
+
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - v0.6.0
+          - nightly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Plenary
+        uses: actions/checkout@v2
+        with:
+          repository: nvim-lua/plenary.nvim
+          path: plenary.nvim
+      - name: Install Treesitter
+        uses: actions/checkout@v2
+        with:
+          repository: nvim-treesitter/nvim-treesitter
+          path: nvim-treesitter
+      - name: Install Neovim
+        uses: rhysd/action-setup-vim@v1
+        id: neovim
+        with:
+          neovim: true
+          version: ${{ matrix.version }}
+      - name: Run tests
+        run: make ci
