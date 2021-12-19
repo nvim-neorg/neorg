@@ -195,7 +195,6 @@ module.public = {
 
         return module.private.bufnr_contents[buf]
     end,
-
 }
 
 module.private = {
