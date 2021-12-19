@@ -51,10 +51,9 @@ describe("CORE.GTD.QUERIES - Creators:", function()
     it("Get the end of the project", function()
         local projects = queries.get("projects", { bufnr = config.temp_buf })
         projects = queries.add_metadata(projects, "project")
-
+        local lines = vim.split(neorg.modules.get_module("core.queries.native").get_file_text(config.temp_buf), "\n")
         local location = queries.get_end_project(projects[1].node, projects[1].bufnr)
-        local lines = vim.api.nvim_buf_line_count(config.temp_buf)
-        assert.equals(lines, location[1])
+        assert.equals(#lines-1, location[1])
     end)
 
     it("Get the end of the document content", function()
