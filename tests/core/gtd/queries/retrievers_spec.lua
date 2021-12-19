@@ -33,9 +33,9 @@ describe("CORE.GTD.QUERIES - Retrievers:", function()
     end)
 
     it("Exclude files from retriever", function()
-        local tasks = queries.get("tasks", { exclude_files = { "test_file_2.norg", "test_file_3.norg"} })
+        local tasks = queries.get("tasks", { exclude_files = { "test_file_2.norg", "test_file_3.norg" } })
         assert.equals(3, #tasks)
-        local projects = queries.get("projects", { exclude_files = { "test_file_2.norg", "test_file_3.norg"} })
+        local projects = queries.get("projects", { exclude_files = { "test_file_2.norg", "test_file_3.norg" } })
         assert.equals(1, #projects)
     end)
 
