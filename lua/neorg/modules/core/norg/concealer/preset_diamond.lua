@@ -25,7 +25,7 @@ module.config.private.icon_preset_diamond = {
         },
 
         level_6 = {
-            icon = "⟡",
+            icon = "     ⟡",
         },
     },
 
