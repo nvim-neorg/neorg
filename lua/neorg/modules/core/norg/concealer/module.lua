@@ -1,85 +1,25 @@
 --[[
-    CONCEALER MODULE FOR NEORG.
-    This module is supposed to enhance the neorg editing experience
-    by abstracting away certain bits of text and concealing it into one easy-to-recognize
-    icon. Icons can be easily changed and every element can be disabled.
+    File: Concealer
+    Title: Concealer Module for Neorg
+    Summary: Enhances the basic Neorg experience by using icons instead of text.
+    ---
+This module handles the iconification and concealing of several different
+syntax elements in your document.
 
-USAGE: (TODO: update)
-    This module does not come bundled by default with the core.defaults metamodule.
-    Make sure to manually enable it in neorg's setup function.
+It's also directly responsible for displaying completion levels
+in situations like this:
+```norg
+* Do Some Things
+- [ ] Thing A
+- [ ] Thing B
+```
 
-    The module comes with several config options, and they are listed here:
-    icons = {
-        todo = {
-            enabled = true, -- Conceal TODO items
-
-            done = {
-                enabled = true, -- Conceal whenever an item is marked as done
-                icon = ""
-            },
-            pending = {
-                enabled = true, -- Conceal whenever an item is marked as pending
-                icon = ""
-            },
-            undone = {
-                enabled = true, -- Conceal whenever an item is marked as undone
-                icon = "×"
-            }
-        },
-        quote = {
-            enabled = true, -- Conceal quotes
-            icon = "│"
-        },
-        heading = {
-            enabled = true, -- Enable beautified headings
-
-            -- Define icons for all the different heading levels
-            level_1 = {
-                enabled = true,
-                icon = "◉",
-            },
-
-            level_2 = {
-                enabled = true,
-                icon = "○",
-            },
-
-            level_3 = {
-                enabled = true,
-                icon = "✿",
-            },
-
-            level_4 = {
-                enabled = true,
-                icon = "•",
-            },
-        },
-
-        marker = {
-            enabled = true, -- Enable the beautification of markers
-            icon = "",
-        },
-    }
-
-    You can also add your own custom conceals with their own custom icons, however this is a tad more complex.
-
-    Note that those are probably the configuration options that you are *going* to use.
-    There are a lot more configuration options per element than that, however.
-
-    Here are the more advanced parameters you may be interested in:
-
-    pattern - the pattern to match. If this pattern isn't matched then the conceal isn't applied.
-
-    whitespace_index - this one is a bit funny to explain. Basically, this is the index of a capture from
-    the "pattern" variable representing the leading whitespace. This whitespace is then used to calculate
-    where to place the icon. If your pattern specifies only one capture, set this to 1
-
-    highlight - the highlight to apply to the icon
-
-    padding_before - the amount of padding (in the form of spaces) to apply before the icon
-
-NOTE: When defining your own icons be sure to set *all* the above variables plus the "icon" and "enabled" variables.
-      If you don't you will get errors.
+Where it will display this instead:
+```norg
+* Do Some Things (0 of 2) [0% complete]
+- [ ] Thing A
+- [ ] Thing B
+```
 --]]
 
 require("neorg.modules.base")
