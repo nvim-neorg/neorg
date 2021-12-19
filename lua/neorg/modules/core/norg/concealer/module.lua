@@ -97,6 +97,8 @@ module.setup = function()
             "preset_basic",
             "preset_varied",
             "preset_diamond",
+            "preset_safe",
+            "preset_brave",
         },
     }
 end
@@ -1653,11 +1655,11 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         },
     },
 
+    markup_preset = "safe",
+
     markup = {
-        enabled = false,
-        icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-        -- NOTE: if you're experiencing issues with this concealing, try using a
-        -- single whitespace instead.
+        enabled = true,
+        icon = " ",
 
         bold = {
             enabled = true,
@@ -2035,6 +2037,23 @@ module.load = function()
         "force",
         module.config.public.icons,
         module.config.private["icon_preset_" .. module.config.public.icon_preset] or {},
+        module.config.custom
+    )
+
+    if not module.config.private["markup_preset_" .. module.config.public.markup_preset] then
+        log.error(
+            string.format(
+                "Unable to load markup preset '%s' - such a preset does not exist",
+                module.config.public.markup_preset
+            )
+        )
+        return
+    end
+
+    module.config.public.markup = vim.tbl_deep_extend(
+        "force",
+        module.config.public.markup,
+        module.config.private["markup_preset_" .. module.config.public.markup_preset] or {},
         module.config.custom
     )
 
