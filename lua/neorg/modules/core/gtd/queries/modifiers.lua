@@ -40,8 +40,9 @@ module.public = {
                 log.error("Please specify a tag with opts.tag")
                 return
             end
-            module.private.insert_tag({ object.node, object.bufnr }, value, opts.tag)
-            return module.public.update(object, node_type)
+            local buf = module.private.get_temp_buf(object.bufnr)
+            module.private.insert_tag({ object.node, buf }, value, opts.tag)
+            return module.public.update(object, node_type, buf)
         end
 
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
@@ -53,8 +54,9 @@ module.public = {
                 -- Delete the tag and recreate it with new values
                 local line_nr
                 object, line_nr = module.public.delete(object, node_type, option)
-                module.private.insert_tag({ object.node, object.bufnr }, value, opts.tag, { line = line_nr })
-                return module.public.update(object, node_type)
+                local buf = module.private.get_temp_buf(object.bufnr)
+                module.private.insert_tag({ object.node, buf }, value, opts.tag, { line = line_nr })
+                return module.public.update(object, node_type, buf)
             else
                 log.error("Only tags and content are supported for modification")
                 return
@@ -72,9 +74,10 @@ module.public = {
         end
 
         -- Replacing old option with new one (The empty string is to prevent lines below to wrap)
-        vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { value, "" })
+        local buf = module.private.get_temp_buf(object.bufnr)
+        vim.api.nvim_buf_set_text(buf, start_row, start_col, end_row, end_col, { value, "" })
 
-        return module.public.update(object, node_type)
+        return module.public.update(object, node_type, buf)
     end,
 
     --- Delete a node from an `object` with `option` key
@@ -122,16 +125,17 @@ module.public = {
         local start_row, start_col, end_row, end_col = ts_utils.get_node_range(fetched_node)
 
         -- Deleting object
-        vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { "" })
+        local buf = module.private.get_temp_buf(object.bufnr)
+        vim.api.nvim_buf_set_text(buf, start_row, start_col, end_row, end_col, { "" })
 
-        return module.public.update(object, node_type), start_row
+        return module.public.update(object, node_type, buf), start_row
     end,
 
     --- Update a specific `node` with `type`.
     --- Note: other nodes don't get updated ! If you want to update all nodes, just redo a module.required["core.gtd.queries"].get
     --- @param node core.gtd.queries.project|core.gtd.queries.task
     --- @param node_type string
-    update = function(node, node_type)
+    update = function(node, node_type, temp_buf)
         vim.validate({
             node = { node, "table" },
             node_type = {
@@ -143,6 +147,10 @@ module.public = {
             },
         })
 
+        if temp_buf then
+            local lines = vim.api.nvim_buf_get_lines(temp_buf, 0, -1, false)
+            vim.fn.writefile(lines, vim.api.nvim_buf_get_name(node.bufnr))
+        end
         -- Get all nodes from same bufnr
         local nodes = module.public.get(node_type .. "s", { bufnr = node.bufnr })
         local originally_extracted = type(node.content) == "string"

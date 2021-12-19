@@ -44,4 +44,33 @@ module.public = {
     version = "0.0.8",
 }
 
+module.private = {
+    temp_bufs = {},
+
+    get_temp_buf = function(buffer)
+        if not module.private.temp_bufs[buffer] then
+            local buf = vim.api.nvim_create_buf(false, true)
+            local text = module.required["core.queries.native"].get_file_text(buffer)
+            vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(text, "\n"))
+            module.private.temp_bufs[buffer] = buf
+        end
+        return module.private.temp_bufs[buffer]
+    end,
+
+    delete_temp_buf = function(buffer)
+        if buffer and module.private.temp_bufs[buffer] then
+            vim.api.nvim_buf_delete(buffer, { force = true })
+            module.private.temp_bufs[buffer] = nil
+            return
+        end
+
+        if not buffer then
+            for _, buf in pairs(module.private.temp_bufs) do
+                vim.api.nvim_buf_delete(buf, { force = true })
+                module.private.temp_bufs[buf] = nil
+            end
+        end
+    end,
+}
+
 return module
