@@ -91,6 +91,7 @@ module.setup = function()
         success = true,
         requires = {
             "core.autocommands",
+            "core.keybinds",
             "core.integrations.treesitter",
         },
         imports = {
@@ -2100,6 +2101,9 @@ module.load = function()
         get_enabled_icons(module.config.public.markup, module.config.public.markup.icon)
     )
 
+    -- Register keybinds
+    module.required["core.keybinds"].register_keybinds(module.name, { "toggle-markup" })
+
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
 
@@ -2170,6 +2174,8 @@ module.on_event = function(event)
     elseif event.type == "core.autocommands.events.textchangedi" then
         module.public.trigger_highlight_regex_code_block()
         vim.schedule(module.public.trigger_code_block_highlights)
+    elseif event.split_type[1] == "core.keybinds" and event.split_type[2] == "core.norg.concealer.toggle-markup" then
+        module.public.toggle_markup()
     end
 end
 
@@ -2181,6 +2187,9 @@ module.events.subscribed = {
         textchangedi = true,
         insertenter = true,
         insertleave = true,
+    },
+    ["core.keybinds"] = {
+        ["core.norg.concealer.toggle-markup"] = true,
     },
 }
 
