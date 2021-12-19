@@ -170,6 +170,10 @@
 (single_definition (single_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle definition: (_)* @NeorgDefinitionContent)
 (multi_definition (multi_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle content: (_)* @NeorgDefinitionContent end: (multi_definition_suffix) @NeorgDefinitionEnd)
 
+; Footnotes
+(single_footnote (single_footnote_prefix) @NeorgFootnote title: (paragraph_segment) @NeorgFootnoteTitle content: (_)* @NeorgFootnoteContent)
+(multi_footnote (multi_footnote_prefix) @NeorgFootnote title: (paragraph_segment) @NeorgFootnoteTitle content: (_)* @NeorgFootnoteContent end: (multi_footnote_suffix) @NeorgFootnoteEnd)
+
 ; Escape sequences (\char)
 (escape_sequence) @NeorgEscapeSequence
 

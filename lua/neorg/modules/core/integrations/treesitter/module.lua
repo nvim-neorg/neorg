@@ -85,7 +85,13 @@ module.config.public = {
             [""] = "+TSPunctDelimiter",
             End = "+TSPunctDelimiter",
             Title = "+TSStrong",
-            -- TODO: figure out odd highlighting of ranged tag when using TSNone
+            Content = "+TSEmphasis",
+        },
+
+        Footnote = {
+            [""] = "+TSPunctDelimiter",
+            End = "+TSPunctDelimiter",
+            Title = "+TSStrong",
             Content = "+TSEmphasis",
         },
 

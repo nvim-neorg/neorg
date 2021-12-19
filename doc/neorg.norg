@@ -157,7 +157,7 @@ consective new lines.
       - `| Marker`
       - `> Quote` (+ nesting levels)
       - `^ Footnote`
-      - `$ Definiton`
+      - `$ Definition`
       - `# magic` (any of the above)
       - `:path:# magic` (target in another norg file at a given path)
       - `:path:` (another norg file at a given path without specific target)
@@ -251,6 +251,23 @@ consective new lines.
       @end
       $$
       This is no longer part of the definition because the `$$` on the previous line marked its end.
+
+ ** Footnotes
+    There are also two kinds of footnotes:
+
+  *** Single-paragraph footnotes
+      ^ This is the title of my footnote. I can use this as a link target.
+      This is the actual footnote content.
+
+      This is no longer part of the footnote.
+
+  *** Multi-paragraph footnotes
+      ^^ This is a multi-paragraph footnote.
+      Here go the actual contents...
+
+      ... which I can even continue down here.
+      ^^
+      Now, the footnote has ended.
 
  ** Data Tags
     Neorg supports a number of tags. The general format is:

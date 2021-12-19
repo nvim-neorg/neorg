@@ -28,6 +28,18 @@ module.config.private.icon_preset_varied = {
             icon = "⤷",
         },
     },
+
+    footnote = {
+        single = {
+            icon = "🦶",
+        },
+        multi_prefix = {
+            icon = "👣 ",
+        },
+        multi_suffix = {
+            icon = "👣 ",
+        },
+    },
 }
 
 return module

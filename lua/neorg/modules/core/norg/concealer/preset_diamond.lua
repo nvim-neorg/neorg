@@ -30,10 +30,19 @@ module.config.private.icon_preset_diamond = {
     },
 
     marker = {
-        enabled = true,
         icon = "",
-        highlight = "NeorgMarker",
-        query = "(marker_prefix) @icon",
+    },
+
+    footnote = {
+        single = {
+            icon = "⁎",
+        },
+        multi_prefix = {
+            icon = "⁑ ",
+        },
+        multi_suffix = {
+            icon = "⁑ ",
+        },
     },
 }
 
