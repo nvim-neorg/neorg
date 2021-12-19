@@ -95,7 +95,9 @@ module.public = {
         end
 
         -- Do not count blank lines at end of a project
-        local lines = ts_utils.get_node_text(node, bufnr)
+        local text = module.required["core.queries.native"].get_file_text(bufnr)
+        local lines = vim.treesitter.get_node_text(node, text)
+        lines = vim.split(lines, "\n")
         local blank_lines = 0
         for i = #lines, 1, -1 do
             local value = lines[i]

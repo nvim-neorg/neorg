@@ -128,7 +128,7 @@ module.public = {
         local res = {}
 
         for _, node in ipairs(nodes) do
-            local text = module.private.get_file_text(node[2])
+            local text = module.public.get_file_text(node[2])
             local extracted = vim.treesitter.get_node_text(node[1], text)
             extracted = vim.split(extracted, "\n")
 
@@ -178,11 +178,6 @@ module.public = {
             module.private.bufnr_contents[buf] = nil
         end
     end,
-}
-
-module.private = {
-    -- stores a text content in the form of bufnr = text
-    bufnr_contents = {},
 
     get_file_text = function(buf)
         if not module.private.bufnr_contents[buf] then
@@ -201,11 +196,17 @@ module.private = {
         return module.private.bufnr_contents[buf]
     end,
 
+}
+
+module.private = {
+    -- stores a text content in the form of bufnr = text
+    bufnr_contents = {},
+
     --- Get the root node from a `bufnr`
     --- @param bufnr number
     --- @return userdata
     get_buf_root_node = function(bufnr)
-        local lines = module.private.get_file_text(bufnr)
+        local lines = module.public.get_file_text(bufnr)
         local parser = vim.treesitter.get_string_parser(lines, "norg")
         local tstree = parser:parse()[1]
         return tstree:root()
@@ -339,7 +340,7 @@ With that in mind, you can do something like this (for example):
             end
 
             if where[1] == "child_content" then
-                local text = module.private.get_file_text(opts.bufnr)
+                local text = module.public.get_file_text(opts.bufnr)
                 if node:type() == where[2] and vim.treesitter.get_node_text(node, text) == where[3] then
                     return true
                 end
