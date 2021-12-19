@@ -504,6 +504,16 @@ module.public = {
         end
     end,
 
+    toggle_markup = function()
+        if module.config.public.markup.enabled then
+            module.public.clear_icons(module.private.markup_namespace)
+            module.config.public.markup.enabled = false
+        else
+            module.config.public.markup.enabled = true
+            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+        end
+    end,
+
     -- @Summary Sets an extmark in the buffer
     -- @Description Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it more safe
     -- @Param  text (string|table) - the virtual text to overlay (usually the icon)
