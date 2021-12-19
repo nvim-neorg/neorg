@@ -291,7 +291,7 @@ module.public = {
                                 module.public._set_extmark(
                                     icon_data.icon,
                                     icon_data.highlight,
-                                    "icon",
+                                    namespace,
                                     range.row_start,
                                     range.row_end,
                                     range.column_start + offset,
@@ -303,7 +303,7 @@ module.public = {
                                 module.public._set_extmark(
                                     icon_data:render(text, node),
                                     icon_data.highlight,
-                                    "icon",
+                                    namespace,
                                     range.row_start,
                                     range.row_end,
                                     range.column_start + offset,
@@ -443,7 +443,7 @@ module.public = {
             return
         end
 
-        module.public.clear_code_block_dimming(from)
+        module.public.clear_icons(module.private.code_block_namespace, from)
 
         -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
@@ -489,7 +489,7 @@ module.public = {
                             module.public._set_extmark(
                                 nil,
                                 "NeorgCodeBlock",
-                                "code_block",
+                                module.private.code_block_namespace,
                                 i,
                                 i + 1,
                                 range.column_start,
@@ -521,22 +521,15 @@ module.public = {
         end
 
         -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        local ok, result = pcall(
-            vim.api.nvim_buf_set_extmark,
-            0,
-            module.private[ns .. "_namespace"],
-            line_number,
-            start_column,
-            {
-                end_col = end_column,
-                hl_group = highlight,
-                end_line = end_line,
-                virt_text = text or nil,
-                virt_text_pos = "overlay",
-                hl_mode = mode,
-                hl_eol = whole_line,
-            }
-        )
+        local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, ns, line_number, start_column, {
+            end_col = end_column,
+            hl_group = highlight,
+            end_line = end_line,
+            virt_text = text or nil,
+            virt_text_pos = "overlay",
+            hl_mode = mode,
+            hl_eol = whole_line,
+        })
 
         -- If we have encountered an error then log it
         if not ok then
@@ -549,12 +542,6 @@ module.public = {
     -- @Param from (number) - the line number to start clearing from
     clear_icons = function(namespace, from)
         vim.api.nvim_buf_clear_namespace(0, namespace, from or 0, -1)
-    end,
-
-    --- Clears all dimming applied to code blocks in the current buffer
-    --- @param from number #The line number to start clearing from
-    clear_code_block_dimming = function(from)
-        vim.api.nvim_buf_clear_namespace(0, module.private.code_block_namespace, from or 0, -1)
     end,
 
     trigger_completion_levels = function(from)
