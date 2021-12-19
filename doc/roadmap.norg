@@ -45,7 +45,7 @@ here. For a better viewing experience, we recommend reading it opening it from `
         obviously used with caution, but may prove very useful in the future for hotswapping modules
         with a small tradeoff in terms of stability.
         Have no clue what the above code snippet does and want to learn? Read the
-        [CREATING_MODULES.md document](https://github.com/vhyrro/neorg/wiki/Creating-Modules).
+        {https://github.com/vhyrro/neorg/wiki/Creating-Modules}[CREATING_MODULES.md document].
         - [x] Fix a bug in `core.keybinds`, where it's currently impossible to bind a certain event
               to a *new* keybind.
         - [x] Allow the default `<Leader>o` keybind to be remapped and allow the user to add a
@@ -103,7 +103,7 @@ here. For a better viewing experience, we recommend reading it opening it from `
         - [x] Start working on a basic "specification" for the .norg file format. The name of this
               file format will be NFF-0.1 (Neorg File Format 0.1). The community will be asked about
               what they think before the specification is pushed (join the
-              [discord](https://discord.gg/T6EgTAX7ht) if you haven't already).
+              {https://discord.gg/T6EgTAX7ht}[discord] if you haven't already).
         - [x] Make fancy README
         - [x] Create the .norg spec. The goal is as little ambiguity and as
               much predictability as possible.
@@ -113,7 +113,7 @@ here. For a better viewing experience, we recommend reading it opening it from `
         slowing down the editor quite a lot.
     ***** Conceals
           To fix the conceal performance Neovim needs to do one of two things:
-          - [ ] Merge [this pull request](https://github.com/neovim/neovim/pull/15658). It would
+          - [ ] Merge {https://github.com/neovim/neovim/pull/15658}[this pull request]. It would
                 allow to us to run several tasks in an actual asynchronous manner.
                 Would reduce slowdown.
           - [ ] Fix a bug where undoing a range of text doesn't trigger `vim.api.nvim_buf_attach`
