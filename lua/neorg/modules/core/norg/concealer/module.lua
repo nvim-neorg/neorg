@@ -174,6 +174,9 @@ module.private = {
     ]
 )
     ]],
+
+    largest_change_start = 0,
+    largest_change_end = 0,
 }
 
 module.public = {
@@ -183,9 +186,9 @@ module.public = {
     -- @Param icon_set (table) - the icon set to trigger
     -- @Param namespace
     -- @Param from (number) - the line number that we should start at (defaults to 0)
-    trigger_icons = function(icon_set, namespace, from)
+    trigger_icons = function(icon_set, namespace, from, to)
         -- Clear all the conceals beforehand (so no overlaps occur)
-        module.public.clear_icons(namespace, from)
+        module.public.clear_icons(namespace, from, to)
 
         -- Get the root node of the document (required to iterate over query captures)
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
@@ -198,7 +201,7 @@ module.public = {
                 local query = vim.treesitter.parse_query("norg", icon_data.query)
 
                 -- Go through every found node and try to apply an icon to it
-                for id, node in query:iter_captures(document_root, 0, from and from - 1 or 0, -1) do
+                for id, node in query:iter_captures(document_root, 0, from or 0, to or 0) do
                     local capture = query.captures[id]
 
                     if capture == "icon" then
@@ -482,8 +485,8 @@ module.public = {
     -- @Summary Clears all the conceals that neorg has defined
     -- @Description Simply clears the Neorg extmark namespace
     -- @Param from (number) - the line number to start clearing from
-    clear_icons = function(namespace, from)
-        vim.api.nvim_buf_clear_namespace(0, namespace, from or 0, -1)
+    clear_icons = function(namespace, from, to)
+        vim.api.nvim_buf_clear_namespace(0, namespace, from or 0, to or -1)
     end,
 
     --- Clears all dimming applied to code blocks in the current buffer
@@ -2002,43 +2005,21 @@ module.load = function()
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
 
-    module.required["core.autocommands"].enable_autocommand("CursorMoved")
-    module.required["core.autocommands"].enable_autocommand("TextChanged")
     module.required["core.autocommands"].enable_autocommand("TextChangedI")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
 end
 
 module.on_event = function(event)
-    -- If we have just entered a .norg buffer then apply all conceals
-    -- TODO: Remove (or at least provide a reason) as to why there are so many vim.schedules
-    -- Explain priorities and how we only schedule less important things to improve the average user
-    -- experience
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        module.public.trigger_code_block_highlights()
-        module.public.trigger_highlight_regex_code_block()
-        module.public.trigger_completion_levels()
-        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
-
-        if module.config.public.markup.enable then
-            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
-        end
-
-        if module.config.public.folds.enable then
-            vim.opt_local.foldmethod = "expr"
-            vim.opt_local.foldlevel = module.config.public.folds.foldlevel
-            vim.opt_local.foldexpr = "nvim_treesitter#foldexpr()"
-            vim.opt_local.foldtext = "v:lua.neorg.modules.get_module('" .. module.name .. "').foldtext()"
-        end
-    elseif event.type == "core.autocommands.events.textchanged" then
-        -- If the content of a line has changed in normal mode then reparse the file
-        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
-        if module.config.public.markup.enable then
-            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
-        end
-        module.public.trigger_code_block_highlights()
-        module.public.trigger_highlight_regex_code_block()
-        vim.schedule(module.public.trigger_completion_levels)
+        vim.api.nvim_buf_attach(0, false, {
+            on_lines = function(_, _, _, start, _end)
+                module.private.largest_change_start = start < module.private.largest_change_start and start
+                    or module.private.largest_change_start
+                module.private.largest_change_end = _end > module.private.largest_change_end and _end
+                    or module.private.largest_change_end
+            end,
+        })
     elseif event.type == "core.autocommands.events.insertenter" then
         vim.api.nvim_buf_clear_namespace(
             0,
@@ -2060,6 +2041,44 @@ module.on_event = function(event)
         )
     elseif event.type == "core.autocommands.events.insertleave" then
         vim.schedule(function()
+            module.public.trigger_icons(
+                module.private.icons,
+                module.private.icon_namespace,
+                module.private.largest_change_start,
+                module.private.largest_change_end
+            )
+        end)
+
+        --[[ module.public.trigger_code_block_highlights()
+        module.public.trigger_highlight_regex_code_block()
+        module.public.trigger_completion_levels() ]]
+
+        --[[ module.public.trigger_code_block_highlights()
+        module.public.trigger_highlight_regex_code_block()
+        module.public.trigger_completion_levels()
+        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+
+        if module.config.public.markup.enable then
+            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+        end
+
+        if module.config.public.folds.enable then
+            vim.opt_local.foldmethod = "expr"
+            vim.opt_local.foldlevel = module.config.public.folds.foldlevel
+            vim.opt_local.foldexpr = "nvim_treesitter#foldexpr()"
+            vim.opt_local.foldtext = "v:lua.neorg.modules.get_module('" .. module.name .. "').foldtext()"
+        end ]]
+        --[[ elseif event.type == "core.autocommands.events.textchanged" then
+        -- If the content of a line has changed in normal mode then reparse the file
+        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+        if module.config.public.markup.enable then
+            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+        end
+        module.public.trigger_code_block_highlights()
+        module.public.trigger_highlight_regex_code_block()
+        vim.schedule(module.public.trigger_completion_levels)
+    elseif event.type == "core.autocommands.events.insertleave" then
+        vim.schedule(function()
             module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
             if module.config.public.markup.enable then
                 module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
@@ -2068,15 +2087,13 @@ module.on_event = function(event)
         end)
     elseif event.type == "core.autocommands.events.textchangedi" then
         module.public.trigger_highlight_regex_code_block()
-        vim.schedule(module.public.trigger_code_block_highlights)
+        vim.schedule(module.public.trigger_code_block_highlights) ]]
     end
 end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
-        cursormoved = true,
-        textchanged = true,
         textchangedi = true,
         insertenter = true,
         insertleave = true,
