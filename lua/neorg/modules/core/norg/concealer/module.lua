@@ -91,12 +91,15 @@ module.setup = function()
         success = true,
         requires = {
             "core.autocommands",
+            "core.keybinds",
             "core.integrations.treesitter",
         },
         imports = {
             "preset_basic",
             "preset_varied",
             "preset_diamond",
+            "preset_safe",
+            "preset_brave",
         },
     }
 end
@@ -257,58 +260,61 @@ module.public = {
                 -- A query must have at least one capture, e.g. "(test_node) @icon"
                 local query = vim.treesitter.parse_query("norg", icon_data.query)
 
+                local nvim_ts_query = require("nvim-treesitter.query")
+                local nvim_locals = require("nvim-treesitter.locals")
+
                 -- Go through every found node and try to apply an icon to it
-                for id, node in query:iter_captures(document_root, 0, from and from - 1 or 0, -1) do
-                    local capture = query.captures[id]
+                for match in nvim_ts_query.iter_prepared_matches(query, document_root, 0, from and from - 1 or 0, -1) do
+                    nvim_locals.recurse_local_nodes(match, function(_, node, capture)
+                        if capture == "icon" then
+                            -- Extract both the text and the range of the node
+                            local text = module.required["core.integrations.treesitter"].get_node_text(node)
+                            local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
-                    if capture == "icon" then
-                        -- Extract both the text and the range of the node
-                        local text = module.required["core.integrations.treesitter"].get_node_text(node)
-                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
+                            -- Set the offset to 0 here. The offset is a special value that, well, offsets
+                            -- the location of the icon column-wise
+                            -- It's used in scenarios where the node spans more than what we want to iconify.
+                            -- A prime example of this is the todo item, whose content looks like this: "[x]".
+                            -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
+                            -- to use an offset of 1 to start the icon at the "x"
+                            local offset = 0
 
-                        -- Set the offset to 0 here. The offset is a special value that, well, offsets
-                        -- the location of the icon column-wise
-                        -- It's used in scenarios where the node spans more than what we want to iconify.
-                        -- A prime example of this is the todo item, whose content looks like this: "[x]".
-                        -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
-                        -- to use an offset of 1 to start the icon at the "x"
-                        local offset = 0
+                            -- The extract function is used exactly to calculate this offset
+                            -- If that function is present then run it and grab the return value
+                            if icon_data.extract then
+                                offset = icon_data.extract(text, node) or 0
+                            end
 
-                        -- The extract function is used exactly to calculate this offset
-                        -- If that function is present then run it and grab the return value
-                        if icon_data.extract then
-                            offset = icon_data.extract(text, node) or 0
+                            -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
+                            -- This is primarily used in nested quotes
+                            -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
+                            if not icon_data.render then
+                                module.public._set_extmark(
+                                    icon_data.icon,
+                                    icon_data.highlight,
+                                    namespace,
+                                    range.row_start,
+                                    range.row_end,
+                                    range.column_start + offset,
+                                    range.column_end,
+                                    false,
+                                    "combine"
+                                )
+                            else
+                                module.public._set_extmark(
+                                    icon_data:render(text, node),
+                                    icon_data.highlight,
+                                    namespace,
+                                    range.row_start,
+                                    range.row_end,
+                                    range.column_start + offset,
+                                    range.column_end,
+                                    false,
+                                    "combine"
+                                )
+                            end
                         end
-
-                        -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
-                        -- This is primarily used in nested quotes
-                        -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
-                        if not icon_data.render then
-                            module.public._set_extmark(
-                                icon_data.icon,
-                                icon_data.highlight,
-                                "icon",
-                                range.row_start,
-                                range.row_end,
-                                range.column_start + offset,
-                                range.column_end,
-                                false,
-                                "combine"
-                            )
-                        else
-                            module.public._set_extmark(
-                                icon_data:render(text, node),
-                                icon_data.highlight,
-                                "icon",
-                                range.row_start,
-                                range.row_end,
-                                range.column_start + offset,
-                                range.column_end,
-                                false,
-                                "combine"
-                            )
-                        end
-                    end
+                    end)
                 end
             end
         end
@@ -438,7 +444,7 @@ module.public = {
             return
         end
 
-        module.public.clear_code_block_dimming(from)
+        module.public.clear_icons(module.private.code_block_namespace, from)
 
         -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
@@ -484,7 +490,7 @@ module.public = {
                             module.public._set_extmark(
                                 nil,
                                 "NeorgCodeBlock",
-                                "code_block",
+                                module.private.code_block_namespace,
                                 i,
                                 i + 1,
                                 range.column_start,
@@ -496,6 +502,16 @@ module.public = {
                     end
                 end
             end
+        end
+    end,
+
+    toggle_markup = function()
+        if module.config.public.markup.enabled then
+            module.public.clear_icons(module.private.markup_namespace)
+            module.config.public.markup.enabled = false
+        else
+            module.config.public.markup.enabled = true
+            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
         end
     end,
 
@@ -516,22 +532,15 @@ module.public = {
         end
 
         -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        local ok, result = pcall(
-            vim.api.nvim_buf_set_extmark,
-            0,
-            module.private[ns .. "_namespace"],
-            line_number,
-            start_column,
-            {
-                end_col = end_column,
-                hl_group = highlight,
-                end_line = end_line,
-                virt_text = text or nil,
-                virt_text_pos = "overlay",
-                hl_mode = mode,
-                hl_eol = whole_line,
-            }
-        )
+        local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, ns, line_number, start_column, {
+            end_col = end_column,
+            hl_group = highlight,
+            end_line = end_line,
+            virt_text = text or nil,
+            virt_text_pos = "overlay",
+            hl_mode = mode,
+            hl_eol = whole_line,
+        })
 
         -- If we have encountered an error then log it
         if not ok then
@@ -544,12 +553,6 @@ module.public = {
     -- @Param from (number) - the line number to start clearing from
     clear_icons = function(namespace, from)
         vim.api.nvim_buf_clear_namespace(0, namespace, from or 0, -1)
-    end,
-
-    --- Clears all dimming applied to code blocks in the current buffer
-    --- @param from number #The line number to start clearing from
-    clear_code_block_dimming = function(from)
-        vim.api.nvim_buf_clear_namespace(0, module.private.code_block_namespace, from or 0, -1)
     end,
 
     trigger_completion_levels = function(from)
@@ -1648,205 +1651,217 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
                 end,
             },
         },
+    },
 
-        markup = {
+    markup_preset = "safe",
+
+    markup = {
+        enabled = true,
+        icon = " ",
+
+        bold = {
+            enabled = true,
+            highlight = "NeorgMarkupBold",
+            query = '(bold (["_open" "_close"]) @icon)',
+        },
+
+        italic = {
+            enabled = true,
+            highlight = "NeorgMarkupItalic",
+            query = '(italic (["_open" "_close"]) @icon)',
+        },
+
+        underline = {
+            enabled = true,
+            highlight = "NeorgMarkupUnderline",
+            query = '(underline (["_open" "_close"]) @icon)',
+        },
+
+        strikethrough = {
+            enabled = true,
+            highlight = "NeorgMarkupStrikethrough",
+            query = '(strikethrough (["_open" "_close"]) @icon)',
+        },
+
+        subscript = {
+            enabled = true,
+            highlight = "NeorgMarkupSubscript",
+            query = '(subscript (["_open" "_close"]) @icon)',
+        },
+
+        superscript = {
+            enabled = true,
+            highlight = "NeorgMarkupSuperscript",
+            query = '(superscript (["_open" "_close"]) @icon)',
+        },
+
+        verbatim = {
+            enabled = true,
+            highlight = "NeorgMarkupVerbatim",
+            query = '(verbatim (["_open" "_close"]) @icon)',
+        },
+
+        comment = {
+            enabled = true,
+            highlight = "NeorgMarkupInlineComment",
+            query = '(inline_comment (["_open" "_close"]) @icon)',
+        },
+
+        math = {
+            enabled = true,
+            highlight = "NeorgMarkupInlineMath",
+            query = '(inline_math (["_open" "_close"]) @icon)',
+        },
+
+        variable = {
+            enabled = true,
+            highlight = "NeorgMarkupVariable",
+            query = '(variable (["_open" "_close"]) @icon)',
+        },
+
+        spoiler = {
+            enabled = true,
+            icon = "●",
+            -- NOTE: as you can see, you can still overwrite the parent-icon
+            -- inherited from above.
+            highlight = "NeorgSpoiler",
+            query = "(spoiler) @icon",
+            render = function(self, text, node)
+                return {
+                    { string.rep(self.icon, #text), self.highlight },
+                }
+            end,
+        },
+
+        link_modifier = {
+            enabled = true,
+            highlight = "NeorgLinkModifier",
+            query = "(link_modifier) @icon",
+        },
+
+        trailing_modifier = {
+            enabled = true,
+            highlight = "NeorgTrailingModifier",
+            query = '("_trailing_modifier") @icon',
+        },
+
+        url = {
             enabled = true,
 
-            bold = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgMarkupBold",
-                query = '(bold (["_open" "_close"]) @icon)',
-            },
-
-            italic = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgMarkupItalic",
-                query = '(italic (["_open" "_close"]) @icon)',
-            },
-
-            underline = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgMarkupUnderline",
-                query = '(underline (["_open" "_close"]) @icon)',
-            },
-
-            strikethrough = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgMarkupStrikethrough",
-                query = '(strikethrough (["_open" "_close"]) @icon)',
-            },
-
-            subscript = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgMarkupSubscript",
-                query = '(subscript (["_open" "_close"]) @icon)',
-            },
-
-            superscript = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgMarkupSuperscript",
-                query = '(superscript (["_open" "_close"]) @icon)',
-            },
-
-            verbatim = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgMarkupVerbatim",
-                query = '(verbatim (["_open" "_close"]) @icon)',
-            },
-
-            comment = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgMarkupInlineComment",
-                query = '(inline_comment (["_open" "_close"]) @icon)',
-            },
-
-            math = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgMarkupInlineMath",
-                query = '(inline_math (["_open" "_close"]) @icon)',
-            },
-
-            variable = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgMarkupVariable",
-                query = '(variable (["_open" "_close"]) @icon)',
-            },
-
-            spoiler = {
-                enabled = true,
-                icon = "●",
-                highlight = "NeorgSpoiler",
-                query = "(spoiler) @icon",
-                render = function(self, text, node)
-                    return {
-                        { string.rep(self.icon, #text), self.highlight },
-                    }
-                end,
-            },
-
-            link_modifier = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgLinkModifier",
-                query = "(link_modifier) @icon",
-                render = function(self)
-                    return {
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-
-            trailing_modifier = {
-                enabled = true,
-                icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                highlight = "NeorgTrailingModifier",
-                query = '("_trailing_modifier") @icon',
-                render = function(self)
-                    return {
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-
-            url = {
+            link = {
                 enabled = true,
 
-                link = {
+                unnamed = {
                     enabled = true,
-                    icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                    highlight = "NeorgLinkText",
-                    query = "(link) @icon",
-                    render = function(self, text, node)
-                        local concealed_chars = 0
-                        local ts = module.required["core.integrations.treesitter"]
-                        local location = nil
-                        local description = nil
-                        local file = node:named_child(0)
-
-                        if file:type() == "link_file" then
-                            location = node:named_child(1)
-                            description = node:named_child(2)
-                        else
-                            location = file
-                            file = nil
-                            description = node:named_child(1)
-                        end
-
-                        if location ~= nil and location:type() == "link_description" then
-                            description = location
-                            location = nil
-                        end
-
-                        if description ~= nil then
-                            local description_text = ts.get_node_text(description:named_child(0))
-                            concealed_chars = #description_text
-                            return {
-                                { description_text, self.highlight },
-                                { string.rep(self.icon, #text - concealed_chars), "" },
-                            }
-                        end
-
-                        local extmark_text = {}
-
-                        if file ~= nil then
-                            local file_text = ts.get_node_text(file)
-                            concealed_chars = #file_text
-                            table.insert(extmark_text, { file_text, "NeorgLinkFile" })
-                        end
-
-                        if location ~= nil then
-                            local location_type = location:named_child(0)
-                            local location_text = location:named_child(1)
-
-                            local type = ts.get_node_text(location_type)
-                            local text = ts.get_node_text(location_text)
-
-                            local type_name = location_type:type()
-                            type_name = vim.fn.substitute(type_name, [[\(_\|^\)\(\w\)]], [[\u\2]], "g")
-
-                            concealed_chars = concealed_chars + #type + #text
-
-                            table.insert(extmark_text, { type, "Neorg" .. type_name .. "Prefix" })
-                            table.insert(extmark_text, { text, "Neorg" .. type_name })
-                        end
-
-                        table.insert(extmark_text, { string.rep(self.icon, #text - concealed_chars), "" })
-                        return extmark_text
-                    end,
+                    highlight = "NeorgLinkLocationDelimiter",
+                    query = [[
+                        [(
+                            (link
+                                ("_begin") @icon
+                                (_) @_last
+                                .
+                            )
+                            (#not-has-type? @_last "link_description")
+                        )
+                        (
+                            (link
+                                (_) @_last
+                                ("_end") @icon
+                                .
+                            )
+                            (#not-has-type? @_last "link_description")
+                        )]
+                    ]],
                 },
 
-                anchor = {
+                named = {
                     enabled = true,
-                    icon = "⁠", -- not an empty string but the word joiner unicode (U+2060)
-                    highlight = "NeorgAnchorDeclerationText",
-                    query = "(anchor_declaration) @icon",
-                    render = function(self, text, node)
-                        local ts = module.required["core.integrations.treesitter"]
-                        local addon = ""
-                        if node:parent():type() == "anchor_definition" then
-                            addon = string.rep(self.icon, 2 + #ts.get_node_text(node:parent():named_child(1)))
-                        end
-                        return {
-                            { text:gsub("%[(.+)%]", self.icon .. "%1" .. self.icon) .. addon, self.highlight },
-                        }
-                    end,
+
+                    location = {
+                        enabled = true,
+                        highlight = "NeorgLinkLocationDelimiter",
+                        query = [[
+                            (link
+                                [
+                                    "_begin"
+                                    (link_file)?
+                                    (link_location)?
+                                    "_end"
+                                ] @icon
+                                (link_description)
+                            )
+                        ]],
+                        render = function(self, text)
+                            return {
+                                { string.rep(self.icon, #text), self.highlight },
+                            }
+                        end,
+                    },
+
+                    text = {
+                        enabled = true,
+                        highlight = "NeorgLinkTextDelimiter",
+                        query = [[
+                            (link
+                                (link_description (["_begin" "_end"]) @icon)
+                            )
+                        ]],
+                    },
+                },
+            },
+
+            anchor = {
+                enabled = true,
+
+                declaration = {
+                    enabled = true,
+                    highlight = "NeorgAnchorDeclarationDelimiter",
+                    query = [[(
+                        (anchor_declaration
+                            (["_begin" "_end"]) @icon
+                        ) @_declaration
+                        (#not-has-parent? @_declaration "anchor_definition")
+                    )]],
+                },
+
+                definition = {
+                    enabled = true,
+
+                    declaration = {
+                        enabled = true,
+                        highlight = "NeorgAnchorDeclarationDelimiter",
+                        query = [[(
+                            (anchor_declaration
+                                (["_begin" "_end"]) @icon
+                            ) @_declaration
+                            (#has-parent? @_declaration "anchor_definition")
+                        )]],
+                        -- NOTE: right now this is a duplicate of the above but
+                        -- we could envision concealing these two scenarios
+                        -- differently.
+                    },
+
+                    location = {
+                        enabled = true,
+                        highlight = "NeorgAnchorDefinitionDelimiter",
+                        query = [[
+                            (anchor_definition
+                                ([
+                                    "_begin"
+                                    (link_location)
+                                    "_end"
+                                ]) @icon
+                            )
+                        ]],
+                        render = function(self, text)
+                            return {
+                                { string.rep(self.icon, #text), self.highlight },
+                            }
+                        end,
+                    },
                 },
             },
         },
-    },
-
-    markup = {
-        enable = false,
     },
 
     dim_code_blocks = true,
@@ -2023,10 +2038,28 @@ module.load = function()
         module.config.custom
     )
 
+    if not module.config.private["markup_preset_" .. module.config.public.markup_preset] then
+        log.error(
+            string.format(
+                "Unable to load markup preset '%s' - such a preset does not exist",
+                module.config.public.markup_preset
+            )
+        )
+        return
+    end
+
+    module.config.public.markup = vim.tbl_deep_extend(
+        "force",
+        module.config.public.markup,
+        module.config.private["markup_preset_" .. module.config.public.markup_preset] or {},
+        module.config.custom
+    )
+
     -- @Summary Returns all the enabled icons from a table
     -- @Param  tbl (table) - the table to parse
+    -- @Param parent_icon (string) - Is used to pass icons from parents down to their table children to handle inheritance.
     -- @Param rec_name (string) - should not be set manually. Is used for Neorg to have information about all other previous recursions
-    local function get_enabled_icons(tbl, rec_name)
+    local function get_enabled_icons(tbl, parent_icon, rec_name)
         rec_name = rec_name or ""
 
         -- Create a result that we will return at the end of the function
@@ -2040,14 +2073,21 @@ module.load = function()
         -- Go through every icon
         for name, icons in pairs(tbl) do
             -- If we're dealing with a table (which we should be) and if the current icon set is enabled then
-            if type(icons) == "table" and icons.enabled and name ~= "markup" then
-                -- If we have defined an icon value then add that icon to the result
-                if icons.icon then
+            if type(icons) == "table" and icons.enabled then
+                -- If we have defined a query value then add that icon to the result
+                if icons.query then
                     result[rec_name .. name] = icons
+                    if icons.icon == nil then
+                        result[rec_name .. name].icon = parent_icon
+                    end
                 else
                     -- If we don't have an icon variable then we need to descend further down the lua table.
                     -- To do this we recursively call this very function and merge the results into the result table
-                    result = vim.tbl_deep_extend("force", result, get_enabled_icons(icons, rec_name .. name))
+                    result = vim.tbl_deep_extend(
+                        "force",
+                        result,
+                        get_enabled_icons(icons, parent_icon, rec_name .. name)
+                    )
                 end
             end
         end
@@ -2056,8 +2096,13 @@ module.load = function()
     end
 
     -- Set the module.private.icons variable to the values of the enabled icons
-    module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons, false))
-    module.private.markup = vim.tbl_values(get_enabled_icons(module.config.public.icons.markup, false))
+    module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
+    module.private.markup = vim.tbl_values(
+        get_enabled_icons(module.config.public.markup, module.config.public.markup.icon)
+    )
+
+    -- Register keybinds
+    module.required["core.keybinds"].register_keybinds(module.name, { "toggle-markup" })
 
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
@@ -2080,7 +2125,7 @@ module.on_event = function(event)
         module.public.trigger_completion_levels()
         module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
 
-        if module.config.public.markup.enable then
+        if module.config.public.markup.enabled then
             module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
         end
 
@@ -2093,7 +2138,7 @@ module.on_event = function(event)
     elseif event.type == "core.autocommands.events.textchanged" then
         -- If the content of a line has changed in normal mode then reparse the file
         module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
-        if module.config.public.markup.enable then
+        if module.config.public.markup.enabled then
             module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
         end
         module.public.trigger_code_block_highlights()
@@ -2121,7 +2166,7 @@ module.on_event = function(event)
     elseif event.type == "core.autocommands.events.insertleave" then
         vim.schedule(function()
             module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
-            if module.config.public.markup.enable then
+            if module.config.public.markup.enabled then
                 module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
             end
             module.public.trigger_completion_levels()
@@ -2129,6 +2174,8 @@ module.on_event = function(event)
     elseif event.type == "core.autocommands.events.textchangedi" then
         module.public.trigger_highlight_regex_code_block()
         vim.schedule(module.public.trigger_code_block_highlights)
+    elseif event.split_type[1] == "core.keybinds" and event.split_type[2] == "core.norg.concealer.toggle-markup" then
+        module.public.toggle_markup()
     end
 end
 
@@ -2140,6 +2187,9 @@ module.events.subscribed = {
         textchangedi = true,
         insertenter = true,
         insertleave = true,
+    },
+    ["core.keybinds"] = {
+        ["core.norg.concealer.toggle-markup"] = true,
     },
 }
 
