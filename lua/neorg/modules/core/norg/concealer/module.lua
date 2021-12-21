@@ -2066,8 +2066,8 @@ module.on_event = function(event)
     elseif event.type == "core.autocommands.events.textchanged" then
         local undotree = vim.fn.undotree()
 
-        -- FIXME(vhyrro): This only works occasionally, figure out why
-        if undotree.time_cur ~= undotree.entries[#undotree.entries].time then
+        -- TODO: Test whether this functions as expected in all scenarios
+        if undotree.time_cur > undotree.entries[#undotree.entries].time then
             return
         end
 
