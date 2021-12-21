@@ -2026,7 +2026,14 @@ module.on_event = function(event)
                 local mode = vim.api.nvim_get_mode().mode
 
                 if mode == "n" or mode == "no" then
-                    module.public.trigger_icons(module.private.icons, module.private.icon_namespace, start, _end)
+                    -- Sometimes occurs with one-line undos
+                    if start == _end then
+                        _end = _end + 1
+                    end
+
+                    vim.schedule(function()
+                        module.public.trigger_icons(module.private.icons, module.private.icon_namespace, start, _end)
+                    end)
                 end
 
                 module.private.largest_change_start = start < module.private.largest_change_start and start
@@ -2063,17 +2070,6 @@ module.on_event = function(event)
                 module.private.largest_change_end
             )
         end)
-    elseif event.type == "core.autocommands.events.textchanged" then
-        local undotree = vim.fn.undotree()
-
-        -- TODO: Test whether this functions as expected in all scenarios
-        if undotree.time_cur > undotree.entries[#undotree.entries].time then
-            return
-        end
-
-        log.warn("Icon trigger:", undotree.time_cur)
-        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
-
         --[[ module.public.trigger_code_block_highlights()
         module.public.trigger_highlight_regex_code_block()
         module.public.trigger_completion_levels() ]]
