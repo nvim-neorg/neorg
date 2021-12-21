@@ -26,6 +26,8 @@ neorg.events.base_event = {
     filename = "",
     filehead = "",
     line_content = "",
+    buffer = 0,
+    mode = "",
 }
 
 -- @Summary Splits a full module event path into two
@@ -124,6 +126,8 @@ function neorg.events.create(module, type, content)
     new_event.line_content = vim.api.nvim_get_current_line()
     new_event.referrer = module.name
     new_event.broadcast = true
+    new_event.buffer = vim.api.nvim_get_current_buf()
+    new_event.mode = vim.api.nvim_get_mode().mode
 
     return new_event
 end
