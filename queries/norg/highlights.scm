@@ -94,7 +94,7 @@
             )
         ]?
         ("_end") @NeorgLinkLocationDelimiter
-    )?
+    )
     (link_description
         ("_begin") @NeorgLinkTextDelimiter
         text: (paragraph_segment) @NeorgLinkText
