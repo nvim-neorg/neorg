@@ -2005,6 +2005,7 @@ module.load = function()
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
 
+    module.required["core.autocommands"].enable_autocommand("TextChanged")
     module.required["core.autocommands"].enable_autocommand("TextChangedI")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
@@ -2012,8 +2013,22 @@ end
 
 module.on_event = function(event)
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        vim.api.nvim_buf_attach(0, false, {
+        local buf = event.buffer
+
+        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+
+        vim.api.nvim_buf_attach(buf, false, {
             on_lines = function(_, _, _, start, _end)
+                if buf ~= vim.api.nvim_get_current_buf() then
+                    return true
+                end
+
+                local mode = vim.api.nvim_get_mode().mode
+
+                if mode == "n" or mode == "no" then
+                    module.public.trigger_icons(module.private.icons, module.private.icon_namespace, start, _end)
+                end
+
                 module.private.largest_change_start = start < module.private.largest_change_start and start
                     or module.private.largest_change_start
                 module.private.largest_change_end = _end > module.private.largest_change_end and _end
@@ -2095,6 +2110,7 @@ module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
         textchangedi = true,
+        textchanged = true,
         insertenter = true,
         insertleave = true,
     },
