@@ -2005,8 +2005,6 @@ module.load = function()
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
 
-    module.required["core.autocommands"].enable_autocommand("TextChanged")
-    module.required["core.autocommands"].enable_autocommand("TextChangedI")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
 end
@@ -2014,6 +2012,7 @@ end
 module.on_event = function(event)
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         local buf = event.buffer
+        local line_count = vim.api.nvim_buf_line_count(buf)
 
         module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
 
@@ -2024,6 +2023,7 @@ module.on_event = function(event)
                 end
 
                 local mode = vim.api.nvim_get_mode().mode
+                local new_line_count = vim.api.nvim_buf_line_count(buf)
 
                 if mode == "n" or mode == "no" then
                     -- Sometimes occurs with one-line undos
@@ -2031,8 +2031,13 @@ module.on_event = function(event)
                         _end = _end + 1
                     end
 
+                    if new_line_count > line_count then
+                        _end = _end + (new_line_count - line_count - 1)
+                    end
+
                     vim.schedule(function()
                         module.public.trigger_icons(module.private.icons, module.private.icon_namespace, start, _end)
+                        line_count = new_line_count
                     end)
                 end
 
@@ -2115,8 +2120,6 @@ end
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
-        textchangedi = true,
-        textchanged = true,
         insertenter = true,
         insertleave = true,
     },
