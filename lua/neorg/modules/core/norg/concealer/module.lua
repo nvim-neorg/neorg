@@ -2063,6 +2063,15 @@ module.on_event = function(event)
                 module.private.largest_change_end
             )
         end)
+    elseif event.type == "core.autocommands.events.textchanged" then
+        -- FIXME(vhyrro): Figure out how to make this less buggy
+        local undotree = vim.fn.undotree()
+
+        if undotree.seq_cur == undotree.seq_last then
+            return
+        end
+
+        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
 
         --[[ module.public.trigger_code_block_highlights()
         module.public.trigger_highlight_regex_code_block()
