@@ -2071,6 +2071,7 @@ module.on_event = function(event)
             return
         end
 
+        log.warn("Icon trigger:", undotree.time_cur)
         module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
 
         --[[ module.public.trigger_code_block_highlights()
