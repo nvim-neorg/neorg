@@ -109,8 +109,8 @@ module.public = {
 
         local query_str = [[
             (anchor_definition
-                (anchor_declaration
-                    text: (anchor_declaration_text) @text
+                (link_description
+                    text: (paragraph_segment) @text
                 )
             )
         ]]
@@ -143,49 +143,53 @@ module.public = {
         local query_text = [[
             [
                 (link
-                    (link_file
-                        location: (link_file_text) @link_file_text
-                    )?
                     (link_location
+                        file: (
+                            (link_file_text) @link_file_text
+                        )?
                         type: [
-                            (link_location_url)
-                            (link_location_generic)
-                            (link_location_external_file)
-                            (link_location_marker)
-                            (link_location_heading1)
-                            (link_location_heading2)
-                            (link_location_heading3)
-                            (link_location_heading4)
-                            (link_location_heading5)
-                            (link_location_heading6)
+                            (link_target_url)
+                            (link_target_generic)
+                            (link_target_external_file)
+                            (link_target_marker)
+                            (link_target_definition)
+                            (link_target_footnote)
+                            (link_target_heading1)
+                            (link_target_heading2)
+                            (link_target_heading3)
+                            (link_target_heading4)
+                            (link_target_heading5)
+                            (link_target_heading6)
                         ] @link_type
-                        text: (link_location_text) @link_location_text
-                    )?
+                        text: (paragraph_segment) @link_location_text
+                    )
                     (link_description
-                        text: (link_text) @link_description
+                        text: (paragraph_segment) @link_description
                     )?
                 )
                 (anchor_definition
-                    (anchor_declaration
-                        text: (anchor_declaration_text)
+                    (link_description
+                        text: (paragraph_segment) @link_description
                     )
-                    (link_file
-                        location: (link_file_text) @link_file_text
-                    )?
                     (link_location
+                        file: (
+                            (link_file_text) @link_file_text
+                        )?
                         type: [
-                            (link_location_url)
-                            (link_location_generic)
-                            (link_location_external_file)
-                            (link_location_marker)
-                            (link_location_heading1)
-                            (link_location_heading2)
-                            (link_location_heading3)
-                            (link_location_heading4)
-                            (link_location_heading5)
-                            (link_location_heading6)
+                            (link_target_url)
+                            (link_target_generic)
+                            (link_target_external_file)
+                            (link_target_marker)
+                            (link_target_definition)
+                            (link_target_footnote)
+                            (link_target_heading1)
+                            (link_target_heading2)
+                            (link_target_heading3)
+                            (link_target_heading4)
+                            (link_target_heading5)
+                            (link_target_heading6)
                         ] @link_type
-                        text: (link_location_text) @link_location_text
+                        text: (paragraph_segment) @link_location_text
                     )
                 )
             ]
@@ -224,7 +228,7 @@ module.public = {
                     or neorg.lib.match({
                         capture,
                         link_file_text = extract_node_text,
-                        link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_location_") + 1),
+                        link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_target_") + 1),
                         link_location_text = extract_node_text,
                         link_description = extract_node_text,
 
@@ -301,6 +305,52 @@ module.public = {
                             title: (paragraph_segment) @title
                         )?
                     ]],
+
+                    definition = string.format(
+                        [[
+                            (carryover_tag_set
+                                (carryover_tag
+                                    name: (tag_name) @tag_name
+                                    (tag_parameters) @title
+                                    (#eq? @tag_name "name")
+                                )
+                            )?
+                            [
+                                (single_%s
+                                    (single_%s_prefix)
+                                    title: (paragraph_segment) @title
+                                )
+                                (multi_%s
+                                    (multi_%s_prefix)
+                                    title: (paragraph_segment) @title
+                                )
+                            ]?
+                        ]],
+                        neorg.lib.reparg(parsed_link_information.link_type, 4)
+                    ),
+
+                    footnote = string.format(
+                        [[
+                            (carryover_tag_set
+                                (carryover_tag
+                                    name: (tag_name) @tag_name
+                                    (tag_parameters) @title
+                                    (#eq? @tag_name "name")
+                                )
+                            )?
+                            [
+                                (single_%s
+                                    (single_%s_prefix)
+                                    title: (paragraph_segment) @title
+                                )
+                                (multi_%s
+                                    (multi_%s_prefix)
+                                    title: (paragraph_segment) @title
+                                )
+                            ]?
+                        ]],
+                        neorg.lib.reparg(parsed_link_information.link_type, 4)
+                    ),
 
                     default = string.format(
                         [[
