@@ -201,7 +201,7 @@ module.public = {
                 local query = vim.treesitter.parse_query("norg", icon_data.query)
 
                 -- Go through every found node and try to apply an icon to it
-                for id, node in query:iter_captures(document_root, 0, from or 0, to or 0) do
+                for id, node in query:iter_captures(document_root, 0, from or 0, to or -1) do
                     local capture = query.captures[id]
 
                     if capture == "icon" then
@@ -2064,10 +2064,10 @@ module.on_event = function(event)
             )
         end)
     elseif event.type == "core.autocommands.events.textchanged" then
-        -- FIXME(vhyrro): Figure out how to make this less buggy
         local undotree = vim.fn.undotree()
 
-        if undotree.seq_cur == undotree.seq_last then
+        -- FIXME(vhyrro): This only works occasionally, figure out why
+        if undotree.time_cur ~= undotree.entries[#undotree.entries].time then
             return
         end
 
