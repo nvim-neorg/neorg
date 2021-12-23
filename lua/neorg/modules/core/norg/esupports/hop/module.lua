@@ -49,13 +49,7 @@ module.public = {
             found_node = (module.config.public.lookahead and module.public.lookahead_link_node())
         end
 
-        if found_node then
-            if found_node:parent():type() == "anchor_definition" then
-                return found_node:parent()
-            end
-
-            return found_node
-        end
+        return found_node
     end,
 
     lookahead_link_node = function()
@@ -89,11 +83,9 @@ module.public = {
 
             local node_under_cursor = ts_utils.get_node_at_cursor()
 
-            resulting_node = neorg.lib.match({
-                node_under_cursor:type(),
-                link = node_under_cursor,
-                anchor_declaration = node_under_cursor,
-            })
+            if vim.tbl_contains({ "link_location", "link_description" }, node_under_cursor:type()) then
+                resulting_node = node_under_cursor:parent()
+            end
 
             index = index + 1
         end
@@ -102,9 +94,13 @@ module.public = {
     end,
 
     locate_anchor_declaration_target = function(anchor_decl_node)
+        if not anchor_decl_node:named_child(0) then
+            return
+        end
+
         local target =
             module.required["core.integrations.treesitter"].get_node_text(
-                anchor_decl_node:named_child(0)
+                anchor_decl_node:named_child(0):named_child(0)
             ):gsub("[%s\\]", "")
 
         local query_str = [[
