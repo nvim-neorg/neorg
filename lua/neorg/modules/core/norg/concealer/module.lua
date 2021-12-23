@@ -1755,22 +1755,12 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
                     enabled = true,
                     highlight = "NeorgLinkLocationDelimiter",
                     query = [[
-                        [(
-                            (link
-                                ("_begin") @icon
-                                (_) @_last
-                                .
-                            )
-                            (#not-has-type? @_last "link_description")
+                    (link
+                        (link_location
+                            (["_begin" "_end"]) @icon
                         )
-                        (
-                            (link
-                                (_) @_last
-                                ("_end") @icon
-                                .
-                            )
-                            (#not-has-type? @_last "link_description")
-                        )]
+                        .
+                    )
                     ]],
                 },
 
@@ -1782,12 +1772,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
                         highlight = "NeorgLinkLocationDelimiter",
                         query = [[
                             (link
-                                [
-                                    "_begin"
-                                    (link_file)?
-                                    (link_location)?
-                                    "_end"
-                                ] @icon
+                                (link_location) @icon
                                 (link_description)
                             )
                         ]],
@@ -1816,25 +1801,26 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
                 declaration = {
                     enabled = true,
                     highlight = "NeorgAnchorDeclarationDelimiter",
-                    query = [[(
-                        (anchor_declaration
+                    query = [[
+                    (anchor_declaration
+                        (link_description
                             (["_begin" "_end"]) @icon
-                        ) @_declaration
-                        (#not-has-parent? @_declaration "anchor_definition")
-                    )]],
+                        )
+                    )
+                    ]],
                 },
 
                 definition = {
                     enabled = true,
 
-                    declaration = {
+                    description = {
                         enabled = true,
                         highlight = "NeorgAnchorDeclarationDelimiter",
                         query = [[(
-                            (anchor_declaration
+                            (link_description
                                 (["_begin" "_end"]) @icon
-                            ) @_declaration
-                            (#has-parent? @_declaration "anchor_definition")
+                            ) @_description
+                            (#has-parent? @_description "anchor_definition")
                         )]],
                         -- NOTE: right now this is a duplicate of the above but
                         -- we could envision concealing these two scenarios
@@ -1845,13 +1831,9 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
                         enabled = true,
                         highlight = "NeorgAnchorDefinitionDelimiter",
                         query = [[
-                            (anchor_definition
-                                ([
-                                    "_begin"
-                                    (link_location)
-                                    "_end"
-                                ]) @icon
-                            )
+                        (anchor_definition
+                            (link_location) @icon
+                        )
                         ]],
                         render = function(self, text)
                             return {
