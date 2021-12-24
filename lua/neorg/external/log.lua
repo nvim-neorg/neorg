@@ -102,7 +102,7 @@ log.new = function(config, standalone)
 
         -- Output to console
         if config.use_console then
-            local console_string = string.format("[%-6s%s] %s: %s", nameupper, os.date("%H:%M:%S"), lineinfo, msg)
+            local v = string.format("(%s)\n%s\n%s", os.date("%H:%M:%S"), lineinfo, msg)
 
             if config.highlights and level_config.hl then
                 (vim.schedule_wrap(function()
@@ -110,13 +110,10 @@ log.new = function(config, standalone)
                 end))()
             end
 
-            local split_console = vim.split(console_string, "\n")
-            for _, v in ipairs(split_console) do
-                (vim.schedule_wrap(function()
-                    vim.notify(string.format("[%s] %s", config.plugin, vim.fn.escape(v, '"')), level_config.level)
-                    -- vim.cmd(string.format([[echom "[%s] %s"]], config.plugin, vim.fn.escape(v, '"')))
-                end))()
-            end
+            (vim.schedule_wrap(function()
+                vim.notify(string.format("[%s] %s", config.plugin, vim.fn.escape(v, '"')), level_config.level)
+                -- vim.cmd(string.format([[echom "[%s] %s"]], config.plugin, vim.fn.escape(v, '"')))
+            end))()
 
             if config.highlights and level_config.hl then
                 (vim.schedule_wrap(function()
