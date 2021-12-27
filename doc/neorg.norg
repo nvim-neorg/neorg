@@ -225,6 +225,37 @@ consective new lines.
       {@ notes.txt}[link to non neorg file notes.txt]
     @end
 
+  *** Examples:
+      {* Heading 1}
+      {** Heading 2}
+      {*** Heading 3}
+      {**** Heading 4}
+      {***** Heading 5}
+      {****** Heading 6}
+      {******* Heading level above 6}
+      {# Generic}
+      {| Marker}
+      {$ Definition}
+      {^ Footnote}
+      {:norg_file:}
+      {:norg_file:* Heading 1}
+      {:norg_file:** Heading 2}
+      {:norg_file:*** Heading 3}
+      {:norg_file:**** Heading 4}
+      {:norg_file:***** Heading 5}
+      {:norg_file:****** Heading 6}
+      {:norg_file:******* Heading level above 6}
+      {:norg_file:# Generic}
+      {:norg_file:| Marker}
+      {:norg_file:$ Definition}
+      {:norg_file:^ Footnote}
+      {https://github.com/}
+      {file:///dev/null}
+      {@ external_file.txt}
+      Note, that the following links are malformed:
+      {:norg_file:@ external_file.txt}
+      {:norg_file:https://github.com/}
+
  ** Markers
     You can mark specific locations in your file with markers:
     @code norg
@@ -350,7 +381,7 @@ consective new lines.
       - You can create ,/italic subscripts/,.
       - If you want to shout in the internet, use */_DOUBLY EMPHASIZED AND UNDERLINED CAPS_/*
 
-      Note: You can:*not*: combine sub- and superscripts like so:
+      Note: You can:*not* combine sub- and superscripts like so:
       @code norg
       ^,This should be super- and subscript.,^ Why though?
       @end
