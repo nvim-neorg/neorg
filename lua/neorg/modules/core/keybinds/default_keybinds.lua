@@ -39,6 +39,8 @@ module.public = {
 
                     -- mnemonic: markup toggle
                     { neorg_leader .. "mt", "core.norg.concealer.toggle-markup" },
+
+                    { "<C-s>", "core.integrations.telescope.find_linkable" },
                 },
 
                 o = {
@@ -48,6 +50,9 @@ module.public = {
                     { "it", "core.norg.manoeuvre.textobject.inner-tag" },
                     { "al", "core.norg.manoeuvre.textobject.around-whole-list" },
                 },
+                i = {
+                    { "<C-l>", "core.integrations.telescope.insert_link" },
+                }
             }, {
                 silent = true,
                 noremap = true,
