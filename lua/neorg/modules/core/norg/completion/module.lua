@@ -50,6 +50,7 @@ module.load = function()
     })
 end
 
+---@class core.norg.completion
 module.public = {
 
     -- Define completions

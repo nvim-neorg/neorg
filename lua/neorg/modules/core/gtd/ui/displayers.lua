@@ -1,5 +1,6 @@
 local module = neorg.modules.extend("core.gtd.ui.displayers")
 
+---@class core.gtd.ui
 module.public = {
     --- Display today view for `tasks`, grouped by contexts
     --- @param tasks core.gtd.queries.task

@@ -179,6 +179,7 @@ module.private = {
     ]],
 }
 
+---@class core.norg.concealer
 module.public = {
 
     -- @Summary Activates icons for the current window

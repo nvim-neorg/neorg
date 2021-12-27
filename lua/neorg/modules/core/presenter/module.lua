@@ -48,7 +48,6 @@ module.load = function()
     })
 end
 
----@class core.presenter.config
 module.config.public = {
     -- Zen mode plugin to use. Currenly suppported:
     -- zen-mode (https://github.com/folke/zen-mode.nvim)
