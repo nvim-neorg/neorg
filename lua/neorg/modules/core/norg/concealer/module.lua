@@ -2060,10 +2060,10 @@ module.on_event = function(event)
 
                 module.private.last_change.active = true
 
-                vim.schedule(function()
-                    local mode = vim.api.nvim_get_mode().mode
+                local mode = vim.api.nvim_get_mode().mode
 
-                    if mode == "n" or mode == "no" then
+                if mode == "n" or mode == "no" then
+                    vim.schedule(function()
                         local new_line_count = vim.api.nvim_buf_line_count(buf)
 
                         -- Sometimes occurs with one-line undos
@@ -2077,10 +2077,8 @@ module.on_event = function(event)
 
                         module.public.trigger_icons(module.private.icons, module.private.icon_namespace, start, _end)
                         line_count = new_line_count
-                    end
-                end)
-
-                do
+                    end)
+                else
                     if module.private.largest_change_start == -1 then
                         module.private.largest_change_start = start
                     end
@@ -2102,6 +2100,7 @@ module.on_event = function(event)
                 active = false,
                 line = event.cursor_position[1] - 1,
             }
+
             vim.api.nvim_buf_clear_namespace(
                 0,
                 module.private.icon_namespace,
@@ -2138,6 +2137,8 @@ module.on_event = function(event)
                     module.private.largest_change_end
                 )
             end
+
+            module.private.largest_change_start, module.private.largest_change_end = -1, -1
         end)
     elseif event.type == "core.keybinds.events.core.norg.concealer.toggle-markup" then
         module.public.toggle_markup()
