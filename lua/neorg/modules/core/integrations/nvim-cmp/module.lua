@@ -31,6 +31,7 @@ module.load = function()
     module.private.cmp = cmp
 end
 
+---@class core.integrations.nvim-cmp
 module.public = {
     create_source = function()
         module.private.completion_item_mapping = {

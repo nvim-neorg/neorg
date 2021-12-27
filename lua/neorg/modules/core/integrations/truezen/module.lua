@@ -24,6 +24,7 @@ module.config.public = {
     setup = {},
 }
 
+---@class core.integrations.truezen
 module.public = {
     toggle_ataraxis = function()
         vim.cmd(":TZAtaraxis")

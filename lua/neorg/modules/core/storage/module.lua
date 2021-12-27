@@ -26,6 +26,7 @@ module.private = {
     data = {},
 }
 
+---@class core.storage
 module.public = {
     sync = function()
         local file = io.open(module.config.public.path, "r")

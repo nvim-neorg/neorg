@@ -1,5 +1,6 @@
 local module = neorg.modules.extend("core.keybinds.default_keybinds")
 
+---@class core.keybinds
 module.public = {
     generate_keybinds = function(neorg_leader)
         local neorg_callbacks = require("neorg.callbacks")

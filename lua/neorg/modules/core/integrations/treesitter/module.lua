@@ -474,6 +474,7 @@ module.load = function()
     -- end
 end
 
+---@class core.integrations.treesitter
 module.public = {
     get_ts_utils = function()
         return module.private.ts_utils

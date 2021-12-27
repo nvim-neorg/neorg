@@ -48,6 +48,7 @@ module.config.public = {
     },
 }
 
+---@class core.norg.manoeuvre
 module.public = {
     get_element_from_cursor = function(node_pattern)
         local node_at_cursor = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()

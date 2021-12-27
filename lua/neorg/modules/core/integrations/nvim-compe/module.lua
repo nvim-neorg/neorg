@@ -27,6 +27,7 @@ module.load = function()
     module.private.compe = compe
 end
 
+---@class core.integrations.nvim-compe
 module.public = {
     -- @Summary Creates a new nvim-compe source
     -- @Param  user_data (table) - a table of user data to supply to the source upon creation
