@@ -53,12 +53,11 @@ log.new = function(config, standalone)
 
     local outfile = string.format("%s/%s.log", vim.api.nvim_call_function("stdpath", { "data" }), config.plugin)
 
-    local obj
-    if standalone then
-        obj = log
-    else
-        obj = {}
-    end
+    local obj = neorg.lib.match({
+        standalone ~= nil,
+        ["true"] = log,
+        ["false"] = {},
+    })
 
     local levels = {}
     for i, v in ipairs(config.modes) do

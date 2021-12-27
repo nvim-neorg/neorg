@@ -445,33 +445,33 @@ module.load = function()
 		Injections are generated dynamically
 	--]]
 
-    if module.config.public.generate_shorthands then
-        local injections = {}
+    -- if module.config.public.generate_shorthands then
+    --     local injections = {}
 
-        -- TEMPORARILY COMMENTED OUT
-        -- This sort of language shorthand stuff does not actually work (seemingly because there are too many queries for TS to parse?)
-        -- We'll be removing this until further notice
-        -- local langs = require("neorg.external.helpers").get_language_shorthands(false)
+    -- TEMPORARILY COMMENTED OUT
+    -- This sort of language shorthand stuff does not actually work (seemingly because there are too many queries for TS to parse?)
+    -- We'll be removing this until further notice
+    -- local langs = require("neorg.external.helpers").get_language_shorthands(false)
 
-        --
-        -- for language, shorthands in pairs(langs) do
-        --     for _, shorthand in ipairs(shorthands) do
-        --         table.insert(
-        --             injections,
-        --             (
-        --                 [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @_language) (ranged_tag_content) @%s (#eq? @_tagname "code") (#eq? @_language "%s"))]]
-        --             ):format(language, shorthand)
-        --         )
-        --     end
-        -- end
+    --
+    -- for language, shorthands in pairs(langs) do
+    --     for _, shorthand in ipairs(shorthands) do
+    --         table.insert(
+    --             injections,
+    --             (
+    --                 [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @_language) (ranged_tag_content) @%s (#eq? @_tagname "code") (#eq? @_language "%s"))]]
+    --             ):format(language, shorthand)
+    --         )
+    --     end
+    -- end
 
-        -- table.insert(
-        --     injections,
-        --     [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @language) (ranged_tag_content) @content (#eq? @_tagname "code"))]]
-        -- )
+    -- table.insert(
+    --     injections,
+    --     [[(ranged_tag (tag_name) @_tagname (tag_parameters (word) @language) (ranged_tag_content) @content (#eq? @_tagname "code"))]]
+    -- )
 
-        -- vim.treesitter.set_query("norg", "injections", table.concat(injections, "\n"))
-    end
+    -- vim.treesitter.set_query("norg", "injections", table.concat(injections, "\n"))
+    -- end
 end
 
 module.public = {
@@ -745,15 +745,14 @@ module.public = {
             }
         end
 
-        local rs, cs, re, ce = 0, 0, 0, 0
-
-        if type(node) == "table" then -- We're dealing with a node range
+        local rs, cs, re, ce = neorg.lib.when(type(node) == "table", function()
             local brs, bcs, _, _ = node[1]:range()
             local _, _, ere, ece = node[#node]:range()
-            rs, cs, re, ce = brs, bcs, ere, ece
-        else
-            rs, cs, re, ce = node:range()
-        end
+            return brs, bcs, ere, ece
+        end, function()
+            local a, b, c, d = node:range()
+            return a, b, c, d
+        end)
 
         return {
             row_start = rs,

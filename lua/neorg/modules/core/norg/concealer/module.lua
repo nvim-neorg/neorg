@@ -1717,7 +1717,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             -- inherited from above.
             highlight = "NeorgSpoiler",
             query = "(spoiler) @icon",
-            render = function(self, text, node)
+            render = function(self, text)
                 return {
                     { string.rep(self.icon, #text), self.highlight },
                 }
