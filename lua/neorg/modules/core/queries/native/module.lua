@@ -126,10 +126,11 @@ module.public = {
     extract_nodes = function(nodes, opts)
         opts = opts or {}
         local res = {}
+        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         for _, node in ipairs(nodes) do
-            local text = module.public.get_file_text(node[2])
-            local extracted = vim.treesitter.get_node_text(node[1], text)
+            local temp_buf = module.public.get_temp_buf(node[2])
+            local extracted = ts_utils.get_node_text(node[1], temp_buf)
 
             if opts.all_lines then
                 table.insert(res, extracted)
@@ -174,7 +175,7 @@ module.public = {
     --- This does prevent triggering norg autocommands
     --- @param buf number #The bufnr to get text from
     --- @return number #The temporary bufnr
-    create_temp_buf = function(buf)
+    get_temp_buf = function(buf)
         -- If we don't have any previous private data, get the file text
         if not module.private.data.temp_bufs[buf] then
             -- Get the file name from bufnr
@@ -222,7 +223,8 @@ module.private = {
     --- @param bufnr number
     --- @return userdata
     get_buf_root_node = function(bufnr)
-        local parser = vim.treesitter.get_parser(bufnr, "norg")
+        local temp_buf = module.public.get_temp_buf(bufnr)
+        local parser = vim.treesitter.get_parser(temp_buf, "norg")
         local tstree = parser:parse()[1]
         return tstree:root()
     end,
@@ -356,7 +358,8 @@ With that in mind, you can do something like this (for example):
             end
 
             if where[1] == "child_content" then
-                if node:type() == where[2] and ts_utils.get_node_text(node, opts.bufnr)[1] == where[3] then
+                local temp_buf = module.public.get_temp_buf(opts.bufnr)
+                if node:type() == where[2] and ts_utils.get_node_text(node, temp_buf)[1] == where[3] then
                     return true
                 end
             end
