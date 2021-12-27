@@ -52,7 +52,7 @@ module.public = {
                 },
                 i = {
                     { "<C-l>", "core.integrations.telescope.insert_link" },
-                }
+                },
             }, {
                 silent = true,
                 noremap = true,
