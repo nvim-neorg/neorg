@@ -170,12 +170,13 @@ module.public = {
         return res
     end,
 
-    --- Get the file text as table from a buffer
+    --- Creates an unlisted temp buffer reading from the original bufnr.
+    --- This does prevent triggering norg autocommands
     --- @param buf number #The bufnr to get text from
-    --- @return string[] #The resulting table of lines
-    get_file_text = function(buf)
+    --- @return number #The temporary bufnr
+    create_temp_buf = function(buf)
         -- If we don't have any previous private data, get the file text
-        if not module.private.data.string_contents[buf] then
+        if not module.private.data.temp_bufs[buf] then
             -- Get the file name from bufnr
             local uri = vim.uri_from_bufnr(buf)
             local fname = vim.uri_to_fname(uri)
@@ -189,12 +190,14 @@ module.public = {
             local lines = f:read("*a")
             f:close()
 
-            -- Stores the lines in data
+            -- Stores the lines in a temp buffer
+            local temp_buf = vim.api.nvim_create_buf(false, true)
             lines = vim.split(lines, "\n")
-            module.private.data.string_contents[buf] = lines
+            vim.api.nvim_buf_set_lines(temp_buf, 0, -1, false, lines)
+            module.private.data.temp_bufs[buf] = temp_buf
         end
 
-        return module.private.bufnr_contents[buf]
+        return module.private.data.temp_bufs[buf]
     end,
 
     --- Deletes the content from data.
@@ -203,9 +206,9 @@ module.public = {
     --- @param buf number #The content relative to the provided buffer
     delete_content = function(buf)
         neorg.lib.when(buf, function()
-            module.private.data.string_contents[buf] = nil
+            module.private.data.temp_bufs[buf] = nil
         end, function()
-            module.private.data.string_contents = {}
+            module.private.data.temp_bufs = {}
         end)
     end,
 }
@@ -213,7 +216,7 @@ module.public = {
 module.private = {
     data = {
         -- Must be a table of keys like buffer = string_content
-        string_contents = {},
+        temp_bufs = {},
     },
     --- Get the root node from a `bufnr`
     --- @param bufnr number
