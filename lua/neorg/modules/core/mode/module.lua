@@ -34,6 +34,7 @@ module.private = {
     },
 }
 
+---@class core.mode
 module.public = {
 
     -- Define command for :Neorg

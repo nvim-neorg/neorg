@@ -221,6 +221,7 @@ module.load = function()
     end
 end
 
+---@class core.norg.esupports
 module.public = {
 
     -- @Summary Creates a new indent

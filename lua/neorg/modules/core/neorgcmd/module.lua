@@ -159,6 +159,7 @@ module.config.public = {
     },
 }
 
+---@class core.neorgcmd
 module.public = {
 
     -- The table containing all the functions. This can get a tad complex so I recommend you read the wiki entry
