@@ -48,6 +48,9 @@ module.examples = {
         local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, buf)
         local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
 
+        -- Free the text in memory after reading nodes
+        module.required["core.queries.native"].reset_data(buf)
+
         print(nodes, extracted_nodes)
     end,
 }
@@ -123,10 +126,10 @@ module.public = {
     extract_nodes = function(nodes, opts)
         opts = opts or {}
         local res = {}
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         for _, node in ipairs(nodes) do
-            local extracted = ts_utils.get_node_text(node[1], node[2])
+            local text = module.public.get_file_text(node[2])
+            local extracted = vim.treesitter.get_node_text(node[1], text)
 
             if opts.all_lines then
                 table.insert(res, extracted)
