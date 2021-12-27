@@ -9,7 +9,7 @@ local module = neorg.modules.create("core.highlights")
 --[[
     Nested trees concatenate
     So:
-   	   tag = { begin = "+Comment" }
+        tag = { begin = "+Comment" }
 	matches the highlight group:
 		NeorgTagBegin
 	and converts into the command:

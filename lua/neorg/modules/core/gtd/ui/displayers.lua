@@ -239,8 +239,6 @@ module.public = {
     --- make a progress bar from a percentage
     --- @param pct number
     percent_string = function(pct)
-        local percent_completed = (function() end)()
-
         local completed_over_10 = math.floor(pct / 10)
         return "[" .. string.rep("=", completed_over_10) .. string.rep(" ", 10 - completed_over_10) .. "]"
     end,
@@ -352,12 +350,12 @@ module.public = {
         local someday_tasks = vim.tbl_filter(someday_task, tasks)
 
         if #someday_tasks ~= 0 then
-            for _, t in pairs(someday_tasks) do
-                local inserted = "- " .. t.content
-                if #t.contexts ~= 0 then
+            for _, task in pairs(someday_tasks) do
+                local inserted = "- " .. task.content
+                if #task.contexts ~= 0 then
                     local remove_someday = vim.tbl_filter(function(t)
                         return t ~= "someday"
-                    end, t.contexts)
+                    end, task.contexts)
 
                     if #remove_someday >= 1 then
                         remove_someday = vim.tbl_map(function(c)
@@ -367,7 +365,7 @@ module.public = {
                     end
                 end
                 table.insert(res, inserted)
-                table.insert(positions, { line = #res, data = t })
+                table.insert(positions, { line = #res, data = task })
             end
         end
 

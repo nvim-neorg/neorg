@@ -301,14 +301,14 @@ module.public = {
     get_tag = function(tag_name, node, type, opts, extra_tag_names)
         local allowed_tag_names = { "time.due", "time.start", "contexts", "waiting.for" }
         if extra_tag_names ~= nil then
-            for _, tag_name in pairs(extra_tag_names) do
-                table.insert(allowed_tag_names, tag_name)
+            for _, _tag_name in pairs(extra_tag_names) do
+                table.insert(allowed_tag_names, _tag_name)
             end
         end
 
         local allowed_string = allowed_tag_names[1]
-        for _, tag_name in pairs(allowed_tag_names) do
-            allowed_string = allowed_string .. "|" .. tag_name
+        for _, _tag_name in pairs(allowed_tag_names) do
+            allowed_string = allowed_string .. "|" .. _tag_name
         end
 
         vim.validate({
@@ -370,8 +370,8 @@ module.public = {
 
             if not opts.extract then
                 -- Only keep the nodes and add them to the results
-                tag_content_nodes = vim.tbl_map(function(node)
-                    return node[1]
+                tag_content_nodes = vim.tbl_map(function(n)
+                    return n[1]
                 end, tag_content_nodes)
                 vim.list_extend(extracted, tag_content_nodes)
             else
