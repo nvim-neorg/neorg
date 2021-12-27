@@ -174,8 +174,11 @@ module.public = {
     --- Creates an unlisted temp buffer reading from the original bufnr.
     --- This does prevent triggering norg autocommands
     --- @param buf number #The bufnr to get text from
+    --- @param opts table? #Custom options
+    ---   - opts.no_force_read boolean? #If true, will not read original buffer if it fails to open
     --- @return number #The temporary bufnr
-    get_temp_buf = function(buf)
+    get_temp_buf = function(buf, opts)
+        opts = opts or {}
         -- If we don't have any previous private data, get the file text
         if not module.private.data.temp_bufs[buf] then
             -- Get the file name from bufnr
@@ -184,16 +187,22 @@ module.public = {
 
             -- Open and read all lines in the file
             local f, err = io.open(fname, "r")
+            local lines
             if not f then
-                log.error(err)
-                return
+                log.warn("Can't read file " .. fname)
+                if opts.no_force_read then
+                    log.error(err)
+                    return
+                end
+                lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+            else
+                lines = f:read("*a")
+                lines = vim.split(lines, "\n")
+                f:close()
             end
-            local lines = f:read("*a")
-            f:close()
 
             -- Stores the lines in a temp buffer
             local temp_buf = vim.api.nvim_create_buf(false, true)
-            lines = vim.split(lines, "\n")
             vim.api.nvim_buf_set_lines(temp_buf, 0, -1, false, lines)
             module.private.data.temp_bufs[buf] = temp_buf
         end
