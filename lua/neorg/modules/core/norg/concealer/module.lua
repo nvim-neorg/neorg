@@ -202,73 +202,75 @@ module.public = {
 
         -- Loop through all icons that the user has enabled
         for _, icon_data in ipairs(icon_set) do
-            if icon_data.query then
-                -- Attempt to parse the query provided by `icon_data.query`
-                -- A query must have at least one capture, e.g. "(test_node) @icon"
-                local query = vim.treesitter.parse_query("norg", icon_data.query)
+            vim.schedule(function()
+                if icon_data.query then
+                    -- Attempt to parse the query provided by `icon_data.query`
+                    -- A query must have at least one capture, e.g. "(test_node) @icon"
+                    local query = vim.treesitter.parse_query("norg", icon_data.query)
 
-                local ok_ts_query, nvim_ts_query = pcall(require, "nvim-treesitter.query")
-                local ok_ts_locals, nvim_locals = pcall(require, "nvim-treesitter.locals")
+                    local ok_ts_query, nvim_ts_query = pcall(require, "nvim-treesitter.query")
+                    local ok_ts_locals, nvim_locals = pcall(require, "nvim-treesitter.locals")
 
-                if not ok_ts_query or not ok_ts_locals then
-                    log.error("Unable to trigger icons - nvim-treesitter is not loaded.")
-                    return
-                end
+                    if not ok_ts_query or not ok_ts_locals then
+                        log.error("Unable to trigger icons - nvim-treesitter is not loaded.")
+                        return
+                    end
 
-                -- Go through every found node and try to apply an icon to it
-                for match in nvim_ts_query.iter_prepared_matches(query, document_root, 0, from or 0, to or -1) do
-                    nvim_locals.recurse_local_nodes(match, function(_, node, capture)
-                        if capture == "icon" then
-                            -- Extract both the text and the range of the node
-                            local text = module.required["core.integrations.treesitter"].get_node_text(node)
-                            local range = module.required["core.integrations.treesitter"].get_node_range(node)
+                    -- Go through every found node and try to apply an icon to it
+                    for match in nvim_ts_query.iter_prepared_matches(query, document_root, 0, from or 0, to or -1) do
+                        nvim_locals.recurse_local_nodes(match, function(_, node, capture)
+                            if capture == "icon" then
+                                -- Extract both the text and the range of the node
+                                local text = module.required["core.integrations.treesitter"].get_node_text(node)
+                                local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
-                            -- Set the offset to 0 here. The offset is a special value that, well, offsets
-                            -- the location of the icon column-wise
-                            -- It's used in scenarios where the node spans more than what we want to iconify.
-                            -- A prime example of this is the todo item, whose content looks like this: "[x]".
-                            -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
-                            -- to use an offset of 1 to start the icon at the "x"
-                            local offset = 0
+                                -- Set the offset to 0 here. The offset is a special value that, well, offsets
+                                -- the location of the icon column-wise
+                                -- It's used in scenarios where the node spans more than what we want to iconify.
+                                -- A prime example of this is the todo item, whose content looks like this: "[x]".
+                                -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
+                                -- to use an offset of 1 to start the icon at the "x"
+                                local offset = 0
 
-                            -- The extract function is used exactly to calculate this offset
-                            -- If that function is present then run it and grab the return value
-                            if icon_data.extract then
-                                offset = icon_data.extract(text, node) or 0
+                                -- The extract function is used exactly to calculate this offset
+                                -- If that function is present then run it and grab the return value
+                                if icon_data.extract then
+                                    offset = icon_data.extract(text, node) or 0
+                                end
+
+                                -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
+                                -- This is primarily used in nested quotes
+                                -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
+                                if not icon_data.render then
+                                    module.public._set_extmark(
+                                        icon_data.icon,
+                                        icon_data.highlight,
+                                        namespace,
+                                        range.row_start,
+                                        range.row_end,
+                                        range.column_start + offset,
+                                        range.column_end,
+                                        false,
+                                        "combine"
+                                    )
+                                else
+                                    module.public._set_extmark(
+                                        icon_data:render(text, node),
+                                        icon_data.highlight,
+                                        namespace,
+                                        range.row_start,
+                                        range.row_end,
+                                        range.column_start + offset,
+                                        range.column_end,
+                                        false,
+                                        "combine"
+                                    )
+                                end
                             end
-
-                            -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
-                            -- This is primarily used in nested quotes
-                            -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
-                            if not icon_data.render then
-                                module.public._set_extmark(
-                                    icon_data.icon,
-                                    icon_data.highlight,
-                                    namespace,
-                                    range.row_start,
-                                    range.row_end,
-                                    range.column_start + offset,
-                                    range.column_end,
-                                    false,
-                                    "combine"
-                                )
-                            else
-                                module.public._set_extmark(
-                                    icon_data:render(text, node),
-                                    icon_data.highlight,
-                                    namespace,
-                                    range.row_start,
-                                    range.row_end,
-                                    range.column_start + offset,
-                                    range.column_end,
-                                    false,
-                                    "combine"
-                                )
-                            end
-                        end
-                    end)
+                        end)
+                    end
                 end
-            end
+            end)
         end
     end,
 
@@ -1952,6 +1954,12 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             },
         },
     },
+
+    performance = {
+        increment = 1250,
+        timeout = 0,
+        interval = 500,
+    },
 }
 
 module.load = function()
@@ -2050,11 +2058,62 @@ module.on_event = function(event)
         local buf = event.buffer
         local line_count = vim.api.nvim_buf_line_count(buf)
 
-        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+        if line_count < module.config.public.performance.increment then
+            module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+        else
+            local block_current = math.floor(
+                (line_count / module.config.public.performance.increment) % event.cursor_position[1]
+            )
+
+            local function trigger_for_block(block, icon_set, namespace)
+                module.public.trigger_icons(
+                    icon_set,
+                    namespace,
+                    block == 0 and 0 or block * module.config.public.performance.increment - 1,
+                    math.min(
+                        block * module.config.public.performance.increment
+                            + module.config.public.performance.increment
+                            - 1,
+                        line_count
+                    )
+                )
+            end
+
+            trigger_for_block(block_current, module.private.icons, module.private.icon_namespace)
+
+            local block_bottom, block_top = block_current - 1, block_current + 1
+
+            local timer = vim.loop.new_timer()
+
+            timer:start(
+                module.config.public.performance.timeout,
+                module.config.public.performance.interval,
+                vim.schedule_wrap(function()
+                    local block_bottom_valid = block_bottom == 0
+                        or (block_bottom * module.config.public.performance.increment - 1 >= 0)
+                    local block_top_valid = block_top * module.config.public.performance.increment - 1 < line_count
+
+                    if not block_bottom_valid and not block_top_valid then
+                        timer:stop()
+                        return
+                    end
+
+                    if block_bottom_valid then
+                        trigger_for_block(block_bottom, module.private.icons, module.private.icon_namespace)
+                        block_bottom = block_bottom - 1
+                    end
+
+                    if block_top_valid then
+                        trigger_for_block(block_top, module.private.icons, module.private.icon_namespace)
+                        block_top = block_top + 1
+                    end
+                end)
+            )
+        end
 
         vim.api.nvim_buf_attach(buf, false, {
-            on_lines = function(_, _, _, start, _end)
-                if buf ~= vim.api.nvim_get_current_buf() then
+            on_lines = function(_, cur_buf, _, start, _end)
+                if buf ~= cur_buf then
                     return true
                 end
 
