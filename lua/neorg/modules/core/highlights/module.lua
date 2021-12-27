@@ -49,6 +49,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("ColorScheme", true)
 end
 
+---@class core.highlights
 module.public = {
 
     -- @Summary	Defines all the highlight groups for Neorg

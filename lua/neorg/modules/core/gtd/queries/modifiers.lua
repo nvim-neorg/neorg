@@ -1,5 +1,6 @@
 local module = neorg.modules.extend("core.gtd.queries.modifiers")
 
+---@class core.gtd.queries
 module.public = {
     --- Modifies an `option` from `object` (the content must not be extracted!) with new `value`
     --- @param object core.gtd.queries.task|core.gtd.queries.project

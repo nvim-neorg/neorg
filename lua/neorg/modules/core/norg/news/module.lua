@@ -167,6 +167,7 @@ See :messages for full output]],
     end
 end
 
+---@class core.norg.news
 module.public = {
     parse_source = function(name, force)
         local source = module.config.public.sources[name]

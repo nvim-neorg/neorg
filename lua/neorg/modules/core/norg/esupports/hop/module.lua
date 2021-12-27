@@ -31,6 +31,7 @@ module.config.public = {
     fuzzing_threshold = 0.5,
 }
 
+---@class core.norg.esupports.hop
 module.public = {
     extract_link_node = function()
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()

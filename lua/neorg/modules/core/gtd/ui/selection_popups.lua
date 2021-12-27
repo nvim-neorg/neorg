@@ -1,5 +1,6 @@
 local module = neorg.modules.extend("core.gtd.ui.selection_popups")
 
+---@class core.gtd.ui
 module.public = {
     show_views_popup = function()
         -- Exlude files explicitely provided by the user, and the inbox file

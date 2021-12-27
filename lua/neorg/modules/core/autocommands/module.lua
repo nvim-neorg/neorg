@@ -52,6 +52,7 @@ module.autocmd_base = function(name)
     return neorg.events.define(module, name)
 end
 
+---@class core.autocommands
 module.public = {
 
     -- @Summary Enable an autocommand event

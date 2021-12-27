@@ -63,6 +63,7 @@ module.config.public = {
     custom_tag_completion = false,
 }
 
+---@class core.gtd.base
 module.public = {
     version = "0.0.8",
 }
@@ -73,10 +74,8 @@ module.private = {
 
 module.load = function()
     ---@type core.norg.dirman
-    ---@diagnostic disable-next-line: unused-local
     local dirman = module.required["core.norg.dirman"]
     ---@type core.keybinds
-    ---@diagnostic disable-next-line: unused-local
     local keybinds = module.required["core.keybinds"]
 
     -- Get workspace for gtd files and save full path in private

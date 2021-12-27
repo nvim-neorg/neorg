@@ -25,6 +25,7 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 ---@field time.due string[]|nil
 ---@field position number
 
+---@class core.gtd.queries
 module.public = {
     --- Get a table of all `type` in workspace
     --- @param type string
