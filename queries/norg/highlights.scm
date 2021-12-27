@@ -32,124 +32,154 @@
 
 ; Links
 (link
-    ("_begin") @NeorgLinkLocationDelimiter
-    (link_file
-        ("_begin") @NeorgLinkFileDelimiter
-        location: (link_file_text) @NeorgLinkFile
-        ("_end") @NeorgLinkFileDelimiter
-    )?
     (link_location
+        ("_begin") @NeorgLinkLocationDelimiter
+        (
+            ("_begin") @NeorgLinkFileDelimiter
+        )?
+        file: (
+            (link_file_text) @NeorgLinkFile
+        )?
+        (
+            ("_end") @NeorgLinkFileDelimiter
+        )?
         [
             (
-                (link_location_url) ; Doesn't require a highlight since it's a 0-width node
-                (link_location_text) @NeorgLinkLocationURL
+                (link_target_url) ; Doesn't require a highlight since it's a 0-width node
+                (paragraph_segment) @NeorgLinkLocationURL
             )
             (
-                (link_location_generic) @NeorgLinkLocationGenericPrefix
-                (link_location_text) @NeorgLinkLocationGeneric
+                (link_target_generic) @NeorgLinkLocationGenericPrefix
+                (paragraph_segment) @NeorgLinkLocationGeneric
             )
             (
-                (link_location_external_file) @NeorgLinkLocationExternalFilePrefix
-                (link_location_text) @NeorgLinkLocationExternalFile
+                (link_target_external_file) @NeorgLinkLocationExternalFilePrefix
+                (paragraph_segment) @NeorgLinkLocationExternalFile
             )
             (
-                (link_location_marker) @NeorgLinkLocationMarkerPrefix
-                (link_location_text) @NeorgLinkLocationMarker
+                (link_target_marker) @NeorgLinkLocationMarkerPrefix
+                (paragraph_segment) @NeorgLinkLocationMarker
             )
             (
-                (link_location_heading1) @NeorgLinkLocationHeading1Prefix
-                (link_location_text) @NeorgLinkLocationHeading1
+                (link_target_definition) @NeorgLinkLocationDefinitionPrefix
+                (paragraph_segment) @NeorgLinkLocationDefinition
             )
             (
-                (link_location_heading2) @NeorgLinkLocationHeading2Prefix
-                (link_location_text) @NeorgLinkLocationHeading2
+                (link_target_footnote) @NeorgLinkLocationFootnotePrefix
+                (paragraph_segment) @NeorgLinkLocationFootnote
             )
             (
-                (link_location_heading3) @NeorgLinkLocationHeading3Prefix
-                (link_location_text) @NeorgLinkLocationHeading3
+                (link_target_heading1) @NeorgLinkLocationHeading1Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading1
             )
             (
-                (link_location_heading4) @NeorgLinkLocationHeading4Prefix
-                (link_location_text) @NeorgLinkLocationHeading4
+                (link_target_heading2) @NeorgLinkLocationHeading2Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading2
             )
             (
-                (link_location_heading5) @NeorgLinkLocationHeading5Prefix
-                (link_location_text) @NeorgLinkLocationHeading5
+                (link_target_heading3) @NeorgLinkLocationHeading3Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading3
             )
             (
-                (link_location_heading6) @NeorgLinkLocationHeading6Prefix
-                (link_location_text) @NeorgLinkLocationHeading6
+                (link_target_heading4) @NeorgLinkLocationHeading4Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading4
             )
-        ]
-    )?
-    ("_end") @NeorgLinkLocationDelimiter
+            (
+                (link_target_heading5) @NeorgLinkLocationHeading5Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading5
+            )
+            (
+                (link_target_heading6) @NeorgLinkLocationHeading6Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading6
+            )
+        ]?
+        ("_end") @NeorgLinkLocationDelimiter
+    )
     (link_description
         ("_begin") @NeorgLinkTextDelimiter
-        text: (link_text) @NeorgLinkText
+        text: (paragraph_segment) @NeorgLinkText
         ("_end") @NeorgLinkTextDelimiter
     )?
 ) @NeorgLink
 
 ; Anchors
 (anchor_declaration
-    ("_begin") @NeorgAnchorDeclarationDelimiter
-    text: (anchor_declaration_text) @NeorgAnchorDeclarationText
-    ("_end") @NeorgAnchorDeclarationDelimiter
+    (link_description
+        ("_begin") @NeorgAnchorDeclarationDelimiter
+        text: (paragraph_segment) @NeorgAnchorDeclarationText
+        ("_end") @NeorgAnchorDeclarationDelimiter
+    )
 ) @NeorgAnchor
 
 (anchor_definition
-    (anchor_declaration)
-    ("_begin") @NeorgAnchorDefinitionDelimiter
-    (link_file
-        ("_begin") @NeorgLinkFileDelimiter
-        location: (link_file_text) @NeorgLinkFile
-        ("_end") @NeorgLinkFileDelimiter
-    )?
+    (link_description
+        ("_begin") @NeorgAnchorDeclarationDelimiter
+        text: (paragraph_segment) @NeorgAnchorDeclarationText
+        ("_end") @NeorgAnchorDeclarationDelimiter
+    )
     (link_location
+        ("_begin") @NeorgAnchorDefinitionDelimiter
+        (
+            ("_begin") @NeorgLinkFileDelimiter
+        )?
+        file: (
+            (link_file_text) @NeorgLinkFile
+        )?
+        (
+            ("_end") @NeorgLinkFileDelimiter
+        )?
         [
             (
-                (link_location_url) ; Doesn't require a highlight since it's a 0-width node
-                (link_location_text) @NeorgLinkLocationURL
+                (link_target_url) ; Doesn't require a highlight since it's a 0-width node
+                (paragraph_segment) @NeorgLinkLocationURL
             )
             (
-                (link_location_generic) @NeorgLinkLocationGenericPrefix
-                (link_location_text) @NeorgLinkLocationGeneric
+                (link_target_generic) @NeorgLinkLocationGenericPrefix
+                (paragraph_segment) @NeorgLinkLocationGeneric
             )
             (
-                (link_location_external_file) @NeorgLinkLocationExternalFilePrefix
-                (link_location_text) @NeorgLinkLocationExternalFile
+                (link_target_external_file) @NeorgLinkLocationExternalFilePrefix
+                (paragraph_segment) @NeorgLinkLocationExternalFile
             )
             (
-                (link_location_marker) @NeorgLinkLocationMarkerPrefix
-                (link_location_text) @NeorgLinkLocationMarker
+                (link_target_marker) @NeorgLinkLocationMarkerPrefix
+                (paragraph_segment) @NeorgLinkLocationMarker
             )
             (
-                (link_location_heading1) @NeorgLinkLocationHeading1Prefix
-                (link_location_text) @NeorgLinkLocationHeading1
+                (link_target_definition) @NeorgLinkLocationDefinitionPrefix
+                (paragraph_segment) @NeorgLinkLocationDefinition
             )
             (
-                (link_location_heading2) @NeorgLinkLocationHeading2Prefix
-                (link_location_text) @NeorgLinkLocationHeading2
+                (link_target_footnote) @NeorgLinkLocationFootnotePrefix
+                (paragraph_segment) @NeorgLinkLocationFootnote
             )
             (
-                (link_location_heading3) @NeorgLinkLocationHeading3Prefix
-                (link_location_text) @NeorgLinkLocationHeading3
+                (link_target_heading1) @NeorgLinkLocationHeading1Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading1
             )
             (
-                (link_location_heading4) @NeorgLinkLocationHeading4Prefix
-                (link_location_text) @NeorgLinkLocationHeading4
+                (link_target_heading2) @NeorgLinkLocationHeading2Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading2
             )
             (
-                (link_location_heading5) @NeorgLinkLocationHeading5Prefix
-                (link_location_text) @NeorgLinkLocationHeading5
+                (link_target_heading3) @NeorgLinkLocationHeading3Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading3
             )
             (
-                (link_location_heading6) @NeorgLinkLocationHeading6Prefix
-                (link_location_text) @NeorgLinkLocationHeading6
+                (link_target_heading4) @NeorgLinkLocationHeading4Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading4
+            )
+            (
+                (link_target_heading5) @NeorgLinkLocationHeading5Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading5
+            )
+            (
+                (link_target_heading6) @NeorgLinkLocationHeading6Prefix
+                (paragraph_segment) @NeorgLinkLocationHeading6
             )
         ]
+        ("_end") @NeorgAnchorDefinitionDelimiter
     )?
-    ("_end") @NeorgAnchorDefinitionDelimiter
 ) @NeorgAnchor
 
 ; Headings
