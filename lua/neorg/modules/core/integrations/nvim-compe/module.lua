@@ -150,7 +150,7 @@ module.public = {
 
     -- @Summary Invoked whenever a completion item is confirmed
     -- @Param  context (table) - a context as provided by nvim-compe
-    confirm = function(context)
+    confirm = function()
         -- If the defined completion has a post function then invoke it
         if module.private.completion_cache.options.post then
             module.private.completion_cache.options.post()

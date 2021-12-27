@@ -7,8 +7,8 @@ module.load = function()
 
     assert(success, "Unable to load truezen...")
 
-    local success, truezen_setup = pcall(require, "true-zen")
-    assert(success, "Unable to load truezen setup")
+    local _success, truezen_setup = pcall(require, "true-zen")
+    assert(_success, "Unable to load truezen setup")
 
     truezen_setup.setup(module.config.public)
 

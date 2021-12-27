@@ -79,9 +79,7 @@ end
 function neorg.events.define(module, name)
     -- Create a copy of the base event and override the values with ones specified by the user
 
-    local new_event = {}
-
-    new_event = vim.deepcopy(neorg.events.base_event)
+    local new_event = vim.deepcopy(neorg.events.base_event)
 
     if name then
         new_event.type = module.name .. ".events." .. name
