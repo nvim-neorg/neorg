@@ -298,10 +298,10 @@ module.public = {
                 if lang_name == "language" then
                     local regex_language = vim.treesitter.get_node_text(node, 0)
                     -- see if parser exists
-                    local ok, result = pcall(vim.treesitter.require_language, regex_language, true)
+                    local _ok, result = pcall(vim.treesitter.require_language, regex_language, true)
 
                     -- if pcall was true we had parser, skip the rest
-                    if ok and result then
+                    if _ok and result then
                         goto continue
                     end
 
@@ -314,9 +314,9 @@ module.public = {
                     local end_marker = "@end"
                     local has_syntax = "syntax list " .. snip
 
-                    ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
+                    _ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
                     local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
-                    if ok == true and count > 0 then
+                    if _ok == true and count > 0 then
                         goto continue
                     end
 
@@ -333,7 +333,7 @@ module.public = {
 
                     -- see if the syntax files even exist before we try to call them
                     -- if syn list was an error, or if it was an empty result
-                    if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
+                    if _ok == false or (_ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
                         local output = vim.api.nvim_get_runtime_file("syntax/" .. regex_language .. ".vim", false)
                         if output[1] ~= nil then
                             local command = "syntax include @" .. group .. " " .. output[1]
@@ -1666,7 +1666,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             -- inherited from above.
             highlight = "NeorgSpoiler",
             query = "(spoiler) @icon",
-            render = function(self, text, node)
+            render = function(self, text)
                 return {
                     { string.rep(self.icon, #text), self.highlight },
                 }
