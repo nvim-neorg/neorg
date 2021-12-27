@@ -166,9 +166,52 @@ module.public = {
         end
         return res
     end,
+
+    --- Get the file text as table from a buffer
+    --- @param buf number #The bufnr to get text from
+    --- @return string[] #The resulting table of lines
+    get_file_text = function(buf)
+        -- If we don't have any previous private data, get the file text
+        if not module.private.data.string_contents[buf] then
+            -- Get the file name from bufnr
+            local uri = vim.uri_from_bufnr(buf)
+            local fname = vim.uri_to_fname(uri)
+
+            -- Open and read all lines in the file
+            local f, err = io.open(fname, "r")
+            if not f then
+                log.error(err)
+                return
+            end
+            local lines = f:read("*a")
+            f:close()
+
+            -- Stores the lines in data
+            lines = vim.split(lines, "\n")
+            module.private.data.string_contents[buf] = lines
+        end
+
+        return module.private.bufnr_contents[buf]
+    end,
+
+    --- Deletes the content from data.
+    --- If no buffer is provided, will delete every buffer datas
+    --- @overload fun()
+    --- @param buf number #The content relative to the provided buffer
+    delete_content = function(buf)
+        neorg.lib.when(buf, function()
+            module.private.data.string_contents[buf] = nil
+        end, function()
+            module.private.data.string_contents = {}
+        end)
+    end,
 }
 
 module.private = {
+    data = {
+        -- Must be a table of keys like buffer = string_content
+        string_contents = {},
+    },
     --- Get the root node from a `bufnr`
     --- @param bufnr number
     --- @return userdata
