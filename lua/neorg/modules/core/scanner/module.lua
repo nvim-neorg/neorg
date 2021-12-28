@@ -2,6 +2,7 @@
     File: Scanner-Module
     Title: Scanner module for Neorg.
 	Summary: This module is an implementation of a scanner that can be used anywhere TS can't be used.
+    Show: false.
     ---
 --]]
 
