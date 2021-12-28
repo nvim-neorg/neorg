@@ -1,4 +1,6 @@
 --[[
+    Show: false.
+    ---
 	module.list module for neorgcmd - prints all the currently active modules.
 
 USAGE:
