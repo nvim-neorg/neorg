@@ -579,23 +579,24 @@ module.private = {
     --- @return table
     remove_from_table = function(t, el)
         vim.validate({ t = { t, "table" } })
+        local result = {}
 
         -- This is possibly a directory, so we remove every file inside this directory
         if not vim.endswith(el, ".norg") then
-            for i, v in ipairs(t) do
-                if vim.startswith(v, el) then
-                    table.remove(t, i)
+            for _, v in ipairs(t) do
+                if not vim.startswith(v, el) then
+                    table.insert(result, v)
+                end
+            end
+        else
+            for _, v in ipairs(t) do
+                if v ~= el then
+                    table.insert(result, v)
                 end
             end
         end
 
-        for i, v in ipairs(t) do
-            if v == el then
-                table.remove(t, i)
-                break
-            end
-        end
-        return t
+        return result
     end,
 }
 
