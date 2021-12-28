@@ -15,7 +15,7 @@
 <a href="/LICENSE"> ![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=for-the-badge)</a>
 <a href="#wip"> ![Status](https://img.shields.io/badge/status-WIP-informational?style=for-the-badge) </a>
 
-*Your new life organization tool*
+_Your new life organization tool_
 
 [Summary](#summary)
 •
@@ -43,27 +43,27 @@
 
 ## Summary
 
-Neorg (*New*-*Organization*) is a tool designed to reimagine organization as you know it. 
+Neorg (_New_-_Organization_) is a tool designed to reimagine organization as you know it.
 
 Grab some coffee, start writing some notes, let your editor handle the rest!
 
 > Why do we need Neorg ?
 
 There are currently projects designed to [clone org-mode from emacs](https://github.com/kristijanhusak/orgmode.nvim),
-then what is the goal of this project? 
+then what is the goal of this project?
 
-Whilst those projects are amazing, it's simply not enough for us. We need our *own, better* solution - one that will
-surpass *every* other text editor. 
+Whilst those projects are amazing, it's simply not enough for us. We need our _own, better_ solution - one that will
+surpass _every_ other text editor.
 
-That's why we created *Neorg*.
+That's why we created _Neorg_.
 
-_IMPORTANT_: Neorg is *alpha* software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and keeping docs up-to-date would be very painful.
+_IMPORTANT_: Neorg is _alpha_ software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and keeping docs up-to-date would be very painful.
 
 To know more about the philosophy of Neorg, go [here](#philosophy).
 
 ## Installation
 
-Neorg requires at least `0.6+` to operate. 
+Neorg requires at least `0.6+` to operate.
 You can still use Neorg on `0.5.x`, however don't expect all modules to load properly.
 
 You can install through your favorite plugin manager:
@@ -71,7 +71,7 @@ You can install through your favorite plugin manager:
 - [Packer](https://github.com/wbthomason/packer.nvim):
 
   ```lua
-  use { 
+  use {
       "nvim-neorg/neorg",
       config = function()
           require('neorg').setup {
@@ -84,7 +84,7 @@ You can install through your favorite plugin manager:
 
 - [Packer (with lazyloading)](https://github.com/wbthomason/packer.nvim):
 
-  Want to lazy load? Turns out that can be rather problematic. 
+  Want to lazy load? Turns out that can be rather problematic.
   You can use the `ft` key to load Neorg only upon entering a .norg file:
 
   ```lua
@@ -102,26 +102,26 @@ You can install through your favorite plugin manager:
   ```
 
   However, don't expect everything to work. You might need additional setups depending on how your lazyloading system is configured.
-  
+
   Neorg practically lazy loads itself: only a few lines of code are run on startup, these lines check whether the current
   extension is `.norg`, if it's not then nothing else loads. You shouldn't have to worry about performance issues.
-  
+
 - [vim-plug](https://github.com/junegunn/vim-plug):
 
-   ```vim
-   Plug 'nvim-neorg/neorg' | Plug 'nvim-lua/plenary.nvim'
-   ```
-  
+  ```vim
+  Plug 'nvim-neorg/neorg' | Plug 'nvim-lua/plenary.nvim'
+  ```
 
-   You can put this initial configuration in your init.vim file:
-   ```vim
-   lua << EOF
-   require('neorg').setup {
-       " check out setup part...
-   }
-   EOF
-   ```
-  
+  You can put this initial configuration in your init.vim file:
+
+  ```vim
+  lua << EOF
+  require('neorg').setup {
+      " check out setup part...
+  }
+  EOF
+  ```
+
 ## Setup
 
 ### Default modules
@@ -135,14 +135,13 @@ require('neorg').setup {
     ["core.defaults"] = {}
   }
 }
- ```
- 
-You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) which modules are automatically required when adding `core.defaults`
+```
 
+You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) which modules are automatically required when adding `core.defaults`
 
 ### Treesitter
 
-*Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system!*
+_Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system!_
 
 To install it, you want to run this code snippet before you invoke
 `require('nvim-treesitter.configs').setup()`:
@@ -193,11 +192,11 @@ require('nvim-treesitter.configs').setup {
 Having a rare occurence where the parser doesn't work instantly? Try running `:e`.
 
 **Still not working**? Uh oh, you're stepping on muddy territory. There are several reasons why a parser
-may not work right off the bat, however most commonly it's because of plugin loading order. 
+may not work right off the bat, however most commonly it's because of plugin loading order.
 
 Neorg needs `nvim-treesitter` to be up and running before it starts adding colours to highlight groups.
 
-Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup. 
+Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
 
 It's a bit hacky - it will unfortunately stay this way until we get first-class support in the `nvim-treesitter` repository.
 Sorry!
@@ -224,13 +223,14 @@ require('neorg').setup {
     ...
   }
 }
- ```
- 
- And just do `:NeorgStart`, and it'll open your last (or only) workspace !
- 
- Changing workspaces is easy, just do `Neorg workspace ...`
+```
+
+And just do `:NeorgStart`, and it'll open your last (or only) workspace !
+
+Changing workspaces is easy, just do `Neorg workspace ...`
 
 Here are some things we are working on:
+
 - Fully fledged GTD workflow (with @danymat)
 - Dynamically displaying and interacting with a Table of Contents (with @mrossinek)
 - Better parsing of markup (bold, italic etc.)
@@ -238,7 +238,7 @@ Here are some things we are working on:
 
 ## Modules
 
-As you surely saw previously, we loaded `core.defaults`, and recommended you loading `core.norg.dirman`. 
+As you surely saw previously, we loaded `core.defaults`, and recommended you loading `core.norg.dirman`.
 
 They are called a module ! And guess what ? As time passes, we provide more and more modules to help you manage your life !
 
@@ -259,36 +259,47 @@ require('neorg').setup {
     ...
   }
 }
- ```
+```
 
 For more information about what is a module, check out [here](https://github.com/nvim-neorg/neorg/wiki/Installation#the-concept-of-modules).
- 
-To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the *Wiki*.
+
+To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the _Wiki_.
 
 ### Default Modules
 
-These modules are automagically required when you require `core.defaults`, handy !
+The default modules are automagically required when you require `core.defaults`, handy !
 
-<!-- TODO: Use docgen to change this (thanks to markdown parser) -->
+You can view a list of them [here](https://github.com/nvim-neorg/neorg/wiki#default-modules).
+
+<!-- TODO: Use docgen to generate this automatically -->
 
 ### Core Modules
 
-Neorg comes with some cool modules to help you manage your notes. 
+Neorg comes with some cool modules to help you manage your notes.
 
 Feel free to try by adding them to your Neorg setup.
 
-<!-- TODO: Use docgen to change this (thanks to markdown parser) -->
+<!-- TODO: Use docgen to generate this automatically -->
+
+| Module name                                                                     | Description                                                                 |
+| :------------------------------------------------------------------------------ | :-------------------------------------------------------------------------- |
+| [`core.presenter`](https://github.com/nvim-neorg/neorg/wiki/Core-Presenter)     | Neorg module to create gorgeous presentation slides.                        |
+| [`core.norg.completion`](https://github.com/nvim-neorg/neorg/wiki/Completion)   | A wrapper to interface with several different completion engines.           |
+| [`core.norg.concealer`](https://github.com/nvim-neorg/neorg/wiki/Concealer)     | Enhances the basic Neorg experience by using icons instead of text.         |
+| [`core.norg.journal`](https://github.com/nvim-neorg/neorg/wiki/Journal)         | Easily create files for a journal.                                          |
+| [`core.gtd.base`](https://github.com/nvim-neorg/neorg/wiki/Getting-Things-Done) | Manages your tasks with Neorg using the Getting Things Done methodology.    |
+| [`core.norg.dirman`](https://github.com/nvim-neorg/neorg/wiki/Dirman)           | This module is be responsible for managing directories full of .norg files. |
 
 ### External Modules
 
-Users can contribute and create their own modules for Neorg. 
+Users can contribute and create their own modules for Neorg.
 
 To use them, just download the plugin with your package manager, for instance with Packer:
 
 ```lua
 use {
     "nvim-neorg/neorg",
-    requires = "the.module.name"
+    requires = "the.module.name",
     ...
 }
 ```
@@ -306,30 +317,30 @@ require('neorg').setup {
 
 This is a list of external modules:
 
-| Module name                                                                          | Maintainter                                    | 
-| :----------------------------------------------------------------------------------- | :-----------------                             | 
-| [`"utilities.gtd-project-tags"`](https://github.com/esquires/neorg-gtd-project-tags) | [@esquires](https://github.com/esquires)       | 
+| Module name                                                                        | Description                                                                   |
+| :--------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
+| [`utilities.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base` |
 
 ## Philosophy
 
 We think of Neorg as a plugin that will give you all the bragging rights for using Neovim. Here's how we plan to do it:
 
 1. Revise the org format: we want it simple, very extensible, unambiguous. Will make you feel right at home. Org and markdown have several flaws, but the most
-  notable one is the requirement for **complex parsers**.
-  I really advise checking some writeups out on how bad it can get at times.
-  What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
-  Enter the .norg file format, whose [base spec](docs/NFF-0.1-spec.md) is practically complete.
-  The cross between all the best things from org and the best things from markdown, revised and merged into one.
-  
+   notable one is the requirement for **complex parsers**.
+   I really advise checking some writeups out on how bad it can get at times.
+   What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
+   Enter the .norg file format, whose [base spec](docs/NFF-0.1-spec.md) is practically complete.
+   The cross between all the best things from org and the best things from markdown, revised and merged into one.
+
 2. Keybinds that _make sense_: vim's keybind philosophy is unlike any other, and we want to keep that vibe.
-  Keys form a "language", one that you can speak, not one that you need to learn off by heart.
-  
+   Keys form a "language", one that you can speak, not one that you need to learn off by heart.
+
 3. Infinite extensibility: no, that isn't a hyperbole. We mean it. Neorg is built upon an insanely modular and
-  configurable backend - keep what you need, throw away what you don't care about. Use the defaults or change 'em.
-  You are in control of what code runs and what code doesn't run!
-  
+   configurable backend - keep what you need, throw away what you don't care about. Use the defaults or change 'em.
+   You are in control of what code runs and what code doesn't run!
+
 4. Logic: everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
-  two people asked for it.
+   two people asked for it.
 
 ## GIFS
 
@@ -340,12 +351,13 @@ We think of Neorg as a plugin that will give you all the bragging rights for usi
 ## Credits
 
 Massive shoutouts go to the people who supported the project, and help out in creating a good user experience! These are:
+
 - [mrossinek](https://github.com/mrossinek)
 - [danymat](https://github.com/danymat)
 - [Binx](https://github.com/Binx-Codes/)
 - [bandithedoge](https://github.com/bandithedoge)
 
-## Support 
+## Support
 
 Love what I do? Want to see more get done faster? Want to support future projects of mine? Any sort of support is always
 heartwarming and fuels the urge to keep going :heart:. You can support me here:
