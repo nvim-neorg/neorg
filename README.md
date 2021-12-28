@@ -60,7 +60,7 @@ One that will give you all the bragging rights for using Neovim. Here's how we'l
   notable one is the requirement for **complex parsers**.
   I really advise checking some writeups out on how bad it can get at times.
   What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
-  Enter the .norg file format, whose base spec is [practically complete](docs/NFF-0.1-spec.md).
+  Enter the .norg file format, whose [base spec](docs/NFF-0.1-spec.md) is practically complete.
   The cross between all the best things from org and the best things from markdown, revised and merged into one.
   
 2. Keybinds that _make sense_: vim's keybind philosophy is unlike any other, and we want to keep that vibe.
@@ -226,7 +226,6 @@ Simply drop into a `.norg` file and start typing!
 Or you can require the `core.norg.dirman` module, that'll help you manage workspaces:
 
 ```lua
-
 require('neorg').setup {
   load = {
     ...
@@ -258,7 +257,45 @@ Here are some things we are working on:
 
 As you surely saw previously, we loaded `core.defaults`, and recommended you loading `core.norg.dirman`. 
 
-They are called a module !
+They are called a module ! And guess what ? As time passes, we provide more and more modules to help you manage your life !
+
+To require a module, just do:
+
+```lua
+require('neorg').setup {
+  load = {
+    ...
+    -- Require the module with the default configurations for it
+    ["your.required.module"] = { },
+    -- Require the module, and override the configurations (with the "config" table)
+    ["your.required.module"] = { }
+      config = {
+        some_option = true
+      }
+    }
+    ...
+  }
+}
+ ```
+ 
+ 
+To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the *Wiki*.
+
+### Default Modules
+
+These modules are automagically required when you require `core.defaults`, handy !
+
+<!-- TODO: Use docgen to change this (thanks to markdown parser) -->
+
+### Core Modules
+
+Neorg comes with some cool modules to help you manage your notes. 
+
+Feel free to try by adding them to your Neorg setup.
+
+<!-- TODO: Use docgen to change this (thanks to markdown parser) -->
+
+### External Modules
 
 ## Philosophy
 
