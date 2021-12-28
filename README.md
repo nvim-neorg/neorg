@@ -219,7 +219,46 @@ Sorry!
 
 ## Usage
 
+We recommend reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format 🥳
+
+Simply drop into a `.norg` file and start typing!
+
+Or you can require the `core.norg.dirman` module, that'll help you manage workspaces:
+
+```lua
+
+require('neorg').setup {
+  load = {
+    ...
+    ["core.norg.dirman"] = {
+      config = {
+        workspaces = {
+          my_workspace = "~/neorg"
+        }
+      }
+    }
+    ...
+  }
+}
+ ```
+ 
+ And just do `:NeorgStart`, and it'll open your last (or only) workspace !
+ 
+ Changing workspaces is easy, just do `Neorg workspace ...`
+
+![Usage Showcase](https://user-images.githubusercontent.com/13149513/125274594-ef23c900-e32f-11eb-83dd-88627a038e01.gif)
+
+Here are some things we are working on:
+- Fully fledged GTD workflow (with @danymat)
+- Dynamically displaying and interacting with a Table of Contents (with @mrossinek)
+- Better parsing of markup (bold, italic etc.)
+- Overhauled indentation engine
+
 ## Modules
+
+As you surely saw previously, we loaded `core.defaults`, and recommended you loading `core.norg.dirman`. 
+
+They are called a module !
 
 ## Philosophy
 
@@ -317,31 +356,6 @@ else -- Otherwise wait until Neorg gets started and load the completion module t
     neorg.callbacks.on_event("core.started", load_completion)
 end
 ```
-
-# :question: Usage
-Simply drop into a .norg file and start typing!
-
-![Usage Showcase](https://user-images.githubusercontent.com/13149513/125274594-ef23c900-e32f-11eb-83dd-88627a038e01.gif)
-
-You may realize that we don't have an insane amount of frontend features just yet.
-This doesn't mean the plugin isn't capable of those things, it just means we're working on them!
-We tried focusing heavily on the backend first, but now that that is almost done we are actually starting work on features just for you:
-- [x] Telescope.nvim integration for several things (see https://github.com/nvim-neorg/neorg-telescope)
-- [x] TreeSitter parser (can be found [here](https://github.com/nvim-neorg/tree-sitter-norg))
-    - [x] AST Generation
-    - [x] Custom highlight support
-    - [x] Custom folds
-    - [x] Language injection (for code blocks)
-    - [x] Smarter todo item toggling with the TreeSitter AST
-
-It's all about the patience! We're gonna deliver all the juicy features ASAP.
-In the meantime you might be interested in reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format :D
-
-Here are some things we *are* working on:
-- Fully fledged GTD workflow (with @Danymat)
-- Dynamically displaying and interacting with a Table of Contents (with @mrossinek)
-- Better parsing of markup (bold, italic etc.)
-- Overhauled indentation engine
 
 # :keyboard: Keybinds
 Neorg comes with no keys bound by default. If you want to use all the default keys, you may want to modify the `core.keybinds`'s configuration
