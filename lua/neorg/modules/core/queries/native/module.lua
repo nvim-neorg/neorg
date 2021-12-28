@@ -204,10 +204,24 @@ module.public = {
             -- Stores the lines in a temp buffer
             local temp_buf = vim.api.nvim_create_buf(false, true)
             vim.api.nvim_buf_set_lines(temp_buf, 0, -1, false, lines)
-            module.private.data.temp_bufs[buf] = temp_buf
+            vim.api.nvim_buf_attach(temp_buf, false, {
+                on_lines = function()
+                    module.private.data.temp_bufs[buf].changed = true
+                end,
+            })
+            module.private.data.temp_bufs[buf] = { buf = temp_buf, changed = false }
         end
 
-        return module.private.data.temp_bufs[buf]
+        return module.private.data.temp_bufs[buf].buf
+    end,
+
+    update_temp_buf = function (buf)
+        local temp_buf = module.private.data.temp_bufs[buf]
+       if temp_buf and temp_buf.changed then
+           P("changed")
+           module.public.delete_content(buf)
+           module.public.get_temp_buf(buf)
+       end
     end,
 
     --- Deletes the content from data.
