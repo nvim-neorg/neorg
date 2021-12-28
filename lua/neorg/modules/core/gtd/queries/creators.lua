@@ -237,12 +237,16 @@ module.private = {
 
         local parent_tag_set = module.required["core.queries.native"].find_parent_node(node, "carryover_tag_set")
 
+
+        local queries = module.required["core.queries.native"]
+        local temp_buf = queries.get_temp_buf(node[2])
+
         if #parent_tag_set == 0 then
             -- No tag created, i will insert the tag just before the node or at specific line
             if opts.line then
                 node_line = opts.line
             end
-            vim.api.nvim_buf_set_lines(node[2], node_line, node_line, false, inserter)
+            vim.api.nvim_buf_set_lines(temp_buf, node_line, node_line, false, inserter)
             return true
         else
             -- Gets the last tag in the found tag_set and append after it
@@ -250,7 +254,7 @@ module.private = {
             local last_tag = parent_tag_set[1]:child(tags_number - 1)
             local start_row, _, _, _ = ts_utils.get_node_range(last_tag)
 
-            vim.api.nvim_buf_set_lines(node[2], start_row, start_row, false, inserter)
+            vim.api.nvim_buf_set_lines(temp_buf, start_row, start_row, false, inserter)
             return true
         end
     end,
