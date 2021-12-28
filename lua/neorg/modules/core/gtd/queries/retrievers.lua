@@ -31,7 +31,7 @@ module.public = {
     --- @param type string
     --- @param opts table
     ---   - opts.filename (string):     will restrict the search only for the filename provided
-    ---   - opts.exclude_files (table):     will exclude files from workspace in querying information
+    ---   - opts.exclude_files (table):     will exclude files from workspace in querying information. Can exclude entire directories
     ---   - opts.bufnr (number):        will use this bufnr to search nodes from
     --- @return table
     get = function(type, opts)
@@ -578,6 +578,15 @@ module.private = {
     --- @return table
     remove_from_table = function(t, el)
         vim.validate({ t = { t, "table" } })
+
+        -- This is possibly a directory, so we remove every file inside this directory
+        if not vim.endswith(el, ".norg") then
+            for i, v in ipairs(t) do
+                if vim.startswith(v, el) then
+                    table.remove(t, i)
+                end
+            end
+        end
 
         for i, v in ipairs(t) do
             if v == el then

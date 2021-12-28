@@ -40,7 +40,7 @@ module.config.public = {
     default_lists = {
         inbox = "inbox.norg",
     },
-    -- You can exclude files from gtd parsing by passing them here (relative file path from workspace root)
+    -- You can exclude files or directories from gtd parsing by passing them here (relative file path from workspace root)
     exclude = {},
 
     -- The syntax to use for gtd.
@@ -83,9 +83,7 @@ module.load = function()
     module.private.workspace_full_path = dirman.get_workspace(workspace)
 
     -- Register keybinds
-    keybinds.register_keybind(module.name, "views")
-    keybinds.register_keybind(module.name, "edit")
-    keybinds.register_keybind(module.name, "capture")
+    keybinds.register_keybinds(module.name, { "views", "edit", "capture" })
 
     -- Add neorgcmd capabilities
     -- All gtd commands start with :Neorg gtd ...
