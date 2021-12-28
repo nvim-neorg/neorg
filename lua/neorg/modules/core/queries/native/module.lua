@@ -215,13 +215,13 @@ module.public = {
         return module.private.data.temp_bufs[buf].buf
     end,
 
-    update_temp_buf = function (buf)
+    update_temp_buf = function(buf)
         local temp_buf = module.private.data.temp_bufs[buf]
-       if temp_buf and temp_buf.changed then
-           P("changed")
-           module.public.delete_content(buf)
-           module.public.get_temp_buf(buf)
-       end
+        if temp_buf and temp_buf.changed then
+            P("changed")
+            module.public.delete_content(buf)
+            module.public.get_temp_buf(buf)
+        end
     end,
 
     --- Deletes the content from data.
