@@ -1497,6 +1497,29 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             },
         },
 
+        footnote = {
+            enabled = true,
+
+            single = {
+                enabled = true,
+                icon = "†",
+                highlight = "NeorgFootnote",
+                query = "(single_footnote_prefix) @icon",
+            },
+            multi_prefix = {
+                enabled = true,
+                icon = "‡ ",
+                highlight = "NeorgFootnote",
+                query = "(multi_footnote_prefix) @icon",
+            },
+            multi_suffix = {
+                enabled = true,
+                icon = "‡ ",
+                highlight = "NeorgFootnote",
+                query = "(multi_footnote_suffix) @icon",
+            },
+        },
+
         delimiter = {
             enabled = true,
 
