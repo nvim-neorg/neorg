@@ -1,10 +1,10 @@
 --[[
+    File: Neorgcmd-List
+    Title: Provides `:Neorg list` command
+    Summary: List loaded modules.
     Show: false.
     ---
-	module.list module for neorgcmd - prints all the currently active modules.
-
-USAGE:
-	After module is loaded execute `:Neorg module list` to see a primitive list of currently loaded modules.
+After module is loaded execute `:Neorg module list` to see a primitive list of currently loaded modules.
 --]]
 
 require("neorg.modules.base")
