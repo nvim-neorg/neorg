@@ -1,4 +1,6 @@
 --[[
+    Show: false.
+    ---
 	module.load command for neorgcmd
 
 USAGE:

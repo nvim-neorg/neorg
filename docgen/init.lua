@@ -117,6 +117,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             modules[imported_extension.name] = imported_extension
         end
 
+        module.show_module = module.show_module or true
         modules[module.name] = module
     end
 
@@ -166,7 +167,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
 
                 local res = {}
                 for _module, _config in pairs(modules) do
-                    if vim.tbl_contains(core_defaults.config.public.enable, _config.name) then
+                    if vim.tbl_contains(core_defaults.config.public.enable, _config.name) and _config.show_module then
                         local insert
                         if _config.filename then
                             insert = "- [`"
@@ -191,7 +192,8 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "",
             "# Complementary Modules",
             "",
-            "Neorg comes with its own builtin modules to make development easier. Below is a list of all modules that are not required by default",
+            "Neorg comes with its own builtin modules to make development easier. Below is a list of all modules that are not required by default:",
+            "",
             function()
                 local res = {}
                 local core_defaults = modules["core.defaults"]
@@ -204,6 +206,47 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     if
                         not _config.is_extension
                         and not vim.tbl_contains(core_defaults.config.public.enable, _config.name)
+                        and _config.show_module
+                    then
+                        local insert
+                        if _config.filename then
+                            insert = "- [`"
+                                .. _config.name
+                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                                .. _config.filename
+                                .. ")"
+                        else
+                            insert = "- `" .. _module .. "`"
+                        end
+                        if _config.summary then
+                            insert = insert .. " - " .. _config.summary
+                        else
+                            insert = insert .. " - undocumented module"
+                        end
+
+                        table.insert(res, insert)
+                    end
+                end
+                return res
+            end,
+            "",
+            "# Developer modules",
+            "",
+            "These are modules that are only meant for developers. They are generally required in other modules:",
+            "",
+            function()
+                local res = {}
+                local core_defaults = modules["core.defaults"]
+
+                if not core_defaults then
+                    return
+                end
+
+                for _module, _config in pairs(modules) do
+                    if
+                        not _config.is_extension
+                        and not vim.tbl_contains(core_defaults.config.public.enable, _config.name)
+                        and not _config.show_module
                     then
                         local insert
                         if _config.filename then
@@ -254,28 +297,30 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "",
             function()
                 local res = {}
-                names = {}
+                local names = {}
                 for n, config in pairs(modules) do
                     if config.is_extension ~= true then
                         table.insert(names, n)
                     end
                 end
                 table.sort(names)
-                for i, name in ipairs(names) do
-                    _config = modules[name]
-                    local insert = ""
-                    if _config.filename then
-                        insert = insert
-                            .. "- [`"
-                            .. _config.name
-                            .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                            .. _config.filename
-                            .. ")"
-                    else
-                        insert = insert .. "- `" .. name .. "`"
-                    end
+                for _, name in ipairs(names) do
+                    local _config = modules[name]
+                    if _config.show_module then
+                        local insert = ""
+                        if _config.filename then
+                            insert = insert
+                                .. "- [`"
+                                .. _config.name
+                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                                .. _config.filename
+                                .. ")"
+                        else
+                            insert = insert .. "- `" .. name .. "`"
+                        end
 
-                    table.insert(res, insert)
+                        table.insert(res, insert)
+                    end
                 end
                 return res
             end,
@@ -644,6 +689,8 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
     module.filename = arguments.file or main_page
     module.summary = lint(arguments.summary)
     module.title = arguments.title
+    -- Do not show the module on sidebar and Home page
+    module.show_module = arguments.show ~= "false."
 
     -- Construct the desired filename
     local output_filename = module.filename .. ".md"
@@ -682,10 +729,6 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
     end)
     vim.api.nvim_buf_delete(output_buffer, { force = true })
 end
-
-docgen.generate_main_file = function() end
-
-docgen.generate_sidebar_file = function() end
 
 local files = docgen.find_modules()
 
