@@ -215,12 +215,21 @@ module.public = {
         return module.private.data.temp_bufs[buf].buf
     end,
 
-    update_temp_buf = function(buf)
+    apply_temp_changes = function(buf)
         local temp_buf = module.private.data.temp_bufs[buf]
         if temp_buf and temp_buf.changed then
-            P("changed")
-            module.public.delete_content(buf)
-            module.public.get_temp_buf(buf)
+            -- Write the lines to original file
+            local lines = vim.api.nvim_buf_get_lines(temp_buf.buf, 0, -1, false)
+            local uri = vim.uri_from_bufnr(buf)
+            local fname = vim.uri_to_fname(uri)
+
+            neorg.lib.when(vim.fn.bufloaded(buf) == 1, function()
+                vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+                vim.api.nvim_buf_call(buf, neorg.lib.wrap(vim.cmd, "write!"))
+            end, neorg.lib.wrap(vim.fn.writefile, lines, fname))
+
+            -- We reset the state as false because we are consistent with the original file
+            temp_buf.changed = false
         end
     end,
 
