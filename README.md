@@ -205,6 +205,8 @@ Sorry!
 
 We recommend reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format 🥳
 
+You can even view a summary directly in your neovim instance, by doing `:h neorg`
+
 Simply drop into a `.norg` file and start typing!
 
 Or you can require the `core.norg.dirman` module, that'll help you manage workspaces:
@@ -228,13 +230,6 @@ require('neorg').setup {
 And just do `:NeorgStart`, and it'll open your last (or only) workspace !
 
 Changing workspaces is easy, just do `Neorg workspace ...`
-
-Here are some things we are working on:
-
-- Fully fledged GTD workflow (with @danymat)
-- Dynamically displaying and interacting with a Table of Contents (with @mrossinek)
-- Better parsing of markup (bold, italic etc.)
-- Overhauled indentation engine
 
 ## Modules
 
@@ -263,7 +258,7 @@ require('neorg').setup {
 
 For more information about what is a module, check out [here](https://github.com/nvim-neorg/neorg/wiki/Installation#the-concept-of-modules).
 
-To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the _Wiki_.
+To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the [Wiki](https://github.com/nvim-neorg/neorg/wiki).
 
 ### Default Modules
 
@@ -321,6 +316,12 @@ This is a list of external modules:
 | :--------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
 | [`utilities.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base` |
 
+## Roadmap
+
+We track a high-level roadmap, so that you can know what to expect. Just do `:h neorg-roadmap`.
+
+To know exactly what's being worked on, just check out the [PR's](https://github.com/nvim-neorg/neorg/pulls).
+
 ## Philosophy
 
 We think of Neorg as a plugin that will give you all the bragging rights for using Neovim. Here's how we plan to do it:
@@ -352,6 +353,7 @@ We think of Neorg as a plugin that will give you all the bragging rights for usi
 
 Massive shoutouts go to the people who supported the project, and help out in creating a good user experience! These are:
 
+- [vhyrro](https://github.com/vhyrro)
 - [mrossinek](https://github.com/mrossinek)
 - [danymat](https://github.com/danymat)
 - [Binx](https://github.com/Binx-Codes/)
@@ -359,8 +361,10 @@ Massive shoutouts go to the people who supported the project, and help out in cr
 
 ## Support
 
-Love what I do? Want to see more get done faster? Want to support future projects of mine? Any sort of support is always
-heartwarming and fuels the urge to keep going :heart:. You can support me here:
+A word from the creator, Vhyrro:
+
+> Love what I do? Want to see more get done faster? Want to support future projects of mine? Any sort of support is always
+> heartwarming and fuels the urge to keep going :heart:. You can support me here:
 
 - [Buy me a coffee!](https://buymeacoffee.com/vhyrro)
 - [Support on LiberaPay](https://liberapay.com/vhyrro)
