@@ -156,9 +156,7 @@ module.public = {
                 end
             end
 
-            vim.api.nvim_buf_call(task.bufnr, function()
-                vim.cmd(" write ")
-            end)
+            module.required["core.queries.native"].apply_temp_changes(task.bufnr)
         end)
 
         module.private.display_messages()

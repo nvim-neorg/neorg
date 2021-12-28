@@ -48,6 +48,9 @@ module.examples = {
         local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, buf)
         local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
 
+        -- Free the text in memory after reading nodes
+        module.required["core.queries.native"].reset_data(buf)
+
         print(nodes, extracted_nodes)
     end,
 }
@@ -126,7 +129,8 @@ module.public = {
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         for _, node in ipairs(nodes) do
-            local extracted = ts_utils.get_node_text(node[1], node[2])
+            local temp_buf = module.public.get_temp_buf(node[2])
+            local extracted = ts_utils.get_node_text(node[1], temp_buf)
 
             if opts.all_lines then
                 table.insert(res, extracted)
@@ -166,14 +170,93 @@ module.public = {
         end
         return res
     end,
+
+    --- Creates an unlisted temp buffer reading from the original bufnr.
+    --- This does prevent triggering norg autocommands
+    --- @param buf number #The bufnr to get text from
+    --- @param opts table? #Custom options
+    ---   - opts.no_force_read boolean? #If true, will not read original buffer if it fails to open
+    --- @return number #The temporary bufnr
+    get_temp_buf = function(buf, opts)
+        opts = opts or {}
+        -- If we don't have any previous private data, get the file text
+        if not module.private.data.temp_bufs[buf] then
+            -- Get the file name from bufnr
+            local uri = vim.uri_from_bufnr(buf)
+            local fname = vim.uri_to_fname(uri)
+
+            -- Open and read all lines in the file
+            local f, err = io.open(fname, "r")
+            local lines
+            if not f then
+                log.warn("Can't read file " .. fname)
+                if opts.no_force_read then
+                    log.error(err)
+                    return
+                end
+                lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+            else
+                lines = f:read("*a")
+                lines = vim.split(lines, "\n")
+                f:close()
+            end
+
+            -- Stores the lines in a temp buffer
+            local temp_buf = vim.api.nvim_create_buf(false, true)
+            vim.api.nvim_buf_set_lines(temp_buf, 0, -1, false, lines)
+            vim.api.nvim_buf_attach(temp_buf, false, {
+                on_lines = function()
+                    module.private.data.temp_bufs[buf].changed = true
+                end,
+            })
+            module.private.data.temp_bufs[buf] = { buf = temp_buf, changed = false }
+        end
+
+        return module.private.data.temp_bufs[buf].buf
+    end,
+
+    apply_temp_changes = function(buf)
+        local temp_buf = module.private.data.temp_bufs[buf]
+        if temp_buf and temp_buf.changed then
+            -- Write the lines to original file
+            local lines = vim.api.nvim_buf_get_lines(temp_buf.buf, 0, -1, false)
+            local uri = vim.uri_from_bufnr(buf)
+            local fname = vim.uri_to_fname(uri)
+
+            neorg.lib.when(vim.fn.bufloaded(buf) == 1, function()
+                vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+                vim.api.nvim_buf_call(buf, neorg.lib.wrap(vim.cmd, "write!"))
+            end, neorg.lib.wrap(vim.fn.writefile, lines, fname))
+
+            -- We reset the state as false because we are consistent with the original file
+            temp_buf.changed = false
+        end
+    end,
+
+    --- Deletes the content from data.
+    --- If no buffer is provided, will delete every buffer datas
+    --- @overload fun()
+    --- @param buf number #The content relative to the provided buffer
+    delete_content = function(buf)
+        neorg.lib.when(buf, function()
+            module.private.data.temp_bufs[buf] = nil
+        end, function()
+            module.private.data.temp_bufs = {}
+        end)
+    end,
 }
 
 module.private = {
+    data = {
+        -- Must be a table of keys like buffer = string_content
+        temp_bufs = {},
+    },
     --- Get the root node from a `bufnr`
     --- @param bufnr number
     --- @return userdata
     get_buf_root_node = function(bufnr)
-        local parser = vim.treesitter.get_parser(bufnr, "norg")
+        local temp_buf = module.public.get_temp_buf(bufnr)
+        local parser = vim.treesitter.get_parser(temp_buf, "norg")
         local tstree = parser:parse()[1]
         return tstree:root()
     end,
@@ -307,7 +390,8 @@ With that in mind, you can do something like this (for example):
             end
 
             if where[1] == "child_content" then
-                if node:type() == where[2] and ts_utils.get_node_text(node, opts.bufnr)[1] == where[3] then
+                local temp_buf = module.public.get_temp_buf(opts.bufnr)
+                if node:type() == where[2] and ts_utils.get_node_text(node, temp_buf)[1] == where[3] then
                     return true
                 end
             end
