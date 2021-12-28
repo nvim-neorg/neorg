@@ -1,6 +1,11 @@
 --[[
-	A module for integrating nvim-compe with Neorg.
-	Works with core.norg.completion to provide intelligent completions.
+    File: Nvim-Compe
+    Title: Integrating Neorg with `nvim-compe`
+    Summary: A module for integrating nvim-compe with Neorg.
+    Show: false.
+    ---
+A module for integrating nvim-compe with Neorg.
+Works with core.norg.completion to provide intelligent completions.
 --]]
 
 require("neorg.modules.base")
