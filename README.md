@@ -54,27 +54,11 @@ then what is the goal of this project?
 Whilst those projects are amazing, it's simply not enough for us. We need our *own, better* solution - one that will
 surpass *every* other text editor. 
 
-One that will give you all the bragging rights for using Neovim. Here's how we'll do it:
-
-1. Revise the org format: we want it simple, very extensible, unambiguous. Will make you feel right at home. Org and markdown have several flaws, but the most
-  notable one is the requirement for **complex parsers**.
-  I really advise checking some writeups out on how bad it can get at times.
-  What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
-  Enter the .norg file format, whose [base spec](docs/NFF-0.1-spec.md) is practically complete.
-  The cross between all the best things from org and the best things from markdown, revised and merged into one.
-  
-2. Keybinds that _make sense_: vim's keybind philosophy is unlike any other, and we want to keep that vibe.
-  Keys form a "language", one that you can speak, not one that you need to learn off by heart.
-  
-3. Infinite extensibility: no, that isn't a hyperbole. We mean it. Neorg is built upon an insanely modular and
-  configurable backend - keep what you need, throw away what you don't care about. Use the defaults or change 'em.
-  You are in control of what code runs and what code doesn't run!
-  
-4. Logic: everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
-  two people asked for it.
+That's why we created *Neorg*.
 
 _IMPORTANT_: Neorg is *alpha* software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and keeping docs up-to-date would be very painful.
 
+To know more about the philosophy of Neorg, go [here](#philosophy).
 
 ## Installation
 
@@ -277,7 +261,8 @@ require('neorg').setup {
   }
 }
  ```
- 
+
+For more information about what is a module, check out [here](https://github.com/nvim-neorg/neorg/wiki/Installation#the-concept-of-modules).
  
 To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the *Wiki*.
 
@@ -297,7 +282,49 @@ Feel free to try by adding them to your Neorg setup.
 
 ### External Modules
 
+Users can contribute and create their own modules for Neorg. 
+
+To use them, just download the plugin with your package manager, for instance with Packer:
+
+```lua
+use {
+	"nvim-neorg/neorg",
+  requires = "the.module.name"
+  ...
+}
+```
+
+After that it's as easy as loading a module normally:
+
+```lua
+require('neorg').setup {
+  load = {
+    ...
+    ["the.module.name"] = { },
+  }
+}
+```
+
 ## Philosophy
+
+We think of Neorg as a plugin that will give you all the bragging rights for using Neovim. Here's how we plan to do it:
+
+1. Revise the org format: we want it simple, very extensible, unambiguous. Will make you feel right at home. Org and markdown have several flaws, but the most
+  notable one is the requirement for **complex parsers**.
+  I really advise checking some writeups out on how bad it can get at times.
+  What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
+  Enter the .norg file format, whose [base spec](docs/NFF-0.1-spec.md) is practically complete.
+  The cross between all the best things from org and the best things from markdown, revised and merged into one.
+  
+2. Keybinds that _make sense_: vim's keybind philosophy is unlike any other, and we want to keep that vibe.
+  Keys form a "language", one that you can speak, not one that you need to learn off by heart.
+  
+3. Infinite extensibility: no, that isn't a hyperbole. We mean it. Neorg is built upon an insanely modular and
+  configurable backend - keep what you need, throw away what you don't care about. Use the defaults or change 'em.
+  You are in control of what code runs and what code doesn't run!
+  
+4. Logic: everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
+  two people asked for it.
 
 ## GIFS
 
