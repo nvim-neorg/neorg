@@ -2,47 +2,237 @@
 
 <div align="center">
 
-<img src="res/neorg.svg" width=315>
+<img src="res/neorg.svg" width=300>
 
-# Neorg - An Organized Future
+# Neorg
 
-<a href="https://github.com/neovim/neovim"> ![Requires](https://img.shields.io/badge/requires-neovim%200.6%2B-green?style=flat-square&logo=neovim) </a>
-<a href="https://discord.gg/T6EgTAX7ht"> ![Discord](https://img.shields.io/badge/discord-join-7289da?style=flat-square&logo=discord) </a>
-<a href="https://paypal.me/ewaczupryna?locale.x=en_GB"> ![Paypal](https://img.shields.io/badge/support-paypal-blue?style=flat-square&logo=paypal) </a>
-<a href="https://www.buymeacoffee.com/vhyrro"> ![BuyMeACoffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-ffdd00?style=flat-square&logo=buy-me-a-coffee) </a>
-<a href="https://patreon.com/vhyrro"> ![Patreon](https://img.shields.io/badge/support-patreon-F96854?style=flat-square&logo=patreon) </a>
+<a href="https://neovim.io"> ![Neovim](https://img.shields.io/badge/Neovim%200.6+-green.svg?style=for-the-badge&logo=neovim) </a>
+<a href="https://discord.gg/T6EgTAX7ht"> ![Discord](https://img.shields.io/badge/discord-join-7289da?style=for-the-badge&logo=discord) </a>
+<br>
+<a href="https://paypal.me/ewaczupryna?locale.x=en_GB"> ![Paypal](https://img.shields.io/badge/support-paypal-blue?style=for-the-badge&logo=paypal) </a>
+<a href="https://www.buymeacoffee.com/vhyrro"> ![BuyMeACoffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee) </a>
+<a href="https://patreon.com/vhyrro"> ![Patreon](https://img.shields.io/badge/support-patreon-F96854?style=for-the-badge&logo=patreon) </a>
+<br>
+<a href="/LICENSE"> ![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=for-the-badge)</a>
+<a href="#wip"> ![Status](https://img.shields.io/badge/status-WIP-informational?style=for-the-badge) </a>
 
-<a href="/LICENSE"> ![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=flat-square) </a>
-<a href="#wip"> ![Status](https://img.shields.io/badge/status-WIP-informational?style=flat-square) </a>
+*Your new life organization tool*
 
----
-
-Life Organization Tool Written in Lua
-
-[Introduction](#star2-introduction)
+[Summary](#summary)
 •
-[Installation](#wrench-installation)
+[Installation](#installation)
 •
-[Usage](#question-usage)
+[Setup](#setup)
 •
-[Keybinds](#keyboard-keybinds)
+[Usage](#usage)
 •
-[Wiki](#notebook-consult-the-wiki)
-
-[GIFS](#camera-extra-gifs)
-
-[Credits: Logo by Binx](#green_heart-credits)
+[Modules](#modules)
+•
+[Philosophy](#philosophy)
+<br>
+[GIFS](#gifs)
+•
+[FAQ](#faq)
+•
+[Contributing](#contributing)
+•
+[Credits](#credits)
 
 </div>
 
----
+## Summary
 
-> The pain... it won't stop. After so much oppression from other text editors, it's time we fight back.
-With the introduction of lua, we *will* fight back.
+Neorg (*New*-*Organization*) is a tool designed to reimagine organization as you know it. 
 
-<div align="center">
+Grab some coffee, start writing some notes, let your editor handle the rest!
 
----
+> Why do we need Neorg ?
+
+There are currently projects designed to [clone org-mode from emacs](https://github.com/kristijanhusak/orgmode.nvim),
+then what is the goal of this project? 
+
+Whilst those projects are amazing, it's simply not enough for us. We need our *own, better* solution - one that will
+surpass *every* other text editor. 
+
+One that will give you all the bragging rights for using Neovim. Here's how we'll do it:
+
+1. Revise the org format: we want it simple, very extensible, unambiguous. Will make you feel right at home. Org and markdown have several flaws, but the most
+  notable one is the requirement for **complex parsers**.
+  I really advise checking some writeups out on how bad it can get at times.
+  What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
+  Enter the .norg file format, whose base spec is [practically complete](docs/NFF-0.1-spec.md).
+  The cross between all the best things from org and the best things from markdown, revised and merged into one.
+  
+2. Keybinds that _make sense_: vim's keybind philosophy is unlike any other, and we want to keep that vibe.
+  Keys form a "language", one that you can speak, not one that you need to learn off by heart.
+  
+3. Infinite extensibility: no, that isn't a hyperbole. We mean it. Neorg is built upon an insanely modular and
+  configurable backend - keep what you need, throw away what you don't care about. Use the defaults or change 'em.
+  You are in control of what code runs and what code doesn't run!
+  
+4. Logic: everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
+  two people asked for it.
+
+_IMPORTANT_: Neorg is *alpha* software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and keeping docs up-to-date would be very painful.
+
+
+## Installation
+
+Neorg requires at least `0.6+` to operate. 
+You can still use Neorg on `0.5.x`, however don't expect all modules to load properly.
+
+You can install through your favorite plugin manager:
+
+- [Packer](https://github.com/wbthomason/packer.nvim):
+
+  ```lua
+  use { 
+      "nvim-neorg/neorg",
+      config = function()
+          require('neorg').setup {
+              ... -- check out setup part...
+          }
+      end,
+      requires = "nvim-lua/plenary.nvim"
+  }
+  ```
+
+- [Packer (with lazyloading)](https://github.com/wbthomason/packer.nvim):
+
+  Want to lazy load? Turns out that can be rather problematic. 
+  You can use the `ft` key to load Neorg only upon entering a .norg file:
+
+  ```lua
+  use {
+    "nvim-neorg/neorg",
+    ft = "norg",
+    after = { "nvim-treesitter" },  -- You may also specify Telescope
+    config = function()
+      -- setup neorg
+      require('neorg').setup {
+        ...
+      }
+    end
+  }
+  ```
+
+  However, don't expect everything to work. You might need additional setups depending on how your lazyloading system is configured.
+  
+  Neorg practically lazy loads itself: only a few lines of code are run on startup, these lines check whether the current
+  extension is `.norg`, if it's not then nothing else loads. You shouldn't have to worry about performance issues.
+  
+- [vim-plug](https://github.com/junegunn/vim-plug):
+
+   ```vim
+   Plug 'nvim-neorg/neorg' | Plug 'nvim-lua/plenary.nvim'
+   ```
+  
+
+   You can put this initial configuration in your init.vim file:
+   ```vim
+   lua << EOF
+   require('neorg').setup {
+       " check out setup part...
+   }
+   EOF
+   ```
+  
+## Setup
+
+### Default modules
+
+You can enable the default modules that we recommend you when using Neorg:
+
+```lua
+
+require('neorg').setup {
+  load = {
+    ["core.defaults"] = {}
+  }
+}
+ ```
+ 
+You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) which modules are automatically required when adding `core.defaults`
+
+
+### Treesitter
+
+*Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system!*
+
+To install it, you want to run this code snippet before you invoke
+`require('nvim-treesitter.configs').setup()`:
+
+```lua
+local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
+
+parser_configs.norg = {
+    install_info = {
+        url = "https://github.com/nvim-neorg/tree-sitter-norg",
+        files = { "src/parser.c", "src/scanner.cc" },
+        branch = "main"
+    },
+}
+
+parser_configs.norg_meta = {
+    install_info = {
+        url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
+        files = { "src/parser.c" },
+        branch = "main"
+    },
+}
+
+parser_configs.norg_table = {
+    install_info = {
+        url = "https://github.com/nvim-neorg/tree-sitter-norg-table",
+        files = { "src/parser.c" },
+        branch = "main"
+    },
+}
+```
+
+Then run `:TSInstall norg norg_meta norg_table`.
+
+If you want the parser to be more persistent across different installations of your config make sure to set `norg`, `norg_meta` and `norg_table` as parsers in the `ensure_installed` table, then run `:TSUpdate`.
+
+Here's an example config, yours will probably be different:
+
+```lua
+require('nvim-treesitter.configs').setup {
+    ensure_installed = { "norg", "norg_meta", "norg_table", "haskell", "cpp", "c", "javascript", "markdown" },
+    highlight = { -- Be sure to enable highlights if you haven't!
+        enable = true,
+    }
+}
+```
+
+Having a rare occurence where the parser doesn't work instantly? Try running `:e`.
+
+**Still not working**? Uh oh, you're stepping on muddy territory. There are several reasons why a parser
+may not work right off the bat, however most commonly it's because of plugin loading order. 
+
+Neorg needs `nvim-treesitter` to be up and running before it starts adding colours to highlight groups.
+
+Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup. 
+
+It's a bit hacky - it will unfortunately stay this way until we get first-class support in the `nvim-treesitter` repository.
+Sorry!
+
+## Usage
+
+## Modules
+
+## Philosophy
+
+## GIFS
+
+## FAQ
+
+## Contributing
+
+## Credits
+
+<!--
+
 
 ### Manage Your Life with Neovim-inspired Keybinds
 Keybinds that make logical sense. Simply think, don't remember.
@@ -86,200 +276,8 @@ Feel more accurate edits thanks to Neorg's deeper understanding of your document
 
 </div>
 
-# :star2: Introduction
-Neorg is a tool designed to reimagine organization as you know it. *Neo* - new, *org* - organization.
-Grab some coffee, start writing some notes, let your editor handle the rest.
 
-**Why do we need Neorg**? There are currently projects designed to [clone org-mode from emacs](https://github.com/kristijanhusak/orgmode.nvim),
-what is the goal of this project? Whilst those projects are amazing, it's simply not enough. We need our _own, better_ solution - one that will
-surpass _every_ other text editor. One that will give you all the bragging rights for using Neovim. Here's how we'll do it:
-- Revise the org format - Simple, very extensible, unambiguous. Will make you feel right at home. Org and markdown have several flaws, but the most
-  notable one is the requirement for **complex parsers**.
-  I really advise checking some writeups out on how bad it can get at times.
-  What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
 
-  Enter the .norg file format, whose base spec is [practically complete](docs/NFF-0.1-spec.md).
-  The cross between all the best things from org and the best things from markdown, revised and merged into one.
-- Keybinds that _make sense_ - vim's keybind philosophy is unlike any other, and we want to keep that vibe.
-  Keys form a "language", one that you can speak, not one that you need to learn off by heart.
-- Infinite extensibility - no, that isn't a hyperbole. We mean it. Neorg is built upon an insanely modular and
-  configurable backend - keep what you need, throw away what you don't care about. Use the defaults or change 'em.
-  You are in control of what code runs and what code doesn't run.
-- Logic. Everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
-  two people asked for it.
-
-###### _IMPORTANT_: Neorg is *alpha* software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and keeping docs up-to-date would be very painful.
-
-# :wrench: Installation
-Neorg requires at least **Neovim Nightly/0.6+** to operate. I know that for some this makes the plugin pretty much unusable,
-however we simply need to impose this requirement, we're real sorry. In order to make Neorg work we need to squeeze out the total
-max amount of features that we can from the Neovim core, and maintaining the same version of a plugin
-for two different versions of Neovim is simply too much for the still rather small team that Neorg is comprised of.
-You can still use Neorg on `0.5.x`, however don't expect all modules to load properly.
-
-Installation may seem a bit daunting, however it's nothing you can't understand. If you really like to be in control,
-you can read exactly what the below code snippets do in the [wiki](https://github.com/nvim-neorg/neorg/wiki/Installation).
-You can install through any plugin manager (it can even be vimscript plugin managers, as long as you're running Neovim version 0.6 or higher).
-
-> :exclamation: NOTE: Neorg requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) to operate, so be sure to install it alongside Neorg!
-
-- [Packer](https://github.com/wbthomason/packer.nvim):
-  ```lua
-  use { 
-      "nvim-neorg/neorg",
-      config = function()
-          require('neorg').setup {
-              -- Tell Neorg what modules to load
-              load = {
-                  ["core.defaults"] = {}, -- Load all the default modules
-                  ["core.norg.concealer"] = {}, -- Allows for use of icons
-                  ["core.norg.dirman"] = { -- Manage your directories with Neorg
-                      config = {
-                          workspaces = {
-                              my_workspace = "~/neorg"
-                          }
-                      }
-                  }
-              },
-          }
-      end,
-      requires = "nvim-lua/plenary.nvim"
-  }
-  ```
-
-  You can put the configuration directly in packer's `config` table (as shown above) or in a separate location within your config
-  (make sure the configuration code runs after Neorg is loaded!):
-  ```lua
-  require('neorg').setup {
-      -- Tell Neorg what modules to load
-      load = {
-          ["core.defaults"] = {}, -- Load all the default modules
-          ["core.norg.concealer"] = {}, -- Allows for use of icons
-          ["core.norg.dirman"] = { -- Manage your directories with Neorg
-              config = {
-                  workspaces = {
-                      my_workspace = "~/neorg"
-                  }
-              }
-          }
-      },
-  }
-  ```
-
-  Want to lazy load? Turns out that can be rather problematic. You can use the `ft` key to load Neorg only upon entering a .norg file.
-  Here's an example:
-
-  ```lua
-  use {
-    "nvim-neorg/neorg",
-    -- in case you turn off filetype detection when startup neovim, or ft detection failure for norg
-    setup = vim.cmd("autocmd BufRead,BufNewFile *.norg setlocal filetype=norg"),
-    after = {"nvim-treesitter"},  -- you may also specify telescope
-    ft = "norg",
-    config = function()
-      -- setup neorg
-      require('neorg').setup {
-        ...
-      }
-
-    end
-  }
-  ```
-
-  However, don't expect everything to work. You might need additional setups depending on how your lazyloading system is configured.
-  Neorg practically lazy loads itself - only a few lines of code are run on startup, these lines check whether the current
-  extension is `.norg`, if it's not then nothing else loads. You shouldn't have to worry about performance issues.
-  In fact by not lazy-loading Neorg on `ft` you can use `:NeorgStart` to jump to your notes from anywhere! Worth it.
-
-  After all of that resource the current file and `:PackerSync`:
-
-  ![PackerSync GIF](https://user-images.githubusercontent.com/13149513/125273068-5c365f00-e32e-11eb-95a4-b8c2c0d3b85e.gif)
-
- - [vim-plug](https://github.com/junegunn/vim-plug):
-   ```vim
-   Plug 'nvim-neorg/neorg' | Plug 'nvim-lua/plenary.nvim'
-   ```
-   
-   Afterwards resource the current file and to install plugins run `:PlugInstall`.
-
-   You can put this initial configuration in your init.vim file:
-   ```vim
-   lua << EOF
-       require('neorg').setup {
-           -- Tell Neorg what modules to load
-           load = {
-               ["core.defaults"] = {}, -- Load all the default modules
-               ["core.norg.concealer"] = {}, -- Allows for use of icons
-               ["core.norg.dirman"] = { -- Manage your directories with Neorg
-                   config = {
-                       workspaces = {
-                           my_workspace = "~/neorg"
-                       }
-                   }
-               }
-           },
-       }
-   EOF
-   ```
-
-### Setting up TreeSitter
-###### Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system!
-
-As of right now, the TreeSitter parser is in its early stage. To install it, you want to run this code snippet before you invoke
-`require('nvim-treesitter.configs').setup()`:
-
-```lua
-local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
-
-parser_configs.norg = {
-    install_info = {
-        url = "https://github.com/nvim-neorg/tree-sitter-norg",
-        files = { "src/parser.c", "src/scanner.cc" },
-        branch = "main"
-    },
-}
-
-parser_configs.norg_meta = {
-    install_info = {
-        url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
-        files = { "src/parser.c" },
-        branch = "main"
-    },
-}
-
-parser_configs.norg_table = {
-    install_info = {
-        url = "https://github.com/nvim-neorg/tree-sitter-norg-table",
-        files = { "src/parser.c" },
-        branch = "main"
-    },
-}
-```
-
-Then run `:TSInstall norg norg_meta norg_table`.
-If you want the parser to be more persistent across different installations of your config make sure to set `norg`, `norg_meta` and `norg_table` as parsers in the `ensure_installed` table, then run `:TSUpdate`.
-Here's an example config, yours will probably be different:
-```lua
-require('nvim-treesitter.configs').setup {
-    ensure_installed = { "norg", "norg_meta", "norg_table", "haskell", "cpp", "c", "javascript", "markdown" },
-    highlight = { -- Be sure to enable highlights if you haven't!
-        enable = true,
-    }
-}
-```
-
-Having a rare occurence where the parser doesn't work instantly? Try running `:e`.
-You'll only need to run it once in your lifetime, for some reason TS doesn't have issues after that.
-
-**Still not working**? Uh oh, you're stepping on muddy territory. There are several reasons why a parser
-may not work right off the bat, however most commonly it's because of plugin loading order. Neorg needs
-`nvim-treesitter` to be up and running before it starts adding colours to highlight groups.
-With packer this can be achieved with an `after = "nvim-treesitter"` flag in your `use` call to Neorg.
-Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup. If nothing else works
-then try creating an `after/ftplugin/norg.lua` file and paste your Neorg configuration there.
-
-It's a bit hacky - it will unfortunately stay this way until we get first-class support in the `nvim-treesitter` repository.
-Sorry!
 
 ### Setting up a Completion Engine
 Neorg comes with its own API for completion. Users can then write integration modules to allow different plugins like `nvim-compe` and `nvim-cmp`
@@ -290,26 +288,6 @@ to communicate with the Neorg core. By default no engine is specified. To specif
     config = {
         engine = "nvim-compe" | "nvim-cmp" -- We current support nvim-compe and nvim-cmp only
     }
-}
-```
-
-#### Compe
-Make sure to set `neorg` to `true` in the `source` table for nvim-compe:
-```lua
-source = {
-    path = true,
-    buffer = true,
-    <etc.>,
-    neorg = true
-}
-```
-
-#### Cmp
-Make sure to enable the `neorg` completion source in the cmp sources table:
-```lua
-sources = {
-    ...
-    { name = "neorg" }
 }
 ```
 
@@ -450,3 +428,5 @@ Massive shoutouts to the people who supported the project! These are:
     - [Website](https://bandithedoge.com)
     - [Github](https://github.com/bandithedoge)
     - [YouTube](https://youtube.com/bandithedoge)
+
+-->
