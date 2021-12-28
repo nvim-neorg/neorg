@@ -1,5 +1,8 @@
 --[[
-	Neorg module for managing highlight groups.
+    File: Core-Highlights
+    Title: Neorg module for managing highlight groups
+    Summary: Manages your highlight groups with this module.
+    Show: false.
 --]]
 
 require("neorg.modules.base")
