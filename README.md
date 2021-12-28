@@ -9,7 +9,6 @@
 <a href="https://neovim.io"> ![Neovim](https://img.shields.io/badge/Neovim%200.6+-green.svg?style=for-the-badge&logo=neovim) </a>
 <a href="https://discord.gg/T6EgTAX7ht"> ![Discord](https://img.shields.io/badge/discord-join-7289da?style=for-the-badge&logo=discord) </a>
 <br>
-<a href="https://paypal.me/ewaczupryna?locale.x=en_GB"> ![Paypal](https://img.shields.io/badge/support-paypal-blue?style=for-the-badge&logo=paypal) </a>
 <a href="https://www.buymeacoffee.com/vhyrro"> ![BuyMeACoffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee) </a>
 <a href="https://patreon.com/vhyrro"> ![Patreon](https://img.shields.io/badge/support-patreon-F96854?style=for-the-badge&logo=patreon) </a>
 <br>
@@ -37,6 +36,8 @@
 [Contributing](#contributing)
 •
 [Credits](#credits)
+•
+[Support](#support)
 
 </div>
 
@@ -334,6 +335,24 @@ We think of Neorg as a plugin that will give you all the bragging rights for usi
 
 ## Credits
 
+Massive shoutouts go to the people who supported the project, and help out in creating a good user experience! These are:
+- [mrossinek](https://github.com/mrossinek)
+- [danymat](https://github.com/danymat)
+- [Binx](https://github.com/Binx-Codes/)
+- [bandithedoge](https://github.com/bandithedoge)
+
+## Support 
+
+Love what I do? Want to see more get done faster? Want to support future projects of mine? Any sort of support is always
+heartwarming and fuels the urge to keep going :heart:. You can support me here:
+
+- [Buy me a coffee!](https://buymeacoffee.com/vhyrro)
+- [Support on LiberaPay](https://liberapay.com/vhyrro)
+- [Donate directly via paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
+- [Support me on Patreon](https://patreon.com/vhyrro)
+- Donate to my monero wallet: `86CXbnPLa14F458FRQFe26PRfffZTZDbUeb4NzYiHDtzcyaoMnfq1TqVU1EiBFrbKqGshFomDzxWzYX2kMvezcNu9TaKd9t`
+- Donate via bitcoin: `bc1q4ey43t9hhstzdqh8kqcllxwnqlx9lfxqqh439s`
+
 <!--
 
 
@@ -484,27 +503,5 @@ contextual completion based on your position in the syntax tree.
 
 ![Completion](https://user-images.githubusercontent.com/13149513/125274303-a835d380-e32f-11eb-9a75-a2a4eb421a61.gif)
 ![Code Tag Completion](https://user-images.githubusercontent.com/13149513/125274336-aff57800-e32f-11eb-88e0-dfd9895d5d26.gif)
-
-
-# :purple_heart: Support
-Love what I do? Want to see more get done faster? Want to support future projects of mine? Any sort of support is always
-heartwarming and fuels the urge to keep going :heart:. You can support me here:
-
-- [Buy me a coffee!](https://buymeacoffee.com/vhyrro)
-- [Support on LiberaPay](https://liberapay.com/vhyrro)
-- [Donate directly via paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
-- [Support me on Patreon](https://patreon.com/vhyrro)
-- Donate to my monero wallet: `86CXbnPLa14F458FRQFe26PRfffZTZDbUeb4NzYiHDtzcyaoMnfq1TqVU1EiBFrbKqGshFomDzxWzYX2kMvezcNu9TaKd9t`
-- Donate via bitcoin: `bc1q4ey43t9hhstzdqh8kqcllxwnqlx9lfxqqh439s`
-
-# :green_heart: Credits
-Massive shoutouts to the people who supported the project! These are:
-- Binx, for making that gorgeous logo for free!
-    - [Github](https://github.com/Binx-Codes/)
-    - [Reddit](https://www.reddit.com/u/binxatmachine)
-- bandithedoge, for recreating the logo in svg form!
-    - [Website](https://bandithedoge.com)
-    - [Github](https://github.com/bandithedoge)
-    - [YouTube](https://youtube.com/bandithedoge)
 
 -->
