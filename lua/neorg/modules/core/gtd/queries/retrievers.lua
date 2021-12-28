@@ -90,6 +90,7 @@ module.public = {
                 for _, excluded_file in pairs(opts.exclude_files) do
                     files = module.private.remove_from_table(files, excluded_file)
                 end
+                log.info("files being parsed for GTD: ", files)
             end
 
             for _, file in pairs(files) do
