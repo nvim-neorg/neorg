@@ -1,0 +1,11 @@
+name: Linter
+
+on: [push, pull_request_target]
+
+jobs:
+  luacheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: nebularg/actions-luacheck@v1
+        with:
+          files: 'lua'
