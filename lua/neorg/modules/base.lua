@@ -16,7 +16,8 @@ neorg.modules.module_base = {
     load = function() end,
 
     -- Invoked whenever an event that the module has subscribed to triggers
-    on_event = function(event) end,
+    -- callback function with a "event" parameter
+    on_event = function() end,
 
     -- Invoked after all plugins are loaded
     neorg_post_load = function() end,

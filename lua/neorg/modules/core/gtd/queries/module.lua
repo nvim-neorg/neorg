@@ -40,6 +40,7 @@ module.examples = {
     end,
 }
 
+---@class core.gtd.queries
 module.public = {
     version = "0.0.8",
 }

@@ -135,8 +135,39 @@ module.load = function()
             },
         },
     })
+
+    local christmas = module.required["core.storage"].retrieve("christmas")
+
+    if type(christmas) == "table" and vim.tbl_isempty(christmas) then
+        vim.schedule(function()
+            vim.notify(
+                [[
+Hey! If you're reading this that means our code works!
+
+Just wanted to wish you all a merry christmas and wonderful holidays.
+Thank you ever so much for sticking with us and providing us with a genuine
+future for this project through your suggestions and feedback.
+
+We'll be away for the next two or three days for christmas, so we're sorry if
+we don't respond to any issues, discussions and/or PRs.
+
+In the meantime we hope you don't mind the very slow concealer, we'll
+be heavily improving the performance of that thing once we get back. In
+the meantime you may wanna disable that thing if it gets too bad lol.
+
+Thank you so much for your everlasting love and support, see you on the flipside!
+The Neorg Team
+
+See :messages for full output]],
+                vim.log.levels.WARN
+            )
+        end)
+
+        module.required["core.storage"].store("christmas", true)
+    end
 end
 
+---@class core.norg.news
 module.public = {
     parse_source = function(name, force)
         local source = module.config.public.sources[name]
