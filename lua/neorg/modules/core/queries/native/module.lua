@@ -50,7 +50,7 @@ module.examples = {
         local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
 
         -- Free the text in memory after reading nodes
-        module.required["core.queries.native"].reset_data(buf)
+        module.required["core.queries.native"].delete_content(buf)
 
         print(nodes, extracted_nodes)
     end,
