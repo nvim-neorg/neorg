@@ -189,13 +189,22 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 return res
             end,
             "",
-            "# All Neorg Modules",
+            "# Complementary Modules",
             "",
-            "Neorg comes with its own builtin modules to make development easier. Below is a list of all currently implemented builtin modules:",
+            "Neorg comes with its own builtin modules to make development easier. Below is a list of all modules that are not required by default",
             function()
                 local res = {}
+                local core_defaults = modules["core.defaults"]
+
+                if not core_defaults then
+                    return
+                end
+
                 for _module, _config in pairs(modules) do
-                    if not _config.is_extension then
+                    if
+                        not _config.is_extension
+                        and not vim.tbl_contains(core_defaults.config.public.enable, _config.name)
+                    then
                         local insert
                         if _config.filename then
                             insert = "- [`"
