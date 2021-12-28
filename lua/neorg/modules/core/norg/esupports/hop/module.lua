@@ -31,6 +31,7 @@ module.config.public = {
     fuzzing_threshold = 0.5,
 }
 
+---@class core.norg.esupports.hop
 module.public = {
     extract_link_node = function()
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
@@ -49,13 +50,7 @@ module.public = {
             found_node = (module.config.public.lookahead and module.public.lookahead_link_node())
         end
 
-        if found_node then
-            if found_node:parent():type() == "anchor_definition" then
-                return found_node:parent()
-            end
-
-            return found_node
-        end
+        return found_node
     end,
 
     lookahead_link_node = function()
@@ -89,11 +84,9 @@ module.public = {
 
             local node_under_cursor = ts_utils.get_node_at_cursor()
 
-            resulting_node = neorg.lib.match({
-                node_under_cursor:type(),
-                link = node_under_cursor,
-                anchor_declaration = node_under_cursor,
-            })
+            if vim.tbl_contains({ "link_location", "link_description" }, node_under_cursor:type()) then
+                resulting_node = node_under_cursor:parent()
+            end
 
             index = index + 1
         end
@@ -102,15 +95,18 @@ module.public = {
     end,
 
     locate_anchor_declaration_target = function(anchor_decl_node)
-        local target =
-            module.required["core.integrations.treesitter"].get_node_text(
-                anchor_decl_node:named_child(0)
-            ):gsub("[%s\\]", "")
+        if not anchor_decl_node:named_child(0) then
+            return
+        end
+
+        local target = module.required["core.integrations.treesitter"].get_node_text(
+            anchor_decl_node:named_child(0):named_child(0)
+        ):gsub("[%s\\]", "")
 
         local query_str = [[
             (anchor_definition
-                (anchor_declaration
-                    text: (anchor_declaration_text) @text
+                (link_description
+                    text: (paragraph_segment) @text
                 )
             )
         ]]
@@ -143,49 +139,53 @@ module.public = {
         local query_text = [[
             [
                 (link
-                    (link_file
-                        location: (link_file_text) @link_file_text
-                    )?
                     (link_location
+                        file: (
+                            (link_file_text) @link_file_text
+                        )?
                         type: [
-                            (link_location_url)
-                            (link_location_generic)
-                            (link_location_external_file)
-                            (link_location_marker)
-                            (link_location_heading1)
-                            (link_location_heading2)
-                            (link_location_heading3)
-                            (link_location_heading4)
-                            (link_location_heading5)
-                            (link_location_heading6)
+                            (link_target_url)
+                            (link_target_generic)
+                            (link_target_external_file)
+                            (link_target_marker)
+                            (link_target_definition)
+                            (link_target_footnote)
+                            (link_target_heading1)
+                            (link_target_heading2)
+                            (link_target_heading3)
+                            (link_target_heading4)
+                            (link_target_heading5)
+                            (link_target_heading6)
                         ] @link_type
-                        text: (link_location_text) @link_location_text
-                    )?
+                        text: (paragraph_segment) @link_location_text
+                    )
                     (link_description
-                        text: (link_text) @link_description
+                        text: (paragraph_segment) @link_description
                     )?
                 )
                 (anchor_definition
-                    (anchor_declaration
-                        text: (anchor_declaration_text)
+                    (link_description
+                        text: (paragraph_segment) @link_description
                     )
-                    (link_file
-                        location: (link_file_text) @link_file_text
-                    )?
                     (link_location
+                        file: (
+                            (link_file_text) @link_file_text
+                        )?
                         type: [
-                            (link_location_url)
-                            (link_location_generic)
-                            (link_location_external_file)
-                            (link_location_marker)
-                            (link_location_heading1)
-                            (link_location_heading2)
-                            (link_location_heading3)
-                            (link_location_heading4)
-                            (link_location_heading5)
-                            (link_location_heading6)
+                            (link_target_url)
+                            (link_target_generic)
+                            (link_target_external_file)
+                            (link_target_marker)
+                            (link_target_definition)
+                            (link_target_footnote)
+                            (link_target_heading1)
+                            (link_target_heading2)
+                            (link_target_heading3)
+                            (link_target_heading4)
+                            (link_target_heading5)
+                            (link_target_heading6)
                         ] @link_type
-                        text: (link_location_text) @link_location_text
+                        text: (paragraph_segment) @link_location_text
                     )
                 )
             ]
@@ -224,7 +224,7 @@ module.public = {
                     or neorg.lib.match({
                         capture,
                         link_file_text = extract_node_text,
-                        link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_location_") + 1),
+                        link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_target_") + 1),
                         link_location_text = extract_node_text,
                         link_description = extract_node_text,
 
@@ -301,6 +301,52 @@ module.public = {
                             title: (paragraph_segment) @title
                         )?
                     ]],
+
+                    definition = string.format(
+                        [[
+                            (carryover_tag_set
+                                (carryover_tag
+                                    name: (tag_name) @tag_name
+                                    (tag_parameters) @title
+                                    (#eq? @tag_name "name")
+                                )
+                            )?
+                            [
+                                (single_%s
+                                    (single_%s_prefix)
+                                    title: (paragraph_segment) @title
+                                )
+                                (multi_%s
+                                    (multi_%s_prefix)
+                                    title: (paragraph_segment) @title
+                                )
+                            ]?
+                        ]],
+                        neorg.lib.reparg(parsed_link_information.link_type, 4)
+                    ),
+
+                    footnote = string.format(
+                        [[
+                            (carryover_tag_set
+                                (carryover_tag
+                                    name: (tag_name) @tag_name
+                                    (tag_parameters) @title
+                                    (#eq? @tag_name "name")
+                                )
+                            )?
+                            [
+                                (single_%s
+                                    (single_%s_prefix)
+                                    title: (paragraph_segment) @title
+                                )
+                                (multi_%s
+                                    (multi_%s_prefix)
+                                    title: (paragraph_segment) @title
+                                )
+                            ]?
+                        ]],
+                        neorg.lib.reparg(parsed_link_information.link_type, 4)
+                    ),
 
                     default = string.format(
                         [[

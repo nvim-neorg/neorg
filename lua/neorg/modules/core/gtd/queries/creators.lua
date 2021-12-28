@@ -1,5 +1,6 @@
 local module = neorg.modules.extend("core.gtd.queries.creators")
 
+---@class core.gtd.queries
 module.public = {
     --- Creates a new project/task (depending of `type`) from the `node` table and insert it in `bufnr` at `location`
     --- supported `string`: project|task

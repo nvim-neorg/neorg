@@ -4,6 +4,7 @@ local module = neorg.modules.extend("core.gtd.queries.helpers")
 --- @field weeks number
 --- @field days number
 
+---@class core.gtd.queries
 module.public = {
     -- Convert a date from text to YYYY-MM-dd format
     -- If the date is a quick capture (like 2w, 10d, 4m), it will convert to a standardized date

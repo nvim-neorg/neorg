@@ -27,7 +27,7 @@ module.load = function()
         neorg.modules.load_module("core.integrations.zen_mode", module.name)
     end
 
-    module.required["core.keybinds"].register_keybinds(module.name, { "next_page", "previous_page", "close" })
+    keybinds.register_keybinds(module.name, { "next_page", "previous_page", "close" })
     -- Add neorgcmd capabilities
     module.required["core.neorgcmd"].add_commands_from_table({
         definitions = {
@@ -48,7 +48,6 @@ module.load = function()
     })
 end
 
----@class core.presenter.config
 module.config.public = {
     -- Zen mode plugin to use. Currenly suppported:
     -- zen-mode (https://github.com/folke/zen-mode.nvim)

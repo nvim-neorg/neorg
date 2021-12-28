@@ -21,6 +21,7 @@ module.config.public = {
     setup = {},
 }
 
+---@class core.integrations.zen_mode
 module.public = {
     toggle = function()
         vim.cmd(":ZenMode")

@@ -267,7 +267,7 @@ With that in mind, you can do something like this (for example):
                     table.insert(res, node)
                     break
                     -- query : { "match", "node_name", "test" } all node_name nodes that match "test" content
-                elseif query[1] == "match" then
+                    -- elseif query[1] == "match" then
                     -- TODO Match node content
                     -- query : { "all", "node_name" } all child nodes that match node_name
                 elseif query[1] == "all" then

@@ -9,6 +9,7 @@ require("neorg.modules.base")
 
 local module = neorg.modules.create("core.scanner")
 
+---@class core.scanner
 module.public = {
     initialize_new = function(self, source)
         self.source = source

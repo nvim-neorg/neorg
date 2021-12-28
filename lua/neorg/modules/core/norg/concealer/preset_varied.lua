@@ -25,7 +25,7 @@ module.config.private.icon_preset_varied = {
         },
 
         level_6 = {
-            icon = "⤷",
+            icon = "     ⤷",
         },
     },
 
