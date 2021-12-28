@@ -237,7 +237,6 @@ module.private = {
 
         local parent_tag_set = module.required["core.queries.native"].find_parent_node(node, "carryover_tag_set")
 
-
         local queries = module.required["core.queries.native"]
         local temp_buf = queries.get_temp_buf(node[2])
 
