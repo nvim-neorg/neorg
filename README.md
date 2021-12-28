@@ -230,8 +230,6 @@ require('neorg').setup {
  
  Changing workspaces is easy, just do `Neorg workspace ...`
 
-![Usage Showcase](https://user-images.githubusercontent.com/13149513/125274594-ef23c900-e32f-11eb-83dd-88627a038e01.gif)
-
 Here are some things we are working on:
 - Fully fledged GTD workflow (with @danymat)
 - Dynamically displaying and interacting with a Table of Contents (with @mrossinek)
@@ -289,9 +287,9 @@ To use them, just download the plugin with your package manager, for instance wi
 
 ```lua
 use {
-	"nvim-neorg/neorg",
-  requires = "the.module.name"
-  ...
+    "nvim-neorg/neorg",
+    requires = "the.module.name"
+    ...
 }
 ```
 
@@ -305,6 +303,12 @@ require('neorg').setup {
   }
 }
 ```
+
+This is a list of external modules:
+
+| Module name                                                                          | Maintainter                                    | 
+| :----------------------------------------------------------------------------------- | :-----------------                             | 
+| [`"utilities.gtd-project-tags"`](https://github.com/esquires/neorg-gtd-project-tags) | [@esquires](https://github.com/esquires)       | 
 
 ## Philosophy
 
@@ -354,7 +358,7 @@ heartwarming and fuels the urge to keep going :heart:. You can support me here:
 - Donate via bitcoin: `bc1q4ey43t9hhstzdqh8kqcllxwnqlx9lfxqqh439s`
 
 <!--
-
+![Usage Showcase](https://user-images.githubusercontent.com/13149513/125274594-ef23c900-e32f-11eb-83dd-88627a038e01.gif)
 
 ### Manage Your Life with Neovim-inspired Keybinds
 Keybinds that make logical sense. Simply think, don't remember.
