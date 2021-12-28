@@ -2,6 +2,7 @@
     File: Core-Presenter
     Title: Powerpoint-like for Neorg
     Summary: Neorg module to create gorgeous presentation slides.
+    ---
 --]]
 
 require("neorg.modules.base")
