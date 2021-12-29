@@ -61,7 +61,7 @@ To know more about the philosophy of Neorg, go [here](#philosophy).
 ## Showcase
 
 <details>
-<summary>A `.norg` file:</summary>
+<summary>A .norg file:</summary>
   <img width="700" alt="Capture d’écran 2021-12-29 à 10 50 59" src="https://user-images.githubusercontent.com/5306901/147649564-6f41e008-b292-4a67-84ab-82e73bc71890.png">
 </details>
 
