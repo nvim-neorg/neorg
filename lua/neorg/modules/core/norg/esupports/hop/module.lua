@@ -644,6 +644,7 @@ module.on_event = function(event)
                 located_anchor_declaration.node
             )
 
+            vim.cmd("norm! m'")
             vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
             return
         end
@@ -679,6 +680,8 @@ module.on_event = function(event)
                     located_link_information.node
                 )
 
+                -- TODO: nvim_buf_set_mark doesn't work here? I wonder why
+                vim.cmd("norm! m'")
                 vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
             end
 
