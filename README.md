@@ -4,14 +4,14 @@
 
 <img src="res/neorg.svg" width=300>
 
-# Neorg
+# Neorg - An Organized Future
 
 <a href="https://neovim.io"> ![Neovim](https://img.shields.io/badge/Neovim%200.6+-green.svg?style=for-the-badge&logo=neovim) </a>
 <a href="https://discord.gg/T6EgTAX7ht"> ![Discord](https://img.shields.io/badge/discord-join-7289da?style=for-the-badge&logo=discord) </a>
 <a href="/LICENSE"> ![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=for-the-badge)</a>
 <a href="#wip"> ![Status](https://img.shields.io/badge/status-WIP-informational?style=for-the-badge) </a>
 
-_Your new life organization tool_
+Your New Life Organization Tool, all in Lua
 
 [Summary](#summary)
 •
@@ -22,107 +22,105 @@ _Your new life organization tool_
 [Setup](#setup)
 •
 [Usage](#usage)
-•
-[Modules](#modules)
 <br>
+[Modules](#modules)
+•
 [Roadmap](#roadmap)
 •
 [Philosophy](#philosophy)
+•
 [FAQ](#faq)
-•
-[Contributing](#contributing)
-•
-[Credits](#credits)
-•
-[Support](#support)
 
 </div>
 
+<div align="center">
+
 ## Summary
 
-Neorg (_New_-_Organization_) is a tool designed to reimagine organization as you know it.
+</div>
 
+Neorg (_Neo_ - new, _org_ - organization) is a tool designed to reimagine organization as you know it.
 Grab some coffee, start writing some notes, let your editor handle the rest!
 
-> Why do we need Neorg ?
+### Why do we need Neorg?
 
 There are currently projects designed to [clone org-mode from emacs](https://github.com/kristijanhusak/orgmode.nvim),
 then what is the goal of this project?
 
-Whilst those projects are amazing, it's simply not enough for us. We need our _own, better_ solution - one that will
-surpass _every_ other text editor.
+Whilst those projects are amazing, it's simply not enough for us. We need our _own, **better**_ solution -
+one that will surpass _every_ other text editor. It's through our frustration of no native solution for Neovim
+and inconsistencies in the most popular markup formats that Neorg was born.
 
-That's why we created _Neorg_.
+To learn more about the philosophy of the project check the [philosophy](#philosophy) section.
 
-_IMPORTANT_: Neorg is _alpha_ software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and keeping docs up-to-date would be very painful.
+###### :exclamation: **IMPORTANT**: Neorg is _alpha_ software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and keeping docs up-to-date would be very painful.
 
-To know more about the philosophy of Neorg, go [here](#philosophy).
-
-## Showcase
+## 🌟 Showcase
 
 <details>
 <summary>A .norg file:</summary>
-  <img width="700" alt="Capture d’écran 2021-12-29 à 10 50 59" src="https://user-images.githubusercontent.com/5306901/147649564-6f41e008-b292-4a67-84ab-82e73bc71890.png">
+  <img width="700" alt="Showcase image of a Neorg document" src="https://user-images.githubusercontent.com/5306901/147649564-6f41e008-b292-4a67-84ab-82e73bc71890.png">
 </details>
 
 <details>
 <summary>Concealing module enabled:</summary>
-  <img width="700" alt="Capture d’écran 2021-12-29 à 10 53 26" src="https://user-images.githubusercontent.com/5306901/147649784-5654009e-c4aa-4f2b-8e30-571578a313b6.png">
+  <img width="700" alt="Image of a Neorg document with the concealer module enabled." src="https://user-images.githubusercontent.com/5306901/147649784-5654009e-c4aa-4f2b-8e30-571578a313b6.png">
 </details>
 
 <details>
-<summary>Manage your life with inspired keybinds:</summary>
-  
-  ![Enregistrement de l’écran 2021-12-29 à 11 03 57](https://user-images.githubusercontent.com/5306901/147650852-de6b2542-39c4-44c6-a228-ded867a71d4e.gif)
+<summary>Playing around with our unique syntax elements:</summary>
+  We also use some special keybinds to toggle our TODO items :)
+
+  ![Showcase of our Keybinds in action](https://user-images.githubusercontent.com/5306901/147650852-de6b2542-39c4-44c6-a228-ded867a71d4e.gif)
 </details>
 
 <details>
 <summary>Treesitter powered editing:</summary>
 
-  ![Enregistrement de l’écran 2021-12-29 à 11 19 01](https://user-images.githubusercontent.com/5306901/147652347-80daa0db-f5d5-46e7-b553-2922553c2c78.gif)
+  ![Treesitter powered editing](https://user-images.githubusercontent.com/5306901/147652347-80daa0db-f5d5-46e7-b553-2922553c2c78.gif)
 </details>
 
 <details>
-<summary>Manage your tasks and project with GTD module:</summary>
-  
-  - See your current projects
-  
-  ![Enregistrement de l’écran 2021-12-29 à 11 27 04](https://user-images.githubusercontent.com/5306901/147652840-c8201380-9ce1-428c-8ce3-320dad5592c1.gif)
-  
-  - Create a new task
-  
-  ![Enregistrement de l’écran 2021-12-29 à 11 31 19](https://user-images.githubusercontent.com/5306901/147653241-e8d2742c-354c-49e4-bad0-7091451c6628.gif)
+<summary>Manage your tasks and projects with the GTD module:</summary>
 
-  - Add informations to your tasks, and jump to them quickly
-  
-  ![Enregistrement de l’écran 2021-12-29 à 11 36 16](https://user-images.githubusercontent.com/5306901/147653650-a4a27c59-1213-4307-b3fc-c0a0bfefaa9b.gif)
-  
+  - See your current projects
+
+  ![See your current projects](https://user-images.githubusercontent.com/5306901/147652840-c8201380-9ce1-428c-8ce3-320dad5592c1.gif)
+
+  - Create a new task
+
+  ![Create a new task](https://user-images.githubusercontent.com/5306901/147653241-e8d2742c-354c-49e4-bad0-7091451c6628.gif)
+
+  - Add information to your tasks, and jump to them quickly
+
+  ![Add information to your tasks, and jump to them quickly](https://user-images.githubusercontent.com/5306901/147653650-a4a27c59-1213-4307-b3fc-c0a0bfefaa9b.gif)
+
   And much more...
 
 </details>
 
 <details>
-  <summary>Powerpoint-like presentations in neovim, with presenter module:</summary>
-  
-  ![Enregistrement_de_lecran_2021-11-15_a_22 40 36](https://user-images.githubusercontent.com/5306901/147654155-c2aa728a-5c2b-4813-b3e2-fbf7e2ffd2a2.gif)
+  <summary>Powerpoint-like presentations in Neovim with the presenter module:</summary>
+
+  ![Powerpoint-like presentations in Neovim with the presenter module](https://user-images.githubusercontent.com/5306901/147654155-c2aa728a-5c2b-4813-b3e2-fbf7e2ffd2a2.gif)
 </details>
 
 <details>
-  <summary>Get syntax highlighting for any language supported by NeoVim:</summary>
+  <summary>Get syntax highlighting for any language supported by Neovim:</summary>
 
-  ![Enregistrement de l’écran 2021-12-29 à 11 47 59](https://user-images.githubusercontent.com/5306901/147657014-68573df8-0e43-4a8b-bb81-0db1c80cbbd8.gif)
+  ![Get syntax highlighting for any language supported by Neovim](https://user-images.githubusercontent.com/5306901/147657014-68573df8-0e43-4a8b-bb81-0db1c80cbbd8.gif)
 </details>
 </details>
 
 <details>
   <summary>Get completion for various items in Neorg:</summary>
 
-  ![Enregistrement de l’écran 2021-12-29 à 11 52 02](https://user-images.githubusercontent.com/5306901/147657095-aa51a609-5bc2-4aa4-9687-bdda6ef48860.gif)
+  ![Get completion for various items in Neorg](https://user-images.githubusercontent.com/5306901/147657095-aa51a609-5bc2-4aa4-9687-bdda6ef48860.gif)
 </details>
 
 ## Installation
 
-Neorg requires at least `0.6+` to operate.
+Neorg requires at least Neovim 0.6+ to operate.
 You can still use Neorg on `0.5.x`, however don't expect all modules to load properly.
 
 You can install through your favorite plugin manager:
@@ -183,12 +181,20 @@ You can install through your favorite plugin manager:
 
 ## Setup
 
+But wait! That's not all. You've installed Neorg - great! Now you have to configure it.
+By default, Neorg does nothing, and gives you nothing. You must tell it what you care about!
+
 ### Default modules
 
-You can enable the default modules that we recommend you when using Neorg:
+Neorg runs on _modules_, which are discussed and explained in more depth later on.
+Each module provides a separate bit of functionality.
+
+The most common one is the `core.defaults` module, which is basically a "load all features" switch.
+It gives you the full experience out of the box.
+
+The code snippet to enable all default modules is very straightforward:
 
 ```lua
-
 require('neorg').setup {
   load = {
     ["core.defaults"] = {}
@@ -196,14 +202,14 @@ require('neorg').setup {
 }
 ```
 
-You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) which modules are automatically required when adding `core.defaults`
+You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) which modules are automatically required when adding `core.defaults`.
 
 ### Treesitter
 
-_Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system!_
+###### _Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system for this step!_
 
-To install it, you want to run this code snippet before you invoke
-`require('nvim-treesitter.configs').setup()`:
+Neorg parsers don't come out of the box with `nvim-treesitter` yet.
+To set up Neorg's parsers, you want to run this code snippet before you invoke `require('nvim-treesitter.configs').setup()`:
 
 ```lua
 local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
@@ -263,76 +269,80 @@ Sorry!
 
 ## Usage
 
-We recommend reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format 🥳
+We recommend reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format!
+You can even view a summary directly in your neovim instance by running `:h neorg` if you don't like reading a lot.
 
-You can even view a summary directly in your neovim instance, by doing `:h neorg`
+Next step is to simply drop into a .norg file and start typing away!
 
-Simply drop into a `.norg` file and start typing!
-
-Or you can require the `core.norg.dirman` module, that'll help you manage workspaces:
+A good first step is to require the `core.norg.dirman` module, it'll help you manage workspaces.
+Workspaces are basically isolated directories that you can jump between:
 
 ```lua
 require('neorg').setup {
-  load = {
-    ...
-    ["core.norg.dirman"] = {
-      config = {
-        workspaces = {
-          my_workspace = "~/neorg"
+    load = {
+        ["core.defaults"] = {},
+        ["core.norg.dirman"] = {
+            config = {
+                workspaces = {
+                    work = "~/notes/work",
+                    home = "~/notes/home",
+                }
+            }
         }
-      }
     }
-    ...
-  }
 }
 ```
 
-And just do `:NeorgStart`, and it'll open your last (or only) workspace !
+Changing workspaces is easy, just do `Neorg workspace work`, where `work` is the name of your workspace.
+Note that `:Neorg` is only available when the Neorg environment is loaded, i.e. when you're
+in a .norg file or have loaded a .norg file already in your Neovim session.
 
-Changing workspaces is easy, just do `Neorg workspace ...`
+If the Neorg environment isn't loaded you'll find a `:NeorgStart` command which will launch Neorg and pop
+you in to your last (or only) workspace.
 
-> It works now, what are the next steps ?
+> It works, cool! What are the next steps?
 
-We recommend you add some core modules that can greatly improve your experience, such as 
+We recommend you add some core modules that can greatly improve your experience, such as:
 
 - Setting up a completion engine (`core.norg.completion`)
-- Using the default keybinds provided by Neorg (`core.norg.keybinds`)
-- Using the concealer module, that will use icons where possible (`core.norg.concealer`)
+- Using the default keybinds provided by Neorg (`core.keybinds`)
+- Using the concealer module to enable icons (`core.norg.concealer`)
 
-Stay on board, we're now showing you how to add modules !
+Stay on board, we're now showing you how to add modules!
 
 ## Modules
 
-As you surely saw previously, we loaded `core.defaults`, and recommended you loading `core.norg.dirman`.
+As you surely saw previously, we loaded `core.defaults`, and recommended that you load `core.norg.dirman`.
+Sooo, what are they? We'll give you a brief explanation.
 
-They are called a module ! And guess what ? As time passes, we provide more and more modules to help you manage your life !
+Modules are basically isolated bits of code that provide a specific subset of features. They can be docked in
+to the environment at any time and can be essentially stacked together like lego bricks!
 
 To require a module, just do:
 
 ```lua
 require('neorg').setup {
-  load = {
-    ...
-    -- Require the module with the default configurations for it
-    ["your.required.module"] = { },
-    -- Require the module, and override the configurations (with the "config" table)
-    ["your.required.module"] = { }
-      config = {
-        some_option = true
-      }
+    load = {
+        -- Require the module with the default configurations for it
+        ["your.required.module"] = {},
+
+        -- Require the module, and override the configurations (with the "config" table)
+        ["your.required.module"] = {
+            config = {
+                some_option = true
+            }
+        }
     }
-    ...
-  }
 }
 ```
 
-For more information about what is a module, check out [here](https://github.com/nvim-neorg/neorg/wiki/Installation#the-concept-of-modules).
+As always, for a little more info you can consult the wiki page [here](https://github.com/nvim-neorg/neorg/wiki/Installation#the-concept-of-modules).
 
-To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the [Wiki](https://github.com/nvim-neorg/neorg/wiki).
+To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the [wiki](https://github.com/nvim-neorg/neorg/wiki).
 
 ### Default Modules
 
-The default modules are automagically required when you require `core.defaults`, handy !
+The default modules are automagically required when you require `core.defaults`, handy!
 
 You can view a list of them [here](https://github.com/nvim-neorg/neorg/wiki#default-modules).
 
@@ -346,6 +356,9 @@ Feel free to try by adding them to your Neorg setup.
 
 <!-- TODO: Use docgen to generate this automatically -->
 
+<details>
+<summary>List of Core Modules:</summary>
+
 | Module name                                                                     | Description                                                                 |
 | :------------------------------------------------------------------------------ | :-------------------------------------------------------------------------- |
 | [`core.presenter`](https://github.com/nvim-neorg/neorg/wiki/Core-Presenter)     | Neorg module to create gorgeous presentation slides.                        |
@@ -355,48 +368,50 @@ Feel free to try by adding them to your Neorg setup.
 | [`core.gtd.base`](https://github.com/nvim-neorg/neorg/wiki/Getting-Things-Done) | Manages your tasks with Neorg using the Getting Things Done methodology.    |
 | [`core.norg.dirman`](https://github.com/nvim-neorg/neorg/wiki/Dirman)           | This module is be responsible for managing directories full of .norg files. |
 
+</details>
+
 <!-- TODO: What to do with core.keybinds?  -->
 
 ### External Modules
 
 Users can contribute and create their own modules for Neorg.
-
 To use them, just download the plugin with your package manager, for instance with Packer:
 
 ```lua
 use {
     "nvim-neorg/neorg",
-    requires = "the.module.name",
-    ...
+    requires = "john-cena/cool-neorg-plugin",
 }
 ```
 
-After that it's as easy as loading a module normally:
+After that it's as easy as loading the module it exposes normally:
 
 ```lua
 require('neorg').setup {
   load = {
-    ...
-    ["the.module.name"] = { },
+    ["cool.module"] = {},
   }
 }
 ```
 
-This is a list of external modules:
+<details>
+<summary>List of community modules:</summary>
 
 | Module name                                                                        | Description                                                                   |
 | :--------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
 | [`utilities.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base` |
 
+</details>
+
 ## Roadmap
 
 We track a high-level roadmap, so that you can know what to expect. Just do `:h neorg-roadmap`.
 
-To know exactly what's being worked on, just check out the [PR's](https://github.com/nvim-neorg/neorg/pulls).
+To know exactly what's being worked on, just check out the [repo's PRs](https://github.com/nvim-neorg/neorg/pulls).
 
 ## Philosophy
 
-We think of Neorg as a plugin that will give you all the bragging rights for using Neovim. Here's how we plan to do it:
+<!-- TODO(vhyrro): Revamp this -->
 
 1. Revise the org format: we want it simple, very extensible, unambiguous. Will make you feel right at home. Org and markdown have several flaws, but the most
    notable one is the requirement for **complex parsers**.
@@ -417,40 +432,45 @@ We think of Neorg as a plugin that will give you all the bragging rights for usi
 
 ## FAQ
 
+<!-- TODO(vhyrro): Populate with common issues -->
+
 The wiki is the go-to place if you need answers to anything Neorg-related. Usage, Keybinds, User Callbacks, Modules, Events?
 It's all there, so we recommend you seriously go [read it](https://github.com/nvim-neorg/neorg/wiki)!
 
 ## Contributing
 
-You love the project and want to contribute ?
+Have an idea? An improvement to existing functionality? Feedback in general?
 
-Maybe you have an idea to improve current modules, or create a new one ?
-
-Alright, we recommend you joining our [Discord](https://discord.gg/T6EgTAX7ht) and reading [CONTRIBUTING.md](docs/CONTRIBUTING.md) for more details !
+We seriously recommend you join our [discord](https://discord.gg/T6EgTAX7ht) to hang out and chat about your ideas,
+plus that you read the [CONTRIBUTING.md](docs/CONTRIBUTING.md) file for more info about developer-related stuff!
 
 ## Credits
 
-Massive shoutouts go to the people who supported the project, and help out in creating a good user experience! These are:
+Massive shoutouts go to all the contributors actively working on the project together to form a fantastic
+integrated workflow:
 
-- [vhyrro](https://github.com/vhyrro)
-- [mrossinek](https://github.com/mrossinek)
-- [danymat](https://github.com/danymat)
-- [Binx](https://github.com/Binx-Codes/)
-- [bandithedoge](https://github.com/bandithedoge)
+- [mrossinek](https://github.com/mrossinek) - for basically being my second brain when it comes to developing new features
+                                              and adding new syntax elements
+- [danymat](https://github.com/danymat) - for creating the excellent GTD workflow in Neorg that we literally use internally
+                                          to plan new features
+
+And an extra thank you to:
+- [Binx](https://github.com/Binx-Codes/) - for making that gorgeous logo for free!
+- [bandithedoge](https://github.com/bandithedoge) - for converting the PNG version of the logo into SVG form
 
 ## Support
 
-A word from the creator, Vhyrro:
-
-> Love what I do? Want to see more get done faster? Want to support future projects of mine? Any sort of support is always
-> heartwarming and fuels the urge to keep going :heart:. You can support me here:
+Love what I do? Want to see more get done faster? Want to support future projects? Any sort of support is always
+heartwarming and fuels the urge to keep going :heart:. You can show support here:
 
 - [Buy me a coffee!](https://buymeacoffee.com/vhyrro)
-- [Support on LiberaPay](https://liberapay.com/vhyrro)
+- [Support me on LiberaPay](https://liberapay.com/vhyrro)
 - [Donate directly via paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
 - [Support me on Patreon](https://patreon.com/vhyrro)
 - Donate to my monero wallet: `86CXbnPLa14F458FRQFe26PRfffZTZDbUeb4NzYiHDtzcyaoMnfq1TqVU1EiBFrbKqGshFomDzxWzYX2kMvezcNu9TaKd9t`
 - Donate via bitcoin: `bc1q4ey43t9hhstzdqh8kqcllxwnqlx9lfxqqh439s`
+
+<!-- TODO(vhyrro): Create table of donation links for all maintainers -->
 
 <!--
 # :keyboard: Keybinds
