@@ -80,6 +80,30 @@ To know more about the philosophy of Neorg, go [here](#philosophy).
   ![Enregistrement de l’écran 2021-12-29 à 11 03 57](https://user-images.githubusercontent.com/5306901/147650852-de6b2542-39c4-44c6-a228-ded867a71d4e.gif)
 </details>
 
+<details>
+<summary>Treesitter powered editing:</summary>
+
+  ![Enregistrement de l’écran 2021-12-29 à 11 19 01](https://user-images.githubusercontent.com/5306901/147652347-80daa0db-f5d5-46e7-b553-2922553c2c78.gif)
+</details>
+
+<details>
+<summary>Manage your tasks and project with GTD module:</summary>
+  
+  - See your current projects
+  
+  ![Enregistrement de l’écran 2021-12-29 à 11 27 04](https://user-images.githubusercontent.com/5306901/147652840-c8201380-9ce1-428c-8ce3-320dad5592c1.gif)
+  
+  - Create a new task
+  
+  ![Enregistrement de l’écran 2021-12-29 à 11 31 19](https://user-images.githubusercontent.com/5306901/147653241-e8d2742c-354c-49e4-bad0-7091451c6628.gif)
+
+  - Add informations to your tasks, and jump to them quickly
+  
+  ![Enregistrement de l’écran 2021-12-29 à 11 36 16](https://user-images.githubusercontent.com/5306901/147653650-a4a27c59-1213-4307-b3fc-c0a0bfefaa9b.gif)
+  
+  And much more...
+
+</details>
 ## Installation
 
 Neorg requires at least `0.6+` to operate.
