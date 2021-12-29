@@ -106,9 +106,21 @@ To know more about the philosophy of Neorg, go [here](#philosophy).
 </details>
 
 <details>
-  <summary>Powerpoint-like presentations in neovim!:</summary>
+  <summary>Powerpoint-like presentations in neovim, with presenter module:</summary>
   
   ![Enregistrement_de_lecran_2021-11-15_a_22 40 36](https://user-images.githubusercontent.com/5306901/147654155-c2aa728a-5c2b-4813-b3e2-fbf7e2ffd2a2.gif)
+</details>
+
+<details>
+  <summary>Get syntax highlighting for any language supported by NeoVim:</summary>
+
+  ![Enregistrement_de_lecran_2021-11-15_a_22 40 36](https://user-images.githubusercontent.com/5306901/147654589-70321583-dc8f-4e71-841b-8806edd7bb18.gif)
+</details>
+
+<details>
+  <summary>Get completion for various items in Neorg:</summary>
+
+  ![Enregistrement_de_lecran_2021-11-15_a_22 40 36](https://user-images.githubusercontent.com/5306901/147654930-d6a982b4-171a-4b19-b793-e378d4c22633.gif)
 </details>
 
 ## Installation
@@ -415,9 +427,9 @@ It's all there, so we recommend you seriously go [read it](https://github.com/nv
 
 You love the project and want to contribute ?
 
-Maybe you have an idea to improve current modules, or create a new one...
+Maybe you have an idea to improve current modules, or create a new one ?
 
-Alright, we recommend you joining our [Discord](https://discord.gg/T6EgTAX7ht) and reading [CONTRIBUTING.md](/CONTRIBUTING.md) for more details !
+Alright, we recommend you joining our [Discord](https://discord.gg/T6EgTAX7ht) and reading [CONTRIBUTING.md](docs/CONTRIBUTING.md) for more details !
 
 ## Credits
 
@@ -444,51 +456,6 @@ A word from the creator, Vhyrro:
 - Donate via bitcoin: `bc1q4ey43t9hhstzdqh8kqcllxwnqlx9lfxqqh439s`
 
 <!--
-![Usage Showcase](https://user-images.githubusercontent.com/13149513/125274594-ef23c900-e32f-11eb-83dd-88627a038e01.gif)
-
-### Manage Your Life with Neovim-inspired Keybinds
-Keybinds that make logical sense. Simply think, don't remember.
-
-<img src="https://user-images.githubusercontent.com/76052559/132091379-845bf06d-7516-4c28-b32d-77b9734a44fe.gif">
-
----
-
-### Jump To The Most Important Directories with Workspaces
-Teleport to your favourite locations right away.
-
-
-</div>
-
-<div align="center">
-<img src="https://user-images.githubusercontent.com/13149513/125272567-cf8ba100-e32d-11eb-821d-f43f768570fb.gif">
-<img src="https://user-images.githubusercontent.com/13149513/125272579-d2869180-e32d-11eb-936b-1601086d0c73.gif">
-</div>
-
----
-
-<div align="center">
-
-### Configure Everything - Literally
-Experience the power and configurability of Neorg's backend through modules and events.
-<br>
-Select only the code you want - throw everything else away.
-
-<img src="https://user-images.githubusercontent.com/13149513/125273662-fc8c8380-e32e-11eb-873f-b6dab3ba0c2e.gif">
-
-</div>
-
----
-
-<div align="center">
-
-### TreeSitter Powered Editing
-Feel more accurate edits thanks to Neorg's deeper understanding of your documents with Treesitter
-
-<img src="https://user-images.githubusercontent.com/76052559/132091729-6814a796-21a9-43af-a8f1-df7f44d1928b.gif">
-
-</div>
-
-
 # :keyboard: Keybinds
 Neorg comes with no keys bound by default. If you want to use all the default keys, you may want to modify the `core.keybinds`'s configuration
 to generate them for you, here's how you would do it (note that this code snippet is an extension of the [installation](#wrench-installation) snippet):
@@ -523,33 +490,4 @@ use {
 
 You may actually want to change your keybinds though! Changing keybinds is a rather trivial task.
 The wiki entry for keybinds can be found [here](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds). It'll tell you the ins and outs of what you need to do :)
-
-# :notebook: Consult The Wiki
-
-
-# :computer: Contributing
-Contributions are always welcome and will always be welcome. You can check [CONTRIBUTING.md](docs/CONTRIBUTING.md) if you wanna find out more.
-Have a cool idea? Want to implement something, but don't know where to start? I'm always here to help! You can always create an issue or join the discord
-and chat there.
-
-# :camera: Extra GIFs
-### Language Injection
-Get syntax highlighting for any language supported by NeoVim.
-Neorg will use treesitter first, falling back to Vim regex for languages not supported by treesitter seamlessly.
-
-![Injection](https://user-images.githubusercontent.com/13149513/125274035-5f7e1a80-e32f-11eb-8de3-060b6e752185.gif)
-
-### Smort Syntax
-Thanks to TreeSitter we can achieve a surprising amount of precision.
-
-![Trailing Modifier Showcase](https://user-images.githubusercontent.com/13149513/125274133-79b7f880-e32f-11eb-86c3-c06f1484b685.gif)
-![Comments](https://user-images.githubusercontent.com/13149513/125274156-80467000-e32f-11eb-935c-a65460b3fc61.gif)
-
-### Completion
-Neorg uses both TreeSitter and nvim-compe in unison to provide
-contextual completion based on your position in the syntax tree.
-
-![Completion](https://user-images.githubusercontent.com/13149513/125274303-a835d380-e32f-11eb-9a75-a2a4eb421a61.gif)
-![Code Tag Completion](https://user-images.githubusercontent.com/13149513/125274336-aff57800-e32f-11eb-88e0-dfd9895d5d26.gif)
-
 -->
