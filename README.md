@@ -104,6 +104,7 @@ To know more about the philosophy of Neorg, go [here](#philosophy).
   And much more...
 
 </details>
+
 ## Installation
 
 Neorg requires at least `0.6+` to operate.
