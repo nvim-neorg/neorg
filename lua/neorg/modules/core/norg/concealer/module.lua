@@ -2200,7 +2200,10 @@ module.on_event = function(event)
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
-                module.public.trigger_highlight_regex_code_block(module.private.last_change.line, module.private.last_change.line + 1)
+                module.public.trigger_highlight_regex_code_block(
+                    module.private.last_change.line,
+                    module.private.last_change.line + 1
+                )
             else
                 module.public.trigger_icons(
                     module.private.icons,
@@ -2208,7 +2211,10 @@ module.on_event = function(event)
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
-                module.public.trigger_highlight_regex_code_block(module.private.largest_change_start, module.private.largest_change_end)
+                module.public.trigger_highlight_regex_code_block(
+                    module.private.largest_change_start,
+                    module.private.largest_change_end
+                )
             end
 
             module.private.largest_change_start, module.private.largest_change_end = -1, -1
