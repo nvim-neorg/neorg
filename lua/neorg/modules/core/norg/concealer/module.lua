@@ -274,7 +274,7 @@ module.public = {
         end
     end,
 
-    trigger_highlight_regex_code_block = function(from)
+    trigger_highlight_regex_code_block = function(from, to)
         -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
 
@@ -306,89 +306,91 @@ module.public = {
 
             -- look for language name in code blocks
             -- this will not finish if a treesitter parser exists for the current language found
-            for id, node in code_lang:iter_captures(tree:root(), 0, from or 0, -1) do
-                local lang_name = code_lang.captures[id]
+            for id, node in code_lang:iter_captures(tree:root(), 0, from or 0, to or -1) do
+                vim.schedule(function()
+                    local lang_name = code_lang.captures[id]
 
-                -- only look at nodes that have the language query
-                if lang_name == "language" then
-                    local regex_language = vim.treesitter.get_node_text(node, 0)
-                    -- see if parser exists
-                    local ok, result = pcall(vim.treesitter.require_language, regex_language, true)
+                    -- only look at nodes that have the language query
+                    if lang_name == "language" then
+                        local regex_language = vim.treesitter.get_node_text(node, 0)
+                        -- see if parser exists
+                        local ok, result = pcall(vim.treesitter.require_language, regex_language, true)
 
-                    -- if pcall was true we had parser, skip the rest
-                    if ok and result then
-                        goto continue
-                    end
-
-                    -- NOTE: the regex fallback code was mostly adapted from Vimwiki
-                    -- It's a very good implementation of nested vim regex
-                    regex_language = regex_language:gsub("%s+", "") -- need to trim out whitespace
-                    local group = "textGroup" .. string.upper(regex_language)
-                    local snip = "textSnip" .. string.upper(regex_language)
-                    local start_marker = "@code " .. regex_language
-                    local end_marker = "@end"
-                    local has_syntax = "syntax list " .. snip
-
-                    ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
-                    local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
-                    if ok == true and count > 0 then
-                        goto continue
-                    end
-
-                    -- pass off the current syntax buffer var so things can load
-                    local current_syntax = ""
-                    if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
-                        vim.b.current_syntax = regex_language
-                        current_syntax = vim.b.current_syntax
-                        vim.b.current_syntax = nil
-                    end
-
-                    -- temporarily pass off keywords in case they get messed up
-                    local is_keyword = vim.api.nvim_buf_get_option(0, "iskeyword")
-
-                    -- see if the syntax files even exist before we try to call them
-                    -- if syn list was an error, or if it was an empty result
-                    if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
-                        local output = vim.api.nvim_get_runtime_file("syntax/" .. regex_language .. ".vim", false)
-                        if output[1] ~= nil then
-                            local command = "syntax include @" .. group .. " " .. output[1]
-                            vim.cmd(command)
+                        -- if pcall was true we had parser, skip the rest
+                        if ok and result then
+                            goto continue
                         end
-                        output = vim.api.nvim_get_runtime_file("after/syntax/" .. regex_language .. ".vim", false)
-                        if output[1] ~= nil then
-                            local command = "syntax include @" .. group .. " " .. output[1]
-                            vim.cmd(command)
+
+                        -- NOTE: the regex fallback code was mostly adapted from Vimwiki
+                        -- It's a very good implementation of nested vim regex
+                        regex_language = regex_language:gsub("%s+", "") -- need to trim out whitespace
+                        local group = "textGroup" .. string.upper(regex_language)
+                        local snip = "textSnip" .. string.upper(regex_language)
+                        local start_marker = "@code " .. regex_language
+                        local end_marker = "@end"
+                        local has_syntax = "syntax list " .. snip
+
+                        ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
+                        local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
+                        if ok == true and count > 0 then
+                            goto continue
                         end
-                    end
 
-                    vim.api.nvim_buf_set_option(0, "iskeyword", is_keyword)
+                        -- pass off the current syntax buffer var so things can load
+                        local current_syntax = ""
+                        if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
+                            vim.b.current_syntax = regex_language
+                            current_syntax = vim.b.current_syntax
+                            vim.b.current_syntax = nil
+                        end
 
-                    -- reset it after
-                    if current_syntax ~= "" or current_syntax ~= nil then
-                        vim.b.current_syntax = current_syntax
-                    else
+                        -- temporarily pass off keywords in case they get messed up
+                        local is_keyword = vim.api.nvim_buf_get_option(0, "iskeyword")
+
+                        -- see if the syntax files even exist before we try to call them
+                        -- if syn list was an error, or if it was an empty result
+                        if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
+                            local output = vim.api.nvim_get_runtime_file("syntax/" .. regex_language .. ".vim", false)
+                            if output[1] ~= nil then
+                                local command = "syntax include @" .. group .. " " .. output[1]
+                                vim.cmd(command)
+                            end
+                            output = vim.api.nvim_get_runtime_file("after/syntax/" .. regex_language .. ".vim", false)
+                            if output[1] ~= nil then
+                                local command = "syntax include @" .. group .. " " .. output[1]
+                                vim.cmd(command)
+                            end
+                        end
+
+                        vim.api.nvim_buf_set_option(0, "iskeyword", is_keyword)
+
+                        -- reset it after
+                        if current_syntax ~= "" or current_syntax ~= nil then
+                            vim.b.current_syntax = current_syntax
+                        else
+                            vim.b.current_syntax = ""
+                        end
+
+                        -- set highlight groups
+                        local regex_fallback_hl = "syntax region "
+                            .. snip
+                            .. ' matchgroup=Snip start="'
+                            .. start_marker
+                            .. "\" end='"
+                            .. end_marker
+                            .. "' contains=@"
+                            .. group
+                            .. " keepend"
+                        vim.cmd(regex_fallback_hl)
+
+                        -- resync syntax, fixes some slow loading
+                        vim.cmd("syntax sync fromstart")
                         vim.b.current_syntax = ""
                     end
 
-                    -- set highlight groups
-                    local regex_fallback_hl = "syntax region "
-                        .. snip
-                        .. ' matchgroup=Snip start="'
-                        .. start_marker
-                        .. "\" end='"
-                        .. end_marker
-                        .. "' contains=@"
-                        .. group
-                        .. " keepend"
-                    vim.cmd(regex_fallback_hl)
-
-                    -- resync syntax, fixes some slow loading
-                    vim.cmd("syntax sync fromstart")
-                    vim.b.current_syntax = ""
-                end
-
-                -- continue on from for loop if a language with parser is found or another syntax might be loaded
-                ::continue::
+                    -- continue on from for loop if a language with parser is found or another syntax might be loaded
+                    ::continue::
+                end)
             end
         end
     end,
@@ -510,10 +512,9 @@ module.public = {
         vim.api.nvim_buf_clear_namespace(0, namespace, from or 0, to or -1)
     end,
 
-    trigger_completion_levels = function(from)
-        from = from or 0
-
-        module.public.clear_completion_levels(from)
+    -- TODO: Fix
+    trigger_completion_levels = function(from, to)
+        module.public.clear_completion_levels(from, to)
 
         -- Get the root node of the document (required to iterate over query captures)
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
@@ -531,8 +532,16 @@ module.public = {
             local total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled =
                 0, 0, 0, 0, 0, 0, 0, 0, 0
 
-            for id, node in query_object:iter_captures(document_root, 0, from, -1) do
+            for id, node in query_object:iter_captures(document_root, 0, from or 0, to or -1) do
                 local name = query_object.captures[id]
+
+                local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+                -- Check whether the node captured node is in bounds.
+                -- There are certain rare cases where incorrect nodes would be parsed.
+                if from and to and node_range.row_start < from or node_range.row_end > to then
+                    goto continue
+                end
 
                 if name == "progress" then
                     if last_node and node ~= last_node then
@@ -579,6 +588,8 @@ module.public = {
                     cancelled = cancelled + 1
                     -- total = total + 1
                 end
+
+                ::continue::
             end
 
             if total > 0 then
@@ -596,60 +607,62 @@ module.public = {
                 })
 
                 for _, node_information in ipairs(nodes) do
-                    if node_information.total > 0 then
-                        local node_range = module.required["core.integrations.treesitter"].get_node_range(
-                            node_information.node
-                        )
-                        local text = vim.deepcopy(query.text)
-
-                        local function format_query_text(data)
-                            data = data:gsub("<total>", tostring(node_information.total))
-                            data = data:gsub("<done>", tostring(node_information.done))
-                            data = data:gsub("<pending>", tostring(node_information.pending))
-                            data = data:gsub("<undone>", tostring(node_information.undone))
-                            data = data:gsub("<uncertain>", tostring(node_information.uncertain))
-                            data = data:gsub("<urgent>", tostring(node_information.urgent))
-                            data = data:gsub("<recurring>", tostring(node_information.recurring))
-                            data = data:gsub("<onhold>", tostring(node_information.onhold))
-                            data = data:gsub("<cancelled>", tostring(node_information.cancelled))
-                            data = data:gsub(
-                                "<percentage>",
-                                tostring(math.floor(node_information.done / node_information.total * 100))
+                    vim.schedule(function()
+                        if node_information.total > 0 then
+                            local node_range = module.required["core.integrations.treesitter"].get_node_range(
+                                node_information.node
                             )
+                            local text = vim.deepcopy(query.text)
 
-                            return data
-                        end
+                            local function format_query_text(data)
+                                data = data:gsub("<total>", tostring(node_information.total))
+                                data = data:gsub("<done>", tostring(node_information.done))
+                                data = data:gsub("<pending>", tostring(node_information.pending))
+                                data = data:gsub("<undone>", tostring(node_information.undone))
+                                data = data:gsub("<uncertain>", tostring(node_information.uncertain))
+                                data = data:gsub("<urgent>", tostring(node_information.urgent))
+                                data = data:gsub("<recurring>", tostring(node_information.recurring))
+                                data = data:gsub("<onhold>", tostring(node_information.onhold))
+                                data = data:gsub("<cancelled>", tostring(node_information.cancelled))
+                                data = data:gsub(
+                                    "<percentage>",
+                                    tostring(math.floor(node_information.done / node_information.total * 100))
+                                )
 
-                        -- Format query text
-                        if type(text) == "string" then
-                            text = format_query_text(text)
-                        else
-                            for _, tbl in ipairs(text) do
-                                tbl[1] = format_query_text(tbl[1])
-
-                                tbl[2] = tbl[2] or query.highlight
+                                return data
                             end
-                        end
 
-                        vim.api.nvim_buf_set_extmark(
-                            0,
-                            module.private.completion_level_namespace,
-                            node_range.row_start,
-                            -1,
-                            {
-                                virt_text = type(text) == "string" and { { text, query.highlight } } or text,
-                                priority = 250,
-                                hl_mode = "combine",
-                            }
-                        )
-                    end
+                            -- Format query text
+                            if type(text) == "string" then
+                                text = format_query_text(text)
+                            else
+                                for _, tbl in ipairs(text) do
+                                    tbl[1] = format_query_text(tbl[1])
+
+                                    tbl[2] = tbl[2] or query.highlight
+                                end
+                            end
+
+                            vim.api.nvim_buf_set_extmark(
+                                0,
+                                module.private.completion_level_namespace,
+                                node_range.row_start,
+                                -1,
+                                {
+                                    virt_text = type(text) == "string" and { { text, query.highlight } } or text,
+                                    priority = 250,
+                                    hl_mode = "combine",
+                                }
+                            )
+                        end
+                    end)
                 end
             end
         end
     end,
 
-    clear_completion_levels = function(from)
-        vim.api.nvim_buf_clear_namespace(0, module.private.completion_level_namespace, from or 0, -1)
+    clear_completion_levels = function(from, to)
+        vim.api.nvim_buf_clear_namespace(0, module.private.completion_level_namespace, from or 0, to or -1)
     end,
 
     -- VARIABLES
@@ -2066,21 +2079,18 @@ module.on_event = function(event)
                 (line_count / module.config.public.performance.increment) % event.cursor_position[1]
             )
 
-            local function trigger_for_block(block, icon_set, namespace)
-                module.public.trigger_icons(
-                    icon_set,
-                    namespace,
-                    block == 0 and 0 or block * module.config.public.performance.increment - 1,
-                    math.min(
-                        block * module.config.public.performance.increment
-                            + module.config.public.performance.increment
-                            - 1,
-                        line_count
-                    )
+            local function trigger_icons_for_block(block, icon_set, namespace)
+                local line_begin = block == 0 and 0 or block * module.config.public.performance.increment - 1
+                local line_end = math.min(
+                    block * module.config.public.performance.increment + module.config.public.performance.increment - 1,
+                    line_count
                 )
+
+                module.public.trigger_icons(icon_set, namespace, line_begin, line_end)
+                module.public.trigger_highlight_regex_code_block(line_begin, line_end)
             end
 
-            trigger_for_block(block_current, module.private.icons, module.private.icon_namespace)
+            trigger_icons_for_block(block_current, module.private.icons, module.private.icon_namespace)
 
             local block_bottom, block_top = block_current - 1, block_current + 1
 
@@ -2100,12 +2110,12 @@ module.on_event = function(event)
                     end
 
                     if block_bottom_valid then
-                        trigger_for_block(block_bottom, module.private.icons, module.private.icon_namespace)
+                        trigger_icons_for_block(block_bottom, module.private.icons, module.private.icon_namespace)
                         block_bottom = block_bottom - 1
                     end
 
                     if block_top_valid then
-                        trigger_for_block(block_top, module.private.icons, module.private.icon_namespace)
+                        trigger_icons_for_block(block_top, module.private.icons, module.private.icon_namespace)
                         block_top = block_top + 1
                     end
                 end)
@@ -2136,6 +2146,7 @@ module.on_event = function(event)
                         end
 
                         module.public.trigger_icons(module.private.icons, module.private.icon_namespace, start, _end)
+                        module.public.trigger_highlight_regex_code_block(start, _end)
                         line_count = new_line_count
                     end)
                 else
@@ -2189,6 +2200,7 @@ module.on_event = function(event)
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
+                module.public.trigger_highlight_regex_code_block(module.private.last_change.line, module.private.last_change.line + 1)
             else
                 module.public.trigger_icons(
                     module.private.icons,
@@ -2196,6 +2208,7 @@ module.on_event = function(event)
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
+                module.public.trigger_highlight_regex_code_block(module.private.largest_change_start, module.private.largest_change_end)
             end
 
             module.private.largest_change_start, module.private.largest_change_end = -1, -1
