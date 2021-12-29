@@ -117,7 +117,7 @@ To know more about the philosophy of Neorg, go [here](#philosophy).
 <details>
   <summary>Get completion for various items in Neorg:</summary>
 
-  ![Enregistrement_de_lecran_2021-11-15_a_22 40 36](https://user-images.githubusercontent.com/5306901/147654930-d6a982b4-171a-4b19-b793-e378d4c22633.gif)
+  ![Enregistrement de l’écran 2021-12-29 à 11 52 02](https://user-images.githubusercontent.com/5306901/147657095-aa51a609-5bc2-4aa4-9687-bdda6ef48860.gif)
 </details>
 
 ## Installation
