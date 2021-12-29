@@ -361,6 +361,12 @@ We think of Neorg as a plugin that will give you all the bragging rights for usi
 
 ## Contributing
 
+You love the project and want to contribute ?
+
+Maybe you have an idea to improve current modules, or create a new one...
+
+Alright, we recommend you joining our [Discord](https://discord.gg/T6EgTAX7ht) and reading [CONTRIBUTING.md](/CONTRIBUTING.md) for more details !
+
 ## Credits
 
 Massive shoutouts go to the people who supported the project, and help out in creating a good user experience! These are:
