@@ -110,7 +110,8 @@ To know more about the philosophy of Neorg, go [here](#philosophy).
 <details>
   <summary>Get syntax highlighting for any language supported by NeoVim:</summary>
 
-  ![Enregistrement_de_lecran_2021-11-15_a_22 40 36](https://user-images.githubusercontent.com/5306901/147654589-70321583-dc8f-4e71-841b-8806edd7bb18.gif)
+  ![Enregistrement de l’écran 2021-12-29 à 11 47 59](https://user-images.githubusercontent.com/5306901/147657014-68573df8-0e43-4a8b-bb81-0db1c80cbbd8.gif)
+</details>
 </details>
 
 <details>
