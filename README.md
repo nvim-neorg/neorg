@@ -105,6 +105,12 @@ To know more about the philosophy of Neorg, go [here](#philosophy).
 
 </details>
 
+<details>
+  <summary>Powerpoint-like presentations in neovim!:</summary>
+  
+  ![Enregistrement_de_lecran_2021-11-15_a_22 40 36](https://user-images.githubusercontent.com/5306901/147654155-c2aa728a-5c2b-4813-b3e2-fbf7e2ffd2a2.gif)
+</details>
+
 ## Installation
 
 Neorg requires at least `0.6+` to operate.
