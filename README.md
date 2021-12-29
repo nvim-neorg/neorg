@@ -27,6 +27,8 @@ _Your new life organization tool_
 •
 [Modules](#modules)
 •
+[Roadmap](#roadmap)
+•
 [Philosophy](#philosophy)
 <br>
 [GIFS](#gifs)
@@ -231,6 +233,16 @@ And just do `:NeorgStart`, and it'll open your last (or only) workspace !
 
 Changing workspaces is easy, just do `Neorg workspace ...`
 
+> It works now, what are the next steps ?
+
+We recommend you add some core modules that can greatly improve your experience, such as 
+
+- Setting up a completion engine (`core.norg.completion`)
+- Using the default keybinds provided by Neorg (`core.norg.keybinds`)
+- Using the concealer module, that will use icons where possible (`core.norg.concealer`)
+
+Stay on board, we're now showing you how to add modules !
+
 ## Modules
 
 As you surely saw previously, we loaded `core.defaults`, and recommended you loading `core.norg.dirman`.
@@ -418,47 +430,6 @@ Feel more accurate edits thanks to Neorg's deeper understanding of your document
 
 </div>
 
-
-
-
-### Setting up a Completion Engine
-Neorg comes with its own API for completion. Users can then write integration modules to allow different plugins like `nvim-compe` and `nvim-cmp`
-to communicate with the Neorg core. By default no engine is specified. To specify one, make sure to configure `core.norg.completion`:
-
-```lua
-["core.norg.completion"] = {
-    config = {
-        engine = "nvim-compe" | "nvim-cmp" -- We current support nvim-compe and nvim-cmp only
-    }
-}
-```
-
-And that's it!
-
-### Lazy Loading Neorg Completion
-It's very much likely that you're lazy loading your favourite completion engine on an autocommand like `InsertEnter`.
-In this case loading the `core.norg.completion` module right away will flat out fail.
-To make Neorg work with your lazy loaded completion engine, you can simply defer the loading of the completion
-module when necessary. Place this code after you initialize your completion engine:
-
-```lua
--- Get the current Neorg state
-local neorg = require('neorg')
-
---- Loads the Neorg completion module
-local function load_completion()
-    neorg.modules.load_module("core.norg.completion", nil, {
-        engine = "nvim-cmp" -- Choose your completion engine here
-    })
-end
-
--- If Neorg is loaded already then don't hesitate and load the completion
-if neorg.is_loaded() then
-    load_completion()
-else -- Otherwise wait until Neorg gets started and load the completion module then
-    neorg.callbacks.on_event("core.started", load_completion)
-end
-```
 
 # :keyboard: Keybinds
 Neorg comes with no keys bound by default. If you want to use all the default keys, you may want to modify the `core.keybinds`'s configuration
