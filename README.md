@@ -19,6 +19,8 @@ _Your new life organization tool_
 
 [Summary](#summary)
 •
+[Showcase](#showcase)
+•
 [Installation](#installation)
 •
 [Setup](#setup)
@@ -26,13 +28,10 @@ _Your new life organization tool_
 [Usage](#usage)
 •
 [Modules](#modules)
-•
+<br>
 [Roadmap](#roadmap)
 •
 [Philosophy](#philosophy)
-<br>
-[GIFS](#gifs)
-•
 [FAQ](#faq)
 •
 [Contributing](#contributing)
@@ -62,6 +61,24 @@ That's why we created _Neorg_.
 _IMPORTANT_: Neorg is _alpha_ software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and keeping docs up-to-date would be very painful.
 
 To know more about the philosophy of Neorg, go [here](#philosophy).
+
+## Showcase
+
+<details>
+<summary>A `.norg` file:</summary>
+  <img width="700" alt="Capture d’écran 2021-12-29 à 10 50 59" src="https://user-images.githubusercontent.com/5306901/147649564-6f41e008-b292-4a67-84ab-82e73bc71890.png">
+</details>
+
+<details>
+<summary>Concealing module enabled:</summary>
+  <img width="700" alt="Capture d’écran 2021-12-29 à 10 53 26" src="https://user-images.githubusercontent.com/5306901/147649784-5654009e-c4aa-4f2b-8e30-571578a313b6.png">
+</details>
+
+<details>
+<summary>Manage your life with inspired keybinds:</summary>
+  
+  ![Enregistrement de l’écran 2021-12-29 à 11 03 57](https://user-images.githubusercontent.com/5306901/147650852-de6b2542-39c4-44c6-a228-ded867a71d4e.gif)
+</details>
 
 ## Installation
 
@@ -357,8 +374,6 @@ We think of Neorg as a plugin that will give you all the bragging rights for usi
 
 4. Logic: everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
    two people asked for it.
-
-## GIFS
 
 ## FAQ
 
