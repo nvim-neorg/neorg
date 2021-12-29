@@ -200,6 +200,7 @@ Neorg needs `nvim-treesitter` to be up and running before it starts adding colou
 
 Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
 
+If you're on Mac and have compilation errors when doing `:TSInstall`, check out this [fix](https://github.com/nvim-neorg/neorg/issues/74#issuecomment-906627223).
 It's a bit hacky - it will unfortunately stay this way until we get first-class support in the `nvim-treesitter` repository.
 Sorry!
 
@@ -297,6 +298,8 @@ Feel free to try by adding them to your Neorg setup.
 | [`core.gtd.base`](https://github.com/nvim-neorg/neorg/wiki/Getting-Things-Done) | Manages your tasks with Neorg using the Getting Things Done methodology.    |
 | [`core.norg.dirman`](https://github.com/nvim-neorg/neorg/wiki/Dirman)           | This module is be responsible for managing directories full of .norg files. |
 
+<!-- TODO: What to do with core.keybinds?  -->
+
 ### External Modules
 
 Users can contribute and create their own modules for Neorg.
@@ -358,6 +361,9 @@ We think of Neorg as a plugin that will give you all the bragging rights for usi
 ## GIFS
 
 ## FAQ
+
+The wiki is the go-to place if you need answers to anything Neorg-related. Usage, Keybinds, User Callbacks, Modules, Events?
+It's all there, so we recommend you seriously go [read it](https://github.com/nvim-neorg/neorg/wiki)!
 
 ## Contributing
 
@@ -473,8 +479,7 @@ You may actually want to change your keybinds though! Changing keybinds is a rat
 The wiki entry for keybinds can be found [here](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds). It'll tell you the ins and outs of what you need to do :)
 
 # :notebook: Consult The Wiki
-The wiki is the go-to place if you need answers to anything Neorg-related. Usage, Keybinds, User Callbacks, Modules, Events?
-It's all there, so we recommend you seriously go [read it](https://github.com/nvim-neorg/neorg/wiki)!
+
 
 # :computer: Contributing
 Contributions are always welcome and will always be welcome. You can check [CONTRIBUTING.md](docs/CONTRIBUTING.md) if you wanna find out more.
