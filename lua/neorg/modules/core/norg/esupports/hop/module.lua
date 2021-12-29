@@ -156,8 +156,8 @@ module.public = {
                             (link_target_heading4)
                             (link_target_heading5)
                             (link_target_heading6)
-                        ] @link_type
-                        text: (paragraph_segment) @link_location_text
+                        ]? @link_type
+                        text: (paragraph_segment)? @link_location_text
                     )
                     (link_description
                         text: (paragraph_segment) @link_description
