@@ -397,9 +397,11 @@ require('neorg').setup {
 <details>
 <summary>List of community modules:</summary>
 
-| Module name                                                                        | Description                                                                   |
-| :--------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
-| [`utilities.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base` |
+| Module name                                                                        | Description                                                                          |
+| :--------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
+| [`utilities.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base`        |
+| [`core.integrations.telescope`](https://github.com/nvim-neorg/neorg-telescope)     | Neorg integration with [Telescope](https://github.com/nvim-telescope/telescope.nvim) |
+
 
 </details>
 
