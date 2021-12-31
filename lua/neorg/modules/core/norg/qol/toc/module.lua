@@ -45,6 +45,7 @@ module.load = function()
                 split = {},
                 inline = {},
                 toqflist = {},
+                close = {},
             },
         },
         data = {
@@ -54,6 +55,7 @@ module.load = function()
                     split = { args = 0, name = "toc.split" },
                     inline = { args = 0, name = "toc.inline" },
                     toqflist = { args = 0, name = "toc.toqflist" },
+                    close = { args = 0, name = "toc.close" },
                 },
             },
         },
@@ -72,12 +74,13 @@ module.private = {
     toc_bufnr = nil,
     cur_bnr = nil,
     cur_win = nil,
+    toc_namespace = nil,
 
     close_buffer = function(opts)
         opts = opts or {}
 
         if not opts.keep_buf then
-            vim.api.nvim_buf_delete(0, { force = true })
+            vim.api.nvim_buf_delete(module.private.toc_bufnr, { force = true })
             module.private.cur_bnr = nil
             module.private.toc_bufnr = nil
         end
@@ -262,6 +265,13 @@ module.public = {
     --- Displays the table of contents to the user
     --- @param split boolean if true will spawn the vertical split on the right hand side
     display_toc = function(split)
+        if
+            module.private.toc_bufnr ~= nil
+            or (module.private.toc_namespace ~= nil and vim.api.nvim_get_namespaces()["Neorg ToC"])
+        then
+            log.warn("Toc is already displayed.")
+            return
+        end
         local found_toc = module.public.find_toc()
 
         if not found_toc then
@@ -318,6 +328,8 @@ module.public = {
         end
 
         local namespace = vim.api.nvim_create_namespace("Neorg ToC")
+        module.private.toc_namespace = namespace
+
         local extmarks = vim.api.nvim_buf_get_extmarks(0, namespace, 0, -1, {})
         if #extmarks == 0 then
             vim.api.nvim_buf_set_extmark(0, namespace, found_toc.line, 0, { virt_lines = virt_lines })
@@ -361,6 +373,18 @@ module.public = {
             vim.fn.setqflist(qflist, "r")
         end
     end,
+
+    close = function()
+        if module.private.toc_bufnr ~= nil then
+            module.private.close_buffer()
+        elseif module.private.toc_namespace ~= nil then
+            local ns_id = vim.api.nvim_get_namespaces()["Neorg ToC"]
+            vim.api.nvim_buf_clear_namespace(0, ns_id, 0, -1)
+            module.private.toc_namespace = nil
+        else
+            log.warn("No Toc opened.")
+        end
+    end,
 }
 
 module.on_event = function(event)
@@ -370,6 +394,7 @@ module.on_event = function(event)
             ["toc.split"] = neorg.lib.wrap(module.public.display_toc, true),
             ["toc.inline"] = neorg.lib.wrap(module.public.display_toc),
             ["toc.toqflist"] = neorg.lib.wrap(module.public.toqflist),
+            ["toc.close"] = neorg.lib.wrap(module.public.close),
         })
     elseif event.split_type[1] == "core.keybinds" then
         if event.split_type[2] == "core.norg.qol.toc.hop-toc-link" then
@@ -406,6 +431,7 @@ module.events.subscribed = {
         ["toc.split"] = true,
         ["toc.inline"] = true,
         ["toc.toqflist"] = true,
+        ["toc.close"] = true,
     },
 }
 
