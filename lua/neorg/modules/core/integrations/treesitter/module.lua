@@ -805,15 +805,6 @@ module.public = {
             _node = _node:parent()
         end
     end,
-
-    --- Get the root node from a `bufnr`
-    --- @param bufnr number
-    --- @return userdata
-    get_buf_root_node = function(bufnr)
-        local parser = vim.treesitter.get_parser(bufnr, "norg")
-        local tstree = parser:parse()[1]
-        return tstree:root()
-    end,
 }
 
 module.on_event = function(event)
