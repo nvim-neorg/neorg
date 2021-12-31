@@ -333,6 +333,7 @@ module.public = {
 
                         ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
                         local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
+
                         if ok == true and count > 0 then
                             goto continue
                         end
@@ -382,7 +383,7 @@ module.public = {
                             .. "' contains=@"
                             .. group
                             .. " keepend"
-                        vim.cmd(regex_fallback_hl)
+                        vim.cmd("silent! " .. regex_fallback_hl)
 
                         -- resync syntax, fixes some slow loading
                         vim.cmd("syntax sync fromstart")
