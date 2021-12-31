@@ -106,7 +106,7 @@ module.public = {
     --- @param bufnr number
     --- @return table
     query_nodes_from_buf = function(tree, bufnr)
-        local root_node = module.required["core.integrations.treesitter"].get_buf_root_node(bufnr)
+        local root_node = module.required["core.integrations.treesitter"].get_document_root(bufnr)
         if not root_node then
             return
         end
