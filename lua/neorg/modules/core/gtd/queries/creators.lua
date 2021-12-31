@@ -1,5 +1,6 @@
 local module = neorg.modules.extend("core.gtd.queries.creators")
 
+---@class core.gtd.queries
 module.public = {
     --- Creates a new project/task (depending of `type`) from the `node` table and insert it in `bufnr` at `location`
     --- supported `string`: project|task
@@ -63,9 +64,7 @@ module.public = {
         module.private.insert_tag({ node.node, bufnr }, node["waiting.for"], syntax.waiting)
 
         if not opts.no_save then
-            vim.api.nvim_buf_call(bufnr, function()
-                vim.cmd([[ write! ]])
-            end)
+            module.required["core.queries.native"].apply_temp_changes(bufnr)
         end
     end,
 
@@ -132,7 +131,8 @@ module.public = {
 
         -- There is no content in the document
         if not document then
-            end_row = vim.api.nvim_buf_line_count(bufnr)
+            local temp_buf = module.required["core.queries.native"].get_temp_buf(bufnr)
+            end_row = vim.api.nvim_buf_line_count(temp_buf)
         else
             -- Check if last child is a project
             local nb_childs = document[1]:child_count()
@@ -189,7 +189,8 @@ module.private = {
         local indendation = string.rep(" ", location[2])
         table.insert(inserter, indendation .. prefix .. content)
 
-        vim.api.nvim_buf_set_lines(bufnr, location[1], location[1], false, inserter)
+        local temp_buf = module.required["core.queries.native"].get_temp_buf(bufnr)
+        vim.api.nvim_buf_set_lines(temp_buf, location[1], location[1], false, inserter)
 
         -- Get all nodes for `type` and return the one that is present at `location`
         local nodes = module.public.get(type .. "s", { bufnr = bufnr })
@@ -236,12 +237,15 @@ module.private = {
 
         local parent_tag_set = module.required["core.queries.native"].find_parent_node(node, "carryover_tag_set")
 
+        local queries = module.required["core.queries.native"]
+        local temp_buf = queries.get_temp_buf(node[2])
+
         if #parent_tag_set == 0 then
             -- No tag created, i will insert the tag just before the node or at specific line
             if opts.line then
                 node_line = opts.line
             end
-            vim.api.nvim_buf_set_lines(node[2], node_line, node_line, false, inserter)
+            vim.api.nvim_buf_set_lines(temp_buf, node_line, node_line, false, inserter)
             return true
         else
             -- Gets the last tag in the found tag_set and append after it
@@ -249,7 +253,7 @@ module.private = {
             local last_tag = parent_tag_set[1]:child(tags_number - 1)
             local start_row, _, _, _ = ts_utils.get_node_range(last_tag)
 
-            vim.api.nvim_buf_set_lines(node[2], start_row, start_row, false, inserter)
+            vim.api.nvim_buf_set_lines(temp_buf, start_row, start_row, false, inserter)
             return true
         end
     end,

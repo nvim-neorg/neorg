@@ -1,5 +1,6 @@
 local module = neorg.modules.extend("core.gtd.queries.modifiers")
 
+---@class core.gtd.queries
 module.public = {
     --- Modifies an `option` from `object` (the content must not be extracted!) with new `value`
     --- @param object core.gtd.queries.task|core.gtd.queries.project
@@ -72,7 +73,8 @@ module.public = {
         end
 
         -- Replacing old option with new one (The empty string is to prevent lines below to wrap)
-        vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { value, "" })
+        local temp_buf = module.required["core.queries.native"].get_temp_buf(object.bufnr)
+        vim.api.nvim_buf_set_text(temp_buf, start_row, start_col, end_row, end_col, { value, "" })
 
         return module.public.update(object, node_type)
     end,
@@ -122,7 +124,8 @@ module.public = {
         local start_row, start_col, end_row, end_col = ts_utils.get_node_range(fetched_node)
 
         -- Deleting object
-        vim.api.nvim_buf_set_text(object.bufnr, start_row, start_col, end_row, end_col, { "" })
+        local temp_buf = module.required["core.queries.native"].get_temp_buf(object.bufnr)
+        vim.api.nvim_buf_set_text(temp_buf, start_row, start_col, end_row, end_col, { "" })
 
         return module.public.update(object, node_type), start_row
     end,

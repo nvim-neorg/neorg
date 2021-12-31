@@ -2,6 +2,7 @@
     File: Storage
     Title: Store persistent data and query it easily with `core.storage`
     Summary: Deals with storing persistent data across Neorg sessions.
+    Show: false.
     ---
 --]]
 
@@ -26,6 +27,7 @@ module.private = {
     data = {},
 }
 
+---@class core.storage
 module.public = {
     sync = function()
         local file = io.open(module.config.public.path, "r")

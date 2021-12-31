@@ -4,6 +4,7 @@
 
 local module = neorg.modules.extend("core.ui.text_popup")
 
+---@class core.ui
 module.public = {
     -- @Summary Creates a new interactable prompt
     -- @Description Opens a floating window at the specified position and asks for user input

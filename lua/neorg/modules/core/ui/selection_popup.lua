@@ -8,6 +8,7 @@ module.private = {
     callbacks = {},
 }
 
+---@class core.ui
 module.public = {
     --- Invokes a key callback in a certain selection
     --- @param name string #The name of the selection

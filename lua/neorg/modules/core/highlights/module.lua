@@ -1,5 +1,8 @@
 --[[
-	Neorg module for managing highlight groups.
+    File: Core-Highlights
+    Title: Neorg module for managing highlight groups
+    Summary: Manages your highlight groups with this module.
+    Show: false.
 --]]
 
 require("neorg.modules.base")
@@ -9,7 +12,7 @@ local module = neorg.modules.create("core.highlights")
 --[[
     Nested trees concatenate
     So:
-   	   tag = { begin = "+Comment" }
+        tag = { begin = "+Comment" }
 	matches the highlight group:
 		NeorgTagBegin
 	and converts into the command:
@@ -49,6 +52,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("ColorScheme", true)
 end
 
+---@class core.highlights
 module.public = {
 
     -- @Summary	Defines all the highlight groups for Neorg

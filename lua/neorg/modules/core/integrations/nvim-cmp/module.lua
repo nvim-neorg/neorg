@@ -2,6 +2,7 @@
     File: Nvim-Cmp
     Title: Integrating Neorg with `nvim-cmp`
     Summary: A module for integrating nvim-cmp with Neorg.
+    Show: false.
     ---
 
 This module works with the `core.norg.completion` module to attempt
@@ -31,6 +32,7 @@ module.load = function()
     module.private.cmp = cmp
 end
 
+---@class core.integrations.nvim-cmp
 module.public = {
     create_source = function()
         module.private.completion_item_mapping = {
@@ -47,7 +49,7 @@ module.public = {
             return setmetatable({}, { __index = module.private.source })
         end
 
-        function module.private.source:complete(request, callback)
+        function module.private.source.complete(_, request, callback)
             local abstracted_context = module.public.create_abstracted_context(request)
 
             local completion_cache = module.public.invoke_completion_engine(abstracted_context)

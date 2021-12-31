@@ -25,12 +25,13 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 ---@field time.due string[]|nil
 ---@field position number
 
+---@class core.gtd.queries
 module.public = {
     --- Get a table of all `type` in workspace
     --- @param type string
     --- @param opts table
     ---   - opts.filename (string):     will restrict the search only for the filename provided
-    ---   - opts.exclude_files (table):     will exclude files from workspace in querying information
+    ---   - opts.exclude_files (table):     will exclude files from workspace in querying information. Can exclude entire directories
     ---   - opts.bufnr (number):        will use this bufnr to search nodes from
     --- @return table
     get = function(type, opts)
@@ -89,6 +90,7 @@ module.public = {
                 for _, excluded_file in pairs(opts.exclude_files) do
                     files = module.private.remove_from_table(files, excluded_file)
                 end
+                log.info("files being parsed for GTD: ", files)
             end
 
             for _, file in pairs(files) do
@@ -98,7 +100,9 @@ module.public = {
         end
 
         for _, bufnr in pairs(bufnrs) do
-            local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
+            ---@type core.queries.native
+            local queries = module.required["core.queries.native"]
+            local nodes = queries.query_nodes_from_buf(tree, bufnr)
             vim.list_extend(res, nodes)
         end
 
@@ -119,14 +123,36 @@ module.public = {
             },
         })
 
-        local filename = vim.api.nvim_buf_get_name(0)
-        local bufnr = module.required["core.norg.dirman"].get_file_bufnr(filename)
-
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        local current_node = ts_utils.get_node_at_cursor(0)
+
+        -- NOTE: copied part from https://github.com/nvim-treesitter/nvim-treesitter/blob/fa2a6b68aaa6df0187b5bbebe6cbadc120d4a65a/lua/nvim-treesitter/ts_utils.lua#L124
+        local cursor = vim.api.nvim_win_get_cursor(0)
+        local cursor_range = { cursor[1] - 1, cursor[2] }
+
+        local queries = module.required["core.queries.native"]
+        local buf = vim.api.nvim_win_get_buf(0)
+        local temp_buf = queries.get_temp_buf(buf)
+        local root_lang_tree = vim.treesitter.get_parser(temp_buf, "norg")
+
+        if not root_lang_tree then
+            return
+        end
+
+        local root = ts_utils.get_root_for_position(cursor_range[1], cursor_range[2], root_lang_tree)
+
+        if not root then
+            return
+        end
+
+        local current_node = root:named_descendant_for_range(
+            cursor_range[1],
+            cursor_range[2],
+            cursor_range[1],
+            cursor_range[2]
+        )
 
         local node_type = type == "project" and "heading1" or "todo_item1"
-        local parent = module.required["core.queries.native"].find_parent_node({ current_node, bufnr }, node_type)
+        local parent = module.required["core.queries.native"].find_parent_node({ current_node, buf }, node_type)
 
         if #parent == 0 then
             return
@@ -301,14 +327,14 @@ module.public = {
     get_tag = function(tag_name, node, type, opts, extra_tag_names)
         local allowed_tag_names = { "time.due", "time.start", "contexts", "waiting.for" }
         if extra_tag_names ~= nil then
-            for _, tag_name in pairs(extra_tag_names) do
-                table.insert(allowed_tag_names, tag_name)
+            for _, _tag_name in pairs(extra_tag_names) do
+                table.insert(allowed_tag_names, _tag_name)
             end
         end
 
         local allowed_string = allowed_tag_names[1]
-        for _, tag_name in pairs(allowed_tag_names) do
-            allowed_string = allowed_string .. "|" .. tag_name
+        for _, _tag_name in pairs(allowed_tag_names) do
+            allowed_string = allowed_string .. "|" .. _tag_name
         end
 
         vim.validate({
@@ -370,8 +396,8 @@ module.public = {
 
             if not opts.extract then
                 -- Only keep the nodes and add them to the results
-                tag_content_nodes = vim.tbl_map(function(node)
-                    return node[1]
+                tag_content_nodes = vim.tbl_map(function(n)
+                    return n[1]
                 end, tag_content_nodes)
                 vim.list_extend(extracted, tag_content_nodes)
             else
@@ -575,14 +601,24 @@ module.private = {
     --- @return table
     remove_from_table = function(t, el)
         vim.validate({ t = { t, "table" } })
+        local result = {}
 
-        for i, v in ipairs(t) do
-            if v == el then
-                table.remove(t, i)
-                break
+        -- This is possibly a directory, so we remove every file inside this directory
+        if not vim.endswith(el, ".norg") then
+            for _, v in ipairs(t) do
+                if not vim.startswith(v, el) then
+                    table.insert(result, v)
+                end
+            end
+        else
+            for _, v in ipairs(t) do
+                if v ~= el then
+                    table.insert(result, v)
+                end
             end
         end
-        return t
+
+        return result
     end,
 }
 
