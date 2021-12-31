@@ -1,6 +1,11 @@
 --[[
-	A module for integrating nvim-compe with Neorg.
-	Works with core.norg.completion to provide intelligent completions.
+    File: Nvim-Compe
+    Title: Integrating Neorg with `nvim-compe`
+    Summary: A module for integrating nvim-compe with Neorg.
+    Show: false.
+    ---
+A module for integrating nvim-compe with Neorg.
+Works with core.norg.completion to provide intelligent completions.
 --]]
 
 require("neorg.modules.base")
@@ -27,6 +32,7 @@ module.load = function()
     module.private.compe = compe
 end
 
+---@class core.integrations.nvim-compe
 module.public = {
     -- @Summary Creates a new nvim-compe source
     -- @Param  user_data (table) - a table of user data to supply to the source upon creation
@@ -150,7 +156,7 @@ module.public = {
 
     -- @Summary Invoked whenever a completion item is confirmed
     -- @Param  context (table) - a context as provided by nvim-compe
-    confirm = function(context)
+    confirm = function()
         -- If the defined completion has a post function then invoke it
         if module.private.completion_cache.options.post then
             module.private.completion_cache.options.post()

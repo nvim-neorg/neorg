@@ -2,6 +2,7 @@
     File: GTD-Queries
     Title: GTD Queries module
     Summary: Gets tasks, projects and useful information for the GTD system.
+    Show: false.
     ---
 
 Custom gtd queries, that respect the neorg GTD specs (`:h neorg-gtd-format`)
@@ -40,6 +41,7 @@ module.examples = {
     end,
 }
 
+---@class core.gtd.queries
 module.public = {
     version = "0.0.8",
 }

@@ -1,6 +1,8 @@
 --[[
-A wrapper to interface with several different completion engines.
-Is currently in its beta phase, doesn't work in all situations.
+    File: Completion
+    Title: Get completions in Neorg files
+    Summary: A wrapper to interface with several different completion engines.
+    ---
 --]]
 
 require("neorg.modules.base")
@@ -50,6 +52,7 @@ module.load = function()
     })
 end
 
+---@class core.norg.completion
 module.public = {
 
     -- Define completions

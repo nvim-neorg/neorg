@@ -25,7 +25,19 @@ module.config.private.icon_preset_varied = {
         },
 
         level_6 = {
-            icon = "⤷",
+            icon = "     ⤷",
+        },
+    },
+
+    footnote = {
+        single = {
+            icon = "🦶",
+        },
+        multi_prefix = {
+            icon = "👣 ",
+        },
+        multi_suffix = {
+            icon = "👣 ",
         },
     },
 }

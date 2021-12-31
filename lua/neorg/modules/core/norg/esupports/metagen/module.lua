@@ -54,6 +54,7 @@ module.private = {
     buffers = {},
 }
 
+---@class core.norg.esupports.metagen
 module.public = {
     neorg_commands = {
         definitions = {

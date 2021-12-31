@@ -1,11 +1,15 @@
 local module = neorg.modules.extend("core.gtd.ui.selection_popups")
 
+---@class core.gtd.ui
 module.public = {
     show_views_popup = function()
-        -- Exlude files explicitely provided by the user, and the inbox file
+        -- Exclude files explicitely provided by the user, and the inbox file
         local configs = neorg.modules.get_module_config("core.gtd.base")
         local exclude_files = configs.exclude
         table.insert(exclude_files, configs.default_lists.inbox)
+
+        -- Reset state of previous fetches
+        module.required["core.queries.native"].delete_content()
 
         -- Get tasks and projects
         local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = exclude_files })
@@ -50,6 +54,10 @@ module.public = {
         end
 
         local task = module.private.refetch_data_not_extracted(task_node, "task")
+
+        -- Reset state of previous fetches
+        module.required["core.queries.native"].delete_content()
+
         module.public.edit_task(task)
     end,
 
@@ -155,9 +163,7 @@ module.public = {
                 end
             end
 
-            vim.api.nvim_buf_call(task.bufnr, function()
-                vim.cmd(" write ")
-            end)
+            module.required["core.queries.native"].apply_temp_changes(task.bufnr)
         end)
 
         module.private.display_messages()
@@ -178,6 +184,9 @@ module.public = {
                 self:destroy()
             end
         )
+
+        -- Reset state of previous fetches
+        module.required["core.queries.native"].delete_content()
 
         selection:title("Capture"):blank():concat(module.private.capture_task)
         module.private.display_messages()

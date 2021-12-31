@@ -1,5 +1,6 @@
 local module = neorg.modules.extend("core.keybinds.default_keybinds")
 
+---@class core.keybinds
 module.public = {
     generate_keybinds = function(neorg_leader)
         local neorg_callbacks = require("neorg.callbacks")
@@ -35,6 +36,11 @@ module.public = {
 
                     { "<M-k>", "core.norg.manoeuvre.item_up" },
                     { "<M-j>", "core.norg.manoeuvre.item_down" },
+
+                    -- mnemonic: markup toggle
+                    { neorg_leader .. "mt", "core.norg.concealer.toggle-markup" },
+
+                    { "<C-s>", "core.integrations.telescope.find_linkable" },
                 },
 
                 o = {
@@ -43,6 +49,9 @@ module.public = {
                     { "at", "core.norg.manoeuvre.textobject.around-tag" },
                     { "it", "core.norg.manoeuvre.textobject.inner-tag" },
                     { "al", "core.norg.manoeuvre.textobject.around-whole-list" },
+                },
+                i = {
+                    { "<C-l>", "core.integrations.telescope.insert_link" },
                 },
             }, {
                 silent = true,

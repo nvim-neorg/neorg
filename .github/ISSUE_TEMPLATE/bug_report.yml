@@ -71,11 +71,11 @@ body:
         - "Yes, but I don't know how to start. I would need guidance (check question below)"
         - "No"
     validations:
-      required: false
+      required: true
 
   - type: textarea
     attributes:
       label: "Implementation help"
       description: "If you selected yes in the last question please specify what you would need help with in order to implement this?"
-    validations:
-      required: true
+
+

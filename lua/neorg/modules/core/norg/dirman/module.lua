@@ -1,37 +1,33 @@
 --[[
-	 Directory manager for Neorg.
-	 This module will be responsible for managing directories full of .norg files. It will provide other modules the ability to see which directories the user is in,
-	 automatically changing directories, and other API bits and bobs that will allow things like telescope.nvim integration.
+    File: Dirman
+    Title: Directory manager for Neorg.
+	Summary: This module is be responsible for managing directories full of .norg files.
+    ---
+It will provide other modules the ability to see which directories the user is in,
+automatically changing directories, and other API bits and bobs that will allow things like telescope.nvim integration.
 
-USAGE:
-	To use core.norg.dirman, simply load up the module in your configuration and specify the directories you want to be managed for you:
+To use core.norg.dirman, simply load up the module in your configuration and specify the directories you want to be managed for you:
 
-	require('neorg').setup {
-		load = {
-			["core.defaults"] = {},
-			["core.norg.dirman"] = {
-				config = {
-					workspaces = {
-						my_ws = "~/neorg", -- Format: <name_of_workspace> = <path_to_workspace_root>
-						my_other_notes = "~/work/notes",
-					},
-					autochdir = true, -- Automatically change the directory to the current workspace's root every time
-					index = "index.norg", -- The name of the main (root) .norg file
-					last_workspace = vim.fn.stdpath("cache") .. "/neorg_last_workspace.txt" -- The location to write and read the workspace cache file
-				}
-			}
-		}
-	}
+```lua
+require('neorg').setup {
+    load = {
+        ["core.defaults"] = {},
+        ["core.norg.dirman"] = {
+            config = {
+                workspaces = {
+                    my_ws = "~/neorg", -- Format: <name_of_workspace> = <path_to_workspace_root>
+                    my_other_notes = "~/work/notes",
+                },
+                autochdir = true, -- Automatically change the directory to the current workspace's root every time
+                index = "index.norg", -- The name of the main (root) .norg file
+                last_workspace = vim.fn.stdpath("cache") .. "/neorg_last_workspace.txt" -- The location to write and read the workspace cache file
+            }
+        }
+    }
+}
+```
 
-	To query the current workspace, run `:Neorg workspace`. To set the workspace, run `:Neorg workspace <workspace_name>`.
-
-	To stop limiting yourself to a single namespace, switch to the `default` workspace, like so:
-	`:Neorg workspace default`. This will put you in your initial cwd upon launching Neovim and will no longer
-	automatically switch directories for you.
-
-REQUIRES:
-	`core.autocommands` - used to detect changes to the current working directory via DirChanged
-	`core.neorgcmd` - used to provide frontend features for switching workspaces, rather than simply API calls
+To query the current workspace, run `:Neorg workspace`. To set the workspace, run `:Neorg workspace <workspace_name>`.
 --]]
 
 require("neorg.modules.base")
@@ -287,7 +283,7 @@ module.public = {
         end
 
         -- Split the path at every /
-        local split = vim.split(vim.trim(path), "/", true)
+        local split = vim.split(vim.trim(path), neorg.configuration.pathsep, true)
 
         -- If the last element is empty (i.e. if the string provided ends with '/') then trim it
         if split[#split]:len() == 0 then
@@ -296,16 +292,16 @@ module.public = {
 
         -- Go through each directory (excluding the actual file name) and create each directory individually
         for _, element in ipairs(vim.list_slice(split, 0, #split - 1)) do
-            vim.loop.fs_mkdir(fullpath .. "/" .. element, 16877)
-            fullpath = fullpath .. "/" .. element
+            vim.loop.fs_mkdir(fullpath .. neorg.configuration.pathsep .. element, 16877)
+            fullpath = fullpath .. neorg.configuration.pathsep .. element
         end
 
         -- If the provided filepath ends in .norg then don't append the filetype automatically
         -- Begin editing that newly created file
         if vim.endswith(path, ".norg") then
-            vim.cmd("e " .. fullpath .. "/" .. split[#split] .. " | w")
+            vim.cmd("e " .. fullpath .. neorg.configuration.pathsep .. split[#split] .. " | w")
         else
-            vim.cmd("e " .. fullpath .. "/" .. split[#split] .. ".norg | w")
+            vim.cmd("e " .. fullpath .. neorg.configuration.pathsep .. split[#split] .. ".norg | w")
         end
     end,
 
@@ -320,7 +316,7 @@ module.public = {
             return
         end
 
-        vim.cmd("e " .. workspace .. "/" .. path .. " | w")
+        vim.cmd("e " .. workspace .. neorg.configuration.pathsep .. path .. " | w")
     end,
 
     -- @Summary Sets the current workspace to the last cached workspace
@@ -366,7 +362,10 @@ module.public = {
                             -- If we were successful in switching to that workspace then begin editing that workspace's index file
                             if module.public.set_workspace(read_data) then
                                 vim.cmd(
-                                    "e " .. module.public.get_workspace(read_data) .. "/" .. module.config.public.index
+                                    "e "
+                                        .. module.public.get_workspace(read_data)
+                                        .. neorg.configuration.pathsep
+                                        .. module.config.public.index
                                 )
                             end
 
@@ -422,7 +421,7 @@ module.public = {
         local workspace_pattern = string.gsub(workspace, "%p", "%%%1")
 
         for _, file in pairs(scanned_dir) do
-            local remove_dir = string.gsub(file, workspace_pattern .. "/", "")
+            local remove_dir = string.gsub(file, workspace_pattern .. neorg.configuration.pathsep, "")
 
             if string.find(remove_dir, ".norg$") then
                 table.insert(res, remove_dir)
@@ -449,7 +448,7 @@ module.public = {
 
         -- If we're switching to a workspace that isn't the default workspace then enter the index file
         if workspace ~= "default" then
-            vim.cmd("e " .. ws_match .. "/" .. module.config.public.index)
+            vim.cmd("e " .. ws_match .. neorg.configuration.pathsep .. module.config.public.index)
         end
     end,
 

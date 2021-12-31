@@ -46,6 +46,7 @@ module.config.public = {
     },
 }
 
+---@class core.norg.qol.todo_items
 module.public = {
     --- Updates the parent todo item for the current todo item if it exists
     --- @param recursion_level number the index of the parent to change. The higher the number the more the code will traverse up the syntax tree.
