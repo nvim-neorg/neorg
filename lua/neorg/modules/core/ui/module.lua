@@ -204,6 +204,12 @@ module.public = {
         -- Merge the user provided options with the default options and apply them to the new buffer
         module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
 
+        -- Make sure to clean up the window if the user leaves the popup at any time
+        vim.cmd(
+            (
+                "autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once lua require('neorg.modules.core.ui.module').public.delete_window(%s)"
+            ):format(buf, buf)
+        )
         return buf
     end,
 
