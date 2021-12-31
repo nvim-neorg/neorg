@@ -46,6 +46,9 @@ module.public = {
     end,
 
     edit_task_at_cursor = function()
+        -- Reset state of previous fetches
+        module.required["core.queries.native"].delete_content()
+
         local task_node = module.required["core.gtd.queries"].get_at_cursor("task")
 
         if not task_node then
@@ -54,9 +57,6 @@ module.public = {
         end
 
         local task = module.private.refetch_data_not_extracted(task_node, "task")
-
-        -- Reset state of previous fetches
-        module.required["core.queries.native"].delete_content()
 
         module.public.edit_task(task)
     end,
