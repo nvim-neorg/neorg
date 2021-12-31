@@ -3,10 +3,13 @@ local module = neorg.modules.extend("core.gtd.ui.selection_popups")
 ---@class core.gtd.ui
 module.public = {
     show_views_popup = function()
-        -- Exlude files explicitely provided by the user, and the inbox file
+        -- Exclude files explicitely provided by the user, and the inbox file
         local configs = neorg.modules.get_module_config("core.gtd.base")
         local exclude_files = configs.exclude
         table.insert(exclude_files, configs.default_lists.inbox)
+
+        -- Reset state of previous fetches
+        module.required["core.queries.native"].delete_content()
 
         -- Get tasks and projects
         local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = exclude_files })
@@ -43,6 +46,9 @@ module.public = {
     end,
 
     edit_task_at_cursor = function()
+        -- Reset state of previous fetches
+        module.required["core.queries.native"].delete_content()
+
         local task_node = module.required["core.gtd.queries"].get_at_cursor("task")
 
         if not task_node then
@@ -51,6 +57,7 @@ module.public = {
         end
 
         local task = module.private.refetch_data_not_extracted(task_node, "task")
+
         module.public.edit_task(task)
     end,
 
@@ -177,6 +184,9 @@ module.public = {
                 self:destroy()
             end
         )
+
+        -- Reset state of previous fetches
+        module.required["core.queries.native"].delete_content()
 
         selection:title("Capture"):blank():concat(module.private.capture_task)
         module.private.display_messages()

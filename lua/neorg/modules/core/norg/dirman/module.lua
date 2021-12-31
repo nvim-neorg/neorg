@@ -464,7 +464,7 @@ module.public = {
                 return
             end
 
-            workspace_path = workspace_path .. workspace_path:sub(custom_workspace_path:len() + 2)
+            path = workspace_path .. workspace_path:sub(custom_workspace_path:len() + 2)
         elseif workspace then
             path = module.public.get_current_workspace()[2] .. path:sub(workspace:len() + 1)
         end

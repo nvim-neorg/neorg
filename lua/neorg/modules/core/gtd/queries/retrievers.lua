@@ -123,14 +123,36 @@ module.public = {
             },
         })
 
-        local filename = vim.api.nvim_buf_get_name(0)
-        local bufnr = module.required["core.norg.dirman"].get_file_bufnr(filename)
-
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        local current_node = ts_utils.get_node_at_cursor(0)
+
+        -- NOTE: copied part from https://github.com/nvim-treesitter/nvim-treesitter/blob/fa2a6b68aaa6df0187b5bbebe6cbadc120d4a65a/lua/nvim-treesitter/ts_utils.lua#L124
+        local cursor = vim.api.nvim_win_get_cursor(0)
+        local cursor_range = { cursor[1] - 1, cursor[2] }
+
+        local queries = module.required["core.queries.native"]
+        local buf = vim.api.nvim_win_get_buf(0)
+        local temp_buf = queries.get_temp_buf(buf)
+        local root_lang_tree = vim.treesitter.get_parser(temp_buf, "norg")
+
+        if not root_lang_tree then
+            return
+        end
+
+        local root = ts_utils.get_root_for_position(cursor_range[1], cursor_range[2], root_lang_tree)
+
+        if not root then
+            return
+        end
+
+        local current_node = root:named_descendant_for_range(
+            cursor_range[1],
+            cursor_range[2],
+            cursor_range[1],
+            cursor_range[2]
+        )
 
         local node_type = type == "project" and "heading1" or "todo_item1"
-        local parent = module.required["core.queries.native"].find_parent_node({ current_node, bufnr }, node_type)
+        local parent = module.required["core.queries.native"].find_parent_node({ current_node, buf }, node_type)
 
         if #parent == 0 then
             return
