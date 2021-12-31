@@ -397,13 +397,13 @@ module.public = {
         end
     end,
 
-    trigger_code_block_highlights = function(from)
+    trigger_code_block_highlights = function(from, to)
         -- If the code block dimming is disabled, return right away.
         if not module.config.public.dim_code_blocks then
             return
         end
 
-        module.public.clear_icons(module.private.code_block_namespace, from)
+        module.public.clear_icons(module.private.code_block_namespace, from, to)
 
         -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
@@ -426,40 +426,42 @@ module.public = {
             end
 
             -- Go through every found capture
-            for id, node in query:iter_captures(tree:root(), 0, from or 0, -1) do
-                local id_name = query.captures[id]
+            for id, node in query:iter_captures(tree:root(), 0, from or 0, to or -1) do
+                vim.schedule(function()
+                    local id_name = query.captures[id]
 
-                -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
-                if id_name == "tag" then
-                    -- Get the range of the code block
-                    local range = module.required["core.integrations.treesitter"].get_node_range(node)
+                    -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                    if id_name == "tag" then
+                        -- Get the range of the code block
+                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
-                    -- Go through every line in the code block and give it a magical highlight
-                    for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
-                        local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
+                        -- Go through every line in the code block and give it a magical highlight
+                        for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
+                            local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
 
-                        -- If our buffer is modifiable or if our line is too short then try to fill in the line
-                        -- (this fixes broken syntax highlights automatically)
-                        if vim.bo.modifiable and line:len() < range.column_start then
-                            vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
-                        end
+                            -- If our buffer is modifiable or if our line is too short then try to fill in the line
+                            -- (this fixes broken syntax highlights automatically)
+                            if vim.bo.modifiable and line:len() < range.column_start then
+                                vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
+                            end
 
-                        -- If our line is valid and it's not too short then apply the dimmed highlight
-                        if line and line:len() >= range.column_start then
-                            module.public._set_extmark(
-                                nil,
-                                "NeorgCodeBlock",
-                                module.private.code_block_namespace,
-                                i,
-                                i + 1,
-                                range.column_start,
-                                nil,
-                                true,
-                                "blend"
-                            )
+                            -- If our line is valid and it's not too short then apply the dimmed highlight
+                            if line and line:len() >= range.column_start then
+                                module.public._set_extmark(
+                                    nil,
+                                    "NeorgCodeBlock",
+                                    module.private.code_block_namespace,
+                                    i,
+                                    i + 1,
+                                    range.column_start,
+                                    nil,
+                                    true,
+                                    "blend"
+                                )
+                            end
                         end
                     end
-                end
+                end)
             end
         end
     end,
@@ -2100,6 +2102,7 @@ module.on_event = function(event)
         if line_count < module.config.public.performance.increment then
             module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
             module.public.trigger_highlight_regex_code_block()
+            module.public.trigger_code_block_highlights()
         else
             local block_current = math.floor(
                 (line_count / module.config.public.performance.increment) % event.cursor_position[1]
@@ -2114,6 +2117,7 @@ module.on_event = function(event)
 
                 module.public.trigger_icons(icon_set, namespace, line_begin, line_end)
                 module.public.trigger_highlight_regex_code_block(line_begin, line_end)
+                module.public.trigger_code_block_highlights(line_begin, line_end)
             end
 
             trigger_icons_for_block(block_current, module.private.icons, module.private.icon_namespace)
@@ -2150,6 +2154,7 @@ module.on_event = function(event)
 
         vim.api.nvim_buf_attach(buf, false, {
             on_lines = function(_, cur_buf, _, start, _end)
+                -- TODO(vhyrro): Add debounce
                 if buf ~= cur_buf then
                     return true
                 end
@@ -2173,9 +2178,15 @@ module.on_event = function(event)
 
                         module.public.trigger_icons(module.private.icons, module.private.icon_namespace, start, _end)
                         module.public.trigger_highlight_regex_code_block(start, _end)
+
+                        -- NOTE(vhyrro): It is simply not possible to perform incremental
+                        -- updates here. Code blocks require more context than simply a few lines
+                        module.public.trigger_code_block_highlights()
                         line_count = new_line_count
                     end)
                 else
+                    module.public.trigger_code_block_highlights(start, _end)
+
                     if module.private.largest_change_start == -1 then
                         module.private.largest_change_start = start
                     end
