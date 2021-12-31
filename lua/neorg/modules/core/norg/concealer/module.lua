@@ -314,6 +314,11 @@ module.public = {
                     -- only look at nodes that have the language query
                     if lang_name == "language" then
                         local regex_language = vim.treesitter.get_node_text(node, 0)
+
+                        if not regex_language then
+                            goto continue
+                        end
+
                         -- see if parser exists
                         local ok, result = pcall(vim.treesitter.require_language, regex_language, true)
 
@@ -2154,7 +2159,6 @@ module.on_event = function(event)
 
         vim.api.nvim_buf_attach(buf, false, {
             on_lines = function(_, cur_buf, _, start, _end)
-                -- TODO(vhyrro): Add debounce
                 if buf ~= cur_buf then
                     return true
                 end
@@ -2176,13 +2180,15 @@ module.on_event = function(event)
                             _end = _end + (new_line_count - line_count - 1)
                         end
 
+                        line_count = new_line_count
+
                         module.public.trigger_icons(module.private.icons, module.private.icon_namespace, start, _end)
                         module.public.trigger_highlight_regex_code_block(start, _end)
 
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
-                        -- updates here. Code blocks require more context than simply a few lines
+                        -- updates here. Code blocks require more context than simply a few lines.
+                        -- It's still incredibly fast despite this fact though.
                         module.public.trigger_code_block_highlights()
-                        line_count = new_line_count
                     end)
                 else
                     module.public.trigger_code_block_highlights(start, _end)
