@@ -5,9 +5,10 @@
     ---
 In order to use this feature, just add a `= TOC` at some place, and call:
 
-- `lua neorg.modules.get_module('core.norg.qol.toc').display_toc()`
+- `:Neorg toc split` to generate a split in the side of your Toc (Table of Contents)
+- `:Neorg toc inline` to generate a Toc right below the `= TOC` insertion
+- `:Neorg toc toqflist` to send the table of contents to your quickfix list
 
-Calling display_toc with true (`...display_toc(true)`) will generate a split view of the Toc.
 --]]
 require("neorg.modules.base")
 
@@ -23,6 +24,7 @@ module.setup = function()
             "core.mode",
             "core.norg.esupports.hop",
             "core.autocommands",
+            "core.neorgcmd",
         },
     }
 end
@@ -34,6 +36,28 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufEnter")
     module.required["core.autocommands"].enable_autocommand("BufDelete")
     module.required["core.autocommands"].enable_autocommand("QuitPre")
+
+    -- Add neorgcmd capabilities
+    -- All toc commands start with :Neorg toc ...
+    module.required["core.neorgcmd"].add_commands_from_table({
+        definitions = {
+            toc = {
+                split = {},
+                inline = {},
+                toqflist = {},
+            },
+        },
+        data = {
+            toc = {
+                args = 1,
+                subcommands = {
+                    split = { args = 0, name = "toc.split" },
+                    inline = { args = 0, name = "toc.inline" },
+                    toqflist = { args = 0, name = "toc.toqflist" },
+                },
+            },
+        },
+    })
 end
 
 module.config.public = {
@@ -340,7 +364,14 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.split_type[1] == "core.keybinds" then
+    if event.split_type[1] == "core.neorgcmd" then
+        neorg.lib.match({
+            event.split_type[2],
+            ["toc.split"] = neorg.lib.wrap(module.public.display_toc, true),
+            ["toc.inline"] = neorg.lib.wrap(module.public.display_toc),
+            ["toc.toqflist"] = neorg.lib.wrap(module.public.toqflist),
+        })
+    elseif event.split_type[1] == "core.keybinds" then
         if event.split_type[2] == "core.norg.qol.toc.hop-toc-link" then
             module.public.follow_link_toc()
         elseif event.split_type[2] == "core.norg.qol.toc.close" then
@@ -370,6 +401,11 @@ module.events.subscribed = {
         bufenter = true,
         bufdelete = true,
         quitpre = true,
+    },
+    ["core.neorgcmd"] = {
+        ["toc.split"] = true,
+        ["toc.inline"] = true,
+        ["toc.toqflist"] = true,
     },
 }
 
