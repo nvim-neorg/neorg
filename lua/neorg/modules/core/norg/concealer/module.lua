@@ -2144,7 +2144,6 @@ module.on_event = function(event)
 
                     if not block_bottom_valid and not block_top_valid then
                         timer:stop()
-                        timer:close()
                         return
                     end
 
