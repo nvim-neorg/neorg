@@ -2200,7 +2200,7 @@ module.on_event = function(event)
                         module.public.trigger_code_block_highlights(buf)
                     end)
                 else
-                    module.public.trigger_code_block_highlights(buf, start, _end)
+                    vim.schedule(neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, start, _end))
 
                     if module.private.largest_change_start == -1 then
                         module.private.largest_change_start = start
