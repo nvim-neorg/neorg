@@ -297,7 +297,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "",
             function()
                 local res = {}
-                local names = {}
+                names = {}
                 for n, config in pairs(modules) do
                     if config.is_extension ~= true then
                         table.insert(names, n)
