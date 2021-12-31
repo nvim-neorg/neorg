@@ -543,7 +543,7 @@ This task type is exactly a way to express that.
   There are several things that can go into a link, so let's discuss:
 
 #### The Link Location
-  The first segment of a link is the square brackets (`{<location>}`). This is referred to as
+  The first segment of a link is the curly brackets (`{<location>}`). This is referred to as
   the *link location*.
 
   Neorg uses the first set of non-alphanumeric characters to determine what type of element it should link to.
@@ -629,8 +629,8 @@ first and the optional location second.
 Anchors without the optional second location are called *anchor declarations*
 whilst full anchors with the location are called *anchor definitions*.
 You can have as many anchor declarations as you like within a document
-but should only have one anchor declaration. In the case where several anchor
-declarations have been made the first anchor declaration in the document should
+but should only have one anchor definition. In the case where several anchor
+definitions have been made the first anchor definition in the document should
 be prioritised.
 
 Clicking on an anchor declaration should take you to the anchor definition, and

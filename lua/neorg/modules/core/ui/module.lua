@@ -204,6 +204,12 @@ module.public = {
         -- Merge the user provided options with the default options and apply them to the new buffer
         module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
 
+        -- Make sure to clean up the window if the user leaves the popup at any time
+        vim.cmd(
+            (
+                "autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once lua require('neorg.modules.core.ui.module').public.delete_window(%s)"
+            ):format(buf, buf)
+        )
         return buf
     end,
 
@@ -356,7 +362,7 @@ module.public = {
         end
 
         local buf = (function()
-            name = "buffer/" .. name .. ".norg"
+            name = "norg/" .. name .. ".norg"
 
             if split_type == "vsplitl" then
                 return module.public.create_vsplit(name, {}, true)
@@ -373,7 +379,7 @@ module.public = {
 
         vim.api.nvim_win_set_buf(0, buf)
 
-        if not opts.keybinds then
+        if opts.keybinds == true then
             vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
             vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
         end

@@ -33,6 +33,117 @@ module.config.public = {
 
 ---@class core.norg.esupports.hop
 module.public = {
+    --- Follow link from a specific node
+    --- @param node userdata
+    --- @param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...)
+    --- @param parsed_link table a table of link information gathered from parse_link()
+    follow_link = function(node, split, parsed_link)
+        if node:type() == "anchor_declaration" then
+            local located_anchor_declaration = module.public.locate_anchor_declaration_target(node)
+
+            if not located_anchor_declaration then
+                return
+            end
+
+            local range = module.required["core.integrations.treesitter"].get_node_range(
+                located_anchor_declaration.node
+            )
+
+            vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+            return
+        end
+
+        if not parsed_link then
+            log.warn("Please parse your link before calling this function")
+            return
+        end
+
+        local located_link_information = module.public.locate_link_target(parsed_link)
+
+        if located_link_information then
+            if split then
+                if split == "vsplit" then
+                    vim.cmd("vsplit")
+                elseif split == "split" then
+                    vim.cmd("split")
+                end
+            end
+
+            if not vim.tbl_isempty(located_link_information) then
+                if located_link_information.buffer ~= vim.api.nvim_get_current_buf() then
+                    vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
+                    vim.api.nvim_set_current_buf(located_link_information.buffer)
+                end
+
+                if not located_link_information.node then
+                    return
+                end
+
+                local range = module.required["core.integrations.treesitter"].get_node_range(
+                    located_link_information.node
+                )
+
+                vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+            end
+
+            return
+        end
+
+        local selection = module.required["core.ui"].begin_selection(
+            module.required["core.ui"].create_split("link-not-found")
+        )
+            :listener("delete-buffer", {
+                "<Esc>",
+            }, function(self)
+                self:destroy()
+            end)
+            :apply({
+                warning = function(self, text)
+                    return self:text("WARNING: " .. text, "TSWarning")
+                end,
+                desc = function(self, text)
+                    return self:text(text, "TSComment")
+                end,
+            })
+
+        selection
+            :title("Link not found - what do we do now?")
+            :blank()
+            :text("There are a few actions that you can perform whenever a link cannot be located.", "Normal")
+            :text("Press one of the available keys to perform your desired action.")
+            :blank()
+            :desc("The most common action will be to try and fix the link.")
+            :desc("Fixing the link will perform a fuzzy search on every item of the same type in the file")
+            :desc("and make the link point to the closest match:")
+            :flag("f", "Attempt to fix the link", function()
+                local similarities = module.private.fix_link_strict(parsed_link)
+
+                if not similarities or vim.tbl_isempty(similarities) then
+                    return
+                end
+
+                module.private.write_fixed_link(node, parsed_link, similarities)
+            end)
+            :blank()
+            :desc("Does the same as the above keybind, however doesn't limit matches to those")
+            :desc("defined by the link type. This means that even if the link points to a level 1")
+            :desc("heading this fixing algorithm will be able to match any other item type:")
+            :flag("F", "Attempt to fix the link (loose fuzzing)", function()
+                local similarities = module.private.fix_link_loose(parsed_link)
+
+                if not similarities or vim.tbl_isempty(similarities) then
+                    return
+                end
+
+                module.private.write_fixed_link(node, parsed_link, similarities, true)
+            end)
+            :blank()
+            :warning("The below flags currently do not work, this is a beta build.")
+            :desc("Instead of fixing the link you may actually want to create the target:")
+            :flag("a", "Place target above current link parent")
+            :flag("b", "Place target below current link parent")
+    end,
+
     extract_link_node = function()
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
@@ -131,7 +242,8 @@ module.public = {
         end
     end,
 
-    parse_link = function(link_node)
+    parse_link = function(link_node, buf)
+        buf = buf or 0
         if not link_node or not vim.tbl_contains({ "link", "anchor_definition" }, link_node:type()) then
             return
         end
@@ -191,7 +303,7 @@ module.public = {
             ]
         ]]
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+        local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
         if not document_root then
             return
@@ -202,7 +314,7 @@ module.public = {
 
         local parsed_link_information = {}
 
-        for id, node in query:iter_captures(document_root, 0, range.row_start, range.row_end + 1) do
+        for id, node in query:iter_captures(document_root, buf, range.row_start, range.row_end + 1) do
             local capture = query.captures[id]
 
             local capture_node_range = module.required["core.integrations.treesitter"].get_node_range(node)
@@ -626,6 +738,9 @@ module.private = {
 
 module.on_event = function(event)
     if event.split_type[2] == "core.norg.esupports.hop.hop-link" then
+        local split_mode = event.content[1]
+
+        -- Get link node at cursor
         local link_node_at_cursor = module.public.extract_link_node()
 
         if not link_node_at_cursor then
@@ -633,114 +748,9 @@ module.on_event = function(event)
             return
         end
 
-        if link_node_at_cursor:type() == "anchor_declaration" then
-            local located_anchor_declaration = module.public.locate_anchor_declaration_target(link_node_at_cursor)
-
-            if not located_anchor_declaration then
-                return
-            end
-
-            local range = module.required["core.integrations.treesitter"].get_node_range(
-                located_anchor_declaration.node
-            )
-
-            vim.cmd("norm! m'")
-            vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
-            return
-        end
-
         local parsed_link = module.public.parse_link(link_node_at_cursor)
 
-        if not parsed_link then
-            return
-        end
-
-        local located_link_information = module.public.locate_link_target(parsed_link)
-
-        if located_link_information then
-            if event.content[1] then
-                if event.content[1] == "vsplit" then
-                    vim.cmd("vsplit")
-                elseif event.content[1] == "split" then
-                    vim.cmd("split")
-                end
-            end
-
-            if not vim.tbl_isempty(located_link_information) then
-                if located_link_information.buffer ~= vim.api.nvim_get_current_buf() then
-                    vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
-                    vim.api.nvim_set_current_buf(located_link_information.buffer)
-                end
-
-                if not located_link_information.node then
-                    return
-                end
-
-                local range = module.required["core.integrations.treesitter"].get_node_range(
-                    located_link_information.node
-                )
-
-                -- TODO: nvim_buf_set_mark doesn't work here? I wonder why
-                vim.cmd("norm! m'")
-                vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
-            end
-
-            return
-        end
-
-        local selection = module.required["core.ui"].begin_selection(
-            module.required["core.ui"].create_split("link-not-found")
-        )
-            :listener("delete-buffer", {
-                "<Esc>",
-            }, function(self)
-                self:destroy()
-            end)
-            :apply({
-                warning = function(self, text)
-                    return self:text("WARNING: " .. text, "TSWarning")
-                end,
-                desc = function(self, text)
-                    return self:text(text, "TSComment")
-                end,
-            })
-
-        selection
-            :title("Link not found - what do we do now?")
-            :blank()
-            :text("There are a few actions that you can perform whenever a link cannot be located.", "Normal")
-            :text("Press one of the available keys to perform your desired action.")
-            :blank()
-            :desc("The most common action will be to try and fix the link.")
-            :desc("Fixing the link will perform a fuzzy search on every item of the same type in the file")
-            :desc("and make the link point to the closest match:")
-            :flag("f", "Attempt to fix the link", function()
-                local similarities = module.private.fix_link_strict(parsed_link)
-
-                if not similarities or vim.tbl_isempty(similarities) then
-                    return
-                end
-
-                module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities)
-            end)
-            :blank()
-            :desc("Does the same as the above keybind, however doesn't limit matches to those")
-            :desc("defined by the link type. This means that even if the link points to a level 1")
-            :desc("heading this fixing algorithm will be able to match any other item type:")
-            :flag("F", "Attempt to fix the link (loose fuzzing)", function()
-                local similarities = module.private.fix_link_loose(parsed_link)
-
-                if not similarities or vim.tbl_isempty(similarities) then
-                    return
-                end
-
-                module.private.write_fixed_link(link_node_at_cursor, parsed_link, similarities, true)
-            end)
-            :blank()
-            :warning("The below flags currently do not work, this is a beta build.")
-            :desc("Instead of fixing the link you may actually want to create the target:")
-            :flag("a", "Place target above current link parent")
-            :flag("b", "Place target below current link parent")
+        module.public.follow_link(link_node_at_cursor, split_mode, parsed_link)
     end
 end
 
