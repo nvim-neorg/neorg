@@ -90,7 +90,7 @@ module.public = {
             (insertion_prefix)
             item: (capitalized_word) @item
             parameters: (paragraph_segment)? @parameters
-            (#match? @item "^[tT][oO][cC]$")
+            (#match? @item "^T[oO][cC]$")
             )
             ]]
         )
