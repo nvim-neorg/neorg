@@ -142,6 +142,7 @@ module.on_event = function(event)
         and event.content.norg
         and module.config.public.type == "auto"
         and vim.api.nvim_buf_get_option(0, "modifiable")
+        and not string.sub(event.filehead, 1, 8) == "neorg://" -- Do not inject metadata on displays created by neorg by default
         and not module.private.buffers[vim.api.nvim_get_current_buf()]
     then
         module.public.inject_metadata()
