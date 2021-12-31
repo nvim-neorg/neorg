@@ -356,7 +356,7 @@ module.public = {
         end
 
         local buf = (function()
-            name = "buffer/" .. name .. ".norg"
+            name = "norg/" .. name .. ".norg"
 
             if split_type == "vsplitl" then
                 return module.public.create_vsplit(name, {}, true)
@@ -373,7 +373,7 @@ module.public = {
 
         vim.api.nvim_win_set_buf(0, buf)
 
-        if not opts.keybinds then
+        if opts.keybinds == true then
             vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
             vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
         end
