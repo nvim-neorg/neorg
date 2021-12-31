@@ -2099,6 +2099,7 @@ module.on_event = function(event)
 
         if line_count < module.config.public.performance.increment then
             module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+            module.public.trigger_highlight_regex_code_block()
         else
             local block_current = math.floor(
                 (line_count / module.config.public.performance.increment) % event.cursor_position[1]
