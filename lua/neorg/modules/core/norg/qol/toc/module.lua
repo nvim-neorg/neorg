@@ -181,7 +181,7 @@ module.public = {
 
         -- Initialize the default generator if it can't be found
         generator = generator
-            or function(node, get_text, state)
+            or function(node, state)
                 local node_type = node:type()
 
                 if vim.startswith(node_type, "heading") and not vim.endswith(node_type, "prefix") then
