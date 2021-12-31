@@ -194,12 +194,12 @@ module.public = {
     -- @Param icon_set (table) - the icon set to trigger
     -- @Param namespace
     -- @Param from (number) - the line number that we should start at (defaults to 0)
-    trigger_icons = function(icon_set, namespace, from, to)
+    trigger_icons = function(buf, icon_set, namespace, from, to)
         -- Clear all the conceals beforehand (so no overlaps occur)
-        module.public.clear_icons(namespace, from, to)
+        module.public.clear_icons(buf, namespace, from, to)
 
         -- Get the root node of the document (required to iterate over query captures)
-        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+        local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
         -- Loop through all icons that the user has enabled
         for _, icon_data in ipairs(icon_set) do
@@ -218,11 +218,11 @@ module.public = {
                     end
 
                     -- Go through every found node and try to apply an icon to it
-                    for match in nvim_ts_query.iter_prepared_matches(query, document_root, 0, from or 0, to or -1) do
+                    for match in nvim_ts_query.iter_prepared_matches(query, document_root, buf, from or 0, to or -1) do
                         nvim_locals.recurse_local_nodes(match, function(_, node, capture)
                             if capture == "icon" then
                                 -- Extract both the text and the range of the node
-                                local text = module.required["core.integrations.treesitter"].get_node_text(node)
+                                local text = module.required["core.integrations.treesitter"].get_node_text(node, buf)
                                 local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
                                 -- Set the offset to 0 here. The offset is a special value that, well, offsets
@@ -244,6 +244,7 @@ module.public = {
                                 -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
                                 if not icon_data.render then
                                     module.public._set_extmark(
+                                        buf,
                                         icon_data.icon,
                                         icon_data.highlight,
                                         namespace,
@@ -256,6 +257,7 @@ module.public = {
                                     )
                                 else
                                     module.public._set_extmark(
+                                        buf,
                                         icon_data:render(text, node),
                                         icon_data.highlight,
                                         namespace,
@@ -275,9 +277,9 @@ module.public = {
         end
     end,
 
-    trigger_highlight_regex_code_block = function(from, to)
+    trigger_highlight_regex_code_block = function(buf, from, to)
         -- The next block of code will be responsible for dimming code blocks accordingly
-        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+        local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
 
         -- If the tree is valid then attempt to perform the query
         if tree then
@@ -307,13 +309,13 @@ module.public = {
 
             -- look for language name in code blocks
             -- this will not finish if a treesitter parser exists for the current language found
-            for id, node in code_lang:iter_captures(tree:root(), 0, from or 0, to or -1) do
+            for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 vim.schedule(function()
                     local lang_name = code_lang.captures[id]
 
                     -- only look at nodes that have the language query
                     if lang_name == "language" then
-                        local regex_language = vim.treesitter.get_node_text(node, 0)
+                        local regex_language = vim.treesitter.get_node_text(node, buf)
 
                         if not regex_language then
                             goto continue
@@ -352,7 +354,7 @@ module.public = {
                         end
 
                         -- temporarily pass off keywords in case they get messed up
-                        local is_keyword = vim.api.nvim_buf_get_option(0, "iskeyword")
+                        local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
 
                         -- see if the syntax files even exist before we try to call them
                         -- if syn list was an error, or if it was an empty result
@@ -369,7 +371,7 @@ module.public = {
                             end
                         end
 
-                        vim.api.nvim_buf_set_option(0, "iskeyword", is_keyword)
+                        vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
 
                         -- reset it after
                         if current_syntax ~= "" or current_syntax ~= nil then
@@ -402,16 +404,16 @@ module.public = {
         end
     end,
 
-    trigger_code_block_highlights = function(from, to)
+    trigger_code_block_highlights = function(buf, from, to)
         -- If the code block dimming is disabled, return right away.
         if not module.config.public.dim_code_blocks then
             return
         end
 
-        module.public.clear_icons(module.private.code_block_namespace, from, to)
+        module.public.clear_icons(buf, module.private.code_block_namespace, from, to)
 
         -- The next block of code will be responsible for dimming code blocks accordingly
-        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+        local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
 
         -- If the tree is valid then attempt to perform the query
         if tree then
@@ -431,7 +433,7 @@ module.public = {
             end
 
             -- Go through every found capture
-            for id, node in query:iter_captures(tree:root(), 0, from or 0, to or -1) do
+            for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 vim.schedule(function()
                     local id_name = query.captures[id]
 
@@ -441,18 +443,19 @@ module.public = {
                         local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
                         -- Go through every line in the code block and give it a magical highlight
-                        for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
-                            local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
+                        for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(buf) and 0 or range.row_end, 1 do
+                            local line = vim.api.nvim_buf_get_lines(buf, i, i + 1, true)[1]
 
                             -- If our buffer is modifiable or if our line is too short then try to fill in the line
                             -- (this fixes broken syntax highlights automatically)
                             if vim.bo.modifiable and line:len() < range.column_start then
-                                vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
+                                vim.api.nvim_buf_set_lines(buf, i, i + 1, true, { string.rep(" ", range.column_start) })
                             end
 
                             -- If our line is valid and it's not too short then apply the dimmed highlight
                             if line and line:len() >= range.column_start then
                                 module.public._set_extmark(
+                                    buf,
                                     nil,
                                     "NeorgCodeBlock",
                                     module.private.code_block_namespace,
@@ -471,13 +474,13 @@ module.public = {
         end
     end,
 
-    toggle_markup = function()
+    toggle_markup = function(buf)
         if module.config.public.markup.enabled then
-            module.public.clear_icons(module.private.markup_namespace)
+            module.public.clear_icons(buf, module.private.markup_namespace)
             module.config.public.markup.enabled = false
         else
             module.config.public.markup.enabled = true
-            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+            module.public.trigger_icons(buf, module.private.markup, module.private.markup_namespace)
         end
     end,
 
@@ -491,14 +494,14 @@ module.public = {
     -- @Param  end_column (number) - the end column of the conceal
     -- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
     -- @Param  mode (string: "replace"/"combine"/"blend") - the highlight mode for the extmark
-    _set_extmark = function(text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode)
+    _set_extmark = function(buf, text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode)
         -- If the text type is a string then convert it into something that Neovim's extmark API can understand
         if type(text) == "string" then
             text = { { text, highlight } }
         end
 
         -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, ns, line_number, start_column, {
+        local ok, result = pcall(vim.api.nvim_buf_set_extmark, buf, ns, line_number, start_column, {
             end_col = end_column,
             hl_group = highlight,
             end_line = end_line,
@@ -517,16 +520,16 @@ module.public = {
     -- @Summary Clears all the conceals that neorg has defined
     -- @Description Simply clears the Neorg extmark namespace
     -- @Param from (number) - the line number to start clearing from
-    clear_icons = function(namespace, from, to)
-        vim.api.nvim_buf_clear_namespace(0, namespace, from or 0, to or -1)
+    clear_icons = function(buf, namespace, from, to)
+        vim.api.nvim_buf_clear_namespace(buf, namespace, from or 0, to or -1)
     end,
 
     -- TODO: Fix
-    trigger_completion_levels = function(from, to)
-        module.public.clear_completion_levels(from, to)
+    trigger_completion_levels = function(buf, from, to)
+        module.public.clear_completion_levels(buf, from, to)
 
         -- Get the root node of the document (required to iterate over query captures)
-        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+        local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
         if not document_root then
             return
@@ -541,7 +544,7 @@ module.public = {
             local total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled =
                 0, 0, 0, 0, 0, 0, 0, 0, 0
 
-            for id, node in query_object:iter_captures(document_root, 0, from or 0, to or -1) do
+            for id, node in query_object:iter_captures(document_root, buf, from or 0, to or -1) do
                 local name = query_object.captures[id]
 
                 local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
@@ -653,7 +656,7 @@ module.public = {
                             end
 
                             vim.api.nvim_buf_set_extmark(
-                                0,
+                                buf,
                                 module.private.completion_level_namespace,
                                 node_range.row_start,
                                 -1,
@@ -670,8 +673,8 @@ module.public = {
         end
     end,
 
-    clear_completion_levels = function(from, to)
-        vim.api.nvim_buf_clear_namespace(0, module.private.completion_level_namespace, from or 0, to or -1)
+    clear_completion_levels = function(buf, from, to)
+        vim.api.nvim_buf_clear_namespace(buf, module.private.completion_level_namespace, from or 0, to or -1)
     end,
 
     -- VARIABLES
@@ -2105,9 +2108,9 @@ module.on_event = function(event)
         local line_count = vim.api.nvim_buf_line_count(buf)
 
         if line_count < module.config.public.performance.increment then
-            module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
-            module.public.trigger_highlight_regex_code_block()
-            module.public.trigger_code_block_highlights()
+            module.public.trigger_icons(buf, module.private.icons, module.private.icon_namespace)
+            module.public.trigger_highlight_regex_code_block(buf)
+            module.public.trigger_code_block_highlights(buf)
         else
             local block_current = math.floor(
                 (line_count / module.config.public.performance.increment) % event.cursor_position[1]
@@ -2120,9 +2123,9 @@ module.on_event = function(event)
                     line_count
                 )
 
-                module.public.trigger_icons(icon_set, namespace, line_begin, line_end)
-                module.public.trigger_highlight_regex_code_block(line_begin, line_end)
-                module.public.trigger_code_block_highlights(line_begin, line_end)
+                module.public.trigger_icons(buf, icon_set, namespace, line_begin, line_end)
+                module.public.trigger_highlight_regex_code_block(buf, line_begin, line_end)
+                module.public.trigger_code_block_highlights(buf, line_begin, line_end)
             end
 
             trigger_icons_for_block(block_current, module.private.icons, module.private.icon_namespace)
@@ -2141,6 +2144,7 @@ module.on_event = function(event)
 
                     if not block_bottom_valid and not block_top_valid then
                         timer:stop()
+                        timer:close()
                         return
                     end
 
@@ -2182,16 +2186,22 @@ module.on_event = function(event)
 
                         line_count = new_line_count
 
-                        module.public.trigger_icons(module.private.icons, module.private.icon_namespace, start, _end)
-                        module.public.trigger_highlight_regex_code_block(start, _end)
+                        module.public.trigger_icons(
+                            buf,
+                            module.private.icons,
+                            module.private.icon_namespace,
+                            start,
+                            _end
+                        )
+                        module.public.trigger_highlight_regex_code_block(buf, start, _end)
 
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
                         -- updates here. Code blocks require more context than simply a few lines.
                         -- It's still incredibly fast despite this fact though.
-                        module.public.trigger_code_block_highlights()
+                        module.public.trigger_code_block_highlights(buf)
                     end)
                 else
-                    module.public.trigger_code_block_highlights(start, _end)
+                    module.public.trigger_code_block_highlights(buf, start, _end)
 
                     if module.private.largest_change_start == -1 then
                         module.private.largest_change_start = start
@@ -2216,19 +2226,19 @@ module.on_event = function(event)
             }
 
             vim.api.nvim_buf_clear_namespace(
-                0,
+                event.buffer,
                 module.private.icon_namespace,
                 event.cursor_position[1] - 1,
                 event.cursor_position[1]
             )
             vim.api.nvim_buf_clear_namespace(
-                0,
+                event.buffer,
                 module.private.markup_namespace,
                 event.cursor_position[1] - 1,
                 event.cursor_position[1]
             )
             vim.api.nvim_buf_clear_namespace(
-                0,
+                event.buffer,
                 module.private.completion_level_namespace,
                 event.cursor_position[1] - 1,
                 event.cursor_position[1]
@@ -2238,23 +2248,27 @@ module.on_event = function(event)
         vim.schedule(function()
             if not module.private.last_change.active or module.private.largest_change_end == -1 then
                 module.public.trigger_icons(
+                    event.buffer,
                     module.private.icons,
                     module.private.icon_namespace,
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
                 module.public.trigger_highlight_regex_code_block(
+                    event.buffer,
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
             else
                 module.public.trigger_icons(
+                    event.buffer,
                     module.private.icons,
                     module.private.icon_namespace,
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
                 module.public.trigger_highlight_regex_code_block(
+                    event.buffer,
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
@@ -2263,7 +2277,7 @@ module.on_event = function(event)
             module.private.largest_change_start, module.private.largest_change_end = -1, -1
         end)
     elseif event.type == "core.keybinds.events.core.norg.concealer.toggle-markup" then
-        module.public.toggle_markup()
+        module.public.toggle_markup(event.buffer)
     end
 end
 
