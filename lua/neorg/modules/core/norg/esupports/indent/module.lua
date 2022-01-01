@@ -37,7 +37,7 @@ module.config.private = {
         "unordered_link%d+",
         "ordered_link%d+",
         "todo_item%d+",
-    }
+    },
 }
 
 module.config.public = {
@@ -144,9 +144,9 @@ module.public = {
             local function up_until_endpoint(starting_node)
                 while starting_node and starting_node:type() ~= "document" do
                     for _, endpoint in ipairs(module.config.private.endpoints) do
-                         if starting_node:type():match(endpoint) then
-                             return starting_node
-                         end
+                        if starting_node:type():match(endpoint) then
+                            return starting_node
+                        end
                     end
 
                     starting_node = starting_node:parent()
@@ -210,7 +210,7 @@ module.events.subscribed = {
 
     ["core.keybinds"] = {
         ["core.norg.esupports.indent.indent"] = true,
-    }
+    },
 }
 
 return module
