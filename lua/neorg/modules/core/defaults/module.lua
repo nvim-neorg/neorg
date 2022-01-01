@@ -19,6 +19,7 @@ return neorg.modules.create_meta(
     "core.norg.esupports",
     "core.norg.esupports.metagen",
     "core.norg.esupports.hop",
+    "core.norg.esupports.indent",
     "core.integrations.treesitter",
     "core.norg.manoeuvre",
     "core.norg.news"
