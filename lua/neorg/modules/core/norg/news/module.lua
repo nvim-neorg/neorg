@@ -125,7 +125,7 @@ module.config.public = {
 module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         definitions = {
-            news = module.config.public.sources,
+            news = neorg.lib.to_keys(vim.tbl_keys(module.config.public.sources), {}),
         },
 
         data = {
