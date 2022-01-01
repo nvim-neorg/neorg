@@ -26,6 +26,8 @@ neorg.events.base_event = {
     filename = "",
     filehead = "",
     line_content = "",
+    buffer = 0,
+    mode = "",
 }
 
 -- @Summary Splits a full module event path into two
@@ -122,6 +124,8 @@ function neorg.events.create(module, type, content)
     new_event.line_content = vim.api.nvim_get_current_line()
     new_event.referrer = module.name
     new_event.broadcast = true
+    new_event.buffer = vim.api.nvim_get_current_buf()
+    new_event.mode = vim.api.nvim_get_mode().mode
 
     return new_event
 end
@@ -136,22 +140,24 @@ function neorg.events.broadcast_event(event)
         return
     end
 
-    -- Let the callback handler know of the event
-    neorg.callbacks.handle_callbacks(event)
+    vim.schedule(function()
+        -- Let the callback handler know of the event
+        neorg.callbacks.handle_callbacks(event)
 
-    -- Loop through all the modules
-    for _, current_module in pairs(neorg.modules.loaded_modules) do
-        -- If the current module has any subscribed events and if it has a subscription bound to the event's module name then
-        if current_module.events.subscribed and current_module.events.subscribed[event.split_type[1]] then
-            -- Check whether we are subscribed to the event type
-            local evt = current_module.events.subscribed[event.split_type[1]][event.split_type[2]]
+        -- Loop through all the modules
+        for _, current_module in pairs(neorg.modules.loaded_modules) do
+            -- If the current module has any subscribed events and if it has a subscription bound to the event's module name then
+            if current_module.events.subscribed and current_module.events.subscribed[event.split_type[1]] then
+                -- Check whether we are subscribed to the event type
+                local evt = current_module.events.subscribed[event.split_type[1]][event.split_type[2]]
 
-            if evt ~= nil and evt == true then
-                -- Run the on_event() for that module
-                current_module.on_event(event)
+                if evt ~= nil and evt == true then
+                    -- Run the on_event() for that module
+                    current_module.on_event(event)
+                end
             end
         end
-    end
+    end)
 end
 
 -- @Summary Sends an event to an individual module

@@ -68,7 +68,7 @@ module.public = {
         },
     },
 
-    is_metadata_present = function()
+    is_metadata_present = function(buf)
         local query = vim.treesitter.parse_query(
             "norg",
             [[
@@ -79,14 +79,14 @@ module.public = {
             ]]
         )
 
-        local root = module.required["core.integrations.treesitter"].get_document_root()
+        local root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
-        local _, found = query:iter_matches(root, 0)()
+        local _, found = query:iter_matches(root, buf)()
 
         return found and found[1] and true
     end,
 
-    construct_metadata = function()
+    construct_metadata = function(buf)
         local template = module.config.public.template
         local whitespace = type(module.config.public.tab) == "function" and module.config.public.tab()
             or module.config.public.tab
@@ -106,17 +106,17 @@ module.public = {
 
         table.insert(result, "@end")
 
-        if vim.api.nvim_buf_get_lines(0, 0, 1, false)[1]:len() > 0 then
+        if vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1]:len() > 0 then
             table.insert(result, "")
         end
 
         return result
     end,
 
-    inject_metadata = function(force)
-        if force or not module.public.is_metadata_present() then
-            local constructed_metadata = module.public.construct_metadata()
-            vim.api.nvim_buf_set_lines(0, 0, 0, false, constructed_metadata)
+    inject_metadata = function(buf, force)
+        if force or not module.public.is_metadata_present(buf) then
+            local constructed_metadata = module.public.construct_metadata(buf)
+            vim.api.nvim_buf_set_lines(buf, 0, 0, false, constructed_metadata)
         end
     end,
 }
@@ -141,14 +141,14 @@ module.on_event = function(event)
         event.type == "core.autocommands.events.bufenter"
         and event.content.norg
         and module.config.public.type == "auto"
-        and vim.api.nvim_buf_get_option(0, "modifiable")
+        and vim.api.nvim_buf_get_option(event.buffer, "modifiable")
+        and not module.private.buffers[event.buffer]
         and not string.sub(event.filehead, 1, 8) == "neorg://" -- Do not inject metadata on displays created by neorg by default
-        and not module.private.buffers[vim.api.nvim_get_current_buf()]
     then
-        module.public.inject_metadata()
-        module.private.buffers[vim.api.nvim_get_current_buf()] = true
+        module.public.inject_metadata(event.buffer)
+        module.private.buffers[event.buffer] = true
     elseif event.type == "core.neorgcmd.events.inject-metadata" then
-        module.public.inject_metadata(true)
+        module.public.inject_metadata(event.buffer, true)
     end
 end
 

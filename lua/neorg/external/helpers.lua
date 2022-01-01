@@ -405,6 +405,20 @@ neorg.lib = {
     lazy_string_concat = function(...)
         return table.concat({ ... })
     end,
+
+    --- Converts an array of values to a table of keys
+    --- @param values string[]|number[] #An array of values to store as keys
+    --- @param default any #The default value to assign to all key pairs
+    --- @return table #The converted table
+    to_keys = function(values, default)
+        local ret = {}
+
+        for _, value in ipairs(values) do
+            ret[value] = default or {}
+        end
+
+        return ret
+    end,
 }
 
 return neorg.utils
