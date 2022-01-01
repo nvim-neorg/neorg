@@ -2111,6 +2111,7 @@ module.on_event = function(event)
 
         if line_count < module.config.public.performance.increment then
             module.public.trigger_icons(buf, module.private.icons, module.private.icon_namespace)
+            module.public.trigger_icons(buf, module.private.markup, module.private.markup_namespace)
             module.public.trigger_highlight_regex_code_block(buf)
             module.public.trigger_code_block_highlights(buf)
         else
