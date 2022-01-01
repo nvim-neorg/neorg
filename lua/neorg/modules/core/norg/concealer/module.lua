@@ -321,8 +321,10 @@ module.public = {
                             goto continue
                         end
 
+                        local result
+
                         -- see if parser exists
-                        local ok, result = pcall(vim.treesitter.require_language, regex_language, true)
+                        ok, result = pcall(vim.treesitter.require_language, regex_language, true)
 
                         -- if pcall was true we had parser, skip the rest
                         if ok and result then
