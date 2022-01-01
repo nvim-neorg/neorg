@@ -2116,19 +2116,32 @@ module.on_event = function(event)
                 (line_count / module.config.public.performance.increment) % event.cursor_position[1]
             )
 
-            local function trigger_icons_for_block(block, icon_set, namespace)
+            local function trigger_conceals_for_block(block)
                 local line_begin = block == 0 and 0 or block * module.config.public.performance.increment - 1
                 local line_end = math.min(
                     block * module.config.public.performance.increment + module.config.public.performance.increment - 1,
                     line_count
                 )
 
-                module.public.trigger_icons(buf, icon_set, namespace, line_begin, line_end)
+                module.public.trigger_icons(
+                    buf,
+                    module.private.icons,
+                    module.private.icon_namespace,
+                    line_begin,
+                    line_end
+                )
+                module.public.trigger_icons(
+                    buf,
+                    module.private.markup,
+                    module.private.markup_namespace,
+                    line_begin,
+                    line_end
+                )
                 module.public.trigger_highlight_regex_code_block(buf, line_begin, line_end)
                 module.public.trigger_code_block_highlights(buf, line_begin, line_end)
             end
 
-            trigger_icons_for_block(block_current, module.private.icons, module.private.icon_namespace)
+            trigger_conceals_for_block(block_current)
 
             local block_bottom, block_top = block_current - 1, block_current + 1
 
@@ -2148,12 +2161,12 @@ module.on_event = function(event)
                     end
 
                     if block_bottom_valid then
-                        trigger_icons_for_block(block_bottom, module.private.icons, module.private.icon_namespace)
+                        trigger_conceals_for_block(block_bottom)
                         block_bottom = block_bottom - 1
                     end
 
                     if block_top_valid then
-                        trigger_icons_for_block(block_top, module.private.icons, module.private.icon_namespace)
+                        trigger_conceals_for_block(block_top)
                         block_top = block_top + 1
                     end
                 end)
@@ -2192,6 +2205,24 @@ module.on_event = function(event)
                             start,
                             _end
                         )
+
+                        local node_range =
+                            module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
+
+                        if node_range then
+                            node_range = module.required["core.integrations.treesitter"].get_node_range(
+                                node_range:parent()
+                            )
+                        end
+
+                        module.public.trigger_icons(
+                            event.buffer,
+                            module.private.markup,
+                            module.private.markup_namespace,
+                            node_range and node_range.row_start,
+                            node_range and node_range.row_end
+                        )
+
                         module.public.trigger_highlight_regex_code_block(buf, start, _end)
 
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
@@ -2253,6 +2284,13 @@ module.on_event = function(event)
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
+                module.public.trigger_icons(
+                    event.buffer,
+                    module.private.markup,
+                    module.private.markup_namespace,
+                    module.private.last_change.line,
+                    module.private.last_change.line + 1
+                )
                 module.public.trigger_highlight_regex_code_block(
                     event.buffer,
                     module.private.last_change.line,
@@ -2263,6 +2301,13 @@ module.on_event = function(event)
                     event.buffer,
                     module.private.icons,
                     module.private.icon_namespace,
+                    module.private.largest_change_start,
+                    module.private.largest_change_end
+                )
+                module.public.trigger_icons(
+                    event.buffer,
+                    module.private.markup,
+                    module.private.markup_namespace,
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
