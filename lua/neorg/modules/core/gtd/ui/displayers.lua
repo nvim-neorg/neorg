@@ -577,7 +577,7 @@ module.private = {
     goto_node = function()
         local data = module.private.get_by_var()
 
-        if not data then
+        if data == nil or #data == 0 then
             return
         end
 
