@@ -241,7 +241,6 @@ module.public = {
 
         -- Loop through every completion
         for _, completion_data in ipairs(completions) do
-
             -- If the completion data has a regex variable
             if completion_data.regex then
                 -- Attempt to match the current line before the cursor with that regex
