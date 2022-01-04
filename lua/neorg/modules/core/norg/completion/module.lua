@@ -241,11 +241,6 @@ module.public = {
 
         -- Loop through every completion
         for _, completion_data in ipairs(completions) do
-            -- Construct a variable that will be returned on a successful match
-            local items = type(completion_data.complete) == "table" and completion_data.complete
-                or completion_data.complete(context, prev, saved)
-            local ret_completions = { items = items, options = completion_data.options or {} }
-
             -- If the completion data has a regex variable
             if completion_data.regex then
                 -- Attempt to match the current line before the cursor with that regex
@@ -253,6 +248,11 @@ module.public = {
 
                 -- If our match was successful
                 if match then
+                    -- Construct a variable that will be returned on a successful match
+                    local items = type(completion_data.complete) == "table" and completion_data.complete
+                        or completion_data.complete(context, prev, saved)
+                    local ret_completions = { items = items, options = completion_data.options or {} }
+
                     -- Set the match variable for the integration module
                     ret_completions.match = match
 
