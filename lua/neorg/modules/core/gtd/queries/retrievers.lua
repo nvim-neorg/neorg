@@ -21,6 +21,7 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 ---@field time.due? string[]
 ---@field area_of_focus? string
 ---@field internal? core.gtd.queries.task.internal
+---@field external? table
 
 ---@class core.gtd.queries.project
 ---@field content string
@@ -30,6 +31,7 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 ---@field time.start? string[]
 ---@field time.due? string[]
 ---@field internal? core.gtd.queries.project.internal
+---@field external? table
 
 ---@class core.gtd.queries
 module.public = {
