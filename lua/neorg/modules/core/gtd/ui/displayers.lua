@@ -260,7 +260,12 @@ module.public = {
         }
         local positions = {}
 
-        local projects_tasks = module.required["core.gtd.queries"].sort_by("project_node", tasks)
+        -- Copy the project_node from internal so it's easier to sort by
+        local _tasks = tasks
+        for _, task in pairs(_tasks) do
+            task.project_node = task.internal.project_node
+        end
+        local projects_tasks = module.required["core.gtd.queries"].sort_by("project_node", _tasks)
 
         -- Show informations for tasks without projects
         local unknown_project = projects_tasks["_"]
@@ -294,7 +299,7 @@ module.public = {
             end
             table.insert(res, "")
             for _, project in pairs(_projects) do
-                local tasks_project = module.private.find_project(projects_tasks, project.node) or {}
+                local tasks_project = module.private.find_project(projects_tasks, project.internal.node) or {}
 
                 local completed = vim.tbl_filter(function(t)
                     return t.state == "done"
@@ -308,7 +313,7 @@ module.public = {
                     goto continue
                 end
 
-                if project ~= "_" and not vim.tbl_contains(added_projects, project.node) then
+                if project ~= "_" and not vim.tbl_contains(added_projects, project.internal.node) then
                     table.insert(
                         res,
                         "* " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)"
@@ -318,7 +323,7 @@ module.public = {
                     local pct = module.public.percent(#completed, #tasks_project)
                     local pct_str = module.public.percent_string(pct)
                     table.insert(res, "   " .. pct_str .. " " .. pct .. "% done")
-                    table.insert(added_projects, project.node)
+                    table.insert(added_projects, project.internal.node)
                     table.insert(res, "")
                 end
                 ::continue::
@@ -552,7 +557,7 @@ module.private = {
     end,
 
     --- Get the corresponding task from the buffer variable in the current line
-    --- @return table the task node
+    --- @return core.gtd.queries.task the task node
     get_by_var = function()
         -- Get the current task at cursor
         local current_line = vim.api.nvim_win_get_cursor(0)[1]
@@ -564,7 +569,7 @@ module.private = {
         end
 
         data = vim.tbl_filter(function(t)
-            return t.position == data.position and t.bufnr == data.bufnr
+            return t.internal.position == data.position and t.internal.bufnr == data.bufnr
         end, module.private.data)[1]
 
         if not data then
@@ -585,8 +590,8 @@ module.private = {
 
         -- Go to the node
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        vim.api.nvim_win_set_buf(0, data.bufnr)
-        ts_utils.goto_node(data.node)
+        vim.api.nvim_win_set_buf(0, data.internal.bufnr)
+        ts_utils.goto_node(data.internal.node)
 
         -- Reset the data
         module.private.data = {}
@@ -668,7 +673,7 @@ module.private = {
             -- For displaying projects, we assume that there is no data.state in it
         elseif not data.state then
             offset = 1
-            local tasks = module.private.find_project(module.private.extras, data.node)
+            local tasks = module.private.find_project(module.private.extras, data.internal.node)
             -- local tasks = module.private.extras[data.content]
             if not tasks then
                 table.insert(res, "  - /No tasks found for this project/")

@@ -2,6 +2,7 @@
 require("tests.config")
 
 -- Get the required module
+--- @type core.gtd.ui
 local ui = neorg.modules.get_module("core.gtd.ui")
 local queries = neorg.modules.get_module("core.gtd.queries")
 
@@ -174,6 +175,7 @@ describe("CORE.GTD.UI - Displayers:", function()
         local projects = queries.get("projects")
         projects = queries.add_metadata(projects, "project")
 
+        --- 
         local buf = ui.display_projects(tasks, projects)
         assert.is_number(buf)
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)

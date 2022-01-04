@@ -64,7 +64,7 @@ describe("CORE.GTD.QUERIES - Retrievers:", function()
         tasks = queries.add_metadata(tasks, "task")
 
         for i, task in ipairs(tasks) do
-            assert.equals(i, task.position)
+            assert.equals(i, task.internal.position)
             assert.equals(projects[1].content, task.project)
         end
 
@@ -91,11 +91,14 @@ describe("CORE.GTD.QUERIES - Retrievers:", function()
         assert.equals(1, #tasks[5]["waiting.for"])
         assert.is_true(vim.tbl_contains(tasks[5]["waiting.for"], "test_waiting_for"))
 
+        --Test for mandatory keys
         for _, task in pairs(tasks) do
             local keys = vim.tbl_keys(task)
-            assert.is_true(vim.tbl_contains(keys, "node"))
-            assert.is_true(vim.tbl_contains(keys, "bufnr"))
             assert.is_true(vim.tbl_contains(keys, "content"))
+            assert.is_true(vim.tbl_contains(keys, "internal"))
+            keys = vim.tbl_keys(task.internal)
+            assert.is_true(vim.tbl_contains(keys, "bufnr"))
+            assert.is_true(vim.tbl_contains(keys, "position"))
         end
     end)
 
