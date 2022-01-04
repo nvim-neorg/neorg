@@ -4,25 +4,25 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 ---@field bufnr number
 ---@field node userdata
 ---@field content string
----@field project string|nil
----@field project_node userdata|nil
+---@field project? string
+---@field project_node? userdata
 ---@field state string
----@field contexts string[]|nil
----@field waiting.for string[]|nil
----@field time.start string[]|nil
----@field time.due string[]|nil
+---@field contexts? string[]
+---@field waiting.for? string[]
+---@field time.start? string[]
+---@field time.due? string[]
 ---@field position number
----@field area_of_focus string|nil
+---@field area_of_focus? string
 
 ---@class core.gtd.queries.project
 ---@field bufnr number
 ---@field node userdata
 ---@field content string
----@field area_of_focus string|nil
----@field contexts string[]|nil
----@field waiting.for string[]|nil
----@field time.start string[]|nil
----@field time.due string[]|nil
+---@field area_of_focus? string
+---@field contexts? string[]
+---@field waiting.for? string[]
+---@field time.start? string[]
+---@field time.due? string[]
 ---@field position number
 
 ---@class core.gtd.queries
