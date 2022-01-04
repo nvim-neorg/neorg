@@ -2195,7 +2195,7 @@ module.on_event = function(event)
 
                 local mode = vim.api.nvim_get_mode().mode
 
-                if mode == "n" or mode == "no" then
+                if mode ~= "i" then
                     vim.schedule(function()
                         local new_line_count = vim.api.nvim_buf_line_count(buf)
 
