@@ -1,29 +1,35 @@
 local module = neorg.modules.extend("core.gtd.queries.retrievers")
 
----@class core.gtd.queries.task
+---@class core.gtd.queries.task.internal
 ---@field bufnr number
 ---@field node userdata
+---@field position number
+---@field project_node? userdata
+
+---@class core.gtd.queries.project.internal
+---@field bufnr number
+---@field node userdata
+---@field position number
+
+---@class core.gtd.queries.task
 ---@field content string
 ---@field project? string
----@field project_node? userdata
 ---@field state string
 ---@field contexts? string[]
 ---@field waiting.for? string[]
 ---@field time.start? string[]
 ---@field time.due? string[]
----@field position number
 ---@field area_of_focus? string
+---@field internal? core.gtd.queries.task.internal
 
 ---@class core.gtd.queries.project
----@field bufnr number
----@field node userdata
 ---@field content string
 ---@field area_of_focus? string
 ---@field contexts? string[]
 ---@field waiting.for? string[]
 ---@field time.start? string[]
 ---@field time.due? string[]
----@field position number
+---@field internal? core.gtd.queries.project.internal
 
 ---@class core.gtd.queries
 module.public = {
@@ -196,15 +202,18 @@ module.public = {
 
         local previous_bufnr_tbl = {}
         for _, node in ipairs(nodes) do
+            ---@type core.gtd.queries.project|core.gtd.queries.task
             local exported = {}
-            exported.node = node[1]
-            exported.bufnr = node[2]
+            exported.internal = {
+                node = node[1],
+                bufnr = node[2],
+            }
 
             exported.content = get_key("content", module.private.get_content, exported, type, opts)
 
             if type == "task" then
                 exported.project = get_key("project", module.private.get_task_project, exported, opts)
-                exported.project_node = get_key(
+                exported.internal.project_node = get_key(
                     "project_node",
                     module.private.get_task_project,
                     exported,
@@ -252,12 +261,12 @@ module.public = {
             exported["area_of_focus"] = get_key("area_of_focus", module.private.get_aof, exported, opts)
 
             -- Add position in file for each node
-            if not previous_bufnr_tbl[exported.bufnr] then
-                previous_bufnr_tbl[exported.bufnr] = 1
-                exported.position = 1
+            if not previous_bufnr_tbl[exported.internal.bufnr] then
+                previous_bufnr_tbl[exported.internal.bufnr] = 1
+                exported.internal.position = 1
             else
-                previous_bufnr_tbl[exported.bufnr] = previous_bufnr_tbl[exported.bufnr] + 1
-                exported.position = previous_bufnr_tbl[exported.bufnr]
+                previous_bufnr_tbl[exported.internal.bufnr] = previous_bufnr_tbl[exported.internal.bufnr] + 1
+                exported.internal.position = previous_bufnr_tbl[exported.internal.bufnr]
             end
 
             table.insert(res, exported)
@@ -268,8 +277,8 @@ module.public = {
 
     --- Ensure t[k] is a table and then add v to the end of t[k]
     --- @param t table
-    --- @param k key
-    --- @param v value
+    --- @param k any key
+    --- @param v any value
     insert = function(t, k, v)
         if not t[k] then
             t[k] = {}
@@ -319,7 +328,7 @@ module.public = {
 
     --- Get a list of content for a specific `tag_name` in a `node`.
     --- @param tag_name string
-    --- @param node table
+    --- @param node core.gtd.queries.task|core.gtd.queries.project
     --- @param type string #The current node type (task / project)
     --- @param opts table #Options from add_metadata
     --- @param extra_tag_names type string additional elements that tag_name can be
@@ -363,7 +372,7 @@ module.public = {
         local fetch_multiple_sets = not opts.same_node
 
         local tags_node = module.required["core.queries.native"].find_parent_node(
-            { node.node, node.bufnr },
+            { node.internal.node, node.internal.bufnr },
             "carryover_tag_set",
             { multiple = fetch_multiple_sets }
         )
@@ -443,7 +452,7 @@ module.private = {
     end,
 
     --- Gets content from a `node` table. If `extract`, extracts the content of the node
-    --- @param node table
+    --- @param node core.gtd.queries.project|core.gtd.queries.task
     --- @param type string
     --- @param opts table #Options from add_metadata
     --- @return string
@@ -468,7 +477,11 @@ module.private = {
             table.insert(tree, { query = { "first", "paragraph" } })
         end
 
-        local content = module.required["core.queries.native"].query_from_tree(node.node, tree, node.bufnr)
+        local content = module.required["core.queries.native"].query_from_tree(
+            node.internal.node,
+            tree,
+            node.internal.bufnr
+        )
 
         if #content == 0 then
             return {}
@@ -483,7 +496,7 @@ module.private = {
     end,
 
     --- Get project from `task` if there is one. If `extract`, extracts the content of the node
-    --- @param task table
+    --- @param task core.gtd.queries.task
     --- @param opts table #Options from add_metadata
     --- @return string
     get_task_project = function(task, opts)
@@ -493,7 +506,7 @@ module.private = {
         })
         opts = opts or {}
         local project_node = module.required["core.queries.native"].find_parent_node(
-            { task.node, task.bufnr },
+            { task.internal.node, task.internal.bufnr },
             "heading1"
         )
 
@@ -524,7 +537,7 @@ module.private = {
     end,
 
     --- Retrieve the state of the `task`. If `extract`, extracts the content of the node
-    --- @param task table
+    --- @param task core.gtd.queries.task
     --- @param opts table #Options from add_metadata
     --- @return string
     get_task_state = function(task, opts)
@@ -545,7 +558,11 @@ module.private = {
             { query = { "first", "todo_item_recurring" } },
         }
 
-        local task_state_nodes = module.required["core.queries.native"].query_from_tree(task.node, tree, task.bufnr)
+        local task_state_nodes = module.required["core.queries.native"].query_from_tree(
+            task.internal.node,
+            tree,
+            task.internal.bufnr
+        )
 
         if not task_state_nodes then
             log.error("This task does not contain any state !")
@@ -559,12 +576,19 @@ module.private = {
         return string.gsub(state, "todo_item_", "")
     end,
 
+    --- Get the area_of_focus for a task, or project
+    --- @param node core.gtd.queries.task|core.gtd.queries.project
+    --- @param opts table #opts from add_metadata
+    --- @return string
     get_aof = function(node, opts)
         vim.validate({
             node = { node, "table" },
         })
 
-        local marker_node = module.required["core.queries.native"].find_parent_node({ node.node, node.bufnr }, "marker")
+        local marker_node = module.required["core.queries.native"].find_parent_node(
+            { node.internal.node, node.internal.bufnr },
+            "marker"
+        )
 
         if #marker_node == 0 then
             return nil
@@ -574,7 +598,7 @@ module.private = {
             { query = { "first", "paragraph_segment" } },
         }
 
-        marker_node = module.required["core.queries.native"].query_from_tree(marker_node[1], tree, node.bufnr)
+        marker_node = module.required["core.queries.native"].query_from_tree(marker_node[1], tree, node.internal.bufnr)
 
         if vim.tbl_isempty(marker_node) then
             log.error("Error in fetching marker")

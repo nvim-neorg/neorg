@@ -41,7 +41,7 @@ module.public = {
                 log.error("Please specify a tag with opts.tag")
                 return
             end
-            module.private.insert_tag({ object.node, object.bufnr }, value, opts.tag)
+            module.private.insert_tag({ object.internal.node, object.internal.bufnr }, value, opts.tag)
             return module.public.update(object, node_type)
         end
 
@@ -54,7 +54,7 @@ module.public = {
                 -- Delete the tag and recreate it with new values
                 local line_nr
                 object, line_nr = module.public.delete(object, node_type, option)
-                module.private.insert_tag({ object.node, object.bufnr }, value, opts.tag, { line = line_nr })
+                module.private.insert_tag({ object.internal.node, object.internal.bufnr }, value, opts.tag, { line = line_nr })
                 return module.public.update(object, node_type)
             else
                 log.error("Only tags and content are supported for modification")
@@ -73,7 +73,7 @@ module.public = {
         end
 
         -- Replacing old option with new one (The empty string is to prevent lines below to wrap)
-        local temp_buf = module.required["core.queries.native"].get_temp_buf(object.bufnr)
+        local temp_buf = module.required["core.queries.native"].get_temp_buf(object.internal.bufnr)
         vim.api.nvim_buf_set_text(temp_buf, start_row, start_col, end_row, end_col, { value, "" })
 
         return module.public.update(object, node_type)
@@ -101,7 +101,7 @@ module.public = {
         if type(object[option]) == "table" then
             local carryover_tags = vim.tbl_map(function(n)
                 local carryover_tag = module.required["core.queries.native"].find_parent_node(
-                    { n, object.bufnr },
+                    { n, object.internal.bufnr },
                     "carryover_tag"
                 )
                 return carryover_tag[1]
@@ -124,7 +124,7 @@ module.public = {
         local start_row, start_col, end_row, end_col = ts_utils.get_node_range(fetched_node)
 
         -- Deleting object
-        local temp_buf = module.required["core.queries.native"].get_temp_buf(object.bufnr)
+        local temp_buf = module.required["core.queries.native"].get_temp_buf(object.internal.bufnr)
         vim.api.nvim_buf_set_text(temp_buf, start_row, start_col, end_row, end_col, { "" })
 
         return module.public.update(object, node_type), start_row
@@ -147,12 +147,12 @@ module.public = {
         })
 
         -- Get all nodes from same bufnr
-        local nodes = module.public.get(node_type .. "s", { bufnr = node.bufnr })
+        local nodes = module.public.get(node_type .. "s", { bufnr = node.internal.bufnr })
         local originally_extracted = type(node.content) == "string"
         nodes = module.public.add_metadata(nodes, node_type, { extract = originally_extracted })
 
         local found_node = vim.tbl_filter(function(n)
-            return n.position == node.position
+            return n.internal.position == node.internal.position
         end, nodes)
 
         if #found_node == 0 then
