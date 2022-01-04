@@ -993,8 +993,12 @@ module.public = {
 }
 
 module.config.public = {
+    -- Which icon preset to use
+    -- Go to [imports](#imports) to see which ones are currently defined
+    -- E.g `core.norg.concealer.preset_diamond` will be `preset = "diamond"`
     icon_preset = "basic",
 
+    -- Icons related config
     icons = {
         todo = {
             enabled = true,
@@ -1658,8 +1662,12 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         },
     },
 
+    -- Markup presets to use (currents: `safe`, `brave`)
+    -- `safe` will use whitespaces to conceal markup
+    -- `brave` will use the word joiner unicode
     markup_preset = "safe",
 
+    -- Markup related config
     markup = {
         enabled = true,
         icon = " ",
@@ -1851,8 +1859,10 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         },
     },
 
+    -- If you want to dim code blocks
     dim_code_blocks = true,
 
+    -- Enable or disable Folds
     folds = {
         enable = true,
         foldlevel = 999,
