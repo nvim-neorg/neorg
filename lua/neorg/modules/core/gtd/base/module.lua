@@ -66,7 +66,7 @@ module.config.public = {
 ---@class core.gtd.base
 module.public = {
     version = "0.0.8",
-    callbacks = {}
+    callbacks = {},
 }
 
 module.private = {
