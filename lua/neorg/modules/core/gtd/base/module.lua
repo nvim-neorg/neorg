@@ -66,6 +66,7 @@ module.config.public = {
 ---@class core.gtd.base
 module.public = {
     version = "0.0.8",
+    callbacks = {}
 }
 
 module.private = {
@@ -107,8 +108,12 @@ module.load = function()
         },
     })
 
-    -- Generates completion for gtd
+    -- Set up callbacks
+    module.public.callbacks["gtd.views"] = module.required["core.gtd.ui"].show_views_popup
+    module.public.callbacks["gtd.edit"] = module.required["core.gtd.ui"].edit_task_at_cursor
+    module.public.callbacks["gtd.capture"] = module.required["core.gtd.ui"].show_capture_popup
 
+    -- Generates completion for gtd
     vim.schedule(function()
         for _, completion in pairs(module.required["core.norg.completion"].completions) do
             if vim.tbl_contains(completion.complete, "contexts") then
@@ -195,11 +200,11 @@ module.private = {
 module.on_event = function(event)
     if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.split_type[1]) then
         if vim.tbl_contains({ "gtd.views", "core.gtd.base.views" }, event.split_type[2]) then
-            module.required["core.gtd.ui"].show_views_popup()
+            module.public.callbacks["gtd.views"]()
         elseif vim.tbl_contains({ "gtd.edit", "core.gtd.base.edit" }, event.split_type[2]) then
-            module.required["core.gtd.ui"].edit_task_at_cursor()
+            module.public.callbacks["gtd.edit"]()
         elseif vim.tbl_contains({ "gtd.capture", "core.gtd.base.capture" }, event.split_type[2]) then
-            module.required["core.gtd.ui"].show_capture_popup()
+            module.public.callbacks["gtd.capture"]()
         end
     end
 end
