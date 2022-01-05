@@ -26,12 +26,12 @@ local default_config = {
 
     -- Level configuration
     modes = {
-        { name = "trace", hl = "Comment" },
-        { name = "debug", hl = "Comment" },
-        { name = "info", hl = "None" },
-        { name = "warn", hl = "WarningMsg" },
-        { name = "error", hl = "ErrorMsg" },
-        { name = "fatal", hl = "ErrorMsg" },
+        { name = "trace", hl = "Comment", level = vim.log.levels.TRACE },
+        { name = "debug", hl = "Comment", level = vim.log.levels.DEBUG },
+        { name = "info", hl = "None", level = vim.log.levels.INFO },
+        { name = "warn", hl = "WarningMsg", level = vim.log.levels.WARN },
+        { name = "error", hl = "ErrorMsg", level = vim.log.levels.ERROR },
+        { name = "fatal", hl = "ErrorMsg", level = 5 },
     },
 
     -- Can limit the number of decimals displayed for floats
@@ -60,8 +60,8 @@ log.new = function(config, standalone)
     })
 
     local levels = {}
-    for i, v in ipairs(config.modes) do
-        levels[v.name] = i
+    for _, v in ipairs(config.modes) do
+        levels[v.name] = v.level
     end
 
     local round = function(x, increment)
@@ -88,9 +88,9 @@ log.new = function(config, standalone)
         return table.concat(t, " ")
     end
 
-    local log_at_level = function(level, level_config, message_maker, ...)
+    local log_at_level = function(level_config, message_maker, ...)
         -- Return early if we"re below the config.level
-        if level < levels[config.level] then
+        if levels[level_config.name] < levels[config.level] then
             return
         end
         local nameupper = level_config.name:upper()
@@ -101,7 +101,7 @@ log.new = function(config, standalone)
 
         -- Output to console
         if config.use_console then
-            local console_string = string.format("[%-6s%s] %s: %s", nameupper, os.date("%H:%M:%S"), lineinfo, msg)
+            local v = string.format("(%s)\n%s\n%s", os.date("%H:%M:%S"), lineinfo, msg)
 
             if config.highlights and level_config.hl then
                 (vim.schedule_wrap(function()
@@ -109,12 +109,10 @@ log.new = function(config, standalone)
                 end))()
             end
 
-            local split_console = vim.split(console_string, "\n")
-            for _, v in ipairs(split_console) do
-                (vim.schedule_wrap(function()
-                    vim.cmd(string.format([[echom "[%s] %s"]], config.plugin, vim.fn.escape(v, '"')))
-                end))()
-            end
+            (vim.schedule_wrap(function()
+                vim.notify(string.format("[%s] %s", config.plugin, vim.fn.escape(v, '"')), level_config.level)
+                -- vim.cmd(string.format([[echom "[%s] %s"]], config.plugin, vim.fn.escape(v, '"')))
+            end))()
 
             if config.highlights and level_config.hl then
                 (vim.schedule_wrap(function()
@@ -132,13 +130,13 @@ log.new = function(config, standalone)
         end
     end
 
-    for i, x in ipairs(config.modes) do
+    for _, x in ipairs(config.modes) do
         obj[x.name] = function(...)
-            return log_at_level(i, x, make_string, ...)
+            return log_at_level(x, make_string, ...)
         end
 
         obj[("fmt_%s"):format(x.name)] = function()
-            return log_at_level(i, x, function(...)
+            return log_at_level(x, function(...)
                 local passed = { ... }
                 local fmt = table.remove(passed, 1)
                 local inspected = {}
