@@ -354,17 +354,17 @@
 (horizontal_line) @NeorgHorizontalLine
 
 ; Markup
-(bold) @NeorgMarkupBold
-(italic) @NeorgMarkupItalic
-(strikethrough) @NeorgMarkupStrikethrough
-(underline) @NeorgMarkupUnderline
-(spoiler) @NeorgMarkupSpoiler
-(verbatim) @NeorgMarkupVerbatim
-(superscript) @NeorgMarkupSuperscript
-(subscript) @NeorgMarkupSubscript
-(inline_comment) @NeorgMarkupInlineComment
-(inline_math) @NeorgMarkupInlineMath
-(variable) @NeorgMarkupVariable
+(bold ["_open" "_close"] @NeorgMarkupBoldDelimiter) @NeorgMarkupBold
+(italic ["_open" "_close"] @NeorgMarkupItalicDelimiter) @NeorgMarkupItalic
+(strikethrough ["_open" "_close"] @NeorgMarkupStrikethroughDelimiter) @NeorgMarkupStrikethrough
+(underline ["_open" "_close"] @NeorgMarkupUnderlineDelimiter) @NeorgMarkupUnderline
+(spoiler ["_open" "_close"] @NeorgMarkupSpoilerDelimiter) @NeorgMarkupSpoiler
+(verbatim ["_open" "_close"] @NeorgMarkupVerbatimDelimiter) @NeorgMarkupVerbatim
+(superscript ["_open" "_close"] @NeorgMarkupSuperscriptDelimiter) @NeorgMarkupSuperscript
+(subscript ["_open" "_close"] @NeorgMarkupSubscriptDelimiter) @NeorgMarkupSubscript
+(inline_comment ["_open" "_close"] @NeorgMarkupInlineCommentDelimiter) @NeorgMarkupInlineComment
+(inline_math ["_open" "_close"] @NeorgMarkupMathDelimiter) @NeorgMarkupMath
+(variable ["_open" "_close"] @NeorgMarkupVariableDelimiter) @NeorgMarkupVariable
 
 (superscript (subscript)) @NeorgError
 (subscript (superscript)) @NeorgError

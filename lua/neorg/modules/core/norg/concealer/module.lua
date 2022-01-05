@@ -65,6 +65,7 @@ module.setup = function()
             "preset_diamond",
             "preset_safe",
             "preset_brave",
+            "preset_dimmed",
         },
     }
 end
@@ -1581,6 +1582,7 @@ module.config.public = {
     -- Markup presets to use (currents: `safe`, `brave`)
     -- `safe` will use whitespaces to conceal markup
     -- `brave` will use the word joiner unicode
+    -- `dimmed` will dim markup icons instead of concealing them
     markup_preset = "safe",
 
     -- Markup related config
@@ -1638,7 +1640,7 @@ module.config.public = {
 
         math = {
             enabled = true,
-            highlight = "NeorgMarkupInlineMath",
+            highlight = "NeorgMarkupMath",
             query = '(inline_math (["_open" "_close"]) @icon)',
         },
 
@@ -1653,7 +1655,7 @@ module.config.public = {
             icon = "●",
             -- NOTE: as you can see, you can still overwrite the parent-icon
             -- inherited from above.
-            highlight = "NeorgSpoiler",
+            highlight = "NeorgMarkupSpoiler",
             query = "(spoiler) @icon",
             render = function(self, text)
                 return {

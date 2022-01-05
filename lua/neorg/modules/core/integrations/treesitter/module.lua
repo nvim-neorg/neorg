@@ -374,15 +374,48 @@ module.config.public = {
         },
 
         Markup = {
-            Bold = "+TSStrong",
-            Italic = "+TSEmphasis",
-            Underline = "+TSUnderline",
-            Strikethrough = "+TSStrike",
-            Spoiler = "+TSDanger",
-            Subscript = "+TSLabel",
-            Superscript = "+TSNumber",
-            Math = "+TSMath",
-            Variable = "+NeorgInsertionVariable",
+            Bold = {
+                [""] = "+TSStrong",
+                Delimiter = "+NonText",
+            },
+            Italic = {
+                [""] = "+TSEmphasis",
+                Delimiter = "+NonText",
+            },
+            Underline = {
+                [""] = "+TSUnderline",
+                Delimiter = "+NonText",
+            },
+            Strikethrough = {
+                [""] = "+TSStrike",
+                Delimiter = "+NonText",
+            },
+            Spoiler = {
+                [""] = "+TSDanger",
+                Delimiter = "+NonText",
+            },
+            Subscript = {
+                [""] = "+TSLabel",
+                Delimiter = "+NonText",
+            },
+            Superscript = {
+                [""] = "+TSNumber",
+                Delimiter = "+NonText",
+            },
+            Math = {
+                [""] = "+TSMath",
+                Delimiter = "+NonText",
+            },
+            Variable = {
+                [""] = "+NeorgInsertionVariable",
+                Delimiter = "+NonText",
+            },
+            Verbatim = {
+                Delimiter = "+NonText",
+            },
+            InlineComment = {
+                Delimiter = "+NonText",
+            },
         },
 
         StrongParagraphDelimiter = "+TSPunctDelimiter",
