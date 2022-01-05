@@ -87,6 +87,9 @@ function _neorgcmd_generate_completions(_, command)
         return { "Unable to provide completions: core.neorgcmd is not loaded." }
     end
 
+    -- Trim any leading whitespace that may be present in the command
+    command = command:gsub("^%s*", "")
+
     -- Split the command into several smaller ones for easy parsing
     local split_command = vim.split(command, " ")
 

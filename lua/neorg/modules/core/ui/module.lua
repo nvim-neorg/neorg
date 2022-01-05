@@ -151,8 +151,11 @@ module.public = {
         -- Get the name of the buffer with the specified ID
         local name = vim.api.nvim_buf_get_name(buf)
 
-        -- Attempt to force close both the window and the buffer
-        vim.api.nvim_win_close(module.private.windows[name], true)
+        if module.private.windows[name] ~= nil then
+            -- Attempt to force close both the window and the buffer
+            vim.api.nvim_win_close(module.private.windows[name], true)
+        end
+
         vim.api.nvim_buf_delete(buf, { force = true })
 
         -- Reset the window ID to nil so it can be reused again
