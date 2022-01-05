@@ -31,13 +31,13 @@ module.config.private.icon_preset_varied = {
 
     footnote = {
         single = {
-            icon = "🦶",
+            icon = "",
         },
         multi_prefix = {
-            icon = "👣 ",
+            icon = " ",
         },
         multi_suffix = {
-            icon = "👣 ",
+            icon = " ",
         },
     },
 }
