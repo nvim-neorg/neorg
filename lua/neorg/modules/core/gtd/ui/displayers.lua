@@ -631,7 +631,6 @@ module.private = {
         module.required["core.mode"].set_mode(previous_mode)
 
         -- Closes the display
-        -- vim.cmd(":bd " .. module.private.)
         vim.api.nvim_buf_delete(module.private.current_bufnr, { force = true })
 
         module.private.data = {}
