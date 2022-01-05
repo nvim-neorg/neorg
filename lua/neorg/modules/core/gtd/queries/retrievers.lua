@@ -298,10 +298,7 @@ module.public = {
             sorter = {
                 sorter,
                 function(s)
-                    return vim.tbl_contains(
-                        { "waiting.for", "contexts", "project_uuid", "area_of_focus" },
-                        s
-                    )
+                    return vim.tbl_contains({ "waiting.for", "contexts", "project_uuid", "area_of_focus" }, s)
                 end,
                 "waiting.for|contexts|project_uuid|area_of_focus",
             },
