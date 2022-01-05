@@ -42,7 +42,6 @@ module.public = {
             newline = opts.newline
         end
 
-
         node.internal = node.internal or {}
         node.internal.node = module.private.insert_content_new(
             node.content,
