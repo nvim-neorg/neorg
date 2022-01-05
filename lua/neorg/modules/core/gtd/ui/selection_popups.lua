@@ -27,7 +27,6 @@ module.public = {
     end,
 
     show_views_popup = function(tasks, projects)
-
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_split("Quick Actions")
 
