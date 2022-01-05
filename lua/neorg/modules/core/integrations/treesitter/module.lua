@@ -336,7 +336,17 @@ module.config.public = {
 
                 Marker = {
                     [""] = "+NeorgMarkerTitle",
-                    Prefix = "+NeorgMarkerPrefix",
+                    Prefix = "+NeorgMarker",
+                },
+
+                Definition = {
+                    [""] = "+NeorgDefinitionTitle",
+                    Prefix = "+NeorgDefinition",
+                },
+
+                Footnote = {
+                    [""] = "+NeorgFootnoteTitle",
+                    Prefix = "+NeorgFootnote",
                 },
 
                 Heading = {
