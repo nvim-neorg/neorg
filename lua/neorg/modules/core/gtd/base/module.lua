@@ -109,7 +109,7 @@ module.load = function()
     })
 
     -- Set up callbacks
-    module.public.callbacks["gtd.views"] = module.required["core.gtd.ui"].show_views_popup
+    module.public.callbacks["get_data"] = module.required["core.gtd.ui"].get_data_for_views
     module.public.callbacks["gtd.edit"] = module.required["core.gtd.ui"].edit_task_at_cursor
     module.public.callbacks["gtd.capture"] = module.required["core.gtd.ui"].show_capture_popup
 
@@ -200,7 +200,8 @@ module.private = {
 module.on_event = function(event)
     if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.split_type[1]) then
         if vim.tbl_contains({ "gtd.views", "core.gtd.base.views" }, event.split_type[2]) then
-            module.public.callbacks["gtd.views"]()
+            local tasks, projects = module.public.callbacks["get_data"]()
+            module.required["core.gtd.ui"].show_views_popup(tasks, projects)
         elseif vim.tbl_contains({ "gtd.edit", "core.gtd.base.edit" }, event.split_type[2]) then
             module.public.callbacks["gtd.edit"]()
         elseif vim.tbl_contains({ "gtd.capture", "core.gtd.base.capture" }, event.split_type[2]) then
