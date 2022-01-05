@@ -43,6 +43,7 @@ function neorg.modules.load_module_from_table(module, parent)
             replaces = {},
             replace_merge = false,
             requires = {},
+            wants = {},
             imports = {},
         }
 
@@ -77,6 +78,32 @@ function neorg.modules.load_module_from_table(module, parent)
     -- Add the module into the list of loaded modules
     -- The reason we do this here is so other modules don't recursively require each other in the dependency loading loop below
     neorg.modules.loaded_modules[module.name] = module
+
+    -- If the module "wants" any other modules then verify they are loaded
+    if loaded_module.wants and not vim.tbl_isempty(loaded_module.wants) then
+        log.info("Module", module.name, "wants certain modules. Ensuring they are loaded...")
+
+        -- Loop through each dependency and ensure it's loaded
+        for _, required_module in ipairs(loaded_module.wants) do
+            log.trace("Verifying", required_module)
+
+            -- This would've always returned false had we not added the current module to the loaded module list earlier above
+            if not neorg.modules.is_module_loaded(required_module) then
+                log.error(
+                    (
+                        "Unable to load module %s, wanted dependency %s was not satisfied. Be sure to load the module and its appropriate config too!"
+                    ):format(module.name, required_module)
+                )
+
+                -- Make sure to clean up after ourselves if the module failed to load
+                neorg.modules.loaded_modules[module.name] = nil
+                return false
+            end
+
+            -- Create a reference to the dependency's public table
+            module.required[required_module] = neorg.modules.loaded_modules[required_module].public
+        end
+    end
 
     -- If any dependencies have been defined, handle them
     if loaded_module.requires and vim.tbl_count(loaded_module.requires) > 0 then
