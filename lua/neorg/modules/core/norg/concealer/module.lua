@@ -1463,19 +1463,19 @@ module.config.public = {
 
             single = {
                 enabled = true,
-                icon = "†",
+                icon = "⁎",
                 highlight = "NeorgFootnote",
                 query = "(single_footnote_prefix) @icon",
             },
             multi_prefix = {
                 enabled = true,
-                icon = "‡ ",
+                icon = "⁑ ",
                 highlight = "NeorgFootnote",
                 query = "(multi_footnote_prefix) @icon",
             },
             multi_suffix = {
                 enabled = true,
-                icon = "‡ ",
+                icon = "⁑ ",
                 highlight = "NeorgFootnote",
                 query = "(multi_footnote_suffix) @icon",
             },
