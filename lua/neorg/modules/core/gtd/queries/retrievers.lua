@@ -210,17 +210,20 @@ module.public = {
                 node = node[1],
                 bufnr = node[2],
             }
+            exported.uuid = exported.internal.node:id()
 
             exported.content = get_key("content", module.private.get_content, exported, type, opts)
 
             if type == "task" then
-                exported.project = get_key("project", module.private.get_task_project, exported, opts)
-                exported.internal.project_node = get_key(
-                    "project_node",
+                exported.project_uuid = get_key(
+                    "project_uuid",
                     module.private.get_task_project,
                     exported,
                     { project_node = true }
                 )
+                if exported.project_uuid then
+                    exported.project_uuid = exported.project_uuid:id()
+                end
                 exported.state = get_key("state", module.private.get_task_state, exported, opts)
             end
 
@@ -288,21 +291,18 @@ module.public = {
         table.insert(t[k], v)
     end,
 
-    --- Sort `nodes` list by specified `sorter`
+    --- Sort `nodes` list by specified `sorter`.
     --- @param sorter string
-    --- @param nodes table
+    --- @param nodes core.gtd.queries.project|core.gtd.queries.task
     --- @return table
     sort_by = function(sorter, nodes)
         vim.validate({
             sorter = {
                 sorter,
                 function(s)
-                    return vim.tbl_contains(
-                        { "waiting.for", "contexts", "project", "project_node", "area_of_focus" },
-                        s
-                    )
+                    return vim.tbl_contains({ "waiting.for", "contexts", "project_uuid", "area_of_focus" }, s)
                 end,
-                "waiting.for|contexts|projects|project_node|area_of_focus",
+                "waiting.for|contexts|project_uuid|area_of_focus",
             },
             tasks = { nodes, "table" },
         })
