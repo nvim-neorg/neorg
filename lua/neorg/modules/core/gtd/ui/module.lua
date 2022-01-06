@@ -18,6 +18,7 @@ module.load = function()
 
     -- Set up callbacks
     module.public.callbacks.goto_task_function = module.private.goto_node_internal
+    module.public.callbacks.edit_task = module.private.edit_task
 end
 
 module.setup = function()
@@ -71,6 +72,11 @@ module.private = {
         vim.api.nvim_win_set_buf(0, data.internal.bufnr)
         ts_utils.goto_node(data.internal.node)
     end,
+
+    edit_task = function(task)
+        task = module.private.refetch_data_not_extracted({ task.node, task.bufnr }, "task")
+        module.public.edit_task(task)
+    end,
 }
 
 module.on_event = function(event)
@@ -82,8 +88,7 @@ module.on_event = function(event)
         elseif event.split_type[2] == "core.gtd.ui.edit_task" then
             local task = module.private.get_by_var()
             module.private.close_buffer()
-            task = module.private.refetch_data_not_extracted({ task.node, task.bufnr }, "task")
-            module.public.edit_task(task)
+            module.public.callbacks.edit_task(task)
         elseif event.split_type[2] == "core.gtd.ui.details" then
             module.private.toggle_details()
         end
