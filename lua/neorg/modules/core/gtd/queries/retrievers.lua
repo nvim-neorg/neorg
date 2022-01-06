@@ -13,6 +13,7 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 
 ---@class core.gtd.queries.task
 ---@field content string
+---@field type string
 ---@field project? string
 ---@field state string
 ---@field contexts? string[]
@@ -25,6 +26,7 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 
 ---@class core.gtd.queries.project
 ---@field content string
+---@field type string
 ---@field area_of_focus? string
 ---@field contexts? string[]
 ---@field waiting.for? string[]
@@ -211,7 +213,7 @@ module.public = {
                 bufnr = node[2],
             }
             exported.uuid = exported.internal.node:id()
-
+            exported.type = type
             exported.content = get_key("content", module.private.get_content, exported, type, opts)
 
             if type == "task" then

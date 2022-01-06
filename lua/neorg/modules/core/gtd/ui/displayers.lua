@@ -651,7 +651,7 @@ module.private = {
                 end
             end
             -- For displaying projects, we assume that there is no data.state in it
-        elseif not data.state then
+        elseif data.type == "project" then
             offset = 1
             local tasks = module.private.extras[data.uuid]
             if not tasks then
@@ -680,7 +680,7 @@ module.private = {
                     table.insert(res, "  " .. state .. task.content)
                 end
             end
-        else
+        elseif data.type == "task" then
             if data.project then
                 table.insert(res, "-- Project: " .. surround(data.project))
             end
