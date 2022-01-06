@@ -397,7 +397,12 @@ module.public = {
     -- @Param  end_column (number) - the end column of the conceal
     -- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
     -- @Param  mode (string: "replace"/"combine"/"blend") - the highlight mode for the extmark
-    _set_extmark = function(buf, text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode)
+    -- @Param pos (string: "overlay"/"eol"/"right_align") - the position to place the extmark in (defaults to "overlay")
+    _set_extmark = function(buf, text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode, pos)
+        if not vim.api.nvim_buf_is_loaded(buf) then
+            return
+        end
+
         -- If the text type is a string then convert it into something that Neovim's extmark API can understand
         if type(text) == "string" then
             text = { { text, highlight } }
@@ -408,8 +413,8 @@ module.public = {
             end_col = end_column,
             hl_group = highlight,
             end_line = end_line,
-            virt_text = text or nil,
-            virt_text_pos = "overlay",
+            virt_text = text,
+            virt_text_pos = pos or "overlay",
             hl_mode = mode,
             hl_eol = whole_line,
         })
@@ -469,18 +474,21 @@ module.public = {
                 local todo_item_counts = module.public.completion_levels.get_todo_item_counts(parent)
 
                 if todo_item_counts.total ~= 0 then
-                    vim.api.nvim_buf_set_extmark(
+                    module.public._set_extmark(
                         buf,
+                        module.public.completion_levels.convert_query_syntax_to_extmark_syntax(
+                            query.text,
+                            todo_item_counts
+                        ),
+                        query.highlight,
                         module.private.completion_level_namespace,
                         parent_range.row_start,
+                        nil,
                         parent_range.column_start,
-                        {
-                            virt_text = module.public.completion_levels.convert_query_syntax_to_extmark_syntax(
-                                query.text,
-                                todo_item_counts
-                            ),
-                            hl_group = query.highlight,
-                        }
+                        nil,
+                        nil,
+                        nil,
+                        "eol"
                     )
                 end
             end)
@@ -533,18 +541,21 @@ module.public = {
                             local todo_item_counts = module.public.completion_levels.get_todo_item_counts(node)
 
                             if todo_item_counts.total ~= 0 then
-                                vim.api.nvim_buf_set_extmark(
+                                module.public._set_extmark(
                                     buf,
+                                    module.public.completion_levels.convert_query_syntax_to_extmark_syntax(
+                                        data.text,
+                                        todo_item_counts
+                                    ),
+                                    data.highlight,
                                     module.private.completion_level_namespace,
                                     node_range.row_start,
+                                    nil,
                                     node_range.column_start,
-                                    {
-                                        virt_text = module.public.completion_levels.convert_query_syntax_to_extmark_syntax(
-                                            data.text,
-                                            todo_item_counts
-                                        ),
-                                        hl_group = data.highlight,
-                                    }
+                                    nil,
+                                    nil,
+                                    nil,
+                                    "eol"
                                 )
                             end
                         end)

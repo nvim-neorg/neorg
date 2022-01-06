@@ -140,6 +140,7 @@ module.on_event = function(event)
     if
         event.type == "core.autocommands.events.bufenter"
         and event.content.norg
+        and vim.api.nvim_buf_is_loaded(event.buffer)
         and module.config.public.type == "auto"
         and vim.api.nvim_buf_get_option(event.buffer, "modifiable")
         and not module.private.buffers[event.buffer]
