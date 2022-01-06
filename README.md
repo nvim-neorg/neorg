@@ -400,7 +400,8 @@ require('neorg').setup {
 
 | Module name                                                                        | Description                                                                          |
 | :--------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
-| [`utilities.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base`        |
+| [`external.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base`        |
+| [`external.integrations.gtd-things`](https://github.com/danymat/neorg-gtd-things) | Use Things3 database to fetch and update tasks instead. Requires `core.gtd.base`        |
 | [`core.integrations.telescope`](https://github.com/nvim-neorg/neorg-telescope)     | Neorg integration with [Telescope](https://github.com/nvim-telescope/telescope.nvim) |
 
 
