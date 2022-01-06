@@ -561,7 +561,6 @@ module.private = {
         return data
     end,
 
-
     refetch_data_not_extracted = function(node, _type)
         -- Get all nodes from the bufnr and add metadatas to it
         -- This is mandatory because we need to have the correct task position, else the update will not work
