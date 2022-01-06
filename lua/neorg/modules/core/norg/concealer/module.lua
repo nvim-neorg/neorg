@@ -1583,7 +1583,7 @@ module.config.public = {
     -- `safe` will use whitespaces to conceal markup
     -- `brave` will use the word joiner unicode
     -- `dimmed` will dim markup icons instead of concealing them
-    markup_preset = "safe",
+    markup_preset = "dimmed",
 
     -- Markup related config
     markup = {
