@@ -1,6 +1,6 @@
 local module = neorg.modules.extend("core.gtd.ui.displayers")
 
----@class core.gtd.ui
+---@type core.gtd.ui
 module.public = {
     --- Display today view for `tasks`, grouped by contexts
     --- @param tasks core.gtd.queries.task
@@ -104,7 +104,7 @@ module.public = {
                     end
 
                     table.insert(res, content)
-                    table.insert(positions, { line = #res, data = t })
+                    positions[#res] = t
                 end
                 table.insert(res, "")
             end
@@ -143,7 +143,7 @@ module.public = {
             for _, t in pairs(w_tasks) do
                 local content = "- " .. t.content
                 table.insert(res, content)
-                table.insert(positions, { line = #res, data = t })
+                positions[#res] = t
             end
             table.insert(res, "")
         end
@@ -219,7 +219,7 @@ module.public = {
             table.insert(res, inserted_context)
             for _, t in pairs(c_tasks) do
                 table.insert(res, "- " .. t.content)
-                table.insert(positions, { line = #res, data = t })
+                positions[#res] = t
             end
             table.insert(res, "")
         end
@@ -260,7 +260,7 @@ module.public = {
         }
         local positions = {}
 
-        local projects_tasks = module.required["core.gtd.queries"].sort_by("project_node", tasks)
+        local projects_tasks = module.required["core.gtd.queries"].sort_by("project_uuid", tasks)
 
         -- Show informations for tasks without projects
         local unknown_project = projects_tasks["_"]
@@ -269,7 +269,7 @@ module.public = {
                 return a.state ~= "done"
             end, unknown_project)
             table.insert(res, "- /" .. #undone .. " tasks don't have a project assigned/")
-            table.insert(positions, { line = #res, data = undone })
+            positions[#res] = undone
             table.insert(res, "")
         end
 
@@ -294,7 +294,7 @@ module.public = {
             end
             table.insert(res, "")
             for _, project in pairs(_projects) do
-                local tasks_project = module.private.find_project(projects_tasks, project.node) or {}
+                local tasks_project = projects_tasks[project.uuid] or {}
 
                 local completed = vim.tbl_filter(function(t)
                     return t.state == "done"
@@ -308,17 +308,17 @@ module.public = {
                     goto continue
                 end
 
-                if project ~= "_" and not vim.tbl_contains(added_projects, project.node) then
+                if project ~= "_" and not vim.tbl_contains(added_projects, project.uuid) then
                     table.insert(
                         res,
                         "* " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)"
                     )
-                    table.insert(positions, { line = #res, data = project })
+                    positions[#res] = project
 
                     local pct = module.public.percent(#completed, #tasks_project)
                     local pct_str = module.public.percent_string(pct)
                     table.insert(res, "   " .. pct_str .. " " .. pct .. "% done")
-                    table.insert(added_projects, project.node)
+                    table.insert(added_projects, project.uuid)
                     table.insert(res, "")
                 end
                 ::continue::
@@ -366,7 +366,7 @@ module.public = {
                     end
                 end
                 table.insert(res, inserted)
-                table.insert(positions, { line = #res, data = task })
+                positions[#res] = task
             end
         end
 
@@ -408,7 +408,7 @@ module.public = {
                 end
             end
             table.insert(res, result)
-            table.insert(positions, { line = #res, data = t })
+            positions[#res] = t
         end
 
         local filter_upcoming_tasks = function(task, day)
@@ -454,7 +454,7 @@ module.public = {
                     end
                 end
                 table.insert(res, result)
-                table.insert(positions, { line = #res, data = t })
+                positions[#res] = t
             end
         end
 
@@ -498,22 +498,15 @@ module.private = {
             )
     end,
 
-    set_vars_to_buf = function(buf, data)
-        for _, var in ipairs(data) do
-            vim.api.nvim_buf_set_var(buf, tostring(var.line), { bufnr = var.data.bufnr, position = var.data.position })
-            table.insert(module.private.data, var.data)
-        end
-    end,
-
     --- Create the buffer and attach options to it
     --- @param name string the buffer name
-    --- @param vars table the variables to add in the buffer
+    --- @param vars table the variables to add in the data. Must be of a table of type [line] = data
     --- @param res table the lines to add
     generate_display = function(name, vars, res)
         local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr", nil, { keybinds = false })
         module.required["core.mode"].set_mode("gtd-displays")
 
-        module.private.set_vars_to_buf(buf, vars)
+        module.private.data = vars
         module.private.current_bufnr = buf
         module.private.display_namespace_nr = vim.api.nvim_create_namespace("neorg display")
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
@@ -531,66 +524,41 @@ module.private = {
         local updated_vars = {}
 
         for i = line, lines do
-            local ok, var = pcall(vim.api.nvim_buf_get_var, module.private.current_bufnr, tostring(i))
+            local var = module.private.data[i]
+
             -- Remove the var at positions after the line, and save them to updated_vars
-            if ok then
-                table.insert(updated_vars, { var = var, line_nr = i })
-                vim.api.nvim_buf_del_var(module.private.current_bufnr, tostring(i))
+            if var then
+                updated_vars[i] = var
+                module.private.data[i] = nil
             end
         end
 
-        for _, var in pairs(updated_vars) do
+        for i, var in pairs(updated_vars) do
             local new_line
             if remove then
-                new_line = var.line_nr - #lines_inserted
+                new_line = i - #lines_inserted
             else
-                new_line = var.line_nr + #lines_inserted
+                new_line = i + #lines_inserted
             end
 
-            vim.api.nvim_buf_set_var(module.private.current_bufnr, tostring(new_line), var.var)
+            module.private.data[new_line] = var
         end
+        -- P(vim.tbl_keys(module.private.data))
     end,
 
     --- Get the corresponding task from the buffer variable in the current line
-    --- @return table the task node
+    --- @return core.gtd.queries.task the task node
     get_by_var = function()
         -- Get the current task at cursor
         local current_line = vim.api.nvim_win_get_cursor(0)[1]
-        local ok, data = pcall(vim.api.nvim_buf_get_var, 0, tostring(current_line))
+        local data = module.private.data[current_line]
 
         -- If not under task, return as is
-        if not ok then
+        if not data then
             return {}
         end
 
-        data = vim.tbl_filter(function(t)
-            return t.position == data.position and t.bufnr == data.bufnr
-        end, module.private.data)[1]
-
-        if not data then
-            return
-        end
-
         return data
-    end,
-
-    goto_node = function()
-        local data = module.private.get_by_var()
-
-        if not data then
-            return
-        end
-
-        module.private.close_buffer()
-
-        -- Go to the node
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        vim.api.nvim_win_set_buf(0, data.bufnr)
-        ts_utils.goto_node(data.node)
-
-        -- Reset the data
-        module.private.data = {}
-        module.private.extras = {}
     end,
 
     refetch_data_not_extracted = function(node, _type)
@@ -625,13 +593,13 @@ module.private = {
         local previous_mode = module.required["core.mode"].get_previous_mode()
         module.required["core.mode"].set_mode(previous_mode)
 
+        -- Closes the display
+        vim.api.nvim_buf_delete(module.private.current_bufnr, { force = true })
+
         module.private.data = {}
         module.private.extras = {}
         module.private.current_bufnr = nil
         module.private.display_namespace_nr = nil
-
-        -- Closes the display
-        vim.cmd(":bd")
     end,
 
     toggle_details = function()
@@ -639,7 +607,7 @@ module.private = {
         local res = {}
         local offset = 0
 
-        if not data then
+        if not data or vim.tbl_isempty(data) then
             return
         end
 
@@ -647,29 +615,26 @@ module.private = {
             return "*" .. v .. "*"
         end
 
-        if not data or vim.tbl_count(data) == 0 then
-            return
-        end
-
         if #data > 1 then
             for _, task in pairs(data) do
-                local state = (function()
-                    if task.state == "done" then
-                        return "- [x] "
-                    elseif task.state == "undone" then
-                        return "- [ ] "
-                    else
-                        return "- [*] "
-                    end
-                end)()
-                local inserted = "  " .. state .. task.content
-                table.insert(res, inserted)
+                if type(task) == "table" then
+                    local state = (function()
+                        if task.state == "done" then
+                            return "- [x] "
+                        elseif task.state == "undone" then
+                            return "- [ ] "
+                        else
+                            return "- [*] "
+                        end
+                    end)()
+                    local inserted = "  " .. state .. task.content
+                    table.insert(res, inserted)
+                end
             end
             -- For displaying projects, we assume that there is no data.state in it
-        elseif not data.state then
+        elseif data.type == "project" then
             offset = 1
-            local tasks = module.private.find_project(module.private.extras, data.node)
-            -- local tasks = module.private.extras[data.content]
+            local tasks = module.private.extras[data.uuid]
             if not tasks then
                 table.insert(res, "  - /No tasks found for this project/")
             else
@@ -696,7 +661,7 @@ module.private = {
                     table.insert(res, "  " .. state .. task.content)
                 end
             end
-        else
+        elseif data.type == "task" then
             if data.project then
                 table.insert(res, "-- Project: " .. surround(data.project))
             end
@@ -716,20 +681,13 @@ module.private = {
             end
         end
 
-        local current_line = vim.api.nvim_win_get_cursor(0)[1]
-
-        local ok, var = pcall(vim.api.nvim_buf_get_var, module.private.current_bufnr, tostring(current_line))
-
-        if not ok then
-            return
-        end
-
-        var.detailed = var.detailed == true
+        data.detailed = data.detailed == true
 
         vim.api.nvim_buf_set_option(module.private.current_bufnr, "modifiable", true)
-        module.private.update_vars(res, current_line + 1, var.detailed)
+        local current_line = vim.api.nvim_win_get_cursor(0)[1]
+        module.private.update_vars(res, current_line + 1, data.detailed)
 
-        if var.detailed then
+        if data.detailed then
             vim.api.nvim_buf_set_lines(
                 module.private.current_bufnr,
                 current_line + offset,
@@ -737,7 +695,7 @@ module.private = {
                 false,
                 {}
             )
-            var.detailed = false
+            data.detailed = false
         else
             vim.api.nvim_buf_set_lines(
                 module.private.current_bufnr,
@@ -746,10 +704,10 @@ module.private = {
                 false,
                 res
             )
-            var.detailed = true
+            data.detailed = true
         end
 
-        vim.api.nvim_buf_set_var(module.private.current_bufnr, tostring(current_line), var)
+        module.private.data[current_line] = data
         vim.api.nvim_buf_set_option(module.private.current_bufnr, "modifiable", false)
     end,
 

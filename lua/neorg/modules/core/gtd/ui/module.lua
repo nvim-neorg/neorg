@@ -15,6 +15,10 @@ local module = neorg.modules.create("core.gtd.ui")
 module.load = function()
     module.required["core.keybinds"].register_keybinds(module.name, { "goto_task", "close", "edit_task", "details" })
     module.required["core.autocommands"].enable_autocommand("BufLeave")
+
+    -- Set up callbacks
+    module.public.callbacks.goto_task_function = module.private.goto_node_internal
+    module.public.callbacks.edit_task = module.private.edit_task
 end
 
 module.setup = function()
@@ -39,6 +43,42 @@ module.setup = function()
     }
 end
 
+---@class core.gtd.ui
+module.public = {
+    callbacks = {},
+}
+
+module.private = {
+
+    goto_node = function()
+        local data = module.private.get_by_var()
+
+        if not data or vim.tbl_isempty(data) then
+            return
+        end
+
+        module.private.close_buffer()
+
+        -- Go to the node
+        module.public.callbacks.goto_task_function(data)
+
+        -- Reset the data
+        module.private.data = {}
+        module.private.extras = {}
+    end,
+
+    goto_node_internal = function(data)
+        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+        vim.api.nvim_win_set_buf(0, data.internal.bufnr)
+        ts_utils.goto_node(data.internal.node)
+    end,
+
+    edit_task = function(task)
+        task = module.private.refetch_data_not_extracted({ task.node, task.bufnr }, "task")
+        module.public.edit_task(task)
+    end,
+}
+
 module.on_event = function(event)
     if event.split_type[1] == "core.keybinds" then
         if event.split_type[2] == "core.gtd.ui.goto_task" then
@@ -48,13 +88,12 @@ module.on_event = function(event)
         elseif event.split_type[2] == "core.gtd.ui.edit_task" then
             local task = module.private.get_by_var()
             module.private.close_buffer()
-            task = module.private.refetch_data_not_extracted({ task.node, task.bufnr }, "task")
-            module.public.edit_task(task)
+            module.public.callbacks.edit_task(task)
         elseif event.split_type[2] == "core.gtd.ui.details" then
             module.private.toggle_details()
         end
     elseif event.split_type[1] == "core.autocommands" then
-        if event.split_type[2] == "bufleave" then
+        if event.split_type[2] == "bufleave" and event.buffer == module.private.current_bufnr then
             module.private.close_buffer()
         end
     end
@@ -71,8 +110,5 @@ module.events.subscribed = {
         bufleave = true,
     },
 }
-
----@class core.gtd.ui
-module.public = {}
 
 return module

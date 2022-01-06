@@ -20,6 +20,31 @@ Where it will display this instead:
 - [ ] Thing A
 - [ ] Thing B
 ```
+
+--[[
+Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
+a thing, punctuation can be added (without removing the whitespace
+between the icon and actual text) like so:
+
+```lua
+icon = module.private.ordered_concealing.punctuation.dot(
+module.private.ordered_concealing.icon_renderer.numeric
+),
+```
+
+Note: this will produce icons like `1.`, `2.`, etc.
+
+You can even chain multiple punctuation wrappers like so:
+
+```lua
+icon = module.private.ordered_concealing.punctuation.parenthesis(
+module.private.ordered_concealing.punctuation.dot(
+module.private.ordered_concealing.icon_renderer.numeric
+)
+),
+```
+
+Note: this will produce icons like `1.)`, `2.)`, etc.
 --]]
 
 require("neorg.modules.base")
@@ -40,6 +65,7 @@ module.setup = function()
             "preset_diamond",
             "preset_safe",
             "preset_brave",
+            "preset_dimmed",
         },
     }
 end
@@ -52,131 +78,13 @@ module.private = {
     icons = {},
     markup = {},
 
-    completion_level_base = {
-        {
-            "(",
-        },
-        {
-            "<done>",
-            "TSField",
-        },
-        {
-            " of ",
-        },
-        {
-            "<total>",
-            "NeorgTodoItem1Done",
-        },
-        {
-            ") [<percentage>% complete]",
-        },
+    largest_change_start = -1,
+    largest_change_end = -1,
+
+    last_change = {
+        active = false,
+        line = 0,
     },
-
-    any_todo_item = function(index)
-        local result = "["
-
-        for i = index, 6 do
-            result = result
-                .. string.format(
-                    [[
-                (todo_item%d
-                    state: [
-                        (todo_item_undone) @undone
-                        (todo_item_pending) @pending
-                        (todo_item_done) @done
-                        (todo_item_cancelled) @cancelled
-                        (todo_item_urgent) @urgent
-                        (todo_item_on_hold) @onhold
-                        (todo_item_recurring) @recurring
-                        (todo_item_uncertain) @uncertain
-                    ]
-                )
-            ]],
-                    i
-                )
-        end
-
-        return result .. "]"
-    end,
-
-    todo_list_query = [[
-(generic_list
-    [
-        (todo_item1
-            state: [
-                (todo_item_undone) @undone
-                (todo_item_pending) @pending
-                (todo_item_done) @done
-                (todo_item_cancelled) @cancelled
-                (todo_item_urgent) @urgent
-                (todo_item_on_hold) @onhold
-                (todo_item_recurring) @recurring
-                (todo_item_uncertain) @uncertain
-            ]
-        )
-        (todo_item2
-            state: [
-                (todo_item_undone) @undone
-                (todo_item_pending) @pending
-                (todo_item_done) @done
-                (todo_item_cancelled) @cancelled
-                (todo_item_urgent) @urgent
-                (todo_item_on_hold) @onhold
-                (todo_item_recurring) @recurring
-                (todo_item_uncertain) @uncertain
-            ]
-        )
-        (todo_item3
-            state: [
-                (todo_item_undone) @undone
-                (todo_item_pending) @pending
-                (todo_item_done) @done
-                (todo_item_cancelled) @cancelled
-                (todo_item_urgent) @urgent
-                (todo_item_on_hold) @onhold
-                (todo_item_recurring) @recurring
-                (todo_item_uncertain) @uncertain
-            ]
-        )
-        (todo_item4
-            state: [
-                (todo_item_undone) @undone
-                (todo_item_pending) @pending
-                (todo_item_done) @done
-                (todo_item_cancelled) @cancelled
-                (todo_item_urgent) @urgent
-                (todo_item_on_hold) @onhold
-                (todo_item_recurring) @recurring
-                (todo_item_uncertain) @uncertain
-            ]
-        )
-        (todo_item5
-            state: [
-                (todo_item_undone) @undone
-                (todo_item_pending) @pending
-                (todo_item_done) @done
-                (todo_item_cancelled) @cancelled
-                (todo_item_urgent) @urgent
-                (todo_item_on_hold) @onhold
-                (todo_item_recurring) @recurring
-                (todo_item_uncertain) @uncertain
-            ]
-        )
-        (todo_item6
-            state: [
-                (todo_item_undone) @undone
-                (todo_item_pending) @pending
-                (todo_item_done) @done
-                (todo_item_cancelled) @cancelled
-                (todo_item_urgent) @urgent
-                (todo_item_on_hold) @onhold
-                (todo_item_recurring) @recurring
-                (todo_item_uncertain) @uncertain
-            ]
-        )
-    ]
-)
-    ]],
 }
 
 ---@class core.norg.concealer
@@ -187,83 +95,92 @@ module.public = {
     -- @Param icon_set (table) - the icon set to trigger
     -- @Param namespace
     -- @Param from (number) - the line number that we should start at (defaults to 0)
-    trigger_icons = function(icon_set, namespace, from)
+    trigger_icons = function(buf, icon_set, namespace, from, to)
         -- Clear all the conceals beforehand (so no overlaps occur)
-        module.public.clear_icons(namespace, from)
+        module.public.clear_icons(buf, namespace, from, to)
 
         -- Get the root node of the document (required to iterate over query captures)
-        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+        local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
         -- Loop through all icons that the user has enabled
         for _, icon_data in ipairs(icon_set) do
-            if icon_data.query then
-                -- Attempt to parse the query provided by `icon_data.query`
-                -- A query must have at least one capture, e.g. "(test_node) @icon"
-                local query = vim.treesitter.parse_query("norg", icon_data.query)
+            vim.schedule(function()
+                if icon_data.query then
+                    -- Attempt to parse the query provided by `icon_data.query`
+                    -- A query must have at least one capture, e.g. "(test_node) @icon"
+                    local query = vim.treesitter.parse_query("norg", icon_data.query)
 
-                local nvim_ts_query = require("nvim-treesitter.query")
-                local nvim_locals = require("nvim-treesitter.locals")
+                    local ok_ts_query, nvim_ts_query = pcall(require, "nvim-treesitter.query")
+                    local ok_ts_locals, nvim_locals = pcall(require, "nvim-treesitter.locals")
 
-                -- Go through every found node and try to apply an icon to it
-                for match in nvim_ts_query.iter_prepared_matches(query, document_root, 0, from and from - 1 or 0, -1) do
-                    nvim_locals.recurse_local_nodes(match, function(_, node, capture)
-                        if capture == "icon" then
-                            -- Extract both the text and the range of the node
-                            local text = module.required["core.integrations.treesitter"].get_node_text(node)
-                            local range = module.required["core.integrations.treesitter"].get_node_range(node)
+                    if not ok_ts_query or not ok_ts_locals then
+                        log.error("Unable to trigger icons - nvim-treesitter is not loaded.")
+                        return
+                    end
 
-                            -- Set the offset to 0 here. The offset is a special value that, well, offsets
-                            -- the location of the icon column-wise
-                            -- It's used in scenarios where the node spans more than what we want to iconify.
-                            -- A prime example of this is the todo item, whose content looks like this: "[x]".
-                            -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
-                            -- to use an offset of 1 to start the icon at the "x"
-                            local offset = 0
+                    -- Go through every found node and try to apply an icon to it
+                    for match in nvim_ts_query.iter_prepared_matches(query, document_root, buf, from or 0, to or -1) do
+                        nvim_locals.recurse_local_nodes(match, function(_, node, capture)
+                            if capture == "icon" then
+                                -- Extract both the text and the range of the node
+                                local text = module.required["core.integrations.treesitter"].get_node_text(node, buf)
+                                local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
-                            -- The extract function is used exactly to calculate this offset
-                            -- If that function is present then run it and grab the return value
-                            if icon_data.extract then
-                                offset = icon_data.extract(text, node) or 0
+                                -- Set the offset to 0 here. The offset is a special value that, well, offsets
+                                -- the location of the icon column-wise
+                                -- It's used in scenarios where the node spans more than what we want to iconify.
+                                -- A prime example of this is the todo item, whose content looks like this: "[x]".
+                                -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
+                                -- to use an offset of 1 to start the icon at the "x"
+                                local offset = 0
+
+                                -- The extract function is used exactly to calculate this offset
+                                -- If that function is present then run it and grab the return value
+                                if icon_data.extract then
+                                    offset = icon_data.extract(text, node) or 0
+                                end
+
+                                -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
+                                -- This is primarily used in nested quotes
+                                -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
+                                if not icon_data.render then
+                                    module.public._set_extmark(
+                                        buf,
+                                        icon_data.icon,
+                                        icon_data.highlight,
+                                        namespace,
+                                        range.row_start,
+                                        range.row_end,
+                                        range.column_start + offset,
+                                        range.column_end,
+                                        false,
+                                        "combine"
+                                    )
+                                else
+                                    module.public._set_extmark(
+                                        buf,
+                                        icon_data:render(text, node),
+                                        icon_data.highlight,
+                                        namespace,
+                                        range.row_start,
+                                        range.row_end,
+                                        range.column_start + offset,
+                                        range.column_end,
+                                        false,
+                                        "combine"
+                                    )
+                                end
                             end
-
-                            -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
-                            -- This is primarily used in nested quotes
-                            -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
-                            if not icon_data.render then
-                                module.public._set_extmark(
-                                    icon_data.icon,
-                                    icon_data.highlight,
-                                    namespace,
-                                    range.row_start,
-                                    range.row_end,
-                                    range.column_start + offset,
-                                    range.column_end,
-                                    false,
-                                    "combine"
-                                )
-                            else
-                                module.public._set_extmark(
-                                    icon_data:render(text, node),
-                                    icon_data.highlight,
-                                    namespace,
-                                    range.row_start,
-                                    range.row_end,
-                                    range.column_start + offset,
-                                    range.column_end,
-                                    false,
-                                    "combine"
-                                )
-                            end
-                        end
-                    end)
+                        end)
+                    end
                 end
-            end
+            end)
         end
     end,
 
-    trigger_highlight_regex_code_block = function(from)
+    trigger_highlight_regex_code_block = function(buf, from, to)
         -- The next block of code will be responsible for dimming code blocks accordingly
-        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+        local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
 
         -- If the tree is valid then attempt to perform the query
         if tree then
@@ -287,108 +204,119 @@ module.public = {
                 "norg",
                 [[(
                     (ranged_tag (tag_name) @_tagname (tag_parameters) @language)
+                    (#eq? @_tagname "code")
                 )]]
             )
 
             -- look for language name in code blocks
             -- this will not finish if a treesitter parser exists for the current language found
-            for id, node in code_lang:iter_captures(tree:root(), 0, from or 0, -1) do
-                local lang_name = code_lang.captures[id]
+            for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
+                vim.schedule(function()
+                    local lang_name = code_lang.captures[id]
 
-                -- only look at nodes that have the language query
-                if lang_name == "language" then
-                    local regex_language = vim.treesitter.get_node_text(node, 0)
-                    -- see if parser exists
-                    local _ok, result = pcall(vim.treesitter.require_language, regex_language, true)
+                    -- only look at nodes that have the language query
+                    if lang_name == "language" then
+                        local regex_language = vim.treesitter.get_node_text(node, buf)
 
-                    -- if pcall was true we had parser, skip the rest
-                    if _ok and result then
-                        goto continue
-                    end
-
-                    -- NOTE: the regex fallback code was mostly adapted from Vimwiki
-                    -- It's a very good implementation of nested vim regex
-                    regex_language = regex_language:gsub("%s+", "") -- need to trim out whitespace
-                    local group = "textGroup" .. string.upper(regex_language)
-                    local snip = "textSnip" .. string.upper(regex_language)
-                    local start_marker = "@code " .. regex_language
-                    local end_marker = "@end"
-                    local has_syntax = "syntax list " .. snip
-
-                    _ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
-                    local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
-                    if _ok == true and count > 0 then
-                        goto continue
-                    end
-
-                    -- pass off the current syntax buffer var so things can load
-                    local current_syntax = ""
-                    if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
-                        vim.b.current_syntax = regex_language
-                        current_syntax = vim.b.current_syntax
-                        vim.b.current_syntax = nil
-                    end
-
-                    -- temporarily pass off keywords in case they get messed up
-                    local is_keyword = vim.api.nvim_buf_get_option(0, "iskeyword")
-
-                    -- see if the syntax files even exist before we try to call them
-                    -- if syn list was an error, or if it was an empty result
-                    if _ok == false or (_ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
-                        local output = vim.api.nvim_get_runtime_file("syntax/" .. regex_language .. ".vim", false)
-                        if output[1] ~= nil then
-                            local command = "syntax include @" .. group .. " " .. output[1]
-                            vim.cmd(command)
+                        if not regex_language then
+                            goto continue
                         end
-                        output = vim.api.nvim_get_runtime_file("after/syntax/" .. regex_language .. ".vim", false)
-                        if output[1] ~= nil then
-                            local command = "syntax include @" .. group .. " " .. output[1]
-                            vim.cmd(command)
+
+                        local result
+
+                        -- see if parser exists
+                        ok, result = pcall(vim.treesitter.require_language, regex_language, true)
+
+                        -- if pcall was true we had parser, skip the rest
+                        if ok and result then
+                            goto continue
                         end
-                    end
 
-                    vim.api.nvim_buf_set_option(0, "iskeyword", is_keyword)
+                        -- NOTE: the regex fallback code was mostly adapted from Vimwiki
+                        -- It's a very good implementation of nested vim regex
+                        regex_language = regex_language:gsub("%s+", "") -- need to trim out whitespace
+                        local group = "textGroup" .. string.upper(regex_language)
+                        local snip = "textSnip" .. string.upper(regex_language)
+                        local start_marker = "@code " .. regex_language
+                        local end_marker = "@end"
+                        local has_syntax = "syntax list " .. snip
 
-                    -- reset it after
-                    if current_syntax ~= "" or current_syntax ~= nil then
-                        vim.b.current_syntax = current_syntax
-                    else
+                        ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
+                        local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
+
+                        if ok == true and count > 0 then
+                            goto continue
+                        end
+
+                        -- pass off the current syntax buffer var so things can load
+                        local current_syntax = ""
+                        if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
+                            vim.b.current_syntax = regex_language
+                            current_syntax = vim.b.current_syntax
+                            vim.b.current_syntax = nil
+                        end
+
+                        -- temporarily pass off keywords in case they get messed up
+                        local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
+
+                        -- see if the syntax files even exist before we try to call them
+                        -- if syn list was an error, or if it was an empty result
+                        if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
+                            local output = vim.api.nvim_get_runtime_file("syntax/" .. regex_language .. ".vim", false)
+                            if output[1] ~= nil then
+                                local command = "syntax include @" .. group .. " " .. output[1]
+                                vim.cmd(command)
+                            end
+                            output = vim.api.nvim_get_runtime_file("after/syntax/" .. regex_language .. ".vim", false)
+                            if output[1] ~= nil then
+                                local command = "syntax include @" .. group .. " " .. output[1]
+                                vim.cmd(command)
+                            end
+                        end
+
+                        vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
+
+                        -- reset it after
+                        if current_syntax ~= "" or current_syntax ~= nil then
+                            vim.b.current_syntax = current_syntax
+                        else
+                            vim.b.current_syntax = ""
+                        end
+
+                        -- set highlight groups
+                        local regex_fallback_hl = "syntax region "
+                            .. snip
+                            .. ' matchgroup=Snip start="'
+                            .. start_marker
+                            .. "\" end='"
+                            .. end_marker
+                            .. "' contains=@"
+                            .. group
+                            .. " keepend"
+                        vim.cmd("silent! " .. regex_fallback_hl)
+
+                        -- resync syntax, fixes some slow loading
+                        vim.cmd("syntax sync fromstart")
                         vim.b.current_syntax = ""
                     end
 
-                    -- set highlight groups
-                    local regex_fallback_hl = "syntax region "
-                        .. snip
-                        .. ' matchgroup=Snip start="'
-                        .. start_marker
-                        .. "\" end='"
-                        .. end_marker
-                        .. "' contains=@"
-                        .. group
-                        .. " keepend"
-                    vim.cmd(regex_fallback_hl)
-
-                    -- resync syntax, fixes some slow loading
-                    vim.cmd("syntax sync fromstart")
-                    vim.b.current_syntax = ""
-                end
-
-                -- continue on from for loop if a language with parser is found or another syntax might be loaded
-                ::continue::
+                    -- continue on from for loop if a language with parser is found or another syntax might be loaded
+                    ::continue::
+                end)
             end
         end
     end,
 
-    trigger_code_block_highlights = function(from)
+    trigger_code_block_highlights = function(buf, from, to)
         -- If the code block dimming is disabled, return right away.
         if not module.config.public.dim_code_blocks then
             return
         end
 
-        module.public.clear_icons(module.private.code_block_namespace, from)
+        module.public.clear_icons(buf, module.private.code_block_namespace, from, to)
 
         -- The next block of code will be responsible for dimming code blocks accordingly
-        local tree = vim.treesitter.get_parser(0, "norg"):parse()[1]
+        local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
 
         -- If the tree is valid then attempt to perform the query
         if tree then
@@ -408,51 +336,54 @@ module.public = {
             end
 
             -- Go through every found capture
-            for id, node in query:iter_captures(tree:root(), 0, from or 0, -1) do
-                local id_name = query.captures[id]
+            for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
+                vim.schedule(function()
+                    local id_name = query.captures[id]
 
-                -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
-                if id_name == "tag" then
-                    -- Get the range of the code block
-                    local range = module.required["core.integrations.treesitter"].get_node_range(node)
+                    -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                    if id_name == "tag" then
+                        -- Get the range of the code block
+                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
-                    -- Go through every line in the code block and give it a magical highlight
-                    for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(0) and 0 or range.row_end, 1 do
-                        local line = vim.api.nvim_buf_get_lines(0, i, i + 1, true)[1]
+                        -- Go through every line in the code block and give it a magical highlight
+                        for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(buf) and 0 or range.row_end, 1 do
+                            local line = vim.api.nvim_buf_get_lines(buf, i, i + 1, true)[1]
 
-                        -- If our buffer is modifiable or if our line is too short then try to fill in the line
-                        -- (this fixes broken syntax highlights automatically)
-                        if vim.bo.modifiable and line:len() < range.column_start then
-                            vim.api.nvim_buf_set_lines(0, i, i + 1, true, { string.rep(" ", range.column_start) })
-                        end
+                            -- If our buffer is modifiable or if our line is too short then try to fill in the line
+                            -- (this fixes broken syntax highlights automatically)
+                            if vim.bo.modifiable and line:len() < range.column_start then
+                                vim.api.nvim_buf_set_lines(buf, i, i + 1, true, { string.rep(" ", range.column_start) })
+                            end
 
-                        -- If our line is valid and it's not too short then apply the dimmed highlight
-                        if line and line:len() >= range.column_start then
-                            module.public._set_extmark(
-                                nil,
-                                "NeorgCodeBlock",
-                                module.private.code_block_namespace,
-                                i,
-                                i + 1,
-                                range.column_start,
-                                nil,
-                                true,
-                                "blend"
-                            )
+                            -- If our line is valid and it's not too short then apply the dimmed highlight
+                            if line and line:len() >= range.column_start then
+                                module.public._set_extmark(
+                                    buf,
+                                    nil,
+                                    "NeorgCodeBlock",
+                                    module.private.code_block_namespace,
+                                    i,
+                                    i + 1,
+                                    range.column_start,
+                                    nil,
+                                    true,
+                                    "blend"
+                                )
+                            end
                         end
                     end
-                end
+                end)
             end
         end
     end,
 
-    toggle_markup = function()
+    toggle_markup = function(buf)
         if module.config.public.markup.enabled then
-            module.public.clear_icons(module.private.markup_namespace)
+            module.public.clear_icons(buf, module.private.markup_namespace)
             module.config.public.markup.enabled = false
         else
             module.config.public.markup.enabled = true
-            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+            module.public.trigger_icons(buf, module.private.markup, module.private.markup_namespace)
         end
     end,
 
@@ -466,19 +397,24 @@ module.public = {
     -- @Param  end_column (number) - the end column of the conceal
     -- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
     -- @Param  mode (string: "replace"/"combine"/"blend") - the highlight mode for the extmark
-    _set_extmark = function(text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode)
+    -- @Param pos (string: "overlay"/"eol"/"right_align") - the position to place the extmark in (defaults to "overlay")
+    _set_extmark = function(buf, text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode, pos)
+        if not vim.api.nvim_buf_is_loaded(buf) then
+            return
+        end
+
         -- If the text type is a string then convert it into something that Neovim's extmark API can understand
         if type(text) == "string" then
             text = { { text, highlight } }
         end
 
         -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        local ok, result = pcall(vim.api.nvim_buf_set_extmark, 0, ns, line_number, start_column, {
+        local ok, result = pcall(vim.api.nvim_buf_set_extmark, buf, ns, line_number, start_column, {
             end_col = end_column,
             hl_group = highlight,
             end_line = end_line,
-            virt_text = text or nil,
-            virt_text_pos = "overlay",
+            virt_text = text,
+            virt_text_pos = pos or "overlay",
             hl_mode = mode,
             hl_eol = whole_line,
         })
@@ -492,151 +428,210 @@ module.public = {
     -- @Summary Clears all the conceals that neorg has defined
     -- @Description Simply clears the Neorg extmark namespace
     -- @Param from (number) - the line number to start clearing from
-    clear_icons = function(namespace, from)
-        vim.api.nvim_buf_clear_namespace(0, namespace, from or 0, -1)
+    clear_icons = function(buf, namespace, from, to)
+        vim.api.nvim_buf_clear_namespace(buf, namespace, from or 0, to or -1)
     end,
 
-    trigger_completion_levels = function(from)
-        from = from or 0
+    completion_levels = {
+        trigger_completion_levels_incremental = function(buf)
+            -- Get the root node of the document (required to iterate over query captures)
+            local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
-        module.public.clear_completion_levels(from)
-
-        -- Get the root node of the document (required to iterate over query captures)
-        local document_root = module.required["core.integrations.treesitter"].get_document_root()
-
-        if not document_root then
-            return
-        end
-
-        for _, query in ipairs(module.config.public.completion_level.queries) do
-            local query_object = vim.treesitter.parse_query("norg", query.query)
-
-            local nodes = {}
-            local last_node
-
-            local total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled =
-                0, 0, 0, 0, 0, 0, 0, 0, 0
-
-            for id, node in query_object:iter_captures(document_root, 0, from, -1) do
-                local name = query_object.captures[id]
-
-                if name == "progress" then
-                    if last_node and node ~= last_node then
-                        table.insert(nodes, {
-                            node = last_node,
-                            total = total,
-                            done = done,
-                            pending = pending,
-                            undone = undone,
-                            uncertain = uncertain,
-                            urgen = urgent,
-                            recurring = recurring,
-                            onhold = onhold,
-                            cancelled = cancelled,
-                        })
-
-                        total, done, pending, undone, uncertain, urgent, recurring, onhold, cancelled =
-                            0, 0, 0, 0, 0, 0, 0, 0, 0
-                    end
-
-                    last_node = node
-                elseif name == "done" then
-                    done = done + 1
-                    total = total + 1
-                elseif name == "undone" then
-                    undone = undone + 1
-                    total = total + 1
-                elseif name == "pending" then
-                    pending = pending + 1
-                    total = total + 1
-                elseif name == "uncertain" then
-                    uncertain = uncertain + 1
-                    total = total + 1
-                elseif name == "urgent" then
-                    urgent = urgent + 1
-                    total = total + 1
-                elseif name == "recurring" then
-                    recurring = recurring + 1
-                    total = total + 1
-                elseif name == "onhold" then
-                    onhold = onhold + 1
-                    total = total + 1
-                elseif name == "cancelled" then
-                    cancelled = cancelled + 1
-                    -- total = total + 1
-                end
+            if not document_root then
+                return
             end
 
-            if total > 0 then
-                table.insert(nodes, {
-                    node = last_node,
-                    total = total,
-                    done = done,
-                    pending = pending,
-                    undone = undone,
-                    uncertain = uncertain,
-                    urgent = urgent,
-                    recurring = recurring,
-                    onhold = onhold,
-                    cancelled = cancelled,
-                })
+            local current_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
 
-                for _, node_information in ipairs(nodes) do
-                    if node_information.total > 0 then
-                        local node_range = module.required["core.integrations.treesitter"].get_node_range(
-                            node_information.node
-                        )
-                        local text = vim.deepcopy(query.text)
+            if not current_node then
+                return
+            end
 
-                        local function format_query_text(data)
-                            data = data:gsub("<total>", tostring(node_information.total))
-                            data = data:gsub("<done>", tostring(node_information.done))
-                            data = data:gsub("<pending>", tostring(node_information.pending))
-                            data = data:gsub("<undone>", tostring(node_information.undone))
-                            data = data:gsub("<uncertain>", tostring(node_information.uncertain))
-                            data = data:gsub("<urgent>", tostring(node_information.urgent))
-                            data = data:gsub("<recurring>", tostring(node_information.recurring))
-                            data = data:gsub("<onhold>", tostring(node_information.onhold))
-                            data = data:gsub("<cancelled>", tostring(node_information.cancelled))
-                            data = data:gsub(
-                                "<percentage>",
-                                tostring(math.floor(node_information.done / node_information.total * 100))
+            local parent = module.required["core.integrations.treesitter"].find_parent(
+                current_node,
+                vim.tbl_keys(module.config.public.completion_level.queries)
+            )
+
+            if not parent then
+                return
+            end
+
+            local query = module.config.public.completion_level.queries[parent:type()]
+
+            if not query then
+                return
+            end
+
+            local parent_range = module.required["core.integrations.treesitter"].get_node_range(parent)
+
+            vim.schedule(function()
+                module.public.completion_levels.clear_completion_levels(
+                    buf,
+                    parent_range.row_start,
+                    parent_range.row_start + 1
+                )
+
+                local todo_item_counts = module.public.completion_levels.get_todo_item_counts(parent)
+
+                if todo_item_counts.total ~= 0 then
+                    module.public._set_extmark(
+                        buf,
+                        module.public.completion_levels.convert_query_syntax_to_extmark_syntax(
+                            query.text,
+                            todo_item_counts
+                        ),
+                        query.highlight,
+                        module.private.completion_level_namespace,
+                        parent_range.row_start,
+                        nil,
+                        parent_range.column_start,
+                        nil,
+                        nil,
+                        nil,
+                        "eol"
+                    )
+                end
+            end)
+        end,
+
+        trigger_completion_levels = function(buf, from, to)
+            module.public.completion_levels.clear_completion_levels(buf, from, to)
+
+            local root = module.required["core.integrations.treesitter"].get_document_root(buf)
+
+            if not root then
+                return
+            end
+
+            for node_name, data in pairs(module.config.public.completion_level.queries) do
+                local ok, query = pcall(
+                    vim.treesitter.parse_query,
+                    "norg",
+                    string.format(
+                        [[
+                        (%s) @parent
+                    ]],
+                        node_name
+                    )
+                )
+
+                if not ok then
+                    log.error(
+                        "Failed to parse completion level for node type '"
+                            .. node_name
+                            .. "' - ensure that you're providing a valid node name. Full error: "
+                            .. query
+                    )
+                    return
+                end
+
+                for id, node in query:iter_captures(root, buf, from, to) do
+                    local capture = query.captures[id]
+
+                    if capture == "parent" then
+                        local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+                        vim.schedule(function()
+                            module.public.completion_levels.clear_completion_levels(
+                                buf,
+                                node_range.row_start,
+                                node_range.row_start + 1
                             )
 
-                            return data
-                        end
+                            local todo_item_counts = module.public.completion_levels.get_todo_item_counts(node)
 
-                        -- Format query text
-                        if type(text) == "string" then
-                            text = format_query_text(text)
-                        else
-                            for _, tbl in ipairs(text) do
-                                tbl[1] = format_query_text(tbl[1])
-
-                                tbl[2] = tbl[2] or query.highlight
+                            if todo_item_counts.total ~= 0 then
+                                module.public._set_extmark(
+                                    buf,
+                                    module.public.completion_levels.convert_query_syntax_to_extmark_syntax(
+                                        data.text,
+                                        todo_item_counts
+                                    ),
+                                    data.highlight,
+                                    module.private.completion_level_namespace,
+                                    node_range.row_start,
+                                    nil,
+                                    node_range.column_start,
+                                    nil,
+                                    nil,
+                                    nil,
+                                    "eol"
+                                )
                             end
-                        end
-
-                        vim.api.nvim_buf_set_extmark(
-                            0,
-                            module.private.completion_level_namespace,
-                            node_range.row_start,
-                            -1,
-                            {
-                                virt_text = type(text) == "string" and { { text, query.highlight } } or text,
-                                priority = 250,
-                                hl_mode = "combine",
-                            }
-                        )
+                        end)
                     end
                 end
             end
-        end
-    end,
+        end,
 
-    clear_completion_levels = function(from)
-        vim.api.nvim_buf_clear_namespace(0, module.private.completion_level_namespace, from or 0, -1)
-    end,
+        get_todo_item_counts = function(start_node)
+            local results = {}
+
+            local total = 0
+
+            for child_node in start_node:iter_children() do
+                if child_node:type() == "generic_list" then
+                    for todo_item_node in child_node:iter_children() do
+                        if vim.startswith(todo_item_node:type(), "todo_item") then
+                            local type_node = todo_item_node:named_child(1)
+
+                            if type_node then
+                                local todo_item_type = type_node:type():sub(string.len("todo_item_") + 1)
+                                local resulting_todo_item = results[todo_item_type] or 0
+
+                                results[todo_item_type] = resulting_todo_item + 1
+                                total = total + (todo_item_type == "cancelled" and 0 or 1)
+                            end
+                        end
+                    end
+                end
+            end
+
+            results.total = total
+
+            return results
+        end,
+
+        substitute_item_counts_in_str = function(str, item_counts)
+            local types = {
+                "undone",
+                "pending",
+                "done",
+                "on_hold",
+                "urgent",
+                "cancelled",
+                "recurring",
+                "uncertain",
+            }
+
+            for _, type in ipairs(types) do
+                str = str:gsub("<" .. type .. ">", item_counts[type] or 0)
+            end
+
+            str = str:gsub("<total>", item_counts.total)
+            str = str:gsub("<percentage>", math.floor((item_counts.done or 0) / item_counts.total * 100))
+
+            return str
+        end,
+
+        convert_query_syntax_to_extmark_syntax = function(tbl, item_counts)
+            local result = vim.deepcopy(tbl)
+
+            for i, item in ipairs(result) do
+                if type(item) == "string" then
+                    result[i] = { item }
+                end
+
+                result[i][1] = module.public.completion_levels.substitute_item_counts_in_str(result[i][1], item_counts)
+            end
+
+            return result
+        end,
+
+        clear_completion_levels = function(buf, from, to)
+            vim.api.nvim_buf_clear_namespace(buf, module.private.completion_level_namespace, from or 0, to or -1)
+        end,
+    },
 
     -- VARIABLES
     concealing = {
@@ -952,8 +947,12 @@ module.public = {
 }
 
 module.config.public = {
+    -- Which icon preset to use
+    -- Go to [imports](#imports) to see which ones are currently defined
+    -- E.g `core.norg.concealer.preset_diamond` will be `preset = "diamond"`
     icon_preset = "basic",
 
+    -- Icons related config
     icons = {
         todo = {
             enabled = true,
@@ -1127,32 +1126,6 @@ module.config.public = {
 
         ordered = {
             enabled = require("neorg.external.helpers").is_minimum_version(0, 6, 0),
-
-            --[[
-Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
-a thing, punctuation can be added (without removing the whitespace
-between the icon and actual text) like so:
-
-```lua
-icon = module.private.ordered_concealing.punctuation.dot(
-module.private.ordered_concealing.icon_renderer.numeric
-),
-```
-
-Note: this will produce icons like `1.`, `2.`, etc.
-
-You can even chain multiple punctuation wrappers like so:
-
-```lua
-icon = module.private.ordered_concealing.punctuation.parenthesis(
-module.private.ordered_concealing.punctuation.dot(
-module.private.ordered_concealing.icon_renderer.numeric
-)
-),
-```
-
-Note: this will produce icons like `1.)`, `2.)`, etc.
---]]
 
             level_1 = {
                 enabled = true,
@@ -1502,19 +1475,19 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
             single = {
                 enabled = true,
-                icon = "†",
+                icon = "⁎",
                 highlight = "NeorgFootnote",
                 query = "(single_footnote_prefix) @icon",
             },
             multi_prefix = {
                 enabled = true,
-                icon = "‡ ",
+                icon = "⁑ ",
                 highlight = "NeorgFootnote",
                 query = "(multi_footnote_prefix) @icon",
             },
             multi_suffix = {
                 enabled = true,
-                icon = "‡ ",
+                icon = "⁑ ",
                 highlight = "NeorgFootnote",
                 query = "(multi_footnote_suffix) @icon",
             },
@@ -1617,8 +1590,13 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         },
     },
 
-    markup_preset = "safe",
+    -- Markup presets to use (currents: `safe`, `brave`)
+    -- `safe` will use whitespaces to conceal markup
+    -- `brave` will use the word joiner unicode
+    -- `dimmed` will dim markup icons instead of concealing them
+    markup_preset = "dimmed",
 
+    -- Markup related config
     markup = {
         enabled = true,
         icon = " ",
@@ -1673,7 +1651,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 
         math = {
             enabled = true,
-            highlight = "NeorgMarkupInlineMath",
+            highlight = "NeorgMarkupMath",
             query = '(inline_math (["_open" "_close"]) @icon)',
         },
 
@@ -1688,7 +1666,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
             icon = "●",
             -- NOTE: as you can see, you can still overwrite the parent-icon
             -- inherited from above.
-            highlight = "NeorgSpoiler",
+            highlight = "NeorgMarkupSpoiler",
             query = "(spoiler) @icon",
             render = function(self, text)
                 return {
@@ -1810,159 +1788,54 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
         },
     },
 
+    -- If you want to dim code blocks
     dim_code_blocks = true,
-
-    folds = {
-        enable = true,
-        foldlevel = 999,
-    },
+    folds = true,
 
     completion_level = {
         enabled = true,
 
-        queries = {
-            {
-                query = string.format(
-                    [[
-                        [
-                            (heading1
-                                content: (_)*
-                                content: [
-                                    %s
-                                    (carryover_tag_set
-                                        (carryover_tag)
-                                        target: %s
-                                    )
-                                ]
-                            )
-                            (heading2
-                                content: (_)*
-                                content: [
-                                    %s
-                                    (carryover_tag_set
-                                        (carryover_tag)
-                                        target: %s
-                                    )
-                                ]
-                            )
-                            (heading3
-                                content: (_)*
-                                content: [
-                                    %s
-                                    (carryover_tag_set
-                                        (carryover_tag)
-                                        target: %s
-                                    )
-                                ]
-                            )
-                            (heading4
-                                content: (_)*
-                                content: [
-                                    %s
-                                    (carryover_tag_set
-                                        (carryover_tag)
-                                        target: %s
-                                    )
-                                ]
-                            )
-                            (heading5
-                                content: (_)*
-                                content: [
-                                    %s
-                                    (carryover_tag_set
-                                        (carryover_tag)
-                                        target: %s
-                                    )
-                                ]
-                            )
-                            (heading6
-                                content: (_)*
-                                content: [
-                                    %s
-                                    (carryover_tag_set
-                                        (carryover_tag)
-                                        target: %s
-                                    )
-                                ]
-                            )
-                        ] @progress
-                ]],
-                    neorg.lib.reparg(module.private.todo_list_query, 6 * 2)
-                ),
-                text = module.private.completion_level_base,
-                highlight = "DiagnosticVirtualTextHint",
-            },
-            {
-                query = string.format(
-                    [[
-                    [
-                        (todo_item1
-                            %s
-                        )
-                    ] @progress
-                ]],
-                    module.private.any_todo_item(2)
-                ),
-                text = "[<done>/<total>]",
-                highlight = "DiagnosticVirtualTextHint",
-            },
-            {
-                query = string.format(
-                    [[
-                    [
-                        (todo_item2
-                            %s
-                        )
-                    ] @progress
-                ]],
-                    module.private.any_todo_item(3)
-                ),
-                text = "[<done>/<total>]",
-                highlight = "DiagnosticVirtualTextHint",
-            },
-            {
-                query = string.format(
-                    [[
-                    [
-                        (todo_item3
-                            %s
-                        )
-                    ] @progress
-                ]],
-                    module.private.any_todo_item(4)
-                ),
-                text = "[<done>/<total>]",
-                highlight = "DiagnosticVirtualTextHint",
-            },
-            {
-                query = string.format(
-                    [[
-                    [
-                        (todo_item4
-                            %s
-                        )
-                    ] @progress
-                ]],
-                    module.private.any_todo_item(5)
-                ),
-                text = "[<done>/<total>]",
-                highlight = "DiagnosticVirtualTextHint",
-            },
-            {
-                query = string.format(
-                    [[
-                    [
-                        (todo_item5
-                            %s
-                        )
-                    ] @progress
-                ]],
-                    module.private.any_todo_item(6)
-                ),
-                text = "[<done>/<total>]",
-                highlight = "DiagnosticVirtualTextHint",
-            },
-        },
+        queries = vim.tbl_deep_extend(
+            "keep",
+            {},
+            (function()
+                local result = {}
+
+                for i = 1, 6 do
+                    result["heading" .. i] = {
+                        text = {
+                            "(",
+                            { "<done>", "TSField" },
+                            " of ",
+                            { "<total>", "NeorgTodoItem1Done" },
+                            ") [<percentage>% complete]",
+                        },
+
+                        highlight = "DiagnosticVirtualTextHint",
+                    }
+                end
+
+                return result
+            end)()
+            --[[ (function()
+                local result = {}
+
+                for i = 1, 6 do
+                    result["todo_item" .. i] = {
+                        text = "[<done>/<total>]",
+                        highlight = "DiagnosticVirtualTextHint",
+                    }
+                end
+
+                return result
+            end)() ]]
+        ),
+    },
+
+    performance = {
+        increment = 1250,
+        timeout = 0,
+        interval = 500,
     },
 }
 
@@ -2053,84 +1926,243 @@ module.load = function()
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
 
-    module.required["core.autocommands"].enable_autocommand("CursorMoved")
-    module.required["core.autocommands"].enable_autocommand("TextChanged")
-    module.required["core.autocommands"].enable_autocommand("TextChangedI")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
 end
 
 module.on_event = function(event)
-    -- If we have just entered a .norg buffer then apply all conceals
-    -- TODO: Remove (or at least provide a reason) as to why there are so many vim.schedules
-    -- Explain priorities and how we only schedule less important things to improve the average user
-    -- experience
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        module.public.trigger_code_block_highlights()
-        module.public.trigger_highlight_regex_code_block()
-        module.public.trigger_completion_levels()
-        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
+        local buf = event.buffer
+        local line_count = vim.api.nvim_buf_line_count(buf)
 
-        if module.config.public.markup.enabled then
-            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+        if line_count < module.config.public.performance.increment then
+            module.public.trigger_icons(buf, module.private.icons, module.private.icon_namespace)
+            module.public.trigger_icons(buf, module.private.markup, module.private.markup_namespace)
+            module.public.trigger_highlight_regex_code_block(buf)
+            module.public.trigger_code_block_highlights(buf)
+            module.public.completion_levels.trigger_completion_levels(buf)
+        else
+            local block_current = math.floor(
+                (line_count / module.config.public.performance.increment) % event.cursor_position[1]
+            )
+
+            local function trigger_conceals_for_block(block)
+                local line_begin = block == 0 and 0 or block * module.config.public.performance.increment - 1
+                local line_end = math.min(
+                    block * module.config.public.performance.increment + module.config.public.performance.increment - 1,
+                    line_count
+                )
+
+                module.public.trigger_icons(
+                    buf,
+                    module.private.icons,
+                    module.private.icon_namespace,
+                    line_begin,
+                    line_end
+                )
+                module.public.trigger_icons(
+                    buf,
+                    module.private.markup,
+                    module.private.markup_namespace,
+                    line_begin,
+                    line_end
+                )
+                module.public.trigger_highlight_regex_code_block(buf, line_begin, line_end)
+                module.public.trigger_code_block_highlights(buf, line_begin, line_end)
+                module.public.completion_levels.trigger_completion_levels(buf, line_begin, line_end)
+            end
+
+            trigger_conceals_for_block(block_current)
+
+            local block_bottom, block_top = block_current - 1, block_current + 1
+
+            local timer = vim.loop.new_timer()
+
+            timer:start(
+                module.config.public.performance.timeout,
+                module.config.public.performance.interval,
+                vim.schedule_wrap(function()
+                    local block_bottom_valid = block_bottom == 0
+                        or (block_bottom * module.config.public.performance.increment - 1 >= 0)
+                    local block_top_valid = block_top * module.config.public.performance.increment - 1 < line_count
+
+                    if not block_bottom_valid and not block_top_valid then
+                        timer:stop()
+                        return
+                    end
+
+                    if block_bottom_valid then
+                        trigger_conceals_for_block(block_bottom)
+                        block_bottom = block_bottom - 1
+                    end
+
+                    if block_top_valid then
+                        trigger_conceals_for_block(block_top)
+                        block_top = block_top + 1
+                    end
+                end)
+            )
         end
 
-        if module.config.public.folds.enable then
-            vim.opt_local.foldmethod = "expr"
-            vim.opt_local.foldlevel = module.config.public.folds.foldlevel
-            vim.opt_local.foldexpr = "nvim_treesitter#foldexpr()"
-            vim.opt_local.foldtext = "v:lua.neorg.modules.get_module('" .. module.name .. "').foldtext()"
-        end
-    elseif event.type == "core.autocommands.events.textchanged" then
-        -- If the content of a line has changed in normal mode then reparse the file
-        module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
-        if module.config.public.markup.enabled then
-            module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
-        end
-        module.public.trigger_code_block_highlights()
-        module.public.trigger_highlight_regex_code_block()
-        vim.schedule(module.public.trigger_completion_levels)
+        vim.api.nvim_buf_attach(buf, false, {
+            on_lines = function(_, cur_buf, _, start, _end)
+                if buf ~= cur_buf then
+                    return true
+                end
+
+                module.private.last_change.active = true
+
+                local mode = vim.api.nvim_get_mode().mode
+
+                if mode ~= "i" then
+                    vim.schedule(function()
+                        local new_line_count = vim.api.nvim_buf_line_count(buf)
+
+                        -- Sometimes occurs with one-line undos
+                        if start == _end then
+                            _end = _end + 1
+                        end
+
+                        if new_line_count > line_count then
+                            _end = _end + (new_line_count - line_count - 1)
+                        end
+
+                        line_count = new_line_count
+
+                        module.public.trigger_icons(
+                            buf,
+                            module.private.icons,
+                            module.private.icon_namespace,
+                            start,
+                            _end
+                        )
+
+                        local node_range =
+                            module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
+
+                        if node_range then
+                            node_range = module.required["core.integrations.treesitter"].get_node_range(
+                                node_range:parent()
+                            )
+                        end
+
+                        module.public.trigger_icons(
+                            event.buffer,
+                            module.private.markup,
+                            module.private.markup_namespace,
+                            node_range and node_range.row_start,
+                            node_range and node_range.row_end
+                        )
+
+                        module.public.trigger_highlight_regex_code_block(buf, start, _end)
+
+                        -- NOTE(vhyrro): It is simply not possible to perform incremental
+                        -- updates here. Code blocks require more context than simply a few lines.
+                        -- It's still incredibly fast despite this fact though.
+                        module.public.trigger_code_block_highlights(buf)
+
+                        module.public.completion_levels.trigger_completion_levels(buf, start, _end)
+                    end)
+                else
+                    vim.schedule(neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, start, _end))
+
+                    if module.private.largest_change_start == -1 then
+                        module.private.largest_change_start = start
+                    end
+
+                    if module.private.largest_change_end == -1 then
+                        module.private.largest_change_end = _end
+                    end
+
+                    module.private.largest_change_start = start < module.private.largest_change_start and start
+                        or module.private.largest_change_start
+                    module.private.largest_change_end = _end > module.private.largest_change_end and _end
+                        or module.private.largest_change_end
+                end
+            end,
+        })
     elseif event.type == "core.autocommands.events.insertenter" then
-        vim.api.nvim_buf_clear_namespace(
-            0,
-            module.private.icon_namespace,
-            event.cursor_position[1] - 1,
-            event.cursor_position[1]
-        )
-        vim.api.nvim_buf_clear_namespace(
-            0,
-            module.private.markup_namespace,
-            event.cursor_position[1] - 1,
-            event.cursor_position[1]
-        )
-        vim.api.nvim_buf_clear_namespace(
-            0,
-            module.private.completion_level_namespace,
-            event.cursor_position[1] - 1,
-            event.cursor_position[1]
-        )
+        vim.schedule(function()
+            module.private.last_change = {
+                active = false,
+                line = event.cursor_position[1] - 1,
+            }
+
+            vim.api.nvim_buf_clear_namespace(
+                event.buffer,
+                module.private.icon_namespace,
+                event.cursor_position[1] - 1,
+                event.cursor_position[1]
+            )
+            vim.api.nvim_buf_clear_namespace(
+                event.buffer,
+                module.private.markup_namespace,
+                event.cursor_position[1] - 1,
+                event.cursor_position[1]
+            )
+            vim.api.nvim_buf_clear_namespace(
+                event.buffer,
+                module.private.completion_level_namespace,
+                event.cursor_position[1] - 1,
+                event.cursor_position[1]
+            )
+        end)
     elseif event.type == "core.autocommands.events.insertleave" then
         vim.schedule(function()
-            module.public.trigger_icons(module.private.icons, module.private.icon_namespace)
-            if module.config.public.markup.enabled then
-                module.public.trigger_icons(module.private.markup, module.private.markup_namespace)
+            if not module.private.last_change.active or module.private.largest_change_end == -1 then
+                module.public.trigger_icons(
+                    event.buffer,
+                    module.private.icons,
+                    module.private.icon_namespace,
+                    module.private.last_change.line,
+                    module.private.last_change.line + 1
+                )
+                module.public.trigger_icons(
+                    event.buffer,
+                    module.private.markup,
+                    module.private.markup_namespace,
+                    module.private.last_change.line,
+                    module.private.last_change.line + 1
+                )
+                module.public.trigger_highlight_regex_code_block(
+                    event.buffer,
+                    module.private.last_change.line,
+                    module.private.last_change.line + 1
+                )
+                module.public.completion_levels.trigger_completion_levels_incremental(event.buffer)
+            else
+                module.public.trigger_icons(
+                    event.buffer,
+                    module.private.icons,
+                    module.private.icon_namespace,
+                    module.private.largest_change_start,
+                    module.private.largest_change_end
+                )
+                module.public.trigger_icons(
+                    event.buffer,
+                    module.private.markup,
+                    module.private.markup_namespace,
+                    module.private.largest_change_start,
+                    module.private.largest_change_end
+                )
+                module.public.trigger_highlight_regex_code_block(
+                    event.buffer,
+                    module.private.largest_change_start,
+                    module.private.largest_change_end
+                )
+                module.public.completion_levels.trigger_completion_levels_incremental(event.buffer)
             end
-            module.public.trigger_completion_levels()
+
+            module.private.largest_change_start, module.private.largest_change_end = -1, -1
         end)
-    elseif event.type == "core.autocommands.events.textchangedi" then
-        module.public.trigger_highlight_regex_code_block()
-        vim.schedule(module.public.trigger_code_block_highlights)
-    elseif event.split_type[1] == "core.keybinds" and event.split_type[2] == "core.norg.concealer.toggle-markup" then
-        module.public.toggle_markup()
+    elseif event.type == "core.keybinds.events.core.norg.concealer.toggle-markup" then
+        module.public.toggle_markup(event.buffer)
     end
 end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
-        cursormoved = true,
-        textchanged = true,
-        textchangedi = true,
         insertenter = true,
         insertleave = true,
     },

@@ -42,7 +42,8 @@ module.public = {
             newline = opts.newline
         end
 
-        node.node = module.private.insert_content_new(
+        node.internal = node.internal or {}
+        node.internal.node = module.private.insert_content_new(
             node.content,
             bufnr,
             location,
@@ -50,7 +51,7 @@ module.public = {
             { newline = newline, delimiter = delimit }
         )
 
-        if node.node == nil then
+        if node.internal.node == nil then
             log.error("Error in inserting new content")
         end
 
@@ -58,10 +59,10 @@ module.public = {
         local config = neorg.modules.get_module_config("core.gtd.base")
         local syntax = config.syntax
 
-        module.private.insert_tag({ node.node, bufnr }, node.contexts, syntax.context)
-        module.private.insert_tag({ node.node, bufnr }, node["time.start"], syntax.start)
-        module.private.insert_tag({ node.node, bufnr }, node["time.due"], syntax.due)
-        module.private.insert_tag({ node.node, bufnr }, node["waiting.for"], syntax.waiting)
+        module.private.insert_tag({ node.internal.node, bufnr }, node.contexts, syntax.context)
+        module.private.insert_tag({ node.internal.node, bufnr }, node["time.start"], syntax.start)
+        module.private.insert_tag({ node.internal.node, bufnr }, node["time.due"], syntax.due)
+        module.private.insert_tag({ node.internal.node, bufnr }, node["waiting.for"], syntax.waiting)
 
         if not opts.no_save then
             module.required["core.queries.native"].apply_temp_changes(bufnr)

@@ -35,13 +35,13 @@ module.config.private.icon_preset_diamond = {
 
     footnote = {
         single = {
-            icon = "⁎",
+            icon = "†",
         },
         multi_prefix = {
-            icon = "⁑ ",
+            icon = "‡ ",
         },
         multi_suffix = {
-            icon = "⁑ ",
+            icon = "‡ ",
         },
     },
 }

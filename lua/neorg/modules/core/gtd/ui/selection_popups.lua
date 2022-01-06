@@ -2,7 +2,7 @@ local module = neorg.modules.extend("core.gtd.ui.selection_popups")
 
 ---@class core.gtd.ui
 module.public = {
-    show_views_popup = function()
+    get_data_for_views = function()
         -- Exclude files explicitely provided by the user, and the inbox file
         local configs = neorg.modules.get_module_config("core.gtd.base")
         local exclude_files = configs.exclude
@@ -23,6 +23,10 @@ module.public = {
         tasks = module.required["core.gtd.queries"].add_metadata(tasks, "task")
         projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
+        return tasks, projects
+    end,
+
+    show_views_popup = function(tasks, projects)
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_split("Quick Actions")
 

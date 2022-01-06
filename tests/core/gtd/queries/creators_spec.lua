@@ -46,7 +46,7 @@ describe("CORE.GTD.QUERIES - Creators:", function()
         local projects = queries.get("projects", { bufnr = config.temp_buf })
         projects = queries.add_metadata(projects, "project")
 
-        local location = queries.get_end_project(projects[1].node, projects[1].bufnr)
+        local location = queries.get_end_project(projects[1].internal.node, projects[1].internal.bufnr)
         local lines = vim.api.nvim_buf_line_count(config.temp_buf)
         assert.equals(lines, location[1])
     end)
