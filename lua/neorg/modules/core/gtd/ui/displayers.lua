@@ -561,24 +561,6 @@ module.private = {
         return data
     end,
 
-    goto_node = function()
-        local data = module.private.get_by_var()
-
-        if not data or vim.tbl_isempty(data) then
-            return
-        end
-
-        module.private.close_buffer()
-
-        -- Go to the node
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        vim.api.nvim_win_set_buf(0, data.internal.bufnr)
-        ts_utils.goto_node(data.internal.node)
-
-        -- Reset the data
-        module.private.data = {}
-        module.private.extras = {}
-    end,
 
     refetch_data_not_extracted = function(node, _type)
         -- Get all nodes from the bufnr and add metadatas to it
