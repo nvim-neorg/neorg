@@ -294,7 +294,7 @@ module.public = {
             end
             table.insert(res, "")
             for _, project in pairs(_projects) do
-                local tasks_project = module.private.find_project(projects_tasks, project.internal.node) or {}
+                local tasks_project = projects_tasks[project.uuid] or {}
 
                 local completed = vim.tbl_filter(function(t)
                     return t.state == "done"
@@ -308,7 +308,7 @@ module.public = {
                     goto continue
                 end
 
-                if project ~= "_" and not vim.tbl_contains(added_projects, project.internal.node) then
+                if project ~= "_" and not vim.tbl_contains(added_projects, project.uuid) then
                     table.insert(
                         res,
                         "* " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)"
@@ -318,7 +318,7 @@ module.public = {
                     local pct = module.public.percent(#completed, #tasks_project)
                     local pct_str = module.public.percent_string(pct)
                     table.insert(res, "   " .. pct_str .. " " .. pct .. "% done")
-                    table.insert(added_projects, project.internal.node)
+                    table.insert(added_projects, project.uuid)
                     table.insert(res, "")
                 end
                 ::continue::
