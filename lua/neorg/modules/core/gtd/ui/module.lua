@@ -17,7 +17,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufLeave")
 
     -- Set up callbacks
-    module.public.callbacks.goto_task_function = module.private.goto_node
+    module.public.callbacks.goto_task_function = module.private.goto_node_internal
 end
 
 module.setup = function()
@@ -47,10 +47,36 @@ module.public = {
     callbacks = {},
 }
 
+module.private = {
+
+    goto_node = function()
+        local data = module.private.get_by_var()
+
+        if not data or vim.tbl_isempty(data) then
+            return
+        end
+
+        module.private.close_buffer()
+
+        -- Go to the node
+        module.public.callbacks.goto_task_function(data)
+
+        -- Reset the data
+        module.private.data = {}
+        module.private.extras = {}
+    end,
+
+    goto_node_internal = function(data)
+        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+        vim.api.nvim_win_set_buf(0, data.internal.bufnr)
+        ts_utils.goto_node(data.internal.node)
+    end,
+}
+
 module.on_event = function(event)
     if event.split_type[1] == "core.keybinds" then
         if event.split_type[2] == "core.gtd.ui.goto_task" then
-            module.public.callbacks.goto_task_function()
+            module.private.goto_node()
         elseif event.split_type[2] == "core.gtd.ui.close" then
             module.private.close_buffer()
         elseif event.split_type[2] == "core.gtd.ui.edit_task" then
