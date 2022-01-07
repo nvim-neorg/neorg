@@ -65,7 +65,7 @@ module.public = {
                 result.link_info = link_info
             end
 
-            local files = {}
+            local files
             local link_type = force_type and force_type or link_info.type
 
             do
@@ -582,7 +582,6 @@ module.public = {
                 local len1 = string.len(lhs)
                 local len2 = string.len(rhs)
                 local matrix = {}
-                local cost = 0
 
                 -- quick cut-offs to save time
                 if len1 == 0 then
@@ -605,11 +604,7 @@ module.public = {
                 -- actual Levenshtein algorithm
                 for i = 1, len1, 1 do
                     for j = 1, len2, 1 do
-                        if lhs:byte(i) == rhs:byte(j) then
-                            cost = 0
-                        else
-                            cost = 1
-                        end
+                        local cost = lhs:byte(i) == rhs:byte(j) and 0 or 1
 
                         matrix[i][j] = math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost)
                     end
