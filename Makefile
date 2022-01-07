@@ -24,6 +24,9 @@ documentation:
 format:
 	stylua -v --verify .
 
+check:
+	luacheck ./lua
+
 install_pre_commit:
 	cp scripts/pre-commit "$$(git rev-parse --git-dir)/hooks/"
 
