@@ -53,7 +53,13 @@ local module = neorg.modules.create("core.norg.concealer")
 
 local function schedule(func)
     vim.schedule(function()
-        if module.private.disable_deferred_updates then
+        if
+            module.private.disable_deferred_updates
+            or (
+                (module.private.debounce_counters[vim.api.nvim_win_get_cursor(0)[1] + 1] or 0)
+                >= module.config.public.performance.max_debounce
+            )
+        then
             return
         end
 
@@ -97,6 +103,7 @@ module.private = {
     },
 
     disable_deferred_updates = false,
+    debounce_counters = {},
 }
 
 ---@class core.norg.concealer
@@ -421,7 +428,7 @@ module.public = {
         end
 
         -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        local ok, result = pcall(vim.api.nvim_buf_set_extmark, buf, ns, line_number, start_column, {
+        pcall(vim.api.nvim_buf_set_extmark, buf, ns, line_number, start_column, {
             end_col = end_column,
             hl_group = highlight,
             end_line = end_line,
@@ -430,11 +437,6 @@ module.public = {
             hl_mode = mode,
             hl_eol = whole_line,
         })
-
-        -- If we have encountered an error then log it
-        if not ok then
-            log.error("Unable to create custom conceal for highlight:", highlight, "-", result)
-        end
     end,
 
     -- @Summary Clears all the conceals that neorg has defined
@@ -1848,6 +1850,7 @@ module.config.public = {
         increment = 1250,
         timeout = 0,
         interval = 500,
+        max_debounce = 5,
     },
 }
 
@@ -1944,6 +1947,14 @@ module.load = function()
 end
 
 module.on_event = function(event)
+    module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
+        or 0
+
+    local function should_debounce()
+        return module.private.debounce_counters[event.cursor_position[1] + 1]
+            >= module.config.public.performance.max_debounce
+    end
+
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         local buf = event.buffer
         local line_count = vim.api.nvim_buf_line_count(buf)
@@ -2023,11 +2034,18 @@ module.on_event = function(event)
                     return true
                 end
 
+                if should_debounce() then
+                    return
+                end
+
                 module.private.last_change.active = true
 
                 local mode = vim.api.nvim_get_mode().mode
 
                 if mode ~= "i" then
+                    module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
+                        + 1
+
                     schedule(function()
                         local new_line_count = vim.api.nvim_buf_line_count(buf)
 
@@ -2075,6 +2093,11 @@ module.on_event = function(event)
                         module.public.trigger_code_block_highlights(buf)
 
                         module.public.completion_levels.trigger_completion_levels(buf, start, _end)
+
+                        vim.schedule(function()
+                            module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
+                                - 1
+                        end)
                     end)
                 else
                     schedule(neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, start, _end))
@@ -2121,6 +2144,10 @@ module.on_event = function(event)
             )
         end)
     elseif event.type == "core.autocommands.events.insertleave" then
+        if should_debounce() then
+            return
+        end
+
         schedule(function()
             if not module.private.last_change.active or module.private.largest_change_end == -1 then
                 module.public.trigger_icons(
