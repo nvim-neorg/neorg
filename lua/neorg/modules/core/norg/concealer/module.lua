@@ -51,6 +51,16 @@ require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.concealer")
 
+local function schedule(func)
+    vim.schedule(function()
+        if module.private.disable_deferred_updates then
+            return
+        end
+
+        func()
+    end)
+end
+
 module.setup = function()
     return {
         success = true,
@@ -85,6 +95,8 @@ module.private = {
         active = false,
         line = 0,
     },
+
+    disable_deferred_updates = false,
 }
 
 ---@class core.norg.concealer
@@ -104,7 +116,7 @@ module.public = {
 
         -- Loop through all icons that the user has enabled
         for _, icon_data in ipairs(icon_set) do
-            vim.schedule(function()
+            schedule(function()
                 if icon_data.query then
                     -- Attempt to parse the query provided by `icon_data.query`
                     -- A query must have at least one capture, e.g. "(test_node) @icon"
@@ -211,7 +223,7 @@ module.public = {
             -- look for language name in code blocks
             -- this will not finish if a treesitter parser exists for the current language found
             for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
-                vim.schedule(function()
+                schedule(function()
                     local lang_name = code_lang.captures[id]
 
                     -- only look at nodes that have the language query
@@ -337,7 +349,7 @@ module.public = {
 
             -- Go through every found capture
             for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
-                vim.schedule(function()
+                schedule(function()
                     local id_name = query.captures[id]
 
                     -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
@@ -464,7 +476,7 @@ module.public = {
 
             local parent_range = module.required["core.integrations.treesitter"].get_node_range(parent)
 
-            vim.schedule(function()
+            schedule(function()
                 module.public.completion_levels.clear_completion_levels(
                     buf,
                     parent_range.row_start,
@@ -531,7 +543,7 @@ module.public = {
                     if capture == "parent" then
                         local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
 
-                        vim.schedule(function()
+                        schedule(function()
                             module.public.completion_levels.clear_completion_levels(
                                 buf,
                                 node_range.row_start,
@@ -1928,6 +1940,7 @@ module.load = function()
 
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
+    module.required["core.autocommands"].enable_autocommand("VimLeavePre")
 end
 
 module.on_event = function(event)
@@ -2015,7 +2028,7 @@ module.on_event = function(event)
                 local mode = vim.api.nvim_get_mode().mode
 
                 if mode ~= "i" then
-                    vim.schedule(function()
+                    schedule(function()
                         local new_line_count = vim.api.nvim_buf_line_count(buf)
 
                         -- Sometimes occurs with one-line undos
@@ -2064,7 +2077,7 @@ module.on_event = function(event)
                         module.public.completion_levels.trigger_completion_levels(buf, start, _end)
                     end)
                 else
-                    vim.schedule(neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, start, _end))
+                    schedule(neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, start, _end))
 
                     if module.private.largest_change_start == -1 then
                         module.private.largest_change_start = start
@@ -2082,7 +2095,7 @@ module.on_event = function(event)
             end,
         })
     elseif event.type == "core.autocommands.events.insertenter" then
-        vim.schedule(function()
+        schedule(function()
             module.private.last_change = {
                 active = false,
                 line = event.cursor_position[1] - 1,
@@ -2108,7 +2121,7 @@ module.on_event = function(event)
             )
         end)
     elseif event.type == "core.autocommands.events.insertleave" then
-        vim.schedule(function()
+        schedule(function()
             if not module.private.last_change.active or module.private.largest_change_end == -1 then
                 module.public.trigger_icons(
                     event.buffer,
@@ -2155,6 +2168,8 @@ module.on_event = function(event)
 
             module.private.largest_change_start, module.private.largest_change_end = -1, -1
         end)
+    elseif event.type == "core.autocommands.events.vimleavepre" then
+        module.private.disable_deferred_updates = true
     elseif event.type == "core.keybinds.events.core.norg.concealer.toggle-markup" then
         module.public.toggle_markup(event.buffer)
     end
@@ -2165,6 +2180,7 @@ module.events.subscribed = {
         bufenter = true,
         insertenter = true,
         insertleave = true,
+        vimleavepre = true,
     },
     ["core.keybinds"] = {
         ["core.norg.concealer.toggle-markup"] = true,
