@@ -99,6 +99,10 @@ end
 module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufEnter")
     module.required["core.autocommands"].enable_autocommand("BufLeave")
+
+    if module.config.public.hook then
+        neorg.callbacks.on_event("core.keybinds.events.enable_keybinds", module.config.public.hook)
+    end
 end
 
 module.config.public = {
@@ -106,6 +110,8 @@ module.config.public = {
     default_keybinds = true,
     -- Prefix for some Neorg keybinds
     neorg_leader = "<LocalLeader>",
+
+    hook = nil,
 }
 
 ---@class core.keybinds
@@ -196,6 +202,14 @@ module.public = {
                     command = command,
                     opts = opts,
                 }
+            end,
+
+            -- TODO: Document
+            -- TODO: Unmapping an item in "all" doesn't actually unmap the key
+            unmap = function(neorg_mode, mode, key)
+                bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
+                bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
+                bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] and nil
             end,
 
             -- @Summary Maps a bunch of keys for a certain mode
