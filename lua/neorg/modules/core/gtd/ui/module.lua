@@ -29,6 +29,7 @@ module.setup = function()
             "core.keybinds",
             "core.norg.dirman",
             "core.gtd.queries",
+            "core.gtd.helpers",
             "core.integrations.treesitter",
             "core.mode",
             "core.queries.native",

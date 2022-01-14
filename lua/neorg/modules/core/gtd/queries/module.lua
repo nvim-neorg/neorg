@@ -18,6 +18,7 @@ module.setup = function()
             "core.norg.dirman",
             "core.queries.native",
             "core.integrations.treesitter",
+            "core.gtd.helpers",
         },
         imports = {
             "helpers",
