@@ -1,7 +1,7 @@
 --[[
     File: GTD-helpers
     Title: GTD Helpers module
-    Summary: Nice helpers for GTD modules
+    Summary: Nice helpers for GTD modules.
     Show: false.
     ---
 
@@ -21,7 +21,6 @@ module.setup = function()
 end
 
 module.public = {
-
     --- Returns the list of every used file for GTD
     get_gtd_files = function(opts)
         opts = opts or {}
