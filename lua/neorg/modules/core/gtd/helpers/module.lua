@@ -50,10 +50,8 @@ module.public = {
     --- Returns the list of every excluded file in gtd
     --- @return table
     get_gtd_excluded_files = function()
-        local res = {}
         local gtd_config = module.private.get_gtd_config()
-
-        res = gtd_config.exclude
+        local res = gtd_config.exclude or {}
         table.insert(res, gtd_config.default_lists.inbox)
 
         return res
