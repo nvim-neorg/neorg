@@ -101,7 +101,9 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufLeave")
 
     if module.config.public.hook then
-        neorg.callbacks.on_event("core.keybinds.events.enable_keybinds", module.config.public.hook)
+        neorg.callbacks.on_event("core.keybinds.events.enable_keybinds", function(_, keybinds)
+            module.config.public.hook(keybinds)
+        end)
     end
 end
 
@@ -204,13 +206,32 @@ module.public = {
                 }
             end,
 
+            -- Map default
+            mapd = function() end,
+
             -- TODO: Document
-            -- TODO: Unmapping an item in "all" doesn't actually unmap the key
             unmap = function(neorg_mode, mode, key)
+                if neorg_mode == "all" then
+                    for _, norg_mode in ipairs(module.required["core.mode"].get_modes()) do
+                        payload.unmap(norg_mode, mode, key)
+                    end
+                end
+
                 bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
                 bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
+
                 bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] and nil
             end,
+
+            remap = function(neorg_mode, mode, old_key, new_key)
+                local command = bound_keys[neorg_mode][mode][old_key].command
+                local opts = bound_keys[neorg_mode][mode][old_key].opts
+
+                payload.unmap(neorg_mode, mode, old_key)
+                payload.map(neorg_mode, mode, new_key, command, opts)
+            end,
+
+            remap_expr = function() end,
 
             -- @Summary Maps a bunch of keys for a certain mode
             -- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
