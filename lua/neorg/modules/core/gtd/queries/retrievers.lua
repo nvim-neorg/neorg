@@ -427,7 +427,6 @@ module.public = {
 
         return extracted
     end,
-
 }
 
 module.private = {

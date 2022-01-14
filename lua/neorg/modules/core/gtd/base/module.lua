@@ -126,7 +126,6 @@ module.load = function()
                 local contexts
                 local waiting_for
                 if module.config.public.custom_tag_completion then
-
                     local exclude_files = module.required["core.gtd.helpers"].get_gtd_excluded_files()
                     local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = exclude_files })
                     local projects = module.required["core.gtd.queries"].get(
