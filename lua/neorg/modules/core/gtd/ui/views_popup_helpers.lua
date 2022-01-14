@@ -130,8 +130,12 @@ module.private = {
 
                 selection:title("Add to project"):blank():text("Append task to existing project")
 
+                local gtd_config = neorg.modules.get_module_config("core.gtd.base")
+                local exclude_files = gtd_config.exclude
+                table.insert(exclude_files, gtd_config.default_lists.inbox)
+
                 -- Get all projects
-                local projects = module.required["core.gtd.queries"].get("projects")
+                local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = exclude_files })
                 --- @type core.gtd.queries.project
                 projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
@@ -178,6 +182,10 @@ module.private = {
 
                                 local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
                                 local files = module.required["core.norg.dirman"].get_norg_files(workspace)
+
+                                for _, excluded_file in pairs(exclude_files) do
+                                    files = module.required["core.gtd.queries"].remove_from_table(files, excluded_file)
+                                end
 
                                 if vim.tbl_isempty(files) then
                                     selection:text("No files found...")

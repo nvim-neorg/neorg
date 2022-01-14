@@ -98,7 +98,7 @@ module.public = {
 
             if opts.exclude_files then
                 for _, excluded_file in pairs(opts.exclude_files) do
-                    files = module.private.remove_from_table(files, excluded_file)
+                    files = module.public.remove_from_table(files, excluded_file)
                 end
                 log.info("files being parsed for GTD: ", files)
             end
@@ -441,6 +441,32 @@ module.public = {
 
         return extracted
     end,
+
+    --- Remove `el` from table `t`
+    --- @param t table
+    --- @param el any
+    --- @return table
+    remove_from_table = function(t, el)
+        vim.validate({ t = { t, "table" } })
+        local result = {}
+
+        -- This is possibly a directory, so we remove every file inside this directory
+        if not vim.endswith(el, ".norg") then
+            for _, v in ipairs(t) do
+                if not vim.startswith(v, el) then
+                    table.insert(result, v)
+                end
+            end
+        else
+            for _, v in ipairs(t) do
+                if v ~= el then
+                    table.insert(result, v)
+                end
+            end
+        end
+
+        return result
+    end,
 }
 
 module.private = {
@@ -621,32 +647,6 @@ module.private = {
         end
 
         return marker_node[1]
-    end,
-
-    --- Remove `el` from table `t`
-    --- @param t table
-    --- @param el any
-    --- @return table
-    remove_from_table = function(t, el)
-        vim.validate({ t = { t, "table" } })
-        local result = {}
-
-        -- This is possibly a directory, so we remove every file inside this directory
-        if not vim.endswith(el, ".norg") then
-            for _, v in ipairs(t) do
-                if not vim.startswith(v, el) then
-                    table.insert(result, v)
-                end
-            end
-        else
-            for _, v in ipairs(t) do
-                if v ~= el then
-                    table.insert(result, v)
-                end
-            end
-        end
-
-        return result
     end,
 }
 
