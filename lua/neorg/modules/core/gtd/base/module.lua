@@ -11,6 +11,11 @@ It's here where the keybinds and commands are created in order to interact with 
 - Call the command `:Neorg gtd views` to nicely show your tasks and projects
 - Create a new task with `:Neorg gtd capture`
 - Edit the task under the cursor with `:Neorg gtd edit`
+
+Note: If you want to open your GTD views without changing your `pwd`, you can open Neorg in silent mode beforehand:
+
+- `:NeorgStart silent=true`
+- `:Neorg gtd views`
 --]]
 
 require("neorg.modules.base")
