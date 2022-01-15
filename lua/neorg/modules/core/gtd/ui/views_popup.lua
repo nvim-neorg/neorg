@@ -34,6 +34,7 @@ module.public = {
     end,
 }
 
+--- @class private_core.gtd.ui
 module.private = {
     --- Generates flags for gtd views
     --- @param selection core.ui.selection
@@ -67,7 +68,48 @@ module.private = {
             :flag("p", "Show projects", function()
                 module.public.display_projects(tasks, projects)
             end)
+            :blank()
+            :concat(module.private.generate_informations)
         return selection
+    end,
+
+    --- Show informations flag
+    --- @param selection core.ui.selection
+    generate_informations = function(selection)
+        local function files_text(_selection, files)
+            if not files then
+                return _selection:text("No files found")
+            end
+
+            for _, file in pairs(files) do
+                _selection:text("- " .. file)
+            end
+            return _selection
+        end
+
+        local files = module.required["core.gtd.helpers"].get_gtd_files()
+        local excluded_files = module.required["core.gtd.helpers"].get_gtd_excluded_files()
+        return selection:text("Advanced"):flag("i", "Show more informations", {
+            callback = function()
+                selection:push_page()
+                selection
+                    :title("GTD informations")
+                    :blank()
+                    :text("Files used for GTD")
+                    :concat(neorg.lib.wrap(files_text, selection, files))
+                    :blank()
+                    :text("Files excluded")
+                    :concat(neorg.lib.wrap(files_text, selection, excluded_files))
+                    :blank()
+                    :flag("<CR>", "Return to main page", {
+                        callback = function()
+                            selection:pop_page()
+                        end,
+                        destroy = false,
+                    })
+            end,
+            destroy = false,
+        })
     end,
 }
 

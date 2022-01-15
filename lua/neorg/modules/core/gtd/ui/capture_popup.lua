@@ -31,6 +31,7 @@ module.public = {
     end,
 }
 
+--- @class private_core.gtd.ui
 module.private = {
 
     --- Content of the capture popup

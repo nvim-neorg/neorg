@@ -135,6 +135,7 @@ module.public = {
     end,
 }
 
+--- @class private_core.gtd.ui
 module.private = {
     --- Edit content from `key`.
     --- @param selection core.ui.selection
