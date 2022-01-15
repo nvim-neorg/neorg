@@ -124,7 +124,7 @@ module.config.public = {
                 noremap = true,
             })
         end,
-    }
+    },
 }
 
 return module

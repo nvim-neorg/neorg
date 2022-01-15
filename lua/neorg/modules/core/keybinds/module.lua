@@ -117,9 +117,7 @@ module.config.public = {
     hook = nil,
 
     keybind_preset = "neorg",
-    keybind_presets = {
-
-    }
+    keybind_presets = {},
 }
 
 ---@class core.keybinds
@@ -316,8 +314,14 @@ module.public = {
 
         generate_default_functions("map", "map_event", "unmap", "remap")
 
-        if module.config.public.default_keybinds and module.config.public.keybind_presets[module.config.public.keybind_preset] then
-            module.config.public.keybind_presets[module.config.public.keybind_preset](payload, module.config.public.neorg_leader)
+        if
+            module.config.public.default_keybinds
+            and module.config.public.keybind_presets[module.config.public.keybind_preset]
+        then
+            module.config.public.keybind_presets[module.config.public.keybind_preset](
+                payload,
+                module.config.public.neorg_leader
+            )
         end
 
         -- Broadcast our event with the desired payload!
