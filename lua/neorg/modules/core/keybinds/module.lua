@@ -110,10 +110,16 @@ end
 module.config.public = {
     -- Use the default keybinds provided in https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/default_keybinds.lua
     default_keybinds = true,
+
     -- Prefix for some Neorg keybinds
     neorg_leader = "<LocalLeader>",
 
     hook = nil,
+
+    keybind_preset = "neorg",
+    keybind_presets = {
+
+    }
 }
 
 ---@class core.keybinds
@@ -310,8 +316,8 @@ module.public = {
 
         generate_default_functions("map", "map_event", "unmap", "remap")
 
-        if module.config.public.default_keybinds then
-            module.public.generate_keybinds(payload, module.config.public.neorg_leader)
+        if module.config.public.default_keybinds and module.config.public.keybind_presets[module.config.public.keybind_preset] then
+            module.config.public.keybind_presets[module.config.public.keybind_preset](payload, module.config.public.neorg_leader)
         end
 
         -- Broadcast our event with the desired payload!
