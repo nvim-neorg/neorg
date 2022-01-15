@@ -35,6 +35,8 @@ Your New Life Organization Tool, all in Lua
 
 <div align="center">
 
+<br>
+
 ## Summary
 
 </div>
