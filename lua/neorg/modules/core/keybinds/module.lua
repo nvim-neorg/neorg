@@ -187,6 +187,7 @@ module.public = {
         -- Broadcast the enable_keybinds event to any user that might have registered a User Callback for it
         local payload
 
+        -- TODO: Document
         payload = {
 
             -- @Summary Maps a Neovim keybind.
@@ -206,10 +207,10 @@ module.public = {
                 }
             end,
 
-            -- Map default
-            mapd = function() end,
+            map_event = function(neorg_mode, mode, key, expr, opts)
+                payload.map(neorg_mode, mode, key, "<cmd>Neorg keybind " .. neorg_mode .. " " .. expr .. "<CR>", opts)
+            end,
 
-            -- TODO: Document
             unmap = function(neorg_mode, mode, key)
                 if neorg_mode == "all" then
                     for _, norg_mode in ipairs(module.required["core.mode"].get_modes()) do
@@ -230,8 +231,6 @@ module.public = {
                 payload.unmap(neorg_mode, mode, old_key)
                 payload.map(neorg_mode, mode, new_key, command, opts)
             end,
-
-            remap_expr = function() end,
 
             -- @Summary Maps a bunch of keys for a certain mode
             -- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
@@ -295,6 +294,18 @@ module.public = {
             mode = current_mode,
         }
 
+        local function generate_default_functions(...)
+            local funcs = { ... }
+
+            for _, func in ipairs(funcs) do
+                payload[func .. "d"] = function(...)
+                    payload[func]("norg", ...)
+                end
+            end
+        end
+
+        generate_default_functions("map", "map_event", "unmap", "remap")
+
         if module.config.public.default_keybinds then
             module.public.generate_keybinds(payload, module.config.public.neorg_leader)
         end
@@ -311,7 +322,19 @@ module.public = {
                                     if action then
                                         action(buf, mode, key, data.command, data.opts or {})
                                     else
-                                        vim.api.nvim_buf_set_keymap(buf, mode, key, data.command, data.opts or {})
+                                        if type(data.command) == "string" then
+                                            vim.api.nvim_buf_set_keymap(buf, mode, key, data.command, data.opts or {})
+                                        else
+                                            vim.api.nvim_buf_set_keymap(
+                                                buf,
+                                                mode,
+                                                key,
+                                                "",
+                                                vim.tbl_extend("force", data.opts or {}, {
+                                                    callback = data.command,
+                                                })
+                                            )
+                                        end
                                     end
                                 end)
 
