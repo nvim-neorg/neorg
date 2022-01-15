@@ -1,10 +1,36 @@
 --[[
-    File: Keybinds
+    File: User-Keybinds
     Title: The Keybinds Module
 	Summary: Module for managing keybindings with Neorg mode support.
     ---
-If you're a developer, check out the [examples](#examples).
-See https://github.com/vhyrro/neorg/wiki/User-Keybinds for more info.
+
+### Disabling Default Keybinds
+By default when you load the `core.keybinds` module all keybinds will be enabled.
+If you want to change this, be sure to set `default_keybinds` to `false`:
+```lua
+["core.keybinds"] = {
+    config = {
+        default_keybinds = false,
+    }
+}
+```
+
+### Setting Up a Keybind Hook
+Want to change some keybinds? You can set up a function that will allow you to tweak
+every keybind bit by bit.
+
+```lua
+["core.keybinds"] = {
+    config = {
+        hook = function(keybinds)
+            keybinds.unmap("norg", "n", "gtd")
+            keybinds.remap("norg", "n", "<C-Space>", "gta")
+        end,
+    }
+}
+```
+
+TODO: Perhaps autogenerate all the functions `keybinds` exposes.
 --]]
 
 require("neorg.modules.base")
@@ -304,6 +330,7 @@ module.public = {
 
             -- Include the current Neorg mode in the contents
             mode = current_mode,
+            leader = module.config.public.neorg_leader
         }
 
         --- Generates a set of default functions for a given list of them
@@ -326,10 +353,11 @@ module.public = {
             module.config.public.default_keybinds
             and module.config.public.keybind_presets[module.config.public.keybind_preset]
         then
-            module.config.public.keybind_presets[module.config.public.keybind_preset](
-                payload,
-                module.config.public.neorg_leader
-            )
+            module.config.public.keybind_presets[module.config.public.keybind_preset](payload)
+        end
+
+        for _, callback in pairs(module.private.requested_keys) do
+            callback(payload)
         end
 
         -- Broadcast our event with the desired payload!
@@ -399,6 +427,14 @@ module.public = {
         -- Update core.neorgcmd's internal tables
         module.required["core.neorgcmd"].add_commands_from_table(module.public.neorg_commands)
     end,
+
+    request_keys = function(module_name, callback)
+        module.private.requested_keys[module_name] = callback
+    end,
+}
+
+module.private = {
+    requested_keys = {}
 }
 
 module.neorg_post_load = module.public.sync
