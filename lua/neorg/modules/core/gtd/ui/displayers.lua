@@ -475,6 +475,7 @@ module.public = {
     end,
 }
 
+--- @class private_core.gtd.ui
 module.private = {
     -- Holds data for displays
     data = {},

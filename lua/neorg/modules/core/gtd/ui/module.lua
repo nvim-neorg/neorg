@@ -50,6 +50,7 @@ module.public = {
     callbacks = {},
 }
 
+--- @class private_core.gtd.ui
 module.private = {
 
     goto_node = function()

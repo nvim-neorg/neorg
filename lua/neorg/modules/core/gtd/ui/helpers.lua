@@ -7,9 +7,7 @@ local module = neorg.modules.extend("core.gtd.ui.helpers", "core.gtd.ui")
 module.public = {
     get_data_for_views = function()
         -- Exclude files explicitely provided by the user, and the inbox file
-        local configs = neorg.modules.get_module_config("core.gtd.base")
-        local exclude_files = configs.exclude
-        table.insert(exclude_files, configs.default_lists.inbox)
+        local exclude_files = module.required["core.gtd.helpers"].get_gtd_excluded_files()
 
         -- Reset state of previous fetches
         module.required["core.queries.native"].delete_content()
@@ -34,6 +32,7 @@ module.public = {
     end,
 }
 
+--- @class private_core.gtd.ui
 module.private = {
     --- Try to re-fetch the node with newer content (after an update for example)
     --- @param node table
