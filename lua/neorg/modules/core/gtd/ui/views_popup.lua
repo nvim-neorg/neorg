@@ -82,7 +82,7 @@ module.private = {
             end
 
             for _, file in pairs(files) do
-                _selection:text("- " .. file)
+                _selection:text("- " .. file, "TSComment")
             end
             return _selection
         end
