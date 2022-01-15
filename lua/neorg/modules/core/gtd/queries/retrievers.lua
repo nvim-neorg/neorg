@@ -41,7 +41,7 @@ module.public = {
     --- @param type string
     --- @param opts table
     ---   - opts.filename (string):     will restrict the search only for the filename provided
-    ---   - opts.exclude_files (table):     will exclude files from workspace in querying information. Can exclude entire directories
+    ---   - opts.no_exclude (bool):     disable GTD files excluded in config
     ---   - opts.bufnr (number):        will use this bufnr to search nodes from
     --- @return table
     get = function(type, opts)
@@ -88,21 +88,7 @@ module.public = {
             local bufnr = opts.bufnr
             table.insert(bufnrs, bufnr)
         else
-            local configs = neorg.modules.get_module_config("core.gtd.base")
-            local files = module.required["core.norg.dirman"].get_norg_files(configs.workspace)
-
-            if vim.tbl_isempty(files) then
-                log.error("No files found in " .. configs.workspace .. " workspace.")
-                return
-            end
-
-            if opts.exclude_files then
-                for _, excluded_file in pairs(opts.exclude_files) do
-                    files = module.private.remove_from_table(files, excluded_file)
-                end
-                log.info("files being parsed for GTD: ", files)
-            end
-
+            local files = module.required["core.gtd.helpers"].get_gtd_files(opts)
             for _, file in pairs(files) do
                 local bufnr = module.private.get_bufnr_from_file(file)
                 table.insert(bufnrs, bufnr)
@@ -621,32 +607,6 @@ module.private = {
         end
 
         return marker_node[1]
-    end,
-
-    --- Remove `el` from table `t`
-    --- @param t table
-    --- @param el any
-    --- @return table
-    remove_from_table = function(t, el)
-        vim.validate({ t = { t, "table" } })
-        local result = {}
-
-        -- This is possibly a directory, so we remove every file inside this directory
-        if not vim.endswith(el, ".norg") then
-            for _, v in ipairs(t) do
-                if not vim.startswith(v, el) then
-                    table.insert(result, v)
-                end
-            end
-        else
-            for _, v in ipairs(t) do
-                if v ~= el then
-                    table.insert(result, v)
-                end
-            end
-        end
-
-        return result
     end,
 }
 

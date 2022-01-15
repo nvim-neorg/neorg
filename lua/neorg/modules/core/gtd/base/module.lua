@@ -11,6 +11,11 @@ It's here where the keybinds and commands are created in order to interact with 
 - Call the command `:Neorg gtd views` to nicely show your tasks and projects
 - Create a new task with `:Neorg gtd capture`
 - Edit the task under the cursor with `:Neorg gtd edit`
+
+Note: If you want to open your GTD views without changing your `pwd`, you can open Neorg in silent mode beforehand:
+
+- `:NeorgStart silent=true`
+- `:Neorg gtd views`
 --]]
 
 require("neorg.modules.base")
@@ -25,6 +30,7 @@ module.setup = function()
             "core.norg.dirman",
             "core.keybinds",
             "core.gtd.ui",
+            "core.gtd.helpers",
             "core.neorgcmd",
             "core.norg.completion",
             "core.gtd.queries",
@@ -120,8 +126,7 @@ module.load = function()
                 local contexts
                 local waiting_for
                 if module.config.public.custom_tag_completion then
-                    local exclude_files = module.config.public.exclude
-                    table.insert(exclude_files, module.config.public.default_lists.inbox)
+                    local exclude_files = module.required["core.gtd.helpers"].get_gtd_excluded_files()
                     local tasks = module.required["core.gtd.queries"].get("tasks", { exclude_files = exclude_files })
                     local projects = module.required["core.gtd.queries"].get(
                         "projects",
