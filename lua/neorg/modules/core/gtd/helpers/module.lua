@@ -21,6 +21,8 @@ module.setup = function()
 end
 
 module.public = {
+    version = "0.0.9",
+
     --- Returns the list of every used file for GTD
     get_gtd_files = function(opts)
         opts = opts or {}
