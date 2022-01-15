@@ -215,7 +215,7 @@ You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) whi
 ###### _Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system for this step!_
 
 Neorg parsers don't come out of the box with `nvim-treesitter` yet.
-To set up Neorg's parsers, you want to run this code snippet before you invoke `require('nvim-treesitter.configs').setup()`:
+To set up Neorg's parsers, you want to run this code snippet **before** you invoke `require('nvim-treesitter.configs').setup()`:
 
 ```lua
 local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
