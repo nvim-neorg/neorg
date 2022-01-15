@@ -123,7 +123,7 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 Neorg requires at least Neovim 0.6+ to operate.
 You can still use Neorg on `0.5.x`, however don't expect all modules to load properly.
 
-You can install through your favorite plugin manager:
+You can install it through your favorite plugin manager:
 
 - [Packer](https://github.com/wbthomason/packer.nvim):
 
@@ -141,27 +141,30 @@ You can install through your favorite plugin manager:
 
 - [Packer (with lazyloading)](https://github.com/wbthomason/packer.nvim):
 
-  Want to lazy load? Turns out that can be rather problematic.
+  Want to lazy load? Know that you'll have to jump through some hoops and hurdles to get
+  it to work perfectly.
   You can use the `ft` key to load Neorg only upon entering a .norg file:
 
   ```lua
   use {
-    "nvim-neorg/neorg",
-    ft = "norg",
-    after = { "nvim-treesitter" },  -- You may also specify Telescope
-    config = function()
-      -- setup neorg
-      require('neorg').setup {
-        ...
-      }
-    end
+      "nvim-neorg/neorg",
+      ft = "norg",
+      after = { "nvim-treesitter" },  -- You may also specify Telescope
+      config = function()
+          -- setup neorg
+          require('neorg').setup {
+              ...
+          }
+      end
   }
   ```
 
-  However, don't expect everything to work. You might need additional setups depending on how your lazyloading system is configured.
+  Although it's proven to work for a lot of people, you might need additional setups depending on how your lazyloading system is configured.
 
+  One important thing to ask yourself is: "is it really worth it?".
   Neorg practically lazy loads itself: only a few lines of code are run on startup, these lines check whether the current
-  extension is `.norg`, if it's not then nothing else loads. You shouldn't have to worry about performance issues.
+  extension is `.norg`, if it's not then nothing else loads. You shouldn't have to worry about performance issues when it comes to startup, but
+  hey, you do you :)
 
 - [vim-plug](https://github.com/junegunn/vim-plug):
 
@@ -169,7 +172,7 @@ You can install through your favorite plugin manager:
   Plug 'nvim-neorg/neorg' | Plug 'nvim-lua/plenary.nvim'
   ```
 
-  You can put this initial configuration in your init.vim file:
+  You can then put this initial configuration in your init.vim file:
 
   ```vim
   lua << EOF
@@ -181,24 +184,25 @@ You can install through your favorite plugin manager:
 
 ## Setup
 
-But wait! That's not all. You've installed Neorg - great! Now you have to configure it.
+You've got the basic stuff out the way now, but wait! That's not all. You've installed Neorg - great! Now you have to configure it.
 By default, Neorg does nothing, and gives you nothing. You must tell it what you care about!
 
 ### Default modules
 
 Neorg runs on _modules_, which are discussed and explained in more depth later on.
-Each module provides a separate bit of functionality.
+Each module provides a single bit of functionality - they can then be stacked together to form
+the entire Neorg environment.
 
-The most common one is the `core.defaults` module, which is basically a "load all features" switch.
+The most common module you'll find is the `core.defaults` module, which is basically a "load all features" switch.
 It gives you the full experience out of the box.
 
 The code snippet to enable all default modules is very straightforward:
 
 ```lua
 require('neorg').setup {
-  load = {
-    ["core.defaults"] = {}
-  }
+    load = {
+        ["core.defaults"] = {}
+    }
 }
 ```
 
@@ -222,6 +226,8 @@ parser_configs.norg = {
     },
 }
 
+-- These two are optional, but provide syntax highlighting
+-- for Neorg tables and the @document.meta tag
 parser_configs.norg_meta = {
     install_info = {
         url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
@@ -293,7 +299,7 @@ require('neorg').setup {
 }
 ```
 
-Changing workspaces is easy, just do `Neorg workspace work`, where `work` is the name of your workspace.
+Changing workspaces is easy, just do `:Neorg workspace work`, where `work` is the name of your workspace.
 Note that `:Neorg` is only available when the Neorg environment is loaded, i.e. when you're
 in a .norg file or have loaded a .norg file already in your Neovim session.
 
@@ -305,15 +311,12 @@ you in to your last (or only) workspace.
 We recommend you add some core modules that can greatly improve your experience, such as:
 
 - Setting up a completion engine (`core.norg.completion`)
-- Using the default keybinds provided by Neorg (`core.keybinds`)
 - Using the concealer module to enable icons (`core.norg.concealer`)
-
-Stay on board, we're now showing you how to add modules!
 
 ## Modules
 
 As you surely saw previously, we loaded `core.defaults`, and recommended that you load `core.norg.dirman`.
-Sooo, what are they? We'll give you a brief explanation.
+Sooo, what are they exactly? We'll give you a brief explanation.
 
 Modules are basically isolated bits of code that provide a specific subset of features. They can be docked in
 to the environment at any time and can be essentially stacked together like lego bricks!
@@ -339,14 +342,6 @@ require('neorg').setup {
 As always, for a little more info you can consult the wiki page [here](https://github.com/nvim-neorg/neorg/wiki/Installation#the-concept-of-modules).
 
 To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the [wiki](https://github.com/nvim-neorg/neorg/wiki).
-
-### Default Modules
-
-The default modules are automagically required when you require `core.defaults`, handy!
-
-You can view a list of them [here](https://github.com/nvim-neorg/neorg/wiki#default-modules).
-
-<!-- TODO: Use docgen to generate this automatically -->
 
 ### Core Modules
 
@@ -389,9 +384,9 @@ After that it's as easy as loading the module it exposes normally:
 
 ```lua
 require('neorg').setup {
-  load = {
-    ["cool.module"] = {},
-  }
+    load = {
+        ["cool.module"] = {},
+    }
 }
 ```
 
@@ -406,18 +401,15 @@ require('neorg').setup {
 
 
 </details>
+<br>
 
-## Roadmap
-
-We track a high-level roadmap, so that you can know what to expect. Just do `:h neorg-roadmap`.
-
-To know exactly what's being worked on, just check out the [repo's PRs](https://github.com/nvim-neorg/neorg/pulls).
+**You're now basically set**! The rest of this README will be additional information, so keep reading
+if you care about what makes Neorg tick.
 
 ## Philosophy
+Our goals are fairly simple:
 
-<!-- TODO(vhyrro): Revamp this -->
-
-1. Revise the org format: we want it simple, very extensible, unambiguous. Will make you feel right at home. Org and markdown have several flaws, but the most
+1. Revise the org format: simple, extensible, unambiguous. Will make you feel right at home. Alternate markup formats have several flaws, but the most
    notable one is the requirement for **complex parsers**.
    I really advise checking some writeups out on how bad it can get at times.
    What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
@@ -433,6 +425,11 @@ To know exactly what's being worked on, just check out the [repo's PRs](https://
 
 4. Logic: everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
    two people asked for it.
+   If something has a more niche use case, it should be documented.
+
+## Roadmap
+We track a high-level roadmap, so that you can know what to expect. Just do `:h neorg-roadmap`.
+To know exactly what's being worked on, just check out the [repo's PRs](https://github.com/nvim-neorg/neorg/pulls).
 
 ## FAQ
 
@@ -474,41 +471,4 @@ heartwarming and fuels the urge to keep going :heart:. You can show support here
 - Donate to my monero wallet: `86CXbnPLa14F458FRQFe26PRfffZTZDbUeb4NzYiHDtzcyaoMnfq1TqVU1EiBFrbKqGshFomDzxWzYX2kMvezcNu9TaKd9t`
 - Donate via bitcoin: `bc1q4ey43t9hhstzdqh8kqcllxwnqlx9lfxqqh439s`
 
-<!-- TODO(vhyrro): Create table of donation links for all maintainers -->
-
-<!--
-# :keyboard: Keybinds
-Neorg comes with no keys bound by default. If you want to use all the default keys, you may want to modify the `core.keybinds`'s configuration
-to generate them for you, here's how you would do it (note that this code snippet is an extension of the [installation](#wrench-installation) snippet):
-```lua
-use {
-    "nvim-neorg/neorg",
-    config = function()
-        require('neorg').setup {
-            -- Tell Neorg what modules to load
-            load = {
-                ["core.defaults"] = {}, -- Load all the default modules
-                ["core.keybinds"] = { -- Configure core.keybinds
-                    config = {
-                        default_keybinds = true, -- Generate the default keybinds
-                        neorg_leader = "<Leader>o" -- This is the default if unspecified
-                    }
-                },
-                ["core.norg.concealer"] = {}, -- Allows for use of icons
-                ["core.norg.dirman"] = { -- Manage your directories with Neorg
-                    config = {
-                        workspaces = {
-                            my_workspace = "~/neorg"
-                        }
-                    }
-                }
-            },
-        }
-    end,
-    requires = "nvim-lua/plenary.nvim"
-}
-```
-
-You may actually want to change your keybinds though! Changing keybinds is a rather trivial task.
-The wiki entry for keybinds can be found [here](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds). It'll tell you the ins and outs of what you need to do :)
--->
+<!-- TODO: Create table of donation links for all maintainers -->
