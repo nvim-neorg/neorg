@@ -225,11 +225,15 @@ module.public = {
             end,
 
             remap = function(neorg_mode, mode, old_key, new_key)
+                payload.rremap(neorg_mode, mode, old_key, mode, new_key)
+            end,
+
+            rremap = function(neorg_mode, mode, old_key, new_mode, new_key)
                 local command = bound_keys[neorg_mode][mode][old_key].command
                 local opts = bound_keys[neorg_mode][mode][old_key].opts
 
                 payload.unmap(neorg_mode, mode, old_key)
-                payload.map(neorg_mode, mode, new_key, command, opts)
+                payload.map(neorg_mode, new_mode, new_key, command, opts)
             end,
 
             -- @Summary Maps a bunch of keys for a certain mode
