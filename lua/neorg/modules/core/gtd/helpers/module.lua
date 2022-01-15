@@ -56,6 +56,31 @@ module.public = {
 
         return res
     end,
+
+    --- Checks if the data is processed or not.
+    --- Check out :h neorg-gtd to know what is an unprocessed task or project
+    --- @param data core.gtd.queries.task|core.gtd.queries.project
+    --- @param tasks core.gtd.queries.task[]?
+    is_processed = function(data, tasks)
+        return neorg.lib.match({
+            data.type,
+            ["task"] = function()
+                return type(data.contexts) == "table" and not vim.tbl_isempty(data.contexts)
+            end,
+            ["project"] = function()
+                if not tasks then
+                    log.error("No tasks provided")
+                    return
+                end
+
+                local project_tasks = vim.tbl_map(function(t)
+                    return t.project_uuid == data.uuid
+                end, tasks)
+
+                return not vim.tbl_isempty(project_tasks)
+            end,
+        })
+    end,
 }
 
 module.private = {
