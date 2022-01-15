@@ -43,31 +43,27 @@ module.private = {
     --- @return core.ui.selection
     generate_display_flags = function(selection, tasks, projects)
         selection
-            :text("Top priorities")
-            :flag("s", "Weekly Summary", function()
-                module.public.display_weekly_summary(tasks)
-            end)
+            :text("Unprocessed")
+            :flag("u", "Unprocessed tasks", neorg.lib.wrap(module.public.display_unprocessed, "task", tasks))
+            :flag(
+                "<C-u>",
+                "Unprocessed projects",
+                neorg.lib.wrap(module.public.display_unprocessed, "project", projects, tasks)
+            )
             :blank()
-            :text("Tasks")
-            :flag("t", "Today's tasks", function()
-                module.public.display_today_tasks(tasks)
-            end)
+            :text("Top priorities")
+            :flag("s", "Weekly Summary", neorg.lib.wrap(module.public.display_weekly_summary, tasks))
+            :flag("t", "Today's tasks", neorg.lib.wrap(module.public.display_today_tasks, tasks))
+            :flag("p", "Show projects", neorg.lib.wrap(module.public.display_projects, tasks, projects))
             :blank()
             :text("Sort and filter tasks")
-            :flag("c", "Contexts", function()
-                module.public.display_contexts(tasks, { exclude = { "someday" }, priority = { "_" } })
-            end)
-            :flag("w", "Waiting For", function()
-                module.public.display_waiting_for(tasks)
-            end)
-            :flag("d", "Someday Tasks", function()
-                module.public.display_someday(tasks)
-            end)
-            :blank()
-            :text("Projects")
-            :flag("p", "Show projects", function()
-                module.public.display_projects(tasks, projects)
-            end)
+            :flag(
+                "c",
+                "Contexts",
+                neorg.lib.wrap(module.public.display_contexts, tasks, { exclude = { "someday" }, priority = { "_" } })
+            )
+            :flag("w", "Waiting For", neorg.lib.wrap(module.public.display_waiting_for, tasks))
+            :flag("d", "Someday Tasks", neorg.lib.wrap(module.public.display_someday, tasks))
             :blank()
             :concat(module.private.generate_informations)
         return selection
