@@ -37,9 +37,10 @@ module.setup = function()
         },
         imports = {
             "displayers",
-            "views_popup_helpers",
-            "edit_popup_helpers",
-            "selection_popups",
+            "helpers",
+            "views_popup",
+            "edit_popup",
+            "capture_popup",
         },
     }
 end
@@ -49,6 +50,7 @@ module.public = {
     callbacks = {},
 }
 
+--- @class private_core.gtd.ui
 module.private = {
 
     goto_node = function()

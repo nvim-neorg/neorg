@@ -1,6 +1,10 @@
+--[[
+    Submodule responsible for creating API for gtd displays
+    A GTD display is a .norg file used to display informations after doing `:Neorg gtd views`
+--]]
 local module = neorg.modules.extend("core.gtd.ui.displayers")
 
----@type core.gtd.ui
+---@class core.gtd.ui
 module.public = {
     --- Display today view for `tasks`, grouped by contexts
     --- @param tasks core.gtd.queries.task
@@ -112,6 +116,9 @@ module.public = {
         return module.private.generate_display(name, positions, res)
     end,
 
+    --- Displayer for wainting for tasks
+    --- @param tasks core.gtd.queries.task
+    --- @return number #Created bufnr
     display_waiting_for = function(tasks)
         vim.validate({
             tasks = { tasks, "table" },
@@ -329,6 +336,9 @@ module.public = {
         return module.private.generate_display(name, positions, res)
     end,
 
+    --- Display someday tasks
+    --- @param tasks core.gtd.queries.task
+    --- @return number #Created bufnr
     display_someday = function(tasks)
         vim.validate({
             tasks = { tasks, "table" },
@@ -373,6 +383,9 @@ module.public = {
         return module.private.generate_display(name, positions, res)
     end,
 
+    --- Display weekly summary
+    --- @param tasks core.gtd.queries.task
+    --- @return number #Created bufnr
     display_weekly_summary = function(tasks)
         local name = "Weekly Summary"
         local res = {
@@ -462,11 +475,17 @@ module.public = {
     end,
 }
 
+--- @class private_core.gtd.ui
 module.private = {
+    -- Holds data for displays
     data = {},
+    -- Current created display buffer
     current_bufnr = nil,
     display_namespace_nr = nil,
 
+    --- Checks if the task should be in today view
+    --- @param task core.gtd.queries.task
+    --- @return boolean
     today_task = function(task)
         local today_context = false
         if task.contexts then
@@ -561,47 +580,7 @@ module.private = {
         return data
     end,
 
-    refetch_data_not_extracted = function(node, _type)
-        -- Get all nodes from the bufnr and add metadatas to it
-        -- This is mandatory because we need to have the correct task position, else the update will not work
-        local nodes = module.required["core.gtd.queries"].get(_type .. "s", { bufnr = node[2] })
-        nodes = module.required["core.gtd.queries"].add_metadata(nodes, _type, { extract = false, same_node = true })
-
-        -- Find the correct task node
-        local found_data = vim.tbl_filter(function(n)
-            return n.node:id() == node[1]:id()
-        end, nodes)
-
-        if #found_data == 0 then
-            log.error("Error in fetching " .. _type)
-            return
-        end
-
-        return found_data[1]
-    end,
-
-    is_buffer_open = function()
-        return module.private.current_bufnr ~= nil
-    end,
-
-    close_buffer = function()
-        if not module.private.is_buffer_open() then
-            return
-        end
-
-        -- Go back to previous mode
-        local previous_mode = module.required["core.mode"].get_previous_mode()
-        module.required["core.mode"].set_mode(previous_mode)
-
-        -- Closes the display
-        vim.api.nvim_buf_delete(module.private.current_bufnr, { force = true })
-
-        module.private.data = {}
-        module.private.extras = {}
-        module.private.current_bufnr = nil
-        module.private.display_namespace_nr = nil
-    end,
-
+    --- Function called when calling details (keybind) from a display
     toggle_details = function()
         local data = module.private.get_by_var()
         local res = {}
@@ -709,18 +688,6 @@ module.private = {
 
         module.private.data[current_line] = data
         vim.api.nvim_buf_set_option(module.private.current_bufnr, "modifiable", false)
-    end,
-
-    find_project = function(_tasks, node)
-        if type(node) ~= "userdata" then
-            return
-        end
-
-        for _node_id, tasks in pairs(_tasks) do
-            if _node_id == node:id() then
-                return tasks
-            end
-        end
     end,
 }
 

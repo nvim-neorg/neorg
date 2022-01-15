@@ -87,6 +87,7 @@ module.public = {
             end,
         }
 
+        ---@class core.ui.selection
         local selection = {
             callbacks = {},
             localcallbacks = {},
@@ -106,7 +107,7 @@ module.public = {
 
             --- Applies some new functions for the selection
             --- @param tbl_of_functions table #A table of custom elements
-            --- @return table #`self`
+            --- @return core.ui.selection
             apply = function(self, tbl_of_functions)
                 self = vim.tbl_deep_extend("force", self, tbl_of_functions)
                 return self
@@ -124,7 +125,7 @@ module.public = {
             --- @param keys table #An array of keys to bind
             --- @param func function #A callback to invoke whenever the key has been pressed
             --- @param mode string #Optional, default "n": the mode to create the listener for
-            --- @return table #`self`
+            --- @return core.ui.selection
             listener = function(self, type, keys, func, mode)
                 -- Remove the <> characters from the string because that causes issues with Lua internally
                 type = ({ type:gsub("<(.+)>", "%1") })[1]
@@ -166,7 +167,7 @@ module.public = {
             --- @param keys table #An array of keys to bind
             --- @param func function #A callback to invoke whenever the key has been pressed
             --- @param mode string #Optional, default "n": the mode to create the listener for
-            --- @return table #`self`
+            --- @return core.ui.selection
             locallistener = function(self, type, keys, func, mode)
                 -- Remove the <> characters from the string because that causes issues with Lua internally
                 type = ({ type:gsub("<(.+)>", "%1") })[1]
@@ -206,7 +207,7 @@ module.public = {
 
             --- Sets some options for the selection to take into account
             --- @param opts table #A table of options
-            --- @return table #`self`
+            --- @return core.ui.selection
             options = function(self, opts)
                 self.opts = vim.tbl_deep_extend("force", self.opts, opts)
                 return self
@@ -256,7 +257,7 @@ module.public = {
             --- Renders some text on the screen
             --- @param text string #The text to display
             --- @param highlight string #An optional highlight group to use (defaults to "Normal")
-            --- @return table #`self`
+            --- @return core.ui.selection
             text = function(self, text, highlight)
                 local custom_highlight = self:options_for("text").highlight
 
@@ -272,13 +273,14 @@ module.public = {
 
             --- Generates a title
             --- @param text string #The text to display
-            --- @return table #`self`
+            --- @return core.ui.selection
             title = function(self, text)
                 return self:text(text, "TSTitle")
             end,
 
             --- Simply enters a blank line
             --- @param count number #An optional number of blank lines to apply
+            --- @return core.ui.selection
             blank = function(self, count)
                 count = count or 1
                 renderer:render()
@@ -296,6 +298,7 @@ module.public = {
             --- @param flag string #The flag. These should be a single character
             --- @param description string #The description for the flag
             --- @param callback table|function #The callback to invoke or configuration options for the flag
+            --- @return core.ui.selection
             flag = function(self, flag, description, callback)
                 -- Set up the configuration by properly merging everything
                 local configuration = vim.tbl_deep_extend(
@@ -361,7 +364,7 @@ module.public = {
             --- @param flag string #The flag key, should be one character only
             --- @param description string #The description of the flag
             --- @param callback function|table #The callback to invoke after the flag is entered
-            --- @return table #`self`
+            --- @return core.ui.selection
             rflag = function(self, flag, description, callback)
                 -- Set up the configuration by properly merging everything
                 local configuration = vim.tbl_deep_extend(
@@ -487,6 +490,7 @@ module.public = {
             --- Creates a prompt inside the page
             --- @param text string #The prompt text
             --- @param callback table|function #The callback to invoke or configuration options for the prompt
+            --- @return core.ui.selection
             prompt = function(self, text, callback)
                 -- Set up the configuration by properly merging everything
                 local configuration = vim.tbl_deep_extend(
@@ -552,12 +556,13 @@ module.public = {
             ---   :text("test")
             ---   :concat(this_is_a_function)
             --- @param callback function #The function to append
-            --- @return table #`self`
+            --- @return core.ui.selection
             concat = function(self, callback)
                 self = callback(self)
                 return self
             end,
 
+            --- @return core.ui.selection
             setstate = function(self, key, value, rerender)
                 self.states[key] = {
                     value = value,

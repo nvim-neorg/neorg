@@ -21,6 +21,8 @@ module.setup = function()
 end
 
 module.public = {
+    version = "0.0.9",
+
     --- Returns the list of every used file for GTD
     get_gtd_files = function(opts)
         opts = opts or {}
@@ -50,7 +52,7 @@ module.public = {
     --- @return table
     get_gtd_excluded_files = function()
         local gtd_config = module.private.get_gtd_config()
-        local res = gtd_config.exclude or {}
+        local res = vim.deepcopy(gtd_config.exclude) or {}
         table.insert(res, gtd_config.default_lists.inbox)
 
         return res
