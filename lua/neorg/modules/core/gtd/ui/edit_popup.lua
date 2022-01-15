@@ -6,6 +6,8 @@ local module = neorg.modules.extend("core.gtd.ui.edit_popup", "core.gtd.ui")
 
 ---@class core.gtd.ui
 module.public = {
+    --- Called when doing `:Neorg gtd edit`
+    --- Will try to find a task at cursor position to edit
     edit_task_at_cursor = function()
         -- Reset state of previous fetches
         module.required["core.queries.native"].delete_content()
@@ -22,10 +24,12 @@ module.public = {
         module.public.edit_task(task)
     end,
 
+    --- Creates the gtd edit popup
+    --- @param task core.gtd.queries.task
     edit_task = function(task)
         -- Add metadatas to task node
         local task_extracted = module.required["core.gtd.queries"].add_metadata(
-            { { task.node, task.bufnr } },
+            { { task.internal.node, task.internal.bufnr } },
             "task",
             { same_node = true, extract = true }
         )[1]
@@ -124,7 +128,7 @@ module.public = {
                 end
             end
 
-            module.required["core.queries.native"].apply_temp_changes(task.bufnr)
+            module.required["core.queries.native"].apply_temp_changes(task.internal.bufnr)
         end)
 
         module.public.display_messages()
