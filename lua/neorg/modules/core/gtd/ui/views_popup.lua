@@ -1,3 +1,7 @@
+--[[
+    Submodule responsible for creating API for gtd views
+--]]
+
 local module = neorg.modules.extend("core.gtd.ui.views_popup", "core.gtd.ui")
 
 ---@class core.gtd.ui
