@@ -174,7 +174,7 @@ You can install it through your favorite plugin manager:
   Plug 'nvim-neorg/neorg' | Plug 'nvim-lua/plenary.nvim'
   ```
 
-  You can then put this initial configuration in your init.vim file:
+  You can then put this initial configuration in your `init.vim` file:
 
   ```vim
   lua << EOF
