@@ -330,7 +330,7 @@ module.public = {
 
             -- Include the current Neorg mode in the contents
             mode = current_mode,
-            leader = module.config.public.neorg_leader
+            leader = module.config.public.neorg_leader,
         }
 
         --- Generates a set of default functions for a given list of them
@@ -434,7 +434,7 @@ module.public = {
 }
 
 module.private = {
-    requested_keys = {}
+    requested_keys = {},
 }
 
 module.neorg_post_load = module.public.sync
