@@ -25,6 +25,8 @@
 -- {# Projects management}:
 --- Added specs for projects
 --- Changed syntax
+- 15/01/2022:
+-- Added {# Inbox list}
 
 
 | *Disclaimers*:
@@ -66,7 +68,6 @@
   *** Top-level organization
 
       This is the proposed approach which is directly related to {# Organize}.
-      - The inbox file is at the root of the workspace.
       - Every `.norg` file is just a placeholder.
       - The workspace allows an unlimited amount of nested folders, but they mean nothing except the
         meaning the user wants for them.
@@ -75,7 +76,6 @@
 
       @code
           .
-          ├── inbox.norg
           ├── index.norg
           ├── reference
           │   └── next_house.norg
@@ -89,7 +89,6 @@
 
       @code
           .
-          ├── inbox.norg
           ├── active_projects.norg
           ├── next_actions.norg
           └── someday_maybe.norg
@@ -171,9 +170,8 @@
       This is the first stage of GTD, and it involves placing all ideas/things to do/notes/reminders
       in a centralized place, called /Inbox/.
 
-      - The capture file is called `inbox.norg` by default (but could be customized) and is placed at the root of the workspace.
-      - Everything in the Inbox is a task. So if a note is written in the inbox, it'll be
-        interpreted as a task.
+      - Every task is by default created in `index.norg`. For a task to be marked as processed, it
+      is required to have at least one context.
 
    **** Quick capture
         Capturing should not take longer than actually doing the task.
@@ -187,18 +185,16 @@
       This part is what I commonly refer as:
       > Processing the inbox
 
-      It is a set of actions to take in order to process what each task means (and removing it from
-      the inbox in the process). A best practice is to process each task at a time, following a FIFO
+      It is a set of actions to take in order to process what each task means. 
+      A best practice is to process each task at a time, following a FIFO
       convention. We should design the user interaction with that in mind.
 
       We should allow the user to:
-      - Modify/Add fields of the task (this does not mean removing the task from inbox)
+      - Modify/Add fields of the task
       - Delete the task (called *Eliminate*)
       - Move it to the someday/maybe list
       - Make it a reference, removing it from all GTD views and moving it to an external note.
       - Convert it to a project (see {*** Organize})
-
-      A processed task should be deleted from the inbox, and moved to another place (see {# Organize}).
 
   *** Organize
       Where should all processed tasks go?
@@ -235,6 +231,11 @@
         That means it is the work we could do now.
 
    **** Changes from base GTD
+    ***** Inbox list
+          There is not concept of a inbox list. However, we have what we call `Unprocessed` tasks
+          and projects. 
+          - For a task to be processed, it should require at minima 1 context.
+          - For a project to be processed, it should require at minima 1 task.
     ***** Context Lists
           There is no concept of context lists. Instead there are tags, e.g. `#contexts home`.
           Special contexts:
@@ -253,7 +254,7 @@
    **** Daily review
         The daily review is a process of shallowly reviewing:
         - What's been done yesterday
-        - What's in the inbox
+        - What's in the inbox (unprocessed tasks and projects)
 
         No user interaction per se is necessary for this part.
 
