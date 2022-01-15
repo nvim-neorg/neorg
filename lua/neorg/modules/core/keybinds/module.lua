@@ -24,7 +24,7 @@ every keybind bit by bit.
     config = {
         hook = function(keybinds)
             keybinds.unmap("norg", "n", "gtd")
-            keybinds.remap("norg", "n", "<C-Space>", "gta")
+            keybinds.remap_event("norg", "n", "<C-Space>", "core.norg.qol.todo_items.todo.task_done")
         end,
     }
 }
@@ -258,16 +258,30 @@ module.public = {
                 bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] and nil
             end,
 
-            remap = function(neorg_mode, mode, old_key, new_key)
-                payload.rremap(neorg_mode, mode, old_key, mode, new_key)
+            remap = function(neorg_mode, mode, key, new_rhs)
+                local opts = bound_keys[neorg_mode][mode][key].opts
+
+                payload.map(neorg_mode, mode, key, new_rhs, opts)
             end,
 
-            rremap = function(neorg_mode, mode, old_key, new_mode, new_key)
+            remap_event = function(neorg_mode, mode, key, new_event)
+                local opts = bound_keys[neorg_mode][mode][key].opts
+
+                payload.map(
+                    neorg_mode,
+                    mode,
+                    key,
+                    "<cmd>Neorg keybind " .. neorg_mode .. " " .. new_event .. "<CR>",
+                    opts
+                )
+            end,
+
+            remap_key = function(neorg_mode, mode, old_key, new_key)
                 local command = bound_keys[neorg_mode][mode][old_key].command
                 local opts = bound_keys[neorg_mode][mode][old_key].opts
 
                 payload.unmap(neorg_mode, mode, old_key)
-                payload.map(neorg_mode, new_mode, new_key, command, opts)
+                payload.map(neorg_mode, mode, new_key, command, opts)
             end,
 
             -- @Summary Maps a bunch of keys for a certain mode
@@ -333,21 +347,21 @@ module.public = {
             leader = module.config.public.neorg_leader,
         }
 
-        --- Generates a set of default functions for a given list of them
-        --  Default functions are postfixed with "d" and omit the beginning "neorg_mode"
-        --  parameter. The string "norg" is used in those places.
-        --- @vararg string A list of strings that define the functions to be given a default counterpart
-        local function generate_default_functions(...)
+        local function generate_default_functions(cb, ...)
             local funcs = { ... }
 
             for _, func in ipairs(funcs) do
-                payload[func .. "d"] = function(...)
-                    payload[func]("norg", ...)
-                end
+                local name, to_exec = cb(func, payload[func])
+
+                payload[name] = to_exec
             end
         end
 
-        generate_default_functions("map", "map_event", "unmap", "remap")
+        generate_default_functions(function(name, func)
+            return name .. "d", function(...)
+                func("norg", ...)
+            end
+        end, "map", "map_event", "unmap", "remap", "remap_key", "remap_event")
 
         if
             module.config.public.default_keybinds

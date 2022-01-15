@@ -3,7 +3,9 @@ local module = neorg.modules.extend("core.keybinds.default_keybinds")
 ---@class core.keybinds
 module.config.public = {
     keybind_presets = {
-        neorg = function(keybinds, neorg_leader)
+        neorg = function(keybinds)
+            local leader = keybinds.leader
+
             -- Map all the below keybinds only when the "norg" mode is active
             keybinds.map_event_to_mode("norg", {
                 n = { -- Bind keys in normal mode
@@ -19,12 +21,12 @@ module.config.public = {
                     { "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" },
 
                     -- Keys for managing GTD
-                    { neorg_leader .. "tc", "core.gtd.base.capture" },
-                    { neorg_leader .. "tv", "core.gtd.base.views" },
-                    { neorg_leader .. "te", "core.gtd.base.edit" },
+                    { leader .. "tc", "core.gtd.base.capture" },
+                    { leader .. "tv", "core.gtd.base.views" },
+                    { leader .. "te", "core.gtd.base.edit" },
 
                     -- Keys for managing notes
-                    { neorg_leader .. "nn", "core.norg.dirman.new.note" },
+                    { leader .. "nn", "core.norg.dirman.new.note" },
 
                     { "<CR>", "core.norg.esupports.hop.hop-link" },
                     { "<M-CR>", "core.norg.esupports.hop.hop-link", "vsplit" },
@@ -33,7 +35,7 @@ module.config.public = {
                     { "<M-j>", "core.norg.manoeuvre.item_down" },
 
                     -- mnemonic: markup toggle
-                    { neorg_leader .. "mt", "core.norg.concealer.toggle-markup" },
+                    { leader .. "mt", "core.norg.concealer.toggle-markup" },
 
                     { "<C-s>", "core.integrations.telescope.find_linkable" },
                 },
@@ -116,8 +118,8 @@ module.config.public = {
             -- Apply the below keys to all modes
             keybinds.map_to_mode("all", {
                 n = {
-                    { neorg_leader .. "mn", ":Neorg mode norg<CR>" },
-                    { neorg_leader .. "mh", ":Neorg mode traverse-heading<CR>" },
+                    { leader .. "mn", ":Neorg mode norg<CR>" },
+                    { leader .. "mh", ":Neorg mode traverse-heading<CR>" },
                 },
             }, {
                 silent = true,
