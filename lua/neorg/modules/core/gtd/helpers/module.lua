@@ -53,7 +53,6 @@ module.public = {
     get_gtd_excluded_files = function()
         local gtd_config = module.private.get_gtd_config()
         local res = vim.deepcopy(gtd_config.exclude) or {}
-        table.insert(res, gtd_config.default_lists.inbox)
 
         return res
     end,
