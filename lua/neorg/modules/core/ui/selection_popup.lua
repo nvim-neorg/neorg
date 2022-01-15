@@ -87,6 +87,7 @@ module.public = {
             end,
         }
 
+        ---@class core.ui.selection
         local selection = {
             callbacks = {},
             localcallbacks = {},

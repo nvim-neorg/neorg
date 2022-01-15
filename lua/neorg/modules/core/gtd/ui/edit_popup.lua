@@ -1,3 +1,7 @@
+--[[
+    Submodule responsible for creating API for gtd edit
+--]]
+
 local module = neorg.modules.extend("core.gtd.ui.edit_popup", "core.gtd.ui")
 
 ---@class core.gtd.ui
