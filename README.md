@@ -60,7 +60,7 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 ## 🌟 Showcase
 
 <details>
-<summary>A .norg file:</summary>
+<summary>A `.norg` file:</summary>
   <img width="700" alt="Showcase image of a Neorg document" src="https://user-images.githubusercontent.com/5306901/147649564-6f41e008-b292-4a67-84ab-82e73bc71890.png">
 </details>
 
@@ -123,7 +123,7 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 ## Installation
 
 Neorg requires at least Neovim 0.6+ to operate.
-You can still use Neorg on `0.5.x`, however don't expect all modules to load properly.
+You can still use Neorg on `0.5.x`, however, do not expect all modules to load properly.
 
 You can install it through your favorite plugin manager:
 
@@ -145,7 +145,7 @@ You can install it through your favorite plugin manager:
 
   Want to lazy load? Know that you'll have to jump through some hoops and hurdles to get
   it to work perfectly.
-  You can use the `ft` key to load Neorg only upon entering a .norg file:
+  You can use the `ft` key to load Neorg only upon entering a `.norg` file:
 
   ```lua
   use {
@@ -267,7 +267,7 @@ Having a rare occurence where the parser doesn't work instantly? Try running `:e
 **Still not working**? Uh oh, you're stepping on muddy territory. There are several reasons why a parser
 may not work right off the bat, however most commonly it's because of plugin loading order.
 
-Neorg needs `nvim-treesitter` to be up and running before it starts adding colours to highlight groups.
+Neorg needs `nvim-treesitter` to be up and running before it starts adding colors to highlight groups.
 
 Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
 
@@ -280,7 +280,7 @@ Sorry!
 We recommend reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format!
 You can even view a summary directly in your neovim instance by running `:h neorg` if you don't like reading a lot.
 
-Next step is to simply drop into a .norg file and start typing away!
+Next step is to simply drop into a `.norg` file and start typing away!
 
 A good first step is to require the `core.norg.dirman` module, it'll help you manage workspaces.
 Workspaces are basically isolated directories that you can jump between:
@@ -303,14 +303,14 @@ require('neorg').setup {
 
 Changing workspaces is easy, just do `:Neorg workspace work`, where `work` is the name of your workspace.
 Note that `:Neorg` is only available when the Neorg environment is loaded, i.e. when you're
-in a .norg file or have loaded a .norg file already in your Neovim session.
+in a `.norg` file or have loaded a `.norg` file already in your Neovim session.
 
 If the Neorg environment isn't loaded you'll find a `:NeorgStart` command which will launch Neorg and pop
 you in to your last (or only) workspace.
 
 > It works, cool! What are the next steps?
 
-We recommend you add some core modules that can greatly improve your experience, such as:
+We recommend you add some core modules (continue reading to find out how) that can greatly improve your experience, such as:
 
 - Setting up a completion engine (`core.norg.completion`)
 - Using the concealer module to enable icons (`core.norg.concealer`)
@@ -320,8 +320,8 @@ We recommend you add some core modules that can greatly improve your experience,
 As you surely saw previously, we loaded `core.defaults`, and recommended that you load `core.norg.dirman`.
 Sooo, what are they exactly? We'll give you a brief explanation.
 
-Modules are basically isolated bits of code that provide a specific subset of features. They can be docked in
-to the environment at any time and can be essentially stacked together like lego bricks!
+Modules are basically isolated bits of code that provide a specific subset of features. They can be docked into
+the environment at any time and can be essentially stacked together like lego bricks!
 
 To require a module, just do:
 
