@@ -473,6 +473,37 @@ module.public = {
 
         return module.private.generate_display(name, positions, res)
     end,
+
+    --- Display every task or project that is unprocessed
+    --- @param type string
+    --- @param data core.gtd.queries.task[]|core.gtd.queries.project[]
+    --- @param tasks core.gtd.queries.task[]
+    --- @return number
+    ---@overload fun(type, data)
+    display_unprocessed = function(type, data, tasks)
+        local name = "Unprocessed tasks"
+        local res = {
+            "* " .. name,
+            "",
+            "Here is like your inbox: every " .. type .. " not properly formulated is shown here",
+            "In order for a " .. type .. " to be processed, it needs to be given:",
+        }
+        table.insert(res, type == "task" and "~~ One or more contexts" or "~ One or more tasks")
+        table.insert(res, "")
+        local positions = {}
+
+        local unprocessed = vim.tbl_filter(function(d)
+            return not module.required["core.gtd.helpers"].is_processed(d, tasks)
+        end, data)
+
+        for _, d in pairs(unprocessed) do
+            local result = "- " .. d.content
+            table.insert(res, result)
+            positions[#res] = d
+        end
+
+        return module.private.generate_display(name, positions, res)
+    end,
 }
 
 --- @class private_core.gtd.ui
