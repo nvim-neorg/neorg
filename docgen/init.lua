@@ -340,10 +340,8 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             function()
                 return { module.title and "# " .. module.title or ("# The `" .. module.name .. "` Module") }
             end,
-            "",
-            "## Summary",
             function()
-                return { (module.summary or "*no summary provided*") }
+                return { (module.summary or "*No summary provided*") }
             end,
             "",
             "## Overview",
