@@ -114,9 +114,13 @@ module.config.public = {
     -- Prefix for some Neorg keybinds
     neorg_leader = "<LocalLeader>",
 
+    -- Function to be invoked that allows the user to change their keybinds
     hook = nil,
 
+    -- The keybind preset to use
     keybind_preset = "neorg",
+
+    -- An array of functions, each one corresponding to a separate preset
     keybind_presets = {},
 }
 
@@ -186,12 +190,12 @@ module.public = {
     bind_all = function(buf, action, for_mode)
         local current_mode = for_mode or module.required["core.mode"].get_mode()
 
+        -- Keep track of the keys the user may want to bind
         local bound_keys = {}
 
         -- Broadcast the enable_keybinds event to any user that might have registered a User Callback for it
         local payload
 
-        -- TODO: Document
         payload = {
 
             -- @Summary Maps a Neovim keybind.
@@ -302,6 +306,10 @@ module.public = {
             mode = current_mode,
         }
 
+        --- Generates a set of default functions for a given list of them
+        --  Default functions are postfixed with "d" and omit the beginning "neorg_mode"
+        --  parameter. The string "norg" is used in those places.
+        --- @vararg string A list of strings that define the functions to be given a default counterpart
         local function generate_default_functions(...)
             local funcs = { ... }
 
