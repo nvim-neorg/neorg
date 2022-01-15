@@ -7,6 +7,9 @@ local module = neorg.modules.extend("core.gtd.ui.views_popup", "core.gtd.ui")
 ---@class core.gtd.ui
 module.public = {
 
+    --- Function called when doing `:Neorg gtd views`
+    --- @param tasks core.gtd.queries.task[]
+    --- @param projects core.gtd.queries.project[]
     show_views_popup = function(tasks, projects)
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_split("Quick Actions")
@@ -32,6 +35,11 @@ module.public = {
 }
 
 module.private = {
+    --- Generates flags for gtd views
+    --- @param selection core.ui.selection
+    --- @param tasks core.gtd.queries.task[]
+    --- @param projects core.gtd.queries.project[]
+    --- @return core.ui.selection
     generate_display_flags = function(selection, tasks, projects)
         selection
             :text("Top priorities")

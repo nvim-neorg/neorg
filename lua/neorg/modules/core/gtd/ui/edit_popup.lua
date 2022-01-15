@@ -137,7 +137,7 @@ module.public = {
 
 module.private = {
     --- Edit content from `key`.
-    --- @param selection table #The popup selection
+    --- @param selection core.ui.selection
     --- @param flag string #The flag to use for calling the prompt
     --- @param text string #The text to show for the flag
     --- @param key string #The key to modify
@@ -181,6 +181,14 @@ module.private = {
         return selection
     end,
 
+    --- Generates subflags for edit popup
+    --- @param selection core.ui.selection
+    --- @param flag string
+    --- @param texts table
+    --- @param modified boolean
+    --- @param key string
+    --- @param task core.gtd.queries.task
+    --- @return core.ui.selection
     edit = function(selection, flag, texts, modified, key, task)
         selection = selection:rflag(flag, texts.edit, function()
             selection = selection
@@ -215,6 +223,14 @@ module.private = {
         return selection
     end,
 
+    --- Subflags for edition of dates
+    --- @param selection core.ui.selection
+    --- @param flag string
+    --- @param texts table
+    --- @param modified boolean
+    --- @param key string
+    --- @param task core.gtd.queries.task
+    --- @return core.ui.selection
     edit_date = function(selection, flag, texts, modified, key, task)
         selection = selection:rflag(flag, texts.title, function()
             selection = selection
