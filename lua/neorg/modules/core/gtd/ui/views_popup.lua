@@ -42,13 +42,36 @@ module.private = {
     --- @param projects core.gtd.queries.project[]
     --- @return core.ui.selection
     generate_display_flags = function(selection, tasks, projects)
+        local unclarified_tasks = vim.tbl_filter(
+            neorg.lib.wrap_cond_not(module.required["core.gtd.helpers"].is_processed),
+            tasks
+        )
+        local unclarified_projects = vim.tbl_filter(
+            neorg.lib.wrap_cond_not(module.required["core.gtd.helpers"].is_processed, tasks),
+            projects
+        )
+        neorg.lib.wrap_cond_not(function (v, ...)
+            
+        end, )
+
+        projects = vim.tbl_filter(
+            neorg.lib.wrap_cond(module.required["core.gtd.helpers"].is_processed, tasks),
+            projects
+        )
+
+        tasks = vim.tbl_filter(neorg.lib.wrap_cond(module.required["core.gtd.helpers"].is_processed), tasks)
+
         selection
             :text("Unclarified")
-            :flag("u", "Unclarified tasks", neorg.lib.wrap(module.public.display_unclarified, "task", tasks))
+            :flag(
+                "u",
+                "Unclarified tasks",
+                neorg.lib.wrap(module.public.display_unclarified, "task", unclarified_tasks)
+            )
             :flag(
                 "<C-u>",
                 "Unclarified projects",
-                neorg.lib.wrap(module.public.display_unclarified, "project", projects, tasks)
+                neorg.lib.wrap(module.public.display_unclarified, "project", unclarified_projects)
             )
             :blank()
             :text("Top priorities")

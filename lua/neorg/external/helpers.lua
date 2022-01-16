@@ -300,7 +300,7 @@ neorg.lib = {
     --- Iterates over all elements of a table and returns the first value returned by the callback.
     --- @param tbl table #The table to iterate over
     --- @param callback function #The callback function that should be invoked on each iteration.
-    --  Can return a value in which case that value will be returned from the `filter()` call.
+    --- Can return a value in which case that value will be returned from the `filter()` call.
     --- @return any|nil #The value returned by `callback`, if any
     filter = function(tbl, callback)
         for k, v in pairs(tbl) do
@@ -352,6 +352,28 @@ neorg.lib = {
         end
 
         return result
+    end,
+
+    --- Wraps a conditional "not" function in a vim.tbl callback
+    --- @param cb function #The function to wrap
+    --- @vararg ... #The arguments to pass to the wrapped function
+    --- @return function #The wrapped function in a vim.tbl callback
+    wrap_cond_not = function(cb, ...)
+        local params = { ... }
+        return function(v)
+            return not cb(v, unpack(params))
+        end
+    end,
+
+    --- Wraps a conditional function in a vim.tbl callback
+    --- @param cb function #The function to wrap
+    --- @vararg ... #The arguments to pass to the wrapped function
+    --- @return function #The wrapped function in a vim.tbl callback
+    wrap_cond = function(cb, ...)
+        local params = { ... }
+        return function(v)
+            return cb(v, unpack(params))
+        end
     end,
 
     --- Wraps a function in a callback
