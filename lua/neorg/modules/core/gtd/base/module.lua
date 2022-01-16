@@ -46,6 +46,11 @@ module.config.public = {
     -- You can exclude files or directories from gtd parsing by passing them here (relative file path from workspace root)
     exclude = {},
 
+    -- Default lists used for GTD
+    default_lists = {
+        inbox = "inbox.norg"
+    },
+
     -- The syntax to use for gtd.
     syntax = {
         context = "#contexts",
