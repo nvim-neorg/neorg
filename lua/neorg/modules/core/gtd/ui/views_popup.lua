@@ -50,9 +50,6 @@ module.private = {
             neorg.lib.wrap_cond_not(module.required["core.gtd.helpers"].is_processed, tasks),
             projects
         )
-        neorg.lib.wrap_cond_not(function (v, ...)
-            
-        end, )
 
         projects = vim.tbl_filter(
             neorg.lib.wrap_cond(module.required["core.gtd.helpers"].is_processed, tasks),
