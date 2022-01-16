@@ -77,7 +77,7 @@ module.private = {
     end,
 
     edit_task = function(task)
-        task = module.private.refetch_data_not_extracted({ task.node, task.bufnr }, "task")
+        task = module.private.refetch_data_not_extracted({ task.internal.node, task.internal.bufnr }, "task")
         module.public.edit_task(task)
     end,
 }

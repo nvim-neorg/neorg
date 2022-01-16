@@ -36,16 +36,17 @@ module.private = {
     --- Try to re-fetch the node with newer content (after an update for example)
     --- @param node table
     --- @param type string
-    --- @return core.gtd.queries.task?
+    --- @return core.gtd.queries.task|core.gtd.queries.project
     refetch_data_not_extracted = function(node, type)
         -- Get all nodes from the bufnr and add metadatas to it
         -- This is mandatory because we need to have the correct task position, else the update will not work
         local nodes = module.required["core.gtd.queries"].get(type .. "s", { bufnr = node[2] })
+        --- @type core.gtd.queries.task[]|core.gtd.queries.project[]
         nodes = module.required["core.gtd.queries"].add_metadata(nodes, type, { extract = false, same_node = true })
 
         -- Find the correct task node
         local found_data = vim.tbl_filter(function(n)
-            return n.node:id() == node[1]:id()
+            return n.internal.node:id() == node[1]:id()
         end, nodes)
 
         if #found_data == 0 then
