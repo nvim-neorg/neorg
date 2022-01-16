@@ -48,7 +48,7 @@ module.config.public = {
 
     -- Default lists used for GTD
     default_lists = {
-        inbox = "inbox.norg"
+        inbox = "inbox.norg",
     },
 
     -- The syntax to use for gtd.
