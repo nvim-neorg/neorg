@@ -73,7 +73,7 @@ module.public = {
                     return
                 end
 
-                local project_tasks = vim.tbl_map(function(t)
+                local project_tasks = vim.tbl_filter(function(t)
                     return t.project_uuid == data.uuid
                 end, tasks)
 
