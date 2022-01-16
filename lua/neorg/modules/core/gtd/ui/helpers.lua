@@ -56,7 +56,6 @@ module.private = {
 
         return found_data[1]
     end,
-
 }
 
 return module
