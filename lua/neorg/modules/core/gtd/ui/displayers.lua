@@ -488,7 +488,7 @@ module.public = {
             "Here is like your inbox: every " .. type .. " not properly formulated is shown here",
             "In order for a " .. type .. " to be processed, it needs to be given:",
         }
-        table.insert(res, type == "task" and "~~ One or more contexts" or "~ One or more tasks")
+        table.insert(res, type == "task" and "~ One or more contexts" or "~ One or more tasks")
         table.insert(res, "")
         local positions = {}
 
