@@ -477,10 +477,8 @@ module.public = {
     --- Display every task or project that is unclarified
     --- @param type string
     --- @param data core.gtd.queries.task[]|core.gtd.queries.project[]
-    --- @param tasks core.gtd.queries.task[]
     --- @return number
-    ---@overload fun(type, data)
-    display_unclarified = function(type, data, tasks)
+    display_unclarified = function(type, data)
         local name = "Unclarified tasks"
         local res = {
             "* " .. name,
@@ -492,11 +490,7 @@ module.public = {
         table.insert(res, "")
         local positions = {}
 
-        local unclarified = vim.tbl_filter(function(d)
-            return not module.required["core.gtd.helpers"].is_processed(d, tasks)
-        end, data)
-
-        for _, d in pairs(unclarified) do
+        for _, d in pairs(data) do
             local result = "- " .. d.content
             table.insert(res, result)
             positions[#res] = d
