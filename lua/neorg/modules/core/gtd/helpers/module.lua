@@ -75,6 +75,16 @@ module.public = {
                     return
                 end
 
+                -- If the project is in someday, do not count it as unprocessed
+                if
+                    type(data.contexts) == "table"
+                    and not vim.tbl_isempty(data.contexts)
+                    and vim.tbl_contains(data.contexts, "someday")
+                then
+                    return true
+                end
+
+                -- All projects in inbox are unprocessed
                 if data.inbox then
                     return false
                 end
@@ -83,10 +93,12 @@ module.public = {
                     return t.project_uuid == data.uuid
                 end, tasks)
 
+                -- Empty projects (without tasks) are unprocessed
                 if vim.tbl_isempty(project_tasks) then
                     return false
                 end
 
+                -- Do not count done tasks for unprocessed projects
                 project_tasks = vim.tbl_filter(function(t)
                     return t.state ~= "done"
                 end, project_tasks)
