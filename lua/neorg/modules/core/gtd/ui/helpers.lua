@@ -55,31 +55,6 @@ module.private = {
 
         return found_data[1]
     end,
-
-    --- Checks if the buffer is open
-    --- @return boolean
-    is_buffer_open = function()
-        return module.private.current_bufnr ~= nil
-    end,
-
-    --- Close opened display and go back to previous mode
-    close_buffer = function()
-        if not module.private.is_buffer_open() then
-            return
-        end
-
-        -- Go back to previous mode
-        local previous_mode = module.required["core.mode"].get_previous_mode()
-        module.required["core.mode"].set_mode(previous_mode)
-
-        -- Closes the display
-        vim.api.nvim_buf_delete(module.private.current_bufnr, { force = true })
-
-        module.private.data = {}
-        module.private.extras = {}
-        module.private.current_bufnr = nil
-        module.private.display_namespace_nr = nil
-    end,
 }
 
 return module

@@ -160,7 +160,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     .. core_defaults.filename
                     .. ")"
                 return {
-                    "Neorg come with some default modules that will be automatically loaded if you require "
+                    "Neorg comes with some default modules that will be automatically loaded if you require the "
                         .. link
                         .. " module:",
                 }
@@ -305,7 +305,8 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "",
             function()
                 local res = {}
-                names = {}
+                local names = {}
+
                 for n, config in pairs(modules) do
                     if config.is_extension ~= true then
                         table.insert(names, n)
