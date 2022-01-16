@@ -479,14 +479,17 @@ module.public = {
     --- @param data core.gtd.queries.task[]|core.gtd.queries.project[]
     --- @return number
     display_unclarified = function(type, data)
+        local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
         local name = "Unclarified tasks"
         local res = {
             "* " .. name,
             "",
-            "Here is like your inbox: every " .. type .. " not properly formulated is shown here",
-            "In order for a " .. type .. " to be processed, it needs to be given:",
+            "Welcome to the inbox: every " .. type .. " not properly formulated is shown here",
+            "In order for a " .. type .. " to be processed, it needs to be:",
+            "- Removed from the inbox file (`" .. inbox .. "`)",
+            "/OR/",
         }
-        table.insert(res, type == "task" and "~ One or more contexts" or "~ One or more tasks")
+        table.insert(res, type == "task" and "- Have one or more contexts" or "- Have one or more tasks")
         table.insert(res, "")
         local positions = {}
 
