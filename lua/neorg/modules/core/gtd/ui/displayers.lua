@@ -493,11 +493,38 @@ module.public = {
         table.insert(res, "")
         local positions = {}
 
-        for _, d in pairs(data) do
-            local result = "- " .. d.content
-            table.insert(res, result)
-            positions[#res] = d
+        local in_inbox = vim.tbl_filter(function(d)
+            return d.inbox
+        end, data)
+        local unclarified = vim.tbl_filter(function(d)
+            return not d.inbox
+        end, data)
+
+        local function construct(tbl)
+            for _, d in pairs(tbl) do
+                local result = "- " .. d.content
+                table.insert(res, result)
+                positions[#res] = d
+            end
         end
+
+        table.insert(res, "** In Inbox file")
+        table.insert(res, "")
+
+        neorg.lib.when(vim.tbl_isempty(in_inbox), function()
+            table.insert(res, "/No " .. type .. "s found in inbox/")
+            table.insert(res, "")
+        end, function()
+            construct(in_inbox)
+            table.insert(res, "")
+        end)
+
+        table.insert(res, "** Unclarified " .. type .. "s")
+        table.insert(res, "")
+
+        neorg.lib.when(vim.tbl_isempty(unclarified), function()
+            table.insert(res, "/No " .. type .. "s unclarified/")
+        end, neorg.lib.wrap(construct, unclarified))
 
         return module.private.generate_display(name, positions, res)
     end,
