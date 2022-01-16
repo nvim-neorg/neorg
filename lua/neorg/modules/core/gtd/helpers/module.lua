@@ -77,6 +77,14 @@ module.public = {
                     return t.project_uuid == data.uuid
                 end, tasks)
 
+                if vim.tbl_isempty(project_tasks) then
+                    return false
+                end
+
+                project_tasks = vim.tbl_filter(function(t)
+                    return t.state ~= "done"
+                end, project_tasks)
+
                 return not vim.tbl_isempty(project_tasks)
             end,
         })
