@@ -232,7 +232,7 @@
 
    **** Changes from base GTD
     ***** Inbox list
-          There is not concept of a inbox list. However, we have what we call `Unprocessed` tasks
+          There is not concept of a inbox list. However, we have what we call `Unclarified` tasks
           and projects. 
           - For a task to be processed, it should require at minima 1 context.
           - For a project to be processed, it should require at minima 1 task.
@@ -254,7 +254,7 @@
    **** Daily review
         The daily review is a process of shallowly reviewing:
         - What's been done yesterday
-        - What's in the inbox (unprocessed tasks and projects)
+        - What's in the inbox (unclarified tasks and projects)
 
         No user interaction per se is necessary for this part.
 
