@@ -42,21 +42,13 @@ module.private = {
     --- @param projects core.gtd.queries.project[]
     --- @return core.ui.selection
     generate_display_flags = function(selection, tasks, projects)
-        local unclarified_tasks = vim.tbl_filter(
-            neorg.lib.wrap_cond_not(module.required["core.gtd.helpers"].is_processed),
-            tasks
-        )
-        local unclarified_projects = vim.tbl_filter(
-            neorg.lib.wrap_cond_not(module.required["core.gtd.helpers"].is_processed, tasks),
-            projects
-        )
+        local is_processed_cb = module.public.get_callback("is_processed")
+        local unclarified_tasks = vim.tbl_filter(neorg.lib.wrap_cond_not(is_processed_cb), tasks)
+        local unclarified_projects = vim.tbl_filter(neorg.lib.wrap_cond_not(is_processed_cb, tasks), projects)
 
-        projects = vim.tbl_filter(
-            neorg.lib.wrap_cond(module.required["core.gtd.helpers"].is_processed, tasks),
-            projects
-        )
+        projects = vim.tbl_filter(neorg.lib.wrap_cond(is_processed_cb, tasks), projects)
 
-        tasks = vim.tbl_filter(neorg.lib.wrap_cond(module.required["core.gtd.helpers"].is_processed), tasks)
+        tasks = vim.tbl_filter(neorg.lib.wrap_cond(is_processed_cb), tasks)
 
         selection
             :text("Unclarified")

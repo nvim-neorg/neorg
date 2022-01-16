@@ -19,6 +19,7 @@ module.load = function()
     -- Set up callbacks
     module.public.callbacks.goto_task_function = module.private.goto_node_internal
     module.public.callbacks.edit_task = module.private.edit_task
+    module.public.callbacks.is_processed = module.required["core.gtd.helpers"].is_processed
 end
 
 module.setup = function()
@@ -47,6 +48,9 @@ end
 
 ---@class core.gtd.ui
 module.public = {
+    get_callback = function(name)
+        return module.public.callbacks[name]
+    end,
     callbacks = {},
 }
 
