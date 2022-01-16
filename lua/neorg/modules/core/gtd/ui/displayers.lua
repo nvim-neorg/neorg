@@ -587,7 +587,6 @@ module.private = {
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
 
-        P(module.private.current_bufnr)
         return buf
     end,
 
