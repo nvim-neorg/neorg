@@ -485,11 +485,16 @@ module.public = {
             "* " .. name,
             "",
             "Welcome to the inbox: every " .. type .. " not properly formulated is shown here",
-            "In order for a " .. type .. " to be processed, it needs to be:",
-            "- Removed from the inbox file (`" .. inbox .. "`)",
+            "In order for a " .. type .. " to be processed, it needs to:",
+            "- Be removed from the inbox file (`" .. inbox .. "`), *and*",
         }
 
-        table.insert(res, type == "task" and "- Have one or more contexts" or "- Have one or more tasks")
+        neorg.lib.when(type == "task", function()
+            table.insert(res, "- Have one or more `contexts`, *or*")
+            table.insert(res, "- Have one or more `waiting_for`")
+        end, function()
+            table.insert(res, "- Have one or more tasks")
+        end)
         table.insert(res, "")
         local positions = {}
 
