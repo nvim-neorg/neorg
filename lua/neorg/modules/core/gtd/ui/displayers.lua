@@ -487,8 +487,8 @@ module.public = {
             "Welcome to the inbox: every " .. type .. " not properly formulated is shown here",
             "In order for a " .. type .. " to be processed, it needs to be:",
             "- Removed from the inbox file (`" .. inbox .. "`)",
-            "/OR/",
         }
+
         table.insert(res, type == "task" and "- Have one or more contexts" or "- Have one or more tasks")
         table.insert(res, "")
         local positions = {}
