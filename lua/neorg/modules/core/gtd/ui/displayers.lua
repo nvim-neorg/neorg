@@ -480,7 +480,7 @@ module.public = {
     --- @return number
     display_unclarified = function(type, data)
         local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
-        local name = "Unclarified tasks"
+        local name = "Unclarified " .. type .. "s"
         local res = {
             "* " .. name,
             "",
