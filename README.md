@@ -121,9 +121,7 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 </details>
 
 ## Installation
-
-Neorg requires at least Neovim 0.6+ to operate.
-You can still use Neorg on `0.5.x`, however, do not expect all modules to load properly.
+**Neorg requires at least Neovim 0.6+ to operate.**
 
 You can install it through your favorite plugin manager:
 
@@ -184,32 +182,6 @@ You can install it through your favorite plugin manager:
   EOF
   ```
 
-## Setup
-
-You've got the basic stuff out the way now, but wait! That's not all. You've installed Neorg - great! Now you have to configure it.
-By default, Neorg does nothing, and gives you nothing. You must tell it what you care about!
-
-### Default modules
-
-Neorg runs on _modules_, which are discussed and explained in more depth later on.
-Each module provides a single bit of functionality - they can then be stacked together to form
-the entire Neorg environment.
-
-The most common module you'll find is the `core.defaults` module, which is basically a "load all features" switch.
-It gives you the full experience out of the box.
-
-The code snippet to enable all default modules is very straightforward:
-
-```lua
-require('neorg').setup {
-    load = {
-        ["core.defaults"] = {}
-    }
-}
-```
-
-You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) which modules are automatically required when adding `core.defaults`.
-
 ### Treesitter
 
 ###### _Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system for this step!_
@@ -220,6 +192,7 @@ To set up Neorg's parsers, you want to run this code snippet **before** you invo
 ```lua
 local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
 
+-- This parser is required for Neorg to work
 parser_configs.norg = {
     install_info = {
         url = "https://github.com/nvim-neorg/tree-sitter-norg",
@@ -228,7 +201,7 @@ parser_configs.norg = {
     },
 }
 
--- These two are optional, but provide syntax highlighting
+-- These two are optional and provide syntax highlighting
 -- for Neorg tables and the @document.meta tag
 parser_configs.norg_meta = {
     install_info = {
@@ -274,6 +247,32 @@ Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-trees
 If you're on Mac and have compilation errors when doing `:TSInstall`, check out this [fix](https://github.com/nvim-neorg/neorg/issues/74#issuecomment-906627223).
 It's a bit hacky - it will unfortunately stay this way until we get first-class support in the `nvim-treesitter` repository.
 Sorry!
+
+## Setup
+
+You've got the basic stuff out the way now, but wait! That's not all. You've installed Neorg - great! Now you have to configure it.
+By default, Neorg does nothing, and gives you nothing. You must tell it what you care about!
+
+### Default modules
+
+Neorg runs on _modules_, which are discussed and explained in more depth later on.
+Each module provides a single bit of functionality - they can then be stacked together to form
+the entire Neorg environment.
+
+The most common module you'll find is the `core.defaults` module, which is basically a "load all features" switch.
+It gives you the full experience out of the box.
+
+The code snippet to enable all default modules is very straightforward:
+
+```lua
+require('neorg').setup {
+    load = {
+        ["core.defaults"] = {}
+    }
+}
+```
+
+You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) which modules are automatically required when adding `core.defaults`.
 
 ## Usage
 
@@ -358,13 +357,13 @@ Feel free to try by adding them to your Neorg setup.
 
 | Module name                                                                     | Description                                                                 |
 | :------------------------------------------------------------------------------ | :-------------------------------------------------------------------------- |
-| [`core.presenter`](https://github.com/nvim-neorg/neorg/wiki/Core-Presenter)     | Neorg module to create gorgeous presentation slides.                        |
+| [`core.gtd.base`](https://github.com/nvim-neorg/neorg/wiki/Getting-Things-Done) | Manages your tasks with Neorg using the Getting Things Done methodology.    |
 | [`core.norg.completion`](https://github.com/nvim-neorg/neorg/wiki/Completion)   | A wrapper to interface with several different completion engines.           |
 | [`core.norg.concealer`](https://github.com/nvim-neorg/neorg/wiki/Concealer)     | Enhances the basic Neorg experience by using icons instead of text.         |
-| [`core.norg.journal`](https://github.com/nvim-neorg/neorg/wiki/Journal)         | Easily create files for a journal.                                          |
-| [`core.gtd.base`](https://github.com/nvim-neorg/neorg/wiki/Getting-Things-Done) | Manages your tasks with Neorg using the Getting Things Done methodology.    |
 | [`core.norg.dirman`](https://github.com/nvim-neorg/neorg/wiki/Dirman)           | This module is be responsible for managing directories full of .norg files. |
+| [`core.norg.journal`](https://github.com/nvim-neorg/neorg/wiki/Journal)         | Easily create files for a journal.                                          |
 | [`core.norg.qol.toc`](https://github.com/nvim-neorg/neorg/wiki/Qol-Toc)         | Generates a Table of Contents from the Neorg file.                          |
+| [`core.presenter`](https://github.com/nvim-neorg/neorg/wiki/Core-Presenter)     | Neorg module to create gorgeous presentation slides.                        |
 
 </details>
 
@@ -397,9 +396,9 @@ require('neorg').setup {
 
 | Module name                                                                        | Description                                                                          |
 | :--------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
+| [`core.integrations.telescope`](https://github.com/nvim-neorg/neorg-telescope)     | Neorg integration with [Telescope](https://github.com/nvim-telescope/telescope.nvim) |
 | [`external.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base`        |
 | [`external.integrations.gtd-things`](https://github.com/danymat/neorg-gtd-things) | Use Things3 database to fetch and update tasks instead. Requires `core.gtd.base`        |
-| [`core.integrations.telescope`](https://github.com/nvim-neorg/neorg-telescope)     | Neorg integration with [Telescope](https://github.com/nvim-telescope/telescope.nvim) |
 
 
 </details>
@@ -413,7 +412,7 @@ Our goals are fairly simple:
 
 1. Revise the org format: simple, extensible, unambiguous. Will make you feel right at home. Alternate markup formats have several flaws, but the most
    notable one is the requirement for **complex parsers**.
-   I really advise checking some writeups out on how bad it can get at times.
+   I really advise checking [some writeups](https://talk.commonmark.org/t/beyond-markdown/2787) out on how bad it can get at times.
    What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
    Enter the `.norg` file format, whose [base spec](docs/NFF-0.1-spec.md) is practically complete.
    The cross between all the best things from org and the best things from markdown, revised and merged into one.
