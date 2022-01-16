@@ -493,9 +493,14 @@ module.public = {
         table.insert(res, "")
         local positions = {}
 
+        data = vim.tbl_filter(function(d)
+            return d.state ~= "done"
+        end, data)
+
         local in_inbox = vim.tbl_filter(function(d)
             return d.inbox
         end, data)
+
         local unclarified = vim.tbl_filter(function(d)
             return not d.inbox
         end, data)
