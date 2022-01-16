@@ -493,7 +493,8 @@ module.public = {
             table.insert(res, "- Have one or more `contexts`, *or*")
             table.insert(res, "- Have one or more `waiting_for`")
         end, function()
-            table.insert(res, "- Have one or more tasks")
+            table.insert(res, "- Have one or more tasks, *or*")
+            table.insert(res, "- Be in `someday`")
         end)
         table.insert(res, "")
         local positions = {}
