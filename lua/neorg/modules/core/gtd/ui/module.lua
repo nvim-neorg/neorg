@@ -96,7 +96,7 @@ module.on_event = function(event)
             module.private.toggle_details()
         end
     elseif event.split_type[1] == "core.autocommands" then
-        if event.split_type[2] == "bufleave" and event.buffer == module.private.current_bufnr then
+        if event.split_type[2] == "bufleave" and module.private.is_current_bufnr(event.buffer) then
             module.private.close_buffer()
         end
     end

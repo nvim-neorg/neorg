@@ -483,15 +483,13 @@ module.private = {
     current_bufnr = nil,
     display_namespace_nr = nil,
 
-    --- Checks if the buffer is open
-    --- @return boolean
-    is_buffer_open = function()
-        return module.private.current_bufnr ~= nil
+    is_current_bufnr = function(buf)
+        return module.private.current_bufnr == buf
     end,
 
     --- Close opened display and go back to previous mode
     close_buffer = function()
-        if not module.private.is_buffer_open() then
+        if module.private.current_bufnr == nil then
             return
         end
 
