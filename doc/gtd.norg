@@ -232,10 +232,11 @@
 
    **** Changes from base GTD
     ***** Inbox list
-          There is not concept of a inbox list. However, we have what we call `Unclarified` tasks
-          and projects. 
-          - For a task to be processed, it should require at minima 1 context.
-          - For a project to be processed, it should require at minima 1 task.
+          The inbox list is a set of all tasks and projects that are:
+          - In the inbox list (default: `inbox.norg` file)
+          - /Unclarified/, and not in inbox list
+          -- For a task to be clarified, it should require at minima 1 context.
+          -- For a project to be clarified, it should require at minima 1 task.
     ***** Context Lists
           There is no concept of context lists. Instead there are tags, e.g. `#contexts home`.
           Special contexts:
