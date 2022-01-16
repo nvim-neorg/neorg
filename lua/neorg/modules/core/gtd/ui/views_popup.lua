@@ -43,12 +43,12 @@ module.private = {
     --- @return core.ui.selection
     generate_display_flags = function(selection, tasks, projects)
         selection
-            :text("Unprocessed")
-            :flag("u", "Unprocessed tasks", neorg.lib.wrap(module.public.display_unprocessed, "task", tasks))
+            :text("Unclarified")
+            :flag("u", "Unclarified tasks", neorg.lib.wrap(module.public.display_unclarified, "task", tasks))
             :flag(
                 "<C-u>",
-                "Unprocessed projects",
-                neorg.lib.wrap(module.public.display_unprocessed, "project", projects, tasks)
+                "Unclarified projects",
+                neorg.lib.wrap(module.public.display_unclarified, "project", projects, tasks)
             )
             :blank()
             :text("Top priorities")

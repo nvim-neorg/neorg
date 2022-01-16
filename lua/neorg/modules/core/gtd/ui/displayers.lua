@@ -474,14 +474,14 @@ module.public = {
         return module.private.generate_display(name, positions, res)
     end,
 
-    --- Display every task or project that is unprocessed
+    --- Display every task or project that is unclarified
     --- @param type string
     --- @param data core.gtd.queries.task[]|core.gtd.queries.project[]
     --- @param tasks core.gtd.queries.task[]
     --- @return number
     ---@overload fun(type, data)
-    display_unprocessed = function(type, data, tasks)
-        local name = "Unprocessed tasks"
+    display_unclarified = function(type, data, tasks)
+        local name = "Unclarified tasks"
         local res = {
             "* " .. name,
             "",
@@ -492,11 +492,11 @@ module.public = {
         table.insert(res, "")
         local positions = {}
 
-        local unprocessed = vim.tbl_filter(function(d)
+        local unclarified = vim.tbl_filter(function(d)
             return not module.required["core.gtd.helpers"].is_processed(d, tasks)
         end, data)
 
-        for _, d in pairs(unprocessed) do
+        for _, d in pairs(unclarified) do
             local result = "- " .. d.content
             table.insert(res, result)
             positions[#res] = d
@@ -562,6 +562,7 @@ module.private = {
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, res)
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
 
+        P(module.private.current_bufnr)
         return buf
     end,
 

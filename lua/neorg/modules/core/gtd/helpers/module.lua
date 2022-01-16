@@ -58,7 +58,7 @@ module.public = {
     end,
 
     --- Checks if the data is processed or not.
-    --- Check out :h neorg-gtd to know what is an unprocessed task or project
+    --- Check out :h neorg-gtd to know what is an unclarified task or project
     --- @param data core.gtd.queries.task|core.gtd.queries.project
     --- @param tasks core.gtd.queries.task[]?
     is_processed = function(data, tasks)
