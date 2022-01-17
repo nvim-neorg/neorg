@@ -1,4 +1,4 @@
-local module = neorg.modules.extend("core.keybinds.default_keybinds")
+local module = neorg.modules.extend("core.keybinds.keybinds")
 
 ---@class core.keybinds
 module.config.public = {

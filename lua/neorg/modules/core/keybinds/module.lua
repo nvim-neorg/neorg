@@ -23,14 +23,29 @@ every keybind bit by bit.
 ["core.keybinds"] = {
     config = {
         hook = function(keybinds)
+            -- Unmaps any Neorg key from the `norg` mode
             keybinds.unmap("norg", "n", "gtd")
+
+            -- Binds the `gtd` key in `norg` mode to execute `:echo 'Hello'`
+            keybinds.map("norg", "n", "gtd", "<cmd>echo 'Hello!'<CR>")
+
+            -- Remap unbinds the current key then rebinds it to have a different action
+            -- associated with it.
+            -- The following is the equivalent of the `unmap` and `map` calls you saw above:
+            keybinds.remap("norg", "n", "gtd", "<cmd>echo 'Hello!'<CR>")
+
+            -- Sometimes you may simply want to rebind the Neorg action something is bound to
+            -- versus remapping the entire keybind. This remap is essentially the same as if you
+            -- did `keybinds.remap("norg", "n", "<C-Space>, "<cmd>Neorg keybind norg core.norg.qol.todo_items.todo.task_done<CR>")
             keybinds.remap_event("norg", "n", "<C-Space>", "core.norg.qol.todo_items.todo.task_done")
+
+            -- Want to move one keybind into the other? `remap_key` moves the data of the
+            -- first keybind to the second keybind, then unbinds the first keybind.
+            keybinds.remap_key("norg", "n", "<C-Space>", "<Leader>t")
         end,
     }
 }
 ```
-
-TODO: Perhaps autogenerate all the functions `keybinds` exposes.
 --]]
 
 require("neorg.modules.base")
@@ -109,8 +124,8 @@ module.examples = {
         end)
 
         -- To change the current mode as a user of neorg you can run :Neorg set-mode <mode>.
-        --If you try changing the current mode into a non-existent mode (like :Neorg set-mode a-nonexistent-mode) you will see that all the keybinds you bound to the norg mode won't work anymore!
-        --They'll start working again if you reset the mode back via :Neorg set-mode norg.
+        -- If you try changing the current mode into a non-existent mode (like :Neorg set-mode a-nonexistent-mode) you will see that all the keybinds you bound to the norg mode won't work anymore!
+        -- They'll start working again if you reset the mode back via :Neorg set-mode norg.
     end,
 }
 
@@ -118,7 +133,7 @@ module.setup = function()
     return {
         success = true,
         requires = { "core.neorgcmd", "core.mode", "core.autocommands" },
-        imports = { "default_keybinds" },
+        imports = { "keybinds" },
     }
 end
 
@@ -134,7 +149,7 @@ module.load = function()
 end
 
 module.config.public = {
-    -- Use the default keybinds provided in https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/default_keybinds.lua
+    -- Use the default keybinds provided in https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/keybinds.lua
     default_keybinds = true,
 
     -- Prefix for some Neorg keybinds
@@ -224,12 +239,12 @@ module.public = {
 
         payload = {
 
-            -- @Summary Maps a Neovim keybind.
-            -- @Description Allows Neorg to manage and track mapped keys.
-            -- @Param  mode (string) - same as the mode parameter for :h nvim_buf_set_keymap
-            -- @Param  key (string) - same as the lhs parameter for :h nvim_buf_set_keymap
-            -- @Param  command (string) - same as the rhs parameter for :h nvim_buf_set_keymap
-            -- @Param  opts (table) - same as the opts parameter for :h nvim_buf_set_keymap
+            --- Maps a key to a specific Neorg mode
+            --- @param neorg_mode string #The Neorg mode to bind to
+            --- @param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
+            --- @param key string #The lhs value from `:h nvim_buf_set_keymap`
+            --- @param command string|function #The rhs value from `:h nvim_buf_set_keymap`
+            --- @param opts table #The table value from `:h nvim_buf_set_keymap`
             map = function(neorg_mode, mode, key, command, opts)
                 bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
                 bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
@@ -241,10 +256,22 @@ module.public = {
                 }
             end,
 
+            --- Maps a key to a specific Neorg keybind.
+            --  `map()` binds to any rhs value, whilst `map_event()` is essentially a wrapper
+            --  for <cmd>Neorg keybind `neorg_mode` `expr`<CR>
+            --- @param neorg_mode string #The Neorg mode to bind to
+            --- @param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
+            --- @param key string #The lhs value from `:h nvim_buf_set_keymap`
+            --- @param expr string #The Neorg event to bind to (e.g. `core.norg.dirman.new.note`)
+            --- @param opts table #The table value from `:h nvim_buf_set_keymap`
             map_event = function(neorg_mode, mode, key, expr, opts)
                 payload.map(neorg_mode, mode, key, "<cmd>Neorg keybind " .. neorg_mode .. " " .. expr .. "<CR>", opts)
             end,
 
+            --- Unmaps any keybind from any Neorg mode
+            --- @param neorg_mode string #The Neorg mode to remove the key from
+            --- @param mode string #The target Neovim mode
+            --- @param key string #The key itself to unmap
             unmap = function(neorg_mode, mode, key)
                 if neorg_mode == "all" then
                     for _, norg_mode in ipairs(module.required["core.mode"].get_modes()) do
@@ -342,7 +369,7 @@ module.public = {
                 end
             end,
 
-            -- Include the current Neorg mode in the contents
+            -- Include the current Neorg mode and leader in the contents
             mode = current_mode,
             leader = module.config.public.neorg_leader,
         }
