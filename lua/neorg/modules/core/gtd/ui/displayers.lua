@@ -511,7 +511,7 @@ module.public = {
         end
 
         table.insert(res, "** In Inbox file")
-        table.insert(res, "> - Be removed from the inbox file (`" .. inbox .. "`)")
+        table.insert(res, "> - " .. type .. "s in Inbox file (`" .. inbox .. "`)")
         table.insert(res, "")
 
         neorg.lib.when(vim.tbl_isempty(in_inbox), function()
@@ -524,9 +524,9 @@ module.public = {
 
         table.insert(res, "** Unclarified " .. type .. "s")
         neorg.lib.when(type == "task", function()
-            table.insert(res, "> - Have one or more `contexts` or `waiting_for`")
+            table.insert(res, "> - tasks without `contexts` or `waiting_for`")
         end, function()
-            table.insert(res, "> - Have one or more tasks or be in `someday`")
+            table.insert(res, "> - projects without tasks or not in `someday`")
         end)
         table.insert(res, "")
 
