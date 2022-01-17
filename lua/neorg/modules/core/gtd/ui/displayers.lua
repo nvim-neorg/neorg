@@ -473,6 +473,69 @@ module.public = {
 
         return module.private.generate_display(name, positions, res)
     end,
+
+    --- Display every task or project that is unclarified
+    --- @param type string
+    --- @param data core.gtd.queries.task[]|core.gtd.queries.project[]
+    --- @return number
+    display_unclarified = function(type, data)
+        local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
+        local name = "Unclarified " .. type .. "s"
+        local res = {
+            "* " .. name,
+            "",
+            "Welcome to the inbox: every " .. type .. " not properly formulated is shown here",
+            "",
+        }
+
+        local positions = {}
+
+        data = vim.tbl_filter(function(d)
+            return d.state ~= "done"
+        end, data)
+
+        local in_inbox = vim.tbl_filter(function(d)
+            return d.inbox
+        end, data)
+
+        local unclarified = vim.tbl_filter(function(d)
+            return not d.inbox
+        end, data)
+
+        local function construct(tbl)
+            for _, d in pairs(tbl) do
+                local result = "- " .. d.content
+                table.insert(res, result)
+                positions[#res] = d
+            end
+        end
+
+        table.insert(res, "** In Inbox file")
+        table.insert(res, "> - Be removed from the inbox file (`" .. inbox .. "`)")
+        table.insert(res, "")
+
+        neorg.lib.when(vim.tbl_isempty(in_inbox), function()
+            table.insert(res, "/No " .. type .. "s found in inbox/")
+            table.insert(res, "")
+        end, function()
+            construct(in_inbox)
+            table.insert(res, "")
+        end)
+
+        table.insert(res, "** Unclarified " .. type .. "s")
+        neorg.lib.when(type == "task", function()
+            table.insert(res, "> - Have one or more `contexts` or `waiting_for`")
+        end, function()
+            table.insert(res, "> - Have one or more tasks or be in `someday`")
+        end)
+        table.insert(res, "")
+
+        neorg.lib.when(vim.tbl_isempty(unclarified), function()
+            table.insert(res, "/No " .. type .. "s unclarified/")
+        end, neorg.lib.wrap(construct, unclarified))
+
+        return module.private.generate_display(name, positions, res)
+    end,
 }
 
 --- @class private_core.gtd.ui

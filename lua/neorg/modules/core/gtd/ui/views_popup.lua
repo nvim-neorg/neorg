@@ -42,32 +42,40 @@ module.private = {
     --- @param projects core.gtd.queries.project[]
     --- @return core.ui.selection
     generate_display_flags = function(selection, tasks, projects)
+        local is_processed_cb = module.public.get_callback("is_processed")
+        local unclarified_tasks = vim.tbl_filter(neorg.lib.wrap_cond_not(is_processed_cb), tasks)
+        local unclarified_projects = vim.tbl_filter(neorg.lib.wrap_cond_not(is_processed_cb, tasks), projects)
+
+        projects = vim.tbl_filter(neorg.lib.wrap_cond(is_processed_cb, tasks), projects)
+
+        tasks = vim.tbl_filter(neorg.lib.wrap_cond(is_processed_cb), tasks)
+
         selection
-            :text("Top priorities")
-            :flag("s", "Weekly Summary", function()
-                module.public.display_weekly_summary(tasks)
-            end)
+            :text("Unclarified")
+            :flag(
+                "u",
+                "Unclarified tasks",
+                neorg.lib.wrap(module.public.display_unclarified, "task", unclarified_tasks)
+            )
+            :flag(
+                "<C-u>",
+                "Unclarified projects",
+                neorg.lib.wrap(module.public.display_unclarified, "project", unclarified_projects)
+            )
             :blank()
-            :text("Tasks")
-            :flag("t", "Today's tasks", function()
-                module.public.display_today_tasks(tasks)
-            end)
+            :text("Top priorities")
+            :flag("s", "Weekly Summary", neorg.lib.wrap(module.public.display_weekly_summary, tasks))
+            :flag("t", "Today's tasks", neorg.lib.wrap(module.public.display_today_tasks, tasks))
+            :flag("p", "Show projects", neorg.lib.wrap(module.public.display_projects, tasks, projects))
             :blank()
             :text("Sort and filter tasks")
-            :flag("c", "Contexts", function()
-                module.public.display_contexts(tasks, { exclude = { "someday" }, priority = { "_" } })
-            end)
-            :flag("w", "Waiting For", function()
-                module.public.display_waiting_for(tasks)
-            end)
-            :flag("d", "Someday Tasks", function()
-                module.public.display_someday(tasks)
-            end)
-            :blank()
-            :text("Projects")
-            :flag("p", "Show projects", function()
-                module.public.display_projects(tasks, projects)
-            end)
+            :flag(
+                "c",
+                "Contexts",
+                neorg.lib.wrap(module.public.display_contexts, tasks, { exclude = { "someday" }, priority = { "_" } })
+            )
+            :flag("w", "Waiting For", neorg.lib.wrap(module.public.display_waiting_for, tasks))
+            :flag("d", "Someday Tasks", neorg.lib.wrap(module.public.display_someday, tasks))
             :blank()
             :concat(module.private.generate_informations)
         return selection
@@ -95,18 +103,18 @@ module.private = {
                 selection
                     :title("GTD informations")
                     :blank()
-                    :text("Files used for GTD")
-                    :concat(neorg.lib.wrap(files_text, selection, files))
-                    :blank()
-                    :text("Files excluded")
-                    :concat(neorg.lib.wrap(files_text, selection, excluded_files))
-                    :blank()
-                    :flag("<CR>", "Return to main page", {
+                    :flag("<BS>", "Return to main page", {
                         callback = function()
                             selection:pop_page()
                         end,
                         destroy = false,
                     })
+                    :blank()
+                    :text("Files used for GTD")
+                    :concat(neorg.lib.wrap(files_text, selection, files))
+                    :blank()
+                    :text("Files excluded")
+                    :concat(neorg.lib.wrap(files_text, selection, excluded_files))
             end,
             destroy = false,
         })

@@ -84,11 +84,11 @@ module.private = {
                         )
                     end)
                     :flag("<CR>", "Add to inbox", function()
-                        local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
                         local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
                         local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
 
                         local files = module.required["core.norg.dirman"].get_norg_files(workspace)
+                        local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
                         if not vim.tbl_contains(files, inbox) then
                             log.error([[ Inbox file is not from gtd workspace.
                             Please verify if the file exists in your gtd workspace.
@@ -247,12 +247,8 @@ module.private = {
 
                 selection:title("Add to project"):blank():text("Append task to existing project")
 
-                local gtd_config = neorg.modules.get_module_config("core.gtd.base")
-                local exclude_files = gtd_config.exclude
-                table.insert(exclude_files, gtd_config.default_lists.inbox)
-
                 -- Get all projects
-                local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = exclude_files })
+                local projects = module.required["core.gtd.queries"].get("projects")
                 --- @type core.gtd.queries.project
                 projects = module.required["core.gtd.queries"].add_metadata(projects, "project")
 
@@ -297,12 +293,7 @@ module.private = {
                                     :text("Project name: " .. project.content)
                                     :blank()
 
-                                local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
-                                local files = module.required["core.norg.dirman"].get_norg_files(workspace)
-
-                                for _, excluded_file in pairs(exclude_files) do
-                                    files = module.required["core.gtd.queries"].remove_from_table(files, excluded_file)
-                                end
+                                local files = module.required["core.gtd.helpers"].get_gtd_files()
 
                                 if vim.tbl_isempty(files) then
                                     selection:text("No files found...")

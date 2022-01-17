@@ -201,6 +201,10 @@ module.public = {
         vim.api.nvim_buf_set_name(buf, bufname)
         vim.api.nvim_win_set_buf(0, buf)
 
+        vim.api.nvim_buf_call(buf, function()
+            vim.cmd("set scrolloff=999")
+        end)
+
         vim.api.nvim_win_set_option(0, "number", false)
         vim.api.nvim_win_set_option(0, "relativenumber", false)
 

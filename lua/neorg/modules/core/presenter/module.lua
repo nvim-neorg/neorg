@@ -124,9 +124,6 @@ module.public = {
             nil,
             { keybinds = false }
         )
-        vim.api.nvim_buf_call(buffer, function()
-            vim.cmd("set scrolloff=999")
-        end)
 
         vim.api.nvim_buf_set_option(buffer, "modifiable", true)
         vim.api.nvim_buf_set_lines(buffer, 0, -1, false, results[1])
