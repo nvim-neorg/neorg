@@ -103,18 +103,18 @@ module.private = {
                 selection
                     :title("GTD informations")
                     :blank()
-                    :text("Files used for GTD")
-                    :concat(neorg.lib.wrap(files_text, selection, files))
-                    :blank()
-                    :text("Files excluded")
-                    :concat(neorg.lib.wrap(files_text, selection, excluded_files))
-                    :blank()
-                    :flag("<CR>", "Return to main page", {
+                    :flag("<BS>", "Return to main page", {
                         callback = function()
                             selection:pop_page()
                         end,
                         destroy = false,
                     })
+                    :blank()
+                    :text("Files used for GTD")
+                    :concat(neorg.lib.wrap(files_text, selection, files))
+                    :blank()
+                    :text("Files excluded")
+                    :concat(neorg.lib.wrap(files_text, selection, excluded_files))
             end,
             destroy = false,
         })

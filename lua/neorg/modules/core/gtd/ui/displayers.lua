@@ -485,18 +485,9 @@ module.public = {
             "* " .. name,
             "",
             "Welcome to the inbox: every " .. type .. " not properly formulated is shown here",
-            "In order for a " .. type .. " to be processed, it needs to:",
-            "- Be removed from the inbox file (`" .. inbox .. "`), *and*",
+            "",
         }
 
-        neorg.lib.when(type == "task", function()
-            table.insert(res, "- Have one or more `contexts`, *or*")
-            table.insert(res, "- Have one or more `waiting_for`")
-        end, function()
-            table.insert(res, "- Have one or more tasks, *or*")
-            table.insert(res, "- Be in `someday`")
-        end)
-        table.insert(res, "")
         local positions = {}
 
         data = vim.tbl_filter(function(d)
@@ -520,6 +511,7 @@ module.public = {
         end
 
         table.insert(res, "** In Inbox file")
+        table.insert(res, "> - Be removed from the inbox file (`" .. inbox .. "`)")
         table.insert(res, "")
 
         neorg.lib.when(vim.tbl_isempty(in_inbox), function()
@@ -531,6 +523,11 @@ module.public = {
         end)
 
         table.insert(res, "** Unclarified " .. type .. "s")
+        neorg.lib.when(type == "task", function()
+            table.insert(res, "> - Have one or more `contexts` or `waiting_for`")
+        end, function()
+            table.insert(res, "> - Have one or more tasks or be in `someday`")
+        end)
         table.insert(res, "")
 
         neorg.lib.when(vim.tbl_isempty(unclarified), function()
