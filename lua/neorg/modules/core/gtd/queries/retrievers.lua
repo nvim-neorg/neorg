@@ -12,6 +12,7 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 ---@field position number
 
 ---@class core.gtd.queries.task
+---@field inbox boolean
 ---@field content string
 ---@field type string
 ---@field project? string
@@ -25,6 +26,7 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 ---@field external? table
 
 ---@class core.gtd.queries.project
+---@field inbox boolean
 ---@field content string
 ---@field type string
 ---@field area_of_focus? string
@@ -201,6 +203,9 @@ module.public = {
             exported.uuid = exported.internal.node:id()
             exported.type = type
             exported.content = get_key("content", module.private.get_content, exported, type, opts)
+
+            local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
+            exported.inbox = vim.uri_from_bufnr(exported.internal.bufnr):sub(-#inbox) == inbox
 
             if type == "task" then
                 exported.project_uuid = get_key(

@@ -6,7 +6,6 @@ local module = neorg.modules.extend("core.gtd.ui.helpers", "core.gtd.ui")
 ---@class core.gtd.ui
 module.public = {
     get_data_for_views = function()
-        -- Exclude files explicitely provided by the user, and the inbox file
         local exclude_files = module.required["core.gtd.helpers"].get_gtd_excluded_files()
 
         -- Reset state of previous fetches

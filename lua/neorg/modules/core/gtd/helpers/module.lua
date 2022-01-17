@@ -53,9 +53,59 @@ module.public = {
     get_gtd_excluded_files = function()
         local gtd_config = module.private.get_gtd_config()
         local res = vim.deepcopy(gtd_config.exclude) or {}
-        table.insert(res, gtd_config.default_lists.inbox)
 
         return res
+    end,
+
+    --- Checks if the data is processed or not.
+    --- Check out :h neorg-gtd to know what is an unclarified task or project
+    --- @param data core.gtd.queries.task|core.gtd.queries.project
+    --- @param tasks core.gtd.queries.task[]?
+    is_processed = function(data, tasks)
+        return neorg.lib.match({
+            data.type,
+            ["task"] = function()
+                return (
+                        type(data.contexts) == "table" and not vim.tbl_isempty(data.contexts)
+                        or (type(data["waiting.for"]) == "table" and not vim.tbl_isempty(data["waiting.for"]))
+                    ) and not data.inbox
+            end,
+            ["project"] = function()
+                if not tasks then
+                    return
+                end
+
+                -- If the project is in someday, do not count it as unprocessed
+                if
+                    type(data.contexts) == "table"
+                    and not vim.tbl_isempty(data.contexts)
+                    and vim.tbl_contains(data.contexts, "someday")
+                then
+                    return true
+                end
+
+                -- All projects in inbox are unprocessed
+                if data.inbox then
+                    return false
+                end
+
+                local project_tasks = vim.tbl_filter(function(t)
+                    return t.project_uuid == data.uuid
+                end, tasks)
+
+                -- Empty projects (without tasks) are unprocessed
+                if vim.tbl_isempty(project_tasks) then
+                    return false
+                end
+
+                -- Do not count done tasks for unprocessed projects
+                project_tasks = vim.tbl_filter(function(t)
+                    return t.state ~= "done"
+                end, project_tasks)
+
+                return not vim.tbl_isempty(project_tasks)
+            end,
+        })
     end,
 }
 
