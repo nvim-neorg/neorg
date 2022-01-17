@@ -83,20 +83,21 @@ module.private = {
                             { newline = false }
                         )
                     end)
-                    :flag("<CR>", "Add to index", function()
+                    :flag("<CR>", "Add to inbox", function()
                         local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
                         local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
 
                         local files = module.required["core.norg.dirman"].get_norg_files(workspace)
-                        if not vim.tbl_contains(files, "index.norg") then
-                            log.error([[ Index file is not from gtd workspace.
+                        local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
+                        if not vim.tbl_contains(files, inbox) then
+                            log.error([[ Inbox file is not from gtd workspace.
                             Please verify if the file exists in your gtd workspace.
                             Type :messages to show the full error report
                             ]])
                             return
                         end
 
-                        local uri = vim.uri_from_fname(workspace_path .. "/index.norg")
+                        local uri = vim.uri_from_fname(workspace_path .. "/" .. inbox)
                         local buf = vim.uri_to_bufnr(uri)
                         local end_row, projectAtEnd = module.required["core.gtd.queries"].get_end_document_content(buf)
 
