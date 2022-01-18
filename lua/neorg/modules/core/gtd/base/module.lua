@@ -22,6 +22,7 @@ require("neorg.modules.base")
 require("neorg.events")
 
 local module = neorg.modules.create("core.gtd.base")
+local log = require("neorg.external.log")
 
 module.setup = function()
     return {
@@ -79,17 +80,37 @@ module.public = {
 
 module.private = {
     workspace_full_path = "",
+
+    --- Shows error messages when trying to run any gtd command, if GTD failed to start
+    error_loading_message = function()
+        log.error("Error in loading GTD. Please check your messages")
+    end,
 }
 
 module.load = function()
+    local error_loading = false
+
     ---@type core.norg.dirman
     local dirman = module.required["core.norg.dirman"]
     ---@type core.keybinds
     local keybinds = module.required["core.keybinds"]
 
-    -- Get workspace for gtd files and save full path in private
     local workspace = module.config.public.workspace
     module.private.workspace_full_path = dirman.get_workspace(workspace)
+
+    -- Check if workspace is here
+    if not module.private.workspace_full_path then
+        log.error("Workspace " .. workspace .. " not created. Please create it with dirman module before")
+        error_loading = true
+    end
+
+    -- Check if inbox file is here
+    local files = dirman.get_norg_files(workspace)
+    local inbox = module.config.public.default_lists.inbox
+    if not vim.tbl_contains(files, inbox) then
+        log.warn("Inbox file (" .. inbox .. ") not in GTD workspace, please create it")
+        error_loading = true
+    end
 
     -- Register keybinds
     keybinds.register_keybinds(module.name, { "views", "edit", "capture" })
@@ -118,8 +139,17 @@ module.load = function()
 
     -- Set up callbacks
     module.public.callbacks["get_data"] = module.required["core.gtd.ui"].get_data_for_views
-    module.public.callbacks["gtd.edit"] = module.required["core.gtd.ui"].edit_task_at_cursor
-    module.public.callbacks["gtd.capture"] = module.required["core.gtd.ui"].show_capture_popup
+    module.public.callbacks["gtd.edit"] = error_loading and module.private.error_loading_message
+        or module.required["core.gtd.ui"].edit_task_at_cursor
+    module.public.callbacks["gtd.capture"] = error_loading and module.private.error_loading_message
+        or module.required["core.gtd.ui"].show_capture_popup
+    module.public.callbacks["gtd.views"] = error_loading and module.private.error_loading_message
+        or module.required["core.gtd.ui"].show_views_popup
+
+    -- Stops load if there is any error. All code below will not be run
+    if error_loading then
+        return
+    end
 
     -- Generates completion for gtd
     vim.schedule(function()
@@ -204,7 +234,7 @@ module.on_event = function(event)
     if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.split_type[1]) then
         if vim.tbl_contains({ "gtd.views", "core.gtd.base.views" }, event.split_type[2]) then
             local tasks, projects = module.public.callbacks["get_data"]()
-            module.required["core.gtd.ui"].show_views_popup(tasks, projects)
+            module.public.callbacks["gtd.views"](tasks, projects)
         elseif vim.tbl_contains({ "gtd.edit", "core.gtd.base.edit" }, event.split_type[2]) then
             module.public.callbacks["gtd.edit"]()
         elseif vim.tbl_contains({ "gtd.capture", "core.gtd.base.capture" }, event.split_type[2]) then
