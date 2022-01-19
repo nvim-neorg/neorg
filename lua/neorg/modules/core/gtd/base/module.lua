@@ -109,7 +109,11 @@ module.load = function()
     local inbox = module.config.public.default_lists.inbox
 
     if not vim.tbl_contains(files, inbox) then
-        log.warn("Inbox file (" .. inbox .. ") not in GTD workspace, please create it")
+        if not dirman.touch_file(inbox, workspace) then
+            log.error("Error creating inbox file")
+        else
+            log.warn("Inbox file (" .. inbox .. ") not in GTD workspace, created it.")
+        end
     end
 
     -- Register keybinds
