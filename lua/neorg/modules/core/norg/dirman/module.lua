@@ -489,6 +489,11 @@ module.public = {
         end
 
         local file = io.open(ws_match .. neorg.configuration.pathsep .. path, "w")
+
+        if not file then
+            return
+        end
+
         file:write("")
         file:close()
         return true
