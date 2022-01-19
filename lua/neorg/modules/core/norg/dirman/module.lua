@@ -471,6 +471,28 @@ module.public = {
 
         return vim.fn.fnamemodify(path .. ".norg", ":p")
     end,
+
+    --- Touches a file in workspace
+    --- TODO: make the touch file recursive
+    --- @param path string
+    --- @param workspace string
+    touch_file = function(path, workspace)
+        vim.validate({
+            path = { path, "string" },
+            workspace = { workspace, "string" },
+        })
+
+        local ws_match = module.public.get_workspace(workspace)
+
+        if not workspace then
+            return
+        end
+
+        local file = io.open(ws_match .. neorg.configuration.pathsep .. path, "w")
+        file:write("")
+        file:close()
+        return true
+    end,
 }
 
 module.on_event = function(event)
