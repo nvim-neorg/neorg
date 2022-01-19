@@ -104,18 +104,6 @@ module.load = function()
         error_loading = true
     end
 
-    -- Check if inbox file is here
-    local files = dirman.get_norg_files(workspace)
-    local inbox = module.config.public.default_lists.inbox
-
-    if not vim.tbl_contains(files, inbox) then
-        if not dirman.touch_file(inbox, workspace) then
-            log.error("Error creating inbox file")
-        else
-            log.warn("Inbox file (" .. inbox .. ") not in GTD workspace, created it.")
-        end
-    end
-
     -- Register keybinds
     keybinds.register_keybinds(module.name, { "views", "edit", "capture" })
 
