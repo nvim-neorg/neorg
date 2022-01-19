@@ -41,8 +41,8 @@ end
 
 ---@class core.gtd.base.config
 module.config.public = {
-    -- Workspace name to use for gtd related lists
-    workspace = "default",
+    -- *Required*: Workspace name to use for gtd related lists
+    workspace = nil,
 
     -- You can exclude files or directories from gtd parsing by passing them here (relative file path from workspace root)
     exclude = {},
@@ -79,7 +79,7 @@ module.public = {
 }
 
 module.private = {
-    workspace_full_path = "",
+    workspace_full_path = nil,
 
     --- Shows error messages when trying to run any gtd command, if GTD failed to start
     error_loading_message = function()
@@ -96,12 +96,22 @@ module.load = function()
     local keybinds = module.required["core.keybinds"]
 
     local workspace = module.config.public.workspace
-    module.private.workspace_full_path = dirman.get_workspace(workspace)
 
-    -- Check if workspace is here
-    if not module.private.workspace_full_path then
-        log.error("Workspace " .. workspace .. " not created. Please create it with dirman module before")
+    if not workspace then
+        log.error([[
+        Workspace not defined. Please update your gtd config
+        For more information, check see the wiki: 
+        https://github.com/nvim-neorg/neorg/wiki/Getting-Things-Done#configuration
+        ]])
         error_loading = true
+    else
+        module.private.workspace_full_path = dirman.get_workspace(workspace)
+
+        -- Check if workspace is here
+        if not module.private.workspace_full_path then
+            log.error("Workspace " .. workspace .. " not created. Please create it with dirman module before")
+            error_loading = true
+        end
     end
 
     -- Register keybinds
