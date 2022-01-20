@@ -100,7 +100,7 @@ module.load = function()
     if not workspace then
         log.error([[
         Workspace not defined. Please update your gtd config
-        For more information, check see the wiki: 
+        For more information, check see the wiki:
         https://github.com/nvim-neorg/neorg/wiki/Getting-Things-Done#configuration
         ]])
         error_loading = true
