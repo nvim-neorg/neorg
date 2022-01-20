@@ -6,6 +6,9 @@
 GTD ("Getting Things Done") is a system designed to make collecting and executing ideas simple.
 You can read more about the GTD implementation [here](https://www.ionos.com/startupguide/productivity/getting-things-done-gtd)!
 
+> Want to use a tutorial project to know the basics of GTD in Neorg ?
+> Follow the steps in [this](https://github.com/nvim-neorg/example_workspaces#neorg-gtd-tutorial) repository
+
 It's here where the keybinds and commands are created in order to interact with GTD stuff
 
 - Call the command `:Neorg gtd views` to nicely show your tasks and projects
