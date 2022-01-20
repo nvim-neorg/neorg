@@ -266,8 +266,8 @@ module.private = {
 
                             module.private.create_recursive_project_placement(
                                 selection,
-                                project.node,
-                                project.bufnr,
+                                project.internal.node,
+                                project.internal.bufnr,
                                 project.content,
                                 task,
                                 true
