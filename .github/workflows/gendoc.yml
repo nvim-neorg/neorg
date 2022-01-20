@@ -28,6 +28,7 @@ jobs:
         with:
           repository: nvim-treesitter/nvim-treesitter
           path: nvim-treesitter
+          ref: '668de0951a36ef17016074f1120b6aacbe6c4515' # Locking commit just before lua breaking change (change of lua parser)
 
       - name: Install Neovim
         uses: rhysd/action-setup-vim@v1
