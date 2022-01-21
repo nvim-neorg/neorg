@@ -200,6 +200,10 @@ module.public = {
             else
                 lines = f:read("*a")
                 lines = vim.split(lines, "\n")
+                if lines[#lines] == "" then
+                    --vim.split automatically adds an empty line because the file stops with a newline
+                    table.remove(lines)
+                end
                 f:close()
             end
 
