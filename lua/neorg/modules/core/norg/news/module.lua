@@ -60,21 +60,120 @@ module.load = function()
 
         for version, filepath in pairs(paths) do
             if compare_versions(version, neorg.configuration.version) then
-                module.private.news[version] = filepath
-                --[[ vim.loop.fs_open(path, "r", 438, function(err, fd)
-                    assert(not err, "Unable to open neorg file: " )
-                end) ]]
+                module.private.new_news[version] = filepath
+            else
+                module.private.old_news[version] = filepath
             end
+        end
+
+        local lib = neorg.lib
+
+        local old_keys, new_keys = vim.tbl_keys(module.private.old_news), vim.tbl_keys(module.private.new_news)
+
+        local commands_table = {
+            definitions = {
+                news = {
+                    new = lib.to_keys(new_keys),
+                    old = lib.to_keys(old_keys),
+                    all = {},
+                },
+            },
+            data = {
+                news = {
+                    args = 1,
+                    subcommands = {
+                        old = {
+                            args = 1,
+                            subcommands = lib.construct(old_keys, function(key)
+                                return {
+                                    args = 0,
+                                    name = "news.old." .. key,
+                                }
+                            end),
+                        },
+                        new = {
+                            name = "news.new",
+                            max_args = 1,
+                            subcommands = lib.construct(new_keys, function(key)
+                                return {
+                                    args = 0,
+                                    name = "news.new." .. key,
+                                }
+                            end),
+                        },
+                        all = {
+                            name = "news.all",
+                            args = 0,
+                        },
+                    },
+                },
+            },
+        }
+
+        module.required["core.neorgcmd"].add_commands_from_table(commands_table)
+
+        module.events.subscribed = {
+            ["core.neorgcmd"] = lib.to_keys(lib.extract(commands_table.data.news.subcommands, "name"), true),
+        }
+
+        if not vim.tbl_isempty(module.private.new_news) then
+            vim.schedule(function()
+                vim.notify(string.format(
+                    [[
+There's some new Neorg news for you!"
+
+New news for versions: %s
+
+Run `:Neorg news new <version>` to see the latest news for that specific version.
+To view news for all new versions run `:Neorg news new` without arguments.
+                ]],
+                    table.concat(new_keys, ", ")
+                ))
+            end)
         end
     end)
 end
 
-module.private = {
-    news = {},
+module.public = {
+    get_content = function(versions)
+        local content = {}
+
+        for _, location in pairs(versions) do
+            -- Using libuv is totally overkill here
+            local file = io.open(location, "r")
+
+            if not file then
+                file:close()
+                goto continue
+            end
+
+            vim.list_extend(
+                content,
+                vim.split(file:read("*a"), "\n", {
+                    plain = true,
+                })
+            )
+
+            ::continue::
+        end
+
+        return content
+    end,
+
+    create_display = function() end,
 }
 
-module.public = {
-    neorg_commands = {},
+module.private = {
+    old_news = {},
+    new_news = {},
 }
+
+module.on_event = function(event)
+    if event.split_type[2] == "news.all" then
+        local content = module.public.get_content(
+            vim.tbl_extend("error", module.private.old_news, module.private.new_news)
+        )
+    end
+end
 
 return module
