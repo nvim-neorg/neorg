@@ -136,6 +136,7 @@ You can install it through your favorite plugin manager:
   ```lua
   use {
       "nvim-neorg/neorg",
+      -- tag = "latest",
       config = function()
           require('neorg').setup {
               ... -- check out setup part...
@@ -144,6 +145,10 @@ You can install it through your favorite plugin manager:
       requires = "nvim-lua/plenary.nvim"
   }
   ```
+
+  _Note: did you saw the `tag = ...` above ? Setting this will tell packer to stick to a precise Neorg version._
+
+  _You can use `tag = "latest"` to always stick to latest stable Neorg version, or you can choose a custom Neorg version (Created tags available [here](https://github.com/nvim-neorg/neorg/tags))_
 
 - [Packer (with lazyloading)](https://github.com/wbthomason/packer.nvim):
 
