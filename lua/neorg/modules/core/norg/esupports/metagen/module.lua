@@ -14,8 +14,8 @@ module.setup = function()
 end
 
 module.config.public = {
-    -- One of "none"|"auto"|"<some-keybind>"
-    type = "auto",
+    -- One of "none" or "auto"
+    type = "none",
 
     -- How to generate a tabulation inside the `@document.meta` tag
     tab = function()
