@@ -48,95 +48,15 @@ module.config.private.markup_preset_dimmed = {
     },
 
     link_modifier = {
-        enabled = true,
-        icon = ":",
-        highlight = "NonText",
+        enabled = false,
     },
 
     trailing_modifier = {
-        enabled = true,
-        icon = "~",
-        highlight = "NonText",
+        enabled = false,
     },
 
     url = {
-        enabled = true,
-
-        link = {
-            enabled = true,
-
-            unnamed = {
-                enabled = true,
-                highlight = "NonText",
-                render = function(self, text)
-                    return {
-                        { text, self.highlight },
-                    }
-                end,
-            },
-
-            named = {
-                enabled = true,
-
-                location = {
-                    enabled = true,
-                    highlight = "NonText",
-                    render = function(self, text)
-                        return {
-                            { text, self.highlight },
-                        }
-                    end,
-                },
-
-                text = {
-                    enabled = true,
-                    highlight = "NonText",
-                    render = function(self, text)
-                        return {
-                            { text, self.highlight },
-                        }
-                    end,
-                },
-            },
-        },
-
-        anchor = {
-            enabled = true,
-
-            declaration = {
-                enabled = true,
-                highlight = "NonText",
-                render = function(self, text)
-                    return {
-                        { text, self.highlight },
-                    }
-                end,
-            },
-
-            definition = {
-                enabled = true,
-
-                description = {
-                    enabled = true,
-                    highlight = "NonText",
-                    render = function(self, text)
-                        return {
-                            { text, self.highlight },
-                        }
-                    end,
-                },
-
-                location = {
-                    enabled = true,
-                    highlight = "NonText",
-                    render = function(self, text)
-                        return {
-                            { text, self.highlight },
-                        }
-                    end,
-                },
-            },
-        },
+        enabled = false,
     },
 }
 
