@@ -199,7 +199,9 @@ module.public = {
 
         vim.api.nvim_open_win(buf, true, window_opts)
 
-        vim.cmd(string.format("autocmd WinClosed <buffer=%s> lua vim.api.nvim_buf_delete(%s, { force = true })", buf, buf))
+        vim.cmd(
+            string.format("autocmd WinClosed <buffer=%s> lua vim.api.nvim_buf_delete(%s, { force = true })", buf, buf)
+        )
     end,
 }
 
@@ -213,7 +215,9 @@ module.on_event = function(event)
         event.split_type[2],
 
         ["news.all"] = function()
-            module.public.create_display(module.public.get_content(vim.tbl_extend("error", module.private.old_news, module.private.new_news)))
+            module.public.create_display(
+                module.public.get_content(vim.tbl_extend("error", module.private.old_news, module.private.new_news))
+            )
 
             module.required["core.storage"].store(module.name, {
                 news_state = neorg.configuration.version,
@@ -236,12 +240,16 @@ module.on_event = function(event)
             if vim.startswith(event.split_type[2], "news.new.") then
                 local version = event.split_type[2]:sub(string.len("news.new.") + 1)
 
-                module.public.create_display(module.public.get_content({ [version] = module.private.new_news[version] }))
+                module.public.create_display(
+                    module.public.get_content({ [version] = module.private.new_news[version] })
+                )
                 -- TODO: Create version() object
             else
                 local version = event.split_type[2]:sub(string.len("news.new.") + 1)
 
-                module.public.create_display(module.public.get_content({ [version] = module.private.old_news[version] }))
+                module.public.create_display(
+                    module.public.get_content({ [version] = module.private.old_news[version] })
+                )
             end
         end,
     })
