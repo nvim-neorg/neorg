@@ -289,11 +289,11 @@ module.config.public = {
 
         Anchor = {
             Declaration = {
-                Delimiter = "+Normal",
+                Delimiter = "+NonText",
                 Text = "+TSTextReference",
             },
             Definition = {
-                Delimiter = "+Normal",
+                Delimiter = "+NonText",
             },
         },
 
@@ -311,16 +311,16 @@ module.config.public = {
         Link = {
             Text = {
                 [""] = "+TSURI",
-                Delimiter = "+Normal",
+                Delimiter = "+NonText",
             },
 
             File = {
                 [""] = "+TSComment",
-                Delimiter = "+Normal",
+                Delimiter = "+NonText",
             },
 
             Location = {
-                Delimiter = "+Normal",
+                Delimiter = "+NonText",
 
                 URL = "+TSURI",
 
@@ -432,8 +432,8 @@ module.config.public = {
         WeakParagraphDelimiter = "+TSPunctDelimiter",
         HorizontalLine = "+TSPunctDelimiter",
 
-        TrailingModifier = "+TSPunctDelimiter",
-        LinkModifier = "+TSPunctDelimiter",
+        TrailingModifier = "+NonText",
+        LinkModifier = "+NonText",
 
         DocumentMeta = {
             Key = "+TSField",
