@@ -160,7 +160,33 @@ module.public = {
         return content
     end,
 
-    create_display = function() end,
+    create_display = function(content)
+        local buf = vim.api.nvim_create_buf(false, true)
+
+        vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+        vim.api.nvim_buf_set_lines(buf, 0, -1, true, content)
+        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+        vim.api.nvim_buf_set_option(buf, "filetype", "norg")
+        vim.api.nvim_buf_set_name(buf, "news.norg")
+
+        -- Taken from nvim-lsp-installer at https://github.com/williamboman/nvim-lsp-installer/blob/main/lua/nvim-lsp-installer/ui/display.lua#L143-L157
+        -- Big shoutout! I couldn't figure this out myself.
+        local win_height = vim.o.lines - vim.o.cmdheight - 2 -- Add margin for status and buffer line
+        local win_width = vim.o.columns
+
+        local window_opts = {
+            relative = "editor",
+            height = math.floor(win_height * 0.9),
+            width = math.floor(win_width * 0.8),
+            style = "minimal",
+            border = "rounded",
+        }
+
+        window_opts.row = math.floor((win_height - window_opts.height) / 2)
+        window_opts.col = math.floor((win_width - window_opts.width) / 2)
+
+        return vim.api.nvim_open_win(buf, true, window_opts)
+    end,
 }
 
 module.private = {
@@ -170,8 +196,8 @@ module.private = {
 
 module.on_event = function(event)
     if event.split_type[2] == "news.all" then
-        local content = module.public.get_content(
-            vim.tbl_extend("error", module.private.old_news, module.private.new_news)
+        module.public.create_display(
+            module.public.get_content(vim.tbl_extend("error", module.private.old_news, module.private.new_news))
         )
     end
 end
