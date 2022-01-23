@@ -232,7 +232,7 @@ module.public = {
                 local original_title = module.required["core.integrations.treesitter"].get_node_text(node)
                 local title = original_title:gsub("[%s\\]", "")
 
-                if title == target then
+                if title:lower() == target:lower() then
                     return {
                         original_title = original_title,
                         node = node,
@@ -499,7 +499,7 @@ module.public = {
                             local title = original_title:gsub("[%s\\]", "")
                             local target = parsed_link_information.link_location_text:gsub("[%s\\]", "")
 
-                            if title == target then
+                            if title:lower() == target:lower() then
                                 return {
                                     original_title = original_title,
                                     node = node,
