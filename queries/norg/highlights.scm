@@ -35,13 +35,15 @@
     (link_location
         ("_begin") @NeorgLinkLocationDelimiter
         (
-            ("_begin") @NeorgLinkFileDelimiter
-        )?
-        file: (
-            (link_file_text) @NeorgLinkFile
-        )?
-        (
-            ("_end") @NeorgLinkFileDelimiter
+            (
+                ("_begin") @NeorgLinkFileDelimiter
+            )
+            file: (
+                (link_file_text) @NeorgLinkFile
+            )
+            (
+                ("_end") @NeorgLinkFileDelimiter
+            )
         )?
         [
             (
@@ -231,11 +233,11 @@
 			(todo_item_undone) @NeorgTodoItem2Undone
 			(todo_item_pending) @NeorgTodoItem2Pending
 			(todo_item_done) @NeorgTodoItem2Done
-                        (todo_item_on_hold) @NeorgTodoItem2OnHold
-                        (todo_item_cancelled) @NeorgTodoItem2Cancelled
-                        (todo_item_urgent) @NeorgTodoItem2Urgent
-                        (todo_item_uncertain) @NeorgTodoItem2Uncertain
-                        (todo_item_recurring) @NeorgTodoItem2Recurring
+            (todo_item_on_hold) @NeorgTodoItem2OnHold
+            (todo_item_cancelled) @NeorgTodoItem2Cancelled
+            (todo_item_urgent) @NeorgTodoItem2Urgent
+            (todo_item_uncertain) @NeorgTodoItem2Uncertain
+            (todo_item_recurring) @NeorgTodoItem2Recurring
 		]
 	content:
 		(paragraph) @NeorgTodoItem2Content)
