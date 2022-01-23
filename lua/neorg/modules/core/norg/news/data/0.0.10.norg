@@ -1,0 +1,9 @@
+| 0.0.10
+
+This release is targeted towards improving some top-level aspects of Neorg.
+This includes the README, the keybind system and the news system you're using right now!
+
+There have also been some usability and stability improvements, so let's get into it:
+
+* Breaking Changes
+
