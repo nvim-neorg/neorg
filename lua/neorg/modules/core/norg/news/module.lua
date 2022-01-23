@@ -83,7 +83,8 @@ module.load = function()
                     args = 1,
                     subcommands = {
                         old = {
-                            args = 1,
+                            name = "news.old",
+                            max_args = 1,
                             subcommands = lib.construct(old_keys, function(key)
                                 return {
                                     args = 0,
@@ -136,6 +137,10 @@ end
 
 module.public = {
     get_content = function(versions)
+        if not versions then
+            return
+        end
+
         local content = {}
 
         for _, location in pairs(versions) do
@@ -161,6 +166,10 @@ module.public = {
     end,
 
     create_display = function(content)
+        if not content then
+            return
+        end
+
         local buf = vim.api.nvim_create_buf(false, true)
 
         vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
@@ -186,6 +195,7 @@ module.public = {
 
         window_opts.row = math.floor((win_height - window_opts.height) / 2)
         window_opts.col = math.floor((win_width - window_opts.width) / 2)
+        ---
 
         vim.api.nvim_open_win(buf, true, window_opts)
 
@@ -199,15 +209,42 @@ module.private = {
 }
 
 module.on_event = function(event)
-    if event.split_type[2] == "news.all" then
-        local content = module.public.get_content(vim.tbl_extend("error", module.private.old_news, module.private.new_news))
+    neorg.lib.match({
+        event.split_type[2],
 
-        module.public.create_display(content)
+        ["news.all"] = function()
+            module.public.create_display(module.public.get_content(vim.tbl_extend("error", module.private.old_news, module.private.new_news)))
 
-        module.required["core.storage"].store(module.name, {
-            news_state = neorg.configuration.version,
-        })
-    end
+            module.required["core.storage"].store(module.name, {
+                news_state = neorg.configuration.version,
+            })
+        end,
+
+        ["news.old"] = function()
+            module.public.create_display(module.public.get_content(module.private.old_news))
+        end,
+
+        ["news.new"] = function()
+            module.public.create_display(module.public.get_content(module.private.new_news))
+
+            module.required["core.storage"].store(module.name, {
+                news_state = neorg.configuration.version,
+            })
+        end,
+
+        _ = function()
+            if vim.startswith(event.split_type[2], "news.new.") then
+                local version = event.split_type[2]:sub(string.len("news.new.") + 1)
+
+                module.public.create_display(module.public.get_content({ [version] = module.private.new_news[version] }))
+                -- TODO: Create version() object
+            else
+                local version = event.split_type[2]:sub(string.len("news.new.") + 1)
+
+                module.public.create_display(module.public.get_content({ [version] = module.private.old_news[version] }))
+            end
+        end,
+    })
 end
 
 return module
