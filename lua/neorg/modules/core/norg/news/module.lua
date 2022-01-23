@@ -169,6 +169,8 @@ module.public = {
         vim.api.nvim_buf_set_option(buf, "filetype", "norg")
         vim.api.nvim_buf_set_name(buf, "news.norg")
 
+        vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
+
         -- Taken from nvim-lsp-installer at https://github.com/williamboman/nvim-lsp-installer/blob/main/lua/nvim-lsp-installer/ui/display.lua#L143-L157
         -- Big shoutout! I couldn't figure this out myself.
         local win_height = vim.o.lines - vim.o.cmdheight - 2 -- Add margin for status and buffer line
@@ -185,7 +187,9 @@ module.public = {
         window_opts.row = math.floor((win_height - window_opts.height) / 2)
         window_opts.col = math.floor((win_width - window_opts.width) / 2)
 
-        return vim.api.nvim_open_win(buf, true, window_opts)
+        vim.api.nvim_open_win(buf, true, window_opts)
+
+        vim.cmd(string.format("autocmd WinClosed <buffer=%s> lua vim.api.nvim_buf_delete(%s, { force = true })", buf, buf))
     end,
 }
 
@@ -196,9 +200,13 @@ module.private = {
 
 module.on_event = function(event)
     if event.split_type[2] == "news.all" then
-        module.public.create_display(
-            module.public.get_content(vim.tbl_extend("error", module.private.old_news, module.private.new_news))
-        )
+        local content = module.public.get_content(vim.tbl_extend("error", module.private.old_news, module.private.new_news))
+
+        module.public.create_display(content)
+
+        module.required["core.storage"].store(module.name, {
+            news_state = neorg.configuration.version,
+        })
     end
 end
 
