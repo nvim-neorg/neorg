@@ -16,6 +16,29 @@ curl -s -X POST https://api.github.com/repos/nvim-neorg/neorg/git/refs \
   "sha": "$commit"
 }
 EOF
+
+if [ $(git tag -l "latest") ]; then
+
+curl -s -X PATCH https://api.github.com/repos/nvim-neorg/neorg/git/refs \
+-H "Authorization: token $GITHUB_TOKEN" \
+-d @- << EOF
+{
+  "ref": "refs/tags/latest",
+  "sha": "$commit"
+}
+EOF
+
+else
+curl -s -X POST https://api.github.com/repos/nvim-neorg/neorg/git/refs \
+-H "Authorization: token $GITHUB_TOKEN" \
+-d @- << EOF
+{
+  "ref": "refs/tags/latest",
+  "sha": "$commit"
+}
+EOF
+
+fi
 }
 
 echo "Current neorg version: $current_version"
