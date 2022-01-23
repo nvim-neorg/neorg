@@ -340,7 +340,7 @@ module.public = {
                         link_location_text = extract_node_text,
                         link_description = extract_node_text,
 
-                        default = function()
+                        _ = function()
                             log.error("Unknown capture type encountered when parsing link:", capture)
                         end,
                     })
@@ -397,7 +397,7 @@ module.public = {
                 return {}
             end,
 
-            default = function()
+            _ = function()
                 -- Dynamically forge query
                 local query_str = neorg.lib.match({
                     parsed_link_information.link_type,
@@ -460,7 +460,7 @@ module.public = {
                         neorg.lib.reparg(parsed_link_information.link_type, 4)
                     ),
 
-                    default = string.format(
+                    _ = string.format(
                         [[
                             (carryover_tag_set
                                 (carryover_tag
@@ -702,7 +702,7 @@ module.private = {
                 marker = "|",
                 -- single_definition = "$",
                 -- multi_definition = "$",
-                default = "#",
+                _ = "#",
             })
         ) .. " "
 
