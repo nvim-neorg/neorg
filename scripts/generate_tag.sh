@@ -5,6 +5,8 @@ current_version=$(nvim --headless --noplugin -u ./docgen/minimal_init.vim -c 'lu
 # get current commit hash for tag
 commit=$(git rev-parse HEAD)
 
+# Creates a new tag for current version, and creates a new "latest" tag pointing to latest commit.
+# If latest already exists, will update the ref
 push_tag() {
 
 curl -s -X POST https://api.github.com/repos/nvim-neorg/neorg/git/refs \
@@ -19,11 +21,10 @@ echo "Generated new tag: $current_version"
 
 if [ $(git tag -l "latest") ]; then
 
-curl -s -X PATCH https://api.github.com/repos/nvim-neorg/neorg/git/refs \
+curl -s -X PATCH https://api.github.com/repos/nvim-neorg/neorg/git/refs/tags/latest \
 -H "Authorization: token $GITHUB_TOKEN" \
 -d @- << EOF
 {
-  "ref": "refs/tags/latest",
   "sha": "$commit"
 }
 EOF
