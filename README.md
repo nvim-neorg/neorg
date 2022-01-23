@@ -73,54 +73,60 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 <summary>Playing around with our unique syntax elements:</summary>
   We also use some special keybinds to toggle our TODO items :)
 
-  ![Showcase of our Keybinds in action](https://user-images.githubusercontent.com/5306901/147650852-de6b2542-39c4-44c6-a228-ded867a71d4e.gif)
+![Showcase of our Keybinds in action](https://user-images.githubusercontent.com/5306901/147650852-de6b2542-39c4-44c6-a228-ded867a71d4e.gif)
+
 </details>
 
 <details>
 <summary>Treesitter powered editing:</summary>
 
-  ![Treesitter powered editing](https://user-images.githubusercontent.com/5306901/147652347-80daa0db-f5d5-46e7-b553-2922553c2c78.gif)
+![Treesitter powered editing](https://user-images.githubusercontent.com/5306901/147652347-80daa0db-f5d5-46e7-b553-2922553c2c78.gif)
+
 </details>
 
 <details>
 <summary>Manage your tasks and projects with the GTD module:</summary>
 
-  - See your current projects
+- See your current projects
 
-  ![See your current projects](https://user-images.githubusercontent.com/5306901/147652840-c8201380-9ce1-428c-8ce3-320dad5592c1.gif)
+![See your current projects](https://user-images.githubusercontent.com/5306901/147652840-c8201380-9ce1-428c-8ce3-320dad5592c1.gif)
 
-  - Create a new task
+- Create a new task
 
-  ![Create a new task](https://user-images.githubusercontent.com/5306901/147653241-e8d2742c-354c-49e4-bad0-7091451c6628.gif)
+![Create a new task](https://user-images.githubusercontent.com/5306901/147653241-e8d2742c-354c-49e4-bad0-7091451c6628.gif)
 
-  - Add information to your tasks, and jump to them quickly
+- Add information to your tasks, and jump to them quickly
 
-  ![Add information to your tasks, and jump to them quickly](https://user-images.githubusercontent.com/5306901/147653650-a4a27c59-1213-4307-b3fc-c0a0bfefaa9b.gif)
+![Add information to your tasks, and jump to them quickly](https://user-images.githubusercontent.com/5306901/147653650-a4a27c59-1213-4307-b3fc-c0a0bfefaa9b.gif)
 
-  And much more...
+And much more...
 
 </details>
 
 <details>
   <summary>Powerpoint-like presentations in Neovim with the presenter module:</summary>
 
-  ![Powerpoint-like presentations in Neovim with the presenter module](https://user-images.githubusercontent.com/5306901/147654155-c2aa728a-5c2b-4813-b3e2-fbf7e2ffd2a2.gif)
+![Powerpoint-like presentations in Neovim with the presenter module](https://user-images.githubusercontent.com/5306901/147654155-c2aa728a-5c2b-4813-b3e2-fbf7e2ffd2a2.gif)
+
 </details>
 
 <details>
   <summary>Get syntax highlighting for any language supported by Neovim:</summary>
 
-  ![Get syntax highlighting for any language supported by Neovim](https://user-images.githubusercontent.com/5306901/147657014-68573df8-0e43-4a8b-bb81-0db1c80cbbd8.gif)
+![Get syntax highlighting for any language supported by Neovim](https://user-images.githubusercontent.com/5306901/147657014-68573df8-0e43-4a8b-bb81-0db1c80cbbd8.gif)
+
 </details>
 </details>
 
 <details>
   <summary>Get completion for various items in Neorg:</summary>
 
-  ![Get completion for various items in Neorg](https://user-images.githubusercontent.com/5306901/147657095-aa51a609-5bc2-4aa4-9687-bdda6ef48860.gif)
+![Get completion for various items in Neorg](https://user-images.githubusercontent.com/5306901/147657095-aa51a609-5bc2-4aa4-9687-bdda6ef48860.gif)
+
 </details>
 
 ## Installation
+
 **Neorg requires at least Neovim 0.6+ to operate.**
 
 You can install it through your favorite plugin manager:
@@ -186,20 +192,20 @@ You can install it through your favorite plugin manager:
 
 ###### _Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system for this step!_
 
-Neorg parsers don't come out of the box with `nvim-treesitter` yet.
-To set up Neorg's parsers, you want to run this code snippet **before** you invoke `require('nvim-treesitter.configs').setup()`:
+As of right now, the TreeSitter parser is included in nvim-treesitter, so you can run:
+
+```
+:TSInstall norg.
+```
+
+If you want the parser to be more persistent across different installations of your config, make sure to set `norg` as a parser in the `ensure_installed` table, then run `:TSUpdate`.
+
+However, in addition to that basic parser, you may also want to install additional subparsers which are injected into the norg parser.
+
+To do so, you may want to run this code snippet **before** you invoke `require('nvim-treesitter.configs').setup()`:
 
 ```lua
 local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
-
--- This parser is required for Neorg to work
-parser_configs.norg = {
-    install_info = {
-        url = "https://github.com/nvim-neorg/tree-sitter-norg",
-        files = { "src/parser.c", "src/scanner.cc" },
-        branch = "main"
-    },
-}
 
 -- These two are optional and provide syntax highlighting
 -- for Neorg tables and the @document.meta tag
@@ -220,9 +226,7 @@ parser_configs.norg_table = {
 }
 ```
 
-Then run `:TSInstall norg norg_meta norg_table`.
-
-If you want the parser to be more persistent across different installations of your config make sure to set `norg`, `norg_meta` and `norg_table` as parsers in the `ensure_installed` table, then run `:TSUpdate`.
+Then run `:TSInstall norg_meta norg_table`.
 
 Here's an example config, yours will probably be different:
 
@@ -394,12 +398,11 @@ require('neorg').setup {
 <details>
 <summary>List of community modules:</summary>
 
-| Module name                                                                        | Description                                                                          |
-| :--------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
-| [`core.integrations.telescope`](https://github.com/nvim-neorg/neorg-telescope)     | Neorg integration with [Telescope](https://github.com/nvim-telescope/telescope.nvim) |
+| Module name                                                                       | Description                                                                          |
+| :-------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
+| [`core.integrations.telescope`](https://github.com/nvim-neorg/neorg-telescope)    | Neorg integration with [Telescope](https://github.com/nvim-telescope/telescope.nvim) |
 | [`external.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base`        |
-| [`external.integrations.gtd-things`](https://github.com/danymat/neorg-gtd-things) | Use Things3 database to fetch and update tasks instead. Requires `core.gtd.base`        |
-
+| [`external.integrations.gtd-things`](https://github.com/danymat/neorg-gtd-things) | Use Things3 database to fetch and update tasks instead. Requires `core.gtd.base`     |
 
 </details>
 <br>
@@ -408,6 +411,7 @@ require('neorg').setup {
 if you care about what makes Neorg tick.
 
 ## Philosophy
+
 Our goals are fairly simple:
 
 1. Revise the org format: simple, extensible, unambiguous. Will make you feel right at home. Alternate markup formats have several flaws, but the most
@@ -429,6 +433,7 @@ Our goals are fairly simple:
    If something has a more niche use case, it should be documented.
 
 ## Roadmap
+
 We track a high-level roadmap, so that you can know what to expect. Just do `:h neorg-roadmap`.
 To know exactly what's being worked on, just check out the [repo's PRs](https://github.com/nvim-neorg/neorg/pulls).
 
@@ -452,11 +457,12 @@ Massive shoutouts go to all the contributors actively working on the project tog
 integrated workflow:
 
 - [mrossinek](https://github.com/mrossinek) - for basically being my second brain when it comes to developing new features
-                                              and adding new syntax elements
+  and adding new syntax elements
 - [danymat](https://github.com/danymat) - for creating the excellent GTD workflow in Neorg that we literally use internally
-                                          to plan new features
+  to plan new features
 
 And an extra thank you to:
+
 - [Binx](https://github.com/Binx-Codes/) - for making that gorgeous logo for free!
 - [bandithedoge](https://github.com/bandithedoge) - for converting the PNG version of the logo into SVG form
 
