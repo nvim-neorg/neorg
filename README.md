@@ -249,8 +249,6 @@ Neorg needs `nvim-treesitter` to be up and running before it starts adding color
 Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
 
 If you're on Mac and have compilation errors when doing `:TSInstall`, check out this [fix](https://github.com/nvim-neorg/neorg/issues/74#issuecomment-906627223).
-It's a bit hacky - it will unfortunately stay this way until we get first-class support in the `nvim-treesitter` repository.
-Sorry!
 
 ## Setup
 
