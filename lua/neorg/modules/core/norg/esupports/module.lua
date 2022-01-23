@@ -307,7 +307,7 @@ module.on_event = function(event)
     if event.type == "core.autocommands.events.bufenter" then
         if event.content.norg then
             if module.config.public.indent then
-                vim.opt_local.indentexpr = "v:lua._neorg_indent_expr()"
+                vim.api.nvim_buf_set_option(event.buffer, "indentexpr", "v:lua._neorg_indent_expr()")
             end
         end
     end
