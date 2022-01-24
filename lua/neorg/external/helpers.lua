@@ -287,7 +287,7 @@ neorg.lib = {
         local copy = vim.deepcopy(tbl)
 
         for k, v in pairs(tbl) do
-            local cb = callback(k, v)
+            local cb = callback(k, v, tbl)
 
             if cb then
                 copy[k] = cb
@@ -354,6 +354,22 @@ neorg.lib = {
         return result
     end,
 
+    extract = function(tbl, value)
+        local results = {}
+
+        for key, expected_value in pairs(tbl) do
+            if key == value then
+                table.insert(results, expected_value)
+            end
+
+            if type(expected_value) == "table" then
+                vim.list_extend(results, neorg.lib.extract(expected_value, value))
+            end
+        end
+
+        return results
+    end,
+
     --- Wraps a conditional "not" function in a vim.tbl callback
     --- @param cb function #The function to wrap
     --- @vararg ... #The arguments to pass to the wrapped function
@@ -388,16 +404,38 @@ neorg.lib = {
         end
     end,
 
-    --- Wrapper function to add two values
-    --  This function only takes in one argument because the second value
-    --  to add is provided as a parameter in the callback.
-    --- @param amount number #The number to add
-    --- @return function #A callback adding the static value to the dynamic amount
-    add = function(amount)
-        return function(value)
-            return value + amount
-        end
-    end,
+    mod = {
+        --- Wrapper function to add two values
+        --  This function only takes in one argument because the second value
+        --  to add is provided as a parameter in the callback.
+        --- @param amount number #The number to add
+        --- @return function #A callback adding the static value to the dynamic amount
+        add = function(amount)
+            return function(_, value)
+                return value + amount
+            end
+        end,
+
+        modify = function(to)
+            return function()
+                return to
+            end
+        end,
+
+        exclude = {
+            first = function(func, alt)
+                return function(i, val)
+                    return i == 1 and (alt and alt(i, val) or val) or func(i, val)
+                end
+            end,
+
+            last = function(func, alt)
+                return function(i, val, tbl)
+                    return next(tbl, i) and func(i, val) or (alt and alt(i, val) or val)
+                end
+            end,
+        },
+    },
 
     --- Repeats an arguments `index` amount of times
     --- @param value any #The value to repeat
@@ -440,6 +478,45 @@ neorg.lib = {
         end
 
         return ret
+    end,
+
+    -- TODO: Document
+    construct = function(keys, cb)
+        local result = {}
+
+        for _, key in ipairs(keys) do
+            result[key] = cb(key)
+        end
+
+        return result
+    end,
+
+    eval = function(val, ...)
+        if type(val) == "function" then
+            return val(...)
+        end
+
+        return val
+    end,
+
+    --- Extends a list by constructing a new one vs mutating an existing
+    --  list in the case of `vim.list_extend`
+    list_extend = function(list, ...)
+        if not list then
+            return {}
+        end
+
+        return { unpack(list), unpack(neorg.lib.list_extend(...)) }
+    end,
+
+    unroll = function(tbl_with_keys)
+        local res = {}
+
+        for key, value in pairs(tbl_with_keys) do
+            table.insert(res, { key, value })
+        end
+
+        return res
     end,
 }
 
