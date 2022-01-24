@@ -508,6 +508,16 @@ neorg.lib = {
 
         return { unpack(list), unpack(neorg.lib.list_extend(...)) }
     end,
+
+    unroll = function(tbl_with_keys)
+        local res = {}
+
+        for key, value in pairs(tbl_with_keys) do
+            table.insert(res, { key, value })
+        end
+
+        return res
+    end,
 }
 
 return neorg.utils

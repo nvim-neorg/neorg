@@ -7,6 +7,14 @@
 
 local module = neorg.modules.create("core.norg.news")
 
+local function is_version_greater_than(ver1, ver2)
+    -- Here we assume that the versions aren't malformed
+    ver1, ver2 = neorg.utils.parse_version_string(ver1), neorg.utils.parse_version_string(ver2)
+
+    return (ver1.major > ver2.major or ver1.minor > ver2.minor or ver1.patch > ver2.patch)
+        and (ver1.major >= ver2.major and ver1.minor >= ver2.minor and ver1.patch >= ver2.patch)
+end
+
 module.setup = function()
     return {
         requires = {
@@ -50,16 +58,12 @@ module.load = function()
             entry = vim.loop.fs_scandir_next(data)
         end
 
-        local function compare_versions(ver1, ver2)
-            -- Here we assume that the versions aren't malformed
-            ver1, ver2 = neorg.utils.parse_version_string(ver1), neorg.utils.parse_version_string(ver2)
-
-            return (ver1.major > ver2.major or ver1.minor > ver2.minor or ver1.patch > ver2.patch)
-                and (ver1.major >= ver2.major and ver1.minor >= ver2.minor and ver1.patch >= ver2.patch)
-        end
-
         for version, filepath in pairs(paths) do
-            if compare_versions(version, neorg.configuration.version) then
+            if is_version_greater_than(version, cached_neorg_version) then
+                if is_version_greater_than(version, module.private.latest_version) then
+                    module.private.latest_version = version
+                end
+
                 module.private.new_news[version] = filepath
             else
                 module.private.old_news[version] = filepath
@@ -121,7 +125,7 @@ module.load = function()
             vim.schedule(function()
                 vim.notify(string.format(
                     [[
-There's some new Neorg news for you!"
+There's some new Neorg news for you!
 
 New news for versions: %s
 
@@ -141,11 +145,17 @@ module.public = {
             return
         end
 
+        versions = neorg.lib.unroll(versions)
+
+        table.sort(versions, function(lhs, rhs)
+            return is_version_greater_than(lhs[1], rhs[1])
+        end)
+
         local content = {}
 
-        for _, location in pairs(versions) do
+        for _, location in ipairs(versions) do
             -- Using libuv is totally overkill here
-            local file = io.open(location, "r")
+            local file = io.open(location[2], "r")
 
             if not file then
                 file:close()
@@ -197,17 +207,18 @@ module.public = {
         window_opts.col = math.floor((win_width - window_opts.width) / 2)
         ---
 
-        vim.api.nvim_open_win(buf, true, window_opts)
-
         vim.cmd(
             string.format("autocmd WinClosed <buffer=%s> lua vim.api.nvim_buf_delete(%s, { force = true })", buf, buf)
         )
+
+        return vim.api.nvim_open_win(buf, true, window_opts)
     end,
 }
 
 module.private = {
     old_news = {},
     new_news = {},
+    latest_version = neorg.configuration.version,
 }
 
 module.on_event = function(event)
@@ -220,7 +231,7 @@ module.on_event = function(event)
             )
 
             module.required["core.storage"].store(module.name, {
-                news_state = neorg.configuration.version,
+                news_state = module.private.latest_version,
             })
         end,
 
@@ -232,7 +243,7 @@ module.on_event = function(event)
             module.public.create_display(module.public.get_content(module.private.new_news))
 
             module.required["core.storage"].store(module.name, {
-                news_state = neorg.configuration.version,
+                news_state = module.private.latest_version,
             })
         end,
 
@@ -243,9 +254,16 @@ module.on_event = function(event)
                 module.public.create_display(
                     module.public.get_content({ [version] = module.private.new_news[version] })
                 )
-                -- TODO: Create version() object
+
+                if
+                    is_version_greater_than(version, module.required["core.storage"].retrieve(module.name).news_state)
+                then
+                    module.required["core.storage"].store(module.name, {
+                        news_state = version,
+                    })
+                end
             else
-                local version = event.split_type[2]:sub(string.len("news.new.") + 1)
+                local version = event.split_type[2]:sub(string.len("news.old.") + 1)
 
                 module.public.create_display(
                     module.public.get_content({ [version] = module.private.old_news[version] })
