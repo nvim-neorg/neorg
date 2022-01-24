@@ -59,19 +59,20 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 
 ## 🌟 Showcase
 
+<!-- TODO(vhyrro): Finish off these new gifs -->
+
 <details>
 <summary>A `.norg` file:</summary>
-  <img width="700" alt="Showcase image of a Neorg document" src="https://user-images.githubusercontent.com/5306901/147649564-6f41e008-b292-4a67-84ab-82e73bc71890.png">
+  <img width="700" alt="Showcase image of a Neorg document" src="https://user-images.githubusercontent.com/76052559/150838408-1a021d7b-1891-4cab-b16e-6b755e741e87.png">
 </details>
 
 <details>
 <summary>Concealing module enabled:</summary>
-  <img width="700" alt="Image of a Neorg document with the concealer module enabled." src="https://user-images.githubusercontent.com/5306901/147649784-5654009e-c4aa-4f2b-8e30-571578a313b6.png">
+  <img width="700" alt="Image of a Neorg document with the concealer module enabled." src="https://user-images.githubusercontent.com/76052559/150838418-b443b92d-186a-45cb-ba84-06f03cdeea8a.png">
 </details>
 
 <details>
 <summary>Playing around with our unique syntax elements:</summary>
-  We also use some special keybinds to toggle our TODO items :)
 
 ![Showcase of our Keybinds in action](https://user-images.githubusercontent.com/5306901/147650852-de6b2542-39c4-44c6-a228-ded867a71d4e.gif)
 
