@@ -20,13 +20,13 @@ module.public = {
     date_converter = function(text)
         vim.validate({ text = { text, "string" } })
         local values = {
-            ["sun"] = 1,
-            ["mon"] = 2,
-            ["tue"] = 3,
-            ["wed"] = 4,
-            ["thu"] = 5,
-            ["fri"] = 6,
-            ["sat"] = 7,
+            sun = 1,
+            mon = 2,
+            tue = 3,
+            wed = 4,
+            thu = 5,
+            fri = 6,
+            sat = 7,
         }
 
         if text == "today" then
@@ -34,7 +34,7 @@ module.public = {
         elseif text == "tomorrow" then
             -- Return tomorrow's date in YY-MM-DD format
             return os.date("%Y-%m-%d", os.time() + 24 * 60 * 60)
-        elseif vim.tbl_contains({ "mon", "tue", "wed", "thu", "fri", "sat", "sun" }, text) then
+        elseif vim.tbl_contains(vim.tbl_keys(values), text) then
             local date = os.date("*t")
             if values[text] > date.wday then
                 date.day = date.day + values[text] - date.wday
@@ -138,11 +138,11 @@ module.public = {
         return os.date(
             "%Y-%m-%d",
             ({
-                ["h"] = get_date_in_x_hours, -- TODO(vhyrro): Add internal support for hours
-                ["d"] = get_date_in_x_days,
-                ["w"] = get_date_in_x_weeks,
-                ["m"] = get_date_in_x_months,
-                ["y"] = get_date_in_x_years,
+                h = get_date_in_x_hours, -- TODO(vhyrro): Add internal support for hours
+                d = get_date_in_x_days,
+                w = get_date_in_x_weeks,
+                m = get_date_in_x_months,
+                y = get_date_in_x_years,
             })[type](number)
         )
     end,
