@@ -38,7 +38,7 @@ local function get_date_in_x_days(days)
 end
 
 describe("CORE.GTD.QUERIES - Helpers:", function()
-    it("Converts a date", function()
+    it("Converts a date (general)", function()
         local date = queries.date_converter("2021-10-10")
         assert.equals("2021-10-10", date)
 
@@ -47,7 +47,44 @@ describe("CORE.GTD.QUERIES - Helpers:", function()
 
         date = queries.date_converter("test_string")
         assert.is_nil(date)
-        -- TODO: Add more test cases for custom dates
+    end)
+
+    it("Converts a simple date (5d, 3w...)", function()
+        local date = queries.date_converter("4d")
+        assert.equals(os.date("%Y-%m-%d", get_date_in_x_days(4)), date)
+
+        date = queries.date_converter("3w")
+        assert.equals(os.date("%Y-%m-%d", get_date_in_x_days(3 * 7)), date)
+
+        date = queries.date_converter("8a")
+        assert.is_nil(date)
+    end)
+
+    it("Converts a weekday with and without a number", function()
+        local values = {
+            Monday = 0,
+            Tueday = 1,
+            Wednesday = 2,
+            Thursday = 3,
+            Friday = 4,
+            Saturday = 5,
+            Sunday = 6,
+        }
+        assert.equals(
+            queries_helper.date_converter("2mon"),
+            os.date("%Y-%m-%d", get_date_in_x_days(14 - values[os.date("%A")]))
+        )
+        assert.equals(
+            queries_helper.date_converter("12mon"),
+            os.date("%Y-%m-%d", get_date_in_x_days(84 - values[os.date("%A")]))
+        )
+
+        assert.is_nil(queries_helper.date_converter("9abc"))
+
+        assert.equals(
+            queries_helper.date_converter("mon"),
+            os.date("%Y-%m-%d", get_date_in_x_days(7 - values[os.date("%A")]))
+        )
     end)
 
     it("Gets a diff between today's date", function()
@@ -71,19 +108,5 @@ describe("CORE.GTD.QUERIES - Helpers:", function()
 
         diff = queries.diff_with_today("test_date")
         assert.is_nil(diff)
-    end)
-    it("Convert weekday with amount to date", function()
-        local values = {
-            ["Monday"] = 0,
-            ["Tueday"] = 1,
-            ["Wednesday"] = 2,
-            ["Thursday"] = 3,
-            ["Friday"] = 4,
-            ["Saturday"] = 5,
-            ["Sunday"] = 6,
-        }
-        assert.is_true(
-            queries_helper.date_converter("2mon") == os.date("%Y-%m-%d", get_date_in_x_days(14 - values[os.date("%A")]))
-        )
     end)
 end)
