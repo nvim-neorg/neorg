@@ -27,6 +27,7 @@ neorg.events.base_event = {
     filehead = "",
     line_content = "",
     buffer = 0,
+    window = 0,
     mode = "",
 }
 
@@ -125,6 +126,7 @@ function neorg.events.create(module, type, content)
     new_event.referrer = module.name
     new_event.broadcast = true
     new_event.buffer = vim.api.nvim_get_current_buf()
+    new_event.window = vim.api.nvim_get_current_win()
     new_event.mode = vim.api.nvim_get_mode().mode
 
     return new_event
