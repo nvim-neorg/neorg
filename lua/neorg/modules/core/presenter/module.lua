@@ -110,6 +110,13 @@ module.public = {
 
         results = module.private.remove_blanklines(results)
 
+        -- This is a temporary fix because querying the heading1 nodes seems to query the next heading1 node too !
+        for _, res in pairs(results) do
+            if vim.startswith(res[#res], "* ") then
+                res[#res] = nil
+            end
+        end
+
         if
             module.config.public.zen_mode == "truezen" and neorg.modules.is_module_loaded("core.integrations.truezen")
         then
