@@ -49,9 +49,7 @@ module.public = {
             weekday = nil
         end
 
-        if not amount or not weekday then
-            return
-        else
+        if amount and weekday then
             local date = os.date("*t")
             if values[weekday] > date.wday then
                 date.day = date.day + values[weekday] - date.wday
