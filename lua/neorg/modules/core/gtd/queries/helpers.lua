@@ -52,7 +52,7 @@ module.public = {
         if amount and weekday then
             local date = os.date("*t")
             if values[weekday] > date.wday then
-                date.day = date.day + values[weekday] - date.wday
+                date.day = date.day + values[weekday] - date.wday + (amount - 1) * 7
             else
                 date.day = date.day + amount * 7 - (date.wday - values[weekday])
             end
