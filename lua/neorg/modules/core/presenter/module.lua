@@ -95,6 +95,9 @@ module.public = {
                 recursive = true,
             },
         }
+        -- Free the text in memory after reading nodes
+        queries.delete_content(0)
+
         local results = queries.query_nodes_from_buf(tree, 0)
 
         if vim.tbl_isempty(results) then
