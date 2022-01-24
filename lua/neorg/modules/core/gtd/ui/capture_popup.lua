@@ -215,6 +215,7 @@ module.private = {
                             :title("Custom Date")
                             :text("Allowed date: today, tomorrow, Xw, Xd, Xm, Xy (where X is a number)")
                             :text("You can even use 'mon', 'tue', 'wed' ... for the next weekday date")
+                            :text("You can also use '2mon' for the 2nd monday that will come")
                             :blank()
                             :prompt("Due", {
                                 callback = function(text)
