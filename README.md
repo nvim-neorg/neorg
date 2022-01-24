@@ -11,7 +11,7 @@
 <a href="/LICENSE"> ![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=for-the-badge)</a>
 <a href="#wip"> ![Status](https://img.shields.io/badge/status-WIP-informational?style=for-the-badge) </a>
 
-Your New Life Organization Tool, all in Lua
+Your New Life Organization Tool - All in Lua
 
 [Summary](#summary)
 •
@@ -42,7 +42,7 @@ Your New Life Organization Tool, all in Lua
 </div>
 
 Neorg (_Neo_ - new, _org_ - organization) is a tool designed to reimagine organization as you know it.
-Grab some coffee, start writing some notes, let your editor handle the rest!
+Grab some coffee, start writing some notes, let your editor handle the rest.
 
 ### Why do we need Neorg?
 
@@ -55,7 +55,7 @@ and inconsistencies in the most popular markup formats that Neorg was born.
 
 To learn more about the philosophy of the project check the [philosophy](#philosophy) section.
 
-###### :exclamation: **IMPORTANT**: Neorg is _alpha_ software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and while we are doing our best to keep the documentation up-to-date, this may not always be possible to the full extent.
+###### :exclamation: **IMPORTANT**: Neorg is _alpha_ software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and while we are doing our best to keep the documentation up-to-date, this may not always be possible.
 
 ## 🌟 Showcase
 
@@ -136,7 +136,7 @@ You can install it through your favorite plugin manager:
   ```lua
   use {
       "nvim-neorg/neorg",
-      -- tag = "latest",
+      -- tag = "latest", (see below)
       config = function()
           require('neorg').setup {
               ... -- check out setup part...
@@ -146,9 +146,10 @@ You can install it through your favorite plugin manager:
   }
   ```
 
-  _Note: did you saw the `tag = ...` above ? Setting this will tell packer to stick to a precise Neorg version._
-
-  _You can use `tag = "latest"` to always stick to latest stable Neorg version, or you can choose a custom Neorg version (Created tags available [here](https://github.com/nvim-neorg/neorg/tags))_
+  If you don't want to always be on the bleeding edge version of Neorg you can use _tags_ to 
+  slow down the rate at which you get features. The `latest` tag is updated by us every
+  time Neorg hits a new release, so you don't have to worry about all the updates inbetween.
+  You can also pin Neorg to one specific version through e.g. `tag = "0.0.9"`.
 
 - [Packer (with lazyloading)](https://github.com/wbthomason/packer.nvim):
 
@@ -159,10 +160,10 @@ You can install it through your favorite plugin manager:
   ```lua
   use {
       "nvim-neorg/neorg",
+      -- tag = "latest",
       ft = "norg",
-      after = { "nvim-treesitter" },  -- You may also specify Telescope
+      after = "nvim-treesitter", -- You may want to specify Telescope here as well
       config = function()
-          -- setup neorg
           require('neorg').setup {
               ...
           }
@@ -188,7 +189,7 @@ You can install it through your favorite plugin manager:
   ```vim
   lua << EOF
   require('neorg').setup {
-      " check out setup part...
+      ...
   }
   EOF
   ```
@@ -197,17 +198,17 @@ You can install it through your favorite plugin manager:
 
 ###### _Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system for this step!_
 
-As of right now, the TreeSitter parser is included in nvim-treesitter, so you can run:
+Neorg's main treesitter parser is part of the `nvim-treesitter` repository, and can be installed through:
 
-```
-:TSInstall norg.
+```vim
+:TSInstall norg
 ```
 
 If you want the parser to be more persistent across different installations of your config, make sure to set `norg` as a parser in the `ensure_installed` table, then run `:TSUpdate`.
+If you use the "maintained"/"all" parser collections then `norg` will be autoincluded.
 
-However, in addition to that basic parser, you may also want to install additional subparsers which are injected into the norg parser.
-
-To do so, you may want to run this code snippet **before** you invoke `require('nvim-treesitter.configs').setup()`:
+In addition to the main parser you may also want to install additional subparsers which are injected into the `norg` parser.
+To do so, you want to run this code snippet **before** you invoke `require('nvim-treesitter.configs').setup()`:
 
 ```lua
 local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
@@ -233,7 +234,7 @@ parser_configs.norg_table = {
 
 Then run `:TSInstall norg_meta norg_table`.
 
-Here's an example config, yours will probably be different:
+Here's an example config for `nvim-treesitter`, yours will probably be different:
 
 ```lua
 require('nvim-treesitter.configs').setup {
@@ -244,16 +245,14 @@ require('nvim-treesitter.configs').setup {
 }
 ```
 
-Having a rare occurence where the parser doesn't work instantly? Try running `:e`.
+### Troubleshooting Treesitter
 
-**Still not working**? Uh oh, you're stepping on muddy territory. There are several reasons why a parser
-may not work right off the bat, however most commonly it's because of plugin loading order.
-
-Neorg needs `nvim-treesitter` to be up and running before it starts adding colors to highlight groups.
-
-Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
-
-If you're on Mac and have compilation errors when doing `:TSInstall`, check out this [fix](https://github.com/nvim-neorg/neorg/issues/74#issuecomment-906627223).
+- Having a rare occurence where the parser doesn't work instantly? Try running `:e`.
+  **Still not working**? Uh oh, you're stepping on muddy territory. There are several reasons why a parser
+  may not work right off the bat, however most commonly it's because of plugin loading order.
+  Neorg needs `nvim-treesitter` to be up and running before it starts adding colors to highlight groups.
+- Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
+- If you're on Mac and have compilation errors when doing `:TSInstall`, check out this [fix](https://github.com/nvim-neorg/neorg/issues/74#issuecomment-906627223).
 
 ## Setup
 
@@ -279,16 +278,16 @@ require('neorg').setup {
 }
 ```
 
-You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) which modules are automatically required when adding `core.defaults`.
+You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) which modules are automatically required when loading `core.defaults`.
 
 ## Usage
 
-We recommend reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format!
-You can even view a summary directly in your neovim instance by running `:h neorg` if you don't like reading a lot.
+We recommend reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format.
+You can view a summary directly in your neovim instance by running `:h neorg` if you don't like reading a lot!
 
-Next step is to simply drop into a `.norg` file and start typing away!
+Afterwards it's as simple as hopping into a `.norg` file and typing away.
 
-A good first step is to require the `core.norg.dirman` module, it'll help you manage workspaces.
+A good first step is to require the `core.norg.dirman` module, it'll help you manage Neorg workspaces.
 Workspaces are basically isolated directories that you can jump between:
 
 ```lua
@@ -314,20 +313,26 @@ in a `.norg` file or have loaded a `.norg` file already in your Neovim session.
 If the Neorg environment isn't loaded you'll find a `:NeorgStart` command which will launch Neorg and pop
 you in to your last (or only) workspace.
 
-> It works, cool! What are the next steps?
+#### It works, cool! What are the next steps?
 
-We recommend you add some core modules (continue reading to find out how) that can greatly improve your experience, such as:
+We recommend you add some core modules that can greatly improve your experience, such as:
 
-- Setting up a completion engine (`core.norg.completion`)
 - Using the concealer module to enable icons (`core.norg.concealer`)
+- Setting up a completion engine (`core.norg.completion`)
+
+Setting these up is discussed in the wiki, so be sure to check there!
+
+**You're now basically set**! The rest of this README will be additional information, so keep reading
+if you care about what makes Neorg tick, or you want to genuinely get good at using it.
 
 ## Modules
 
-As you surely saw previously, we loaded `core.defaults`, and recommended that you load `core.norg.dirman`.
-Sooo, what are they exactly? We'll give you a brief explanation.
+As you saw previously, we loaded `core.defaults` and recommended that you load `core.norg.dirman`.
+As you probably know those are modules. But what are they, exactly?
 
 Modules are basically isolated bits of code that provide a specific subset of features. They can be docked into
 the environment at any time and can be essentially stacked together like lego bricks!
+They can bind themselves to events and callbacks and communicate with each other.
 
 To require a module, just do:
 
@@ -348,12 +353,12 @@ require('neorg').setup {
 ```
 
 As always, for a little more info you can consult the wiki page [here](https://github.com/nvim-neorg/neorg/wiki/Installation#the-concept-of-modules).
-
 To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the [wiki](https://github.com/nvim-neorg/neorg/wiki).
 
 ### Core Modules
 
-Neorg comes with some cool modules to help you manage your notes.
+Here is a list of core modules that aren't part of `core.defaults` and can be added
+individually by you.
 
 Feel free to try by adding them to your Neorg setup.
 
@@ -410,8 +415,7 @@ require('neorg').setup {
 </details>
 <br>
 
-**You're now basically set**! The rest of this README will be additional information, so keep reading
-if you care about what makes Neorg tick.
+If you ever end up making a module for Neorg feel free to make a pull request and add it to this README!
 
 ## Philosophy
 
