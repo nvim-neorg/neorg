@@ -3,6 +3,39 @@ require("tests.config")
 
 -- Get the required module
 local queries = neorg.modules.get_module("core.gtd.queries")
+local queries_helper = neorg.modules.get_module("core.gtd.queries.helpers")
+
+local function get_date_in_x_days(days)
+    -- Create a table to store the number of days in each month
+    local month_days = {
+        31,
+        28,
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    }
+
+    local date = os.date("*t")
+    date.day = date.day + days
+
+    if date.day > month_days[date.month] then
+        date.day = date.day - month_days[date.month]
+        date.month = date.month + 1
+        if date.month > 12 then
+            date.month = date.month - 12
+            date.year = date.year + 1
+        end
+    end
+
+    return os.time(date)
+end
 
 describe("CORE.GTD.QUERIES - Helpers:", function()
     it("Converts a date", function()
@@ -38,5 +71,19 @@ describe("CORE.GTD.QUERIES - Helpers:", function()
 
         diff = queries.diff_with_today("test_date")
         assert.is_nil(diff)
+    end)
+    it("Convert weekday with amount to date", function()
+        local values = {
+            ["Monday"] = 0,
+            ["Tueday"] = 1,
+            ["Wednesday"] = 2,
+            ["Thursday"] = 3,
+            ["Friday"] = 4,
+            ["Saturday"] = 5,
+            ["Sunday"] = 6,
+        }
+        assert.is_true(
+            queries_helper.date_converter("2mon") == os.date("%Y-%m-%d", get_date_in_x_days(14 - values[os.date("%A")]))
+        )
     end)
 end)
