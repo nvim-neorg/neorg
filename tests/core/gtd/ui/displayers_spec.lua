@@ -5,42 +5,9 @@ require("tests.config")
 --- @type core.gtd.ui
 local ui = neorg.modules.get_module("core.gtd.ui")
 local queries = neorg.modules.get_module("core.gtd.queries")
-local queries_helper = neorg.modules.get_module("core.gtd.queries.helpers")
 
 local t = function(str)
     return vim.api.nvim_replace_termcodes(str, true, true, true)
-end
-
-local function get_date_in_x_days(days)
-    -- Create a table to store the number of days in each month
-    local month_days = {
-        31,
-        28,
-        31,
-        30,
-        31,
-        30,
-        31,
-        31,
-        30,
-        31,
-        30,
-        31,
-    }
-
-    local date = os.date("*t")
-    date.day = date.day + days
-
-    if date.day > month_days[date.month] then
-        date.day = date.day - month_days[date.month]
-        date.month = date.month + 1
-        if date.month > 12 then
-            date.month = date.month - 12
-            date.year = date.year + 1
-        end
-    end
-
-    return os.time(date)
 end
 
 describe("CORE.GTD.UI - Displayers:", function()
@@ -294,19 +261,5 @@ describe("CORE.GTD.UI - Displayers:", function()
         assert.is_true(vim.tbl_contains(lines, "- task5, `starting today`"))
 
         vim.api.nvim_buf_delete(buf, {})
-    end)
-    it("Convert weekday with amount to date", function()
-        local values = {
-            ["Monday"] = 0,
-            ["Tueday"] = 1,
-            ["Wednesday"] = 2,
-            ["Thursday"] = 3,
-            ["Friday"] = 4,
-            ["Saturday"] = 5,
-            ["Sunday"] = 6,
-        }
-        assert.is_true(
-            queries_helper.date_converter("2mon") == os.date("%Y-%m-%d", get_date_in_x_days(14 - values[os.date("%A")]))
-        )
     end)
 end)
