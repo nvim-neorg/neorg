@@ -35,7 +35,7 @@ module.config.public = {
 module.public = {
     --- Follow link from a specific node
     --- @param node userdata
-    --- @param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...)
+    --- @param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...) or new tab (mode="tab")
     --- @param parsed_link table a table of link information gathered from parse_link()
     follow_link = function(node, split, parsed_link)
         if node:type() == "anchor_declaration" then
@@ -49,6 +49,7 @@ module.public = {
                 located_anchor_declaration.node
             )
 
+            vim.cmd([[normal! m`]])
             vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
             return
         end
@@ -66,6 +67,8 @@ module.public = {
                     vim.cmd("vsplit")
                 elseif split == "split" then
                     vim.cmd("split")
+                elseif split == "tab" then
+                    vim.cmd("tabnew")
                 end
             end
 
@@ -83,6 +86,7 @@ module.public = {
                     located_link_information.node
                 )
 
+                vim.cmd([[normal! m`]])
                 vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
             end
 
