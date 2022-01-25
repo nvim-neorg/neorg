@@ -19,7 +19,7 @@
     - \/italic\/: /italic/
     - \_underline\_: _underline_
     - \-strikethrough\-: -strikethrough-
-    - \|spoiler\|: |spoiler|
+    - \!spoiler\!: !spoiler!
     - \`inline code\`: `inline code`
     - \^superscript\^: ^superscript^  (when nested into `subscript`, will highlight as an error)
     - \,subscript\,: ,subscript,  (when nested into `superscript`, will highlight as an error)

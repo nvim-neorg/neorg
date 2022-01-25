@@ -127,7 +127,7 @@ changes:
   - `-some text-` - marks text as ~~strikethrough~~.
   - `^some text^` - superscript
   - `,some text,` - subscript
-  - `|some text|` - spoilers
+  - `!some text!` - spoilers
   - \`some text\` - inline code block (verbatim)
   - `$some text$` - inline mathematics
   - `+some text+` - inline comment
