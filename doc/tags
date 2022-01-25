@@ -1,5 +1,6 @@
 neorg	neorg.norg	/* The `.norg` file-format
 neorg-advanced-markup	neorg.norg	/ ** Advanced markup
+neorg-anchors	neorg.norg	/  *** Anchors
 neorg-basic-markup	neorg.norg	/ ** Basic Markup
 neorg-breaking-changes	breaking-changes.norg	/* All the Breakages
 neorg-carryover-tags	neorg.norg	/  *** Carryover
@@ -7,6 +8,8 @@ neorg-code-blocks	neorg.norg	/  *** Code Blocks
 neorg-comments	neorg.norg	/  *** Comments
 neorg-continuation	neorg.norg	/  *** Object continuation
 neorg-data-tags	neorg.norg	/ ** Data Tags
+neorg-definitions	neorg.norg	/ ** Definitions
+neorg-footnotes	neorg.norg	/ ** Footnotes
 neorg-gtd	gtd.norg	/* GTD in Neorg
 neorg-gtd-aof	gtd.norg	/  *** Area Of Focus
 neorg-gtd-capture	gtd.norg	/  *** Capture
@@ -22,11 +25,18 @@ neorg-gtd-structure	gtd.norg	/ ** GTD structure for neorg
 neorg-headings	neorg.norg	/  *** Headings
 neorg-indentation-reversal	neorg.norg	/    ***** Indentation reversion
 neorg-insertions	neorg.norg	/  *** Insertions
+neorg-link-descriptions	neorg.norg	/  *** Custom link text
+neorg-link-examples	neorg.norg	/  *** Examples
+neorg-link-lists	neorg.norg	/  *** Link Lists
+neorg-link-locations	neorg.norg	/  *** Pure link location
 neorg-link-modifier	neorg.norg	/  *** The Link modifier
+neorg-link-targets	neorg.norg	/  *** Link Targets
 neorg-links	neorg.norg	/ ** Links
 neorg-markers	neorg.norg	/ ** Markers
+neorg-math	neorg.norg	/  *** Math
 neorg-media	neorg.norg	/  *** Media
 neorg-name-tag	neorg.norg	/  *** Name
+neorg-nested-markup	neorg.norg	/ *** Nested markup
 neorg-nesting	neorg.norg	/ ** Things which you can nest
 neorg-ordered-lists	neorg.norg	/  *** Ordered lists
 neorg-ordered-tag	neorg.norg	/  *** List ordering
@@ -35,3 +45,4 @@ neorg-roadmap	roadmap.norg	/* The Neorg Roadmap
 neorg-tables	neorg.norg	/  *** Tables
 neorg-tasks	neorg.norg	/  *** Tasks
 neorg-unordered-lists	neorg.norg	/  *** Unordered lists
+neorg-variables	neorg.norg	/  *** Variables
