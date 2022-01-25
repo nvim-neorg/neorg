@@ -166,7 +166,7 @@ module.load = function()
                     local tasks = module.required["core.gtd.queries"].get("tasks")
                     local projects = module.required["core.gtd.queries"].get("projects")
 
-                    if not tasks or not projects then
+                    if not (tasks and projects) then
                         return
                     end
 

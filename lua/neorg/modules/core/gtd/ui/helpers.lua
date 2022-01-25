@@ -16,7 +16,7 @@ module.public = {
         local projects = module.required["core.gtd.queries"].get("projects", { exclude_files = exclude_files })
 
         -- Error out when no projects
-        if not tasks or not projects then
+        if not (tasks and projects) then
             return
         end
 

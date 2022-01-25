@@ -66,7 +66,7 @@ module.public = {
         end
 
         local number, type = text:match("^(%d+)([hdwmy])$")
-        if not number or not type then
+        if not (number and type) then
             return
         end
 
@@ -163,7 +163,7 @@ module.public = {
 
         -- Parse date parameter
         local y, m, d = date:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
-        if not y or not m or not d then
+        if not (y and m and d) then
             return
         end
 
