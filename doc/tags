@@ -27,7 +27,6 @@ neorg-indentation-reversal	neorg.norg	/    ***** Indentation reversion
 neorg-insertions	neorg.norg	/  *** Insertions
 neorg-link-descriptions	neorg.norg	/  *** Custom link text
 neorg-link-examples	neorg.norg	/  *** Examples
-neorg-link-lists	neorg.norg	/  *** Link Lists
 neorg-link-locations	neorg.norg	/  *** Pure link location
 neorg-link-modifier	neorg.norg	/  *** The Link modifier
 neorg-link-targets	neorg.norg	/  *** Link Targets

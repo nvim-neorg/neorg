@@ -207,24 +207,6 @@ consective new lines.
       It requires an *anchor definition* (last line in the code block) which defines where an anchored link points to.
       This is very useful when you find yourself refering to the same target often.
 
-  *** Link Lists
-
-    @code norg
-      +unordered links+
-      -> {* The `.norg` file-format}[link to a level 1 heading]
-      --> {** links}[link to a level 2 heading]
-      -> {| some marker}[link to a marker]
-      -> {# definitions}[link to any element with the text definitions]
-      +these links will be ordered:+
-      ~> {https://github.com/vhyrro/taurivim}[link to a cool plugin]
-      ~> {https://github.com/danymat/neogen}[another cool plugin]
-      +links to files+
-      {:file:}[link to file.norg]
-      {:file_2:# target}[link to target in file_2.norg]
-      {:/my/file:# target}[link to a target from the root of the workspace]
-      {@ notes.txt}[link to non neorg file notes.txt]
-    @end
-
   *** Examples:
       {* Heading 1}
       {** Heading 2}

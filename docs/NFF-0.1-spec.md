@@ -471,17 +471,9 @@ changes:
   - [x] Done item
   -- [x] Nested done item
 
-  Unordered links:
-  -> {# To a location}[link]
-  --> {# To another location}[nested link]
-
   Ordered lists:
   ~ Ordered list item
     ~~ Nested ordered list
-
-  Ordered links:
-  ~> {# To a location}[link]
-  ~~> {# To another location}[nested link]
 
   Quotes:
   > A quote
