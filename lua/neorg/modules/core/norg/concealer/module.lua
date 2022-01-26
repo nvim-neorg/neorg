@@ -1458,7 +1458,7 @@ module.config.public = {
             enabled = true,
             icon = "",
             highlight = "NeorgMarker",
-            query = "(marker_prefix) @icon",
+            query = "[ (marker_prefix) (link_target_marker) ] @icon",
         },
 
         definition = {
@@ -1468,7 +1468,7 @@ module.config.public = {
                 enabled = true,
                 icon = "≡",
                 highlight = "NeorgDefinition",
-                query = "(single_definition_prefix) @icon",
+                query = "[ (single_definition_prefix) (link_target_definition) ] @icon",
             },
             multi_prefix = {
                 enabled = true,
@@ -1491,7 +1491,7 @@ module.config.public = {
                 enabled = true,
                 icon = "⁎",
                 highlight = "NeorgFootnote",
-                query = "(single_footnote_prefix) @icon",
+                query = "[ (single_footnote_prefix) (link_target_footnote) ] @icon",
             },
             multi_prefix = {
                 enabled = true,
@@ -1604,7 +1604,7 @@ module.config.public = {
         },
     },
 
-    -- Markup presets to use (currents: `safe`, `brave`)
+    -- Markup presets to use (currents: `safe`, `brave`, `dimmed`)
     -- `safe` will use whitespaces to conceal markup
     -- `brave` will use the word joiner unicode
     -- `dimmed` will dim markup icons instead of concealing them
