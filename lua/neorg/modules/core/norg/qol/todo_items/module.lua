@@ -19,7 +19,7 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.norg.qol.todo_items")
 
 module.setup = function()
-    return { success = true, requires = { "core.keybinds", "core.autocommands", "core.integrations.treesitter" } }
+    return { success = true, requires = { "core.keybinds", "core.integrations.treesitter" } }
 end
 
 module.load = function()
@@ -56,6 +56,11 @@ module.public = {
 
         -- If present grab the list item that is under the cursor
         local list_node_at_cursor = module.public.get_list_item_from_cursor()
+
+        -- If we didn't manage to grab any valid item then return
+        if not list_node_at_cursor then
+            return
+        end
 
         -- If we set a recursion level then go through and traverse up the syntax tree `recursion_level` times
         for _ = 0, recursion_level do
@@ -280,11 +285,6 @@ module.events.subscribed = {
         ["core.norg.qol.todo_items.todo.task_important"] = true,
         ["core.norg.qol.todo_items.todo.task_recurring"] = true,
         ["core.norg.qol.todo_items.todo.task_cycle"] = true,
-    },
-
-    ["core.autocommands"] = {
-        textchanged = true,
-        textchangedi = true,
     },
 }
 
