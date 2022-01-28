@@ -36,7 +36,6 @@ module.setup = function()
             "core.gtd.ui",
             "core.gtd.helpers",
             "core.neorgcmd",
-            "core.norg.completion",
             "core.gtd.queries",
         },
     }
@@ -157,58 +156,60 @@ module.load = function()
     end
 
     -- Generates completion for gtd
-    vim.schedule(function()
-        for _, completion in pairs(module.required["core.norg.completion"].completions) do
-            if vim.tbl_contains(completion.complete, "contexts") then
-                local contexts
-                local waiting_for
-                if module.config.public.custom_tag_completion then
-                    local tasks = module.required["core.gtd.queries"].get("tasks")
-                    local projects = module.required["core.gtd.queries"].get("projects")
+    neorg.modules.await("core.norg.completion", function(completion_module)
+        vim.schedule(function()
+            for _, completion in pairs(completion_module.completions) do
+                if vim.tbl_contains(completion.complete, "contexts") then
+                    local contexts
+                    local waiting_for
+                    if module.config.public.custom_tag_completion then
+                        local tasks = module.required["core.gtd.queries"].get("tasks")
+                        local projects = module.required["core.gtd.queries"].get("projects")
 
-                    if not tasks or not projects then
-                        return
+                        if not tasks or not projects then
+                            return
+                        end
+
+                        tasks = module.required["core.gtd.queries"].add_metadata(
+                            tasks,
+                            "task",
+                            { keys = { "contexts", "waiting.for" } }
+                        )
+                        projects = module.required["core.gtd.queries"].add_metadata(
+                            projects,
+                            "project",
+                            { keys = { "contexts", "waiting.for" } }
+                        )
+
+                        contexts = module.private.find_by_key("contexts", tasks, projects, { "today", "someday" })
+                        waiting_for = module.private.find_by_key("waiting.for", tasks, projects)
+                    else
+                        contexts = { "today", "someday" }
+                        waiting_for = {}
                     end
 
-                    tasks = module.required["core.gtd.queries"].add_metadata(
-                        tasks,
-                        "task",
-                        { keys = { "contexts", "waiting.for" } }
-                    )
-                    projects = module.required["core.gtd.queries"].add_metadata(
-                        projects,
-                        "project",
-                        { keys = { "contexts", "waiting.for" } }
-                    )
-
-                    contexts = module.private.find_by_key("contexts", tasks, projects, { "today", "someday" })
-                    waiting_for = module.private.find_by_key("waiting.for", tasks, projects)
-                else
-                    contexts = { "today", "someday" }
-                    waiting_for = {}
+                    local _completions = {
+                        {
+                            descend = {},
+                            options = {
+                                type = "GTDWaitingFor",
+                            },
+                            regex = "waiting.for%s+%w*",
+                            complete = waiting_for,
+                        },
+                        {
+                            descend = {},
+                            options = {
+                                type = "GTDContext",
+                            },
+                            regex = "contexts%s+%w*",
+                            complete = contexts,
+                        },
+                    }
+                    vim.list_extend(completion.descend, _completions)
                 end
-
-                local _completions = {
-                    {
-                        descend = {},
-                        options = {
-                            type = "GTDWaitingFor",
-                        },
-                        regex = "waiting.for%s+%w*",
-                        complete = waiting_for,
-                    },
-                    {
-                        descend = {},
-                        options = {
-                            type = "GTDContext",
-                        },
-                        regex = "contexts%s+%w*",
-                        complete = contexts,
-                    },
-                }
-                vim.list_extend(completion.descend, _completions)
             end
-        end
+        end)
     end)
 end
 
