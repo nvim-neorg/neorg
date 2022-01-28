@@ -1013,7 +1013,7 @@ module.config.public = {
 
             on_hold = {
                 enabled = true,
-                icon = "",
+                icon = "",
                 highlight = "NeorgTodoItemOnHoldMark",
                 query = "(todo_item_on_hold) @icon",
                 extract = function()
@@ -1023,7 +1023,7 @@ module.config.public = {
 
             cancelled = {
                 enabled = true,
-                icon = "",
+                icon = "",
                 highlight = "NeorgTodoItemCancelledMark",
                 query = "(todo_item_cancelled) @icon",
                 extract = function()
@@ -1033,7 +1033,7 @@ module.config.public = {
 
             recurring = {
                 enabled = true,
-                icon = "⟳",
+                icon = "↺",
                 highlight = "NeorgTodoItemRecurringMark",
                 query = "(todo_item_recurring) @icon",
                 extract = function()
