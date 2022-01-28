@@ -78,6 +78,8 @@ module.public = {
                         done_item_count = done_item_count + 1
                     elseif node:named_child(1):type() == "todo_item_pending" then
                         pending_item_count = pending_item_count + 1
+                    elseif node:named_child(1):type() == "todo_item_cancelled" then
+                        counter = counter - 1
                     end
                 end
 
