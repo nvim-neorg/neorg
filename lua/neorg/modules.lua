@@ -200,6 +200,18 @@ function neorg.modules.load_module_from_table(module, parent)
         module.load()
     end
 
+    neorg.events.broadcast_event({
+        type = "core.module_loaded",
+        split_type = { "core", "module_loaded" },
+        filename = "",
+        filehead = "",
+        cursor_position = { 0, 0 },
+        referrer = "core",
+        line_content = "",
+        content = module,
+        broadcast = true,
+    })
+
     return true
 end
 
@@ -340,4 +352,16 @@ function neorg.modules.get_module_version(module_name)
     end
 
     return neorg.utils.parse_version_string(version)
+end
+
+-- @Summary Awaits a resource (module) to be present before executing a callback.
+-- @Description Executes `callback` once `module` is a valid and loaded module, else the callback gets instantly executed.
+-- @Param module_name (string) - the name of the module to listen for.
+-- @Param callback (function(public_module_table)) - the callback to execute.
+function neorg.modules.await(module_name, callback)
+    neorg.callbacks.on_event("core.module_loaded", function(_, module)
+        callback(module.public)
+    end, function(event)
+        return event.content.name == module_name
+    end)
 end
