@@ -107,7 +107,7 @@ And much more...
 <details>
   <summary>Powerpoint-like presentations in Neovim with the presenter module:</summary>
 
-![Powerpoint-like presentations in Neovim with the presenter module](https://user-images.githubusercontent.com/5306901/147654155-c2aa728a-5c2b-4813-b3e2-fbf7e2ffd2a2.gif)
+![Powerpoint-like presentations in Neovim with the presenter module](https://user-images.githubusercontent.com/76052559/151674065-ed397716-9d26-4efc-9c2d-2dfdb5539edf.gif)
 
 </details>
 
