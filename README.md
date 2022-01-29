@@ -74,7 +74,7 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 <details>
 <summary>First class treesitter support:</summary>
 
-<!-- ![Treesitter powered editing]() -->
+![Treesitter powered editing](https://user-images.githubusercontent.com/76052559/151668244-9805afc4-8c50-4925-85ec-1098aff5ede6.gif)
 
 </details>
 
@@ -114,7 +114,7 @@ And much more...
 <details>
   <summary>Get syntax highlighting for any language supported by Neovim:</summary>
 
-![Get syntax highlighting for any language supported by Neovim](https://user-images.githubusercontent.com/5306901/147657014-68573df8-0e43-4a8b-bb81-0db1c80cbbd8.gif)
+![Get syntax highlighting for any language supported by Neovim](https://user-images.githubusercontent.com/76052559/151668015-39a50439-5c95-4a18-9970-090fb68cfc0b.gif)
 
 </details>
 </details>
