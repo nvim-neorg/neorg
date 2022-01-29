@@ -114,15 +114,9 @@ And much more...
 <details>
   <summary>Get syntax highlighting for any language supported by Neovim:</summary>
 
+Plus fancy completion powered by `nvim-cmp`.
+
 ![Get syntax highlighting for any language supported by Neovim](https://user-images.githubusercontent.com/76052559/151668015-39a50439-5c95-4a18-9970-090fb68cfc0b.gif)
-
-</details>
-</details>
-
-<details>
-  <summary>Get completion for various items in Neorg:</summary>
-
-![Get completion for various items in Neorg](https://user-images.githubusercontent.com/5306901/147657095-aa51a609-5bc2-4aa4-9687-bdda6ef48860.gif)
 
 </details>
 
