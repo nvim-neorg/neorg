@@ -72,16 +72,16 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 </details>
 
 <details>
-<summary>Playing around with our unique syntax elements:</summary>
+<summary>First class treesitter support:</summary>
 
-![Showcase of our Keybinds in action](https://user-images.githubusercontent.com/5306901/147650852-de6b2542-39c4-44c6-a228-ded867a71d4e.gif)
+<!-- ![Treesitter powered editing]() -->
 
 </details>
 
 <details>
 <summary>Treesitter powered editing:</summary>
 
-![Treesitter powered editing](https://user-images.githubusercontent.com/5306901/147652347-80daa0db-f5d5-46e7-b553-2922553c2c78.gif)
+![Showcase of our Keybinds in action](https://user-images.githubusercontent.com/76052559/151614059-41b590cd-07ea-437c-84b9-536de6d1adfa.gif)
 
 </details>
 
