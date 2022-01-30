@@ -96,9 +96,9 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 
 ![Create a new task](https://user-images.githubusercontent.com/76052559/151699879-3a04518b-16e6-4eb4-b765-678a15b90fb4.gif)
 
-- Add information to your tasks, and jump to them quickly
+- Edit tasks in an efficient manner through the UI
 
-![Add information to your tasks, and jump to them quickly](https://user-images.githubusercontent.com/5306901/147653650-a4a27c59-1213-4307-b3fc-c0a0bfefaa9b.gif)
+![Edit tasks in an efficient manner through the UI](https://user-images.githubusercontent.com/76052559/151700653-89c30e99-68e0-4873-8e1a-ecd25dd271c2.gif)
 
 And much more...
 
