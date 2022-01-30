@@ -94,7 +94,7 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 
 - Create a new task
 
-![Create a new task](https://user-images.githubusercontent.com/5306901/147653241-e8d2742c-354c-49e4-bad0-7091451c6628.gif)
+![Create a new task](https://user-images.githubusercontent.com/76052559/151699879-3a04518b-16e6-4eb4-b765-678a15b90fb4.gif)
 
 - Add information to your tasks, and jump to them quickly
 
