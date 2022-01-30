@@ -7,4 +7,23 @@
     version: 0.0.9
 @end
 
-+TODO: Add info later+
+| 0.0.10
+
+* Changes to Core
+ ** Keybind Changes
+    There have been some breaking changes in how keybinds are being handled.
+    They're now much nicer to deal with and don't require as much tinkering.
+
+    Let's talk about what changed exactly:
+
+  *** Defaults
+      By loading `core.keybinds` Neorg now assumes that you want default
+      keybinds to be enabled. You can disable this with:
+
+      @code lua
+      ["core.keybinds"] = {
+        config = {
+            default_keybinds = false,
+        }
+      }
+      @end
