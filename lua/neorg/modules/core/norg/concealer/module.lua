@@ -116,7 +116,7 @@ module.public = {
     -- @Param from (number) - the line number that we should start at (defaults to 0)
     trigger_icons = function(buf, icon_set, namespace, from, to)
         -- Clear all the conceals beforehand (so no overlaps occur)
-        module.public.clear_icons(buf, namespace, from, to)
+        vim.api.nvim_buf_clear_namespace(buf, namespace, from or 0, to or -1)
 
         -- Get the root node of the document (required to iterate over query captures)
         local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
@@ -416,7 +416,7 @@ module.public = {
 
     toggle_markup = function(buf)
         if module.config.public.markup.enabled then
-            module.public.clear_icons(buf, module.private.markup_namespace)
+            vim.api.nvim_buf_clear_namespace(buf, module.private.markup_namespace, 0, -1)
             module.config.public.markup.enabled = false
         else
             module.config.public.markup.enabled = true
@@ -457,11 +457,20 @@ module.public = {
         })
     end,
 
-    -- @Summary Clears all the conceals that neorg has defined
-    -- @Description Simply clears the Neorg extmark namespace
-    -- @Param from (number) - the line number to start clearing from
-    clear_icons = function(buf, namespace, from, to)
-        vim.api.nvim_buf_clear_namespace(buf, namespace, from or 0, to or -1)
+    get_old_extmarks = function(buf, namespace, from, to)
+        return neorg.lib.map(
+            neorg.lib.inline_pcall(
+                vim.api.nvim_buf_get_extmarks,
+                buf,
+                namespace,
+                from and { from, 0 } or 0,
+                to and { to, -1 } or -1,
+                {}
+            ) or {},
+            function(_, v)
+                return v[1]
+            end
+        )
     end,
 
     completion_levels = {
