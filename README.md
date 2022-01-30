@@ -90,7 +90,7 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 
 - See your current projects
 
-![See your current projects](https://user-images.githubusercontent.com/5306901/147652840-c8201380-9ce1-428c-8ce3-320dad5592c1.gif)
+![See your current projects](https://user-images.githubusercontent.com/76052559/151700321-e6912aff-2e87-409b-986e-dff37904b51b.gif)
 
 - Create a new task
 
