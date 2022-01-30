@@ -332,7 +332,19 @@ module.public = {
             return
         end
 
-        module.public.clear_icons(buf, module.private.code_block_namespace, from, to)
+        local existing_extmarks = neorg.lib.map(
+            neorg.lib.inline_pcall(
+                vim.api.nvim_buf_get_extmarks,
+                buf,
+                module.private.code_block_namespace,
+                from or 0,
+                to or -1,
+                {}
+            ) or {},
+            function(_, v)
+                return v[1]
+            end
+        )
 
         -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
@@ -393,6 +405,12 @@ module.public = {
                     end
                 end)
             end
+
+            schedule(function()
+                neorg.lib.map(existing_extmarks, function(_, id)
+                    vim.api.nvim_buf_del_extmark(buf, module.private.code_block_namespace, id)
+                end)
+            end)
         end
     end,
 

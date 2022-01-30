@@ -518,6 +518,16 @@ neorg.lib = {
 
         return res
     end,
+
+    inline_pcall = function(func, ...)
+        local ok, ret = pcall(func, ...)
+
+        if ok then
+            return ret
+        end
+
+        -- return nil
+    end,
 }
 
 return neorg.utils
