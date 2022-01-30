@@ -115,8 +115,7 @@ module.public = {
     -- @Param namespace
     -- @Param from (number) - the line number that we should start at (defaults to 0)
     trigger_icons = function(buf, icon_set, namespace, from, to)
-        -- Clear all the conceals beforehand (so no overlaps occur)
-        vim.api.nvim_buf_clear_namespace(buf, namespace, from or 0, to or -1)
+        local old_extmarks = module.public.get_old_extmarks(buf, namespace, from, to and to - 1)
 
         -- Get the root node of the document (required to iterate over query captures)
         local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
@@ -195,6 +194,12 @@ module.public = {
                 end
             end)
         end
+
+        schedule(function()
+            neorg.lib.map(old_extmarks, function(_, id)
+                vim.api.nvim_buf_del_extmark(buf, namespace, id)
+            end)
+        end)
     end,
 
     trigger_highlight_regex_code_block = function(buf, from, to)
@@ -332,19 +337,7 @@ module.public = {
             return
         end
 
-        local existing_extmarks = neorg.lib.map(
-            neorg.lib.inline_pcall(
-                vim.api.nvim_buf_get_extmarks,
-                buf,
-                module.private.code_block_namespace,
-                from or 0,
-                to or -1,
-                {}
-            ) or {},
-            function(_, v)
-                return v[1]
-            end
-        )
+        local old_extmarks = module.public.get_old_extmarks(buf, module.private.code_block_namespace, from, to)
 
         -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
@@ -407,7 +400,7 @@ module.public = {
             end
 
             schedule(function()
-                neorg.lib.map(existing_extmarks, function(_, id)
+                neorg.lib.map(old_extmarks, function(_, id)
                     vim.api.nvim_buf_del_extmark(buf, module.private.code_block_namespace, id)
                 end)
             end)
