@@ -46,7 +46,7 @@
       If {*** Defaults}[`default_keybinds`] is set to `true` then you'll most probably find yourself
       remapping existing keys or mapping extra keys on top.
 
-      Here are all the functions (taken from {https://github.com/nvim-neorg/neorg/wiki/User-Keybinds}[this] page).
+      Here are all the new functions (taken from {https://github.com/nvim-neorg/neorg/wiki/User-Keybinds}[this] page).
       
       @code lua
       ["core.keybinds"] = {
@@ -76,4 +76,22 @@
       }
       @end
       
+ ** Links
+    By default links are now case-insensitive (but still punctuation sensitive!). Be aware of that now when writing links :)
 
+ ** Metadata Generation
+    In this version metadata generation has been *disabled* by default. Use `:Neorg inject-metadata` to inject metadata into the document
+    whenever you feel like it.
+
+    You can reenable automatic metagen through:
+
+    @code lua
+    ["core.norg.esupports.metagen"] = {
+        config = {
+            type = "auto",
+        }
+    }
+    @end
+
+    We've also removed the ability to provide a keybind in the `type` field (who thought that was a good idea anyway? oh wait it was me).
+    Now `type` can only be `none` or `auto`.
