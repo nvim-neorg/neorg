@@ -1,12 +1,3 @@
-@document.meta
-    title: 0.0.10
-    description: 
-    authors: vhyrro
-    categories: 
-    created: 2022-01-30
-    version: 0.0.9
-@end
-
 | 0.0.10
 
 * Changes to Core
@@ -17,13 +8,72 @@
     Let's talk about what changed exactly:
 
   *** Defaults
-      By loading `core.keybinds` Neorg now assumes that you want default
-      keybinds to be enabled. You can disable this with:
+   **** Default Keybinds Enabled by Default
+        By loading `core.keybinds` Neorg now assumes that you want default
+        keybinds to be enabled. You can disable this with:
 
+        @code lua
+        ["core.keybinds"] = {
+          config = {
+              default_keybinds = false,
+          }
+        }
+        @end
+
+        In your Neorg config.
+
+   **** `<LocalLeader>`
+        Neorg now uses `<LocalLeader>` as the default Neorg leader, allowing you to set it manually
+        yourself in your config.
+
+  *** Ways to Change Keybinds
+      We've drastically improved upon how keybinds are handled internally.
+      Changing just one or a few keys is much easier than before, here's how you do it.
+
+      First, you want to add a `hook` to your keybinds config:
+      
       @code lua
       ["core.keybinds"] = {
         config = {
-            default_keybinds = false,
+            hook = function(keybinds)
+                -- Modifications here
+            end,
         }
       }
       @end
+      
+      This hook gives you a `keybinds` table which provides several functions to map keys.
+      If {*** Defaults}[`default_keybinds`] is set to `true` then you'll most probably find yourself
+      remapping existing keys or mapping extra keys on top.
+
+      Here are all the functions (taken from {https://github.com/nvim-neorg/neorg/wiki/User-Keybinds}[this] page).
+      
+      @code lua
+      ["core.keybinds"] = {
+        config = {
+            hook = function(keybinds)
+                -- Unmaps any Neorg key from the `norg` mode
+                keybinds.unmap("norg", "n", "gtd")
+      
+                -- Binds the `gtd` key in `norg` mode to execute `:echo 'Hello'`
+                keybinds.map("norg", "n", "gtd", "<cmd>echo 'Hello!'<CR>")
+      
+                -- Remap unbinds the current key then rebinds it to have a different action
+                -- associated with it.
+                -- The following is the equivalent of the `unmap` and `map` calls you saw above:
+                keybinds.remap("norg", "n", "gtd", "<cmd>echo 'Hello!'<CR>")
+      
+                -- Sometimes you may simply want to rebind the Neorg action something is bound to
+                -- versus remapping the entire keybind. This remap is essentially the same as if you
+                -- did `keybinds.remap("norg", "n", "<C-Space>, "<cmd>Neorg keybind norg core.norg.qol.todo_items.todo.task_done<CR>")
+                keybinds.remap_event("norg", "n", "<C-Space>", "core.norg.qol.todo_items.todo.task_done")
+      
+                -- Want to move one keybind into the other? `remap_key` moves the data of the
+                -- first keybind to the second keybind, then unbinds the first keybind.
+                keybinds.remap_key("norg", "n", "<C-Space>", "<Leader>t")
+            end,
+        }
+      }
+      @end
+      
+
