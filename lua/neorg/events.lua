@@ -135,7 +135,8 @@ end
 -- @Summary Broadcasts an event
 -- @Description Sends an event to all subscribed modules. The event contains the filename, filehead, cursor position and line content as a bonus.
 -- @Param  event (table) - an event, usually created by neorg.events.create()
-function neorg.events.broadcast_event(event)
+-- @Param callback (function) - a callback to be invoked after all events have been asynchronously broadcast
+function neorg.events.broadcast_event(event, callback)
     -- Broadcast the event to all modules
     if not event.split_type then
         log.error("Unable to broadcast event of type", event.type, "- invalid event name")
@@ -158,6 +159,10 @@ function neorg.events.broadcast_event(event)
                     current_module.on_event(event)
                 end
             end
+        end
+
+        if callback then
+            callback()
         end
     end)
 end
