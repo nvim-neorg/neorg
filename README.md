@@ -13,21 +13,21 @@ Your New Life Organization Tool - All in Lua
 
 [Summary](#summary)
 •
-[Showcase](#showcase)
+[Showcase](#🌟-showcase)
 •
-[Installation](#installation)
+[Installation](#🔧-installation)
 •
-[Setup](#setup)
+[Setup](#📦-setup)
 •
-[Usage](#usage)
+[Usage](#⚙-usage)
 <br>
-[Modules](#modules)
+[Modules](#🥡-modules)
 •
-[Roadmap](#roadmap)
+[Roadmap](#🗺-roadmap)
 •
-[Philosophy](#philosophy)
+[Philosophy](#❓-philosophy)
 •
-[FAQ](#faq)
+[FAQ](#📚-faq)
 
 </div>
 
@@ -116,7 +116,7 @@ Plus fancy completion powered by `nvim-cmp`.
 
 </details>
 
-## Installation
+## 🔧 Installation
 
 **Neorg requires at least Neovim 0.6+ to operate.**
 
@@ -245,7 +245,7 @@ require('nvim-treesitter.configs').setup {
 - Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
 - If you're on Mac and have compilation errors when doing `:TSInstall`, check out this [fix](https://github.com/nvim-neorg/neorg/issues/74#issuecomment-906627223).
 
-## Setup
+## 📦 Setup
 
 You've got the basic stuff out the way now, but wait! That's not all. You've installed Neorg - great! Now you have to configure it.
 By default, Neorg does nothing, and gives you nothing. You must tell it what you care about!
@@ -271,7 +271,7 @@ require('neorg').setup {
 
 You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) which modules are automatically required when loading `core.defaults`.
 
-## Usage
+## ⚙ Usage
 
 We recommend reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format.
 You can view a summary directly in your neovim instance by running `:h neorg` if you don't like reading a lot!
@@ -316,7 +316,7 @@ Setting these up is discussed in the wiki, so be sure to check there!
 **You're now basically set**! The rest of this README will be additional information, so keep reading
 if you care about what makes Neorg tick, or you want to genuinely get good at using it.
 
-## Modules
+## 🥡 Modules
 
 As you saw previously, we loaded `core.defaults` and recommended that you load `core.norg.dirman`.
 As you probably know those are modules. But what are they, exactly?
@@ -406,7 +406,7 @@ require('neorg').setup {
 
 If you ever end up making a module for Neorg feel free to make a pull request and add it to this README!
 
-## Philosophy
+## ❓ Philosophy
 
 Our goals are fairly simple:
 
@@ -428,12 +428,12 @@ Our goals are fairly simple:
    two people asked for it.
    If something has a more niche use case, it should be documented.
 
-## Roadmap
+## 🗺 Roadmap
 
 We track a high-level roadmap, so that you can know what to expect. Just do `:h neorg-roadmap`.
 To know exactly what's being worked on, just check out the [repo's PRs](https://github.com/nvim-neorg/neorg/pulls).
 
-## FAQ
+## 📚 FAQ
 
 <!-- TODO(vhyrro): Populate with common issues -->
 
