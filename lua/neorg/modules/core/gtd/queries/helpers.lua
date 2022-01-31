@@ -19,6 +19,15 @@ module.public = {
     -- @return string
     date_converter = function(text)
         vim.validate({ text = { text, "string" } })
+        local values = {
+            ["sun"] = 1,
+            ["mon"] = 2,
+            ["tue"] = 3,
+            ["wed"] = 4,
+            ["thu"] = 5,
+            ["fri"] = 6,
+            ["sat"] = 7,
+        }
 
         if text == "today" then
             return os.date("%Y-%m-%d")
@@ -26,20 +35,26 @@ module.public = {
             -- Return tomorrow's date in YY-MM-DD format
             return os.date("%Y-%m-%d", os.time() + 24 * 60 * 60)
         elseif vim.tbl_contains({ "mon", "tue", "wed", "thu", "fri", "sat", "sun" }, text) then
-            local values = {
-                ["sun"] = 1,
-                ["mon"] = 2,
-                ["tue"] = 3,
-                ["wed"] = 4,
-                ["thu"] = 5,
-                ["fri"] = 6,
-                ["sat"] = 7,
-            }
             local date = os.date("*t")
             if values[text] > date.wday then
                 date.day = date.day + values[text] - date.wday
             else
                 date.day = date.day + 7 - (date.wday - values[text])
+            end
+            local time = os.time(date)
+            return os.date("%Y-%m-%d", time)
+        end
+        local amount, weekday = text:match("^(%d+)(%a%a%a)$")
+        if not vim.tbl_contains(vim.tbl_keys(values), weekday) then
+            weekday = nil
+        end
+
+        if amount and weekday then
+            local date = os.date("*t")
+            if values[weekday] > date.wday then
+                date.day = date.day + values[weekday] - date.wday + (amount - 1) * 7
+            else
+                date.day = date.day + amount * 7 - (date.wday - values[weekday])
             end
             local time = os.time(date)
             return os.date("%Y-%m-%d", time)

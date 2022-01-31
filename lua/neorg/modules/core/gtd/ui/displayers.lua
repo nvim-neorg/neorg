@@ -1,6 +1,10 @@
+--[[
+    Submodule responsible for creating API for gtd displays
+    A GTD display is a .norg file used to display informations after doing `:Neorg gtd views`
+--]]
 local module = neorg.modules.extend("core.gtd.ui.displayers")
 
----@type core.gtd.ui
+---@class core.gtd.ui
 module.public = {
     --- Display today view for `tasks`, grouped by contexts
     --- @param tasks core.gtd.queries.task
@@ -112,6 +116,9 @@ module.public = {
         return module.private.generate_display(name, positions, res)
     end,
 
+    --- Displayer for wainting for tasks
+    --- @param tasks core.gtd.queries.task
+    --- @return number #Created bufnr
     display_waiting_for = function(tasks)
         vim.validate({
             tasks = { tasks, "table" },
@@ -294,7 +301,7 @@ module.public = {
             end
             table.insert(res, "")
             for _, project in pairs(_projects) do
-                local tasks_project = module.private.find_project(projects_tasks, project.internal.node) or {}
+                local tasks_project = projects_tasks[project.uuid] or {}
 
                 local completed = vim.tbl_filter(function(t)
                     return t.state == "done"
@@ -308,7 +315,7 @@ module.public = {
                     goto continue
                 end
 
-                if project ~= "_" and not vim.tbl_contains(added_projects, project.internal.node) then
+                if project ~= "_" and not vim.tbl_contains(added_projects, project.uuid) then
                     table.insert(
                         res,
                         "* " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)"
@@ -318,7 +325,7 @@ module.public = {
                     local pct = module.public.percent(#completed, #tasks_project)
                     local pct_str = module.public.percent_string(pct)
                     table.insert(res, "   " .. pct_str .. " " .. pct .. "% done")
-                    table.insert(added_projects, project.internal.node)
+                    table.insert(added_projects, project.uuid)
                     table.insert(res, "")
                 end
                 ::continue::
@@ -329,6 +336,9 @@ module.public = {
         return module.private.generate_display(name, positions, res)
     end,
 
+    --- Display someday tasks
+    --- @param tasks core.gtd.queries.task
+    --- @return number #Created bufnr
     display_someday = function(tasks)
         vim.validate({
             tasks = { tasks, "table" },
@@ -373,6 +383,9 @@ module.public = {
         return module.private.generate_display(name, positions, res)
     end,
 
+    --- Display weekly summary
+    --- @param tasks core.gtd.queries.task
+    --- @return number #Created bufnr
     display_weekly_summary = function(tasks)
         local name = "Weekly Summary"
         local res = {
@@ -460,13 +473,105 @@ module.public = {
 
         return module.private.generate_display(name, positions, res)
     end,
+
+    --- Display every task or project that is unclarified
+    --- @param type string
+    --- @param data core.gtd.queries.task[]|core.gtd.queries.project[]
+    --- @return number
+    display_unclarified = function(type, data)
+        local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
+        local name = "Unclarified " .. type .. "s"
+        local res = {
+            "* " .. name,
+            "",
+            "Welcome to the inbox: every " .. type .. " not properly formulated is shown here",
+            "",
+        }
+
+        local positions = {}
+
+        data = vim.tbl_filter(function(d)
+            return d.state ~= "done"
+        end, data)
+
+        local in_inbox = vim.tbl_filter(function(d)
+            return d.inbox
+        end, data)
+
+        local unclarified = vim.tbl_filter(function(d)
+            return not d.inbox
+        end, data)
+
+        local function construct(tbl)
+            for _, d in pairs(tbl) do
+                local result = "- " .. d.content
+                table.insert(res, result)
+                positions[#res] = d
+            end
+        end
+
+        table.insert(res, "** In Inbox file")
+        table.insert(res, "> - " .. type .. "s in Inbox file (`" .. inbox .. "`)")
+        table.insert(res, "")
+
+        neorg.lib.when(vim.tbl_isempty(in_inbox), function()
+            table.insert(res, "/No " .. type .. "s found in inbox/")
+            table.insert(res, "")
+        end, function()
+            construct(in_inbox)
+            table.insert(res, "")
+        end)
+
+        table.insert(res, "** Unclarified " .. type .. "s")
+        neorg.lib.when(type == "task", function()
+            table.insert(res, "> - tasks without `contexts` or `waiting_for`")
+        end, function()
+            table.insert(res, "> - projects without tasks or not in `someday`")
+        end)
+        table.insert(res, "")
+
+        neorg.lib.when(vim.tbl_isempty(unclarified), function()
+            table.insert(res, "/No " .. type .. "s unclarified/")
+        end, neorg.lib.wrap(construct, unclarified))
+
+        return module.private.generate_display(name, positions, res)
+    end,
 }
 
+--- @class private_core.gtd.ui
 module.private = {
+    -- Holds data for displays
     data = {},
+    -- Current created display buffer
     current_bufnr = nil,
     display_namespace_nr = nil,
 
+    is_current_bufnr = function(buf)
+        return module.private.current_bufnr == buf
+    end,
+
+    --- Close opened display and go back to previous mode
+    close_buffer = function()
+        if module.private.current_bufnr == nil then
+            return
+        end
+
+        -- Go back to previous mode
+        local previous_mode = module.required["core.mode"].get_previous_mode()
+        module.required["core.mode"].set_mode(previous_mode)
+
+        -- Closes the display
+        vim.api.nvim_buf_delete(module.private.current_bufnr, { force = true })
+
+        module.private.data = {}
+        module.private.extras = {}
+        module.private.current_bufnr = nil
+        module.private.display_namespace_nr = nil
+    end,
+
+    --- Checks if the task should be in today view
+    --- @param task core.gtd.queries.task
+    --- @return boolean
     today_task = function(task)
         local today_context = false
         if task.contexts then
@@ -561,66 +666,7 @@ module.private = {
         return data
     end,
 
-    goto_node = function()
-        local data = module.private.get_by_var()
-
-        if not data or vim.tbl_isempty(data) then
-            return
-        end
-
-        module.private.close_buffer()
-
-        -- Go to the node
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-        vim.api.nvim_win_set_buf(0, data.internal.bufnr)
-        ts_utils.goto_node(data.internal.node)
-
-        -- Reset the data
-        module.private.data = {}
-        module.private.extras = {}
-    end,
-
-    refetch_data_not_extracted = function(node, _type)
-        -- Get all nodes from the bufnr and add metadatas to it
-        -- This is mandatory because we need to have the correct task position, else the update will not work
-        local nodes = module.required["core.gtd.queries"].get(_type .. "s", { bufnr = node[2] })
-        nodes = module.required["core.gtd.queries"].add_metadata(nodes, _type, { extract = false, same_node = true })
-
-        -- Find the correct task node
-        local found_data = vim.tbl_filter(function(n)
-            return n.node:id() == node[1]:id()
-        end, nodes)
-
-        if #found_data == 0 then
-            log.error("Error in fetching " .. _type)
-            return
-        end
-
-        return found_data[1]
-    end,
-
-    is_buffer_open = function()
-        return module.private.current_bufnr ~= nil
-    end,
-
-    close_buffer = function()
-        if not module.private.is_buffer_open() then
-            return
-        end
-
-        -- Go back to previous mode
-        local previous_mode = module.required["core.mode"].get_previous_mode()
-        module.required["core.mode"].set_mode(previous_mode)
-
-        -- Closes the display
-        vim.api.nvim_buf_delete(module.private.current_bufnr, { force = true })
-
-        module.private.data = {}
-        module.private.extras = {}
-        module.private.current_bufnr = nil
-        module.private.display_namespace_nr = nil
-    end,
-
+    --- Function called when calling details (keybind) from a display
     toggle_details = function()
         local data = module.private.get_by_var()
         local res = {}
@@ -651,7 +697,7 @@ module.private = {
                 end
             end
             -- For displaying projects, we assume that there is no data.state in it
-        elseif not data.state then
+        elseif data.type == "project" then
             offset = 1
             local tasks = module.private.extras[data.uuid]
             if not tasks then
@@ -680,7 +726,7 @@ module.private = {
                     table.insert(res, "  " .. state .. task.content)
                 end
             end
-        else
+        elseif data.type == "task" then
             if data.project then
                 table.insert(res, "-- Project: " .. surround(data.project))
             end
@@ -728,18 +774,6 @@ module.private = {
 
         module.private.data[current_line] = data
         vim.api.nvim_buf_set_option(module.private.current_bufnr, "modifiable", false)
-    end,
-
-    find_project = function(_tasks, node)
-        if type(node) ~= "userdata" then
-            return
-        end
-
-        for _node_id, tasks in pairs(_tasks) do
-            if _node_id == node:id() then
-                return tasks
-            end
-        end
     end,
 }
 

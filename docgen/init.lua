@@ -143,6 +143,14 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "Modules are its core foundation, and building modules is like building lego bricks to form a massive structure!",
             "There's a whole tutorial dedicated to making modules [right here](https://github.com/nvim-neorg/neorg/wiki/Creating-Modules).",
             "There everything you need will be explained - think of it as a walkthrough.",
+            "# Modules naming convention",
+            "Neorg provides default modules, and users can extend Neorg by creating community modules.",
+            "We agreed on a module naming convention, and it should be used as is.",
+            "This convention should help users know at a glance from what type is the module coming",
+            "- Core modules: `core.*`",
+            "- Integrations with 3rd party software that are emdebbed in neorg: `core.integrations.*`",
+            "- External modules: `external.*`",
+            "- Integrations with 3rd party software that aren't emdebbed in neorg: `external.integrations.*`",
             "",
             "# Default Modules",
             "",
@@ -152,7 +160,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     .. core_defaults.filename
                     .. ")"
                 return {
-                    "Neorg come with some default modules that will be automatically loaded if you require "
+                    "Neorg comes with some default modules that will be automatically loaded if you require the "
                         .. link
                         .. " module:",
                 }
@@ -297,7 +305,8 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "",
             function()
                 local res = {}
-                names = {}
+                local names = {}
+
                 for n, config in pairs(modules) do
                     if config.is_extension ~= true then
                         table.insert(names, n)

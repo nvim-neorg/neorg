@@ -7,6 +7,7 @@ require("neorg").setup({
         ["core.gtd.base"] = {
             config = {
                 workspace = "gtd",
+                exclude = { "test_file_2.norg" },
             },
         },
         ["core.norg.dirman"] = {

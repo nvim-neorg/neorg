@@ -2,11 +2,12 @@
 
 current_version=$(nvim --headless --noplugin -u ./docgen/minimal_init.vim -c 'luafile ./scripts/get_version.lua' -c 'qa' 2>&1 | tr -d \")
 
-last_tag=$(git describe --tags `git rev-list --tags --max-count=1` 2>/dev/null)
+# get current commit hash for tag
+commit=$(git rev-parse HEAD)
 
+# Creates a new tag for current version, and creates a new "latest" tag pointing to latest commit.
+# If latest already exists, will update the ref
 push_tag() {
-    # get current commit hash for tag
-    commit=$(git rev-parse HEAD)
 
 curl -s -X POST https://api.github.com/repos/nvim-neorg/neorg/git/refs \
 -H "Authorization: token $GITHUB_TOKEN" \
@@ -16,24 +17,42 @@ curl -s -X POST https://api.github.com/repos/nvim-neorg/neorg/git/refs \
   "sha": "$commit"
 }
 EOF
+echo "Generated new tag: $current_version"
+
+if [ $(git tag -l "latest") ]; then
+
+curl -s -X PATCH https://api.github.com/repos/nvim-neorg/neorg/git/refs/tags/latest \
+-H "Authorization: token $GITHUB_TOKEN" \
+-d @- << EOF
+{
+  "sha": "$commit"
+}
+EOF
+echo "Changed tag 'latest', based of $current_version"
+
+else
+curl -s -X POST https://api.github.com/repos/nvim-neorg/neorg/git/refs \
+-H "Authorization: token $GITHUB_TOKEN" \
+-d @- << EOF
+{
+  "ref": "refs/tags/latest",
+  "sha": "$commit"
+}
+EOF
+echo "Generated new tag: 'latest', based of $current_version"
+echo "Existing tag: $(git tag -l)"
+
+fi
 }
 
 echo "Current neorg version: $current_version"
-echo "Last pushed tag: $last_tag"
 echo "Last commit: $commit"
 
-if [ -z "$last_tag" ]; then
-    # git tag -a $current_version -m "Neorg version: $current_version"
-    push_tag
-    echo "Generated new tag: $current_version"
-    exit 0
-fi
 
-if [[ "$current_version" == "$last_tag" ]]; then
+if [ $(git tag -l "$current_version") ]; then
     echo "No new Neorg version (current: $current_version)"
     exit 0
 else
-    push_tag
-    echo "Generated new tag: $current_version"
-fi
 
+    push_tag
+fi

@@ -35,7 +35,7 @@ module.config.public = {
 module.public = {
     --- Follow link from a specific node
     --- @param node userdata
-    --- @param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...)
+    --- @param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...) or new tab (mode="tab")
     --- @param parsed_link table a table of link information gathered from parse_link()
     follow_link = function(node, split, parsed_link)
         if node:type() == "anchor_declaration" then
@@ -49,6 +49,7 @@ module.public = {
                 located_anchor_declaration.node
             )
 
+            vim.cmd([[normal! m`]])
             vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
             return
         end
@@ -66,6 +67,8 @@ module.public = {
                     vim.cmd("vsplit")
                 elseif split == "split" then
                     vim.cmd("split")
+                elseif split == "tab" then
+                    vim.cmd("tabnew")
                 end
             end
 
@@ -83,6 +86,7 @@ module.public = {
                     located_link_information.node
                 )
 
+                vim.cmd([[normal! m`]])
                 vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
             end
 
@@ -232,7 +236,7 @@ module.public = {
                 local original_title = module.required["core.integrations.treesitter"].get_node_text(node)
                 local title = original_title:gsub("[%s\\]", "")
 
-                if title == target then
+                if title:lower() == target:lower() then
                     return {
                         original_title = original_title,
                         node = node,
@@ -340,7 +344,7 @@ module.public = {
                         link_location_text = extract_node_text,
                         link_description = extract_node_text,
 
-                        default = function()
+                        _ = function()
                             log.error("Unknown capture type encountered when parsing link:", capture)
                         end,
                     })
@@ -397,7 +401,7 @@ module.public = {
                 return {}
             end,
 
-            default = function()
+            _ = function()
                 -- Dynamically forge query
                 local query_str = neorg.lib.match({
                     parsed_link_information.link_type,
@@ -460,7 +464,7 @@ module.public = {
                         neorg.lib.reparg(parsed_link_information.link_type, 4)
                     ),
 
-                    default = string.format(
+                    _ = string.format(
                         [[
                             (carryover_tag_set
                                 (carryover_tag
@@ -499,7 +503,7 @@ module.public = {
                             local title = original_title:gsub("[%s\\]", "")
                             local target = parsed_link_information.link_location_text:gsub("[%s\\]", "")
 
-                            if title == target then
+                            if title:lower() == target:lower() then
                                 return {
                                     original_title = original_title,
                                     node = node,
@@ -702,7 +706,7 @@ module.private = {
                 marker = "|",
                 -- single_definition = "$",
                 -- multi_definition = "$",
-                default = "#",
+                _ = "#",
             })
         ) .. " "
 

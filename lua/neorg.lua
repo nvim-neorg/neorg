@@ -65,7 +65,7 @@ function neorg.org_file_entered(manual, arguments)
     -- Go through each defined module and grab its configuration
     for name, module in pairs(module_list) do
         -- If the module's data is not empty and we have not defined a config table then it probably means there's junk in there
-        if not vim.tbl_isempty(module) and module.config and vim.tbl_isempty(module.config) then
+        if not vim.tbl_isempty(module) and not module.config then
             log.warn(
                 "Potential bug detected in",
                 name,

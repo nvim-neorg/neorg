@@ -175,13 +175,11 @@ describe("CORE.GTD.UI - Displayers:", function()
         local projects = queries.get("projects")
         projects = queries.add_metadata(projects, "project")
 
-        ---
         local buf = ui.display_projects(tasks, projects)
         assert.is_number(buf)
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 
         assert.is_true(vim.tbl_contains(lines, "* Project (1/3 done)"))
-        assert.is_true(vim.tbl_contains(lines, "* Project2 (0/2 done)"))
 
         vim.api.nvim_buf_delete(buf, {})
     end)

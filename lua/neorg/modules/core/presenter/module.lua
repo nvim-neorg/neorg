@@ -95,6 +95,9 @@ module.public = {
                 recursive = true,
             },
         }
+        -- Free the text in memory after reading nodes
+        queries.delete_content(0)
+
         local results = queries.query_nodes_from_buf(tree, 0)
 
         if vim.tbl_isempty(results) then
@@ -106,6 +109,13 @@ module.public = {
         results = queries.extract_nodes(results, { all_lines = true })
 
         results = module.private.remove_blanklines(results)
+
+        -- This is a temporary fix because querying the heading1 nodes seems to query the next heading1 node too !
+        for _, res in pairs(results) do
+            if vim.startswith(res[#res], "* ") then
+                res[#res] = nil
+            end
+        end
 
         if
             module.config.public.zen_mode == "truezen" and neorg.modules.is_module_loaded("core.integrations.truezen")
@@ -124,9 +134,6 @@ module.public = {
             nil,
             { keybinds = false }
         )
-        vim.api.nvim_buf_call(buffer, function()
-            vim.cmd("set scrolloff=999")
-        end)
 
         vim.api.nvim_buf_set_option(buffer, "modifiable", true)
         vim.api.nvim_buf_set_lines(buffer, 0, -1, false, results[1])

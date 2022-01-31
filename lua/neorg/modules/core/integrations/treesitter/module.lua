@@ -289,11 +289,11 @@ module.config.public = {
 
         Anchor = {
             Declaration = {
-                Delimiter = "+Normal",
+                Delimiter = "+NonText",
                 Text = "+TSTextReference",
             },
             Definition = {
-                Delimiter = "+Normal",
+                Delimiter = "+NonText",
             },
         },
 
@@ -311,16 +311,16 @@ module.config.public = {
         Link = {
             Text = {
                 [""] = "+TSURI",
-                Delimiter = "+Normal",
+                Delimiter = "+NonText",
             },
 
             File = {
                 [""] = "+TSComment",
-                Delimiter = "+Normal",
+                Delimiter = "+NonText",
             },
 
             Location = {
-                Delimiter = "+Normal",
+                Delimiter = "+NonText",
 
                 URL = "+TSURI",
 
@@ -336,7 +336,17 @@ module.config.public = {
 
                 Marker = {
                     [""] = "+NeorgMarkerTitle",
-                    Prefix = "+NeorgMarkerPrefix",
+                    Prefix = "+NeorgMarker",
+                },
+
+                Definition = {
+                    [""] = "+NeorgDefinitionTitle",
+                    Prefix = "+NeorgDefinition",
+                },
+
+                Footnote = {
+                    [""] = "+NeorgFootnoteTitle",
+                    Prefix = "+NeorgFootnote",
                 },
 
                 Heading = {
@@ -374,23 +384,56 @@ module.config.public = {
         },
 
         Markup = {
-            Bold = "+TSStrong",
-            Italic = "+TSEmphasis",
-            Underline = "+TSUnderline",
-            Strikethrough = "+TSStrike",
-            Spoiler = "+TSDanger",
-            Subscript = "+TSLabel",
-            Superscript = "+TSNumber",
-            Math = "+TSMath",
-            Variable = "+NeorgInsertionVariable",
+            Bold = {
+                [""] = "+TSStrong",
+                Delimiter = "+NonText",
+            },
+            Italic = {
+                [""] = "+TSEmphasis",
+                Delimiter = "+NonText",
+            },
+            Underline = {
+                [""] = "+TSUnderline",
+                Delimiter = "+NonText",
+            },
+            Strikethrough = {
+                [""] = "+TSStrike",
+                Delimiter = "+NonText",
+            },
+            Spoiler = {
+                [""] = "+TSDanger",
+                Delimiter = "+NonText",
+            },
+            Subscript = {
+                [""] = "+TSLabel",
+                Delimiter = "+NonText",
+            },
+            Superscript = {
+                [""] = "+TSNumber",
+                Delimiter = "+NonText",
+            },
+            Math = {
+                [""] = "+TSMath",
+                Delimiter = "+NonText",
+            },
+            Variable = {
+                [""] = "+NeorgInsertionVariable",
+                Delimiter = "+NonText",
+            },
+            Verbatim = {
+                Delimiter = "+NonText",
+            },
+            InlineComment = {
+                Delimiter = "+NonText",
+            },
         },
 
         StrongParagraphDelimiter = "+TSPunctDelimiter",
         WeakParagraphDelimiter = "+TSPunctDelimiter",
         HorizontalLine = "+TSPunctDelimiter",
 
-        TrailingModifier = "+TSPunctDelimiter",
-        LinkModifier = "+TSPunctDelimiter",
+        TrailingModifier = "+NonText",
+        LinkModifier = "+NonText",
 
         DocumentMeta = {
             Key = "+TSField",

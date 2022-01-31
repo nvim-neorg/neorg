@@ -1,6 +1,161 @@
-local module = neorg.modules.extend("core.gtd.ui.views_popup_helpers")
+--[[
+    Submodule responsible for creating API for capture popup
+--]]
 
+local module = neorg.modules.extend("core.gtd.ui.capture_popup", "core.gtd.ui")
+
+---@class core.gtd.ui
+module.public = {
+    --- Creates the selection popup for capturing a task
+    show_capture_popup = function()
+        -- Generate views selection popup
+        local buffer = module.required["core.ui"].create_split("Quick Actions")
+
+        if not buffer then
+            return
+        end
+
+        local selection = module.required["core.ui"].begin_selection(buffer):listener(
+            "destroy",
+            { "<Esc>" },
+            function(self)
+                self:destroy()
+            end
+        )
+
+        -- Reset state of previous fetches
+        module.required["core.queries.native"].delete_content()
+
+        selection:title("Capture"):blank():concat(module.private.capture_task)
+        module.public.display_messages()
+    end,
+}
+
+--- @class private_core.gtd.ui
 module.private = {
+
+    --- Content of the capture popup
+    --- @param selection core.ui.selection
+    --- @return core.ui.selection
+    capture_task = function(selection)
+        return selection:title("Add a task"):blank():prompt("Task", {
+            callback = function(text)
+                ---@type core.gtd.queries.task
+                local task = {}
+                task.content = text
+
+                selection:push_page()
+
+                selection
+                    :title("Add informations")
+                    :blank()
+                    :text("Task: " .. task.content)
+                    :blank()
+                    :text("General informations")
+                    :concat(function()
+                        return module.private.generate_default_flags(selection, task, "contexts", "c")
+                    end)
+                    :concat(function()
+                        return module.private.generate_default_flags(selection, task, "waiting.for", "w")
+                    end)
+                    :blank()
+                    :text("Dates")
+                    :concat(function()
+                        return module.private.generate_date_flags(selection, task, "time.due", "d")
+                    end)
+                    :concat(function()
+                        return module.private.generate_date_flags(selection, task, "time.start", "s")
+                    end)
+                    :blank()
+                    :text("Insert")
+                    :concat(function()
+                        return module.private.generate_project_flags(selection, task, "p")
+                    end)
+                    :flag("x", "Add to cursor position", function()
+                        local cursor = vim.api.nvim_win_get_cursor(0)
+                        local location = { cursor[1] - 1, 0 }
+                        module.required["core.gtd.queries"].create(
+                            "task",
+                            task,
+                            0,
+                            location,
+                            false,
+                            { newline = false }
+                        )
+                    end)
+                    :flag("<CR>", "Add to inbox", function()
+                        local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
+                        local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
+
+                        local files = module.required["core.norg.dirman"].get_norg_files(workspace)
+                        local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
+                        if not vim.tbl_contains(files, inbox) then
+                            log.error([[ Inbox file is not from gtd workspace.
+                            Please verify if the file exists in your gtd workspace.
+                            Type :messages to show the full error report
+                            ]])
+                            return
+                        end
+
+                        local uri = vim.uri_from_fname(workspace_path .. "/" .. inbox)
+                        local buf = vim.uri_to_bufnr(uri)
+                        local end_row, projectAtEnd = module.required["core.gtd.queries"].get_end_document_content(buf)
+
+                        module.required["core.gtd.queries"].create("task", task, buf, { end_row, 0 }, projectAtEnd)
+                    end)
+
+                return selection
+            end,
+
+            -- Do not pop or destroy the prompt when confirmed
+            pop = false,
+            destroy = false,
+        })
+    end,
+
+    --- Generate flags for specific mode
+    --- @param selection core.ui.selection
+    --- @param task core.gtd.queries.task
+    --- @param mode string #Date mode to use: waiting_for|contexts
+    --- @param flag string #The flag to use
+    --- @return core.ui.selection
+    generate_default_flags = function(selection, task, mode, flag)
+        if not vim.tbl_contains({ "contexts", "waiting.for" }, mode) then
+            log.error("Invalid mode")
+            return
+        end
+
+        local title = (function()
+            if mode == "contexts" then
+                return "Add Contexts"
+            elseif mode == "waiting.for" then
+                return "Add Waiting Fors"
+            end
+        end)()
+
+        return selection:rflag(flag, title, {
+            destroy = false,
+            callback = function()
+                selection
+                    :listener("go-back", { "<BS>" }, function(self)
+                        self:pop_page()
+                    end)
+                    :title(title)
+                    :text("Separate multiple values with space")
+                    :blank()
+                    :prompt(title, {
+                        callback = function(text)
+                            if #text > 0 then
+                                task[mode] = task[mode] or {}
+                                task[mode] = vim.list_extend(task[mode], vim.split(text, " ", false))
+                            end
+                        end,
+                        pop = true,
+                    })
+            end,
+        })
+    end,
+
     --- Generate flags for specific mode (date related)
     --- @param selection table
     --- @param task core.gtd.queries.task
@@ -60,6 +215,7 @@ module.private = {
                             :title("Custom Date")
                             :text("Allowed date: today, tomorrow, Xw, Xd, Xm, Xy (where X is a number)")
                             :text("You can even use 'mon', 'tue', 'wed' ... for the next weekday date")
+                            :text("You can also use '2mon' for the 2nd monday that will come")
                             :blank()
                             :prompt("Due", {
                                 callback = function(text)
@@ -80,49 +236,11 @@ module.private = {
         end)
     end,
 
-    --- Generate flags for specific mode
-    --- @param selection table
+    --- Generates projects flags when capturing a task to a project
+    --- @param selection core.ui.selection
     --- @param task core.gtd.queries.task
-    --- @param mode string #Date mode to use: waiting_for|contexts
-    --- @param flag string #The flag to use
-    --- @return table #`selection`
-    generate_default_flags = function(selection, task, mode, flag)
-        if not vim.tbl_contains({ "contexts", "waiting.for" }, mode) then
-            log.error("Invalid mode")
-            return
-        end
-
-        local title = (function()
-            if mode == "contexts" then
-                return "Add Contexts"
-            elseif mode == "waiting.for" then
-                return "Add Waiting Fors"
-            end
-        end)()
-
-        return selection:rflag(flag, title, {
-            destroy = false,
-            callback = function()
-                selection
-                    :listener("go-back", { "<BS>" }, function(self)
-                        self:pop_page()
-                    end)
-                    :title(title)
-                    :text("Separate multiple values with space")
-                    :blank()
-                    :prompt(title, {
-                        callback = function(text)
-                            if #text > 0 then
-                                task[mode] = task[mode] or {}
-                                task[mode] = vim.list_extend(task[mode], vim.split(text, " ", false))
-                            end
-                        end,
-                        pop = true,
-                    })
-            end,
-        })
-    end,
-
+    --- @param flag string
+    --- @return core.ui.selection
     generate_project_flags = function(selection, task, flag)
         return selection:flag(flag, "Add to project", {
             callback = function()
@@ -149,8 +267,8 @@ module.private = {
 
                             module.private.create_recursive_project_placement(
                                 selection,
-                                project.node,
-                                project.bufnr,
+                                project.internal.node,
+                                project.internal.bufnr,
                                 project.content,
                                 task,
                                 true
@@ -176,8 +294,7 @@ module.private = {
                                     :text("Project name: " .. project.content)
                                     :blank()
 
-                                local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
-                                local files = module.required["core.norg.dirman"].get_norg_files(workspace)
+                                local files = module.required["core.gtd.helpers"].get_gtd_files()
 
                                 if vim.tbl_isempty(files) then
                                     selection:text("No files found...")
@@ -210,6 +327,11 @@ module.private = {
         })
     end,
 
+    --- Generates flags to create a project
+    --- @param selection core.ui.selection
+    --- @param file string
+    --- @param task core.gtd.queries.task
+    --- @param project core.gtd.queries.project
     create_project = function(selection, file, task, project)
         local tree = {
             {
@@ -294,6 +416,13 @@ module.private = {
         end
     end,
 
+    --- Will try to descend the project and ask the user in which subheading append the task
+    --- @param selection core.ui.selection
+    --- @param node userdata
+    --- @param bufnr number
+    --- @param project_title string
+    --- @param task core.gtd.queries.task
+    --- @param is_project_root boolean
     create_recursive_project_placement = function(selection, node, bufnr, project_title, task, is_project_root)
         ---- Creates flags for generic lists from current node
         --- @param _node core.gtd.queries.project
@@ -383,6 +512,10 @@ module.private = {
         })
     end,
 
+    --- Generates a flag from the alphabet.
+    --- e.g If index == 2, flag generated will be `b`
+    --- @param index number
+    --- @return string
     create_flag = function(index)
         local alphabet = "abcdefghijklmnopqrstuvwxyz"
         index = (index % #alphabet)
@@ -391,112 +524,6 @@ module.private = {
         end
 
         return alphabet:sub(index, index)
-    end,
-
-    capture_task = function(selection)
-        return selection:title("Add a task"):blank():prompt("Task", {
-            callback = function(text)
-                ---@type core.gtd.queries.task
-                local task = {}
-                task.content = text
-
-                selection:push_page()
-
-                selection
-                    :title("Add informations")
-                    :blank()
-                    :text("Task: " .. task.content)
-                    :blank()
-                    :text("General informations")
-                    :concat(function()
-                        return module.private.generate_default_flags(selection, task, "contexts", "c")
-                    end)
-                    :concat(function()
-                        return module.private.generate_default_flags(selection, task, "waiting.for", "w")
-                    end)
-                    :blank()
-                    :text("Dates")
-                    :concat(function()
-                        return module.private.generate_date_flags(selection, task, "time.due", "d")
-                    end)
-                    :concat(function()
-                        return module.private.generate_date_flags(selection, task, "time.start", "s")
-                    end)
-                    :blank()
-                    :text("Insert")
-                    :concat(function()
-                        return module.private.generate_project_flags(selection, task, "p")
-                    end)
-                    :flag("x", "Add to cursor position", function()
-                        local cursor = vim.api.nvim_win_get_cursor(0)
-                        local location = { cursor[1] - 1, 0 }
-                        module.required["core.gtd.queries"].create(
-                            "task",
-                            task,
-                            0,
-                            location,
-                            false,
-                            { newline = false }
-                        )
-                    end)
-                    :flag("<CR>", "Add to inbox", function()
-                        local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
-                        local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
-                        local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
-
-                        local files = module.required["core.norg.dirman"].get_norg_files(workspace)
-                        if not vim.tbl_contains(files, inbox) then
-                            log.error([[ Inbox file is not from gtd workspace.
-                            Please verify if the file exists in your gtd workspace.
-                            Type :messages to show the full error report
-                            ]])
-                            return
-                        end
-
-                        local uri = vim.uri_from_fname(workspace_path .. "/" .. inbox)
-                        local buf = vim.uri_to_bufnr(uri)
-                        local end_row, projectAtEnd = module.required["core.gtd.queries"].get_end_document_content(buf)
-
-                        module.required["core.gtd.queries"].create("task", task, buf, { end_row, 0 }, projectAtEnd)
-                    end)
-
-                return selection
-            end,
-
-            -- Do not pop or destroy the prompt when confirmed
-            pop = false,
-            destroy = false,
-        })
-    end,
-
-    generate_display_flags = function(selection, tasks, projects)
-        selection
-            :text("Top priorities")
-            :flag("s", "Weekly Summary", function()
-                module.public.display_weekly_summary(tasks)
-            end)
-            :blank()
-            :text("Tasks")
-            :flag("t", "Today's tasks", function()
-                module.public.display_today_tasks(tasks)
-            end)
-            :blank()
-            :text("Sort and filter tasks")
-            :flag("c", "Contexts", function()
-                module.public.display_contexts(tasks, { exclude = { "someday" }, priority = { "_" } })
-            end)
-            :flag("w", "Waiting For", function()
-                module.public.display_waiting_for(tasks)
-            end)
-            :flag("d", "Someday Tasks", function()
-                module.public.display_someday(tasks)
-            end)
-            :blank()
-            :text("Projects")
-            :flag("p", "Show projects", function()
-                module.public.display_projects(tasks, projects)
-            end)
-        return selection
     end,
 }
 

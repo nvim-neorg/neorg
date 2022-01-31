@@ -43,6 +43,7 @@ function neorg.modules.load_module_from_table(module, parent)
             replaces = {},
             replace_merge = false,
             requires = {},
+            wants = {},
             imports = {},
         }
 
@@ -77,6 +78,32 @@ function neorg.modules.load_module_from_table(module, parent)
     -- Add the module into the list of loaded modules
     -- The reason we do this here is so other modules don't recursively require each other in the dependency loading loop below
     neorg.modules.loaded_modules[module.name] = module
+
+    -- If the module "wants" any other modules then verify they are loaded
+    if loaded_module.wants and not vim.tbl_isempty(loaded_module.wants) then
+        log.info("Module", module.name, "wants certain modules. Ensuring they are loaded...")
+
+        -- Loop through each dependency and ensure it's loaded
+        for _, required_module in ipairs(loaded_module.wants) do
+            log.trace("Verifying", required_module)
+
+            -- This would've always returned false had we not added the current module to the loaded module list earlier above
+            if not neorg.modules.is_module_loaded(required_module) then
+                log.error(
+                    (
+                        "Unable to load module %s, wanted dependency %s was not satisfied. Be sure to load the module and its appropriate config too!"
+                    ):format(module.name, required_module)
+                )
+
+                -- Make sure to clean up after ourselves if the module failed to load
+                neorg.modules.loaded_modules[module.name] = nil
+                return false
+            end
+
+            -- Create a reference to the dependency's public table
+            module.required[required_module] = neorg.modules.loaded_modules[required_module].public
+        end
+    end
 
     -- If any dependencies have been defined, handle them
     if loaded_module.requires and vim.tbl_count(loaded_module.requires) > 0 then
@@ -172,6 +199,18 @@ function neorg.modules.load_module_from_table(module, parent)
     if module.load then
         module.load()
     end
+
+    neorg.events.broadcast_event({
+        type = "core.module_loaded",
+        split_type = { "core", "module_loaded" },
+        filename = "",
+        filehead = "",
+        cursor_position = { 0, 0 },
+        referrer = "core",
+        line_content = "",
+        content = module,
+        broadcast = true,
+    })
 
     return true
 end
@@ -313,4 +352,16 @@ function neorg.modules.get_module_version(module_name)
     end
 
     return neorg.utils.parse_version_string(version)
+end
+
+-- @Summary Awaits a resource (module) to be present before executing a callback.
+-- @Description Executes `callback` once `module` is a valid and loaded module, else the callback gets instantly executed.
+-- @Param module_name (string) - the name of the module to listen for.
+-- @Param callback (function(public_module_table)) - the callback to execute.
+function neorg.modules.await(module_name, callback)
+    neorg.callbacks.on_event("core.module_loaded", function(_, module)
+        callback(module.public)
+    end, function(event)
+        return event.content.name == module_name
+    end)
 end

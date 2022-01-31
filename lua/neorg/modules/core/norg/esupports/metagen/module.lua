@@ -14,8 +14,8 @@ module.setup = function()
 end
 
 module.config.public = {
-    -- One of "none"|"auto"|"<some-keybind>"
-    type = "auto",
+    -- One of "none" or "auto"
+    type = "none",
 
     -- How to generate a tabulation inside the `@document.meta` tag
     tab = function()
@@ -124,15 +124,6 @@ module.public = {
 module.load = function()
     if module.config.public.type == "auto" then
         module.required["core.autocommands"].enable_autocommand("BufEnter")
-    elseif module.config.public.type ~= "none" then
-        neorg.callbacks.on_event("core.keybinds.events.enable_keybinds", function(_, key)
-            key.map(
-                "n",
-                module.config.public.type,
-                string.format(":lua neorg.modules.get_module('%s').inject_metadata()<CR>", module.name),
-                { noremap = true, silent = true }
-            )
-        end)
     end
 end
 
@@ -140,6 +131,7 @@ module.on_event = function(event)
     if
         event.type == "core.autocommands.events.bufenter"
         and event.content.norg
+        and vim.api.nvim_buf_is_loaded(event.buffer)
         and module.config.public.type == "auto"
         and vim.api.nvim_buf_get_option(event.buffer, "modifiable")
         and not module.private.buffers[event.buffer]
@@ -149,6 +141,7 @@ module.on_event = function(event)
         module.private.buffers[event.buffer] = true
     elseif event.type == "core.neorgcmd.events.inject-metadata" then
         module.public.inject_metadata(event.buffer, true)
+        module.private.buffers[event.buffer] = true
     end
 end
 
