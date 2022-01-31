@@ -1,5 +1,3 @@
-<!-- ttttt.txt g?? -->
-
 <div align="center">
 
 <img src="res/neorg.svg" width=300>
@@ -59,8 +57,6 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 
 ## 🌟 Showcase
 
-<!-- TODO(vhyrro): Finish off these new gifs -->
-
 <details>
 <summary>A `.norg` file:</summary>
   <img width="700" alt="Showcase image of a Neorg document" src="https://user-images.githubusercontent.com/76052559/150838408-1a021d7b-1891-4cab-b16e-6b755e741e87.png">
@@ -74,14 +70,14 @@ To learn more about the philosophy of the project check the [philosophy](#philos
 <details>
 <summary>First class treesitter support:</summary>
 
-![Treesitter powered editing](https://user-images.githubusercontent.com/76052559/151668244-9805afc4-8c50-4925-85ec-1098aff5ede6.gif)
+![First class treesitter support](https://user-images.githubusercontent.com/76052559/151668244-9805afc4-8c50-4925-85ec-1098aff5ede6.gif)
 
 </details>
 
 <details>
 <summary>Treesitter powered editing:</summary>
 
-![Showcase of our Keybinds in action](https://user-images.githubusercontent.com/76052559/151614059-41b590cd-07ea-437c-84b9-536de6d1adfa.gif)
+![Treesitter powered editing](https://user-images.githubusercontent.com/76052559/151614059-41b590cd-07ea-437c-84b9-536de6d1adfa.gif)
 
 </details>
 
@@ -373,8 +369,6 @@ Feel free to try by adding them to your Neorg setup.
 | [`core.presenter`](https://github.com/nvim-neorg/neorg/wiki/Core-Presenter)     | Neorg module to create gorgeous presentation slides.                        |
 
 </details>
-
-<!-- TODO: What to do with core.keybinds?  -->
 
 ### External Modules
 
