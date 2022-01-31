@@ -246,6 +246,10 @@ module.public = {
             --- @param command string|function #The rhs value from `:h nvim_buf_set_keymap`
             --- @param opts table #The table value from `:h nvim_buf_set_keymap`
             map = function(neorg_mode, mode, key, command, opts)
+                if neorg_mode ~= "all" and current_mode ~= neorg_mode then
+                    return
+                end
+
                 bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
                 bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
                 bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] or {}
@@ -286,12 +290,28 @@ module.public = {
             end,
 
             remap = function(neorg_mode, mode, key, new_rhs)
+                if neorg_mode ~= "all" and current_mode ~= neorg_mode then
+                    return
+                end
+
+                bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
+                bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
+                bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] or {}
+
                 local opts = bound_keys[neorg_mode][mode][key].opts
 
                 payload.map(neorg_mode, mode, key, new_rhs, opts)
             end,
 
             remap_event = function(neorg_mode, mode, key, new_event)
+                if neorg_mode ~= "all" and current_mode ~= neorg_mode then
+                    return
+                end
+
+                bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
+                bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
+                bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] or {}
+
                 local opts = bound_keys[neorg_mode][mode][key].opts
 
                 payload.map(
@@ -304,6 +324,14 @@ module.public = {
             end,
 
             remap_key = function(neorg_mode, mode, old_key, new_key)
+                if neorg_mode ~= "all" and current_mode ~= neorg_mode then
+                    return
+                end
+
+                bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
+                bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
+                bound_keys[neorg_mode][mode][old_key] = bound_keys[neorg_mode][mode][old_key] or {}
+
                 local command = bound_keys[neorg_mode][mode][old_key].command
                 local opts = bound_keys[neorg_mode][mode][old_key].opts
 
