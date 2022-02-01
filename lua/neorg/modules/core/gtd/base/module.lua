@@ -156,6 +156,10 @@ module.load = function()
     end
 
     -- Generates completion for gtd
+    if not neorg.modules.is_module_loaded("core.norg.completion") then
+        return
+    end
+
     neorg.modules.await("core.norg.completion", function(completion_module)
         vim.schedule(function()
             for _, completion in pairs(completion_module.completions) do
