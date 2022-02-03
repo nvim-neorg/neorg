@@ -1499,7 +1499,7 @@ module.config.public = {
             multi_suffix = {
                 enabled = true,
                 icon = "⋘ ",
-                highlight = "NeorgDefinition",
+                highlight = "NeorgDefinitionEnd",
                 query = "(multi_definition_suffix) @icon",
             },
         },
@@ -1522,7 +1522,7 @@ module.config.public = {
             multi_suffix = {
                 enabled = true,
                 icon = "⁑ ",
-                highlight = "NeorgFootnote",
+                highlight = "NeorgFootnoteEnd",
                 query = "(multi_footnote_suffix) @icon",
             },
         },
