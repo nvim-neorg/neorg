@@ -13,21 +13,21 @@ Your New Life Organization Tool - All in Lua
 
 [Summary](#summary)
 •
-[Showcase](#🌟-showcase)
+[Showcase](#-showcase)
 •
-[Installation](#🔧-installation)
+[Installation](#-installation)
 •
-[Setup](#📦-setup)
+[Setup](#-setup)
 •
-[Usage](#⚙-usage)
+[Usage](#-usage)
 <br>
-[Modules](#🥡-modules)
+[Modules](#-modules)
 •
-[Roadmap](#🗺-roadmap)
+[Roadmap](#-roadmap)
 •
-[Philosophy](#❓-philosophy)
+[Philosophy](#-philosophy)
 •
-[FAQ](#📚-faq)
+[FAQ](#-faq)
 
 </div>
 
