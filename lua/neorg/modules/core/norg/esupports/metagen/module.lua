@@ -75,16 +75,29 @@ module.public = {
                  (ranged_tag
                      (tag_name) @name
                      (#eq? @name "document.meta")
-                 )
+                 ) @meta
             ]]
         )
 
         local root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
         local _, found = query:iter_matches(root, buf)()
+        local range = {0, 0}
 
-        return found and found[1] and true
-    end,
+        if not found then
+          return false, range
+        end
+
+        for id, node in pairs(found) do
+          local name = query.captures[id]
+          if name == "meta" then
+            range[1], _, range[2], _ = node:range()
+            range[2] = range[2] + 2
+          end
+        end
+
+        return true, range
+      end,
 
     construct_metadata = function(buf)
         local template = module.config.public.template
@@ -114,9 +127,10 @@ module.public = {
     end,
 
     inject_metadata = function(buf, force)
-        if force or not module.public.is_metadata_present(buf) then
+        local present, range = module.public.is_metadata_present(buf)
+        if force or not present then
             local constructed_metadata = module.public.construct_metadata(buf)
-            vim.api.nvim_buf_set_lines(buf, 0, 0, false, constructed_metadata)
+            vim.api.nvim_buf_set_lines(buf, range[1], range[2], false, constructed_metadata)
         end
     end,
 }
