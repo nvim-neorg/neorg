@@ -12,7 +12,7 @@ local module = neorg.modules.create("core.highlights")
 --[[
     Nested trees concatenate
     So:
-        tag = { begin = "+Comment" }
+        Tag = { Begin = "+Comment" }
 	matches the highlight group:
 		NeorgTagBegin
 	and converts into the command:
@@ -497,14 +497,12 @@ module.public = {
     -- @Summary	Defines all the highlight groups for Neorg
     -- @Description Reads the highlights configuration table and applies all defined highlights
     trigger_highlights = function()
-        local descend
-
         -- @Summary Descends down a tree of highlights and applies them
         -- @Description Recursively descends down the highlight configuration and applies every highlight accordingly
         -- @Param  highlights (table) - the table of highlights to descend down
         -- @Param  callback (function(hl_name, highlight, prefix) -> bool) - a callback function to be invoked for every highlight. If it returns true then we should recurse down the table tree further
         -- @Param  prefix (string) - should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
-        descend = function(highlights, callback, prefix)
+        local function descend(highlights, callback, prefix)
             -- Loop through every highlight defined in the provided table
             for hl_name, highlight in pairs(highlights) do
                 -- If the callback returns true then descend further down the table tree
@@ -563,6 +561,14 @@ module.public = {
                 return true
             end
 
+            local full_highlight_name = "Neorg" .. prefix .. hl_name
+
+            -- If the highlight already exists then assume the user doesn't want it to be
+            -- overwritten
+            if vim.fn.hlexists(full_highlight_name) == 1 then
+                return
+            end
+
             -- Apply the dimmed highlight
             vim.cmd(
                 "highlight! Neorg"
@@ -605,13 +611,11 @@ module.public = {
     -- @Summary Clears all the highlights defined by Neorg
     -- @Description Assigns all Neorg* highlights to `clear`
     clear_highlights = function()
-        local descend
-
         -- @Summary Descends down a tree of highlights and clears them
         -- @Description Recursively descends down the highlight configuration and clears every highlight accordingly
         -- @Param  highlights (table) - the table of highlights to descend down
         -- @Param  prefix (string) - should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
-        descend = function(highlights, prefix)
+        local function descend(highlights, prefix)
             -- Loop through every defined highlight
             for hl_name, highlight in pairs(highlights) do
                 -- If it is a table then recursively traverse down it!
