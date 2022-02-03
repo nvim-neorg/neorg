@@ -60,7 +60,7 @@ module.private = {
             :flag(
                 "<C-u>",
                 "Unclarified projects",
-                neorg.lib.wrap(module.public.display_unclarified, "project", unclarified_projects)
+                neorg.lib.wrap(module.public.display_unclarified, "project", unclarified_projects, unclarified_tasks)
             )
             :blank()
             :text("Top priorities")

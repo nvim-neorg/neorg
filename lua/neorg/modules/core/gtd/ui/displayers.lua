@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-field
 --[[
     Submodule responsible for creating API for gtd displays
     A GTD display is a .norg file used to display informations after doing `:Neorg gtd views`
@@ -333,7 +334,7 @@ module.public = {
             end
         end
 
-        module.private.extras = projects_tasks
+        module.private.extras = tasks
         return module.private.generate_display(name, positions, res)
     end,
 
@@ -478,8 +479,9 @@ module.public = {
     --- Display every task or project that is unclarified
     --- @param type string
     --- @param data core.gtd.queries.task[]|core.gtd.queries.project[]
+    --- @param extras core.gtd.queries.task[]?
     --- @return number
-    display_unclarified = function(type, data)
+    display_unclarified = function(type, data, extras)
         local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
         local name = "Unclarified " .. type .. "s"
         local res = {
@@ -536,6 +538,7 @@ module.public = {
             table.insert(res, "/No " .. type .. "s unclarified/")
         end, neorg.lib.wrap(construct, unclarified))
 
+        module.private.extras = extras
         return module.private.generate_display(name, positions, res)
     end,
 }
@@ -700,8 +703,10 @@ module.private = {
             end
             -- For displaying projects, we assume that there is no data.state in it
         elseif data.type == "project" then
-            local tasks = module.private.extras[data.uuid]
-            if not tasks then
+            local tasks = vim.tbl_filter(function(t)
+                return t.project_uuid == data.uuid
+            end, module.private.extras or {})
+            if vim.tbl_isempty(tasks) then
                 table.insert(res, "  - /No tasks found for this project/")
             else
                 for _, task in pairs(tasks) do
