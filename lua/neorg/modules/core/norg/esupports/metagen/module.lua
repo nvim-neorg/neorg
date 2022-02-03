@@ -82,22 +82,22 @@ module.public = {
         local root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
         local _, found = query:iter_matches(root, buf)()
-        local range = {0, 0}
+        local range = { 0, 0 }
 
         if not found then
-          return false, range
+            return false, range
         end
 
         for id, node in pairs(found) do
-          local name = query.captures[id]
-          if name == "meta" then
-            range[1], _, range[2], _ = node:range()
-            range[2] = range[2] + 2
-          end
+            local name = query.captures[id]
+            if name == "meta" then
+                range[1], _, range[2], _ = node:range()
+                range[2] = range[2] + 2
+            end
         end
 
         return true, range
-      end,
+    end,
 
     construct_metadata = function(buf)
         local template = module.config.public.template
