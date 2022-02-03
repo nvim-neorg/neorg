@@ -320,6 +320,7 @@ module.public = {
                         res,
                         "* " .. project.content .. " (" .. #completed .. "/" .. #tasks_project .. " done)"
                     )
+                    project.offset = 1
                     positions[#res] = project
 
                     local pct = module.public.percent(#completed, #tasks_project)
@@ -506,6 +507,7 @@ module.public = {
             for _, d in pairs(tbl) do
                 local result = "- " .. d.content
                 table.insert(res, result)
+                d.offset = 0
                 positions[#res] = d
             end
         end
@@ -670,7 +672,7 @@ module.private = {
     toggle_details = function()
         local data = module.private.get_by_var()
         local res = {}
-        local offset = 0
+        local offset = data.offset or 0
 
         if not data or vim.tbl_isempty(data) then
             return
@@ -698,7 +700,6 @@ module.private = {
             end
             -- For displaying projects, we assume that there is no data.state in it
         elseif data.type == "project" then
-            offset = 1
             local tasks = module.private.extras[data.uuid]
             if not tasks then
                 table.insert(res, "  - /No tasks found for this project/")
