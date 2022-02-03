@@ -32,39 +32,44 @@ module.setup = function()
 end
 
 module.private = {
-    open_diary = function(date)
+    open_diary = function(time, custom_date)
         local workspace = module.config.public.workspace
         local folder_name = module.config.public.journal_folder
 
-        local year, month, day = date:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
-        if not year or not month or not day then
-            log.error("Wrong date format: use YYYY-mm-dd")
-            return
+        if custom_date then
+            local year, month, day = custom_date:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
+
+            if not year or not month or not day then
+                log.error("Wrong date format: use YYYY-mm-dd")
+                return
+            end
+
+            time = os.time({
+                year = year,
+                month = month,
+                day = day,
+            })
         end
 
-        if module.config.public.use_folders then
-            module.required["core.norg.dirman"].create_file(
-                folder_name .. "/" .. year .. "/" .. month .. "/" .. day .. ".norg",
-                workspace
-            )
-        else
-            module.required["core.norg.dirman"].create_file(folder_name .. "/" .. date .. ".norg", workspace)
-        end
+        local path = os.date(
+            type(module.config.public.strategy) == "function" and module.config.public.strategy(os.date("*t", time))
+                or module.config.public.strategy,
+            time
+        )
+
+        module.required["core.norg.dirman"].create_file(folder_name .. "/" .. path, workspace)
     end,
 
     diary_tomorrow = function()
-        local date = os.date("%Y-%m-%d", os.time() + 24 * 60 * 60)
-        module.private.open_diary(date)
+        module.private.open_diary(os.time() + 24 * 60 * 60)
     end,
 
     diary_yesterday = function()
-        local date = os.date("%Y-%m-%d", os.time() - 24 * 60 * 60)
-        module.private.open_diary(date)
+        module.private.open_diary(os.time() - 24 * 60 * 60)
     end,
 
     diary_today = function()
-        local date = os.date("%Y-%m-%d", os.time())
-        module.private.open_diary(date)
+        module.private.open_diary()
     end,
 }
 
@@ -73,8 +78,21 @@ module.config.public = {
     workspace = nil,
     -- the name for the folder in which the journal files are put
     journal_folder = "/journal/",
-    -- wheter to use folders for years and months
-    use_folders = true,
+
+    -- The strategy to use to create directories
+    -- can be "flat" (2022-03-02.norg), "nested" (2022/03/02.norg),
+    -- a lua string with the format given to `os.date()` or a lua function
+    -- that returns a lua string with the same format.
+    strategy = "nested",
+
+    -- TODO: Add templates
+}
+
+module.config.private = {
+    strategies = {
+        flat = "%Y-%m-%d.norg",
+        nested = "%Y/%m/%d.norg",
+    },
 }
 
 module.public = {
@@ -82,6 +100,10 @@ module.public = {
 }
 
 module.load = function()
+    if module.config.private.strategies[module.config.public.strategy] then
+        module.config.public.strategy = module.config.private.strategies[module.config.public.strategy]
+    end
+
     module.required["core.neorgcmd"].add_commands_from_table({
         definitions = {
             journal = {
@@ -113,7 +135,7 @@ module.on_event = function(event)
         elseif event.split_type[2] == "journal.yesterday" then
             module.private.diary_yesterday()
         elseif event.split_type[2] == "journal.custom" then
-            module.private.open_diary(event.content[1])
+            module.private.open_diary(nil, event.content[1])
         elseif event.split_type[2] == "journal.today" then
             module.private.diary_today()
         end
