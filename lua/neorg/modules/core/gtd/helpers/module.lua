@@ -32,7 +32,10 @@ module.public = {
         local files = module.required["core.norg.dirman"].get_norg_files(ws)
 
         if vim.tbl_isempty(files) then
-            log.error("No files found in " .. ws .. " workspace.")
+            log.error([[
+            No files found in " .. ws .. " workspace.
+            Please add at minima a index.norg file.
+            ]])
             return
         end
 
