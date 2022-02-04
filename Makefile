@@ -30,3 +30,5 @@ install_pre_commit:
 tag:
 	./scripts/generate_tag.sh
 
+check:
+	luacheck lua/
