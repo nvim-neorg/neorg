@@ -20,6 +20,7 @@ module.setup = function()
     }
 end
 
+---@class core.gtd.helpers
 module.public = {
     version = "0.0.9",
 
@@ -32,8 +33,8 @@ module.public = {
         local files = module.required["core.norg.dirman"].get_norg_files(ws)
 
         if vim.tbl_isempty(files) then
+            log.error("No files found in " .. ws .. " workspace")
             log.error([[
-            No files found in " .. ws .. " workspace.
             Please add at minima a index.norg file.
             ]])
             return
