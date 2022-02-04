@@ -68,6 +68,8 @@ module.public = {
                 return (
                         type(data.contexts) == "table" and not vim.tbl_isempty(data.contexts)
                         or (type(data["waiting.for"]) == "table" and not vim.tbl_isempty(data["waiting.for"]))
+                        or (type(data["time.due"]) == "table" and not vim.tbl_isempty(data["time.due"]))
+                        or (type(data["time.start"]) == "table" and not vim.tbl_isempty(data["time.start"]))
                     ) and not data.inbox
             end,
             ["project"] = function()

@@ -27,7 +27,7 @@ module.public = {
             "- Task marked with `today` context, and already started",
             "- Task starting today",
             "- Task due for today",
-            "- Task marked as pending",
+            "- Clarified task marked as pending",
             "",
         }
         local positions = {}
@@ -529,6 +529,7 @@ module.public = {
         table.insert(res, "** Unclarified " .. type .. "s")
         neorg.lib.when(type == "task", function()
             table.insert(res, "> - tasks without `contexts` or `waiting_for`")
+            table.insert(res, "> Note: tasks that have a `due/start` date are de facto clarified")
         end, function()
             table.insert(res, "> - projects without tasks or not in `someday`")
         end)
