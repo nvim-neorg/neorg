@@ -10,6 +10,14 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.norg.manoeuvre")
 
 module.setup = function()
+    if not require("neorg.external.helpers").is_minimum_version(0, 7, 0) then
+        log.error("This module requires at least Neovim 0.7 to run!")
+
+        return {
+            success = false,
+        }
+    end
+
     return { success = true, requires = { "core.keybinds", "core.integrations.treesitter" } }
 end
 
@@ -153,35 +161,35 @@ local function find_content(node, expected_type, content_field)
     return #content > 0 and content
 end
 
-local function unless(node)
+local function highlight_node(node)
     if not node then
         return
     end
 
     local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
-    vim.api.nvim_buf_set_mark(0, "<", range.row_start + 1, range.column_start)
-    vim.api.nvim_buf_set_mark(0, ">", range.row_end + 1, range.column_end)
+    vim.api.nvim_buf_set_mark(0, "<", range.row_start + 1, range.column_start, {})
+    vim.api.nvim_buf_set_mark(0, ">", range.row_end + 1, range.column_end, {})
     vim.cmd("normal! gv")
 end
 
 module.config.private = {
     textobjects = {
         ["around-heading"] = function(node)
-            return unless(find(node, "^heading%d+$"))
+            return highlight_node(find(node, "^heading%d+$"))
         end,
         ["inner-heading"] = function(node)
-            return unless(find_content(node, "^heading%d+$"))
+            return highlight_node(find_content(node, "^heading%d+$"))
         end,
         ["around-tag"] = function(node)
-            return unless(find(node, "ranged_tag$"))
+            return highlight_node(find(node, "ranged_tag$"))
         end,
         ["inner-tag"] = function(node)
             -- TODO: Fix Treesitter, this is currently buggy
-            return unless(find_content(node, "ranged_tag$"))
+            return highlight_node(find_content(node, "ranged_tag$"))
         end,
         ["around-whole-list"] = function(node)
-            return unless(find(node, "generic_list"))
+            return highlight_node(find(node, "generic_list"))
         end,
     },
 }
@@ -218,6 +226,7 @@ module.events.subscribed = {
         [module.name .. ".item_down"] = true,
         [module.name .. ".item_up"] = true,
 
+        -- TODO(vhyrro): Automate the creation of these
         [module.name .. ".textobject.around-heading"] = true,
         [module.name .. ".textobject.inner-heading"] = true,
 
