@@ -373,12 +373,6 @@ module.public = {
                         for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(buf) and 0 or range.row_end, 1 do
                             local line = vim.api.nvim_buf_get_lines(buf, i, i + 1, true)[1]
 
-                            -- If our buffer is modifiable or if our line is too short then try to fill in the line
-                            -- (this fixes broken syntax highlights automatically)
-                            if vim.bo.modifiable and line:len() < range.column_start then
-                                vim.api.nvim_buf_set_lines(buf, i, i + 1, true, { string.rep(" ", range.column_start) })
-                            end
-
                             -- If our line is valid and it's not too short then apply the dimmed highlight
                             if line and line:len() >= range.column_start then
                                 module.public._set_extmark(
@@ -389,6 +383,19 @@ module.public = {
                                     i,
                                     i + 1,
                                     range.column_start,
+                                    nil,
+                                    true,
+                                    "blend"
+                                )
+                            else
+                                module.public._set_extmark(
+                                    buf,
+                                    { { string.rep(" ", range.column_start) } },
+                                    "NeorgCodeBlock",
+                                    module.private.code_block_namespace,
+                                    i,
+                                    i + 1,
+                                    0,
                                     nil,
                                     true,
                                     "blend"
