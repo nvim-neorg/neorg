@@ -20,6 +20,5 @@ return neorg.modules.create_meta(
     "core.norg.esupports.metagen",
     "core.norg.esupports.hop",
     "core.integrations.treesitter",
-    "core.norg.manoeuvre",
     "core.norg.news"
 )
