@@ -342,7 +342,7 @@ module.public = {
             -- @Summary Maps a bunch of keys for a certain mode
             -- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
             -- @Param  mode (string) - the neorg mode to bind the keys on
-            -- @Param  keys (table { <neovim_mode> = { { "<key>", "<name-of-keybind>" } } }) - a table of keybinds
+            -- @Param  keys (table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } }) - a table of keybinds
             -- @Param  opts (table) - the same parameters that should be passed into vim.api.nvim_set_keymap()'s opts parameter
             map_to_mode = function(mode, keys, opts)
                 -- If the keys table is empty then don't bother doing any parsing
@@ -357,7 +357,7 @@ module.public = {
                         -- Loop though all the keymaps in that mode
                         for _, keymap in ipairs(keymaps) do
                             -- Map the keybind and keep track of it using the map() function
-                            payload.map(mode, neovim_mode, keymap[1], keymap[2], opts)
+                            payload.map(mode, neovim_mode, keymap[1], keymap[2], keymap[3] or opts)
                         end
                     end
                 end
@@ -366,7 +366,7 @@ module.public = {
             -- @Summary Maps a bunch of keys for a certain mode
             -- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
             -- @Param  mode (string) - the neorg mode to bind the keys on
-            -- @Param  keys (table { <neovim_mode> = { { "<key>", "<name-of-keybind>" } } }) - a table of keybinds
+            -- @Param  keys (table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } }) - a table of keybinds
             -- @Param  opts (table) - the same parameters that should be passed into vim.api.nvim_set_keymap()'s opts parameter
             map_event_to_mode = function(mode, keys, opts)
                 -- If the keys table is empty then don't bother doing any parsing
@@ -390,7 +390,7 @@ module.public = {
                                     .. " "
                                     .. table.concat(vim.list_slice(keymap, 2), " ")
                                     .. "<CR>",
-                                opts
+                                keymap[3] or opts
                             )
                         end
                     end
@@ -430,50 +430,47 @@ module.public = {
         end
 
         -- Broadcast our event with the desired payload!
-        neorg.events.broadcast_event(
-            neorg.events.create(module, "core.keybinds.events.enable_keybinds", payload),
-            function()
-                for neorg_mode, neovim_modes in pairs(bound_keys) do
-                    if neorg_mode == "all" or neorg_mode == current_mode then
-                        for mode, keys in pairs(neovim_modes) do
-                            for key, data in pairs(keys) do
-                                local ok, error = pcall(function()
-                                    if action then
-                                        action(buf, mode, key, data.command, data.opts or {})
-                                    else
-                                        if type(data.command) == "string" then
-                                            vim.api.nvim_buf_set_keymap(buf, mode, key, data.command, data.opts or {})
-                                        else
-                                            vim.api.nvim_buf_set_keymap(
-                                                buf,
-                                                mode,
-                                                key,
-                                                "",
-                                                vim.tbl_extend("force", data.opts or {}, {
-                                                    callback = data.command,
-                                                })
-                                            )
-                                        end
-                                    end
-                                end)
-
-                                if not ok then
-                                    log.trace(
-                                        string.format(
-                                            "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s",
-                                            key,
-                                            mode,
-                                            current_mode,
-                                            error
+        neorg.events.broadcast_event(neorg.events.create(module, "core.keybinds.events.enable_keybinds", payload), function()
+            for neorg_mode, neovim_modes in pairs(bound_keys) do
+                if neorg_mode == "all" or neorg_mode == current_mode then
+                    for mode, keys in pairs(neovim_modes) do
+                        for key, data in pairs(keys) do
+                            local ok, error = pcall(function()
+                                if action then
+                                    action(buf, mode, key, data.command, data.opts or {})
+                                else
+                                    if type(data.command) == "string" then
+                                        vim.api.nvim_buf_set_keymap(buf, mode, key, data.command, data.opts or {})
+                                    elseif neorg.utils.is_minimum_version(0, 7, 0) then
+                                        vim.api.nvim_buf_set_keymap(
+                                        buf,
+                                        mode,
+                                        key,
+                                        "",
+                                        vim.tbl_extend("force", data.opts or {}, {
+                                            callback = data.command,
+                                        })
                                         )
-                                    )
+                                    end
                                 end
+                            end)
+
+                            if not ok then
+                                log.trace(
+                                string.format(
+                                "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s",
+                                key,
+                                mode,
+                                current_mode,
+                                error
+                                )
+                                )
                             end
                         end
                     end
                 end
             end
-        )
+        end)
     end,
 
     -- @Summary Synchronizes all autocompletions
