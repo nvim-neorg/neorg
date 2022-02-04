@@ -430,47 +430,50 @@ module.public = {
         end
 
         -- Broadcast our event with the desired payload!
-        neorg.events.broadcast_event(neorg.events.create(module, "core.keybinds.events.enable_keybinds", payload), function()
-            for neorg_mode, neovim_modes in pairs(bound_keys) do
-                if neorg_mode == "all" or neorg_mode == current_mode then
-                    for mode, keys in pairs(neovim_modes) do
-                        for key, data in pairs(keys) do
-                            local ok, error = pcall(function()
-                                if action then
-                                    action(buf, mode, key, data.command, data.opts or {})
-                                else
-                                    if type(data.command) == "string" then
-                                        vim.api.nvim_buf_set_keymap(buf, mode, key, data.command, data.opts or {})
-                                    elseif neorg.utils.is_minimum_version(0, 7, 0) then
-                                        vim.api.nvim_buf_set_keymap(
-                                        buf,
-                                        mode,
-                                        key,
-                                        "",
-                                        vim.tbl_extend("force", data.opts or {}, {
-                                            callback = data.command,
-                                        })
-                                        )
+        neorg.events.broadcast_event(
+            neorg.events.create(module, "core.keybinds.events.enable_keybinds", payload),
+            function()
+                for neorg_mode, neovim_modes in pairs(bound_keys) do
+                    if neorg_mode == "all" or neorg_mode == current_mode then
+                        for mode, keys in pairs(neovim_modes) do
+                            for key, data in pairs(keys) do
+                                local ok, error = pcall(function()
+                                    if action then
+                                        action(buf, mode, key, data.command, data.opts or {})
+                                    else
+                                        if type(data.command) == "string" then
+                                            vim.api.nvim_buf_set_keymap(buf, mode, key, data.command, data.opts or {})
+                                        elseif neorg.utils.is_minimum_version(0, 7, 0) then
+                                            vim.api.nvim_buf_set_keymap(
+                                                buf,
+                                                mode,
+                                                key,
+                                                "",
+                                                vim.tbl_extend("force", data.opts or {}, {
+                                                    callback = data.command,
+                                                })
+                                            )
+                                        end
                                     end
-                                end
-                            end)
+                                end)
 
-                            if not ok then
-                                log.trace(
-                                string.format(
-                                "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s",
-                                key,
-                                mode,
-                                current_mode,
-                                error
-                                )
-                                )
+                                if not ok then
+                                    log.trace(
+                                        string.format(
+                                            "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s",
+                                            key,
+                                            mode,
+                                            current_mode,
+                                            error
+                                        )
+                                    )
+                                end
                             end
                         end
                     end
                 end
             end
-        end)
+        )
     end,
 
     -- @Summary Synchronizes all autocompletions
