@@ -117,9 +117,11 @@ module.load = function()
     end
 
     ---@type core.gtd.helpers
-    local helpers = module.required["core.gtd.helpers"]
-    if not helpers.get_gtd_files() then
-        error_loading = true
+    if not error_loading then
+        local helpers = module.required["core.gtd.helpers"]
+        if not helpers.get_gtd_files() then
+            error_loading = true
+        end
     end
 
     -- Register keybinds
