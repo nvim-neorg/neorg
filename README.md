@@ -127,7 +127,6 @@ You can install it through your favorite plugin manager:
   ```lua
   use {
       "nvim-neorg/neorg",
-      -- tag = "latest", (see below)
       config = function()
           require('neorg').setup {
               ... -- check out setup part...
@@ -138,9 +137,7 @@ You can install it through your favorite plugin manager:
   ```
 
   If you don't want to always be on the bleeding edge version of Neorg you can use _tags_ to 
-  slow down the rate at which you get features. The `latest` tag is updated by us every
-  time Neorg hits a new release, so you don't have to worry about all the updates inbetween.
-  You can also pin Neorg to one specific version through e.g. `tag = "0.0.9"`.
+  slow down the rate at which you get features. You can pin Neorg to one specific version through e.g. `tag = "0.0.9"`.
 
 - [Packer (with lazyloading)](https://github.com/wbthomason/packer.nvim):
 
