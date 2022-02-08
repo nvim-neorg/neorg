@@ -18,7 +18,6 @@ curl -s -X POST https://api.github.com/repos/nvim-neorg/neorg/git/refs \
 EOF
 
 echo "Generated new tag: $current_version"
-fi
 }
 
 echo "Current neorg version: $current_version"
