@@ -26,7 +26,7 @@ jobs:
         with:
           neovim: true
           version: ${{ matrix.version }}
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v1 # related: actions/checkout#290
       - name: Run tag_gen
         run: make tag
         env:
