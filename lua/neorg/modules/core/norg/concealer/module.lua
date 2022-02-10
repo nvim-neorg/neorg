@@ -259,11 +259,11 @@ module.public = {
                         -- NOTE: the regex fallback code was mostly adapted from Vimwiki
                         -- It's a very good implementation of nested vim regex
                         regex_language = regex_language:gsub("%s+", "") -- need to trim out whitespace
-                        local group = "textGroup" .. string.upper(regex_language)
-                        local snip = "textSnip" .. string.upper(regex_language)
-                        local start_marker = "@code " .. regex_language
+                        local group = string.format("textGroup%s", string.upper(regex_language))
+                        local snip = string.format("textSnip%s", string.upper(regex_language))
+                        local start_marker = string.format("@code %s", regex_language)
                         local end_marker = "@end"
-                        local has_syntax = "syntax list " .. snip
+                        local has_syntax = string.format("syntax list %s", snip)
 
                         ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
                         local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
@@ -286,14 +286,14 @@ module.public = {
                         -- see if the syntax files even exist before we try to call them
                         -- if syn list was an error, or if it was an empty result
                         if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
-                            local output = vim.api.nvim_get_runtime_file("syntax/" .. regex_language .. ".vim", false)
+                            local output = vim.api.nvim_get_runtime_file(string.format("syntax/%s.vim", regex_language), false)
                             if output[1] ~= nil then
-                                local command = "syntax include @" .. group .. " " .. output[1]
+                                local command = string.format("syntax include @%s %s", group, output[1])
                                 vim.cmd(command)
                             end
-                            output = vim.api.nvim_get_runtime_file("after/syntax/" .. regex_language .. ".vim", false)
+                            output = vim.api.nvim_get_runtime_file(string.format("after/syntax/%s.vim", regex_language), false)
                             if output[1] ~= nil then
-                                local command = "syntax include @" .. group .. " " .. output[1]
+                                local command = string.format("syntax include @%s %s", group, output[1])
                                 vim.cmd(command)
                             end
                         end
@@ -308,16 +308,13 @@ module.public = {
                         end
 
                         -- set highlight groups
-                        local regex_fallback_hl = "syntax region "
-                            .. snip
-                            .. ' matchgroup=Snip start="'
-                            .. start_marker
-                            .. "\" end='"
-                            .. end_marker
-                            .. "' contains=@"
-                            .. group
-                            .. " keepend"
-                        vim.cmd("silent! " .. regex_fallback_hl)
+                        local regex_fallback_hl = string.format([[syntax region %s 
+														matchgroup=Snip 
+														start=\"%s\" 
+														end=\"%s\" 
+														contains=@%s 
+														keepend]], snip, start_marker, end_marker, group)
+                        vim.cmd(string.format("silent! ", regex_fallback_hl))
 
                         -- resync syntax, fixes some slow loading
                         vim.cmd("syntax sync fromstart")
