@@ -1,8 +1,8 @@
-(ranged_tag ("_prefix") @NeorgTagBegin
+(ranged_verbatim_tag ("_prefix") @NeorgTagBegin
 	name: (tag_name [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]) @NeorgTagName
 	(tag_parameters parameter: (tag_param) @NeorgTagParameter)? @NeorgTagParameters
-	content: (ranged_tag_content)?
-	(ranged_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)) @NeorgTag
+	content: (ranged_verbatim_tag_content)?
+	(ranged_verbatim_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)) @NeorgTag
 
 ; TODO: Make the content of @comment darker
 
@@ -46,58 +46,58 @@
             )
             (
                 (link_target_url) ; Doesn't require a highlight since it's a 0-width node
-                (paragraph_segment) @NeorgLinkLocationURL
+                (paragraph) @NeorgLinkLocationURL
             )
             (
                 (link_target_generic) @NeorgLinkLocationGenericPrefix
-                (paragraph_segment) @NeorgLinkLocationGeneric
+                (paragraph) @NeorgLinkLocationGeneric
             )
             (
                 (link_target_external_file) @NeorgLinkLocationExternalFilePrefix
-                (paragraph_segment) @NeorgLinkLocationExternalFile
+                (paragraph) @NeorgLinkLocationExternalFile
             )
             (
                 (link_target_marker) @NeorgLinkLocationMarkerPrefix
-                (paragraph_segment) @NeorgLinkLocationMarker
+                (paragraph) @NeorgLinkLocationMarker
             )
             (
                 (link_target_definition) @NeorgLinkLocationDefinitionPrefix
-                (paragraph_segment) @NeorgLinkLocationDefinition
+                (paragraph) @NeorgLinkLocationDefinition
             )
             (
                 (link_target_footnote) @NeorgLinkLocationFootnotePrefix
-                (paragraph_segment) @NeorgLinkLocationFootnote
+                (paragraph) @NeorgLinkLocationFootnote
             )
             (
                 (link_target_heading1) @NeorgLinkLocationHeading1Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading1
+                (paragraph) @NeorgLinkLocationHeading1
             )
             (
                 (link_target_heading2) @NeorgLinkLocationHeading2Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading2
+                (paragraph) @NeorgLinkLocationHeading2
             )
             (
                 (link_target_heading3) @NeorgLinkLocationHeading3Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading3
+                (paragraph) @NeorgLinkLocationHeading3
             )
             (
                 (link_target_heading4) @NeorgLinkLocationHeading4Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading4
+                (paragraph) @NeorgLinkLocationHeading4
             )
             (
                 (link_target_heading5) @NeorgLinkLocationHeading5Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading5
+                (paragraph) @NeorgLinkLocationHeading5
             )
             (
                 (link_target_heading6) @NeorgLinkLocationHeading6Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading6
+                (paragraph) @NeorgLinkLocationHeading6
             )
         ]
         ("_end") @NeorgLinkLocationDelimiter
     )
     (link_description
         ("_begin") @NeorgLinkTextDelimiter
-        text: (paragraph_segment) @NeorgLinkText
+        text: (paragraph) @NeorgLinkText
         ("_end") @NeorgLinkTextDelimiter
     )?
 ) @NeorgLink
@@ -106,7 +106,7 @@
 (anchor_declaration
     (link_description
         ("_begin") @NeorgAnchorDeclarationDelimiter
-        text: (paragraph_segment) @NeorgAnchorDeclarationText
+        text: (paragraph) @NeorgAnchorDeclarationText
         ("_end") @NeorgAnchorDeclarationDelimiter
     )
 ) @NeorgAnchor
@@ -114,7 +114,7 @@
 (anchor_definition
     (link_description
         ("_begin") @NeorgAnchorDeclarationDelimiter
-        text: (paragraph_segment) @NeorgAnchorDeclarationText
+        text: (paragraph) @NeorgAnchorDeclarationText
         ("_end") @NeorgAnchorDeclarationDelimiter
     )
     (link_location
@@ -125,51 +125,51 @@
             ("_end") @NeorgLinkFileDelimiter
             (
                 (link_target_url) ; Doesn't require a highlight since it's a 0-width node
-                (paragraph_segment) @NeorgLinkLocationURL
+                (paragraph) @NeorgLinkLocationURL
             )
             (
                 (link_target_generic) @NeorgLinkLocationGenericPrefix
-                (paragraph_segment) @NeorgLinkLocationGeneric
+                (paragraph) @NeorgLinkLocationGeneric
             )
             (
                 (link_target_external_file) @NeorgLinkLocationExternalFilePrefix
-                (paragraph_segment) @NeorgLinkLocationExternalFile
+                (paragraph) @NeorgLinkLocationExternalFile
             )
             (
                 (link_target_marker) @NeorgLinkLocationMarkerPrefix
-                (paragraph_segment) @NeorgLinkLocationMarker
+                (paragraph) @NeorgLinkLocationMarker
             )
             (
                 (link_target_definition) @NeorgLinkLocationDefinitionPrefix
-                (paragraph_segment) @NeorgLinkLocationDefinition
+                (paragraph) @NeorgLinkLocationDefinition
             )
             (
                 (link_target_footnote) @NeorgLinkLocationFootnotePrefix
-                (paragraph_segment) @NeorgLinkLocationFootnote
+                (paragraph) @NeorgLinkLocationFootnote
             )
             (
                 (link_target_heading1) @NeorgLinkLocationHeading1Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading1
+                (paragraph) @NeorgLinkLocationHeading1
             )
             (
                 (link_target_heading2) @NeorgLinkLocationHeading2Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading2
+                (paragraph) @NeorgLinkLocationHeading2
             )
             (
                 (link_target_heading3) @NeorgLinkLocationHeading3Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading3
+                (paragraph) @NeorgLinkLocationHeading3
             )
             (
                 (link_target_heading4) @NeorgLinkLocationHeading4Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading4
+                (paragraph) @NeorgLinkLocationHeading4
             )
             (
                 (link_target_heading5) @NeorgLinkLocationHeading5Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading5
+                (paragraph) @NeorgLinkLocationHeading5
             )
             (
                 (link_target_heading6) @NeorgLinkLocationHeading6Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading6
+                (paragraph) @NeorgLinkLocationHeading6
             )
         ]
         ("_end") @NeorgAnchorDefinitionDelimiter
@@ -315,12 +315,12 @@
 (ordered_list6 (ordered_list6_prefix) @NeorgOrderedList6 content: (paragraph) @NeorgOrderedList6Content)
 
 ; Quotes
-(quote1 (quote1_prefix) @NeorgQuote1 content: (paragraph_segment) @NeorgQuote1Content)
-(quote2 (quote2_prefix) @NeorgQuote2 content: (paragraph_segment) @NeorgQuote2Content)
-(quote3 (quote3_prefix) @NeorgQuote3 content: (paragraph_segment) @NeorgQuote3Content)
-(quote4 (quote4_prefix) @NeorgQuote4 content: (paragraph_segment) @NeorgQuote4Content)
-(quote5 (quote5_prefix) @NeorgQuote5 content: (paragraph_segment) @NeorgQuote5Content)
-(quote6 (quote6_prefix) @NeorgQuote6 content: (paragraph_segment) @NeorgQuote6Content)
+(quote1 (quote1_prefix) @NeorgQuote1 content: (paragraph) @NeorgQuote1Content)
+(quote2 (quote2_prefix) @NeorgQuote2 content: (paragraph) @NeorgQuote2Content)
+(quote3 (quote3_prefix) @NeorgQuote3 content: (paragraph) @NeorgQuote3Content)
+(quote4 (quote4_prefix) @NeorgQuote4 content: (paragraph) @NeorgQuote4Content)
+(quote5 (quote5_prefix) @NeorgQuote5 content: (paragraph) @NeorgQuote5Content)
+(quote6 (quote6_prefix) @NeorgQuote6 content: (paragraph) @NeorgQuote6Content)
 
 ; Insertion
 (insertion (insertion_prefix) @NeorgInsertionPrefix item: (lowercase_word) @NeorgInsertionVariable parameters: (paragraph_segment)? @NeorgInsertionVariableValue) @NeorgInsertion
