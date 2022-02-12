@@ -1,10 +1,10 @@
-(ranged_verbatim_tag ("_prefix") @NeorgTagBegin
-	name: (tag_name [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]) @NeorgTagName
-	(tag_parameters parameter: (tag_param) @NeorgTagParameter)? @NeorgTagParameters
+(ranged_verbatim_tag
+    ("_prefix") @NeorgTagBegin
+	name: (tag_name
+        [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
+	(tag_parameters parameter: (tag_param)+ @NeorgTagParameter)? @NeorgTagParameters
 	content: (ranged_verbatim_tag_content)?
-	(ranged_verbatim_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)) @NeorgTag
-
-; TODO: Make the content of @comment darker
+	(ranged_verbatim_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)?) @NeorgTag
 
 (carryover_tag_set
     (carryover_tag
