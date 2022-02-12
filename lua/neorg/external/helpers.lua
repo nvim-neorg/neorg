@@ -502,11 +502,7 @@ neorg.lib = {
     --- Extends a list by constructing a new one vs mutating an existing
     --  list in the case of `vim.list_extend`
     list_extend = function(list, ...)
-        if not list then
-            return {}
-        end
-
-        return { unpack(list), unpack(neorg.lib.list_extend(...)) }
+        return list and { unpack(list), unpack(neorg.lib.list_extend(...)) } or {}
     end,
 
     unroll = function(tbl_with_keys)
