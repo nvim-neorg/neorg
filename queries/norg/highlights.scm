@@ -92,7 +92,7 @@
                 (link_target_heading6) @NeorgLinkLocationHeading6Prefix
                 (paragraph_segment) @NeorgLinkLocationHeading6
             )
-        ]+
+        ]
         ("_end") @NeorgLinkLocationDelimiter
     )
     (link_description
@@ -119,16 +119,10 @@
     )
     (link_location
         ("_begin") @NeorgAnchorDefinitionDelimiter
-        (
-            ("_begin") @NeorgLinkFileDelimiter
-        )?
-        file: (
-            (link_file_text) @NeorgLinkFile
-        )?
-        (
-            ("_end") @NeorgLinkFileDelimiter
-        )?
         [
+            ("_begin") @NeorgLinkFileDelimiter
+            file: (link_file_text) @NeorgLinkFile
+            ("_end") @NeorgLinkFileDelimiter
             (
                 (link_target_url) ; Doesn't require a highlight since it's a 0-width node
                 (paragraph_segment) @NeorgLinkLocationURL
