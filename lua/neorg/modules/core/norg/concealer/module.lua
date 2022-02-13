@@ -308,14 +308,16 @@ module.public = {
                         end
 
                         -- set highlight groups
-                        local regex_fallback_hl = string.format([[syntax region %s 
-                                                                matchgroup=Snip 
-                                                                start=\"%s\" 
-                                                                end=\"%s\" 
-                                                                contains=@%s 
-                                                                keepend]],
-                                                                snip, start_marker, end_marker, group)
-                                                vim.cmd(string.format("silent! ", regex_fallback_hl))
+                        local regex_fallback_hl = string.format([[syntax region %s
+							\ matchgroup=Snip
+							\ start="%s" end="%s"
+							\ contains=@%s
+							\ keepend]],
+							snip,
+							start_marker,
+							end_marker,
+							group)
+						vim.cmd(string.format("silent! %s", regex_fallback_hl))
 
                         -- resync syntax, fixes some slow loading
                         vim.cmd("syntax sync fromstart")
