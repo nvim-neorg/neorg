@@ -213,7 +213,7 @@ module.public = {
                 vim.treesitter.parse_query,
                 "norg",
                 [[(
-                    (ranged_tag (tag_name) @_name) @tag
+                    (ranged_verbatim_tag (tag_name) @_name) @tag
                     (#eq? @_name "code")
                 )]]
             )
@@ -228,7 +228,7 @@ module.public = {
                 schedule(function()
                     local id_name = query.captures[id]
 
-                    -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                    -- If the capture name is "tag" then that means we're dealing with our ranged_verbatim_tag;
                     if id_name == "tag" then
                         -- Get the range of the code block
                         local range = module.required["core.integrations.treesitter"].get_node_range(node)
