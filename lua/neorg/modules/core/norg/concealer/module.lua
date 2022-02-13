@@ -104,6 +104,8 @@ module.private = {
 
     disable_deferred_updates = false,
     debounce_counters = {},
+
+	loaded_code_blocks = {},
 }
 
 ---@class core.norg.concealer
@@ -201,6 +203,68 @@ module.public = {
             end)
         end)
     end,
+
+	-- fills module.private.loaded_code_blocks with the list of active code blocks in the buffer
+	check_code_block_type = function(buf, from, to)
+        local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
+
+        -- If the tree is valid then attempt to perform the query
+        if tree then
+            -- Query all code blocks
+			local ok, query = pcall(
+                vim.treesitter.parse_query,
+                "norg",
+                [[(
+                    (ranged_tag (tag_name) @_name) @tag
+                    (#eq? @_name "code")
+                )]]
+            )
+
+            -- If something went wrong then go bye bye
+            if not ok or not query then
+                return
+            end
+
+			-- get the language used by the code block
+			local code_lang = vim.treesitter.parse_query(
+				"norg",
+				[[(
+					(ranged_tag (tag_name) @_tagname (tag_parameters) @language)
+					(#eq? @_tagname "code")
+				)]]
+			)
+
+			-- check for each code block capture in the root with a language paramater
+			-- to build a table of all the languages for a given buffer
+			for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
+				if id == 2 then -- id 2 here refers to the "language" tag
+					local regex_lang = vim.treesitter.get_node_text(node, buf)
+					local curr_lang = ""
+					local type
+
+                        -- see if parser exists
+					local result = pcall(vim.treesitter.require_language, regex_lang, true)
+
+					-- if its TS, then type 0, else type 1 for regex
+					if result then
+						type = 0
+					else
+						type = 1
+					end
+					-- if current language capture is not in the list, add it
+					for _, lang in pairs(module.private.loaded_code_blocks) do
+						if regex_lang == lang then
+							curr_lang = lang
+						end
+					end
+					if curr_lang ~= regex_lang then
+						print(regex_lang)
+						module.private.loaded_code_blocks[regex_lang] = type
+					end
+				end
+			end
+		end
+	end,
 
     trigger_highlight_regex_code_block = function(buf, from, to)
         -- The next block of code will be responsible for dimming code blocks accordingly
@@ -1991,6 +2055,7 @@ module.on_event = function(event)
             module.public.trigger_icons(buf, module.private.markup, module.private.markup_namespace)
             module.public.trigger_highlight_regex_code_block(buf)
             module.public.trigger_code_block_highlights(buf)
+			module.public.check_code_block_type(buf)
             module.public.completion_levels.trigger_completion_levels(buf)
         else
             local block_current = math.floor(
@@ -2018,6 +2083,7 @@ module.on_event = function(event)
                     line_begin,
                     line_end
                 )
+				module.public.check_code_block_type(buf, line_begin, line_end)
                 module.public.trigger_highlight_regex_code_block(buf, line_begin, line_end)
                 module.public.trigger_code_block_highlights(buf, line_begin, line_end)
                 module.public.completion_levels.trigger_completion_levels(buf, line_begin, line_end)
@@ -2112,6 +2178,7 @@ module.on_event = function(event)
                             node_range and node_range.row_end
                         )
 
+						module.public.check_code_block_type(buf, line_begin, line_end)
                         module.public.trigger_highlight_regex_code_block(buf, start, _end)
 
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
