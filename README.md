@@ -51,7 +51,7 @@ Whilst those projects are amazing, it's simply not enough for us. We need our _o
 one that will surpass _every_ other text editor. It's through our frustration of no native solution for Neovim
 and inconsistencies in the most popular markup formats that Neorg was born.
 
-To learn more about the philosophy of the project check the [philosophy](#philosophy) section.
+To learn more about the philosophy of the project check the [philosophy](#-philosophy) section.
 
 ###### :exclamation: **IMPORTANT**: Neorg is _alpha_ software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and while we are doing our best to keep the documentation up-to-date, this may not always be possible.
 
