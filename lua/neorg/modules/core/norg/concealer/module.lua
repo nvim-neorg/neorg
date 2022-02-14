@@ -239,17 +239,17 @@ module.public = {
 			for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
 				if id == 2 then -- id 2 here refers to the "language" tag
 					local regex_lang = vim.treesitter.get_node_text(node, buf)
-					local curr_lang = ""
+					local curr_lang
 					local type
 
                         -- see if parser exists
 					local result = pcall(vim.treesitter.require_language, regex_lang, true)
 
-					-- if its TS, then type 0, else type 1 for regex
+					-- mark if its for TS parser or not
 					if result then
-						type = 0
+						type = "treesitter"
 					else
-						type = 1
+						type = "regex"
 					end
 					-- if current language capture is not in the list, add it
 					for _, lang in pairs(module.private.loaded_code_blocks) do
@@ -258,7 +258,6 @@ module.public = {
 						end
 					end
 					if curr_lang ~= regex_lang then
-						print(regex_lang)
 						module.private.loaded_code_blocks[regex_lang] = type
 					end
 				end
