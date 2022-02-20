@@ -61,6 +61,7 @@ module.config.public = {
     -- `truezen` (https://github.com/Pocco81/TrueZen.nvim)
     zen_mode = "",
 
+    -- Settings for slide count.
     slide_count = {
         -- Whether to show slide count or not.
         enable = true,
@@ -86,14 +87,21 @@ module.private = {
     buf = nil,
     current_page = 1,
     ns = nil,
+    --- Displays the slide count if it's enabled.
     display_slide_count = function()
-        if module.config.public.slide_count.enable then
-            local text = string.format(
-                module.config.public.slide_count.count_format,
-                module.private.current_page,
-                #module.private.data
-            )
-            if module.config.public.slide_count.position == "top" then
+        if not module.config.public.slide_count.enable then
+            return
+        end
+
+        local text = string.format(
+            module.config.public.slide_count.count_format,
+            module.private.current_page,
+            #module.private.data
+        )
+
+        neorg.lib.match({
+            module.config.public.slide_count.position,
+            ["top"] = function()
                 vim.api.nvim_buf_set_extmark(module.private.buf, module.private.ns, 0, 1, {
                     virt_text = {
                         {
@@ -103,7 +111,8 @@ module.private = {
                     },
                     virt_text_pos = "right_align",
                 })
-            elseif module.config.public.slide_count.position == "bottom" then
+            end,
+            ["bottom"] = function()
                 local line = #module.private.data[module.private.current_page] - 1
                 -- TODO: Move to it's own line (`virt_lines`) -> right align text on virtual line
                 vim.api.nvim_buf_set_extmark(module.private.buf, module.private.ns, line, 1, {
@@ -115,10 +124,11 @@ module.private = {
                     },
                     virt_text_pos = "right_align",
                 })
-            end
-        else
-            log.error("Invalid position for line count.")
-        end
+            end,
+            _ = function()
+                log.error("Invalid position for slide count.")
+            end,
+        })
     end,
 }
 
@@ -269,6 +279,7 @@ module.public = {
         module.private.current_page = 1
         module.private.buf = nil
         module.private.nodes = {}
+        module.private.ns = nil
     end,
 }
 
