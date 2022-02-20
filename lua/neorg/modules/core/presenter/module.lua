@@ -56,10 +56,28 @@ module.load = function()
 end
 
 module.config.public = {
-    -- Zen mode plugin to use. Currenly suppported:
+    -- Zen mode plugin to use. Currently supported:
     -- `zen-mode` (https://github.com/folke/zen-mode.nvim)
     -- `truezen` (https://github.com/Pocco81/TrueZen.nvim)
     zen_mode = "",
+
+    slide_count = {
+        -- Whether to show slide count or not.
+        enable = true,
+
+        -- The format of the slide count if it's enabled.
+        -- This can be a string where `%d` will get replaced with current slide number and total line count.
+        -- If there is only one `%d` only the number of the current slide will be displayed.
+        count_format = "[%d/%d]",
+
+        -- Where to place the slide count. Currently supported:
+        -- `top`: Places the count in the top right corner.
+        -- `bottom`: Places the count in the bottom right corner.
+        position = "top",
+
+        -- The highlight group to use to highlight the slide count.
+        highlight = "String",
+    },
 }
 
 module.private = {
@@ -67,6 +85,41 @@ module.private = {
     nodes = {},
     buf = nil,
     current_page = 1,
+    ns = nil,
+    display_slide_count = function()
+        if module.config.public.slide_count.enable then
+            local text = string.format(
+                module.config.public.slide_count.count_format,
+                module.private.current_page,
+                #module.private.data
+            )
+            if module.config.public.slide_count.position == "top" then
+                vim.api.nvim_buf_set_extmark(module.private.buf, module.private.ns, 0, 1, {
+                    virt_text = {
+                        {
+                            text,
+                            module.config.public.slide_count.highlight,
+                        },
+                    },
+                    virt_text_pos = "right_align",
+                })
+            elseif module.config.public.slide_count.position == "bottom" then
+                local line = #module.private.data[module.private.current_page] - 1
+                -- TODO: Move to it's own line (`virt_lines`) -> right align text on virtual line
+                vim.api.nvim_buf_set_extmark(module.private.buf, module.private.ns, line, 1, {
+                    virt_text = {
+                        {
+                            text,
+                            module.config.public.slide_count.highlight,
+                        },
+                    },
+                    virt_text_pos = "right_align",
+                })
+            end
+        else
+            log.error("Invalid position for line count.")
+        end
+    end,
 }
 
 ---@class core.presenter
@@ -79,6 +132,8 @@ module.public = {
         end
         ---@type core.queries.native
         local queries = module.required["core.queries.native"]
+
+        module.private.ns = vim.api.nvim_create_namespace("neorg_presenter")
 
         -- Get current file and check if it's a norg one
         local uri = vim.uri_from_bufnr(0)
@@ -146,6 +201,7 @@ module.public = {
         module.required["core.mode"].set_mode("presenter")
         module.private.buf = buffer
         module.private.data = results
+        module.private.display_slide_count()
     end,
 
     next_page = function()
@@ -169,6 +225,7 @@ module.public = {
         vim.api.nvim_buf_set_option(module.private.buf, "modifiable", true)
         vim.api.nvim_buf_set_lines(module.private.buf, 0, -1, false, module.private.data[module.private.current_page])
         vim.api.nvim_buf_set_option(module.private.buf, "modifiable", false)
+        module.private.display_slide_count()
     end,
 
     previous_page = function()
@@ -185,6 +242,7 @@ module.public = {
         vim.api.nvim_buf_set_option(module.private.buf, "modifiable", true)
         vim.api.nvim_buf_set_lines(module.private.buf, 0, -1, false, module.private.data[module.private.current_page])
         vim.api.nvim_buf_set_option(module.private.buf, "modifiable", false)
+        module.private.display_slide_count()
     end,
 
     close = function()
