@@ -48,6 +48,7 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 --]]
 
 require("neorg.modules.base")
+require("neorg.events")
 
 local module = neorg.modules.create("core.norg.concealer")
 
@@ -105,7 +106,15 @@ module.private = {
     disable_deferred_updates = false,
     debounce_counters = {},
 
-	loaded_code_blocks = {},
+	code_block_table = {
+		-- [[
+		-- table is setup like so
+		-- {
+		--     buf_name_1 = {loaded_regex = {"regex_name" = "type"}}
+		--     buf_name_2 = {loaded_regex = {"regex_name" = "type"}}
+		-- }
+		-- ]]
+	},
 }
 
 ---@class core.norg.concealer
@@ -206,13 +215,31 @@ module.public = {
 
 	-- fills module.private.loaded_code_blocks with the list of active code blocks in the buffer
 	-- stores globally apparently
-	check_code_block_type = function(buf, from, to)
-        local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
+    check_code_block_type = function(buf, from, to)
+
+        -- TODO test event handling here
+        -- local test_event = neorg.events.create(module, "core.norg.concealer.events.test_event_name", "test_content")
+        -- neorg.events.create(module, "test_event", "test_content")
+        -- for k, v in pairs(test_event) do
+        --	print("k: " .. k)
+        --	print("v: " .. v)
+        -- end
+
+        -- parse the current buffer, and clear out the buffer's loaded code blocks if needed
+        -- NOTE: this will need to be replaced by neorg events
+        local current_buf = vim.api.nvim_buf_get_name(0)
+        if current_buf ~= module.private.code_block_table[current_buf] then
+            module.private.code_block_table[current_buf] = {loaded_regex ={}}
+            for k, _ in pairs(module.private.code_block_table[current_buf].loaded_regex) do
+                module.private.code_block_table[current_buf].loaded_regex[k] = nil
+            end
+        end
 
         -- If the tree is valid then attempt to perform the query
+        local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
         if tree then
             -- Query all code blocks
-			local ok, query = pcall(
+            local ok, query = pcall(
                 vim.treesitter.parse_query,
                 "norg",
                 [[(
@@ -226,124 +253,127 @@ module.public = {
                 return
             end
 
-			-- get the language used by the code block
-			local code_lang = vim.treesitter.parse_query(
-				"norg",
-				[[(
-					(ranged_tag (tag_name) @_tagname (tag_parameters) @language)
-					(#eq? @_tagname "code")
-				)]]
-			)
+            -- get the language used by the code block
+            local code_lang = vim.treesitter.parse_query(
+                "norg",
+                [[(
+                    (ranged_tag (tag_name) @_tagname (tag_parameters) @language)
+                    (#eq? @_tagname "code")
+                )]]
+            )
 
-			-- check for each code block capture in the root with a language paramater
-			-- to build a table of all the languages for a given buffer
-			for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
-				if id == 2 then -- id 2 here refers to the "language" tag
-					local regex_lang = vim.treesitter.get_node_text(node, buf)
-					local curr_lang
-					local type
+            -- check for each code block capture in the root with a language paramater
+            -- to build a table of all the languages for a given buffer
+            for id, node in code_lang:iter_captures(tree:root(), buf, 0, -1) do
+                if id == 2 then -- id 2 here refers to the "language" tag
+                    local regex_lang = vim.treesitter.get_node_text(node, buf)
+                    local curr_lang
+                    local type
 
                     -- see if parser exists
-					local result = pcall(vim.treesitter.require_language, regex_lang, true)
+                    local result = pcall(vim.treesitter.require_language, regex_lang, true)
 
-					-- mark if its for TS parser or not
-					if result then
-						type = "treesitter"
-					else
-						type = "regex"
-					end
-					-- if current language capture is not in the list, add it
-					for _, lang in pairs(module.private.loaded_code_blocks) do
-						if regex_lang == lang then
-							curr_lang = lang
-						end
-					end
-					if curr_lang ~= regex_lang then
-						module.private.loaded_code_blocks[regex_lang] = type
-					end
-				end
-			end
-		end
-	end,
+                    -- mark if its for TS parser or not
+                    if result then
+                        type = "treesitter"
+                    else
+                        type = "regex"
+                    end
 
-	trigger_highlight_regex_code_block = function(buf, from, to)
-		schedule(function()
-			-- only parse from the loaded_code_blocks module, not from the file directly
-			local lang_table = module.private.loaded_code_blocks
-			print("---")
-			for lang_name, type in pairs(lang_table) do
-				if type == "regex" then
+                    -- if current language capture is not in the list, add it
+                    for lang, _ in pairs(module.private.code_block_table[current_buf].loaded_regex) do
+                        if regex_lang == lang then
+                            curr_lang = lang
+                        end
+                    end
+                    if curr_lang ~= regex_lang then
+                        module.private.code_block_table[current_buf].loaded_regex[regex_lang] = type
+                    end
+                end
+            end
+        end
 
-					-- NOTE: the regex fallback code was mostly adapted from Vimwiki
-					-- It's a very good implementation of nested vim regex
-					lang_name = lang_name:gsub("%s+", "") -- need to trim out whitespace
-					local group = string.format("textGroup%s", string.upper(lang_name))
-					local snip = string.format("textSnip%s", string.upper(lang_name))
-					local start_marker = string.format("@code %s", lang_name)
-					local end_marker = "@end"
-					local has_syntax = string.format("syntax list %s", snip)
+    end,
 
-					local ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
-					local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
+	-- load syntax files for regex code blocks
+    trigger_highlight_regex_code_block = function(buf, from, to)
+        schedule(function()
+            local current_buf = vim.api.nvim_buf_get_name(buf)
+            -- only parse from the loaded_code_blocks module, not from the file directly
+            local lang_table = module.private.code_block_table[current_buf].loaded_regex
+            for lang_name, type in pairs(lang_table) do
+                if type == "regex" then
 
-					-- pass off the current syntax buffer var so things can load
-					local current_syntax = ""
-					if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
-						vim.b.current_syntax = lang_name
-						current_syntax = vim.b.current_syntax
-						vim.b.current_syntax = nil
-					end
+                    -- NOTE: the regex fallback code was mostly adapted from Vimwiki
+                    -- It's a very good implementation of nested vim regex
+                    -- lang_name = lang_name:gsub("%s+", "") -- need to trim out whitespace
+                    local group = string.format("textGroup%s", string.upper(lang_name))
+                    local snip = string.format("textSnip%s", string.upper(lang_name))
+                    local start_marker = string.format("@code %s", lang_name)
+                    local end_marker = "@end"
+                    local has_syntax = string.format("syntax list %s", snip)
 
-					-- temporarily pass off keywords in case they get messed up
-					local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
+                    local ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
+                    local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
 
-					-- see if the syntax files even exist before we try to call them
-					-- if syn list was an error, or if it was an empty result
-					if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
-						local output = vim.api.nvim_get_runtime_file(string.format("syntax/%s.vim", lang_name), false)
-						if output[1] ~= nil then
-							local command = string.format("syntax include @%s %s", group, output[1])
-							vim.cmd(command)
-						end
-						output = vim.api.nvim_get_runtime_file(string.format("after/syntax/%s.vim", lang_name), false)
-						if output[1] ~= nil then
-							local command = string.format("syntax include @%s %s", group, output[1])
-							vim.cmd(command)
-						end
-					end
+                    -- pass off the current syntax buffer var so things can load
+                    local current_syntax = ""
+                    if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
+                        vim.b.current_syntax = lang_name
+                        current_syntax = vim.b.current_syntax
+                        vim.b.current_syntax = nil
+                    end
 
-					vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
+                    -- temporarily pass off keywords in case they get messed up
+                    local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
 
-					-- reset it after
-					if current_syntax ~= "" or current_syntax ~= nil then
-						vim.b.current_syntax = current_syntax
-					else
-						vim.b.current_syntax = ""
-					end
+                    -- see if the syntax files even exist before we try to call them
+                    -- if syn list was an error, or if it was an empty result
+                    if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
+                        local output = vim.api.nvim_get_runtime_file(string.format("syntax/%s.vim", lang_name), false)
+                        if output[1] ~= nil then
+                            local command = string.format("syntax include @%s %s", group, output[1])
+                            vim.cmd(command)
+                        end
+                        output = vim.api.nvim_get_runtime_file(string.format("after/syntax/%s.vim", lang_name), false)
+                        if output[1] ~= nil then
+                            local command = string.format("syntax include @%s %s", group, output[1])
+                            vim.cmd(command)
+                        end
+                    end
 
-					-- set highlight groups
-					local regex_fallback_hl = string.format(
-						[[
-							syntax region %s
-							\ matchgroup=Snip
-							\ start="%s" end="%s"
-							\ contains=@%s
-							\ keepend
-						]],
-						snip,
-						start_marker,
-						end_marker,
-						group
-					)
-					vim.cmd(string.format("silent! %s", regex_fallback_hl))
+                    vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
 
-					-- resync syntax, fixes some slow loading
-					vim.cmd("syntax sync fromstart")
-					vim.b.current_syntax = ""
-				end
-			end
-		end)
-	end,
+                    -- reset it after
+                    if current_syntax ~= "" or current_syntax ~= nil then
+                        vim.b.current_syntax = current_syntax
+                    else
+                        vim.b.current_syntax = ""
+                    end
+
+                    -- set highlight groups
+                    local regex_fallback_hl = string.format(
+                        [[
+                            syntax region %s
+                            \ matchgroup=Snip
+                            \ start="%s" end="%s"
+                            \ contains=@%s
+                            \ keepend
+                        ]],
+                        snip,
+                        start_marker,
+                        end_marker,
+                        group
+                    )
+                    vim.cmd(string.format("silent! %s", regex_fallback_hl))
+
+                    -- resync syntax, fixes some slow loading
+                    vim.cmd("syntax sync fromstart")
+                    vim.b.current_syntax = ""
+                end
+            end
+        end)
+    end,
 
     trigger_code_block_highlights = function(buf, from, to)
         -- If the code block dimming is disabled, return right away.
@@ -2128,7 +2158,7 @@ module.on_event = function(event)
                             node_range and node_range.row_end
                         )
 
-						module.public.check_code_block_type(buf, line_begin, line_end)
+                        module.public.check_code_block_type(buf, start, _end)
                         module.public.trigger_highlight_regex_code_block(buf, start, _end)
 
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
