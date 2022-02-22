@@ -265,10 +265,14 @@ module.public = {
         })
     end,
 
-    -- @Summary Creates a new Neorg file
-    -- @Description Takes in a path (can include directories) and creates a .norg file from that path
-    -- @Param  path (string) - a path to place the .norg file in
-    create_file = function(path, workspace)
+    --- Takes in a path (can include directories) and creates a .norg file from that path
+    ---@param path string a path to place the .norg file in
+    ---@param workspace string workspace name
+    ---@param opts? table additional options
+    ---  - opts.no_open (bool) if true, will not open the file in neovim after creating it
+    create_file = function(path, workspace, opts)
+        opts = opts or {}
+
         -- Grab the current workspace's full path
         local fullpath
         if workspace ~= nil then
@@ -297,12 +301,22 @@ module.public = {
         end
 
         -- If the provided filepath ends in .norg then don't append the filetype automatically
-        -- Begin editing that newly created file
-        if vim.endswith(path, ".norg") then
-            vim.cmd("e " .. fullpath .. neorg.configuration.pathsep .. split[#split] .. " | w")
-        else
-            vim.cmd("e " .. fullpath .. neorg.configuration.pathsep .. split[#split] .. ".norg | w")
+        local fname = fullpath .. neorg.configuration.pathsep .. split[#split]
+        if not vim.endswith(path, ".norg") then
+            fname = fname .. ".norg"
         end
+
+        -- Create the file
+        local fd = vim.loop.fs_open(fname, "w", 438)
+        vim.loop.fs_write(fd, "", 0)
+        vim.loop.fs_close(fd)
+
+        if opts.no_open then
+            return
+        end
+
+        -- Begin editing that newly created file
+        vim.cmd("e " .. fname .. " | w")
     end,
 
     -- @Summary Open a Neorg file
