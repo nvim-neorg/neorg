@@ -24,6 +24,8 @@ module.setup = function()
 end
 
 module.load = function()
+    local error_loading = false
+
     ---@type core.keybinds
     ---@diagnostic disable-next-line: unused-local
     local keybinds = module.required["core.keybinds"]
@@ -32,6 +34,13 @@ module.load = function()
         neorg.modules.load_module("core.integrations.truezen", module.name)
     elseif module.config.public.zen_mode == "zen-mode" then
         neorg.modules.load_module("core.integrations.zen_mode", module.name)
+    else
+        log.error("Unrecognized mode for 'zen_mode' option. Please check your presenter config")
+        error_loading = true
+    end
+
+    if error_loading then
+        return
     end
 
     keybinds.register_keybinds(module.name, { "next_page", "previous_page", "close" })
