@@ -500,6 +500,7 @@ module.public = {
                         delimiter = " -> ",
                         -- Automatically destroys the popup when prompt is confirmed
                         destroy = true,
+                        prompt_text = nil,
                     },
 
                     self:options_for( -- First merge the global options
@@ -546,6 +547,11 @@ module.public = {
 
                 -- Jump to insert mode
                 vim.api.nvim_feedkeys("A", "t", false)
+
+                -- Add prompt text in the prompt
+                if configuration.prompt_text then
+                    vim.api.nvim_feedkeys(configuration.prompt_text, "n", false)
+                end
 
                 return self
             end,
