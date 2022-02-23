@@ -198,7 +198,7 @@ module.public = {
                 end
                 lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
             else
-                lines = f:read("*a")
+                lines = f:read("*a") or ""
                 lines = vim.split(lines, "\n")
                 if lines[#lines] == "" then
                     --vim.split automatically adds an empty line because the file stops with a newline

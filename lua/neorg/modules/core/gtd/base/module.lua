@@ -119,8 +119,18 @@ module.load = function()
     ---@type core.gtd.helpers
     if not error_loading then
         local helpers = module.required["core.gtd.helpers"]
-        if not helpers.get_gtd_files() then
-            error_loading = true
+        local files = helpers.get_gtd_files() or {}
+        if not files then
+            log.warn("No files found in " .. workspace .. " workspace")
+        end
+
+        if not vim.tbl_contains(files, module.config.public.default_lists.inbox) then
+            dirman.create_file(module.config.public.default_lists.inbox, workspace, { no_open = true })
+            log.warn("Inbox file not found in " .. workspace .. " workspace, creating it...")
+        end
+        if not vim.tbl_contains(files, "index.norg") then
+            dirman.create_file("index.norg", workspace, { no_open = true })
+            log.warn("Index file not found in " .. workspace .. " workspace, creating it...")
         end
     end
 

@@ -73,7 +73,7 @@ module.public = {
                     "Edit content",
                     "content",
                     modified,
-                    { prompt_title = "Edit Content" }
+                    { prompt_title = "Edit Content", prompt_text = task_extracted["content"] }
                 )
             end)
             :blank()
@@ -85,7 +85,7 @@ module.public = {
                     { edit = "Edit contexts", delete = "Delete contexts" },
                     modified,
                     "contexts",
-                    task
+                    task_extracted
                 )
             end)
             :concat(function(_selection)
@@ -95,7 +95,7 @@ module.public = {
                     { edit = "Edit waiting fors", delete = "Delete waiting fors" },
                     modified,
                     "waiting.for",
-                    task
+                    task_extracted
                 )
             end)
             :blank()
@@ -147,6 +147,7 @@ module.private = {
     ---   - opts.multiple_texts (bool):     if true, will split the modified content and convert into a list
     ---   - opts.pop_page (bool):           if true, will pop the page a second time
     ---   - opts.prompt_title (string):     provide custom prompt title. Else defaults to "Edit"
+    ---   - opts.prompt_text (string):      provide custom text, if any
     --- @return table #The selection
     edit_prompt = function(selection, flag, text, key, modified, opts)
         opts = opts or {}
@@ -156,27 +157,25 @@ module.private = {
             destroy = false,
             callback = function()
                 selection:push_page()
-                selection
-                    :title(prompt_title)
-                    :blank()
-                    :prompt(prompt_title, { -- TODO: add already created content in prompt
-                        callback = function(t)
-                            if #t > 0 then
-                                if opts.multiple_texts then
-                                    modified[key] = vim.split(t, " ", true)
-                                else
-                                    modified[key] = t
-                                end
+                selection:title(prompt_title):blank():prompt(prompt_title, {
+                    callback = function(t)
+                        if #t > 0 then
+                            if opts.multiple_texts then
+                                modified[key] = vim.split(t, " ", true)
+                            else
+                                modified[key] = t
                             end
-                            -- We don't delete the key at CR because we just modified it
-                            selection:set_data("delete_contexts", false)
+                        end
+                        -- We don't delete the key at CR because we just modified it
+                        selection:set_data("delete_contexts", false)
 
-                            if opts.pop_page then
-                                selection:pop_page()
-                            end
-                        end,
-                        pop = true,
-                    })
+                        if opts.pop_page then
+                            selection:pop_page()
+                        end
+                    end,
+                    pop = true,
+                    prompt_text = opts.prompt_text,
+                })
             end,
         })
         return selection
@@ -196,14 +195,12 @@ module.private = {
                 :text(texts.edit)
                 :blank()
                 :concat(function(_selection)
-                    selection = module.private.edit_prompt(
-                        _selection,
-                        "e",
-                        texts.edit,
-                        key,
-                        modified,
-                        { prompt_title = texts.edit, pop_page = true, multiple_texts = true }
-                    )
+                    selection = module.private.edit_prompt(_selection, "e", texts.edit, key, modified, {
+                        prompt_title = texts.edit,
+                        pop_page = true,
+                        multiple_texts = true,
+                        prompt_text = type(task[key]) == "table" and table.concat(task[key], " "),
+                    })
                     return selection
                 end)
                 :flag("d", texts.delete, {
