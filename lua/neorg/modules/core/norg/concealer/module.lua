@@ -294,7 +294,6 @@ module.public = {
                 end
             end
         end
-
     end,
 
 	-- load syntax files for regex code blocks
@@ -308,7 +307,6 @@ module.public = {
 
                     -- NOTE: the regex fallback code was mostly adapted from Vimwiki
                     -- It's a very good implementation of nested vim regex
-                    -- lang_name = lang_name:gsub("%s+", "") -- need to trim out whitespace
                     local group = string.format("textGroup%s", string.upper(lang_name))
                     local snip = string.format("textSnip%s", string.upper(lang_name))
                     local start_marker = string.format("@code %s", lang_name)
@@ -316,23 +314,22 @@ module.public = {
                     local has_syntax = string.format("syntax list %s", snip)
 
                     local ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
-                    local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
+					local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
 
-                    -- pass off the current syntax buffer var so things can load
-                    local current_syntax = ""
-                    if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
-                        vim.b.current_syntax = lang_name
-                        current_syntax = vim.b.current_syntax
-                        vim.b.current_syntax = nil
-                    end
+					-- pass off the current syntax buffer var so things can load
+					local current_syntax = ""
+					if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
+						vim.b.current_syntax = lang_name
+						current_syntax = vim.b.current_syntax
+						vim.b.current_syntax = nil
+					end
 
-                    -- temporarily pass off keywords in case they get messed up
-                    local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
+					-- temporarily pass off keywords in case they get messed up
+					local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
 
 					-- see if the syntax files even exist before we try to call them
 					-- if syn list was an error, or if it was an empty result
 					if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
-						-- local regex = "^[%w\\-. ]+$"
 						local regex = "([^/]*).vim$"
 						for _, syntax in pairs(module.private.available_regex) do
 							for match in string.gmatch(syntax, regex) do
@@ -344,14 +341,14 @@ module.public = {
 						end
 					end
 
-                    vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
+					vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
 
-                    -- reset it after
-                    if current_syntax ~= "" or current_syntax ~= nil then
-                        vim.b.current_syntax = current_syntax
-                    else
-                        vim.b.current_syntax = ""
-                    end
+					-- reset it after
+					if current_syntax ~= "" or current_syntax ~= nil then
+						vim.b.current_syntax = current_syntax
+					else
+						vim.b.current_syntax = ""
+					end
 
                     -- set highlight groups
                     local regex_fallback_hl = string.format(
