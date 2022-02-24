@@ -115,6 +115,8 @@ module.private = {
 		-- }
 		-- ]]
 	},
+
+	available_regex = {},
 }
 
 ---@class core.norg.concealer
@@ -327,20 +329,20 @@ module.public = {
                     -- temporarily pass off keywords in case they get messed up
                     local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
 
-                    -- see if the syntax files even exist before we try to call them
-                    -- if syn list was an error, or if it was an empty result
-                    if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
-                        local output = vim.api.nvim_get_runtime_file(string.format("syntax/%s.vim", lang_name), false)
-                        if output[1] ~= nil then
-                            local command = string.format("syntax include @%s %s", group, output[1])
-                            vim.cmd(command)
-                        end
-                        output = vim.api.nvim_get_runtime_file(string.format("after/syntax/%s.vim", lang_name), false)
-                        if output[1] ~= nil then
-                            local command = string.format("syntax include @%s %s", group, output[1])
-                            vim.cmd(command)
-                        end
-                    end
+					-- see if the syntax files even exist before we try to call them
+					-- if syn list was an error, or if it was an empty result
+					if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
+						-- local regex = "^[%w\\-. ]+$"
+						local regex = "([^/]*).vim$"
+						for _, syntax in pairs(module.private.available_regex) do
+							for match in string.gmatch(syntax, regex) do
+								if lang_name == match then
+									local command = string.format("syntax include @%s %s", group, syntax)
+									vim.cmd(command)
+								end
+							end
+						end
+					end
 
                     vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
 
@@ -2015,6 +2017,22 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
     module.required["core.autocommands"].enable_autocommand("VimLeavePre")
+
+	-- Load available regex languages
+	-- get the available regex files for the current session
+	local get_regex_files = function()
+		local output = {}
+		local syntax_files = vim.api.nvim_get_runtime_file("syntax/*.vim", true)
+		for _, lang in pairs(syntax_files) do
+			table.insert(output, lang)
+		end
+		syntax_files = vim.api.nvim_get_runtime_file("after/syntax/*.vim", true)
+		for _, lang in pairs(syntax_files) do
+			table.insert(output, lang)
+		end
+		return output
+	end
+	module.private.available_regex = get_regex_files()
 end
 
 module.on_event = function(event)
