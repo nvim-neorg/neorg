@@ -364,10 +364,21 @@ module.public = {
                         end_marker,
                         group
                     )
+                    vim.cmd(string.format("%s", regex_fallback_hl))
+
+                    -- set highlight groups
+                    regex_fallback_hl = string.format(
+                        [[
+							syntax sync match %s
+							\ groupthere %s
+							\ %s
+						]],
+						snip,
+                        snip,
+						('"' .. end_marker .. '"')
+                    )
                     vim.cmd(string.format("silent! %s", regex_fallback_hl))
 
-                    -- resync syntax, fixes some slow loading
-                    vim.cmd("syntax sync fromstart")
                     vim.b.current_syntax = ""
                 end
             end
