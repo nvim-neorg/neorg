@@ -111,6 +111,23 @@ module.public = {
             end,
         })
     end,
+
+    --- Converts a task state (e.g: "undone") to its norg equivalent (e.g: "- [ ]")
+    ---@param state string
+    ---@return string
+    state_to_text = function(state)
+        return neorg.lib.match({
+            state,
+            done = "- [x]",
+            undone = "- [ ]",
+            pending = "- [-]",
+            uncertain = "- [?]",
+            urgent = "- [!]",
+            recurring = "- [+]",
+            onhold = "- [=]",
+            cancelled = "- [_]",
+        })
+    end,
 }
 
 module.private = {
