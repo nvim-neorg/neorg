@@ -2313,6 +2313,7 @@ module.on_event = function(event)
                 )
                 module.public.check_code_block_type(
                     event.buffer,
+                    false,
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
