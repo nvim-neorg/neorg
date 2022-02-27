@@ -55,7 +55,7 @@ jobs:
       - name: Copy Wiki Files
         run: |
           ls ../neorg/wiki ./neorg-wiki
-          rm ./neorg-wiki/*.md
+          # rm ./neorg-wiki/*.md
           cp ../neorg/wiki/**.md ./neorg-wiki
           ls ../neorg/wiki ./neorg-wiki
 
