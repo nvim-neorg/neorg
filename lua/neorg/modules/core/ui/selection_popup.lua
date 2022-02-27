@@ -591,6 +591,11 @@ module.public = {
             end,
 
             -- TODO: Add support for a callback to be invoked on state change
+            --- Nicely display a data to be re-rendered on each modification
+            ---@param key string key to data
+            ---@param format string formatted string to display the content of key
+            ---@param force_render? boolean forcefully render the message even if the state isn't present
+            ---@return core.ui.selection
             stateof = function(self, key, format, force_render)
                 format = format or "%s"
                 force_render = force_render or false
