@@ -52,12 +52,30 @@ module.private = {
         end
 
         local path = os.date(
-            type(module.config.public.strategy) == "function" and module.config.public.strategy(os.date("*t", time))
+            type(module.config.public.strategy) == "function"
+                    and module.config.public.strategy(os.date("*t", time))
                 or module.config.public.strategy,
             time
         )
 
-        module.required["core.norg.dirman"].create_file(folder_name .. "/" .. path, workspace)
+        local fullpath
+        if workspace ~= nil then
+            fullpath = module.required["core.norg.dirman"].get_workspace(workspace)
+        else
+            fullpath = module.required["core.norg.dirman"].get_current_workspace()[2]
+        end
+        fullpath = fullpath .. neorg.configuration.pathsep .. folder_name .. neorg.configuration.pathsep .. path
+        if workspace == nil then
+            workspace = module.required["core.norg.dirman"].get_current_workspace()[1]
+        end
+        if module.required["core.norg.dirman"].file_exists(fullpath) then
+            module.required["core.norg.dirman"].open_file(workspace, folder_name .. neorg.configuration.pathsep .. path)
+        else
+            module.required["core.norg.dirman"].create_file(
+                folder_name .. neorg.configuration.pathsep .. path,
+                workspace
+            )
+        end
     end,
 
     diary_tomorrow = function()
