@@ -217,7 +217,7 @@ module.public = {
 
     -- fills module.private.loaded_code_blocks with the list of active code blocks in the buffer
     -- stores globally apparently
-    check_code_block_type = function(buf, from, to)
+    check_code_block_type = function(buf, reload, from, to)
         -- TODO test event handling here
         -- local test_event = neorg.events.create(module, "core.norg.concealer.events.test_event_name", "test_content")
         -- neorg.events.create(module, "test_event", "test_content")
@@ -228,11 +228,26 @@ module.public = {
 
         -- parse the current buffer, and clear out the buffer's loaded code blocks if needed
         -- NOTE: this will need to be replaced by neorg events
-        local current_buf = vim.api.nvim_buf_get_name(0)
-        if current_buf ~= module.private.code_block_table[current_buf] then
+        local current_buf = vim.api.nvim_buf_get_name(buf)
+
+        -- load nil table with empty values
+        if module.private.code_block_table[current_buf] == nil then
             module.private.code_block_table[current_buf] = { loaded_regex = {} }
-            for k, _ in pairs(module.private.code_block_table[current_buf].loaded_regex) do
-                module.private.code_block_table[current_buf].loaded_regex[k] = nil
+        end
+
+        -- recreate table for buffer on buffer change
+        -- reason for existence:
+        -- [[
+        --   user deletes a bunch of code blocks from file, and said code blocks
+        --   were the only regex blocks of that language. on a full buffer refresh
+        --   like reentering the buffer, this will get cleared to recreate what languages
+        --   are loaded. then another function will handle unloading syntax files on next load
+        -- ]]
+        for key in pairs(module.private.code_block_table) do
+            if current_buf ~= key or reload == true then
+                for k, _ in pairs(module.private.code_block_table[current_buf].loaded_regex) do
+                    module.private.code_block_table[current_buf].loaded_regex[k] = nil
+                end
             end
         end
 
@@ -265,7 +280,7 @@ module.public = {
 
             -- check for each code block capture in the root with a language paramater
             -- to build a table of all the languages for a given buffer
-            for id, node in code_lang:iter_captures(tree:root(), buf, 0, -1) do
+            for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 if id == 2 then -- id 2 here refers to the "language" tag
                     -- find the end node of a block so we can grab the row
                     local end_node = node:next_named_sibling():next_sibling()
@@ -291,7 +306,10 @@ module.public = {
                     if curr_lang ~= regex_lang then
                         -- if type is empty it means this language has never been found
                         if module.private.code_block_table[current_buf].loaded_regex[regex_lang] == nil then
-                            module.private.code_block_table[current_buf].loaded_regex[regex_lang] = {type = type, range = {}}
+                            module.private.code_block_table[current_buf].loaded_regex[regex_lang] = {
+                                type = type,
+                                range = {},
+                            }
                         end
                         -- else just do what we need to do
                         module.private.code_block_table[current_buf].loaded_regex[regex_lang].range[start_row] = end_row
@@ -355,6 +373,7 @@ module.public = {
                     vim.b.current_syntax = ""
                 end
 
+                -- if count is 0, then we **didn't** have the syntax file and must load it
                 if count == 0 then
                     -- set highlight groups
                     local regex_fallback_hl = string.format(
@@ -364,7 +383,7 @@ module.public = {
                             \ start="%s" end="%s"
                             \ contains=@%s
                             \ keepend
-						]],
+                        ]],
                         snip,
                         start_marker,
                         end_marker,
@@ -372,14 +391,39 @@ module.public = {
                     )
                     vim.cmd(string.format("%s", regex_fallback_hl))
                 end
+                -- sync everything
+                module.public.sync_regex_code_blocks(buf, lang_name, from, to)
 
+                vim.b.current_syntax = ""
+            end
+        end
+        -- end)
+    end,
+
+    sync_regex_code_blocks = function(buf, regex, from, to)
+        local current_buf = vim.api.nvim_buf_get_name(buf)
+        -- only parse from the loaded_code_blocks module, not from the file directly
+        local lang_table = module.private.code_block_table[current_buf].loaded_regex
+        for lang_name, curr_table in pairs(lang_table) do
+            -- if we got passed a regex, then we need to only parse the right one
+            if regex ~= nil then
+                if regex ~= lang_name then
+                    goto continue
+                end
+            end
+            if curr_table.type == "regex" then
                 -- sync from code block
+                -- local group = string.format("textGroup%s", string.upper(lang_name))
+                local snip = string.format("textSnip%s", string.upper(lang_name))
+                local start_marker = string.format("@code %s", lang_name)
+                local end_marker = "@end"
+                -- local has_syntax = string.format("syntax list %s", snip)
                 local regex_fallback_hl = string.format(
                     [[
                         syntax sync match %s
                         \ grouphere %s
                         \ %s
-					]],
+                    ]],
                     snip,
                     snip,
                     ('"' .. start_marker .. '"')
@@ -392,18 +436,16 @@ module.public = {
                         syntax sync match %s
                         \ groupthere %s
                         \ %s
-					]],
+                    ]],
                     snip,
                     snip,
                     ('"' .. end_marker .. '"')
                 )
                 vim.cmd(string.format("%s", regex_fallback_hl))
                 vim.cmd("syntax sync maxlines=20")
-
-                vim.b.current_syntax = ""
             end
+            ::continue::
         end
-        -- end)
     end,
 
     trigger_code_block_highlights = function(buf, from, to)
@@ -2080,7 +2122,7 @@ module.on_event = function(event)
         if line_count < module.config.public.performance.increment then
             module.public.trigger_icons(buf, module.private.icons, module.private.icon_namespace)
             module.public.trigger_icons(buf, module.private.markup, module.private.markup_namespace)
-            module.public.check_code_block_type(buf)
+            module.public.check_code_block_type(buf, true)
             module.public.trigger_highlight_regex_code_block(buf)
             module.public.trigger_code_block_highlights(buf)
             module.public.completion_levels.trigger_completion_levels(buf)
@@ -2110,7 +2152,7 @@ module.on_event = function(event)
                     line_begin,
                     line_end
                 )
-                module.public.check_code_block_type(buf, line_begin, line_end)
+                module.public.check_code_block_type(buf, false, line_begin, line_end)
                 module.public.trigger_highlight_regex_code_block(buf, line_begin, line_end)
                 module.public.trigger_code_block_highlights(buf, line_begin, line_end)
                 module.public.completion_levels.trigger_completion_levels(buf, line_begin, line_end)
@@ -2205,7 +2247,7 @@ module.on_event = function(event)
                             node_range and node_range.row_end
                         )
 
-                        module.public.check_code_block_type(buf, start, _end)
+                        module.public.check_code_block_type(buf, false, start, _end)
                         module.public.trigger_highlight_regex_code_block(buf, start, _end)
 
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
@@ -2287,6 +2329,7 @@ module.on_event = function(event)
                 )
                 module.public.check_code_block_type(
                     event.buffer,
+                    false,
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
@@ -2331,10 +2374,10 @@ module.on_event = function(event)
         module.private.disable_deferred_updates = true
     elseif event.type == "core.keybinds.events.core.norg.concealer.toggle-markup" then
         module.public.toggle_markup(event.buffer)
-    elseif event.type == "core.autocommands.events.winscrolled" then
-        schedule(function()
-            module.public.trigger_highlight_regex_code_block(event.buffer)
-        end)
+        -- elseif event.type == "core.autocommands.events.winscrolled" then
+        --     schedule(function()
+        --         module.public.sync_regex_code_blocks(event.buffer)
+        --     end)
     end
 end
 
