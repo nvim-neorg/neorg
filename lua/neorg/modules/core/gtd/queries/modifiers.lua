@@ -73,7 +73,7 @@ module.public = {
         -- Get the position of the node to modify
         local start_row, start_col, end_row, end_col = ts_utils.get_node_range(fetched_node)
 
-        if not end_row or not end_col then
+        if not (end_row and end_col) then
             return module.public.update(object, node_type)
         end
 
