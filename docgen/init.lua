@@ -578,7 +578,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                             .. module.name
                             .. "."
                             .. import
-                            .. "`](https://github.com/nvim-neorg/neorg/tree/unstable/"
+                            .. "`](https://github.com/nvim-neorg/neorg/tree/main/"
                             .. trimmed
                             .. ")"
                     )
