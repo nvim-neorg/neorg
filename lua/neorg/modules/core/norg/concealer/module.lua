@@ -254,21 +254,6 @@ module.public = {
         -- If the tree is valid then attempt to perform the query
         local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
         if tree then
-            -- Query all code blocks
-            local ok, query = pcall(
-                vim.treesitter.parse_query,
-                "norg",
-                [[(
-                    (ranged_tag (tag_name) @_name) @tag
-                    (#eq? @_name "code")
-                )]]
-            )
-
-            -- If something went wrong then go bye bye
-            if not ok or not query then
-                return
-            end
-
             -- get the language used by the code block
             local code_lang = vim.treesitter.parse_query(
                 "norg",
