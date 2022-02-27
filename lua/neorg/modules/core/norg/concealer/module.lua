@@ -21,7 +21,6 @@ Where it will display this instead:
 - [ ] Thing B
 ```
 
---[[
 Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
 a thing, punctuation can be added (without removing the whitespace
 between the icon and actual text) like so:
