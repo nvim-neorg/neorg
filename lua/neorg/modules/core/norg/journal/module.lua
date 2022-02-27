@@ -52,8 +52,7 @@ module.private = {
         end
 
         local path = os.date(
-            type(module.config.public.strategy) == "function"
-                    and module.config.public.strategy(os.date("*t", time))
+            type(module.config.public.strategy) == "function" and module.config.public.strategy(os.date("*t", time))
                 or module.config.public.strategy,
             time
         )
