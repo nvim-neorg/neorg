@@ -206,7 +206,6 @@ module.private = {
                     )
                     return selection
                 end)
-
                 :flag("d", texts.delete, {
                     destroy = false,
                     callback = function()
