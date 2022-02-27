@@ -7,7 +7,7 @@ GTD ("Getting Things Done") is a system designed to make collecting and executin
 You can read more about the GTD workflow [here](https://hamberg.no/gtd)!
 
 > Want to use a tutorial project to know the basics of GTD in Neorg ?
-> Follow the steps in [this](https://github.com/nvim-neorg/example_workspaces#neorg-gtd-tutorial) repository
+> Follow the steps in [this](https://github.com/nvim-neorg/example_workspaces#neorg-gtd-tutorial) repository !
 
 It's here where the keybinds and commands are created in order to interact with GTD stuff
 
