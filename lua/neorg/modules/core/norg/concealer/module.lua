@@ -353,20 +353,26 @@ module.public = {
                 local ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
                 local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
 
-                -- pass off the current syntax buffer var so things can load
-                local current_syntax = ""
-                if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
-                    vim.b.current_syntax = lang_name
-                    current_syntax = vim.b.current_syntax
-                    vim.b.current_syntax = nil
-                end
 
-                -- temporarily pass off keywords in case they get messed up
-                local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
 
                 -- see if the syntax files even exist before we try to call them
                 -- if syn list was an error, or if it was an empty result
                 if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
+                    -- absorb all syntax stuff
+                    local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
+                    local current_syntax = ""
+                    local foldmethod = vim.o.foldmethod
+                    local foldexpr = vim.o.foldexpr
+                    local foldtext = vim.o.foldtext
+                    local foldnestmax = vim.o.foldnestmax
+                    local foldcolumn = vim.o.foldcolumn
+                    local foldenable = vim.o.foldenable
+                    local foldminlines = vim.o.foldminlines
+                    if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
+                        vim.b.current_syntax = lang_name
+                        current_syntax = vim.b.current_syntax
+                        vim.b.current_syntax = nil
+                    end
                     local regex = "([^/]*).vim$"
                     for _, syntax in pairs(module.private.available_regex) do
                         for match in string.gmatch(syntax, regex) do
@@ -376,21 +382,15 @@ module.public = {
                             end
                         end
                     end
-                else
-                    goto sync
-                end
+                    vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
 
-                vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
+                    -- reset it after
+                    if current_syntax ~= "" or current_syntax ~= nil then
+                        vim.b.current_syntax = current_syntax
+                    else
+                        vim.b.current_syntax = ""
+                    end
 
-                -- reset it after
-                if current_syntax ~= "" or current_syntax ~= nil then
-                    vim.b.current_syntax = current_syntax
-                else
-                    vim.b.current_syntax = ""
-                end
-
-                -- if count is 0, then we **didn't** have the syntax file and must load it
-                if count == 0 then
                     -- set highlight groups
                     local regex_fallback_hl = string.format(
                         [[
@@ -405,10 +405,18 @@ module.public = {
                         end_marker,
                         group
                     )
+
                     vim.cmd(string.format("%s", regex_fallback_hl))
+                    vim.o.foldmethod = foldmethod
+                    vim.o.foldexpr = foldexpr
+                    vim.o.foldtext = foldtext
+                    vim.o.foldnestmax = foldnestmax
+                    vim.o.foldcolumn = foldcolumn
+                    vim.o.foldenable = foldenable
+                    vim.o.foldminlines = foldminlines
                 end
+
                 -- sync everything
-                ::sync::
                 module.public.sync_regex_code_blocks(buf, lang_name, from, to)
 
                 vim.b.current_syntax = ""
