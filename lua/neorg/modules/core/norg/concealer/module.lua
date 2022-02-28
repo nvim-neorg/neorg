@@ -265,6 +265,7 @@ module.public = {
 
             -- check for each code block capture in the root with a language paramater
             -- to build a table of all the languages for a given buffer
+            local compare_table = {} -- a table to compare to what was loaded
             for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 if id == 2 then -- id 2 here refers to the "language" tag
                     -- find the end node of a block so we can grab the row
@@ -274,7 +275,7 @@ module.public = {
                     local end_row = end_node:range() + 1
 
                     local regex_lang = vim.treesitter.get_node_text(node, buf)
-                    local curr_lang
+                    -- local curr_lang
                     local type
 
                     -- see if parser exists
@@ -288,16 +289,37 @@ module.public = {
                     end
 
                     -- add language to table
-                    if curr_lang ~= regex_lang then
-                        -- if type is empty it means this language has never been found
-                        if module.private.code_block_table[current_buf].loaded_regex[regex_lang] == nil then
-                            module.private.code_block_table[current_buf].loaded_regex[regex_lang] = {
-                                type = type,
-                                range = {},
-                            }
+                    -- if type is empty it means this language has never been found
+                    if module.private.code_block_table[current_buf].loaded_regex[regex_lang] == nil then
+                        module.private.code_block_table[current_buf].loaded_regex[regex_lang] = {
+                            type = type,
+                            range = {},
+                        }
+                    end
+                    -- else just do what we need to do
+                    module.private.code_block_table[current_buf].loaded_regex[regex_lang].range[start_row] = end_row
+                    table.insert(compare_table, regex_lang)
+                end
+            end
+
+            -- compare loaded languages to see if the file actually has the code blocks
+            if from == nil then
+                for lang in pairs(module.private.code_block_table[current_buf].loaded_regex) do
+                    local found_lang = false
+                    for _, matched in pairs(compare_table) do
+                        if matched == lang then
+                            found_lang = true
+                            break
                         end
-                        -- else just do what we need to do
-                        module.private.code_block_table[current_buf].loaded_regex[regex_lang].range[start_row] = end_row
+                    end
+                    -- if no lang was matched, means we didn't find a language in our parse
+                    -- remove the syntax include and region
+                    -- NOTE: this seems to not work, i don't know why
+                    if found_lang == false then
+                        module.public.remove_syntax(
+                            string.format("textGroup%s", string.upper(lang)),
+                            string.format("textSnip%s", string.upper(lang))
+                        )
                     end
                 end
             end
@@ -347,6 +369,8 @@ module.public = {
                             end
                         end
                     end
+                else
+                    goto sync
                 end
 
                 vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
@@ -377,6 +401,7 @@ module.public = {
                     vim.cmd(string.format("%s", regex_fallback_hl))
                 end
                 -- sync everything
+                ::sync::
                 module.public.sync_regex_code_blocks(buf, lang_name, from, to)
 
                 vim.b.current_syntax = ""
@@ -385,6 +410,22 @@ module.public = {
         -- end)
     end,
 
+	-- remove loaded syntax include and snip region
+    remove_syntax = function(group, snip)
+        local group_remove = string.format(
+            "syntax clear @%s",
+            group
+        )
+        vim.cmd(group_remove)
+
+        local snip_remove = string.format(
+            "syntax clear %s",
+            snip
+        )
+        vim.cmd(snip_remove)
+    end,
+
+	-- sync regex code blocks
     sync_regex_code_blocks = function(buf, regex, from, to)
         local current_buf = vim.api.nvim_buf_get_name(buf)
         -- only parse from the loaded_code_blocks module, not from the file directly
@@ -2333,9 +2374,9 @@ module.on_event = function(event)
                 )
                 module.public.check_code_block_type(
                     event.buffer,
-                    false,
-                    module.private.last_change.line,
-                    module.private.last_change.line + 1
+                    false
+                    -- module.private.last_change.line,
+                    -- module.private.last_change.line + 1
                 )
                 module.public.trigger_highlight_regex_code_block(
                     event.buffer,
