@@ -483,7 +483,15 @@ module.public = {
             path = module.public.get_current_workspace()[2] .. path:sub(workspace:len() + 1)
         end
 
-        return vim.fn.fnamemodify(path .. ".norg", ":p")
+        -- temporarily set current directory to current file's directory
+        local cwd = vim.fn.getcwd()
+        vim.api.nvim_set_current_dir(vim.fn.expand("%:h"))
+
+        local expanded = vim.fn.fnamemodify(path .. ".norg", ":p")
+
+        -- restore cwd
+        vim.api.nvim_set_current_dir(cwd)
+        return expanded
     end,
 
     --- Touches a file in workspace
