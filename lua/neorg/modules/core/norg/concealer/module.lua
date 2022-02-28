@@ -254,7 +254,7 @@ module.public = {
         -- If the tree is valid then attempt to perform the query
         local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
         if tree then
-            -- get the language used by the code block
+            -- get the language node used by the code block
             local code_lang = vim.treesitter.parse_query(
                 "norg",
                 [[(
@@ -398,6 +398,24 @@ module.public = {
             end
             if curr_table.type == "regex" then
                 -- sync from code block
+
+                -- for incremental syncing
+                if from ~= nil then
+                    local found_lang = false
+                    for start_row, end_row in pairs(curr_table.range) do
+                        -- see if the text changes we made included a regex code block
+                        if start_row <= from and end_row >= to then
+                            found_lang = true
+                        end
+                    end
+
+                    -- didn't find match from this range of the current language, skip parsing
+                    if found_lang == false then
+                        goto continue
+                    end
+                end
+
+
                 -- local group = string.format("textGroup%s", string.upper(lang_name))
                 local snip = string.format("textSnip%s", string.upper(lang_name))
                 local start_marker = string.format("@code %s", lang_name)
@@ -407,11 +425,11 @@ module.public = {
                     [[
                         syntax sync match %s
                         \ grouphere %s
-                        \ %s
+                        \ "%s"
                     ]],
                     snip,
                     snip,
-                    ('"' .. start_marker .. '"')
+                    start_marker
                 )
                 vim.cmd(string.format("%s", regex_fallback_hl))
 
@@ -420,14 +438,15 @@ module.public = {
                     [[
                         syntax sync match %s
                         \ groupthere %s
-                        \ %s
+                        \ "%s"
                     ]],
                     snip,
                     snip,
-                    ('"' .. end_marker .. '"')
+                    end_marker
                 )
-                vim.cmd(string.format("%s", regex_fallback_hl))
-                vim.cmd("syntax sync maxlines=20")
+                -- TODO check groupthere
+                -- vim.cmd(string.format("%s", regex_fallback_hl))
+                vim.cmd("syntax sync maxlines=100")
             end
             ::continue::
         end
