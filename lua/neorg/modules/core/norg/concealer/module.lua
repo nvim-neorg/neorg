@@ -314,8 +314,9 @@ module.public = {
                     end
                     -- if no lang was matched, means we didn't find a language in our parse
                     -- remove the syntax include and region
-                    -- NOTE: this seems to not work, i don't know why
                     if found_lang == false then
+                        -- delete loaded lang from the table
+                        module.private.code_block_table[current_buf].loaded_regex[lang] = nil
                         module.public.remove_syntax(
                             string.format("textGroup%s", string.upper(lang)),
                             string.format("textSnip%s", string.upper(lang))
