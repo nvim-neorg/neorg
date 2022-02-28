@@ -359,6 +359,11 @@ end
 -- @Param module_name (string) - the name of the module to listen for.
 -- @Param callback (function(public_module_table)) - the callback to execute.
 function neorg.modules.await(module_name, callback)
+    if neorg.modules.is_module_loaded(module_name) then
+        callback(neorg.modules.get_module(module_name))
+        return
+    end
+
     neorg.callbacks.on_event("core.module_loaded", function(_, module)
         callback(module.public)
     end, function(event)
