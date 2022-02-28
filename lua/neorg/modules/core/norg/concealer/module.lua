@@ -333,6 +333,9 @@ module.public = {
         -- schedule(function()
         local current_buf = vim.api.nvim_buf_get_name(buf)
         -- only parse from the loaded_code_blocks module, not from the file directly
+        if module.private.code_block_table[current_buf] == nil then
+            return
+        end
         local lang_table = module.private.code_block_table[current_buf].loaded_regex
         for lang_name, curr_table in pairs(lang_table) do
             if curr_table.type == "regex" then
@@ -343,6 +346,9 @@ module.public = {
                 local start_marker = string.format("@code %s", lang_name)
                 local end_marker = "@end"
                 local has_syntax = string.format("syntax list %s", snip)
+                -- try removing syntax before doing anything
+                -- fixes hi link groups from not loading on certain updates
+                module.public.remove_syntax(group, snip)
 
                 local ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
                 local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
@@ -411,25 +417,30 @@ module.public = {
         -- end)
     end,
 
-	-- remove loaded syntax include and snip region
+    -- remove loaded syntax include and snip region
     remove_syntax = function(group, snip)
+        -- these clears are silent. errors do not matter
+        -- errors are assumed to come from the functions that call this
         local group_remove = string.format(
-            "syntax clear @%s",
+            "silent! syntax clear @%s",
             group
         )
         vim.cmd(group_remove)
 
         local snip_remove = string.format(
-            "syntax clear %s",
+            "silent! syntax clear %s",
             snip
         )
         vim.cmd(snip_remove)
     end,
 
-	-- sync regex code blocks
+    -- sync regex code blocks
     sync_regex_code_blocks = function(buf, regex, from, to)
         local current_buf = vim.api.nvim_buf_get_name(buf)
         -- only parse from the loaded_code_blocks module, not from the file directly
+        if module.private.code_block_table[current_buf] == nil then
+            return
+        end
         local lang_table = module.private.code_block_table[current_buf].loaded_regex
         for lang_name, curr_table in pairs(lang_table) do
             -- if we got passed a regex, then we need to only parse the right one
@@ -2130,6 +2141,7 @@ module.load = function()
 
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
+    module.required["core.autocommands"].enable_autocommand("ColorScheme")
 
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
@@ -2420,16 +2432,16 @@ module.on_event = function(event)
         module.private.disable_deferred_updates = true
     elseif event.type == "core.keybinds.events.core.norg.concealer.toggle-markup" then
         module.public.toggle_markup(event.buffer)
-        -- elseif event.type == "core.autocommands.events.winscrolled" then
-        --     schedule(function()
-        --         module.public.sync_regex_code_blocks(event.buffer)
-        --     end)
+    -- this autocmd is used to fix hi link syntax languages
+    elseif event.type == "core.autocommands.events.colorscheme" then
+        module.public.trigger_highlight_regex_code_block(event.buffer)
     end
 end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
+        colorscheme = true,
         insertenter = true,
         insertleave = true,
         vimleavepre = true,
