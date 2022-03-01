@@ -270,11 +270,13 @@ module.public = {
     ---@param workspace string workspace name
     ---@param opts? table additional options
     ---  - opts.no_open (bool) if true, will not open the file in neovim after creating it
+    ---  - opts.force (bool) if true, will overwrite existing file content
     create_file = function(path, workspace, opts)
         opts = opts or {}
 
         -- Grab the current workspace's full path
         local fullpath
+
         if workspace ~= nil then
             fullpath = module.public.get_workspace(workspace)
         else
@@ -306,12 +308,14 @@ module.public = {
             fname = fname .. ".norg"
         end
 
-        -- Create the file
-        local fd = vim.loop.fs_open(fname, "w", 438)
-        vim.loop.fs_write(fd, "", 0)
-        vim.loop.fs_close(fd)
-
         if opts.no_open then
+            -- Create the file
+            local fd = vim.loop.fs_open(fname, opts.force and "w" or "a", 438)
+
+            if fd then
+                vim.loop.fs_close(fd)
+            end
+
             return
         end
 
