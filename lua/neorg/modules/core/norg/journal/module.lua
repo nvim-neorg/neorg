@@ -57,24 +57,10 @@ module.private = {
             time
         )
 
-        local fullpath
-        if workspace ~= nil then
-            fullpath = module.required["core.norg.dirman"].get_workspace(workspace)
-        else
-            fullpath = module.required["core.norg.dirman"].get_current_workspace()[2]
-        end
-        fullpath = fullpath .. neorg.configuration.pathsep .. folder_name .. neorg.configuration.pathsep .. path
-        if workspace == nil then
-            workspace = module.required["core.norg.dirman"].get_current_workspace()[1]
-        end
-        if module.required["core.norg.dirman"].file_exists(fullpath) then
-            module.required["core.norg.dirman"].open_file(workspace, folder_name .. neorg.configuration.pathsep .. path)
-        else
-            module.required["core.norg.dirman"].create_file(
-                folder_name .. neorg.configuration.pathsep .. path,
-                workspace
-            )
-        end
+        module.required["core.norg.dirman"].create_file(
+            folder_name .. neorg.configuration.pathsep .. path,
+            workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
+        )
     end,
 
     diary_tomorrow = function()
@@ -94,7 +80,7 @@ module.config.public = {
     -- which workspace to use for the journal files, default is the current
     workspace = nil,
     -- the name for the folder in which the journal files are put
-    journal_folder = "/journal/",
+    journal_folder = "journal",
 
     -- The strategy to use to create directories
     -- can be "flat" (2022-03-02.norg), "nested" (2022/03/02.norg),
