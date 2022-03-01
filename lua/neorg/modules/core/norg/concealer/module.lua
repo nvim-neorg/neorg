@@ -328,7 +328,7 @@ module.public = {
     end,
 
     -- load syntax files for regex code blocks
-    trigger_highlight_regex_code_block = function(buf, from, to)
+    trigger_highlight_regex_code_block = function(buf, remove, from, to)
         -- scheduling this function seems to break parsing properly
         -- schedule(function()
         local current_buf = vim.api.nvim_buf_get_name(buf)
@@ -348,7 +348,10 @@ module.public = {
                 local has_syntax = string.format("syntax list %s", snip)
                 -- try removing syntax before doing anything
                 -- fixes hi link groups from not loading on certain updates
-                module.public.remove_syntax(group, snip)
+                if remove == true then
+                    module.public.remove_syntax(group, snip)
+                end
+
 
                 local ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
                 local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
@@ -507,7 +510,7 @@ module.public = {
                 )
                 -- TODO check groupthere
                 -- vim.cmd(string.format("%s", regex_fallback_hl))
-                vim.cmd("syntax sync maxlines=100")
+                -- vim.cmd("syntax sync maxlines=100")
             end
             ::continue::
         end
@@ -2189,7 +2192,7 @@ module.on_event = function(event)
             module.public.trigger_icons(buf, module.private.icons, module.private.icon_namespace)
             module.public.trigger_icons(buf, module.private.markup, module.private.markup_namespace)
             module.public.check_code_block_type(buf, true)
-            module.public.trigger_highlight_regex_code_block(buf)
+            module.public.trigger_highlight_regex_code_block(buf, true)
             module.public.trigger_code_block_highlights(buf)
             module.public.completion_levels.trigger_completion_levels(buf)
         else
@@ -2219,7 +2222,7 @@ module.on_event = function(event)
                     line_end
                 )
                 module.public.check_code_block_type(buf, false, line_begin, line_end)
-                module.public.trigger_highlight_regex_code_block(buf, line_begin, line_end)
+                module.public.trigger_highlight_regex_code_block(buf, true, line_begin, line_end)
                 module.public.trigger_code_block_highlights(buf, line_begin, line_end)
                 module.public.completion_levels.trigger_completion_levels(buf, line_begin, line_end)
             end
@@ -2314,7 +2317,7 @@ module.on_event = function(event)
                         )
 
                         module.public.check_code_block_type(buf, false, start, _end)
-                        module.public.trigger_highlight_regex_code_block(buf, start, _end)
+                        module.public.trigger_highlight_regex_code_block(buf, true, start, _end)
 
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
                         -- updates here. Code blocks require more context than simply a few lines.
@@ -2401,6 +2404,7 @@ module.on_event = function(event)
                 )
                 module.public.trigger_highlight_regex_code_block(
                     event.buffer,
+                    false,
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
@@ -2428,6 +2432,7 @@ module.on_event = function(event)
                 )
                 module.public.trigger_highlight_regex_code_block(
                     event.buffer,
+                    false,
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
@@ -2442,7 +2447,7 @@ module.on_event = function(event)
         module.public.toggle_markup(event.buffer)
     -- this autocmd is used to fix hi link syntax languages
     elseif event.type == "core.autocommands.events.colorscheme" then
-        module.public.trigger_highlight_regex_code_block(event.buffer)
+        module.public.trigger_highlight_regex_code_block(event.buffer, true)
     end
 end
 
