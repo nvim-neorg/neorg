@@ -358,7 +358,7 @@ module.public = {
 
                 -- see if the syntax files even exist before we try to call them
                 -- if syn list was an error, or if it was an empty result
-                if ok == false or (ok == true and ((string.sub(result, 1, 1) == "N" and count == 0)) or ((string.sub(result, 1, 1) == "-"))) then
+                if ok == false or (ok == true and ((string.sub(result, 1, 1) == "N" and count == 0)) or ((string.sub(result, 1, 1) == "-") and count == 0)) then
                     -- absorb all syntax stuff
                     local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
                     local current_syntax = ""
