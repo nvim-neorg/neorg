@@ -78,60 +78,20 @@ module.public = {
             if data.named == nil then
                 data.named = node_name:sub(1, 1) ~= "_"
             end
-
-            query_string = query_string
-                .. (
-                    data.named and string.format("(%s) @%s\n", node_name, node_name)
-                    or string.format('("%s") @unnamed_%s\n', node_name, node_name)
-                )
         end
 
-        -- TODO: Allow the user to configure whether they want undeclared nodes (without conversion functions)
-        -- to be included verbatim vs ignoring them?
-        local query = vim.treesitter.parse_query("norg", query_string)
-
-        local output = {}
-
-        for id, node in query:iter_captures(document_root, buffer) do
-            local capture = query.captures[id]
-            local converter_data = converter.converters[capture]
-                or converter.converters[capture:sub(string.len("unnamed_") + 1)]
-
-            local node_text = module.required["core.integrations.treesitter"].get_node_text(node)
-            local converted_string = converter_data.convert and converter_data.convert(node_text, node)
-                or (module.config.public.export_unknown_nodes_as_verbatim and node_text)
-
-            if converted_string then
-                local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
-                output[node_range.row_start] = output[node_range.row_start] or {}
-                output[node_range.row_start][node_range.column_start] = converted_string
-            end
-        end
-
-        return output
+        -- TODO: Add new implementation
     end,
 
-    build_file_from_export_data = function(export_data)
-        local output = [[]]
-
-        for _, line in pairs(neorg.lib.order_associative_array(export_data)) do
-            for _, column in pairs(neorg.lib.order_associative_array(line)) do
-                output = output .. column
-            end
-
-            output = output .. "\n"
-        end
-
-        return output
-    end,
+    build_file_from_export_data = function(export_data) end,
 }
 
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.export" then
         local filetype = module.public.get_filetype(event.content[1], event.content[2])
         local exported = module.public.export(event.buffer, filetype)
-        local rebuilt_file = module.public.build_file_from_export_data(exported)
-        log.warn(rebuilt_file)
+        log.warn(exported)
+        -- local rebuilt_file = module.public.build_file_from_export_data(exported)
     end
 end
 
