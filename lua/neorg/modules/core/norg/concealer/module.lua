@@ -345,22 +345,20 @@ module.public = {
                 local snip = string.format("textSnip%s", string.upper(lang_name))
                 local start_marker = string.format("@code %s", lang_name)
                 local end_marker = "@end"
-                local has_syntax = string.format("syntax list %s", snip)
+                local has_syntax = string.format("syntax list @%s", group)
+
                 -- try removing syntax before doing anything
                 -- fixes hi link groups from not loading on certain updates
                 if remove == true then
                     module.public.remove_syntax(group, snip)
                 end
 
-
                 local ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
                 local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
 
-
-
                 -- see if the syntax files even exist before we try to call them
                 -- if syn list was an error, or if it was an empty result
-                if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
+                if ok == false or (ok == true and ((string.sub(result, 1, 1) == "N" and count == 0)) or ((string.sub(result, 1, 1) == "-"))) then
                     -- absorb all syntax stuff
                     local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
                     local current_syntax = ""
@@ -376,6 +374,7 @@ module.public = {
                         current_syntax = vim.b.current_syntax
                         vim.b.current_syntax = nil
                     end
+
                     local regex = "([^/]*).vim$"
                     for _, syntax in pairs(module.private.available_regex) do
                         for match in string.gmatch(syntax, regex) do
@@ -385,31 +384,40 @@ module.public = {
                             end
                         end
                     end
-                    vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
 
                     -- reset it after
+                    vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
                     if current_syntax ~= "" or current_syntax ~= nil then
                         vim.b.current_syntax = current_syntax
                     else
                         vim.b.current_syntax = ""
                     end
 
-                    -- set highlight groups
-                    local regex_fallback_hl = string.format(
-                        [[
-                            syntax region %s
-                            \ matchgroup=Snip
-                            \ start="%s" end="%s"
-                            \ contains=@%s
-                            \ keepend
-                        ]],
-                        snip,
-                        start_marker,
-                        end_marker,
-                        group
-                    )
+                    has_syntax = string.format("syntax list %s", snip)
+                    ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
+                    count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
 
-                    vim.cmd(string.format("%s", regex_fallback_hl))
+                    -- if we see "-" it means there potentially is already a region for this lang
+                    -- we must have only 1 line, more lines means there is a region already
+                    -- see :h syn-list for the format
+                    if count == 0 or (string.sub(result, 1, 1) == "-" and count == 0) then
+                        -- set highlight groups
+                        local regex_fallback_hl = string.format(
+                            [[
+                                syntax region %s
+                                \ matchgroup=Snip
+                                \ start="%s" end="%s"
+                                \ contains=@%s
+                                \ keepend
+                            ]],
+                            snip,
+                            start_marker,
+                            end_marker,
+                            group
+                        )
+                        vim.cmd(string.format("%s", regex_fallback_hl))
+                    end
+
                     vim.o.foldmethod = foldmethod
                     vim.o.foldexpr = foldexpr
                     vim.o.foldtext = foldtext
@@ -2191,8 +2199,6 @@ module.on_event = function(event)
         if line_count < module.config.public.performance.increment then
             module.public.trigger_icons(buf, module.private.icons, module.private.icon_namespace)
             module.public.trigger_icons(buf, module.private.markup, module.private.markup_namespace)
-            module.public.check_code_block_type(buf, true)
-            module.public.trigger_highlight_regex_code_block(buf, true)
             module.public.trigger_code_block_highlights(buf)
             module.public.completion_levels.trigger_completion_levels(buf)
         else
@@ -2221,11 +2227,13 @@ module.on_event = function(event)
                     line_begin,
                     line_end
                 )
-                module.public.check_code_block_type(buf, false, line_begin, line_end)
-                module.public.trigger_highlight_regex_code_block(buf, true, line_begin, line_end)
                 module.public.trigger_code_block_highlights(buf, line_begin, line_end)
                 module.public.completion_levels.trigger_completion_levels(buf, line_begin, line_end)
             end
+
+            -- don't increment on a bufenter at all
+            module.public.check_code_block_type(buf, false)
+            module.public.trigger_highlight_regex_code_block(buf, true)
 
             trigger_conceals_for_block(block_current)
 
