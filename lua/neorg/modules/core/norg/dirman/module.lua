@@ -126,7 +126,7 @@ module.public = {
     -- @Param  ws_name (name) - the name of a valid namespace we want to switch to
     set_workspace = function(ws_name)
         -- Grab the workspace location
-        local workspace = module.config.public.workspaces[ws_name]
+        local workspace = ws_name == "default" and vim.fn.expand("%:p:h") or module.config.public.workspaces[ws_name]
         -- Create a new object describing our new workspace
         local new_workspace = { ws_name, workspace }
 
@@ -539,13 +539,13 @@ module.on_event = function(event)
     end
 
     -- If the user has changed directories and the autochdir flag is set then
-    if event.type == "core.autocommands.events.dirchanged" then
+    if event.type == "core.autocommands.events.dirchanged" and module.config.public.autochdir then
         -- Grab the current working directory and the current workspace
         local new_cwd = vim.fn.getcwd()
         local current_workspace = module.public.get_current_workspace()
 
         -- If the current workspace is not the default and if the cwd is not the same as the workspace root then set it
-        if module.config.public.autochdir and current_workspace[1] ~= "default" and current_workspace[2] ~= new_cwd then
+        if current_workspace[1] ~= "default" and current_workspace[2] ~= new_cwd then
             vim.cmd("lcd! " .. current_workspace[2])
             return
         end
@@ -609,7 +609,7 @@ module.on_event = function(event)
     end
 
     -- If we've entered a different buffer then update the cwd for that buffer's window
-    if event.type == "core.autocommands.events.bufenter" and not event.content.norg then
+    if event.type == "core.autocommands.events.bufenter" then
         module.public.update_cwd()
     end
 end
