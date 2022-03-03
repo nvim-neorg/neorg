@@ -136,9 +136,11 @@ You can install it through your favorite plugin manager:
   }
   ```
 
-  If you don't want to always be on the bleeding edge version of Neorg you can use _tags_ to 
-  slow down the rate at which you get features. You can pin Neorg to one specific version through e.g. `tag = "0.0.9"`.
-
+  Every time Neorg hits a new release, a new tag is created by us, so you don't have to worry about all the updates inbetween.
+  That means, adding `tag = "*"` in Packer will update to latest stable release.
+  
+  You can also pin Neorg to one specific version through e.g. `tag = "0.0.9"`.
+  
 - [Packer (with lazyloading)](https://github.com/wbthomason/packer.nvim):
 
   Want to lazy load? Know that you'll have to jump through some hoops and hurdles to get
