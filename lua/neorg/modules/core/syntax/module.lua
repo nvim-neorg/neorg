@@ -122,7 +122,16 @@ module.public = {
                     end
 
                     local regex_lang = vim.treesitter.get_node_text(node, buf)
-                    local type = module.private.available_languages[regex_lang].type
+
+                    -- make sure that the language is actually valid
+                    local type_func = function()
+                        return module.private.available_languages[regex_lang].type
+                    end
+                    local ok, type = pcall(type_func)
+
+                    if not ok then
+                        type = "null" -- null type will never get parsed like treesitter languages
+                    end
 
                     -- add language to table
                     -- if type is empty it means this language has never been found
