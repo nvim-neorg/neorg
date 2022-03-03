@@ -48,7 +48,6 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 --]]
 
 require("neorg.modules.base")
-require("neorg.events")
 
 local module = neorg.modules.create("core.norg.concealer")
 
