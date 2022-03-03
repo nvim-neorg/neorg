@@ -27,19 +27,15 @@ neorg.utils = {
     -- @Description Returns an array of strings, the array being a list of languages that Neorg can inject
     -- @Param  values (boolean) - if set to true will return an array of strings, if false will return a key-value table
     get_language_list = function(values)
-        local get_regex_files = function()
-            local output = {}
-            local syntax_files = vim.api.nvim_get_runtime_file("syntax/*.vim", true)
-            for _, lang in pairs(syntax_files) do
-                table.insert(output, lang)
-            end
-            syntax_files = vim.api.nvim_get_runtime_file("after/syntax/*.vim", true)
-            for _, lang in pairs(syntax_files) do
-                table.insert(output, lang)
-            end
-            return output
+        local regex_files = {}
+        local syntax_files = vim.api.nvim_get_runtime_file("syntax/*.vim", true)
+        for _, lang in pairs(syntax_files) do
+            table.insert(regex_files, lang)
         end
-        local regex_files = get_regex_files()
+        syntax_files = vim.api.nvim_get_runtime_file("after/syntax/*.vim", true)
+        for _, lang in pairs(syntax_files) do
+            table.insert(regex_files, lang)
+        end
         local regex = "([^/]*).vim$"
         local ret = {}
         for _, syntax in pairs(regex_files) do
