@@ -49,13 +49,13 @@ module.private = {
     debounce_counters = {},
 
     code_block_table = {
-        -- [[
-        -- table is setup like so
-        -- {
-        --     buf_name_1 = {loaded_regex = {regex_name = {type = "type", range = {start_row1 = end_row1}}}}
-        --     buf_name_2 = {loaded_regex = {regex_name = "type"}}
-        -- }
-        -- ]]
+        --[[
+           table is setup like so
+            {
+               buf_name_1 = {loaded_regex = {regex_name = {type = "type", range = {start_row1 = end_row1}}}}
+               buf_name_2 = {loaded_regex = {regex_name = {type = "type", range = {start_row1 = end_row1}}}}
+            }
+        --]]
     },
 
     available_languages = {},
@@ -66,16 +66,8 @@ module.public = {
     -- fills module.private.loaded_code_blocks with the list of active code blocks in the buffer
     -- stores globally apparently
     check_code_block_type = function(buf, reload, from, to)
-        -- TODO test event handling here
-        -- local test_event = neorg.events.create(module, "core.norg.concealer.events.test_event_name", "test_content")
-        -- neorg.events.create(module, "test_event", "test_content")
-        -- for k, v in pairs(test_event) do
-        --	print("k: " .. k)
-        --	print("v: " .. v)
-        -- end
 
         -- parse the current buffer, and clear out the buffer's loaded code blocks if needed
-        -- NOTE: this will need to be replaced by neorg events
         local current_buf = vim.api.nvim_buf_get_name(buf)
 
         -- load nil table with empty values
@@ -85,12 +77,12 @@ module.public = {
 
         -- recreate table for buffer on buffer change
         -- reason for existence:
-        -- [[
-        --   user deletes a bunch of code blocks from file, and said code blocks
-        --   were the only regex blocks of that language. on a full buffer refresh
-        --   like reentering the buffer, this will get cleared to recreate what languages
-        --   are loaded. then another function will handle unloading syntax files on next load
-        -- ]]
+        --[[
+            user deletes a bunch of code blocks from file, and said code blocks
+            were the only regex blocks of that language. on a full buffer refresh
+            like reentering the buffer, this will get cleared to recreate what languages
+            are loaded. then another function will handle unloading syntax files on next load
+        --]]
         for key in pairs(module.private.code_block_table) do
             if current_buf ~= key or reload == true then
                 for k, _ in pairs(module.private.code_block_table[current_buf].loaded_regex) do
@@ -130,7 +122,6 @@ module.public = {
                     end
 
                     local regex_lang = vim.treesitter.get_node_text(node, buf)
-                    -- local curr_lang
                     local type = module.private.available_languages[regex_lang].type
 
                     -- add language to table
@@ -184,8 +175,8 @@ module.public = {
         local lang_table = module.private.code_block_table[current_buf].loaded_regex
         for lang_name, curr_table in pairs(lang_table) do
             if curr_table.type == "syntax" then
-                -- NOTE: the regex fallback code was mostly adapted from Vimwiki
-                -- It's a very good implementation of nested vim regex
+                -- NOTE: the regex fallback code was originally mostly adapted from Vimwiki
+                -- In its current form it has been intensely expanded upon
                 local group = string.format("textGroup%s", string.upper(lang_name))
                 local snip = string.format("textSnip%s", string.upper(lang_name))
                 local start_marker = string.format("@code %s", lang_name)
@@ -201,6 +192,8 @@ module.public = {
                 local ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
                 local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
                 local empty_result = 0
+                -- look to see if the textGroup is actually empty
+                -- clusters don't delete when they're clear
                 for line in result:gmatch("([^\n]*)\n?") do
                     empty_result = string.match(line, "textGroup%w+%s+cluster=NONE")
                     if empty_result == nil then
@@ -218,6 +211,7 @@ module.public = {
                     or (ok == true and (string.sub(result, 1, 1) == "N" and count == 0) or (empty_result > 0))
                 then
                     -- absorb all syntax stuff
+                    -- potentially needs to be expanded upon as bad values come in
                     local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
                     local current_syntax = ""
                     local foldmethod = vim.o.foldmethod
@@ -233,7 +227,8 @@ module.public = {
                         vim.b.current_syntax = nil
                     end
 
-                    local regex = "([^/]*).vim$"
+                    -- include the cluster that will put inside the region
+                    -- source using the available languages
                     for syntax, table in pairs(module.private.available_languages) do
                         if table.type == "syntax" then
                             if lang_name == syntax then
@@ -249,7 +244,7 @@ module.public = {
                         end
                     end
 
-                    -- reset it after
+                    -- reset some values after including
                     vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
                     if current_syntax ~= "" or current_syntax ~= nil then
                         vim.b.current_syntax = current_syntax
@@ -261,9 +256,11 @@ module.public = {
                     ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
                     count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
 
-                    -- if we see "-" it means there potentially is already a region for this lang
-                    -- we must have only 1 line, more lines means there is a region already
-                    -- see :h syn-list for the format
+                    --[[
+                        if we see "-" it means there potentially is already a region for this lang
+                        we must have only 1 line, more lines means there is a region already
+                        see :h syn-list for the format
+                    --]]
                     if count == 0 or (string.sub(result, 1, 1) == "-" and count == 0) then
                         -- set highlight groups
                         local regex_fallback_hl = string.format(
@@ -345,11 +342,9 @@ module.public = {
                     end
                 end
 
-                -- local group = string.format("textGroup%s", string.upper(lang_name))
                 local snip = string.format("textSnip%s", string.upper(lang_name))
                 local start_marker = string.format("@code %s", lang_name)
                 local end_marker = "@end"
-                -- local has_syntax = string.format("syntax list %s", snip)
                 local regex_fallback_hl = string.format(
                     [[
                         syntax sync match %s
@@ -373,7 +368,7 @@ module.public = {
                     snip,
                     end_marker
                 )
-                -- TODO check groupthere
+                -- TODO check groupthere, a slower process
                 -- vim.cmd(string.format("%s", regex_fallback_hl))
                 -- vim.cmd("syntax sync maxlines=100")
             end
@@ -383,7 +378,7 @@ module.public = {
 }
 
 module.config.public = {
-    -- note that these come from core.norg.concealer
+    -- note that these come from core.norg.concealer as well
     performance = {
         increment = 1250,
         timeout = 0,
@@ -404,18 +399,6 @@ module.load = function()
 
     -- Load available regex languages
     -- get the available regex files for the current session
-    local get_regex_files = function()
-        local output = {}
-        local syntax_files = vim.api.nvim_get_runtime_file("syntax/*.vim", true)
-        for _, lang in pairs(syntax_files) do
-            table.insert(output, lang)
-        end
-        syntax_files = vim.api.nvim_get_runtime_file("after/syntax/*.vim", true)
-        for _, lang in pairs(syntax_files) do
-            table.insert(output, lang)
-        end
-        return output
-    end
     module.private.available_languages = require("neorg.external.helpers").get_language_list(false)
 end
 
