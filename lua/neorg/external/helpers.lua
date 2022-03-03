@@ -23,93 +23,35 @@ neorg.utils = {
         return ""
     end,
 
-    -- @Summary Returns a list of languages supported by Neorg
+    -- @Summary Returns a list of languages, syntax or treesitter, for the current Neorg session
     -- @Description Returns an array of strings, the array being a list of languages that Neorg can inject
-    -- @Param  values (boolean) - if set to true will return an array of strings, if false will return a key-value table
+    -- @Param  values (boolean) - if set to true will return an array where the key is the language and value is the type, if false will return a key-value table
     get_language_list = function(values)
-        local ret = {
-            ["bash"] = {},
-            ["beancount"] = {},
-            ["bibtex"] = {},
-            ["c"] = {},
-            ["c_sharp"] = {},
-            ["clojure"] = {},
-            ["cmake"] = {},
-            ["comment"] = {},
-            ["commonlisp"] = {},
-            ["cpp"] = {},
-            ["css"] = {},
-            ["cuda"] = {},
-            ["d"] = {},
-            ["dart"] = {},
-            ["devicetree"] = {},
-            ["dockerfile"] = {},
-            ["dot"] = {},
-            ["elixir"] = {},
-            ["elm"] = {},
-            ["erlang"] = {},
-            ["fennel"] = {},
-            ["fish"] = {},
-            ["fortran"] = {},
-            ["gdscript"] = {},
-            ["glimmer"] = {},
-            ["glsl"] = {},
-            ["go"] = {},
-            ["gdresource"] = {},
-            ["gomod"] = {},
-            ["graphql"] = {},
-            ["haskell"] = {},
-            ["hcl"] = {},
-            ["heex"] = {},
-            ["hjson"] = {},
-            ["html"] = {},
-            ["java"] = {},
-            ["javascript"] = {},
-            ["jsdoc"] = {},
-            ["json"] = {},
-            ["json5"] = {},
-            ["jsonc"] = {},
-            ["julia"] = {},
-            ["kotlin"] = {},
-            ["latex"] = {},
-            ["ledger"] = {},
-            ["llvm"] = {},
-            ["lua"] = {},
-            ["nix"] = {},
-            ["ocaml"] = {},
-            ["ocaml_interface"] = {},
-            ["ocamllex"] = {},
-            ["perl"] = {},
-            ["php"] = {},
-            ["pioasm"] = {},
-            ["python"] = {},
-            ["ql"] = {},
-            ["query"] = {},
-            ["r"] = {},
-            ["regex"] = {},
-            ["rst"] = {},
-            ["ruby"] = {},
-            ["rust"] = {},
-            ["scala"] = {},
-            ["scss"] = {},
-            ["sparql"] = {},
-            ["supercollider"] = {},
-            ["surface"] = {},
-            ["svelte"] = {},
-            ["swift"] = {},
-            ["teal"] = {},
-            ["tlaplus"] = {},
-            ["toml"] = {},
-            ["tsx"] = {},
-            ["turtle"] = {},
-            ["typescript"] = {},
-            ["verilog"] = {},
-            ["vim"] = {},
-            ["vue"] = {},
-            ["yaml"] = {},
-            ["yang"] = {},
-            ["zig"] = {},
-        }
+        local get_regex_files = function()
+            local output = {}
+            local syntax_files = vim.api.nvim_get_runtime_file("syntax/*.vim", true)
+            for _, lang in pairs(syntax_files) do
+                table.insert(output, lang)
+            end
+            syntax_files = vim.api.nvim_get_runtime_file("after/syntax/*.vim", true)
+            for _, lang in pairs(syntax_files) do
+                table.insert(output, lang)
+            end
+            return output
+        end
+        local regex_files = get_regex_files()
+        local regex = "([^/]*).vim$"
+        local ret = {}
+        for _, syntax in pairs(regex_files) do
+            for match in string.gmatch(syntax, regex) do
+                local is_ts = pcall(vim.treesitter.require_language, match, true)
+                if is_ts then
+                    ret[match] = "treesitter"
+                else
+                    ret[match] = "syntax"
+                end
+            end
+        end
 
         if values then
             return vim.tbl_keys(ret)
