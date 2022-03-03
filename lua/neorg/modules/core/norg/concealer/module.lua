@@ -268,11 +268,19 @@ module.public = {
             local compare_table = {} -- a table to compare to what was loaded
             for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 if id == 2 then -- id 2 here refers to the "language" tag
+
                     -- find the end node of a block so we can grab the row
-                    local end_node = node:next_named_sibling():next_sibling()
+                    local _, end_node = pcall(node:next_named_sibling():next_sibling())
                     -- get the start and ends of the current capture
                     local start_row = node:range() + 1
-                    local end_row = end_node:range() + 1
+                    local end_row
+
+                    -- don't try to parse a nil value
+                    if end_row == nil then
+                        end_row = 1
+                    else
+                        end_row = end_node:range() + 1
+                    end
 
                     local regex_lang = vim.treesitter.get_node_text(node, buf)
                     -- local curr_lang
