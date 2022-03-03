@@ -5,8 +5,7 @@
     ---
 --]]
 
-
-require('neorg.modules.base')
+require("neorg.modules.base")
 
 local module = neorg.modules.create("core.syntax")
 
@@ -117,7 +116,6 @@ module.public = {
             local compare_table = {} -- a table to compare to what was loaded
             for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 if id == 2 then -- id 2 here refers to the "language" tag
-
                     -- find the end node of a block so we can grab the row
                     local _, end_node = pcall(node:next_named_sibling():next_sibling())
                     -- get the start and ends of the current capture
@@ -225,7 +223,10 @@ module.public = {
 
                 -- see if the syntax files even exist before we try to call them
                 -- if syn list was an error, or if it was an empty result
-                if ok == false or (ok == true and ((string.sub(result, 1, 1) == "N" and count == 0)) or (empty_result > 0)) then
+                if
+                    ok == false
+                    or (ok == true and (string.sub(result, 1, 1) == "N" and count == 0) or (empty_result > 0))
+                then
                     -- absorb all syntax stuff
                     local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
                     local current_syntax = ""
@@ -307,16 +308,10 @@ module.public = {
     remove_syntax = function(group, snip)
         -- these clears are silent. errors do not matter
         -- errors are assumed to come from the functions that call this
-        local group_remove = string.format(
-            "silent! syntax clear @%s",
-            group
-        )
+        local group_remove = string.format("silent! syntax clear @%s", group)
         vim.cmd(group_remove)
 
-        local snip_remove = string.format(
-            "silent! syntax clear %s",
-            snip
-        )
+        local snip_remove = string.format("silent! syntax clear %s", snip)
         vim.cmd(snip_remove)
     end,
 
@@ -353,7 +348,6 @@ module.public = {
                         goto continue
                     end
                 end
-
 
                 -- local group = string.format("textGroup%s", string.upper(lang_name))
                 local snip = string.format("textSnip%s", string.upper(lang_name))
@@ -399,11 +393,10 @@ module.config.public = {
         timeout = 0,
         interval = 500,
         max_debounce = 5,
-    }
+    },
 }
 
 module.load = function()
-
     -- Enabled the required autocommands
     -- This is generally any potential redraw event
     module.required["core.autocommands"].enable_autocommand("BufEnter")
@@ -448,7 +441,6 @@ module.on_event = function(event)
             module.public.check_code_block_type(buf, false)
             module.public.trigger_highlight_regex_code_block(buf, true)
         else
-
             -- don't increment on a bufenter at all
             module.public.check_code_block_type(buf, false)
             module.public.trigger_highlight_regex_code_block(buf, true)
@@ -556,7 +548,7 @@ module.on_event = function(event)
         end)
     elseif event.type == "core.autocommands.events.vimleavepre" then
         module.private.disable_deferred_updates = true
-    -- this autocmd is used to fix hi link syntax languages
+        -- this autocmd is used to fix hi link syntax languages
     elseif event.type == "core.autocommands.events.colorscheme" then
         module.public.trigger_highlight_regex_code_block(event.buffer, true)
     end
