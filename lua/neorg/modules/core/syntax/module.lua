@@ -58,7 +58,7 @@ module.private = {
         -- ]]
     },
 
-    available_regex = {},
+    available_languages = {},
 }
 
 module.public = {
@@ -131,17 +131,7 @@ module.public = {
 
                     local regex_lang = vim.treesitter.get_node_text(node, buf)
                     -- local curr_lang
-                    local type
-
-                    -- see if parser exists
-                    local result = pcall(vim.treesitter.require_language, regex_lang, true)
-
-                    -- mark if its for TS parser or not
-                    if result then
-                        type = "treesitter"
-                    else
-                        type = "regex"
-                    end
+                    local type = module.private.available_languages[regex_lang].type
 
                     -- add language to table
                     -- if type is empty it means this language has never been found
@@ -193,7 +183,7 @@ module.public = {
         end
         local lang_table = module.private.code_block_table[current_buf].loaded_regex
         for lang_name, curr_table in pairs(lang_table) do
-            if curr_table.type == "regex" then
+            if curr_table.type == "syntax" then
                 -- NOTE: the regex fallback code was mostly adapted from Vimwiki
                 -- It's a very good implementation of nested vim regex
                 local group = string.format("textGroup%s", string.upper(lang_name))
@@ -244,10 +234,16 @@ module.public = {
                     end
 
                     local regex = "([^/]*).vim$"
-                    for _, syntax in pairs(module.private.available_regex) do
-                        for match in string.gmatch(syntax, regex) do
-                            if lang_name == match then
-                                local command = string.format("syntax include @%s %s", group, syntax)
+                    for syntax, table in pairs(module.private.available_languages) do
+                        if table.type == "syntax" then
+                            if lang_name == syntax then
+                                -- get the file name for the syntax file
+                                local file = vim.api.nvim_get_runtime_file(string.format("syntax/%s.vim", syntax), false)
+                                if file == nil then
+                                    file = vim.api.nvim_get_runtime_file(string.format("after/syntax/%s.vim", syntax), false)
+                                end
+                                file = file[1]
+                                local command = string.format("syntax include @%s %s", group, file)
                                 vim.cmd(command)
                             end
                         end
@@ -330,7 +326,7 @@ module.public = {
                     goto continue
                 end
             end
-            if curr_table.type == "regex" then
+            if curr_table.type == "syntax" then
                 -- sync from code block
 
                 -- for incremental syncing
@@ -420,7 +416,7 @@ module.load = function()
         end
         return output
     end
-    module.private.available_regex = get_regex_files()
+    module.private.available_languages = require("neorg.external.helpers").get_language_list(false)
 end
 
 module.on_event = function(event)

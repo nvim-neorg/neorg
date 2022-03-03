@@ -25,7 +25,7 @@ neorg.utils = {
 
     -- @Summary Returns a list of languages, syntax or treesitter, for the current Neorg session
     -- @Description Returns an array of strings, the array being a list of languages that Neorg can inject
-    -- @Param  values (boolean) - if set to true will return an array where the key is the language and value is the type, if false will return a key-value table
+    -- @Param  values (boolean) - if set to true will return an array of strings, if false will return a key-value table
     get_language_list = function(values)
         local get_regex_files = function()
             local output = {}
@@ -44,11 +44,11 @@ neorg.utils = {
         local ret = {}
         for _, syntax in pairs(regex_files) do
             for match in string.gmatch(syntax, regex) do
-                local is_ts = pcall(vim.treesitter.require_language, match, true)
-                if is_ts then
-                    ret[match] = "treesitter"
+                local ok = pcall(vim.treesitter.require_language, match)
+                if ok then
+                    ret[match] = {type = "treesitter"}
                 else
-                    ret[match] = "syntax"
+                    ret[match] = {type = "syntax"}
                 end
             end
         end
