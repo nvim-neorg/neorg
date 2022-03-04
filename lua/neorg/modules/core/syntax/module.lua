@@ -435,6 +435,7 @@ module.on_event = function(event)
         end
         vim.api.nvim_buf_attach(buf, false, {
             on_lines = function(_, cur_buf, _, start, _end)
+				print("buf attach")
                 if buf ~= cur_buf then
                     return true
                 end
@@ -473,9 +474,6 @@ module.on_event = function(event)
                                 node_range:parent()
                             )
                         end
-
-                        module.public.check_code_block_type(buf, false, start, _end)
-                        module.public.trigger_highlight_regex_code_block(buf, true, start, _end)
 
                         vim.schedule(function()
                             module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
