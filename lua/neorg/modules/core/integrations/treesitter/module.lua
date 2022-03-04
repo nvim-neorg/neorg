@@ -274,12 +274,12 @@ module.public = {
 
         local root = tree:root()
 
-        local descend
-
-        descend = function(start)
+        local function descend(start)
             for child, _ in start:iter_children() do
-                callback(child)
-                descend(child)
+                local stop_descending = callback(child)
+                if not stop_descending then
+                    descend(child)
+                end
             end
         end
 
