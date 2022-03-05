@@ -66,7 +66,7 @@ module.public = {
                     end,
                     link_description = function()
                         return "["
-                    end
+                    end,
                 })
             end,
             ["_end"] = function(text, node)
@@ -78,7 +78,7 @@ module.public = {
                     end,
                     link_description = function()
                         return "]"
-                    end
+                    end,
                 })
             end,
             ["link_file_text"] = function(text)
@@ -98,7 +98,7 @@ module.public = {
                     output[2],
                     output[1],
                 }
-            end
+            end,
         },
     },
 }
