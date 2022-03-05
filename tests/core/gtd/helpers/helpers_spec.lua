@@ -4,7 +4,7 @@ require("tests.config")
 -- Import module
 local helpers = neorg.modules.get_module("core.gtd.helpers")
 
-describe("CORE.GTD.HELPERS", function()
+describe("CORE.GTD.HELPERS -", function()
     it("get_gtd_excluded_files returns the correct files", function()
         local expected = { "test_file_2.norg" }
 
