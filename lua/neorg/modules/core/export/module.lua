@@ -81,7 +81,11 @@ module.public = {
                 local exporter = converter.export.functions[node:type()]
 
                 if exporter then
-                    local resulting_string, stop_descending, returned_state = exporter(module.required["core.integrations.treesitter"].get_node_text(node), node, state)
+                    local resulting_string, stop_descending, returned_state = exporter(
+                        module.required["core.integrations.treesitter"].get_node_text(node),
+                        node,
+                        state
+                    )
 
                     state = returned_state or state
 

@@ -15,12 +15,24 @@ module.public = {
             ["_paragraph_break"] = function(newlines)
                 return string.rep("\n", newlines:len())
             end,
-            ["heading1_prefix"] = function() return "# " end,
-            ["heading2_prefix"] = function() return "## " end,
-            ["heading3_prefix"] = function() return "### " end,
-            ["heading4_prefix"] = function() return "#### " end,
-            ["heading5_prefix"] = function() return "##### " end,
-            ["heading6_prefix"] = function() return "###### " end,
+            ["heading1_prefix"] = function()
+                return "# "
+            end,
+            ["heading2_prefix"] = function()
+                return "## "
+            end,
+            ["heading3_prefix"] = function()
+                return "### "
+            end,
+            ["heading4_prefix"] = function()
+                return "#### "
+            end,
+            ["heading5_prefix"] = function()
+                return "##### "
+            end,
+            ["heading6_prefix"] = function()
+                return "###### "
+            end,
             ["_open"] = function(_, node)
                 return neorg.lib.match({
                     node:parent():type(),
