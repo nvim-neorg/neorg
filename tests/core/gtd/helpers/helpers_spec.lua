@@ -26,31 +26,7 @@ describe("CORE.GTD.HELPERS", function()
 
         assert.same(expected, actual)
     end)
-    ---@class core.gtd.queries.task
-    ---@field inbox boolean
-    ---@field content string
-    ---@field type string
-    ---@field project? string
-    ---@field state string
-    ---@field contexts? string[]
-    ---@field waiting.for? string[]
-    ---@field time.start? string[]
-    ---@field time.due? string[]
-    ---@field area_of_focus? string
-    ---@field internal? core.gtd.queries.task.internal
-    ---@field external? table
 
-    ---@class core.gtd.queries.project
-    ---@field inbox boolean
-    ---@field content string
-    ---@field type string
-    ---@field area_of_focus? string
-    ---@field contexts? string[]
-    ---@field waiting.for? string[]
-    ---@field time.start? string[]
-    ---@field time.due? string[]
-    ---@field internal? core.gtd.queries.project.internal
-    ---@field external? table
     describe("is_processed", function()
         describe("task", function()
             it("returns false if data.inbox", function()
