@@ -17,7 +17,7 @@ module.setup = function()
             "core.keybinds",
             "core.integrations.treesitter",
             "core.ui",
-            "core.norg.dirman",
+            "core.norg.dirman.utils",
         },
     }
 end
@@ -361,7 +361,7 @@ module.public = {
 
         -- Check whether our target is from a different file
         if parsed_link_information.link_file_text then
-            local expanded_link_text = module.required["core.norg.dirman"].expand_path(
+            local expanded_link_text = module.required["core.norg.dirman.utils"].expand_path(
                 parsed_link_information.link_file_text
             )
 
@@ -635,7 +635,7 @@ module.private = {
         local buffer = vim.api.nvim_get_current_buf()
 
         if parsed_link_information.link_file_text then
-            local expanded_link_text = module.required["core.norg.dirman"].expand_path(
+            local expanded_link_text = module.required["core.norg.dirman.utils"].expand_path(
                 parsed_link_information.link_file_text
             )
 
