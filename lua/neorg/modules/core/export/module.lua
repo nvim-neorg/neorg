@@ -72,18 +72,36 @@ module.public = {
             return
         end
 
-        local query_string = [[]]
+        local state = converter.export.init_state and converter.export.init_state() or {}
 
-        for node_name, data in pairs(converter.converters) do
-            if data.named == nil then
-                data.named = node_name:sub(1, 1) ~= "_"
+        local function descend(start)
+            local output = {}
+
+            for node in start:iter_children() do
+                local exporter = converter.export.functions[node:type()]
+
+                if exporter then
+                    local resulting_string, stop_descending, returned_state = exporter(module.required["core.integrations.treesitter"].get_node_text(node), node, state)
+
+                    state = returned_state or state
+
+                    table.insert(output, resulting_string)
+
+                    if not stop_descending then
+                        table.insert(output, descend(node))
+                    end
+                else
+                    table.insert(output, descend(node))
+                end
             end
+
+            local recollector = converter.export.recollectors[start:type()]
+
+            return recollector and table.concat(recollector(output)) or table.concat(output)
         end
 
-        -- TODO: Add new implementation
+        return descend(document_root)
     end,
-
-    build_file_from_export_data = function(export_data) end,
 }
 
 module.on_event = function(event)
@@ -91,7 +109,6 @@ module.on_event = function(event)
         local filetype = module.public.get_filetype(event.content[1], event.content[2])
         local exported = module.public.export(event.buffer, filetype)
         log.warn(exported)
-        -- local rebuilt_file = module.public.build_file_from_export_data(exported)
     end
 end
 

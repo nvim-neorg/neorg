@@ -21,12 +21,22 @@ module.public = {
             ["heading4_prefix"] = function() return "#### " end,
             ["heading5_prefix"] = function() return "##### " end,
             ["heading6_prefix"] = function() return "###### " end,
-            ["bold"] = function(text) return "**" .. text:sub(2, -2) .. "**" end,
-            ["italic"] = function(text) return "*" .. text:sub(2, -2) .. "*" end,
-            ["underline"] = function(text) return "__" .. text:sub(2, -2) .. "__" end,
-            ["strikethrough"] = function(text) return "~~" .. text:sub(2, -2) .. "~~" end,
-            ["spoiler"] = function(text) return "||" .. text:sub(2, -2) .. "||" end,
-        }
+            ["_open"] = function(_, node)
+                return neorg.lib.match({
+                    node:parent():type(),
+                    bold = "**",
+                    italic = "*",
+                })
+            end,
+            ["_close"] = function(_, node)
+                return neorg.lib.match({
+                    node:parent():type(),
+                    bold = "**",
+                    italic = "*",
+                })
+            end,
+        },
+        recollectors = {},
     },
 }
 
