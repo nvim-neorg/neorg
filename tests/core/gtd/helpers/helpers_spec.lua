@@ -108,6 +108,47 @@ describe("CORE.GTD.HELPERS", function()
                 assert.equal(false, actual)
             end)
         end)
+        describe("project", function()
+            it("returns nil if tasks is not passed in as an argument", function()
+                local data = { type = "project" }
+                local actual = helpers.is_processed(data)
+
+                assert.equal(nil, actual)
+            end)
+            it("returns true if project is in someday", function()
+                local data = { type = "project", contexts = { "someday" } }
+                local actual = helpers.is_processed(data, { _ = "" })
+
+                assert.equal(true, actual)
+            end)
+            it("returns false if someday and has unprocessed inbox", function()
+                local data = { type = "project", contexts = { someday = "" }, inbox = {} }
+                local actual = helpers.is_processed(data, { _ = "" })
+
+                assert.equal(false, actual)
+            end)
+            it("returns false if empty projects are unprocessed", function()
+                local data = { type = "project", uuid = 2, contexts = {} }
+                local tasks = { { project_uuid = 1 } }
+                local actual = helpers.is_processed(data, tasks)
+
+                assert.equal(false, actual)
+            end)
+            it("returns true if project_tasks is empty", function()
+                local data = { type = "project", uuid = 2, contexts = {} }
+                local tasks = { { state = "not done", project_uuid = 2 }, { state = "done", project_uuid = 2 } }
+                local actual = helpers.is_processed(data, tasks)
+
+                assert.equal(true, actual)
+            end)
+            it("returns false if all tasks are proccessed", function()
+                local data = { type = "project", uuid = 2, contexts = {} }
+                local tasks = { { state = "done", project_uuid = 2 }, { state = "done", project_uuid = 2 } }
+                local actual = helpers.is_processed(data, tasks)
+
+                assert.equal(false, actual)
+            end)
+        end)
     end)
     describe("state_to_text", function()
         it("done", function()

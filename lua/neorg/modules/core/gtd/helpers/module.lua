@@ -23,22 +23,7 @@ end
 ---@class core.gtd.helpers
 module.public = {
     version = "0.0.9",
-    --- Converts a task state (e.g: "undone") to its norg equivalent (e.g: "- [ ]")
-    ---@param state string
-    ---@return string
-    state_to_text = function(state)
-        return neorg.lib.match({
-            state,
-            done = "- [x]",
-            undone = "- [ ]",
-            pending = "- [-]",
-            uncertain = "- [?]",
-            urgent = "- [!]",
-            recurring = "- [+]",
-            onhold = "- [=]",
-            cancelled = "- [_]",
-        })
-    end,
+
     --- Returns the list of every used file for GTD
     get_gtd_files = function(opts)
         opts = opts or {}
@@ -62,6 +47,7 @@ module.public = {
 
         return files
     end,
+
     --- Returns the list of every excluded file in gtd
     --- @return table
     get_gtd_excluded_files = function()
@@ -70,6 +56,7 @@ module.public = {
 
         return res
     end,
+
     --- Checks if the data is processed or not.
     --- Check out :h neorg-gtd to know what is an unclarified task or project
     --- @param data core.gtd.queries.task|core.gtd.queries.project
@@ -124,24 +111,23 @@ module.public = {
             end,
         })
     end,
-    --   --- Converts a task state (e.g: "undone") to its norg equivalent (e.g: "- [ ]")
-    --   ---@param state string
-    --   ---@return string
-    --   state_to_text = function(state)
-    --     return neorg.lib.match(
-    --       {
-    --         state,
-    --         done = "- [x]",
-    --         undone = "- [ ]",
-    --         pending = "- [-]",
-    --         uncertain = "- [?]",
-    --         urgent = "- [!]",
-    --         recurring = "- [+]",
-    --         onhold = "- [=]",
-    --         cancelled = "- [_]"
-    --       }
-    --     )
-    --   end
+
+    --- Converts a task state (e.g: "undone") to its norg equivalent (e.g: "- [ ]")
+    ---@param state string
+    ---@return string
+    state_to_text = function(state)
+        return neorg.lib.match({
+            state,
+            done = "- [x]",
+            undone = "- [ ]",
+            pending = "- [-]",
+            uncertain = "- [?]",
+            urgent = "- [!]",
+            recurring = "- [+]",
+            onhold = "- [=]",
+            cancelled = "- [_]",
+        })
+    end,
 }
 
 module.private = {
@@ -150,6 +136,7 @@ module.private = {
     get_gtd_config = function()
         return neorg.modules.get_module_config("core.gtd.base")
     end,
+
     --- Remove `el` from table `t`
     --- @param t table
     --- @param el any
