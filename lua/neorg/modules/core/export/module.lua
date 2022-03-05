@@ -81,7 +81,7 @@ module.public = {
                 local exporter = converter.export.functions[node:type()]
 
                 if exporter then
-                    local resulting_string, stop_descending, returned_state = exporter(
+                    local resulting_string, keep_descending, returned_state = exporter(
                         module.required["core.integrations.treesitter"].get_node_text(node),
                         node,
                         state
@@ -93,7 +93,7 @@ module.public = {
                         table.insert(output, resulting_string)
                     end
 
-                    if not stop_descending then
+                    if keep_descending then
                         local ret = descend(node)
 
                         if ret then
