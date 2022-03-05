@@ -89,19 +89,28 @@ module.public = {
 
                     state = returned_state or state
 
-                    table.insert(output, resulting_string)
+                    if resulting_string then
+                        table.insert(output, resulting_string)
+                    end
 
                     if not stop_descending then
-                        table.insert(output, descend(node))
+                        local ret = descend(node)
+
+                        if ret then
+                            table.insert(output, ret)
+                        end
                     end
                 else
-                    table.insert(output, descend(node))
+                    local ret = descend(node)
+
+                    if ret then
+                        table.insert(output, ret)
+                    end
                 end
             end
 
             local recollector = converter.export.recollectors[start:type()]
-
-            return recollector and table.concat(recollector(output)) or table.concat(output)
+            return recollector and table.concat(recollector(output) or {}) or (not vim.tbl_isempty(output) and table.concat(output))
         end
 
         return descend(document_root)
