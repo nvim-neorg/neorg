@@ -27,7 +27,6 @@ module.public = {
 
         return path .. ".norg"
     end,
-
 }
 
 return module
