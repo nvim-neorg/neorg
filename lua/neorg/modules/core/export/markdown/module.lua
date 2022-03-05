@@ -38,6 +38,11 @@ module.public = {
                     node:parent():type(),
                     bold = "**",
                     italic = "*",
+                    underline = "__",
+                    strikethrough = "~~",
+                    spoiler = "|",
+                    inline_code = "`",
+                    inline_comment = "<!-- ",
                 })
             end,
             ["_close"] = function(_, node)
@@ -45,10 +50,56 @@ module.public = {
                     node:parent():type(),
                     bold = "**",
                     italic = "*",
+                    underline = "__",
+                    strikethrough = "~~",
+                    spoiler = "|",
+                    inline_code = "`",
+                    inline_comment = " -->",
                 })
             end,
+            ["_begin"] = function(text, node)
+                return neorg.lib.match({
+                    node:parent():type(),
+
+                    link_location = function()
+                        return text == "{" and "("
+                    end,
+                    link_description = function()
+                        return "["
+                    end
+                })
+            end,
+            ["_end"] = function(text, node)
+                return neorg.lib.match({
+                    node:parent():type(),
+
+                    link_location = function()
+                        return text == "}" and ")"
+                    end,
+                    link_description = function()
+                        return "]"
+                    end
+                })
+            end,
+            ["link_file_text"] = function(text)
+                return vim.uri_from_fname(text .. ".md"):sub(string.len("file://") + 1)
+            end,
         },
-        recollectors = {},
+        recollectors = {
+            ["link_location"] = function(output)
+                table.insert(output, #output - 1, "#")
+
+                output[#output - 1] = output[#output - 1]:lower():gsub("[^%s%w]+", ""):gsub("%s+", "-")
+
+                return output
+            end,
+            ["link"] = function(output)
+                return {
+                    output[2],
+                    output[1],
+                }
+            end
+        },
     },
 }
 
