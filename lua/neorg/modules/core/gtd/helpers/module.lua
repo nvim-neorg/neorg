@@ -65,14 +65,25 @@ module.public = {
         return neorg.lib.match({
             data.type,
             ["task"] = function()
-                return (
-                        (
-                            type(data.contexts) == "table" and not vim.tbl_isempty(data.contexts)
-                            or (type(data["waiting.for"]) == "table" and not vim.tbl_isempty(data["waiting.for"]))
-                        ) and not data.inbox
-                    )
-                    or (type(data["time.due"]) == "table" and not vim.tbl_isempty(data["time.due"]))
-                    or (type(data["time.start"]) == "table" and not vim.tbl_isempty(data["time.start"]))
+                if not data.inbox then
+                    return false
+                end
+
+                if type(data.contexts) ~= "table" or vim.tbl_isempty(data.contexts) then
+                    return false
+                end
+
+                if type(data["waiting.for"]) ~= "table" or vim.tbl_isempty(data["waiting.for"]) then
+                    return false
+                end
+
+                if type(data["time.due"]) ~= "table" or vim.tbl_isempty(data["time.due"]) then
+                    return false
+                end
+                if type(data["time.start"]) ~= "table" or vim.tbl_isempty(data["time.start"]) then
+                    return false
+                end
+                return true
             end,
             ["project"] = function()
                 if not tasks then
