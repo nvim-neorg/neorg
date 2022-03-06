@@ -29,59 +29,39 @@ describe("CORE.GTD.HELPERS -", function()
 
     describe("is_processed", function()
         describe("task", function()
-            it("returns false if data.inbox", function()
+            it("returns false if no conditions are met", function()
                 local data = { type = "task", inbox = true }
                 local actual = helpers.is_processed(data)
 
                 assert.equal(false, actual)
             end)
-            it("returns false if type(data.contexts) ~= table", function()
-                local data = { type = "task", contexts = "not a table" }
+            it("task not in inbox returns true as time.due is a non empty table", function()
+                local data = { type = "task", ["time.due"] = { "tomorrow" } }
                 local actual = helpers.is_processed(data)
+                helpers.is_processed(data)
 
-                assert.equal(false, actual)
+                assert.equal(true, actual)
             end)
-            it("returns false if data.contexts is an empty table", function()
-                local data = { type = "task", contexts = {} }
+            it("task not in inbox returns true as waiting.for is a non empty table", function()
+                local data = { type = "task", ["waiting.for"] = { "something" } }
                 local actual = helpers.is_processed(data)
+                helpers.is_processed(data)
 
-                assert.equal(false, actual)
+                assert.equal(true, actual)
             end)
-            it("returns false if type(data['waiting.for']) ~= table", function()
-                local data = { type = "task", contexts = {}, ["waiting.for"] = "not a table" }
+            it("task in inbox returns true as time.due is a non empty table", function()
+                local data = { type = "task", ["time.due"] = { "tomorrow" }, inbox = true }
                 local actual = helpers.is_processed(data)
+                helpers.is_processed(data)
 
-                assert.equal(false, actual)
+                assert.equal(true, actual)
             end)
-            it("returns false if data['waiting.for'] is an empty table", function()
-                local data = { type = "task", contexts = {}, ["waiting.for"] = {} }
+            it("task not in inbox returns true as time.start is a non empty table", function()
+                local data = { type = "task", ["time.start"] = { "tomorrow" }, inbox = true }
                 local actual = helpers.is_processed(data)
+                helpers.is_processed(data)
 
-                assert.equal(false, actual)
-            end)
-            it("returns false if data['time.due'] is not a table", function()
-                local data = { type = "task", inbox = true, ["time.due"] = "not a table" }
-                local actual = helpers.is_processed(data)
-
-                assert.equal(false, actual)
-            end)
-            it("returns false if data['time.due'] is an empty table", function()
-                local data = { type = "task", inbox = true, ["time.due"] = {} }
-                local actual = helpers.is_processed(data)
-
-                assert.equal(false, actual)
-            end)
-            it("returns false if data['time.start'] is not a table", function()
-                local data = { type = "task", inbox = true, ["time.start"] = "not a table" }
-                local actual = helpers.is_processed(data)
-
-                assert.equal(false, actual)
-            end)
-            it("returns false if data['time.start'] is an empty table", function()
-                local data = { type = "task", inbox = true, ["time.start"] = {} }
-                local actual = helpers.is_processed(data)
-
-                assert.equal(false, actual)
+                assert.equal(true, actual)
             end)
         end)
         describe("project", function()
