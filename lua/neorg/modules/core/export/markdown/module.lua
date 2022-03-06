@@ -182,6 +182,10 @@ module.public = {
                 }
             end,
         },
+
+        cleanup = function(text)
+            return text:gsub("\n\n\n+", "\n\n")
+        end,
     },
 }
 
