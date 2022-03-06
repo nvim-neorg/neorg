@@ -39,16 +39,14 @@ module.public = {
                     0,
                     0,
                 },
+                tag_close = "",
             }
         end,
 
         functions = {
-            ["_word"] = function(text)
-                return text
-            end,
-            ["_space"] = function(space)
-                return space
-            end,
+            ["_word"] = true,
+            ["_space"] = true,
+
             ["_line_break"] = function(_, node, state)
                 local next_sibling = node:next_sibling()
 
@@ -164,6 +162,28 @@ module.public = {
             ["ordered_list4_prefix"] = ordered_list_prefix(4),
             ["ordered_list5_prefix"] = ordered_list_prefix(5),
             ["ordered_list6_prefix"] = ordered_list_prefix(6),
+
+            ["tag_parameters"] = true,
+
+            ["tag_name"] = function(text)
+                if text == "code" then
+                    return "```", false, {
+                        tag_close = "```"
+                    }
+                end
+            end,
+            ["ranged_tag_end"] = function(_, _, state)
+                local tag_close = state.tag_close
+                state.tag_close = nil
+                return tag_close
+            end,
+
+            ["quote1_prefix"] = true,
+            ["quote2_prefix"] = true,
+            ["quote3_prefix"] = true,
+            ["quote4_prefix"] = true,
+            ["quote5_prefix"] = true,
+            ["quote6_prefix"] = true,
         },
 
         recollectors = {
@@ -181,6 +201,10 @@ module.public = {
                     output[1],
                 }
             end,
+            ["ranged_tag"] = function(output)
+                table.insert(output, 3, "\n")
+                return output
+            end
         },
 
         cleanup = function(text)
