@@ -5,8 +5,43 @@ local module = neorg.modules.create("core.export.markdown")
 
 local last_parsed_link_location = ""
 
+local function unordered_list_prefix(level)
+    return function()
+        return string.rep(" ", (level - 1) * 4) .. "- ", true, {
+            indent = ((level - 1) * 4) + 2,
+        }
+    end
+end
+
+local function ordered_list_prefix(level)
+    return function(_, _, state)
+        state.ordered_list_level[level] = state.ordered_list_level[level] + 1
+        state.indent = ((level - 1) * 4) + 3 + (tostring(state.ordered_list_level[level]):len() - 1)
+
+        for i = level + 1, 6 do
+            state.ordered_list_level[i] = 0
+        end
+
+        return string.rep(" ", (level - 1) * 4) .. tostring(state.ordered_list_level[level]) .. ". ", true, state
+    end
+end
+
 module.public = {
     export = {
+        init_state = function()
+            return {
+                indent = 0,
+                ordered_list_level = {
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                },
+            }
+        end,
+
         functions = {
             ["_word"] = function(text)
                 return text
@@ -14,11 +49,25 @@ module.public = {
             ["_space"] = function(space)
                 return space
             end,
-            ["_line_break"] = function()
+            ["_line_break"] = function(_, node, state)
+                local next_sibling = node:next_sibling()
+
                 return "\n"
+                    .. (
+                        (next_sibling and next_sibling:type() == "paragraph_segment" and string.rep(" ", state.indent))
+                        or ""
+                    )
             end,
             ["_paragraph_break"] = function(newlines)
-                return string.rep("\n", newlines:len())
+                return string.rep("\n", newlines:len()),
+                    false,
+                    {
+                        indent = 0,
+                        ordered_list_level = { 0, 0, 0, 0, 0, 0 },
+                    }
+            end,
+            ["_segment"] = function(text)
+                return text, false
             end,
             ["heading1_prefix"] = function()
                 return "# "
@@ -97,6 +146,24 @@ module.public = {
             ["link_file_text"] = function(text)
                 return vim.uri_from_fname(text .. ".md"):sub(string.len("file://") + 1)
             end,
+            ["escape_sequence"] = function(text)
+                local escaped_char = text:sub(-1)
+                return escaped_char:match("%p") and text or escaped_char
+            end,
+
+            ["unordered_list1_prefix"] = unordered_list_prefix(1),
+            ["unordered_list2_prefix"] = unordered_list_prefix(2),
+            ["unordered_list3_prefix"] = unordered_list_prefix(3),
+            ["unordered_list4_prefix"] = unordered_list_prefix(4),
+            ["unordered_list5_prefix"] = unordered_list_prefix(5),
+            ["unordered_list6_prefix"] = unordered_list_prefix(6),
+
+            ["ordered_list1_prefix"] = ordered_list_prefix(1),
+            ["ordered_list2_prefix"] = ordered_list_prefix(2),
+            ["ordered_list3_prefix"] = ordered_list_prefix(3),
+            ["ordered_list4_prefix"] = ordered_list_prefix(4),
+            ["ordered_list5_prefix"] = ordered_list_prefix(5),
+            ["ordered_list6_prefix"] = ordered_list_prefix(6),
         },
 
         recollectors = {
