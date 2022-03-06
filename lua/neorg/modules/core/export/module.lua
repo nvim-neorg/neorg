@@ -73,6 +73,7 @@ module.public = {
         end
 
         local state = converter.export.init_state and converter.export.init_state() or {}
+        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         local function descend(start)
             local output = {}
@@ -84,7 +85,8 @@ module.public = {
                     local resulting_string, keep_descending, returned_state = exporter(
                         module.required["core.integrations.treesitter"].get_node_text(node),
                         node,
-                        state
+                        state,
+                        ts_utils
                     )
 
                     state = returned_state or state
