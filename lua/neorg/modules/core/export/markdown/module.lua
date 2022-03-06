@@ -168,7 +168,7 @@ module.public = {
             ["tag_name"] = function(text)
                 if text == "code" then
                     return "```", false, {
-                        tag_close = "```"
+                        tag_close = "```",
                     }
                 end
             end,
@@ -204,7 +204,7 @@ module.public = {
             ["ranged_tag"] = function(output)
                 table.insert(output, 3, "\n")
                 return output
-            end
+            end,
         },
 
         cleanup = function(text)
