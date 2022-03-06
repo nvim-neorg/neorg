@@ -82,25 +82,29 @@ module.public = {
                 local exporter = converter.export.functions[node:type()]
 
                 if exporter then
-                    local resulting_string, keep_descending, returned_state = exporter(
-                        module.required["core.integrations.treesitter"].get_node_text(node),
-                        node,
-                        state,
-                        ts_utils
-                    )
+                    if type(exporter) == "function" then
+                        local resulting_string, keep_descending, returned_state = exporter(
+                            module.required["core.integrations.treesitter"].get_node_text(node),
+                            node,
+                            state,
+                            ts_utils
+                        )
 
-                    state = returned_state or state
+                        state = returned_state and vim.tbl_extend("force", state, returned_state) or state
 
-                    if resulting_string then
-                        table.insert(output, resulting_string)
-                    end
-
-                    if keep_descending then
-                        local ret = descend(node)
-
-                        if ret then
-                            table.insert(output, ret)
+                        if resulting_string then
+                            table.insert(output, resulting_string)
                         end
+
+                        if keep_descending then
+                            local ret = descend(node)
+
+                            if ret then
+                                table.insert(output, ret)
+                            end
+                        end
+                    else
+                        table.insert(output, module.required["core.integrations.treesitter"].get_node_text(node))
                     end
                 else
                     local ret = descend(node)
