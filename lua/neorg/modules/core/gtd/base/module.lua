@@ -116,9 +116,10 @@ module.load = function()
         end
     end
 
-    ---@type core.gtd.helpers
     if not error_loading then
+        ---@type core.gtd.helpers
         local helpers = module.required["core.gtd.helpers"]
+
         local files = helpers.get_gtd_files() or {}
         if not files then
             log.warn("No files found in " .. workspace .. " workspace")
@@ -128,8 +129,9 @@ module.load = function()
             dirman.create_file(module.config.public.default_lists.inbox, workspace, { no_open = true })
             log.warn("Inbox file not found in " .. workspace .. " workspace, creating it...")
         end
-        if not vim.tbl_contains(files, "index.norg") then
-            dirman.create_file("index.norg", workspace, { no_open = true })
+        local index = neorg.modules.get_module_config("core.norg.dirman").index
+        if not vim.tbl_contains(files, index) then
+            dirman.create_file(index, workspace, { no_open = true })
             log.warn("Index file not found in " .. workspace .. " workspace, creating it...")
         end
     end
