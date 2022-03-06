@@ -116,7 +116,8 @@ module.public = {
                 or (not vim.tbl_isempty(output) and table.concat(output))
         end
 
-        return descend(document_root)
+        local output = descend(document_root)
+        return converter.export.cleanup and converter.export.cleanup(output) or output
     end,
 }
 
