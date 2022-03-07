@@ -11,21 +11,25 @@ module.setup = function()
     }
 end
 
-module.config.public = {
-    export_unknown_nodes_as_verbatim = false,
-}
-
 module.load = function()
     neorg.modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             definitions = {
-                export = {},
+                export = {
+                    ["to-file"] = {},
+                },
             },
             data = {
                 export = {
-                    min_args = 1,
-                    max_args = 2,
-                    name = "export",
+                    args = 1,
+
+                    subcommands = {
+                        ["to-file"] = {
+                            min_args = 1,
+                            max_args = 2,
+                            name = "export.to-file",
+                        },
+                    },
                 },
             },
         })
@@ -126,7 +130,7 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.export" then
+    if event.type == "core.neorgcmd.events.export.to-file" then
         local filetype = module.public.get_filetype(event.content[1], event.content[2])
         local exported = module.public.export(event.buffer, filetype)
         log.warn(exported)
@@ -135,7 +139,7 @@ end
 
 module.events.subscribed = {
     ["core.neorgcmd"] = {
-        export = true,
+        ["export.to-file"] = true,
     },
 }
 
