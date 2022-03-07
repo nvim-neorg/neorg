@@ -60,8 +60,8 @@ module.public = {
     --- Checks if the data is processed or not.
     --- Check out :h neorg-gtd to know what is an unclarified task or project
     --- @param data core.gtd.queries.task|core.gtd.queries.project
-    --- @param tasks core.gtd.queries.task[]?
-    is_processed = function(data, tasks)
+    --- @param extra core.gtd.queries.task[]?|core.gtd.queries.project[]
+    is_processed = function(data, extra)
         return neorg.lib.match({
             data.type,
             ["task"] = function()
@@ -86,12 +86,22 @@ module.public = {
                 elseif type(data["contexts"]) == "table" and vim.tbl_contains(data["contexts"], "someday") then
                     return true
                 end
-                -- TODO: check if the task is inside a someday project
+
+                local project = vim.tbl_filter(function(t)
+                    return t.uuid == data.project_uuid
+                end, extra)
+
+                if not vim.tbl_isempty(project) then
+                    project = project[1]
+                    if type(project["contexts"]) == "table" and vim.tbl_contains(project["contexts"], "someday") then
+                        return true
+                    end
+                end
 
                 return false
             end,
             ["project"] = function()
-                if not tasks then
+                if not extra then
                     return
                 end
 
@@ -111,7 +121,7 @@ module.public = {
 
                 local project_tasks = vim.tbl_filter(function(t)
                     return t.project_uuid == data.uuid
-                end, tasks)
+                end, extra)
 
                 -- Empty projects (without tasks) are unprocessed
                 if vim.tbl_isempty(project_tasks) then

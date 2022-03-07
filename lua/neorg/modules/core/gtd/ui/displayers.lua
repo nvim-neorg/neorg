@@ -529,7 +529,11 @@ module.public = {
         table.insert(res, "** Unclarified " .. type .. "s")
         neorg.lib.when(type == "task", function()
             table.insert(res, "> - tasks without `contexts` or `waiting_for`")
-            table.insert(res, "> Note: tasks that have a `due/start` date are de facto clarified")
+            table.insert(res, "> - tasks without a project in `someday`")
+            table.insert(
+                res,
+                "> Note: tasks that have a `due/start` date OR a `someday` context are de facto clarified"
+            )
         end, function()
             table.insert(res, "> - projects without tasks or not in `someday`")
         end)
