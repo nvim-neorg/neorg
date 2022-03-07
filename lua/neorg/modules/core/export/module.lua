@@ -107,8 +107,10 @@ module.public = {
                                 table.insert(output, ret)
                             end
                         end
-                    else
+                    elseif exporter == true then
                         table.insert(output, module.required["core.integrations.treesitter"].get_node_text(node))
+                    else
+                        table.insert(output, exporter)
                     end
                 else
                     local ret = descend(node)
