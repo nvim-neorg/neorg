@@ -78,11 +78,15 @@ module.public = {
 
                 -- Processed task if:
                 --   - Has a due date or start date
+                --   - Is in "someday"
                 if type(data["time.due"]) == "table" and not vim.tbl_isempty(data["time.due"]) then
                     return true
                 elseif type(data["time.start"]) == "table" and not vim.tbl_isempty(data["time.start"]) then
                     return true
+                elseif type(data["contexts"]) == "table" and vim.tbl_contains(data["contexts"], "someday") then
+                    return true
                 end
+                -- TODO: check if the task is inside a someday project
 
                 return false
             end,
