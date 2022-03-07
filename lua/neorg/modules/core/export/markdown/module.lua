@@ -1,9 +1,8 @@
 local module = neorg.modules.create("core.export.markdown")
 
--- Multiple `if/elseif` statements exist not to look ugly
--- but instead to be more perfomant than Neorg's match function
-
 local last_parsed_link_location = ""
+
+--> Generic Utility Functions
 
 local function unordered_list_prefix(level)
     return function()
@@ -25,6 +24,45 @@ local function ordered_list_prefix(level)
         return string.rep(" ", (level - 1) * 4) .. tostring(state.ordered_list_level[level]) .. ". ", true, state
     end
 end
+
+local function todo_item_extended(replace_text)
+    return function(_, _, state)
+        return module.config.public.extensions["todo-items-extended"] and replace_text,
+            false,
+            {
+                indent = state.indent + replace_text:len(),
+            }
+    end
+end
+
+--> Recollector Utility Functions
+
+local function todo_item_recollector()
+    return function(output)
+        return output[2] ~= "[_] " and output
+    end
+end
+
+---
+
+module.load = function()
+    if module.config.public.extensions == "all" then
+        module.config.public.extensions = {
+            "todo-items-basic",
+            "todo-items-pending",
+            "todo-items-extended",
+        }
+    end
+
+    module.config.public.extensions = neorg.lib.to_keys(module.config.public.extensions)
+end
+
+module.config.public = {
+    -- Any extensions you may want to use when exporting to markdown. By
+    -- default no extensions are loaded (the exporter is commonmark compliant).
+    -- You can also set this value to `all` to enable all extensions.
+    extensions = {},
+}
 
 module.public = {
     export = {
@@ -184,6 +222,33 @@ module.public = {
             ["quote4_prefix"] = true,
             ["quote5_prefix"] = true,
             ["quote6_prefix"] = true,
+
+            ["todo_item_done"] = function(_, _, state)
+                return module.config.public.extensions["todo-items-basic"] and "[x] ",
+                    false,
+                    {
+                        indent = state.indent + 4,
+                    }
+            end,
+            ["todo_item_undone"] = function(_, _, state)
+                return module.config.public.extensions["todo-items-basic"] and "[ ] ",
+                    false,
+                    {
+                        indent = state.indent + 4,
+                    }
+            end,
+            ["todo_item_pending"] = function(_, _, state)
+                return module.config.public.extensions["todo-items-pending"] and "[*] ",
+                    false,
+                    {
+                        indent = state.indent + 4,
+                    }
+            end,
+            ["todo_item_urgent"] = todo_item_extended("[ ] "),
+            ["todo_item_cancelled"] = todo_item_extended("[_] "),
+            ["todo_item_recurring"] = todo_item_extended("[ ] "),
+            ["todo_item_on_hold"] = todo_item_extended("[ ] "),
+            ["todo_item_uncertain"] = todo_item_extended("[ ] "),
         },
 
         recollectors = {
@@ -205,6 +270,12 @@ module.public = {
                 table.insert(output, 3, "\n")
                 return output
             end,
+            ["todo_item1"] = todo_item_recollector(),
+            ["todo_item2"] = todo_item_recollector(),
+            ["todo_item3"] = todo_item_recollector(),
+            ["todo_item4"] = todo_item_recollector(),
+            ["todo_item5"] = todo_item_recollector(),
+            ["todo_item6"] = todo_item_recollector(),
         },
 
         cleanup = function(text)
