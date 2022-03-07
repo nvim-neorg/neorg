@@ -87,6 +87,10 @@ module.public = {
                     return true
                 end
 
+                if not extra then
+                    return false
+                end
+
                 local project = vim.tbl_filter(function(t)
                     return t.uuid == data.project_uuid
                 end, extra)
