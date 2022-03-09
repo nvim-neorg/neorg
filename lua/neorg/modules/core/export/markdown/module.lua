@@ -6,9 +6,11 @@ local last_parsed_link_location = ""
 
 local function unordered_list_prefix(level)
     return function()
-        return string.rep(" ", (level - 1) * 4) .. "- ", true, {
-            weak_indent = ((level - 1) * 4) + 2,
-        }
+        return string.rep(" ", (level - 1) * 4) .. "- ",
+            true,
+            {
+                weak_indent = ((level - 1) * 4) + 2,
+            }
     end
 end
 
@@ -91,10 +93,11 @@ module.public = {
                 local next_sibling = node:next_sibling()
 
                 return "\n"
-                    .. (
-                        (next_sibling and next_sibling:type() == "paragraph_segment" and string.rep(" ", state.weak_indent))
-                        or ""
-                    ) .. string.rep(" ", state.indent)
+                    .. ((next_sibling and next_sibling:type() == "paragraph_segment" and string.rep(
+                        " ",
+                        state.weak_indent
+                    )) or "")
+                    .. string.rep(" ", state.indent)
             end,
 
             ["_paragraph_break"] = function(newlines)
