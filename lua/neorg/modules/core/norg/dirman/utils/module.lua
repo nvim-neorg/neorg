@@ -6,11 +6,18 @@ module.public = {
         local custom_workspace_path = path:match("^%$([^/]*)/")
 
         if custom_workspace_path then
+            local dirman = neorg.modules.get_module("core.norg.dirman")
+
+            if not dirman then
+                log.error("Unable to jump to link with custom workspace: `core.norg.dirman` is not loaded. Please load the module in order to get workspace support.")
+                return
+            end
+
             -- If the user has given an empty workspace name (i.e. `$/myfile`)
             if custom_workspace_path:len() == 0 then
-                path = module.public.get_current_workspace()[2] .. "/" .. path:sub(3)
+                path = dirman.get_current_workspace()[2] .. "/" .. path:sub(3)
             else -- If the user provided a workspace name (i.e. `$my-workspace/myfile`)
-                local workspace_path = module.public.get_workspace(custom_workspace_path)
+                local workspace_path = dirman.get_workspace(custom_workspace_path)
 
                 if not workspace_path then
                     log.warn("Unable to expand path: workspace does not exist")
