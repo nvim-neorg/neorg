@@ -9,7 +9,9 @@ module.public = {
             local dirman = neorg.modules.get_module("core.norg.dirman")
 
             if not dirman then
-                log.error("Unable to jump to link with custom workspace: `core.norg.dirman` is not loaded. Please load the module in order to get workspace support.")
+                log.error(
+                    "Unable to jump to link with custom workspace: `core.norg.dirman` is not loaded. Please load the module in order to get workspace support."
+                )
                 return
             end
 
