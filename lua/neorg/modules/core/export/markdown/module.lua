@@ -7,7 +7,7 @@ local last_parsed_link_location = ""
 local function unordered_list_prefix(level)
     return function()
         return string.rep(" ", (level - 1) * 4) .. "- ", true, {
-            indent = ((level - 1) * 4) + 2,
+            weak_indent = ((level - 1) * 4) + 2,
         }
     end
 end
@@ -15,7 +15,7 @@ end
 local function ordered_list_prefix(level)
     return function(_, _, state)
         state.ordered_list_level[level] = state.ordered_list_level[level] + 1
-        state.indent = ((level - 1) * 4) + 3 + (tostring(state.ordered_list_level[level]):len() - 1)
+        state.weak_indent = ((level - 1) * 4) + 3 + (tostring(state.ordered_list_level[level]):len() - 1)
 
         for i = level + 1, 6 do
             state.ordered_list_level[i] = 0
@@ -30,7 +30,7 @@ local function todo_item_extended(replace_text)
         return module.config.public.extensions["todo-items-extended"] and replace_text,
             false,
             {
-                indent = state.indent + replace_text:len(),
+                weak_indent = state.weak_indent + replace_text:len(),
             }
     end
 end
@@ -51,6 +51,7 @@ module.load = function()
             "todo-items-basic",
             "todo-items-pending",
             "todo-items-extended",
+            "definition-lists",
         }
     end
 
@@ -68,6 +69,7 @@ module.public = {
     export = {
         init_state = function()
             return {
+                weak_indent = 0,
                 indent = 0,
                 ordered_list_level = {
                     0,
@@ -90,39 +92,29 @@ module.public = {
 
                 return "\n"
                     .. (
-                        (next_sibling and next_sibling:type() == "paragraph_segment" and string.rep(" ", state.indent))
+                        (next_sibling and next_sibling:type() == "paragraph_segment" and string.rep(" ", state.weak_indent))
                         or ""
-                    )
+                    ) .. string.rep(" ", state.indent)
             end,
+
             ["_paragraph_break"] = function(newlines)
                 return string.rep("\n", newlines:len()),
                     false,
                     {
-                        indent = 0,
+                        weak_indent = 0,
                         ordered_list_level = { 0, 0, 0, 0, 0, 0 },
                     }
             end,
-            ["_segment"] = function(text)
-                return text, false
-            end,
-            ["heading1_prefix"] = function()
-                return "# "
-            end,
-            ["heading2_prefix"] = function()
-                return "## "
-            end,
-            ["heading3_prefix"] = function()
-                return "### "
-            end,
-            ["heading4_prefix"] = function()
-                return "#### "
-            end,
-            ["heading5_prefix"] = function()
-                return "##### "
-            end,
-            ["heading6_prefix"] = function()
-                return "###### "
-            end,
+
+            ["_segment"] = true,
+
+            ["heading1_prefix"] = "# ",
+            ["heading2_prefix"] = "## ",
+            ["heading3_prefix"] = "### ",
+            ["heading4_prefix"] = "#### ",
+            ["heading5_prefix"] = "##### ",
+            ["heading6_prefix"] = "###### ",
+
             ["_open"] = function(_, node)
                 local type = node:parent():type()
 
@@ -142,6 +134,7 @@ module.public = {
                     return "<!-- "
                 end
             end,
+
             ["_close"] = function(_, node)
                 local type = node:parent():type()
 
@@ -161,6 +154,7 @@ module.public = {
                     return " -->"
                 end
             end,
+
             ["_begin"] = function(text, node)
                 local type = node:parent():type()
 
@@ -170,6 +164,7 @@ module.public = {
                     return "["
                 end
             end,
+
             ["_end"] = function(text, node)
                 local type = node:parent():type()
 
@@ -179,9 +174,11 @@ module.public = {
                     return "]"
                 end
             end,
+
             ["link_file_text"] = function(text)
                 return vim.uri_from_fname(text .. ".md"):sub(string.len("file://") + 1)
             end,
+
             ["escape_sequence"] = function(text)
                 local escaped_char = text:sub(-1)
                 return escaped_char:match("%p") and text or escaped_char
@@ -210,6 +207,7 @@ module.public = {
                     }
                 end
             end,
+
             ["ranged_tag_end"] = function(_, _, state)
                 local tag_close = state.tag_close
                 state.tag_close = nil
@@ -227,28 +225,33 @@ module.public = {
                 return module.config.public.extensions["todo-items-basic"] and "[x] ",
                     false,
                     {
-                        indent = state.indent + 4,
+                        weak_indent = state.weak_indent + 4,
                     }
             end,
+
             ["todo_item_undone"] = function(_, _, state)
                 return module.config.public.extensions["todo-items-basic"] and "[ ] ",
                     false,
                     {
-                        indent = state.indent + 4,
+                        weak_indent = state.weak_indent + 4,
                     }
             end,
+
             ["todo_item_pending"] = function(_, _, state)
                 return module.config.public.extensions["todo-items-pending"] and "[*] ",
                     false,
                     {
-                        indent = state.indent + 4,
+                        weak_indent = state.weak_indent + 4,
                     }
             end,
+
             ["todo_item_urgent"] = todo_item_extended("[ ] "),
             ["todo_item_cancelled"] = todo_item_extended("[_] "),
             ["todo_item_recurring"] = todo_item_extended("[ ] "),
             ["todo_item_on_hold"] = todo_item_extended("[ ] "),
             ["todo_item_uncertain"] = todo_item_extended("[ ] "),
+
+            ["single_definition_prefix"] = ": ",
         },
 
         recollectors = {
@@ -260,16 +263,19 @@ module.public = {
 
                 return output
             end,
+
             ["link"] = function(output)
                 return {
                     output[2] or ("[" .. last_parsed_link_location .. "]"),
                     output[1],
                 }
             end,
+
             ["ranged_tag"] = function(output)
                 table.insert(output, 3, "\n")
                 return output
             end,
+
             ["todo_item1"] = todo_item_recollector(),
             ["todo_item2"] = todo_item_recollector(),
             ["todo_item3"] = todo_item_recollector(),
