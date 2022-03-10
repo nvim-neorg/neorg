@@ -351,7 +351,9 @@ module.public = {
         end
 
         local last_workspace = storage.retrieve("last_workspace")
-        last_workspace = type(last_workspace) == "string" and last_workspace or module.config.public.default_workspace or ""
+        last_workspace = type(last_workspace) == "string" and last_workspace
+            or module.config.public.default_workspace
+            or ""
 
         local workspace_path = module.public.get_workspace(last_workspace)
 
