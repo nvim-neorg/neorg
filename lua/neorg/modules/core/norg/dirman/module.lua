@@ -36,7 +36,10 @@ local module = neorg.modules.create("core.norg.dirman")
 local scan = require("plenary.scandir")
 
 module.setup = function()
-    return { success = true, requires = { "core.autocommands", "core.neorgcmd", "core.keybinds", "core.ui", "core.storage" } }
+    return {
+        success = true,
+        requires = { "core.autocommands", "core.neorgcmd", "core.keybinds", "core.ui", "core.storage" },
+    }
 end
 
 module.load = function()
@@ -368,12 +371,7 @@ module.public = {
 
             -- If we were successful in switching to that workspace then begin editing that workspace's index file
             if module.public.set_workspace(last_workspace) then
-                vim.cmd(
-                    "e "
-                    .. workspace_path
-                    .. neorg.configuration.pathsep
-                    .. module.config.public.index
-                )
+                vim.cmd("e " .. workspace_path .. neorg.configuration.pathsep .. module.config.public.index)
 
                 vim.notify("Last Workspace -> " .. workspace_path)
             end
