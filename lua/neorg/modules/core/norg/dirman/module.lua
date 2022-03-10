@@ -353,7 +353,7 @@ module.public = {
         local last_workspace = storage.retrieve("last_workspace")
 
         -- Function that broadcasts to the environment that no cached workspace could be found
-        if not last_workspace then
+        if not last_workspace or type(last_workspace) == "table" then
             neorg.events.broadcast_event(
                 neorg.events.create(
                     module,
