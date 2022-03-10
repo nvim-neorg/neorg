@@ -88,8 +88,8 @@ module.config.public = {
     -- The name for the index file
     index = "index.norg",
 
-    -- The location where to look for the last workspace
-    last_workspace = vim.fn.stdpath("cache") .. "/neorg_last_workspace.txt",
+    -- The default workspace to load into when running `:NeorgStart`
+    default_workspace = nil,
 }
 
 module.private = {
@@ -351,30 +351,20 @@ module.public = {
         end
 
         local last_workspace = storage.retrieve("last_workspace")
+        last_workspace = type(last_workspace) == "string" and last_workspace or module.config.public.default_workspace or ""
 
-        -- Function that broadcasts to the environment that no cached workspace could be found
-        if not last_workspace or type(last_workspace) == "table" then
-            neorg.events.broadcast_event(
-                neorg.events.create(
-                    module,
-                    "core.norg.dirman.events.workspace_cache_empty",
-                    module.public.get_workspaces()
-                )
-            )
-        else
-            local workspace_path = module.public.get_workspace(last_workspace)
+        local workspace_path = module.public.get_workspace(last_workspace)
 
-            if not workspace_path then
-                log.trace("Unable to switch to workspace '" .. last_workspace .. "'. The workspace does not exist.")
-                return
-            end
+        if not workspace_path then
+            log.trace("Unable to switch to workspace '" .. last_workspace .. "'. The workspace does not exist.")
+            return
+        end
 
-            -- If we were successful in switching to that workspace then begin editing that workspace's index file
-            if module.public.set_workspace(last_workspace) then
-                vim.cmd("e " .. workspace_path .. neorg.configuration.pathsep .. module.config.public.index)
+        -- If we were successful in switching to that workspace then begin editing that workspace's index file
+        if module.public.set_workspace(last_workspace) then
+            vim.cmd("e " .. workspace_path .. neorg.configuration.pathsep .. module.config.public.index)
 
-                vim.notify("Last Workspace -> " .. workspace_path)
-            end
+            vim.notify("Last Workspace -> " .. workspace_path)
         end
     end,
 
