@@ -62,8 +62,7 @@ module.public = {
     --- @param data core.gtd.queries.task|core.gtd.queries.project
     --- @param extra core.gtd.queries.task[]?|core.gtd.queries.project[]
     is_processed = function(data, extra)
-        return neorg.lib.match({
-            data.type,
+        return neorg.lib.match(data.type)({
             ["task"] = function()
                 -- Processed task if:
                 --   - Not in inbox
@@ -146,8 +145,7 @@ module.public = {
     ---@param state string
     ---@return string
     state_to_text = function(state)
-        return neorg.lib.match({
-            state,
+        return neorg.lib.match(state)({
             done = "- [x]",
             undone = "- [ ]",
             pending = "- [-]",

@@ -53,8 +53,7 @@ log.new = function(config, standalone)
 
     local outfile = string.format("%s/%s.log", vim.api.nvim_call_function("stdpath", { "data" }), config.plugin)
 
-    local obj = neorg.lib.match({
-        standalone ~= nil,
+    local obj = neorg.lib.match(standalone ~= nil)({
         ["true"] = log,
         ["false"] = {},
     })
