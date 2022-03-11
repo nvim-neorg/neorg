@@ -86,6 +86,10 @@ module.public = {
         for key in pairs(module.private.code_block_table) do
             if current_buf ~= key or reload == true then
                 for k, _ in pairs(module.private.code_block_table[current_buf].loaded_regex) do
+                    module.public.remove_syntax(
+                        string.format("textGroup%s", string.upper(k)),
+                        string.format("textSnip%s", string.upper(k))
+                    )
                     module.private.code_block_table[current_buf].loaded_regex[k] = nil
                 end
             end
@@ -109,14 +113,14 @@ module.public = {
             for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 if id == 2 then -- id 2 here refers to the "language" tag
                     -- find the end node of a block so we can grab the row
-                    local _, end_node = pcall(node:next_named_sibling():next_sibling())
+                    local end_node = node:next_named_sibling():next_sibling()
                     -- get the start and ends of the current capture
                     local start_row = node:range() + 1
                     local end_row
 
                     -- don't try to parse a nil value
-                    if end_row == nil then
-                        end_row = 1
+                    if end_node == nil then
+                        end_row = start_row + 1
                     else
                         end_row = end_node:range() + 1
                     end
@@ -217,7 +221,7 @@ module.public = {
                 -- if syn list was an error, or if it was an empty result
                 if
                     ok == false
-                    or (ok == true and (string.sub(result, 1, 1) == "N" and count == 0) or (empty_result > 0))
+                    or (ok == true and ((string.sub(result, 1, 1) == "N" and count == 0) or (empty_result > 0)))
                 then
                     -- absorb all syntax stuff
                     -- potentially needs to be expanded upon as bad values come in
@@ -420,8 +424,10 @@ module.on_event = function(event)
             >= module.config.public.performance.max_debounce
     end
 
+
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         local buf = event.buffer
+
         local line_count = vim.api.nvim_buf_line_count(buf)
 
         -- TODO mess with performance stuff
@@ -431,11 +437,10 @@ module.on_event = function(event)
         else
             -- don't increment on a bufenter at all
             module.public.check_code_block_type(buf, false)
-            module.public.trigger_highlight_regex_code_block(buf, true)
+            module.public.trigger_highlight_regex_code_block(buf, false)
         end
         vim.api.nvim_buf_attach(buf, false, {
             on_lines = function(_, cur_buf, _, start, _end)
-				print("buf attach")
                 if buf ~= cur_buf then
                     return true
                 end
