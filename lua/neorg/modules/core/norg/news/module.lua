@@ -222,9 +222,7 @@ module.private = {
 }
 
 module.on_event = function(event)
-    neorg.lib.match({
-        event.split_type[2],
-
+    neorg.lib.match(event.split_type[2])({
         ["news.all"] = function()
             module.public.create_display(
                 module.public.get_content(vim.tbl_extend("error", module.private.old_news, module.private.new_news))

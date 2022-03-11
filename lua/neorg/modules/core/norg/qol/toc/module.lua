@@ -293,14 +293,12 @@ module.public = {
             module.private.cur_bnr = vim.api.nvim_get_current_buf()
             module.private.cur_win = vim.api.nvim_get_current_win()
 
-            local autocommands = neorg.lib.match({
-                module.config.public.close_split_on_jump,
+            local autocommands = neorg.lib.match(module.config.public.close_split_on_jump)({
                 ["true"] = { "BufDelete", "BufUnload" },
                 ["false"] = { "BufDelete", "BufUnload" },
             })
 
-            local placement = neorg.lib.match({
-                module.config.public.toc_split_placement,
+            local placement = neorg.lib.match(module.config.public.toc_split_placement)({
                 right = "vsplitr",
                 left = "vsplitl",
             })
@@ -389,8 +387,7 @@ module.public = {
 
 module.on_event = function(event)
     if event.split_type[1] == "core.neorgcmd" then
-        neorg.lib.match({
-            event.split_type[2],
+        neorg.lib.match(event.split_type[2])({
             ["toc.split"] = neorg.lib.wrap(module.public.display_toc, true),
             ["toc.inline"] = neorg.lib.wrap(module.public.display_toc),
             ["toc.toqflist"] = neorg.lib.wrap(module.public.toqflist),
