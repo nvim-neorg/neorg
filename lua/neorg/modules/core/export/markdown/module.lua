@@ -100,8 +100,8 @@ module.public = {
                     .. string.rep(" ", state.indent)
             end,
 
-            ["_paragraph_break"] = function(newlines)
-                return string.rep("\n", newlines:len()),
+            ["_paragraph_break"] = function(newlines, _, state)
+                return string.rep("\n", newlines:len()) .. string.rep(" ", state.indent),
                     false,
                     {
                         weak_indent = 0,
@@ -109,7 +109,9 @@ module.public = {
                     }
             end,
 
-            ["_segment"] = true,
+            ["_segment"] = function(text, _, state)
+                return string.rep(" ", state.indent) .. text
+            end,
 
             ["heading1_prefix"] = "# ",
             ["heading2_prefix"] = "## ",
@@ -254,7 +256,29 @@ module.public = {
             ["todo_item_on_hold"] = todo_item_extended("[ ] "),
             ["todo_item_uncertain"] = todo_item_extended("[ ] "),
 
-            ["single_definition_prefix"] = ": ",
+            ["single_definition_prefix"] = function()
+                return module.config.public.extensions["definition-lists"] and ": "
+            end,
+
+            ["multi_definition_prefix"] = function(_, _, state)
+                if not module.config.public.extensions["definition-lists"] then
+                    return
+                end
+
+                return ": ", false, {
+                    indent = state.indent + 2,
+                }
+            end,
+
+            ["multi_definition_suffix"] = function(_, _, state)
+                if not module.config.public.extensions["definition-lists"] then
+                    return
+                end
+
+                return nil, false, {
+                    indent = state.indent - 2,
+                }
+            end,
         },
 
         recollectors = {
@@ -285,6 +309,22 @@ module.public = {
             ["todo_item4"] = todo_item_recollector(),
             ["todo_item5"] = todo_item_recollector(),
             ["todo_item6"] = todo_item_recollector(),
+
+            ["single_definition"] = function(output)
+                return {
+                    output[2],
+                    output[3],
+                    output[1],
+                    output[4],
+                }
+            end,
+
+            ["multi_definition"] = function(output)
+                output[3] = output[3]:gsub("^\n+  ", "\n") .. output[1]
+                table.remove(output, 1)
+
+                return output
+            end,
         },
 
         cleanup = function(text)

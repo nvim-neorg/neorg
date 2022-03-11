@@ -122,6 +122,7 @@ module.public = {
             end
 
             local recollector = converter.export.recollectors[start:type()]
+
             return recollector and table.concat(recollector(output) or {})
                 or (not vim.tbl_isempty(output) and table.concat(output))
         end
