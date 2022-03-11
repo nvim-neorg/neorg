@@ -228,14 +228,22 @@ neorg.lib = {
 
             for case, action in pairs(statements) do
                 if compare(value, case) then
-                    return type(action) == "function" and action(value) or action
+                    if type(action) == "function" then
+                        return action(value)
+                    end
+
+                    return action
                 end
             end
 
             if statements._ then
                 local action = statements._
 
-                return type(action) == "function" and action(value) or action
+                if type(action) == "function" then
+                    return action(value)
+                end
+
+                return action
             end
         end
     end,
