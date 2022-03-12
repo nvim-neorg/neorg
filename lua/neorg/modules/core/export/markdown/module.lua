@@ -299,7 +299,12 @@ module.public = {
             end,
 
             ["ranged_tag"] = function(output)
-                table.insert(output, 3, "\n")
+                if #output == 2 or output[2]:sub(-1, -1) == "\n" then
+                    table.insert(output, 2, "\n")
+                else
+                    table.insert(output, 3, "\n")
+                end
+
                 return output
             end,
 
