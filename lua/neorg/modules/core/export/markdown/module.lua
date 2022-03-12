@@ -185,6 +185,12 @@ module.public = {
                 return vim.uri_from_fname(text .. ".md"):sub(string.len("file://") + 1)
             end,
 
+            ["link_target_url"] = function()
+                return nil, false, {
+                    is_url = true,
+                }
+            end,
+
             ["escape_sequence"] = function(text)
                 local escaped_char = text:sub(-1)
                 return escaped_char:match("%p") and text or escaped_char
@@ -291,7 +297,13 @@ module.public = {
         },
 
         recollectors = {
-            ["link_location"] = function(output)
+            ["link_location"] = function(output, state)
+                if state.is_url then
+                    state.is_url = false
+                    output[#output - 1] = vim.uri_from_fname(output[#output - 1]):sub(string.len("file://") + 1)
+                    return output
+                end
+
                 table.insert(output, #output - 1, "#")
 
                 last_parsed_link_location = output[#output - 1]
@@ -342,6 +354,7 @@ module.public = {
         },
 
         cleanup = function(text)
+            last_parsed_link_location = ""
             return text:gsub("\n\n\n+", "\n\n")
         end,
     },
