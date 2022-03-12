@@ -109,8 +109,8 @@ module.public = {
                     }
             end,
 
-            ["_segment"] = function(text, _, state)
-                return string.rep(" ", state.indent) .. text
+            ["_segment"] = function(text, node, state)
+                return string.rep(" ", state.indent + (({ node:range() })[2] - state.ranged_tag_indentation_level)) .. text
             end,
 
             ["heading1_prefix"] = "# ",
@@ -277,6 +277,12 @@ module.public = {
 
                 return nil, false, {
                     indent = state.indent - 2,
+                }
+            end,
+
+            ["_prefix"] = function(_, node)
+                return nil, false, {
+                    ranged_tag_indentation_level = ({ node:range() })[2],
                 }
             end,
         },
