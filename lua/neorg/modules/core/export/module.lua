@@ -136,7 +136,22 @@ module.on_event = function(event)
     if event.type == "core.neorgcmd.events.export.to-file" then
         local filetype = module.public.get_filetype(event.content[1], event.content[2])
         local exported = module.public.export(event.buffer, filetype)
-        log.warn(exported)
+
+        vim.loop.fs_open(event.content[1], "w", 438, function(err, fd)
+            assert(
+                not err,
+                neorg.lib.lazy_string_concat("Failed to open file '", event.content[1], "' for export: ", err)
+            )
+
+            vim.loop.fs_write(fd, exported, function(werr)
+                assert(
+                    not werr,
+                    neorg.lib.lazy_string_concat("Failed to write to file '", event.content[1], "' for export: ", err)
+                )
+            end)
+
+            vim.schedule(neorg.lib.wrap(vim.notify, "Successfully exported 1 file!"))
+        end)
     end
 end
 
