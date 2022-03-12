@@ -511,6 +511,24 @@ neorg.lib = {
 
         -- return nil
     end,
+
+    order_associative_array = function(array, pred)
+        local ordered_keys = {}
+
+        for k in pairs(array) do
+            table.insert(ordered_keys, k)
+        end
+
+        table.sort(ordered_keys, pred)
+
+        local result = {}
+
+        for i = 1, #ordered_keys do
+            table.insert(result, array[ordered_keys[i]])
+        end
+
+        return result
+    end,
 }
 
 return neorg.utils
