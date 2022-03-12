@@ -1,3 +1,8 @@
+-- TODO: One day this module will need to be restructured or maybe even rewritten.
+-- It's not atrocious, but there are a lot of moving parts that make it difficult to understand
+-- from another person's perspective. Some cleanup and rethinking of certain implementation
+-- details will be necessary.
+
 local module = neorg.modules.create("core.export.markdown")
 
 local last_parsed_link_location = ""
@@ -82,6 +87,8 @@ module.public = {
                     0,
                 },
                 tag_close = "",
+                ranged_tag_indentation_level = 0,
+                is_url = false,
             }
         end,
 
@@ -294,6 +301,14 @@ module.public = {
                         ranged_tag_indentation_level = ({ node:range() })[2],
                     }
             end,
+
+            ["capitalized_word"] = function(text, node)
+                if node:parent():type() == "insertion" then
+                    if text == "Image" then
+                        return "!["
+                    end
+                end
+            end,
         },
 
         recollectors = {
@@ -348,6 +363,18 @@ module.public = {
             ["multi_definition"] = function(output)
                 output[3] = output[3]:gsub("^\n+  ", "\n") .. output[1]
                 table.remove(output, 1)
+
+                return output
+            end,
+
+            ["insertion"] = function(output)
+                if output[1] == "![" then
+                    table.insert(output, 1, "\n")
+
+                    local split = vim.split(output[3], "/", { plain = true })
+                    table.insert(output, 3, (split[#split]:match("^(.+)%..+$") or split[#split]) .. "](")
+                    table.insert(output, ")\n")
+                end
 
                 return output
             end,
