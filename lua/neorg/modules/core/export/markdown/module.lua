@@ -59,6 +59,7 @@ module.load = function()
             "todo-items-pending",
             "todo-items-extended",
             "definition-lists",
+            "mathematics",
         }
     end
 
@@ -70,6 +71,17 @@ module.config.public = {
     -- default no extensions are loaded (the exporter is commonmark compliant).
     -- You can also set this value to `all` to enable all extensions.
     extensions = {},
+
+    mathematics = {
+        inline = {
+            start = "$",
+            ["end"] = "$",
+        },
+        block = {
+            start = "$$",
+            ["end"] = "$$",
+        },
+    },
 }
 
 module.public = {
@@ -145,6 +157,8 @@ module.public = {
                     return "`"
                 elseif type == "inline_comment" then
                     return "<!-- "
+                elseif type == "inline_math" and module.config.public.extensions["mathematics"] then
+                    return module.config.public.mathematics.inline["start"]
                 end
             end,
 
@@ -165,6 +179,8 @@ module.public = {
                     return "`"
                 elseif type == "inline_comment" then
                     return " -->"
+                elseif type == "inline_math" and module.config.public.extensions["mathematics"] then
+                    return module.config.public.mathematics.inline["end"]
                 end
             end,
 
@@ -223,6 +239,10 @@ module.public = {
                 if text == "code" then
                     return "```", false, {
                         tag_close = "```",
+                    }
+                elseif text == "math" and module.config.public.extensions["mathematics"] then
+                    return module.config.public.mathematics.block["start"], false, {
+                        tag_close = module.config.public.mathematics.block["end"]
                     }
                 end
             end,
