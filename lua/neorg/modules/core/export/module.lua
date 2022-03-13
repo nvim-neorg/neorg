@@ -80,6 +80,10 @@ module.public = {
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         local function descend(start)
+            if start:type() == "ERROR" then
+                return ""
+            end
+
             local output = {}
 
             for node in start:iter_children() do
