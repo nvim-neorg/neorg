@@ -241,9 +241,11 @@ module.public = {
                         tag_close = "```",
                     }
                 elseif text == "math" and module.config.public.extensions["mathematics"] then
-                    return module.config.public.mathematics.block["start"], false, {
-                        tag_close = module.config.public.mathematics.block["end"]
-                    }
+                    return module.config.public.mathematics.block["start"],
+                        false,
+                        {
+                            tag_close = module.config.public.mathematics.block["end"],
+                        }
                 end
             end,
 
