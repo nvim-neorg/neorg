@@ -237,12 +237,21 @@ require('nvim-treesitter.configs').setup {
 
 ### Troubleshooting Treesitter
 
-- Having a rare occurence where the parser doesn't work instantly? Try running `:e`.
-  **Still not working**? Uh oh, you're stepping on muddy territory. There are several reasons why a parser
-  may not work right off the bat, however most commonly it's because of plugin loading order.
-  Neorg needs `nvim-treesitter` to be up and running before it starts adding colors to highlight groups.
+- Some people have reported that using the `before` key in `nvim-treesitter`'s
+  `use` call in packer works better as opposed to the `after` key:
+  ```lua
+  use {
+      "nvim-treesitter/nvim-treesitter",
+      before = "neorg",
+      config = ...,
+  }
+  ```
 - Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
-- If you're on Mac and have compilation errors when doing `:TSInstall`, check out this [fix](https://github.com/nvim-neorg/neorg/issues/74#issuecomment-906627223).
+- If on MacOS, ensure that the `CC` environment variable points to a compiler that has C++14 support.
+  You can run Neovim like so: `CC=/path/to/newer/compiler nvim -c
+  "TSInstallSync norg"` in your shell of choice
+  to install the Neorg parser with a newer compiler. You may also want to export the `CC` variable in general:
+  `export CC=/path/to/newer/compiler`.
 
 ## 📦 Setup
 
