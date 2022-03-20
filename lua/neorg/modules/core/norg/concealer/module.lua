@@ -78,8 +78,7 @@ module.setup = function()
             "preset_basic",
             "preset_varied",
             "preset_diamond",
-            "preset_safe",
-            "preset_brave",
+            "preset_conceal",
             "preset_dimmed",
         },
     }
@@ -171,7 +170,9 @@ module.public = {
                                         range.column_start + offset,
                                         range.column_end,
                                         false,
-                                        "combine"
+                                        "combine",
+                                        nil,
+                                        icon_data.conceal
                                     )
                                 else
                                     module.public._set_extmark(
@@ -184,7 +185,9 @@ module.public = {
                                         range.column_start + offset,
                                         range.column_end,
                                         false,
-                                        "combine"
+                                        "combine",
+                                        icon_data.conceal and "eol",
+                                        icon_data.conceal
                                     )
                                 end
                             end
@@ -434,7 +437,7 @@ module.public = {
     -- @Param  whole_line (boolean) - if true will highlight the whole line (like in diffs)
     -- @Param  mode (string: "replace"/"combine"/"blend") - the highlight mode for the extmark
     -- @Param pos (string: "overlay"/"eol"/"right_align") - the position to place the extmark in (defaults to "overlay")
-    _set_extmark = function(buf, text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode, pos)
+    _set_extmark = function(buf, text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode, pos, conceal)
         if not vim.api.nvim_buf_is_loaded(buf) then
             return
         end
@@ -444,8 +447,13 @@ module.public = {
             text = { { text, highlight } }
         end
 
+        if conceal ~= nil then
+            text = { { " " } }
+            pos = "eol"
+        end
+
         -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        pcall(vim.api.nvim_buf_set_extmark, buf, ns, line_number, start_column, {
+        vim.api.nvim_buf_set_extmark(buf, ns, line_number, start_column, {
             end_col = end_column,
             hl_group = highlight,
             end_line = end_line,
@@ -453,6 +461,7 @@ module.public = {
             virt_text_pos = pos or "overlay",
             hl_mode = mode,
             hl_eol = whole_line,
+            conceal = conceal,
         })
     end,
 
@@ -1630,16 +1639,16 @@ module.config.public = {
         },
     },
 
-    -- Markup presets to use (currents: `safe`, `brave`, `dimmed`)
-    -- `safe` will use whitespaces to conceal markup
-    -- `brave` will use the word joiner unicode
+    -- Markup presets to use (currents: `conceal`, `dimmed`)
+    -- `conceal` will conceal all markup items
     -- `dimmed` will dim markup icons instead of concealing them
-    markup_preset = "dimmed",
+    markup_preset = "conceal",
 
     -- Markup related config
     markup = {
         enabled = true,
         icon = " ",
+        conceal = "",
 
         bold = {
             enabled = true,
@@ -1919,7 +1928,7 @@ module.load = function()
     -- @Param  tbl (table) - the table to parse
     -- @Param parent_icon (string) - Is used to pass icons from parents down to their table children to handle inheritance.
     -- @Param rec_name (string) - should not be set manually. Is used for Neorg to have information about all other previous recursions
-    local function get_enabled_icons(tbl, parent_icon, rec_name)
+    local function get_enabled_icons(tbl, parent_icon, parent_conceal, rec_name)
         rec_name = rec_name or ""
 
         -- Create a result that we will return at the end of the function
@@ -1937,8 +1946,13 @@ module.load = function()
                 -- If we have defined a query value then add that icon to the result
                 if icons.query then
                     result[rec_name .. name] = icons
+
                     if icons.icon == nil then
                         result[rec_name .. name].icon = parent_icon
+                    end
+
+                    if icons.conceal == nil then
+                        result[rec_name .. name].conceal = parent_conceal
                     end
                 else
                     -- If we don't have an icon variable then we need to descend further down the lua table.
@@ -1946,7 +1960,7 @@ module.load = function()
                     result = vim.tbl_deep_extend(
                         "force",
                         result,
-                        get_enabled_icons(icons, parent_icon, rec_name .. name)
+                        get_enabled_icons(icons, parent_icon, parent_conceal, rec_name .. name)
                     )
                 end
             end
@@ -1958,7 +1972,11 @@ module.load = function()
     -- Set the module.private.icons variable to the values of the enabled icons
     module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
     module.private.markup = vim.tbl_values(
-        get_enabled_icons(module.config.public.markup, module.config.public.markup.icon)
+        get_enabled_icons(
+            module.config.public.markup,
+            module.config.public.markup.icon,
+            module.config.public.markup.conceal
+        )
     )
 
     -- Register keybinds
@@ -2108,7 +2126,7 @@ module.on_event = function(event)
                             module.private.markup,
                             module.private.markup_namespace,
                             node_range and node_range.row_start,
-                            node_range and node_range.row_end
+                            node_range and node_range.row_end + 1
                         )
 
                         module.public.trigger_highlight_regex_code_block(buf, start, _end)
