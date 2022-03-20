@@ -88,6 +88,13 @@ module.public = {
     ---@param force_filetype string #Force a specific filetype instead of querying
     ---@return string #The filetype as extracted from the filename
     get_filetype = function(file, force_filetype)
+        -- Return early if the filetype ends with .norg
+        -- This is to prevent opening a dummy Neorg buffer
+        -- which could trigger e.g. the concealer and slow things down.
+        if vim.endswith(file, ".norg") then
+            return "norg"
+        end
+
         local filetype = force_filetype
 
         -- Getting an extension properly is... difficult
@@ -235,6 +242,10 @@ module.on_event = function(event)
 
         local filetype = module.public.get_filetype(event.content[1], event.content[2])
         local exported = module.public.export(event.buffer, filetype)
+
+        if not exported then
+            return
+        end
 
         vim.loop.fs_open(event.content[1], "w", 438, function(err, fd)
             assert(
