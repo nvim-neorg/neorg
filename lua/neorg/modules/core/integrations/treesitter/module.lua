@@ -14,7 +14,7 @@ module.private = {
 }
 
 module.setup = function()
-    return { success = true, requires = { "core.highlights", "core.mode", "core.keybinds" } }
+    return { success = true, requires = { "core.highlights", "core.mode", "core.keybinds", "core.neorgcmd" } }
 end
 
 module.load = function()
@@ -22,11 +22,49 @@ module.load = function()
 
     assert(success, "Unable to load nvim-treesitter.ts_utils :(")
 
+    if module.config.public.configure_parsers then
+        local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
+
+        parser_configs.norg = {
+            install_info = {
+                url = "https://github.com/nvim-neorg/tree-sitter-norg",
+                files = { "src/parser.c", "src/scanner.cc" },
+                branch = "main",
+            },
+        }
+
+        parser_configs.norg_meta = {
+            install_info = {
+                url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
+                files = { "src/parser.c" },
+                branch = "main",
+            }
+        }
+    end
+
+    module.required["core.neorgcmd"].add_commands_from_table({
+        definitions = {
+            ["sync-parsers"] = {},
+        },
+        data = {
+            ["sync-parsers"] = {
+                args = 0,
+                name = "sync-parsers",
+            }
+        },
+    })
+
+    assert(pcall(vim.treesitter.get_parser, 0, "norg"), "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it.")
+
     module.private.ts_utils = ts_utils
 
     module.required["core.mode"].add_mode("traverse-heading")
     module.required["core.keybinds"].register_keybinds(module.name, { "next.heading", "previous.heading" })
 end
+
+module.config.public = {
+    configure_parsers = true,
+}
 
 ---@class core.integrations.treesitter
 module.public = {
@@ -370,6 +408,9 @@ module.on_event = function(event)
         elseif event.split_type[2] == "core.integrations.treesitter.previous.heading" then
             module.public.goto_previous_heading()
         end
+    elseif event.split_type[2] == "sync-parsers" then
+        pcall(vim.cmd, "TSUpdate norg")
+        pcall(vim.cmd, "TSUpdate norg_meta")
     end
 end
 
@@ -378,6 +419,10 @@ module.events.subscribed = {
         ["core.integrations.treesitter.next.heading"] = true,
         ["core.integrations.treesitter.previous.heading"] = true,
     },
+
+    ["core.neorgcmd"] = {
+        ["sync-parsers"] = true,
+    }
 }
 
 return module
