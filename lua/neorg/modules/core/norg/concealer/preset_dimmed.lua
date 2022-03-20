@@ -2,6 +2,8 @@ local module = neorg.modules.extend("core.norg.concealer.preset_dimmed", "core.n
 
 module.config.private.markup_preset_dimmed = {
     enabled = true,
+    icon = " ",
+    conceal = nil,
 
     bold = {
         enabled = false,
