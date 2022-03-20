@@ -469,7 +469,9 @@ module.public = {
         })
 
         if not ok and err:find("conceal") then
-            log.error("Uh oh, it seems that you're running 0.7, but aren't on the absolute latest version of nightly.\nNeorg's new concealing requires you to be either on 0.6 or on the absolute latest 0.7!")
+            log.error(
+                "Uh oh, it seems that you're running 0.7, but aren't on the absolute latest version of nightly.\nNeorg's new concealing requires you to be either on 0.6 or on the absolute latest 0.7!"
+            )
         end
     end,
 
