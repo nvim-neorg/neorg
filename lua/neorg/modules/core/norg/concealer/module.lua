@@ -442,6 +442,10 @@ module.public = {
             return
         end
 
+        if not neorg.utils.is_minimum_version(0, 7, 0) then
+            conceal = nil
+        end
+
         -- If the text type is a string then convert it into something that Neovim's extmark API can understand
         if type(text) == "string" then
             text = { { text, highlight } }
@@ -453,7 +457,7 @@ module.public = {
         end
 
         -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        vim.api.nvim_buf_set_extmark(buf, ns, line_number, start_column, {
+        local ok, err = pcall(vim.api.nvim_buf_set_extmark, buf, ns, line_number, start_column, {
             end_col = end_column,
             hl_group = highlight,
             end_line = end_line,
@@ -463,6 +467,10 @@ module.public = {
             hl_eol = whole_line,
             conceal = conceal,
         })
+
+        if not ok and err:find("conceal") then
+            log.error("Uh oh, it seems that you're running 0.7, but aren't on the absolute latest version of nightly.\nNeorg's new concealing requires you to be either on 0.6 or on the absolute latest 0.7!")
+        end
     end,
 
     get_old_extmarks = function(buf, namespace, from, to)
