@@ -38,7 +38,7 @@ module.load = function()
                 url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
                 files = { "src/parser.c" },
                 branch = "main",
-            }
+            },
         }
     end
 
@@ -50,11 +50,14 @@ module.load = function()
             ["sync-parsers"] = {
                 args = 0,
                 name = "sync-parsers",
-            }
+            },
         },
     })
 
-    assert(pcall(vim.treesitter.get_parser, 0, "norg"), "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it.")
+    assert(
+        pcall(vim.treesitter.get_parser, 0, "norg"),
+        "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it."
+    )
 
     module.private.ts_utils = ts_utils
 
@@ -422,7 +425,7 @@ module.events.subscribed = {
 
     ["core.neorgcmd"] = {
         ["sync-parsers"] = true,
-    }
+    },
 }
 
 return module
