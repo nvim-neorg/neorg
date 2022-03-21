@@ -40,24 +40,24 @@ module.load = function()
                 branch = "main",
             },
         }
-    end
 
-    module.required["core.neorgcmd"].add_commands_from_table({
-        definitions = {
-            ["sync-parsers"] = {},
-        },
-        data = {
-            ["sync-parsers"] = {
-                args = 0,
-                name = "sync-parsers",
+        module.required["core.neorgcmd"].add_commands_from_table({
+            definitions = {
+                ["sync-parsers"] = {},
             },
-        },
-    })
+            data = {
+                ["sync-parsers"] = {
+                    args = 0,
+                    name = "sync-parsers",
+                },
+            },
+        })
 
-    assert(
-        neorg.lib.inline_pcall(vim.treesitter.parse_query, "norg", [[]]),
-        "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it."
-    )
+        assert(
+            neorg.lib.inline_pcall(vim.treesitter.parse_query, "norg", [[]]),
+            "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it."
+        )
+    end
 
     module.private.ts_utils = ts_utils
 
