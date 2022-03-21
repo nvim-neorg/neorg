@@ -152,7 +152,6 @@ module.public = {
         local name = vim.api.nvim_buf_get_name(buf)
 
         if module.private.user_scrolloff then
-            log.info("scrolloff: " .. module.private.user_scrolloff)
             vim.o.scrolloff = module.private.user_scrolloff
         end
 
@@ -208,7 +207,8 @@ module.public = {
         vim.api.nvim_win_set_buf(0, buf)
 
         -- Keep user scrolloff for when the ui is closed
-        module.private.user_scrolloff = vim.o.scrolloff
+        -- We can't use vim.o.scrolloff here because it seems to get a weird value...
+        module.private.user_scrolloff = vim.api.nvim_get_option("scrolloff")
 
         vim.api.nvim_buf_call(buf, function()
             vim.cmd("set scrolloff=999")
