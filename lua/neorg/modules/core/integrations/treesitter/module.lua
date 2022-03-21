@@ -54,10 +54,10 @@ module.load = function()
         },
     })
 
-    assert(
-        pcall(vim.treesitter.get_parser, 0, "norg"),
-        "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it."
-    )
+    -- assert(
+    --     pcall(vim.treesitter.get_parser, 0, "norg"),
+    --     "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it."
+    -- )
 
     module.private.ts_utils = ts_utils
 
