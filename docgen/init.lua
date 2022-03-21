@@ -13,7 +13,7 @@ require("neorg").setup({
         ["core.integrations.treesitter"] = {
             config = {
                 configure_parsers = false,
-            }
+            },
         },
     },
 })
