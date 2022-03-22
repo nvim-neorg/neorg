@@ -360,5 +360,5 @@
 (inline_math ["_open" "_close"] @NeorgMarkupMathDelimiter) @NeorgMarkupMath
 (variable ["_open" "_close"] @NeorgMarkupVariableDelimiter) @NeorgMarkupVariable
 
-(superscript (subscript)) @NeorgError
-(subscript (superscript)) @NeorgError
+(superscript (subscript) @NeorgError (#set! priority 300))
+(subscript (superscript) @NeorgError (#set! priority 300))
