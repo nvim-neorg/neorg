@@ -362,3 +362,32 @@
 
 (superscript (subscript) @NeorgError (#set! priority 300))
 (subscript (superscript) @NeorgError (#set! priority 300))
+
+; Conceals
+(
+    [
+        "_open"
+        "_close"
+        "_trailing_modifier"
+        (link_modifier)
+    ] @conceal
+    (#set! conceal "")
+)
+
+(
+    [
+        (link
+            (_
+                [
+                    "_begin"
+                    "_end"
+                ] @conceal
+            )
+        )
+        (link
+            (link_location) @conceal
+            (link_description)
+        )
+    ]
+    (#set! conceal "")
+)
