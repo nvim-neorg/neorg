@@ -1612,6 +1612,20 @@ module.config.public = {
                 end,
             },
         },
+
+        markup = {
+            enabled = true,
+
+            spoiler = {
+                enabled = true,
+                icon = "•",
+                highlight = "NeorgMarkupSpoiler",
+                query = '(spoiler ("_open") _ @icon ("_close"))',
+                render = function(self, text)
+                    return { { string.rep(self.icon, text:len()), self.highlight } }
+                end,
+            },
+        },
     },
 
     -- If you want to dim code blocks
