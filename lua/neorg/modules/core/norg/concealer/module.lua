@@ -1864,15 +1864,6 @@ module.on_event = function(event)
                             _end
                         )
 
-                        local node_range =
-                            module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
-
-                        if node_range then
-                            node_range = module.required["core.integrations.treesitter"].get_node_range(
-                                node_range:parent()
-                            )
-                        end
-
                         module.public.trigger_highlight_regex_code_block(buf, start, _end)
 
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
