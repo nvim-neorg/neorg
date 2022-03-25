@@ -45,6 +45,9 @@ module.private = {
         line = 0,
     },
 
+    -- we need to track the buffers in use
+    last_buffer = "",
+
     disable_deferred_updates = false,
     debounce_counters = {},
 
@@ -66,7 +69,6 @@ module.public = {
     -- fills module.private.loaded_code_blocks with the list of active code blocks in the buffer
     -- stores globally apparently
     check_code_block_type = function(buf, reload, from, to)
-
         -- parse the current buffer, and clear out the buffer's loaded code blocks if needed
         local current_buf = vim.api.nvim_buf_get_name(buf)
 
@@ -177,7 +179,7 @@ module.public = {
     end,
 
     -- load syntax files for regex code blocks
-    trigger_highlight_regex_code_block = function(buf, remove, from, to)
+    trigger_highlight_regex_code_block = function(buf, remove, ignore_buf, from, to)
         -- scheduling this function seems to break parsing properly
         -- schedule(function()
         local current_buf = vim.api.nvim_buf_get_name(buf)
@@ -186,6 +188,9 @@ module.public = {
             return
         end
         local lang_table = module.private.code_block_table[current_buf].loaded_regex
+        if ignore_buf == false and vim.api.nvim_buf_get_name(buf) == module.private.last_buffer then
+            return
+        end
         for lang_name, curr_table in pairs(lang_table) do
             if curr_table.type == "syntax" then
                 -- NOTE: the regex fallback code was originally mostly adapted from Vimwiki
@@ -208,7 +213,7 @@ module.public = {
                 -- look to see if the textGroup is actually empty
                 -- clusters don't delete when they're clear
                 for line in result:gmatch("([^\n]*)\n?") do
-                    empty_result = string.match(line, "textGroup%w+%s+cluster=NONE")
+                    empty_result = string.match(line, "@textGroup%w+%s+cluster=NONE")
                     if empty_result == nil then
                         empty_result = 0
                     else
@@ -246,9 +251,15 @@ module.public = {
                         if table.type == "syntax" then
                             if lang_name == syntax then
                                 -- get the file name for the syntax file
-                                local file = vim.api.nvim_get_runtime_file(string.format("syntax/%s.vim", syntax), false)
+                                local file = vim.api.nvim_get_runtime_file(
+                                    string.format("syntax/%s.vim", syntax),
+                                    false
+                                )
                                 if file == nil then
-                                    file = vim.api.nvim_get_runtime_file(string.format("after/syntax/%s.vim", syntax), false)
+                                    file = vim.api.nvim_get_runtime_file(
+                                        string.format("after/syntax/%s.vim", syntax),
+                                        false
+                                    )
                                 end
                                 file = file[1]
                                 local command = string.format("syntax include @%s %s", group, file)
@@ -305,6 +316,7 @@ module.public = {
                 module.public.sync_regex_code_blocks(buf, lang_name, from, to)
 
                 vim.b.current_syntax = ""
+                module.private.last_buffer = vim.api.nvim_buf_get_name(buf)
             end
         end
         -- end)
@@ -405,6 +417,8 @@ module.load = function()
     -- This is generally any potential redraw event
     module.required["core.autocommands"].enable_autocommand("BufEnter")
     module.required["core.autocommands"].enable_autocommand("ColorScheme")
+    module.required["core.autocommands"].enable_autocommand("TextChanged")
+    -- module.required["core.autocommands"].enable_autocommand("TextChangedI")
 
     -- module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
@@ -424,7 +438,6 @@ module.on_event = function(event)
             >= module.config.public.performance.max_debounce
     end
 
-
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         local buf = event.buffer
 
@@ -433,11 +446,11 @@ module.on_event = function(event)
         -- TODO mess with performance stuff
         if line_count < module.config.public.performance.increment then
             module.public.check_code_block_type(buf, false)
-            module.public.trigger_highlight_regex_code_block(buf, true)
+            module.public.trigger_highlight_regex_code_block(buf, false, false)
         else
             -- don't increment on a bufenter at all
             module.public.check_code_block_type(buf, false)
-            module.public.trigger_highlight_regex_code_block(buf, false)
+            module.public.trigger_highlight_regex_code_block(buf, false, false)
         end
         vim.api.nvim_buf_attach(buf, false, {
             on_lines = function(_, cur_buf, _, start, _end)
@@ -517,6 +530,7 @@ module.on_event = function(event)
                 module.public.trigger_highlight_regex_code_block(
                     event.buffer,
                     false,
+                    true,
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
@@ -530,6 +544,7 @@ module.on_event = function(event)
                 module.public.trigger_highlight_regex_code_block(
                     event.buffer,
                     false,
+                    true,
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
@@ -540,8 +555,12 @@ module.on_event = function(event)
     elseif event.type == "core.autocommands.events.vimleavepre" then
         module.private.disable_deferred_updates = true
         -- this autocmd is used to fix hi link syntax languages
+    elseif event.type == "core.autocommands.events.textchanged" then
+        module.private.trigger_highlight_regex_code_block(event.buffer, false, true)
+        -- elseif event.type == "core.autocommands.events.textchangedi" then
+        --     module.private.trigger_highlight_regex_code_block(event.buffer, false, true)
     elseif event.type == "core.autocommands.events.colorscheme" then
-        module.public.trigger_highlight_regex_code_block(event.buffer, true)
+        module.public.trigger_highlight_regex_code_block(event.buffer, true, false)
     end
 end
 
