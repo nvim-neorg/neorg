@@ -416,6 +416,32 @@ module.public = {
             _node = _node:parent()
         end
     end,
+
+    get_first_named_node_on_line = function(buf, line)
+        local query_str = [[
+            (document
+                (_) @node
+            )
+        ]]
+
+        local document_root = module.public.get_document_root(buf)
+
+        if not document_root then
+            return
+        end
+
+        local query = vim.treesitter.parse_query("norg", query_str)
+
+        for id, node in query:iter_captures(document_root, buf, line, line) do
+            if query.captures[id] == "node" then
+                local range = module.public.get_node_range(node)
+
+                if range.row_start == line then
+                    return node
+                end
+            end
+        end
+    end,
 }
 
 module.on_event = function(event)

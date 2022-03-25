@@ -457,7 +457,7 @@ module.public = {
     end,
 
     completion_levels = {
-        trigger_completion_levels_incremental = function(buf)
+        trigger_completion_levels_incremental = function(buf, line)
             -- Get the root node of the document (required to iterate over query captures)
             local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
@@ -467,8 +467,12 @@ module.public = {
 
             local current_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
 
-            if not current_node then
-                return
+            if not current_node or current_node:type() == "document" then
+                current_node = module.required["core.integrations.treesitter"].get_first_named_node_on_line(buf, line)
+
+                if not current_node then
+                    return
+                end
             end
 
             local parent = module.required["core.integrations.treesitter"].find_parent(
@@ -1909,6 +1913,7 @@ module.on_event = function(event)
                 event.cursor_position[1] - 1,
                 event.cursor_position[1]
             )
+
             vim.api.nvim_buf_clear_namespace(
                 event.buffer,
                 module.private.completion_level_namespace,
@@ -1935,7 +1940,11 @@ module.on_event = function(event)
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
-                module.public.completion_levels.trigger_completion_levels_incremental(event.buffer)
+
+                module.public.completion_levels.trigger_completion_levels_incremental(
+                    event.buffer,
+                    event.cursor_position[1] - 1
+                )
             else
                 module.public.trigger_icons(
                     event.buffer,
@@ -1949,7 +1958,10 @@ module.on_event = function(event)
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
-                module.public.completion_levels.trigger_completion_levels_incremental(event.buffer)
+                module.public.completion_levels.trigger_completion_levels_incremental(
+                    event.buffer,
+                    event.cursor_position[1] - 1
+                )
             end
 
             module.private.largest_change_start, module.private.largest_change_end = -1, -1
