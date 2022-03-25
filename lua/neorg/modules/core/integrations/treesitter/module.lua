@@ -419,9 +419,7 @@ module.public = {
 
     get_first_named_node_on_line = function(buf, line)
         local query_str = [[
-            (document
-                (_) @node
-            )
+            (_) @node
         ]]
 
         local document_root = module.public.get_document_root(buf)
@@ -432,7 +430,7 @@ module.public = {
 
         local query = vim.treesitter.parse_query("norg", query_str)
 
-        for id, node in query:iter_captures(document_root, buf, line, line) do
+        for id, node in query:iter_captures(document_root, buf, line, line + 1) do
             if query.captures[id] == "node" then
                 local range = module.public.get_node_range(node)
 

@@ -465,10 +465,10 @@ module.public = {
                 return
             end
 
-            local current_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
+            local current_node = module.required["core.integrations.treesitter"].get_first_named_node_on_line(buf, line)
 
             if not current_node or current_node:type() == "document" then
-                current_node = module.required["core.integrations.treesitter"].get_first_named_node_on_line(buf, line)
+                current_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
 
                 if not current_node then
                     return
