@@ -23,6 +23,8 @@ module.load = function()
     assert(success, "Unable to load nvim-treesitter.ts_utils :(")
 
     if module.config.public.configure_parsers then
+        -- luacheck: push ignore
+
         local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
 
         parser_configs.norg = {
@@ -53,10 +55,18 @@ module.load = function()
             },
         })
 
-        assert(
-            neorg.lib.inline_pcall(vim.treesitter.parse_query, "norg", [[]]),
-            "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it."
-        )
+        parser_configs = vim.tbl_deep_extend("force", parser_configs, module.config.public.parser_configs)
+
+        -- luacheck: pop
+
+        if not neorg.lib.inline_pcall(vim.treesitter.parse_query, "norg", [[]]) then
+            if module.config.public.install_parsers then
+                pcall(vim.cmd, "TSUpdateSync norg")
+                pcall(vim.cmd, "TSUpdateSync norg_meta")
+            else
+                assert(false, "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it.")
+            end
+        end
     end
 
     module.private.ts_utils = ts_utils
@@ -67,6 +77,10 @@ end
 
 module.config.public = {
     configure_parsers = true,
+    install_parsers = true,
+    parser_configs = {
+        -- norg = { install_info = { branch = "" } }
+    },
 }
 
 ---@class core.integrations.treesitter
