@@ -294,7 +294,7 @@ module.public = {
                                     module.private.code_block_table[current_buf].loaded_regex[lang_name].cluster ~= nil
                                 then
                                     local command = string.format(
-                                        "syntax cluster %s add=%s",
+                                        "silent! syntax cluster %s add=%s",
                                         group,
                                         module.private.code_block_table[current_buf].loaded_regex[lang_name].cluster
                                     )
