@@ -313,7 +313,7 @@ module.public = {
                     end
 
                     has_syntax = string.format("syntax list %s", snip)
-                    ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
+                    _, result = pcall(vim.api.nvim_exec, has_syntax, true)
                     count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
 
                     --[[
@@ -417,17 +417,18 @@ module.public = {
                 )
                 vim.cmd(string.format("silent! %s", regex_fallback_hl))
 
+                -- NOTE: this is kept as a just in case
                 -- sync back from end block
-                regex_fallback_hl = string.format(
-                    [[
-                        syntax sync match %s
-                        \ groupthere %s
-                        \ "%s"
-                    ]],
-                    snip,
-                    snip,
-                    end_marker
-                )
+                -- regex_fallback_hl = string.format(
+                --     [[
+                --         syntax sync match %s
+                --         \ groupthere %s
+                --         \ "%s"
+                --     ]],
+                --     snip,
+                --     snip,
+                --     end_marker
+                -- )
                 -- TODO check groupthere, a slower process
                 -- vim.cmd(string.format("silent! %s", regex_fallback_hl))
                 -- vim.cmd("syntax sync maxlines=100")
@@ -518,15 +519,6 @@ module.on_event = function(event)
                         end
 
                         line_count = new_line_count
-
-                        local node_range =
-                            module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
-
-                        if node_range then
-                            node_range = module.required["core.integrations.treesitter"].get_node_range(
-                                node_range:parent()
-                            )
-                        end
 
                         vim.schedule(function()
                             module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
