@@ -191,12 +191,12 @@
 (marker (marker_prefix) @NeorgMarkerPrefix (paragraph_segment) @NeorgMarkerTitle)
 
 ; Definitions
-(single_definition (single_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle definition: (_)* @NeorgDefinitionContent)
-(multi_definition (multi_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle content: (_)* @NeorgDefinitionContent end: (multi_definition_suffix) @NeorgDefinitionEnd)
+(single_definition (single_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle definition: [(_) "_paragraph_break"]* @NeorgDefinitionContent)
+(multi_definition (multi_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle content: [(_) "_paragraph_break"]* @NeorgDefinitionContent end: (multi_definition_suffix) @NeorgDefinitionEnd)
 
 ; Footnotes
-(single_footnote (single_footnote_prefix) @NeorgFootnote title: (paragraph_segment) @NeorgFootnoteTitle content: (_)* @NeorgFootnoteContent)
-(multi_footnote (multi_footnote_prefix) @NeorgFootnote title: (paragraph_segment) @NeorgFootnoteTitle content: (_)* @NeorgFootnoteContent end: (multi_footnote_suffix) @NeorgFootnoteEnd)
+(single_footnote (single_footnote_prefix) @NeorgFootnote title: (paragraph_segment) @NeorgFootnoteTitle content: [(_) "_paragraph_break"]* @NeorgFootnoteContent)
+(multi_footnote (multi_footnote_prefix) @NeorgFootnote title: (paragraph_segment) @NeorgFootnoteTitle content: [(_) "_paragraph_break"]* @NeorgFootnoteContent end: (multi_footnote_suffix) @NeorgFootnoteEnd)
 
 ; Escape sequences (\char)
 (escape_sequence) @NeorgEscapeSequence
@@ -360,5 +360,52 @@
 (inline_math ["_open" "_close"] @NeorgMarkupMathDelimiter) @NeorgMarkupMath
 (variable ["_open" "_close"] @NeorgMarkupVariableDelimiter) @NeorgMarkupVariable
 
-(superscript (subscript)) @NeorgError
-(subscript (superscript)) @NeorgError
+(superscript (subscript) @NeorgError (#set! priority 300))
+(subscript (superscript) @NeorgError (#set! priority 300))
+
+; Conceals
+(
+    [
+        "_open"
+        "_close"
+        "_trailing_modifier"
+        (link_modifier)
+    ] @conceal
+    (#set! conceal "")
+)
+
+(
+    [
+        (link
+            (_
+                [
+                    "_begin"
+                    type: (_)
+                    "_end"
+                ] @conceal
+            )
+        )
+        (link
+            (link_location) @conceal
+            (link_description)
+        )
+    ]
+    (#set! conceal "")
+)
+
+(
+    [
+        (_
+            [
+                "_begin"
+                "_end"
+            ] @conceal
+            (#has-parent? "anchor_declaration" "anchor_definition")
+        )
+        (anchor_definition
+            (link_description)
+            (link_location) @conceal
+        )
+    ]
+    (#set! conceal "")
+)

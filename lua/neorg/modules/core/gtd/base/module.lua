@@ -4,10 +4,10 @@
     Summary: Manages your tasks with Neorg using the Getting Things Done methodology.
     ---
 GTD ("Getting Things Done") is a system designed to make collecting and executing ideas simple.
-You can read more about the GTD implementation [here](https://www.ionos.com/startupguide/productivity/getting-things-done-gtd)!
+You can read more about the GTD workflow [here](https://hamberg.no/gtd)!
 
 > Want to use a tutorial project to know the basics of GTD in Neorg ?
-> Follow the steps in [this](https://github.com/nvim-neorg/example_workspaces#neorg-gtd-tutorial) repository
+> Follow the steps in [this](https://github.com/nvim-neorg/example_workspaces#neorg-gtd-tutorial) repository !
 
 It's here where the keybinds and commands are created in order to interact with GTD stuff
 
@@ -116,11 +116,23 @@ module.load = function()
         end
     end
 
-    ---@type core.gtd.helpers
     if not error_loading then
+        ---@type core.gtd.helpers
         local helpers = module.required["core.gtd.helpers"]
-        if not helpers.get_gtd_files() then
-            error_loading = true
+
+        local files = helpers.get_gtd_files() or {}
+        if not files then
+            log.warn("No files found in " .. workspace .. " workspace")
+        end
+
+        if not vim.tbl_contains(files, module.config.public.default_lists.inbox) then
+            dirman.create_file(module.config.public.default_lists.inbox, workspace, { no_open = true })
+            log.warn("Inbox file not found in " .. workspace .. " workspace, creating it...")
+        end
+        local index = neorg.modules.get_module_config("core.norg.dirman").index
+        if not vim.tbl_contains(files, index) then
+            dirman.create_file(index, workspace, { no_open = true })
+            log.warn("Index file not found in " .. workspace .. " workspace, creating it...")
         end
     end
 
@@ -178,7 +190,7 @@ module.load = function()
                         local tasks = module.required["core.gtd.queries"].get("tasks")
                         local projects = module.required["core.gtd.queries"].get("projects")
 
-                        if not tasks or not projects then
+                        if not (tasks and projects) then
                             return
                         end
 

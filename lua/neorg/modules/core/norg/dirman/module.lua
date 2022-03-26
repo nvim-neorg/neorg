@@ -20,7 +20,6 @@ require('neorg').setup {
                 },
                 autochdir = true, -- Automatically change the directory to the current workspace's root every time
                 index = "index.norg", -- The name of the main (root) .norg file
-                last_workspace = vim.fn.stdpath("cache") .. "/neorg_last_workspace.txt" -- The location to write and read the workspace cache file
             }
         }
     }
@@ -37,7 +36,10 @@ local module = neorg.modules.create("core.norg.dirman")
 local scan = require("plenary.scandir")
 
 module.setup = function()
-    return { success = true, requires = { "core.autocommands", "core.neorgcmd", "core.keybinds", "core.ui" } }
+    return {
+        success = true,
+        requires = { "core.autocommands", "core.neorgcmd", "core.keybinds", "core.ui", "core.storage" },
+    }
 end
 
 module.load = function()
@@ -63,7 +65,7 @@ module.load = function()
         if neorg.configuration.arguments.workspace then
             module.public.open_workspace(neorg.configuration.arguments.workspace)
             vim.notify("Start in custom workspace -> " .. neorg.configuration.arguments.workspace)
-        elseif neorg.configuration.manual then
+        elseif neorg.configuration.manual and module.config.public.open_last_workspace then
             -- If we have loaded this module by invoking :NeorgStart then try jumping
             -- to the last cached workspace
             module.public.set_last_workspace()
@@ -86,8 +88,13 @@ module.config.public = {
     -- The name for the index file
     index = "index.norg",
 
-    -- The location where to look for the last workspace
-    last_workspace = vim.fn.stdpath("cache") .. "/neorg_last_workspace.txt",
+    -- The default workspace to load into when running `:NeorgStart`
+    -- This is only used whenever Neorg does not remember your previous
+    -- workspace
+    default_workspace = nil,
+
+    -- Whether to open the last workspace when running `:NeorgStart`
+    open_last_workspace = true,
 }
 
 module.private = {
@@ -265,12 +272,18 @@ module.public = {
         })
     end,
 
-    -- @Summary Creates a new Neorg file
-    -- @Description Takes in a path (can include directories) and creates a .norg file from that path
-    -- @Param  path (string) - a path to place the .norg file in
-    create_file = function(path, workspace)
+    --- Takes in a path (can include directories) and creates a .norg file from that path
+    ---@param path string a path to place the .norg file in
+    ---@param workspace string workspace name
+    ---@param opts? table additional options
+    ---  - opts.no_open (bool) if true, will not open the file in neovim after creating it
+    ---  - opts.force (bool) if true, will overwrite existing file content
+    create_file = function(path, workspace, opts)
+        opts = opts or {}
+
         -- Grab the current workspace's full path
         local fullpath
+
         if workspace ~= nil then
             fullpath = module.public.get_workspace(workspace)
         else
@@ -297,12 +310,24 @@ module.public = {
         end
 
         -- If the provided filepath ends in .norg then don't append the filetype automatically
-        -- Begin editing that newly created file
-        if vim.endswith(path, ".norg") then
-            vim.cmd("e " .. fullpath .. neorg.configuration.pathsep .. split[#split] .. " | w")
-        else
-            vim.cmd("e " .. fullpath .. neorg.configuration.pathsep .. split[#split] .. ".norg | w")
+        local fname = fullpath .. neorg.configuration.pathsep .. split[#split]
+        if not vim.endswith(path, ".norg") then
+            fname = fname .. ".norg"
         end
+
+        if opts.no_open then
+            -- Create the file
+            local fd = vim.loop.fs_open(fname, opts.force and "w" or "a", 438)
+
+            if fd then
+                vim.loop.fs_close(fd)
+            end
+
+            return
+        end
+
+        -- Begin editing that newly created file
+        vim.cmd("e " .. fname .. " | w")
     end,
 
     -- @Summary Open a Neorg file
@@ -323,61 +348,31 @@ module.public = {
     -- @Description Reads the neorg_last_workspace.txt file and loads the cached workspace from there
     set_last_workspace = function()
         -- Attempt to open the last workspace cache file in read-only mode
-        vim.loop.fs_open(module.config.public.last_workspace, "r", 438, function(err, fd)
-            -- Function that broadcasts to the environment that no cached workspace could be found
-            local cache_empty_notify = vim.schedule_wrap(function()
-                neorg.events.broadcast_event(
-                    neorg.events.create(
-                        module,
-                        "core.norg.dirman.events.workspace_cache_empty",
-                        module.public.get_workspaces()
-                    )
-                )
-            end)
+        local storage = neorg.modules.get_module("core.storage")
 
-            -- If we couldn't open the cache file then notify the environment of that
-            if err then
-                cache_empty_notify()
-                return
-            end
+        if not storage then
+            log.trace("Module `core.storage` not loaded, refusing to load last user's workspace.")
+            return
+        end
 
-            -- Attempt to stat the file and get the file length of the cache file
-            vim.loop.fs_stat(module.config.public.last_workspace, function(serr, stat)
-                -- If we fail to do so then notify the environment of that
-                if serr then
-                    cache_empty_notify()
-                    return
-                end
+        local last_workspace = storage.retrieve("last_workspace")
+        last_workspace = type(last_workspace) == "string" and last_workspace
+            or module.config.public.default_workspace
+            or ""
 
-                -- Read the cache file
-                vim.loop.fs_read(
-                    fd,
-                    stat.size,
-                    0,
-                    vim.schedule_wrap(function(rerr, read_data)
-                        assert(not rerr, rerr)
+        local workspace_path = module.public.get_workspace(last_workspace)
 
-                        -- If we have a workspace with the name present in the cache file then switch to that workspace
-                        if read_data:len() > 0 and module.public.get_workspace(read_data) then
-                            -- If we were successful in switching to that workspace then begin editing that workspace's index file
-                            if module.public.set_workspace(read_data) then
-                                vim.cmd(
-                                    "e "
-                                        .. module.public.get_workspace(read_data)
-                                        .. neorg.configuration.pathsep
-                                        .. module.config.public.index
-                                )
-                            end
+        if not workspace_path then
+            log.trace("Unable to switch to workspace '" .. last_workspace .. "'. The workspace does not exist.")
+            return
+        end
 
-                            -- Close the file handle
-                            vim.loop.fs_close(fd, function(cerr)
-                                assert(not cerr, cerr)
-                            end)
-                        end
-                    end)
-                )
-            end)
-        end)
+        -- If we were successful in switching to that workspace then begin editing that workspace's index file
+        if module.public.set_workspace(last_workspace) then
+            vim.cmd("e " .. workspace_path .. neorg.configuration.pathsep .. module.config.public.index)
+
+            vim.notify("Last Workspace -> " .. workspace_path)
+        end
     end,
 
     --- Checks for file existence by supplying a full path in `filepath`
@@ -452,26 +447,6 @@ module.public = {
         end
     end,
 
-    expand_path = function(path)
-        -- Expand special chars like `$`
-        local workspace, custom_workspace_path = path:match("^($([^/]*))")
-
-        if custom_workspace_path and custom_workspace_path:len() > 0 then
-            local workspace_path = module.public.get_workspace(custom_workspace_path)
-
-            if not workspace_path then
-                log.trace("Unable to expand path: workspace does not exist")
-                return
-            end
-
-            path = workspace_path .. workspace_path:sub(custom_workspace_path:len() + 2)
-        elseif workspace then
-            path = module.public.get_current_workspace()[2] .. path:sub(workspace:len() + 1)
-        end
-
-        return vim.fn.fnamemodify(path .. ".norg", ":p")
-    end,
-
     --- Touches a file in workspace
     --- TODO: make the touch file recursive
     --- @param path string
@@ -535,14 +510,11 @@ module.on_event = function(event)
         and module.public.get_current_workspace()[1] ~= "default"
     then
         -- Attempt to write the last workspace to the cache file
-        vim.loop.fs_open(module.config.public.last_workspace, "w", 438, function(err, fd)
-            assert(not err, err)
+        local storage = neorg.modules.get_module("core.storage")
 
-            local current_workspace_name = module.public.get_current_workspace()[1]
-
-            vim.loop.fs_write(fd, current_workspace_name, 0)
-            vim.loop.fs_close(fd)
-        end)
+        if storage then
+            storage.store("last_workspace", module.public.get_current_workspace()[1])
+        end
     end
 
     -- If somebody has executed the :Neorg workspace command then

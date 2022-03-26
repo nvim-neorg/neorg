@@ -500,6 +500,7 @@ module.public = {
                         delimiter = " -> ",
                         -- Automatically destroys the popup when prompt is confirmed
                         destroy = true,
+                        prompt_text = nil,
                     },
 
                     self:options_for( -- First merge the global options
@@ -547,6 +548,11 @@ module.public = {
                 -- Jump to insert mode
                 vim.api.nvim_feedkeys("A", "t", false)
 
+                -- Add prompt text in the prompt
+                if configuration.prompt_text then
+                    vim.api.nvim_feedkeys(configuration.prompt_text, "n", false)
+                end
+
                 return self
             end,
 
@@ -585,6 +591,11 @@ module.public = {
             end,
 
             -- TODO: Add support for a callback to be invoked on state change
+            --- Nicely display a data to be re-rendered on each modification
+            ---@param key string key to data
+            ---@param format string formatted string to display the content of key
+            ---@param force_render? boolean forcefully render the message even if the state isn't present
+            ---@return core.ui.selection
             stateof = function(self, key, format, force_render)
                 format = format or "%s"
                 force_render = force_render or false

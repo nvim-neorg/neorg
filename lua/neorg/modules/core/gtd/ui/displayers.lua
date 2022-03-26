@@ -529,7 +529,11 @@ module.public = {
         table.insert(res, "** Unclarified " .. type .. "s")
         neorg.lib.when(type == "task", function()
             table.insert(res, "> - tasks without `contexts` or `waiting_for`")
-            table.insert(res, "> Note: tasks that have a `due/start` date are de facto clarified")
+            table.insert(res, "> - tasks without a project in `someday`")
+            table.insert(
+                res,
+                "> Note: tasks that have a `due/start` date OR a `someday` context are de facto clarified"
+            )
         end, function()
             table.insert(res, "> - projects without tasks or not in `someday`")
         end)
@@ -674,6 +678,9 @@ module.private = {
 
     --- Function called when calling details (keybind) from a display
     toggle_details = function()
+        ---@type core.gtd.helpers
+        local helpers = module.required["core.gtd.helpers"]
+
         local data = module.private.get_by_var()
         local res = {}
         local offset = data.offset or 0
@@ -688,17 +695,8 @@ module.private = {
 
         if #data > 1 then
             for _, task in pairs(data) do
-                if type(task) == "table" then
-                    local state = (function()
-                        if task.state == "done" then
-                            return "- [x] "
-                        elseif task.state == "undone" then
-                            return "- [ ] "
-                        else
-                            return "- [*] "
-                        end
-                    end)()
-                    local inserted = "  " .. state .. task.content
+                if task.type == "task" then
+                    local inserted = "  " .. helpers.state_to_text(task.state) .. task.content
                     table.insert(res, inserted)
                 end
             end
@@ -711,26 +709,7 @@ module.private = {
                 table.insert(res, "  - /No tasks found for this project/")
             else
                 for _, task in pairs(tasks) do
-                    local state = (function()
-                        if task.state == "done" then
-                            return "- [x] "
-                        elseif task.state == "undone" then
-                            return "- [ ] "
-                        elseif task.state == "pending" then
-                            return "- [-] "
-                        elseif task.state == "uncertain" then
-                            return "- [?] "
-                        elseif task.state == "urgent" then
-                            return "- [!] "
-                        elseif task.state == "recurring" then
-                            return "- [+] "
-                        elseif task.state == "onhold" then
-                            return "- [=] "
-                        elseif task.state == "cancelled" then
-                            return "- [_] "
-                        end
-                    end)()
-                    table.insert(res, "  " .. state .. task.content)
+                    table.insert(res, "  " .. helpers.state_to_text(task.state) .. task.content)
                 end
             end
         elseif data.type == "task" then

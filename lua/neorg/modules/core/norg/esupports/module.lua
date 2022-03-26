@@ -53,7 +53,6 @@ module.setup = function()
         requires = {
             "core.autocommands",
             "core.keybinds",
-            "core.norg.dirman",
             "core.scanner",
             "core.integrations.treesitter",
         },

@@ -14,7 +14,7 @@ module.private = {
 }
 
 module.setup = function()
-    return { success = true, requires = { "core.highlights", "core.mode", "core.keybinds" } }
+    return { success = true, requires = { "core.highlights", "core.mode", "core.keybinds", "core.neorgcmd" } }
 end
 
 module.load = function()
@@ -22,11 +22,66 @@ module.load = function()
 
     assert(success, "Unable to load nvim-treesitter.ts_utils :(")
 
+    if module.config.public.configure_parsers then
+        -- luacheck: push ignore
+
+        local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
+
+        parser_configs.norg = {
+            install_info = {
+                url = "https://github.com/nvim-neorg/tree-sitter-norg",
+                files = { "src/parser.c", "src/scanner.cc" },
+                branch = "main",
+            },
+        }
+
+        parser_configs.norg_meta = {
+            install_info = {
+                url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
+                files = { "src/parser.c" },
+                branch = "main",
+            },
+        }
+
+        module.required["core.neorgcmd"].add_commands_from_table({
+            definitions = {
+                ["sync-parsers"] = {},
+            },
+            data = {
+                ["sync-parsers"] = {
+                    args = 0,
+                    name = "sync-parsers",
+                },
+            },
+        })
+
+        parser_configs = vim.tbl_deep_extend("force", parser_configs, module.config.public.parser_configs)
+
+        -- luacheck: pop
+
+        if not neorg.lib.inline_pcall(vim.treesitter.parse_query, "norg", [[]]) then
+            if module.config.public.install_parsers then
+                pcall(vim.cmd, "TSUpdateSync norg")
+                pcall(vim.cmd, "TSUpdateSync norg_meta")
+            else
+                assert(false, "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it.")
+            end
+        end
+    end
+
     module.private.ts_utils = ts_utils
 
     module.required["core.mode"].add_mode("traverse-heading")
     module.required["core.keybinds"].register_keybinds(module.name, { "next.heading", "previous.heading" })
 end
+
+module.config.public = {
+    configure_parsers = true,
+    install_parsers = true,
+    parser_configs = {
+        -- norg = { install_info = { branch = "" } }
+    },
+}
 
 ---@class core.integrations.treesitter
 module.public = {
@@ -274,12 +329,12 @@ module.public = {
 
         local root = tree:root()
 
-        local descend
-
-        descend = function(start)
+        local function descend(start)
             for child, _ in start:iter_children() do
-                callback(child)
-                descend(child)
+                local stop_descending = callback(child)
+                if not stop_descending then
+                    descend(child)
+                end
             end
         end
 
@@ -361,6 +416,30 @@ module.public = {
             _node = _node:parent()
         end
     end,
+
+    get_first_named_node_on_line = function(buf, line)
+        local query_str = [[
+            (_) @node
+        ]]
+
+        local document_root = module.public.get_document_root(buf)
+
+        if not document_root then
+            return
+        end
+
+        local query = vim.treesitter.parse_query("norg", query_str)
+
+        for id, node in query:iter_captures(document_root, buf, line, line + 1) do
+            if query.captures[id] == "node" then
+                local range = module.public.get_node_range(node)
+
+                if range.row_start == line then
+                    return node
+                end
+            end
+        end
+    end,
 }
 
 module.on_event = function(event)
@@ -370,6 +449,9 @@ module.on_event = function(event)
         elseif event.split_type[2] == "core.integrations.treesitter.previous.heading" then
             module.public.goto_previous_heading()
         end
+    elseif event.split_type[2] == "sync-parsers" then
+        pcall(vim.cmd, "TSUpdate norg")
+        pcall(vim.cmd, "TSUpdate norg_meta")
     end
 end
 
@@ -377,6 +459,10 @@ module.events.subscribed = {
     ["core.keybinds"] = {
         ["core.integrations.treesitter.next.heading"] = true,
         ["core.integrations.treesitter.previous.heading"] = true,
+    },
+
+    ["core.neorgcmd"] = {
+        ["sync-parsers"] = true,
     },
 }
 

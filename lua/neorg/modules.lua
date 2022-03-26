@@ -28,7 +28,7 @@ function neorg.modules.load_module_from_table(module, parent)
 
     -- If our module is already loaded don't try loading it again
     if neorg.modules.loaded_modules[module.name] then
-        log.warn("Module", module.name, "already loaded. Omitting...")
+        log.trace("Module", module.name, "already loaded. Omitting...")
         return true
     end
 
@@ -59,7 +59,7 @@ function neorg.modules.load_module_from_table(module, parent)
 
     -- A part of the table returned by module.setup() tells us whether or not the module initialization was successful
     if loaded_module.success == false then
-        log.warn("Module", module.name, "did not load properly.")
+        log.trace("Module", module.name, "did not load properly.")
         return false
     end
 
@@ -305,7 +305,7 @@ end
 -- @Param  module_name (string) - the name of the module to retrieve
 function neorg.modules.get_module(module_name)
     if not neorg.modules.is_module_loaded(module_name) then
-        log.warn("Attempt to get module with name", module_name, "failed - module is not loaded.")
+        log.trace("Attempt to get module with name", module_name, "failed - module is not loaded.")
         return
     end
 
@@ -317,7 +317,7 @@ end
 -- @Param  module_name (string) - the name of the module to retrieve (module must be loaded)
 function neorg.modules.get_module_config(module_name)
     if not neorg.modules.is_module_loaded(module_name) then
-        log.warn("Attempt to get module configuration with name", module_name, "failed - module is not loaded.")
+        log.trace("Attempt to get module configuration with name", module_name, "failed - module is not loaded.")
         return
     end
 
@@ -338,7 +338,7 @@ end
 function neorg.modules.get_module_version(module_name)
     -- If the module isn't loaded then don't bother retrieving its version
     if not neorg.modules.is_module_loaded(module_name) then
-        log.warn("Attempt to get module version with name", module_name, "failed - module is not loaded.")
+        log.trace("Attempt to get module version with name", module_name, "failed - module is not loaded.")
         return
     end
 
@@ -347,7 +347,7 @@ function neorg.modules.get_module_version(module_name)
 
     -- If it can't be found then error out
     if not version then
-        log.warn("Attempt to get module version with name", module_name, "failed - version variable not present.")
+        log.trace("Attempt to get module version with name", module_name, "failed - version variable not present.")
         return
     end
 
@@ -359,6 +359,11 @@ end
 -- @Param module_name (string) - the name of the module to listen for.
 -- @Param callback (function(public_module_table)) - the callback to execute.
 function neorg.modules.await(module_name, callback)
+    if neorg.modules.is_module_loaded(module_name) then
+        callback(neorg.modules.get_module(module_name))
+        return
+    end
+
     neorg.callbacks.on_event("core.module_loaded", function(_, module)
         callback(module.public)
     end, function(event)

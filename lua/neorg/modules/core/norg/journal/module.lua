@@ -57,7 +57,10 @@ module.private = {
             time
         )
 
-        module.required["core.norg.dirman"].create_file(folder_name .. "/" .. path, workspace)
+        module.required["core.norg.dirman"].create_file(
+            folder_name .. neorg.configuration.pathsep .. path,
+            workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
+        )
     end,
 
     diary_tomorrow = function()
@@ -77,7 +80,7 @@ module.config.public = {
     -- which workspace to use for the journal files, default is the current
     workspace = nil,
     -- the name for the folder in which the journal files are put
-    journal_folder = "/journal/",
+    journal_folder = "journal",
 
     -- The strategy to use to create directories
     -- can be "flat" (2022-03-02.norg), "nested" (2022/03/02.norg),

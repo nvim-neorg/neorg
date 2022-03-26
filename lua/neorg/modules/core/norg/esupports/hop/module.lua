@@ -17,7 +17,7 @@ module.setup = function()
             "core.keybinds",
             "core.integrations.treesitter",
             "core.ui",
-            "core.norg.dirman",
+            "core.norg.dirman.utils",
         },
     }
 end
@@ -337,8 +337,7 @@ module.public = {
                 )
 
                 parsed_link_information[capture] = parsed_link_information[capture]
-                    or neorg.lib.match({
-                        capture,
+                    or neorg.lib.match(capture)({
                         link_file_text = extract_node_text,
                         link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_target_") + 1),
                         link_location_text = extract_node_text,
@@ -361,7 +360,7 @@ module.public = {
 
         -- Check whether our target is from a different file
         if parsed_link_information.link_file_text then
-            local expanded_link_text = module.required["core.norg.dirman"].expand_path(
+            local expanded_link_text = module.required["core.norg.dirman.utils"].expand_path(
                 parsed_link_information.link_file_text
             )
 
@@ -379,9 +378,7 @@ module.public = {
             end
         end
 
-        return neorg.lib.match({
-            parsed_link_information.link_type,
-
+        return neorg.lib.match(parsed_link_information.link_type)({
             url = function()
                 local destination = parsed_link_information.link_location_text
 
@@ -403,8 +400,7 @@ module.public = {
 
             _ = function()
                 -- Dynamically forge query
-                local query_str = neorg.lib.match({
-                    parsed_link_information.link_type,
+                local query_str = neorg.lib.match(parsed_link_information.link_type)({
                     generic = [[
                         (carryover_tag_set
                             (carryover_tag
@@ -635,7 +631,7 @@ module.private = {
         local buffer = vim.api.nvim_get_current_buf()
 
         if parsed_link_information.link_file_text then
-            local expanded_link_text = module.required["core.norg.dirman"].expand_path(
+            local expanded_link_text = module.required["core.norg.dirman.utils"].expand_path(
                 parsed_link_information.link_file_text
             )
 
@@ -694,9 +690,7 @@ module.private = {
         local prefix = neorg.lib.when(
             parsed_link_information.link_type == "generic" and not force_type,
             "#",
-            neorg.lib.match({
-                most_similar.node:type(),
-
+            neorg.lib.match(most_similar.node:type())({
                 heading1 = "*",
                 heading2 = "**",
                 heading3 = "***",

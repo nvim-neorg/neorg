@@ -21,7 +21,6 @@ Where it will display this instead:
 - [ ] Thing B
 ```
 
---[[
 Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
 a thing, punctuation can be added (without removing the whitespace
 between the icon and actual text) like so:
@@ -72,27 +71,21 @@ module.setup = function()
         success = true,
         requires = {
             "core.autocommands",
-            "core.keybinds",
             "core.integrations.treesitter",
         },
         imports = {
             "preset_basic",
             "preset_varied",
             "preset_diamond",
-            "preset_safe",
-            "preset_brave",
-            "preset_dimmed",
         },
     }
 end
 
 module.private = {
     icon_namespace = vim.api.nvim_create_namespace("neorg-conceals"),
-    markup_namespace = vim.api.nvim_create_namespace("neorg-markup"),
     code_block_namespace = vim.api.nvim_create_namespace("neorg-code-blocks"),
     completion_level_namespace = vim.api.nvim_create_namespace("neorg-completion-level"),
     icons = {},
-    markup = {},
 
     largest_change_start = -1,
     largest_change_end = -1,
@@ -285,16 +278,6 @@ module.public = {
         end
     end,
 
-    toggle_markup = function(buf)
-        if module.config.public.markup.enabled then
-            vim.api.nvim_buf_clear_namespace(buf, module.private.markup_namespace, 0, -1)
-            module.config.public.markup.enabled = false
-        else
-            module.config.public.markup.enabled = true
-            module.public.trigger_icons(buf, module.private.markup, module.private.markup_namespace)
-        end
-    end,
-
     -- @Summary Sets an extmark in the buffer
     -- @Description Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it more safe
     -- @Param  text (string|table) - the virtual text to overlay (usually the icon)
@@ -345,7 +328,7 @@ module.public = {
     end,
 
     completion_levels = {
-        trigger_completion_levels_incremental = function(buf)
+        trigger_completion_levels_incremental = function(buf, line)
             -- Get the root node of the document (required to iterate over query captures)
             local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
@@ -353,10 +336,14 @@ module.public = {
                 return
             end
 
-            local current_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
+            local current_node = module.required["core.integrations.treesitter"].get_first_named_node_on_line(buf, line)
 
-            if not current_node then
-                return
+            if not current_node or current_node:type() == "document" then
+                current_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
+
+                if not current_node then
+                    return
+                end
             end
 
             local parent = module.required["core.integrations.treesitter"].find_parent(
@@ -1500,202 +1487,18 @@ module.config.public = {
                 end,
             },
         },
-    },
 
-    -- Markup presets to use (currents: `safe`, `brave`, `dimmed`)
-    -- `safe` will use whitespaces to conceal markup
-    -- `brave` will use the word joiner unicode
-    -- `dimmed` will dim markup icons instead of concealing them
-    markup_preset = "dimmed",
-
-    -- Markup related config
-    markup = {
-        enabled = true,
-        icon = " ",
-
-        bold = {
-            enabled = true,
-            highlight = "NeorgMarkupBold",
-            query = '(bold (["_open" "_close"]) @icon)',
-        },
-
-        italic = {
-            enabled = true,
-            highlight = "NeorgMarkupItalic",
-            query = '(italic (["_open" "_close"]) @icon)',
-        },
-
-        underline = {
-            enabled = true,
-            highlight = "NeorgMarkupUnderline",
-            query = '(underline (["_open" "_close"]) @icon)',
-        },
-
-        strikethrough = {
-            enabled = true,
-            highlight = "NeorgMarkupStrikethrough",
-            query = '(strikethrough (["_open" "_close"]) @icon)',
-        },
-
-        subscript = {
-            enabled = true,
-            highlight = "NeorgMarkupSubscript",
-            query = '(subscript (["_open" "_close"]) @icon)',
-        },
-
-        superscript = {
-            enabled = true,
-            highlight = "NeorgMarkupSuperscript",
-            query = '(superscript (["_open" "_close"]) @icon)',
-        },
-
-        verbatim = {
-            enabled = true,
-            highlight = "NeorgMarkupVerbatim",
-            query = '(verbatim (["_open" "_close"]) @icon)',
-        },
-
-        comment = {
-            enabled = true,
-            highlight = "NeorgMarkupInlineComment",
-            query = '(inline_comment (["_open" "_close"]) @icon)',
-        },
-
-        math = {
-            enabled = true,
-            highlight = "NeorgMarkupMath",
-            query = '(inline_math (["_open" "_close"]) @icon)',
-        },
-
-        variable = {
-            enabled = true,
-            highlight = "NeorgMarkupVariable",
-            query = '(variable (["_open" "_close"]) @icon)',
-        },
-
-        spoiler = {
-            enabled = true,
-            icon = "●",
-            -- NOTE: as you can see, you can still overwrite the parent-icon
-            -- inherited from above.
-            highlight = "NeorgMarkupSpoiler",
-            query = "(spoiler) @icon",
-            render = function(self, text)
-                return {
-                    { string.rep(self.icon, #text), self.highlight },
-                }
-            end,
-        },
-
-        link_modifier = {
-            enabled = true,
-            highlight = "NeorgLinkModifier",
-            query = "(link_modifier) @icon",
-        },
-
-        trailing_modifier = {
-            enabled = true,
-            highlight = "NeorgTrailingModifier",
-            query = '("_trailing_modifier") @icon',
-        },
-
-        url = {
+        markup = {
             enabled = true,
 
-            link = {
+            spoiler = {
                 enabled = true,
-
-                unnamed = {
-                    enabled = true,
-                    highlight = "NeorgLinkLocationDelimiter",
-                    query = [[
-                    (link
-                        (link_location
-                            (["_begin" "_end"]) @icon
-                        )
-                        .
-                    )
-                    ]],
-                },
-
-                named = {
-                    enabled = true,
-
-                    location = {
-                        enabled = true,
-                        highlight = "NeorgLinkLocationDelimiter",
-                        query = [[
-                            (link
-                                (link_location) @icon
-                                (link_description)
-                            )
-                        ]],
-                        render = function(self, text)
-                            return {
-                                { string.rep(self.icon, #text), self.highlight },
-                            }
-                        end,
-                    },
-
-                    text = {
-                        enabled = true,
-                        highlight = "NeorgLinkTextDelimiter",
-                        query = [[
-                            (link
-                                (link_description (["_begin" "_end"]) @icon)
-                            )
-                        ]],
-                    },
-                },
-            },
-
-            anchor = {
-                enabled = true,
-
-                declaration = {
-                    enabled = true,
-                    highlight = "NeorgAnchorDeclarationDelimiter",
-                    query = [[
-                    (anchor_declaration
-                        (link_description
-                            (["_begin" "_end"]) @icon
-                        )
-                    )
-                    ]],
-                },
-
-                definition = {
-                    enabled = true,
-
-                    description = {
-                        enabled = true,
-                        highlight = "NeorgAnchorDeclarationDelimiter",
-                        query = [[(
-                            (link_description
-                                (["_begin" "_end"]) @icon
-                            ) @_description
-                            (#has-parent? @_description "anchor_definition")
-                        )]],
-                        -- NOTE: right now this is a duplicate of the above but
-                        -- we could envision concealing these two scenarios
-                        -- differently.
-                    },
-
-                    location = {
-                        enabled = true,
-                        highlight = "NeorgAnchorDefinitionDelimiter",
-                        query = [[
-                        (anchor_definition
-                            (link_location) @icon
-                        )
-                        ]],
-                        render = function(self, text)
-                            return {
-                                { string.rep(self.icon, #text), self.highlight },
-                            }
-                        end,
-                    },
-                },
+                icon = "•",
+                highlight = "NeorgMarkupSpoiler",
+                query = '(spoiler ("_open") _ @icon ("_close"))',
+                render = function(self, text)
+                    return { { string.rep(self.icon, text:len()), self.highlight } }
+                end,
             },
         },
     },
@@ -1770,23 +1573,6 @@ module.load = function()
         module.config.custom
     )
 
-    if not module.config.private["markup_preset_" .. module.config.public.markup_preset] then
-        log.error(
-            string.format(
-                "Unable to load markup preset '%s' - such a preset does not exist",
-                module.config.public.markup_preset
-            )
-        )
-        return
-    end
-
-    module.config.public.markup = vim.tbl_deep_extend(
-        "force",
-        module.config.public.markup,
-        module.config.private["markup_preset_" .. module.config.public.markup_preset] or {},
-        module.config.custom
-    )
-
     -- @Summary Returns all the enabled icons from a table
     -- @Param  tbl (table) - the table to parse
     -- @Param parent_icon (string) - Is used to pass icons from parents down to their table children to handle inheritance.
@@ -1809,6 +1595,7 @@ module.load = function()
                 -- If we have defined a query value then add that icon to the result
                 if icons.query then
                     result[rec_name .. name] = icons
+
                     if icons.icon == nil then
                         result[rec_name .. name].icon = parent_icon
                     end
@@ -1829,12 +1616,6 @@ module.load = function()
 
     -- Set the module.private.icons variable to the values of the enabled icons
     module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
-    module.private.markup = vim.tbl_values(
-        get_enabled_icons(module.config.public.markup, module.config.public.markup.icon)
-    )
-
-    -- Register keybinds
-    module.required["core.keybinds"].register_keybinds(module.name, { "toggle-markup" })
 
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
@@ -1859,6 +1640,7 @@ module.on_event = function(event)
         if line_count < module.config.public.performance.increment then
             module.public.trigger_icons(buf, module.private.icons, module.private.icon_namespace)
             module.public.trigger_icons(buf, module.private.markup, module.private.markup_namespace)
+
             module.public.trigger_code_block_highlights(buf)
             module.public.completion_levels.trigger_completion_levels(buf)
         else
@@ -1887,6 +1669,7 @@ module.on_event = function(event)
                     line_begin,
                     line_end
                 )
+
                 module.public.trigger_code_block_highlights(buf, line_begin, line_end)
                 module.public.completion_levels.trigger_completion_levels(buf, line_begin, line_end)
             end
@@ -1980,6 +1763,7 @@ module.on_event = function(event)
                             node_range and node_range.row_end
                         )
 
+
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
                         -- updates here. Code blocks require more context than simply a few lines.
                         -- It's still incredibly fast despite this fact though.
@@ -2023,12 +1807,7 @@ module.on_event = function(event)
                 event.cursor_position[1] - 1,
                 event.cursor_position[1]
             )
-            vim.api.nvim_buf_clear_namespace(
-                event.buffer,
-                module.private.markup_namespace,
-                event.cursor_position[1] - 1,
-                event.cursor_position[1]
-            )
+
             vim.api.nvim_buf_clear_namespace(
                 event.buffer,
                 module.private.completion_level_namespace,
@@ -2050,14 +1829,16 @@ module.on_event = function(event)
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
-                module.public.trigger_icons(
+                module.public.trigger_highlight_regex_code_block(
                     event.buffer,
-                    module.private.markup,
-                    module.private.markup_namespace,
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
-                module.public.completion_levels.trigger_completion_levels_incremental(event.buffer)
+
+                module.public.completion_levels.trigger_completion_levels_incremental(
+                    event.buffer,
+                    event.cursor_position[1] - 1
+                )
             else
                 module.public.trigger_icons(
                     event.buffer,
@@ -2066,22 +1847,22 @@ module.on_event = function(event)
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
-                module.public.trigger_icons(
+                module.public.trigger_highlight_regex_code_block(
                     event.buffer,
-                    module.private.markup,
-                    module.private.markup_namespace,
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
-                module.public.completion_levels.trigger_completion_levels_incremental(event.buffer)
+
+                module.public.completion_levels.trigger_completion_levels_incremental(
+                    event.buffer,
+                    event.cursor_position[1] - 1
+                )
             end
 
             module.private.largest_change_start, module.private.largest_change_end = -1, -1
         end)
     elseif event.type == "core.autocommands.events.vimleavepre" then
         module.private.disable_deferred_updates = true
-    elseif event.type == "core.keybinds.events.core.norg.concealer.toggle-markup" then
-        module.public.toggle_markup(event.buffer)
     end
 end
 
@@ -2091,9 +1872,6 @@ module.events.subscribed = {
         insertenter = true,
         insertleave = true,
         vimleavepre = true,
-    },
-    ["core.keybinds"] = {
-        ["core.norg.concealer.toggle-markup"] = true,
     },
 }
 

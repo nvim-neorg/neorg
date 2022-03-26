@@ -33,10 +33,6 @@ module.public = {
         local files = module.required["core.norg.dirman"].get_norg_files(ws)
 
         if vim.tbl_isempty(files) then
-            log.error("No files found in " .. ws .. " workspace")
-            log.error([[
-            Please add at minima a index.norg file.
-            ]])
             return
         end
 
@@ -64,22 +60,51 @@ module.public = {
     --- Checks if the data is processed or not.
     --- Check out :h neorg-gtd to know what is an unclarified task or project
     --- @param data core.gtd.queries.task|core.gtd.queries.project
-    --- @param tasks core.gtd.queries.task[]?
-    is_processed = function(data, tasks)
-        return neorg.lib.match({
-            data.type,
+    --- @param extra core.gtd.queries.task[]?|core.gtd.queries.project[]
+    is_processed = function(data, extra)
+        return neorg.lib.match(data.type)({
             ["task"] = function()
-                return (
-                        (
-                            type(data.contexts) == "table" and not vim.tbl_isempty(data.contexts)
-                            or (type(data["waiting.for"]) == "table" and not vim.tbl_isempty(data["waiting.for"]))
-                        ) and not data.inbox
-                    )
-                    or (type(data["time.due"]) == "table" and not vim.tbl_isempty(data["time.due"]))
-                    or (type(data["time.start"]) == "table" and not vim.tbl_isempty(data["time.start"]))
+                -- Processed task if:
+                --   - Not in inbox
+                --   - Has a due context or waiting for
+                if not data.inbox then
+                    if type(data["time.due"]) == "table" and not vim.tbl_isempty(data["time.due"]) then
+                        return true
+                    elseif type(data["waiting.for"]) == "table" and not vim.tbl_isempty(data["waiting.for"]) then
+                        return true
+                    end
+                end
+
+                -- Processed task if:
+                --   - Has a due date or start date
+                --   - Is in "someday"
+                if type(data["time.due"]) == "table" and not vim.tbl_isempty(data["time.due"]) then
+                    return true
+                elseif type(data["time.start"]) == "table" and not vim.tbl_isempty(data["time.start"]) then
+                    return true
+                elseif type(data["contexts"]) == "table" and vim.tbl_contains(data["contexts"], "someday") then
+                    return true
+                end
+
+                if not extra then
+                    return false
+                end
+
+                local project = vim.tbl_filter(function(t)
+                    return t.uuid == data.project_uuid
+                end, extra)
+
+                if not vim.tbl_isempty(project) then
+                    project = project[1]
+                    if type(project["contexts"]) == "table" and vim.tbl_contains(project["contexts"], "someday") then
+                        return true
+                    end
+                end
+
+                return false
             end,
             ["project"] = function()
-                if not tasks then
+                if not extra then
                     return
                 end
 
@@ -99,7 +124,7 @@ module.public = {
 
                 local project_tasks = vim.tbl_filter(function(t)
                     return t.project_uuid == data.uuid
-                end, tasks)
+                end, extra)
 
                 -- Empty projects (without tasks) are unprocessed
                 if vim.tbl_isempty(project_tasks) then
@@ -113,6 +138,22 @@ module.public = {
 
                 return not vim.tbl_isempty(project_tasks)
             end,
+        })
+    end,
+
+    --- Converts a task state (e.g: "undone") to its norg equivalent (e.g: "- [ ]")
+    ---@param state string
+    ---@return string
+    state_to_text = function(state)
+        return neorg.lib.match(state)({
+            done = "- [x]",
+            undone = "- [ ]",
+            pending = "- [-]",
+            uncertain = "- [?]",
+            urgent = "- [!]",
+            recurring = "- [+]",
+            onhold = "- [=]",
+            cancelled = "- [_]",
         })
     end,
 }

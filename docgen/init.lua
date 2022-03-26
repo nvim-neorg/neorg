@@ -10,7 +10,11 @@ require("neorg").setup({
     load = {
         ["core.defaults"] = {},
         ["core.gtd.base"] = {},
-        ["core.integrations.treesitter"] = {},
+        ["core.integrations.treesitter"] = {
+            config = {
+                configure_parsers = false,
+            },
+        },
     },
 })
 
@@ -286,14 +290,10 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "</div>",
             "",
             "### Setting Up",
-            "- [Installation Guide](https://github.com/nvim-neorg/neorg/wiki/Installation)",
             "- [How do I configure modules?](https://github.com/nvim-neorg/neorg/wiki/Configuring-Modules)",
             "- [User Keybinds](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds)",
             "- [User Callbacks](https://github.com/nvim-neorg/neorg/wiki/User-Callbacks)",
-            "- [Modifying Neorg Highlights](https://github.com/nvim-neorg/neorg/wiki/Custom-Highlights)",
-            "- [Customizing Icons](https://github.com/nvim-neorg/neorg/wiki/Concealing)",
-            "### Usage",
-            "- [Managing Workspaces](https://github.com/nvim-neorg/neorg/wiki/Workspace-Management)",
+            "- [Customizing Icons](https://github.com/nvim-neorg/neorg/wiki/Concealer)",
             "### For the programmer",
             "- [Writing my own module](https://github.com/nvim-neorg/neorg/wiki/Creating-Modules)",
             "- [Hotswapping modules](https://github.com/nvim-neorg/neorg/wiki/Hotswapping-Modules)",
@@ -582,7 +582,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                             .. module.name
                             .. "."
                             .. import
-                            .. "`](https://github.com/nvim-neorg/neorg/tree/unstable/"
+                            .. "`](https://github.com/nvim-neorg/neorg/tree/main/"
                             .. trimmed
                             .. ")"
                     )

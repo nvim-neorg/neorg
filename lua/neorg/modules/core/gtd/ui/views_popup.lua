@@ -43,12 +43,10 @@ module.private = {
     --- @return core.ui.selection
     generate_display_flags = function(selection, tasks, projects)
         local is_processed_cb = module.public.get_callback("is_processed")
-        local unclarified_tasks = vim.tbl_filter(neorg.lib.wrap_cond_not(is_processed_cb), tasks)
+        local unclarified_tasks = vim.tbl_filter(neorg.lib.wrap_cond_not(is_processed_cb, projects), tasks)
         local unclarified_projects = vim.tbl_filter(neorg.lib.wrap_cond_not(is_processed_cb, tasks), projects)
-
-        projects = vim.tbl_filter(neorg.lib.wrap_cond(is_processed_cb, tasks), projects)
-
-        tasks = vim.tbl_filter(neorg.lib.wrap_cond(is_processed_cb), tasks)
+        local clarified_projects = vim.tbl_filter(neorg.lib.wrap_cond(is_processed_cb, tasks), projects)
+        local clarified_tasks = vim.tbl_filter(neorg.lib.wrap_cond(is_processed_cb, projects), tasks)
 
         selection
             :text("Unclarified")
@@ -64,18 +62,26 @@ module.private = {
             )
             :blank()
             :text("Top priorities")
-            :flag("s", "Weekly Summary", neorg.lib.wrap(module.public.display_weekly_summary, tasks))
-            :flag("t", "Today's tasks", neorg.lib.wrap(module.public.display_today_tasks, tasks))
-            :flag("p", "Show projects", neorg.lib.wrap(module.public.display_projects, tasks, projects))
+            :flag("s", "Weekly Summary", neorg.lib.wrap(module.public.display_weekly_summary, clarified_tasks))
+            :flag("t", "Today's tasks", neorg.lib.wrap(module.public.display_today_tasks, clarified_tasks))
+            :flag(
+                "p",
+                "Show projects",
+                neorg.lib.wrap(module.public.display_projects, clarified_tasks, clarified_projects)
+            )
             :blank()
             :text("Sort and filter tasks")
             :flag(
                 "c",
                 "Contexts",
-                neorg.lib.wrap(module.public.display_contexts, tasks, { exclude = { "someday" }, priority = { "_" } })
+                neorg.lib.wrap(
+                    module.public.display_contexts,
+                    clarified_tasks,
+                    { exclude = { "someday" }, priority = { "_" } }
+                )
             )
-            :flag("w", "Waiting For", neorg.lib.wrap(module.public.display_waiting_for, tasks))
-            :flag("d", "Someday Tasks", neorg.lib.wrap(module.public.display_someday, tasks))
+            :flag("w", "Waiting For", neorg.lib.wrap(module.public.display_waiting_for, clarified_tasks))
+            :flag("d", "Someday Tasks", neorg.lib.wrap(module.public.display_someday, clarified_projects))
             :blank()
             :concat(module.private.generate_informations)
         return selection

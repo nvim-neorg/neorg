@@ -50,12 +50,12 @@ module.config.public = {
 module.public = {
     --- Updates the parent todo item for the current todo item if it exists
     --- @param recursion_level number the index of the parent to change. The higher the number the more the code will traverse up the syntax tree.
-    update_parent = function(recursion_level)
+    update_parent = function(buf, line, recursion_level)
         -- Force a reparse (this is required because otherwise some cached nodes will be incorrect)
         vim.treesitter.get_parser(0, "norg"):parse()
 
         -- If present grab the list item that is under the cursor
-        local list_node_at_cursor = module.public.get_list_item_from_cursor()
+        local list_node_at_cursor = module.public.get_list_item_from_cursor(buf, line)
 
         -- If we didn't manage to grab any valid item then return
         if not list_node_at_cursor then
@@ -122,27 +122,31 @@ module.public = {
 
         vim.fn.setline(range.row_start + 1, current_line)
 
-        module.public.update_parent(recursion_level + 1)
+        module.public.update_parent(buf, line, recursion_level + 1)
     end,
 
     --- Tries to locate a todo_item node under the cursor
     --- @return userdata nil if no such node could be found else returns the todo_item node
-    get_list_item_from_cursor = function()
-        local node_at_cursor = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
+    get_list_item_from_cursor = function(buf, line)
+        local node_at_cursor = module.required["core.integrations.treesitter"].get_first_named_node_on_line(buf, line)
+
+        if
+            not node_at_cursor
+            or not (node_at_cursor:type() == "generic_list" or node_at_cursor:type():match("todo_item%d"))
+        then
+            node_at_cursor = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
+            node_at_cursor = module.required["core.integrations.treesitter"].find_parent(node_at_cursor, "todo_item%d")
+
+            if not node_at_cursor then
+                return
+            end
+        end
+
+        if node_at_cursor:type() == "generic_list" then
+            node_at_cursor = node_at_cursor:named_child(0)
+        end
 
         if not node_at_cursor then
-            return
-        end
-
-        while
-            node_at_cursor
-            and node_at_cursor:type() ~= "document_content"
-            and not node_at_cursor:type():match("todo_item%d")
-        do
-            node_at_cursor = node_at_cursor:parent()
-        end
-
-        if not node_at_cursor or node_at_cursor:type() == "document_content" then
             log.trace("Could not find TODO item under cursor, aborting...")
             return
         end
@@ -219,7 +223,7 @@ module.on_event = function(event)
     local todo_str = "core.norg.qol.todo_items.todo."
 
     if event.split_type[1] == "core.keybinds" then
-        local todo_item_at_cursor = module.public.get_list_item_from_cursor()
+        local todo_item_at_cursor = module.public.get_list_item_from_cursor(event.buffer, event.cursor_position[1] - 1)
 
         if not todo_item_at_cursor then
             return
@@ -239,7 +243,7 @@ module.on_event = function(event)
 
         if match and match ~= "cycle" then
             module.public.make_all(todo_item_at_cursor, match, map_of_names_to_symbols[match] or "<unsupported>")
-            module.public.update_parent(0)
+            module.public.update_parent(event.buffer, event.cursor_position[1] - 1, 0)
         elseif event.split_type[2] == todo_str .. "task_cycle" then
             local todo_item_type = module.public.get_todo_item_type(todo_item_at_cursor)
             local types = module.config.public.order
@@ -270,7 +274,7 @@ module.on_event = function(event)
             end
 
             module.public.make_all(todo_item_at_cursor, next[1], next[2])
-            module.public.update_parent(0)
+            module.public.update_parent(event.buffer, event.cursor_position[1] - 1, 0)
         end
     end
 end

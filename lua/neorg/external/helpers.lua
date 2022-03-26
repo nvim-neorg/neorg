@@ -146,55 +146,43 @@ neorg.utils = {
 
 neorg.lib = {
     --- Returns the item that matches the first item in statements
-    --- @param statements table
-    ---   - statements._ (any)    if present, then it's value will be returned if no match has been found.
-    --- statements[1] is the item to compare
-    --- other key=values: will compare each key and check for the one that maches the first item.
-    --- If we find one of them, then return the corresponding value
-    --- if value is a function, then return the result of execution with the item as parameter
-    match = function(statements)
-        local item = statements[1]
-
-        if item == nil then
-            return
-        end
-
-        table.remove(statements, 1)
-
-        local compare = statements[2]
-            or function(lhs, rhs)
-                if type(lhs) == "boolean" then
-                    return tostring(lhs) == rhs
-                end
-
-                return lhs == rhs
+    ---@param value any #The value to compare against
+    ---@param compare? function #A custom comparison function
+    ---@return function #A function to invoke with a table of potential matches
+    match = function(value, compare)
+        return function(statements)
+            if value == nil then
+                return
             end
 
-        if statements[2] then
-            table.remove(statements, 2)
-        end
+            compare = compare
+                or function(lhs, rhs)
+                    if type(lhs) == "boolean" then
+                        return tostring(lhs) == rhs
+                    end
 
-        for case, action in pairs(statements) do
-            if compare(item, case) then
-                local action_type = type(action)
+                    return lhs == rhs
+                end
 
-                if action_type == "function" then
-                    return action(item)
+            for case, action in pairs(statements) do
+                if compare(value, case) then
+                    if type(action) == "function" then
+                        return action(value)
+                    end
+
+                    return action
+                end
+            end
+
+            if statements._ then
+                local action = statements._
+
+                if type(action) == "function" then
+                    return action(value)
                 end
 
                 return action
             end
-        end
-
-        if statements._ then
-            local action = statements._
-            local action_type = type(action)
-
-            if action_type == "function" then
-                return action(item)
-            end
-
-            return action
         end
     end,
 
@@ -208,8 +196,7 @@ neorg.lib = {
             comparison = (comparison ~= nil)
         end
 
-        return neorg.lib.match({
-            type(comparison) == "table" and unpack(comparison) or comparison,
+        return neorg.lib.match(type(comparison) == "table" and unpack(comparison) or comparison)({
             ["true"] = when_true,
             ["false"] = when_false,
         })
@@ -461,6 +448,24 @@ neorg.lib = {
         end
 
         -- return nil
+    end,
+
+    order_associative_array = function(array, pred)
+        local ordered_keys = {}
+
+        for k in pairs(array) do
+            table.insert(ordered_keys, k)
+        end
+
+        table.sort(ordered_keys, pred)
+
+        local result = {}
+
+        for i = 1, #ordered_keys do
+            table.insert(result, array[ordered_keys[i]])
+        end
+
+        return result
     end,
 }
 
