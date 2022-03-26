@@ -202,8 +202,10 @@ module.public = {
                 local start_marker = string.format("@code %s", lang_name)
                 local end_marker = "@end"
                 local has_syntax = string.format("syntax list @%s", group)
+
+                -- sync groups when needed
                 if ignore_buf == false and vim.api.nvim_buf_get_name(buf) == module.private.last_buffer then
-                    module.public.sync_regex_code_blocks()
+                    module.public.sync_regex_code_blocks(buf, lang_name, from, to)
                 end
 
                 -- try removing syntax before doing anything
