@@ -195,135 +195,6 @@ module.public = {
         end)
     end,
 
-    trigger_highlight_regex_code_block = function(buf, from, to)
-        -- The next block of code will be responsible for dimming code blocks accordingly
-        local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
-
-        -- If the tree is valid then attempt to perform the query
-        if tree then
-            -- Query all code blocks
-            local ok, query = pcall(
-                vim.treesitter.parse_query,
-                "norg",
-                [[(
-                    (ranged_tag (tag_name) @_name) @tag
-                    (#eq? @_name "code")
-                )]]
-            )
-
-            -- If something went wrong then go bye bye
-            if not ok or not query then
-                return
-            end
-
-            -- get the language used by the code block
-            local code_lang = vim.treesitter.parse_query(
-                "norg",
-                [[(
-                    (ranged_tag (tag_name) @_tagname (tag_parameters) @language)
-                    (#eq? @_tagname "code")
-                )]]
-            )
-
-            -- look for language name in code blocks
-            -- this will not finish if a treesitter parser exists for the current language found
-            for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
-                schedule(function()
-                    local lang_name = code_lang.captures[id]
-
-                    -- only look at nodes that have the language query
-                    if lang_name == "language" then
-                        local regex_language = vim.treesitter.get_node_text(node, buf)
-
-                        if not regex_language then
-                            goto continue
-                        end
-
-                        local result
-
-                        -- see if parser exists
-                        ok, result = pcall(vim.treesitter.require_language, regex_language, true)
-
-                        -- if pcall was true we had parser, skip the rest
-                        if ok and result then
-                            goto continue
-                        end
-
-                        -- NOTE: the regex fallback code was mostly adapted from Vimwiki
-                        -- It's a very good implementation of nested vim regex
-                        regex_language = regex_language:gsub("%s+", "") -- need to trim out whitespace
-                        local group = "textGroup" .. string.upper(regex_language)
-                        local snip = "textSnip" .. string.upper(regex_language)
-                        local start_marker = "@code " .. regex_language
-                        local end_marker = "@end"
-                        local has_syntax = "syntax list " .. snip
-
-                        ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
-                        local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
-
-                        if ok == true and count > 0 then
-                            goto continue
-                        end
-
-                        -- pass off the current syntax buffer var so things can load
-                        local current_syntax = ""
-                        if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
-                            vim.b.current_syntax = regex_language
-                            current_syntax = vim.b.current_syntax
-                            vim.b.current_syntax = nil
-                        end
-
-                        -- temporarily pass off keywords in case they get messed up
-                        local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
-
-                        -- see if the syntax files even exist before we try to call them
-                        -- if syn list was an error, or if it was an empty result
-                        if ok == false or (ok == true and (string.sub(result, 1, 1) == "N" or count == 0)) then
-                            local output = vim.api.nvim_get_runtime_file("syntax/" .. regex_language .. ".vim", false)
-                            if output[1] ~= nil then
-                                local command = "syntax include @" .. group .. " " .. output[1]
-                                vim.cmd(command)
-                            end
-                            output = vim.api.nvim_get_runtime_file("after/syntax/" .. regex_language .. ".vim", false)
-                            if output[1] ~= nil then
-                                local command = "syntax include @" .. group .. " " .. output[1]
-                                vim.cmd(command)
-                            end
-                        end
-
-                        vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
-
-                        -- reset it after
-                        if current_syntax ~= "" or current_syntax ~= nil then
-                            vim.b.current_syntax = current_syntax
-                        else
-                            vim.b.current_syntax = ""
-                        end
-
-                        -- set highlight groups
-                        local regex_fallback_hl = "syntax region "
-                            .. snip
-                            .. ' matchgroup=Snip start="'
-                            .. start_marker
-                            .. "\" end='"
-                            .. end_marker
-                            .. "' contains=@"
-                            .. group
-                            .. " keepend"
-                        vim.cmd("silent! " .. regex_fallback_hl)
-
-                        -- resync syntax, fixes some slow loading
-                        vim.cmd("syntax sync fromstart")
-                        vim.b.current_syntax = ""
-                    end
-
-                    -- continue on from for loop if a language with parser is found or another syntax might be loaded
-                    ::continue::
-                end)
-            end
-        end
-    end,
-
     trigger_code_block_highlights = function(buf, from, to)
         -- If the code block dimming is disabled, return right away.
         if not module.config.public.dim_code_blocks then
@@ -1748,7 +1619,6 @@ module.load = function()
 
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
     module.required["core.autocommands"].enable_autocommand("BufEnter")
-
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
     module.required["core.autocommands"].enable_autocommand("VimLeavePre")
@@ -1769,7 +1639,6 @@ module.on_event = function(event)
 
         if line_count < module.config.public.performance.increment then
             module.public.trigger_icons(buf, module.private.icons, module.private.icon_namespace)
-            module.public.trigger_highlight_regex_code_block(buf)
             module.public.trigger_code_block_highlights(buf)
             module.public.completion_levels.trigger_completion_levels(buf)
         else
@@ -1791,7 +1660,7 @@ module.on_event = function(event)
                     line_begin,
                     line_end
                 )
-                module.public.trigger_highlight_regex_code_block(buf, line_begin, line_end)
+
                 module.public.trigger_code_block_highlights(buf, line_begin, line_end)
                 module.public.completion_levels.trigger_completion_levels(buf, line_begin, line_end)
             end
@@ -1868,8 +1737,6 @@ module.on_event = function(event)
                             _end
                         )
 
-                        module.public.trigger_highlight_regex_code_block(buf, start, _end)
-
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
                         -- updates here. Code blocks require more context than simply a few lines.
                         -- It's still incredibly fast despite this fact though.
@@ -1935,11 +1802,6 @@ module.on_event = function(event)
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
-                module.public.trigger_highlight_regex_code_block(
-                    event.buffer,
-                    module.private.last_change.line,
-                    module.private.last_change.line + 1
-                )
 
                 module.public.completion_levels.trigger_completion_levels_incremental(
                     event.buffer,
@@ -1953,11 +1815,7 @@ module.on_event = function(event)
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
-                module.public.trigger_highlight_regex_code_block(
-                    event.buffer,
-                    module.private.largest_change_start,
-                    module.private.largest_change_end
-                )
+
                 module.public.completion_levels.trigger_completion_levels_incremental(
                     event.buffer,
                     event.cursor_position[1] - 1

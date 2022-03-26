@@ -11,6 +11,7 @@ require("neorg.modules.base")
 
 return neorg.modules.create_meta(
     "core.defaults",
+    "core.syntax",
     "core.autocommands",
     "core.neorgcmd",
     "core.keybinds",

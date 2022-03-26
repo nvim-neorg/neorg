@@ -23,93 +23,31 @@ neorg.utils = {
         return ""
     end,
 
-    -- @Summary Returns a list of languages supported by Neorg
+    -- @Summary Returns a list of languages, syntax or treesitter, for the current Neorg session
     -- @Description Returns an array of strings, the array being a list of languages that Neorg can inject
     -- @Param  values (boolean) - if set to true will return an array of strings, if false will return a key-value table
     get_language_list = function(values)
-        local ret = {
-            ["bash"] = {},
-            ["beancount"] = {},
-            ["bibtex"] = {},
-            ["c"] = {},
-            ["c_sharp"] = {},
-            ["clojure"] = {},
-            ["cmake"] = {},
-            ["comment"] = {},
-            ["commonlisp"] = {},
-            ["cpp"] = {},
-            ["css"] = {},
-            ["cuda"] = {},
-            ["d"] = {},
-            ["dart"] = {},
-            ["devicetree"] = {},
-            ["dockerfile"] = {},
-            ["dot"] = {},
-            ["elixir"] = {},
-            ["elm"] = {},
-            ["erlang"] = {},
-            ["fennel"] = {},
-            ["fish"] = {},
-            ["fortran"] = {},
-            ["gdscript"] = {},
-            ["glimmer"] = {},
-            ["glsl"] = {},
-            ["go"] = {},
-            ["gdresource"] = {},
-            ["gomod"] = {},
-            ["graphql"] = {},
-            ["haskell"] = {},
-            ["hcl"] = {},
-            ["heex"] = {},
-            ["hjson"] = {},
-            ["html"] = {},
-            ["java"] = {},
-            ["javascript"] = {},
-            ["jsdoc"] = {},
-            ["json"] = {},
-            ["json5"] = {},
-            ["jsonc"] = {},
-            ["julia"] = {},
-            ["kotlin"] = {},
-            ["latex"] = {},
-            ["ledger"] = {},
-            ["llvm"] = {},
-            ["lua"] = {},
-            ["nix"] = {},
-            ["ocaml"] = {},
-            ["ocaml_interface"] = {},
-            ["ocamllex"] = {},
-            ["perl"] = {},
-            ["php"] = {},
-            ["pioasm"] = {},
-            ["python"] = {},
-            ["ql"] = {},
-            ["query"] = {},
-            ["r"] = {},
-            ["regex"] = {},
-            ["rst"] = {},
-            ["ruby"] = {},
-            ["rust"] = {},
-            ["scala"] = {},
-            ["scss"] = {},
-            ["sparql"] = {},
-            ["supercollider"] = {},
-            ["surface"] = {},
-            ["svelte"] = {},
-            ["swift"] = {},
-            ["teal"] = {},
-            ["tlaplus"] = {},
-            ["toml"] = {},
-            ["tsx"] = {},
-            ["turtle"] = {},
-            ["typescript"] = {},
-            ["verilog"] = {},
-            ["vim"] = {},
-            ["vue"] = {},
-            ["yaml"] = {},
-            ["yang"] = {},
-            ["zig"] = {},
-        }
+        local regex_files = {}
+        local syntax_files = vim.api.nvim_get_runtime_file("syntax/*.vim", true)
+        for _, lang in pairs(syntax_files) do
+            table.insert(regex_files, lang)
+        end
+        syntax_files = vim.api.nvim_get_runtime_file("after/syntax/*.vim", true)
+        for _, lang in pairs(syntax_files) do
+            table.insert(regex_files, lang)
+        end
+        local regex = "([^/]*).vim$"
+        local ret = {}
+        for _, syntax in pairs(regex_files) do
+            for match in string.gmatch(syntax, regex) do
+                local ok = pcall(vim.treesitter.require_language, match)
+                if ok then
+                    ret[match] = {type = "treesitter"}
+                else
+                    ret[match] = {type = "syntax"}
+                end
+            end
+        end
 
         if values then
             return vim.tbl_keys(ret)
