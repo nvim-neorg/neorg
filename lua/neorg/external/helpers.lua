@@ -42,9 +42,9 @@ neorg.utils = {
             for match in string.gmatch(syntax, regex) do
                 local ok = pcall(vim.treesitter.require_language, match)
                 if ok then
-                    ret[match] = {type = "treesitter"}
+                    ret[match] = { type = "treesitter" }
                 else
-                    ret[match] = {type = "syntax"}
+                    ret[match] = { type = "syntax" }
                 end
             end
         end
