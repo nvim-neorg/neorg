@@ -1802,11 +1802,6 @@ module.on_event = function(event)
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
-                module.public.trigger_highlight_regex_code_block(
-                    event.buffer,
-                    module.private.last_change.line,
-                    module.private.last_change.line + 1
-                )
 
                 module.public.completion_levels.trigger_completion_levels_incremental(
                     event.buffer,
@@ -1817,11 +1812,6 @@ module.on_event = function(event)
                     event.buffer,
                     module.private.icons,
                     module.private.icon_namespace,
-                    module.private.largest_change_start,
-                    module.private.largest_change_end
-                )
-                module.public.trigger_highlight_regex_code_block(
-                    event.buffer,
                     module.private.largest_change_start,
                     module.private.largest_change_end
                 )
