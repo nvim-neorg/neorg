@@ -1639,8 +1639,6 @@ module.on_event = function(event)
 
         if line_count < module.config.public.performance.increment then
             module.public.trigger_icons(buf, module.private.icons, module.private.icon_namespace)
-            module.public.trigger_icons(buf, module.private.markup, module.private.markup_namespace)
-
             module.public.trigger_code_block_highlights(buf)
             module.public.completion_levels.trigger_completion_levels(buf)
         else
@@ -1659,13 +1657,6 @@ module.on_event = function(event)
                     buf,
                     module.private.icons,
                     module.private.icon_namespace,
-                    line_begin,
-                    line_end
-                )
-                module.public.trigger_icons(
-                    buf,
-                    module.private.markup,
-                    module.private.markup_namespace,
                     line_begin,
                     line_end
                 )
@@ -1745,24 +1736,6 @@ module.on_event = function(event)
                             start,
                             _end
                         )
-
-                        local node_range =
-                            module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
-
-                        if node_range then
-                            node_range = module.required["core.integrations.treesitter"].get_node_range(
-                                node_range:parent()
-                            )
-                        end
-
-                        module.public.trigger_icons(
-                            event.buffer,
-                            module.private.markup,
-                            module.private.markup_namespace,
-                            node_range and node_range.row_start,
-                            node_range and node_range.row_end
-                        )
-
 
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
                         -- updates here. Code blocks require more context than simply a few lines.
