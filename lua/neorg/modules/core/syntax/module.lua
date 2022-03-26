@@ -3,6 +3,10 @@
     Title: Syntax Module for Neorg
     Summary: Handles interaction for syntax files for code blocks
     ---
+    Author's note:
+    This module will appear as spaghetti code at first glance. This is intenional.
+    If one needs to edit this module, it is best to talk to me at katawful on GitHub.
+    Any edit is assumed to break this module
 --]]
 
 require("neorg.modules.base")
@@ -86,7 +90,7 @@ module.public = {
             are loaded. then another function will handle unloading syntax files on next load
         --]]
         for key in pairs(module.private.code_block_table) do
-            if current_buf ~= key or reload == true then
+            if current_buf == key and reload == true then
                 for k, _ in pairs(module.private.code_block_table[current_buf].loaded_regex) do
                     module.public.remove_syntax(
                         string.format("textGroup%s", string.upper(k)),
@@ -145,6 +149,7 @@ module.public = {
                         module.private.code_block_table[current_buf].loaded_regex[regex_lang] = {
                             type = type,
                             range = {},
+                            cluster = "",
                         }
                     end
                     -- else just do what we need to do
@@ -188,9 +193,6 @@ module.public = {
             return
         end
         local lang_table = module.private.code_block_table[current_buf].loaded_regex
-        if ignore_buf == false and vim.api.nvim_buf_get_name(buf) == module.private.last_buffer then
-            return
-        end
         for lang_name, curr_table in pairs(lang_table) do
             if curr_table.type == "syntax" then
                 -- NOTE: the regex fallback code was originally mostly adapted from Vimwiki
@@ -200,6 +202,9 @@ module.public = {
                 local start_marker = string.format("@code %s", lang_name)
                 local end_marker = "@end"
                 local has_syntax = string.format("syntax list @%s", group)
+                if ignore_buf == false and vim.api.nvim_buf_get_name(buf) == module.private.last_buffer then
+                    module.public.sync_regex_code_blocks()
+                end
 
                 -- try removing syntax before doing anything
                 -- fixes hi link groups from not loading on certain updates
@@ -213,7 +218,7 @@ module.public = {
                 -- look to see if the textGroup is actually empty
                 -- clusters don't delete when they're clear
                 for line in result:gmatch("([^\n]*)\n?") do
-                    empty_result = string.match(line, "@textGroup%w+%s+cluster=NONE")
+                    empty_result = string.match(line, "textGroup%w+%s+cluster=NONE")
                     if empty_result == nil then
                         empty_result = 0
                     else
@@ -226,7 +231,9 @@ module.public = {
                 -- if syn list was an error, or if it was an empty result
                 if
                     ok == false
-                    or (ok == true and ((string.sub(result, 1, 1) == "N" and count == 0) or (empty_result > 0)))
+                    or (
+                        ok == true and ((string.sub(result, 1, 1) == ("N" or "V") and count == 0) or (empty_result > 0))
+                    )
                 then
                     -- absorb all syntax stuff
                     -- potentially needs to be expanded upon as bad values come in
@@ -250,20 +257,47 @@ module.public = {
                     for syntax, table in pairs(module.private.available_languages) do
                         if table.type == "syntax" then
                             if lang_name == syntax then
-                                -- get the file name for the syntax file
-                                local file = vim.api.nvim_get_runtime_file(
-                                    string.format("syntax/%s.vim", syntax),
-                                    false
-                                )
-                                if file == nil then
-                                    file = vim.api.nvim_get_runtime_file(
-                                        string.format("after/syntax/%s.vim", syntax),
+                                if empty_result == 0 then
+                                    -- get the file name for the syntax file
+                                    local file = vim.api.nvim_get_runtime_file(
+                                        string.format("syntax/%s.vim", syntax),
                                         false
                                     )
+                                    if file == nil then
+                                        file = vim.api.nvim_get_runtime_file(
+                                            string.format("after/syntax/%s.vim", syntax),
+                                            false
+                                        )
+                                    end
+                                    file = file[1]
+                                    local command = string.format("syntax include @%s %s", group, file)
+                                    vim.cmd(command)
+
+                                    -- make sure that group has things when needed
+                                    local regex = group .. "%s+cluster=(.+)"
+                                    local _, found_cluster = pcall(
+                                        vim.api.nvim_exec,
+                                        string.format("syntax list @%s", group),
+                                        true
+                                    )
+                                    local actual_cluster
+                                    for match in found_cluster:gmatch(regex) do
+                                        actual_cluster = match
+                                    end
+                                    if actual_cluster ~= nil then
+                                        module.private.code_block_table[current_buf].loaded_regex[lang_name].cluster =
+                                            actual_cluster
+                                    end
+                                elseif
+                                    module.private.code_block_table[current_buf].loaded_regex[lang_name].cluster ~= nil
+                                then
+                                    local command = string.format(
+                                        "syntax cluster %s add=%s",
+                                        group,
+                                        module.private.code_block_table[current_buf].loaded_regex[lang_name].cluster
+                                    )
+                                    vim.cmd(command)
                                 end
-                                file = file[1]
-                                local command = string.format("syntax include @%s %s", group, file)
-                                vim.cmd(command)
                             end
                         end
                     end
@@ -301,6 +335,8 @@ module.public = {
                             group
                         )
                         vim.cmd(string.format("%s", regex_fallback_hl))
+                        -- sync everything
+                        module.public.sync_regex_code_blocks(buf, lang_name, from, to)
                     end
 
                     vim.o.foldmethod = foldmethod
@@ -311,9 +347,6 @@ module.public = {
                     vim.o.foldenable = foldenable
                     vim.o.foldminlines = foldminlines
                 end
-
-                -- sync everything
-                module.public.sync_regex_code_blocks(buf, lang_name, from, to)
 
                 vim.b.current_syntax = ""
                 module.private.last_buffer = vim.api.nvim_buf_get_name(buf)
@@ -394,7 +427,7 @@ module.public = {
                     end_marker
                 )
                 -- TODO check groupthere, a slower process
-                -- vim.cmd(string.format("%s", regex_fallback_hl))
+                -- vim.cmd(string.format("silent! %s", regex_fallback_hl))
                 -- vim.cmd("syntax sync maxlines=100")
             end
             ::continue::
