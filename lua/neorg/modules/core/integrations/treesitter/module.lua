@@ -28,19 +28,11 @@ module.load = function()
         local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
 
         parser_configs.norg = {
-            install_info = {
-                url = "https://github.com/nvim-neorg/tree-sitter-norg",
-                files = { "src/parser.c", "src/scanner.cc" },
-                branch = "main",
-            },
+            install_info = module.config.public.parser_configs.norg,
         }
 
         parser_configs.norg_meta = {
-            install_info = {
-                url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
-                files = { "src/parser.c" },
-                branch = "main",
-            },
+            install_info = module.config.public.parser_configs.norg_meta,
         }
 
         module.required["core.neorgcmd"].add_commands_from_table({
@@ -54,8 +46,6 @@ module.load = function()
                 },
             },
         })
-
-        parser_configs = vim.tbl_deep_extend("force", parser_configs, module.config.public.parser_configs)
 
         -- luacheck: pop
 
@@ -79,7 +69,16 @@ module.config.public = {
     configure_parsers = true,
     install_parsers = true,
     parser_configs = {
-        -- norg = { install_info = { branch = "" } }
+        norg = {
+            url = "https://github.com/nvim-neorg/tree-sitter-norg",
+            files = { "src/parser.c", "src/scanner.cc" },
+            branch = "main",
+        },
+        norg_meta = {
+            url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
+            files = { "src/parser.c" },
+            branch = "main",
+        },
     },
 }
 
