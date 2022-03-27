@@ -40,6 +40,18 @@ module.public = {
             end
         end
 
+        local current_lang = vim.treesitter.get_parser(buf, "norg"):language_for_range({ vim.v.lnum, 0, vim.v.lnum, -1 })
+
+        if current_lang:lang() ~= "norg" then
+            local prev = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, vim.v.lnum - 2)
+
+            if prev and prev:type() == "ranged_tag" then
+                return module.required["core.integrations.treesitter"].get_node_range(prev).column_start + vim.fn["nvim_treesitter#indent"]()
+            else
+                return vim.fn["nvim_treesitter#indent"]()
+            end
+        end
+
         if type(indent_data.indent) == "number" then
             return indent + indent_data.indent
         end
@@ -95,6 +107,12 @@ module.config.public = {
         ["heading6"] = {
             indent = 0,
         },
+
+        ["ranged_tag_end"] = {
+            indent = function(_, node)
+                return module.required["core.integrations.treesitter"].get_node_range(node:parent()).column_start
+            end,
+        }
     },
     modifiers = {
         -- For any object that can exist under headings
@@ -133,7 +151,7 @@ module.on_event = function(event)
             ("v:lua.neorg.modules.get_module('core.norg.esupports.indent').indentexpr(%d)"):format(event.buffer)
         )
 
-        vim.api.nvim_buf_set_option(event.buffer, "indentkeys", "o,O,*<CR>")
+        vim.api.nvim_buf_set_option(event.buffer, "indentkeys", "o,O,*<CR>,*<Esc>,*<M-o>,*<M-O>")
     end
 end
 
