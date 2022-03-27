@@ -128,7 +128,7 @@ module.public = {
     --- Tries to locate a todo_item node under the cursor
     --- @return userdata nil if no such node could be found else returns the todo_item node
     get_list_item_from_cursor = function(buf, line)
-        local node_at_cursor = module.required["core.integrations.treesitter"].get_first_named_node_on_line(buf, line)
+        local node_at_cursor = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, line)
 
         if
             not node_at_cursor
