@@ -53,10 +53,11 @@ module.public = {
         end
 
         if type(indent_data.indent) == "number" then
-            return indent + indent_data.indent
+            return indent_data.indent ~= -1 and (indent + indent_data.indent) or -1
         end
 
-        return indent + indent_data.indent(buf, node)
+        local calculated_indent = indent_data.indent(buf, node) or 0
+        return calculated_indent ~= -1 and (indent + calculated_indent) or -1
     end,
 }
 
@@ -68,8 +69,16 @@ module.config.public = {
         },
 
         ["paragraph_segment"] = {
-            modifiers = { "under-headings", "under-unordered-lists" },
+            modifiers = { "under-headings", "under-nestable-detached-modifiers" },
             indent = 0,
+        },
+
+        ["_line_break"] = {
+            indent = function(_, node)
+                if node:parent():type() == "ranged_tag_content" then
+                    return -1
+                end
+            end,
         },
 
         ["strong_paragraph_delimiter"] = {
@@ -127,8 +136,27 @@ module.config.public = {
         end,
 
         -- For any object that should be indented under a list
-        ["under-unordered-lists"] = function(_, node)
-            local list = module.required["core.integrations.treesitter"].find_parent(node, "unordered_list%d")
+        ["under-nestable-detached-modifiers"] = function(_, node)
+            local list = module.required["core.integrations.treesitter"].find_parent(node, {
+                "unordered_list1",
+                "unordered_list2",
+                "unordered_list3",
+                "unordered_list4",
+                "unordered_list5",
+                "unordered_list6",
+                "ordered_list1",
+                "ordered_list2",
+                "ordered_list3",
+                "ordered_list4",
+                "ordered_list5",
+                "ordered_list6",
+                "quote1",
+                "quote2",
+                "quote3",
+                "quote4",
+                "quote5",
+                "quote6",
+            })
 
             if not list or not list:named_child(1) then
                 return 0
