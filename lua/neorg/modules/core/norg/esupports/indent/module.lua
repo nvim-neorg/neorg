@@ -2,6 +2,8 @@
 -- TODO
 --]]
 
+-- TODO: Make `get_first_node_on_line` move up the node list to the closest named parent
+
 local module = neorg.modules.create("core.norg.esupports.indent")
 
 module.setup = function()
@@ -28,11 +30,13 @@ module.public = {
             return 0
         end
 
+        local initial_indent = module.required["core.integrations.treesitter"].get_node_range(node).column_start
+
         local indent = 0
 
         for _, modifier in ipairs(indent_data.modifiers or {}) do
             if module.config.public.modifiers[modifier] then
-                local ret = module.config.public.modifiers[modifier](buf, node)
+                local ret = module.config.public.modifiers[modifier](buf, node, initial_indent)
 
                 if ret ~= 0 then
                     indent = ret
@@ -62,7 +66,7 @@ module.public = {
             return indent_data.indent ~= -1 and (indent + indent_data.indent) or -1
         end
 
-        local calculated_indent = indent_data.indent(buf, node) or 0
+        local calculated_indent = indent_data.indent(buf, node, indent, initial_indent) or 0
         return calculated_indent ~= -1 and (indent + calculated_indent) or -1
     end,
 }
@@ -123,6 +127,15 @@ module.config.public = {
             indent = 0,
         },
 
+        ["ranged_tag"] = {
+            modifiers = { "under-headings" },
+            indent = 0,
+        },
+
+        ["ranged_tag_content"] = {
+            indent = -1,
+        },
+
         ["ranged_tag_end"] = {
             indent = function(_, node)
                 return module.required["core.integrations.treesitter"].get_node_range(node:parent()).column_start
@@ -132,7 +145,7 @@ module.config.public = {
     modifiers = {
         -- For any object that can exist under headings
         ["under-headings"] = function(_, node)
-            local heading = module.required["core.integrations.treesitter"].find_parent(node, "heading%d")
+            local heading = module.required["core.integrations.treesitter"].find_parent(node:parent(), "heading%d")
 
             if not heading or not heading:named_child(1) then
                 return 0
