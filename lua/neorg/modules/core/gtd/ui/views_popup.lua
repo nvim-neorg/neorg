@@ -81,7 +81,7 @@ module.private = {
                 )
             )
             :flag("w", "Waiting For", neorg.lib.wrap(module.public.display_waiting_for, clarified_tasks))
-            :flag("d", "Someday Tasks", neorg.lib.wrap(module.public.display_someday, clarified_projects))
+            :flag("d", "Someday Tasks", neorg.lib.wrap(module.public.display_someday, clarified_tasks))
             :blank()
             :concat(module.private.generate_informations)
         return selection
