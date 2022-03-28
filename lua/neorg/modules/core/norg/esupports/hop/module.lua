@@ -394,7 +394,38 @@ module.public = {
             end,
 
             external_file = function()
-                vim.cmd("e " .. vim.fn.fnameescape(parsed_link_information.link_location_text))
+                local destination = parsed_link_information.link_location_text
+                destination = (
+                        vim.tbl_contains({ "/", "~" }, destination:sub(1, 1)) and "" or (vim.fn.expand("%:p:h") .. "/")
+                    ) .. destination
+
+                local function open_in_external_app()
+                    if neorg.configuration.os_info == "linux" then
+                        vim.cmd(
+                            'silent !xdg-open "'
+                                .. vim.fn.fnameescape(vim.uri_from_fname(vim.fn.expand(destination)))
+                                .. '"'
+                        )
+                    elseif neorg.configuration.os_info == "mac" then
+                        vim.cmd(
+                            'silent !open "'
+                                .. vim.fn.fnameescape(vim.uri_from_fname(vim.fn.expand(destination)))
+                                .. '"'
+                        )
+                    else
+                        vim.cmd(
+                            'silent !start "'
+                                .. vim.fn.fnameescape(vim.uri_from_fname(vim.fn.expand(destination)))
+                                .. '"'
+                        )
+                    end
+                end
+
+                neorg.lib.match(destination:match("%.(.+)$"))({
+                    pdf = open_in_external_app,
+                    _ = neorg.lib.wrap(vim.cmd, "e " .. destination),
+                })
+
                 return {}
             end,
 

@@ -1,5 +1,5 @@
 (ranged_tag ("_prefix") @NeorgTagBegin
-	name: (tag_name [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
+	name: (tag_name [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]) @NeorgTagName
 	(tag_parameters parameter: (tag_param) @NeorgTagParameter)? @NeorgTagParameters
 	content: (ranged_tag_content)?
 	(ranged_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)) @NeorgTag
@@ -14,14 +14,14 @@
                 [
                     (tag_name_element) @NeorgCarryoverTagNameWord
                     ("_delimiter") @NeorgCarryoverTagNameDelimiter
-                ]+
+                ]
             ) @NeorgCarryoverTagName
         (tag_parameters
             parameter: (tag_param) @NeorgCarryoverTagParameter
         )? @NeorgCarryoverTagParameters
     ) @NeorgCarryoverTag
 
-	target: (_)+ @NeorgCarryoverTagTarget
+	target: (_) @NeorgCarryoverTagTarget
 )
 
 ; Trailing Modifier
