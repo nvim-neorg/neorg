@@ -40,13 +40,19 @@ module.public = {
             end
         end
 
-        local current_lang = vim.treesitter.get_parser(buf, "norg"):language_for_range({ vim.v.lnum - 1, 0, vim.v.lnum - 1, 1 })
+        local current_lang = vim.treesitter.get_parser(buf, "norg"):language_for_range({
+            vim.v.lnum - 1,
+            0,
+            vim.v.lnum - 1,
+            1,
+        })
 
         if current_lang:lang() ~= "norg" then
             local prev = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, vim.v.lnum - 2)
 
             if prev and prev:type() == "ranged_tag" then
-                return module.required["core.integrations.treesitter"].get_node_range(prev).column_start + vim.fn["nvim_treesitter#indent"]()
+                return module.required["core.integrations.treesitter"].get_node_range(prev).column_start
+                    + vim.fn["nvim_treesitter#indent"]()
             else
                 return vim.fn["nvim_treesitter#indent"]()
             end
@@ -121,7 +127,7 @@ module.config.public = {
             indent = function(_, node)
                 return module.required["core.integrations.treesitter"].get_node_range(node:parent()).column_start
             end,
-        }
+        },
     },
     modifiers = {
         -- For any object that can exist under headings
