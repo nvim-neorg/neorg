@@ -82,7 +82,7 @@ module.public = {
                     return true
                 elseif type(data["time.start"]) == "table" and not vim.tbl_isempty(data["time.start"]) then
                     return true
-                elseif type(data["contexts"]) == "table" and vim.tbl_contains(data["contexts"], "someday") then
+                elseif type(data["contexts"]) == "table" and not vim.tbl_isempty(data["contexts"]) then
                     return true
                 end
 
@@ -96,7 +96,7 @@ module.public = {
 
                 if not vim.tbl_isempty(project) then
                     project = project[1]
-                    if type(project["contexts"]) == "table" and vim.tbl_contains(project["contexts"], "someday") then
+                    if type(project["contexts"]) == "table" and not vim.tbl_isempty(project["contexts"]) then
                         return true
                     end
                 end
