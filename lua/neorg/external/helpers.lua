@@ -324,6 +324,16 @@ neorg.lib = {
     wrap = function(function_pointer, ...)
         local params = { ... }
 
+        if type(function_pointer) ~= "function" then
+            local prev = function_pointer
+
+            -- luacheck: push ignore
+            function_pointer = function(...)
+                return prev
+            end
+            -- luacheck: pop
+        end
+
         return function()
             return function_pointer(unpack(params))
         end

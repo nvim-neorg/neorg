@@ -416,10 +416,10 @@ module.public = {
         end
     end,
 
-    get_first_named_node_on_line = function(buf, line)
-        local query_str = [[
-            (_) @node
-        ]]
+    get_first_node_on_line = function(buf, line, unnamed, lenient)
+        local query_str = ([[
+            %s @node
+        ]]):format(unnamed and "_" or "(_)")
 
         local document_root = module.public.get_document_root(buf)
 
@@ -427,17 +427,39 @@ module.public = {
             return
         end
 
+        if line == 0 and not lenient then
+            local first_node = document_root:named_child(0)
+
+            if not first_node then
+                return
+            end
+
+            if module.public.get_node_range(first_node).row_start == 0 then
+                return first_node
+            end
+
+            return
+        end
+
         local query = vim.treesitter.parse_query("norg", query_str)
 
-        for id, node in query:iter_captures(document_root, buf, line, line + 1) do
-            if query.captures[id] == "node" then
-                local range = module.public.get_node_range(node)
+        local result
 
-                if range.row_start == line then
-                    return node
+        for id, node in query:iter_captures(document_root, buf, lenient and line - 1 or line, line + 1) do
+            if query.captures[id] == "node" then
+                if lenient then
+                    result = node
+                else
+                    local range = module.public.get_node_range(node)
+
+                    if range.row_start == line then
+                        return node
+                    end
                 end
             end
         end
+
+        return result
     end,
 }
 

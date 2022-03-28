@@ -17,7 +17,7 @@ return neorg.modules.create_meta(
     "core.keybinds",
     "core.mode",
     "core.norg.qol.todo_items",
-    "core.norg.esupports",
+    "core.norg.esupports.indent",
     "core.norg.esupports.metagen",
     "core.norg.esupports.hop",
     "core.integrations.treesitter",
