@@ -16,6 +16,9 @@ local configuration = require("neorg.config")
 function neorg.setup(config)
     configuration.user_configuration = config or {}
 
+    -- Create a new global instance of the neorg logger
+    require("neorg.external.log").new(configuration.user_configuration.logger or log.get_default_config(), true)
+
     -- If the file we have entered has a .norg extension
     if vim.fn.expand("%:e") == "norg" then
         -- Then set the filetype and boot up the environment
@@ -41,9 +44,6 @@ function neorg.org_file_entered(manual, arguments)
     if configuration.started or not module_list or vim.tbl_isempty(module_list) then
         return
     end
-
-    -- Create a new global instance of the neorg logger
-    require("neorg.external.log").new(configuration.user_configuration.logger or log.get_default_config(), true)
 
     -- Loop through all the modules and load them one by one
     --
