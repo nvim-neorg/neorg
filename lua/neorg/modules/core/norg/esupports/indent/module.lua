@@ -44,11 +44,13 @@ module.public = {
             end
         end
 
+        local line_len = vim.fn.getline(vim.v.lnum):len()
+
         local current_lang = vim.treesitter.get_parser(buf, "norg"):language_for_range({
             vim.v.lnum - 1,
-            0,
+            line_len,
             vim.v.lnum - 1,
-            1,
+            line_len,
         })
 
         if current_lang:lang() ~= "norg" then
