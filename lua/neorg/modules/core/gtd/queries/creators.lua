@@ -2,22 +2,13 @@ local module = neorg.modules.extend("core.gtd.queries.creators")
 
 ---@class core.gtd.queries
 module.public = {
-    --- Creates a new project/task (depending of `type`) from the `node` table and insert it in `bufnr` at `location`
-    --- supported `string`: project|task
-    --- @param type string
+    --- Creates a new project/task from the `node` table and insert it at `location`
     --- @param node core.gtd.queries.task|core.gtd.queries.project
     --- @param location table
     --- @param opts table|nil opts
     ---   - opts.no_save(boolean)    if true, don't save the buffer
-    create = function(type, node, location, opts)
+    create = function(node, location, opts)
         vim.validate({
-            type = {
-                type,
-                function(t)
-                    return vim.tbl_contains({ "project", "task" }, t)
-                end,
-                "project|task",
-            },
             node = { node, "table" },
             location = { location, "table" },
             opts = { opts, "table", true },
@@ -38,13 +29,13 @@ module.public = {
         local bufnr = node.internal.bufnr
 
         local indendation = string.rep(" ", location[2])
-        local prefix = type == "project" and "* " or "- [ ] "
+        local prefix = node.type == "project" and "* " or "- [ ] "
         table.insert(inserter, indendation .. prefix .. node.content)
 
         local temp_buf = module.required["core.queries.native"].get_temp_buf(bufnr)
         vim.api.nvim_buf_set_lines(temp_buf, location[1], location[1], false, inserter)
 
-        local nodes = module.public.get(type .. "s", { bufnr = bufnr })
+        local nodes = module.public.get(node.type .. "s", { bufnr = bufnr })
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         local inserted_line = location[1] + #inserter

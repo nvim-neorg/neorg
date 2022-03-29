@@ -43,6 +43,7 @@ module.private = {
                 ---@type core.gtd.queries.task
                 local task = {
                     content = text,
+                    type = "task",
                     internal = {},
                 }
 
@@ -77,7 +78,7 @@ module.private = {
                         local cursor = vim.api.nvim_win_get_cursor(0)
                         local location = { cursor[1] - 1, 0 }
                         task.internal.bufnr = 0
-                        module.required["core.gtd.queries"].create("task", task, location)
+                        module.required["core.gtd.queries"].create(task, location)
                     end)
                     :flag("<CR>", "Add to inbox", function()
                         local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
@@ -98,7 +99,7 @@ module.private = {
                         task.internal.bufnr = buf
                         local end_row, projectAtEnd = module.required["core.gtd.queries"].get_end_document_content(buf)
 
-                        module.required["core.gtd.queries"].create("task", task, { end_row, 0 }, projectAtEnd)
+                        module.required["core.gtd.queries"].create(task, { end_row, 0 }, projectAtEnd)
                     end)
 
                 return selection
@@ -285,6 +286,7 @@ module.private = {
                                 --- @type core.gtd.queries.project
                                 local project = {
                                     content = text,
+                                    type = "project",
                                     internal = {},
                                 }
 
@@ -358,8 +360,8 @@ module.private = {
                 return
             end
             selection:destroy()
-            module.required["core.gtd.queries"].create("project", project, { location, 0 })
-            module.required["core.gtd.queries"].create("task", task, { location + 1, 2 })
+            module.required["core.gtd.queries"].create(project, { location, 0 })
+            module.required["core.gtd.queries"].create(task, { location + 1, 2 })
         else
             selection:push_page()
             selection:title("Create a new project"):blank():text("Project name: " .. project.content):blank()
@@ -374,8 +376,8 @@ module.private = {
                 selection:flag(f, extracted_nodes[i]:sub(3), function()
                     local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
                     local _, _, er, _ = ts_utils.get_node_range(marker_node[1])
-                    module.required["core.gtd.queries"].create("project", project, { er, 0 })
-                    module.required["core.gtd.queries"].create("task", task, { er + 1, 2 })
+                    module.required["core.gtd.queries"].create(project, { er, 0 })
+                    module.required["core.gtd.queries"].create(task, { er + 1, 2 })
                 end)
             end
 
@@ -387,8 +389,8 @@ module.private = {
                 end
                 selection:destroy()
 
-                module.required["core.gtd.queries"].create("project", project, { location, 0 })
-                module.required["core.gtd.queries"].create("task", task, { location + 2, 2 })
+                module.required["core.gtd.queries"].create(project, { location, 0 })
+                module.required["core.gtd.queries"].create(task, { location + 2, 2 })
             end)
         end
     end,
@@ -467,7 +469,7 @@ module.private = {
         selection:flag("<CR>", description, {
             callback = function()
                 location = module.required["core.gtd.queries"].get_end_project(node, bufnr)
-                module.required["core.gtd.queries"].create("task", task, location)
+                module.required["core.gtd.queries"].create(task, location)
                 vim.cmd(string.format([[echom '%s']], 'Task added to "' .. project_title .. '".'))
             end,
             destroy = true,
