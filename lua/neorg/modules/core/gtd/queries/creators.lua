@@ -6,50 +6,55 @@ module.public = {
     --- supported `string`: project|task
     --- @param type string
     --- @param node core.gtd.queries.task|core.gtd.queries.project
-    --- @param bufnr number
     --- @param location table
-    --- @param delimit boolean #Add delimiter before the task/project if true
     --- @param opts table|nil opts
-    ---   - opts.new_line(boolean)   if false, do not add a newline before the content
     ---   - opts.no_save(boolean)    if true, don't save the buffer
-    create = function(type, node, bufnr, location, delimit, opts)
+    create = function(type, node, location, opts)
         vim.validate({
-            type = { type, "string" },
+            type = {
+                type,
+                function(t)
+                    return vim.tbl_contains({ "project", "task" }, t)
+                end,
+                "project|task",
+            },
             node = { node, "table" },
-            bufnr = { bufnr, "number" },
             location = { location, "table" },
             opts = { opts, "table", true },
         })
 
-        if not vim.tbl_contains({ "project", "task" }, type) then
-            log.error("You can only insert new project or task")
-            return
-        end
-
         opts = opts or {}
-        local res = {}
 
         if not node.content then
             log.error("No node content provided")
             return
         end
 
-        table.insert(res, "")
-
-        local newline = true
-
-        if opts.newline ~= nil then
-            newline = opts.newline
+        if not node.internal or not node.internal.bufnr then
+            log.error("Missing internal information")
         end
 
-        node.internal = node.internal or {}
-        node.internal.node = module.private.insert_content_new(
-            node.content,
-            bufnr,
-            location,
-            type,
-            { newline = newline, delimiter = delimit }
-        )
+        local inserter = {}
+        local bufnr = node.internal.bufnr
+
+        local indendation = string.rep(" ", location[2])
+        local prefix = type == "project" and "* " or "- [ ] "
+        table.insert(inserter, indendation .. prefix .. node.content)
+
+        local temp_buf = module.required["core.queries.native"].get_temp_buf(bufnr)
+        vim.api.nvim_buf_set_lines(temp_buf, location[1], location[1], false, inserter)
+
+        local nodes = module.public.get(type .. "s", { bufnr = bufnr })
+        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+
+        local inserted_line = location[1] + #inserter
+        for _, n in pairs(nodes) do
+            local line = ts_utils.get_node_range(n[1]) + 1
+
+            if line == inserted_line then
+                node.internal.node = n[1]
+            end
+        end
 
         if node.internal.node == nil then
             log.error("Error in inserting new content")
@@ -152,62 +157,6 @@ module.public = {
 }
 
 module.private = {
-    --- Insert a `content` (with specific `type`) at specified `location`
-    --- @param content string
-    --- @param bufnr number
-    --- @param location number
-    --- @param type string #project|task
-    --- @param opts table
-    ---   - opts.newline (bool):    is true, insert a newline before the content
-    ---   - opts.delimiter (bool):  if true, insert a delimiter before the content
-    --- @return userdata|nil #the newly created node. Else returns nil
-    insert_content_new = function(content, bufnr, location, type, opts)
-        vim.validate({
-            content = { content, "string" },
-            bufnr = { bufnr, "number" },
-            location = { location, "table" },
-            type = {
-                type,
-                function(t)
-                    return vim.tbl_contains({ "project", "task" }, t)
-                end,
-                "project|task",
-            },
-            opts = { opts, "table", true },
-        })
-
-        local inserter = {}
-        local prefix = type == "project" and "* " or "- [ ] "
-
-        if opts.delimiter then
-            table.insert(inserter, "| _")
-        end
-
-        if opts.newline then
-            table.insert(inserter, "")
-        end
-
-        local indendation = string.rep(" ", location[2])
-        table.insert(inserter, indendation .. prefix .. content)
-
-        local temp_buf = module.required["core.queries.native"].get_temp_buf(bufnr)
-        vim.api.nvim_buf_set_lines(temp_buf, location[1], location[1], false, inserter)
-
-        -- Get all nodes for `type` and return the one that is present at `location`
-        local nodes = module.public.get(type .. "s", { bufnr = bufnr })
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-
-        for _, node in pairs(nodes) do
-            local line = ts_utils.get_node_range(node[1])
-
-            local count_newline = opts.newline and 1 or 0
-            local count_delimiter = opts.delimiter and 1 or 0
-            if line == location[1] + count_newline + count_delimiter then
-                return node[1]
-            end
-        end
-    end,
-
     --- Insert the tag above a `type`
     --- @param node table #Must be { node, bufnr }
     --- @param content? string|table

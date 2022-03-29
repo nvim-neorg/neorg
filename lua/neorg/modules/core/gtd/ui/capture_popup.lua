@@ -41,8 +41,10 @@ module.private = {
         return selection:title("Add a task"):blank():prompt("Task", {
             callback = function(text)
                 ---@type core.gtd.queries.task
-                local task = {}
-                task.content = text
+                local task = {
+                    content = text,
+                    internal = {},
+                }
 
                 selection:push_page()
 
@@ -74,14 +76,8 @@ module.private = {
                     :flag("x", "Add to cursor position", function()
                         local cursor = vim.api.nvim_win_get_cursor(0)
                         local location = { cursor[1] - 1, 0 }
-                        module.required["core.gtd.queries"].create(
-                            "task",
-                            task,
-                            0,
-                            location,
-                            false,
-                            { newline = false }
-                        )
+                        task.internal.bufnr = 0
+                        module.required["core.gtd.queries"].create("task", task, location)
                     end)
                     :flag("<CR>", "Add to inbox", function()
                         local workspace = neorg.modules.get_module_config("core.gtd.base").workspace
@@ -99,9 +95,10 @@ module.private = {
 
                         local uri = vim.uri_from_fname(workspace_path .. "/" .. inbox)
                         local buf = vim.uri_to_bufnr(uri)
+                        task.internal.bufnr = buf
                         local end_row, projectAtEnd = module.required["core.gtd.queries"].get_end_document_content(buf)
 
-                        module.required["core.gtd.queries"].create("task", task, buf, { end_row, 0 }, projectAtEnd)
+                        module.required["core.gtd.queries"].create("task", task, { end_row, 0 }, projectAtEnd)
                     end)
 
                 return selection
@@ -265,6 +262,8 @@ module.private = {
                         callback = function()
                             selection:push_page()
 
+                            task.internal.bufnr = project.internal.bufnr
+
                             module.private.create_recursive_project_placement(
                                 selection,
                                 project.internal.node,
@@ -284,8 +283,10 @@ module.private = {
                         selection:title("Create a new project"):blank():prompt("Project name", {
                             callback = function(text)
                                 --- @type core.gtd.queries.project
-                                local project = {}
-                                project.content = text
+                                local project = {
+                                    content = text,
+                                    internal = {},
+                                }
 
                                 selection:push_page()
                                 selection
@@ -346,6 +347,9 @@ module.private = {
         local nodes = module.required["core.queries.native"].query_nodes_from_buf(tree, bufnr)
         local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
 
+        project.internal.bufnr = bufnr
+        task.internal.bufnr = bufnr
+
         local location
         if vim.tbl_isempty(nodes) then
             location = module.required["core.gtd.queries"].get_end_document_content(bufnr)
@@ -354,17 +358,8 @@ module.private = {
                 return
             end
             selection:destroy()
-            module.required["core.gtd.queries"].create(
-                "project",
-                project,
-                bufnr,
-                { location, 0 },
-                false,
-                { newline = false }
-            )
-            module.required["core.gtd.queries"].create("task", task, bufnr, { location + 1, 2 }, false, {
-                newline = false,
-            })
+            module.required["core.gtd.queries"].create("project", project, { location, 0 })
+            module.required["core.gtd.queries"].create("task", task, { location + 1, 2 })
         else
             selection:push_page()
             selection:title("Create a new project"):blank():text("Project name: " .. project.content):blank()
@@ -379,17 +374,8 @@ module.private = {
                 selection:flag(f, extracted_nodes[i]:sub(3), function()
                     local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
                     local _, _, er, _ = ts_utils.get_node_range(marker_node[1])
-                    module.required["core.gtd.queries"].create(
-                        "project",
-                        project,
-                        bufnr,
-                        { er, 0 },
-                        false,
-                        { newline = false }
-                    )
-                    module.required["core.gtd.queries"].create("task", task, bufnr, { er + 1, 2 }, false, {
-                        newline = false,
-                    })
+                    module.required["core.gtd.queries"].create("project", project, { er, 0 })
+                    module.required["core.gtd.queries"].create("task", task, { er + 1, 2 })
                 end)
             end
 
@@ -401,17 +387,8 @@ module.private = {
                 end
                 selection:destroy()
 
-                module.required["core.gtd.queries"].create(
-                    "project",
-                    project,
-                    bufnr,
-                    { location, 0 },
-                    true,
-                    { newline = false }
-                )
-                module.required["core.gtd.queries"].create("task", task, bufnr, { location + 2, 2 }, false, {
-                    newline = false,
-                })
+                module.required["core.gtd.queries"].create("project", project, { location, 0 })
+                module.required["core.gtd.queries"].create("task", task, { location + 2, 2 })
             end)
         end
     end,
@@ -489,23 +466,8 @@ module.private = {
         create_subheadings(selection, node, bufnr)
         selection:flag("<CR>", description, {
             callback = function()
-                local generic_lists = get_generic_lists(node, bufnr)
-                if generic_lists then
-                    local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-
-                    local last_list = generic_lists[#generic_lists]
-
-                    local _, sc, er, _ = ts_utils.get_node_range(last_list[1])
-                    if last_list[1]:type() == "carryover_tag_set" then
-                        location = { er + 2, sc }
-                    else
-                        location = { er + 1, sc }
-                    end
-                else
-                    location = module.required["core.gtd.queries"].get_end_project(node, bufnr)
-                end
-
-                module.required["core.gtd.queries"].create("task", task, bufnr, location, false, { newline = false })
+                location = module.required["core.gtd.queries"].get_end_project(node, bufnr)
+                module.required["core.gtd.queries"].create("task", task, location)
                 vim.cmd(string.format([[echom '%s']], 'Task added to "' .. project_title .. '".'))
             end,
             destroy = true,
