@@ -146,11 +146,11 @@ module.private = {
                     :prompt(title, {
                         callback = function(text)
                             if #text > 0 then
-                                task[mode] = task[mode] or {}
-                                task[mode] = vim.list_extend(task[mode], vim.split(text, " ", false))
+                                task[mode] = vim.split(text, " ", false)
                             end
                         end,
                         pop = true,
+                        prompt_text = task[mode] and table.concat(task[mode], " ") or "",
                     })
             end,
         })
