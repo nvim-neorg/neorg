@@ -417,9 +417,9 @@ module.public = {
     end,
 
     get_first_node_on_line = function(buf, line, unnamed, lenient)
-        local query_str = ([[
-            %s @node
-        ]]):format(unnamed and "_" or "(_)")
+        local query_str = [[
+            _ @node
+        ]]
 
         local document_root = module.public.get_document_root(buf)
 
@@ -443,6 +443,18 @@ module.public = {
 
         local query = vim.treesitter.parse_query("norg", query_str)
 
+        local function find_closest_unnamed_node(node)
+            if unnamed or not node or node:named() then
+                return node
+            end
+
+            while node and not node:named() do
+                node = node:parent()
+            end
+
+            return node
+        end
+
         local result
 
         for id, node in query:iter_captures(document_root, buf, lenient and line - 1 or line, line + 1) do
@@ -453,13 +465,13 @@ module.public = {
                     local range = module.public.get_node_range(node)
 
                     if range.row_start == line then
-                        return node
+                        return find_closest_unnamed_node(node)
                     end
                 end
             end
         end
 
-        return result
+        return find_closest_unnamed_node(result)
     end,
 }
 
