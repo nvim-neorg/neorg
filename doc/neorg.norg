@@ -264,7 +264,7 @@ consective new lines.
     | some marker
 
  ** Definitions
-    There are two kinds of defintions:
+    There are two kinds of definitions:
 
   *** Single-paragraph definitions
       @code norg
