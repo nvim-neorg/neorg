@@ -70,11 +70,20 @@ module.public = {
         end
 
         if type(indent_data.indent) == "number" then
-            return indent_data.indent ~= -1 and (indent + indent_data.indent) or -1
+            if indent_data.indent == -1 then
+                return -1
+            end
+
+            return indent + indent_data.indent + (module.config.public.tweaks[node:type()] or 0)
         end
 
         local calculated_indent = indent_data.indent(buf, node, indent, initial_indent) or 0
-        return calculated_indent ~= -1 and (indent + calculated_indent) or -1
+
+        if calculated_indent == -1 then
+            return -1
+        end
+
+        return indent + calculated_indent + (module.config.public.tweaks[node:type()] or 0)
     end,
 }
 
@@ -183,6 +192,7 @@ module.config.public = {
             return module.required["core.integrations.treesitter"].get_node_range(list:named_child(1)).column_start
         end,
     },
+    tweaks = {},
 }
 
 module.load = function()
