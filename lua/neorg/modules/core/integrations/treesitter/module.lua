@@ -51,8 +51,8 @@ module.load = function()
 
         if not neorg.lib.inline_pcall(vim.treesitter.parse_query, "norg", [[]]) then
             if module.config.public.install_parsers then
-                pcall(vim.cmd, "TSUpdateSync norg")
-                pcall(vim.cmd, "TSUpdateSync norg_meta")
+                pcall(vim.cmd, "TSInstallSync! norg")
+                pcall(vim.cmd, "TSInstallSync! norg_meta")
             else
                 assert(false, "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it.")
             end
@@ -483,8 +483,8 @@ module.on_event = function(event)
             module.public.goto_previous_heading()
         end
     elseif event.split_type[2] == "sync-parsers" then
-        pcall(vim.cmd, "TSUpdate norg")
-        pcall(vim.cmd, "TSUpdate norg_meta")
+        pcall(vim.cmd, "TSInstall! norg")
+        pcall(vim.cmd, "TSInstall! norg_meta")
     end
 end
 
