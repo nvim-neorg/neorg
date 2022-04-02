@@ -797,51 +797,59 @@ module.public = {
     foldtext = function()
         local foldstart = vim.v.foldstart
         local line = vim.api.nvim_buf_get_lines(0, foldstart - 1, foldstart, true)[1]
-        local line_length = vim.api.nvim_strwidth(line)
 
-        local icon_extmarks = vim.api.nvim_buf_get_extmarks(
-            0,
-            module.private.icon_namespace,
-            { foldstart - 1, 0 },
-            { foldstart - 1, line_length },
-            {
-                details = true,
-            }
-        )
+        return neorg.lib.match(line, function(lhs, rhs)
+            return vim.startswith(lhs, rhs)
+        end)({
+            ["@document.meta"] = "Document Metadata",
+            _ = function()
+                local line_length = vim.api.nvim_strwidth(line)
 
-        for _, extmark in ipairs(icon_extmarks) do
-            local extmark_details = extmark[4]
-            local extmark_column = extmark[3] + (line_length - line:len())
+                local icon_extmarks = vim.api.nvim_buf_get_extmarks(
+                    0,
+                    module.private.icon_namespace,
+                    { foldstart - 1, 0 },
+                    { foldstart - 1, line_length },
+                    {
+                        details = true,
+                    }
+                )
 
-            for _, virt_text in ipairs(extmark_details.virt_text or {}) do
-                line = line:sub(1, extmark_column)
-                    .. virt_text[1]
-                    .. line:sub(extmark_column + vim.api.nvim_strwidth(virt_text[1]) + 1)
-                line_length = vim.api.nvim_strwidth(line) - line_length + vim.api.nvim_strwidth(virt_text[1])
-            end
-        end
+                for _, extmark in ipairs(icon_extmarks) do
+                    local extmark_details = extmark[4]
+                    local extmark_column = extmark[3] + (line_length - line:len())
 
-        local completion_extmarks = vim.api.nvim_buf_get_extmarks(
-            0,
-            module.private.completion_level_namespace,
-            { foldstart - 1, 0 },
-            { foldstart - 1, vim.api.nvim_strwidth(line) },
-            {
-                details = true,
-            }
-        )
-
-        if not vim.tbl_isempty(completion_extmarks) then
-            line = line .. " "
-
-            for _, extmark in ipairs(completion_extmarks) do
-                for _, virt_text in ipairs(extmark[4].virt_text or {}) do
-                    line = line .. virt_text[1]
+                    for _, virt_text in ipairs(extmark_details.virt_text or {}) do
+                        line = line:sub(1, extmark_column)
+                            .. virt_text[1]
+                            .. line:sub(extmark_column + vim.api.nvim_strwidth(virt_text[1]) + 1)
+                        line_length = vim.api.nvim_strwidth(line) - line_length + vim.api.nvim_strwidth(virt_text[1])
+                    end
                 end
-            end
-        end
 
-        return line
+                local completion_extmarks = vim.api.nvim_buf_get_extmarks(
+                    0,
+                    module.private.completion_level_namespace,
+                    { foldstart - 1, 0 },
+                    { foldstart - 1, vim.api.nvim_strwidth(line) },
+                    {
+                        details = true,
+                    }
+                )
+
+                if not vim.tbl_isempty(completion_extmarks) then
+                    line = line .. " "
+
+                    for _, extmark in ipairs(completion_extmarks) do
+                        for _, virt_text in ipairs(extmark[4].virt_text or {}) do
+                            line = line .. virt_text[1]
+                        end
+                    end
+                end
+
+                return line
+            end,
+        })
     end,
 }
 
@@ -1634,6 +1642,16 @@ module.on_event = function(event)
     end
 
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
+        if module.config.public.folds then
+            vim.api.nvim_win_set_option(event.window, "foldmethod", "expr")
+            vim.api.nvim_win_set_option(event.window, "foldexpr", "nvim_treesitter#foldexpr()")
+            vim.api.nvim_win_set_option(
+                event.window,
+                "foldtext",
+                "v:lua.neorg.modules.get_module('core.norg.concealer').foldtext()"
+            )
+        end
+
         local buf = event.buffer
         local line_count = vim.api.nvim_buf_line_count(buf)
 
