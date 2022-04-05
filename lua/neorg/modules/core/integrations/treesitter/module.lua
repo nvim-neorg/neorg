@@ -382,7 +382,7 @@ module.public = {
         return tree:root()
     end,
 
-    --- Extracts the text from a node (only the first line)
+    --- Extracts the text from an entire node
     --- @param node userdata a treesitter node to extract the text from
     --- @param buf number the buffer number. This is required to verify the source of the node. Can be nil in which case it is treated as "0"
     --- @return string The contents of the node in the form of a string
@@ -397,7 +397,7 @@ module.public = {
             return
         end
 
-        return text[#text] == "\n" and table.concat(vim.list_slice(text, 0, -2), " ") or table.concat(text, " ")
+        return text[#text] == "\n" and table.concat(vim.list_slice(text, 0, -2), "\n") or table.concat(text, "\n")
     end,
 
     find_parent = function(node, types)
