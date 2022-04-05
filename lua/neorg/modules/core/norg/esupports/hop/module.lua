@@ -394,6 +394,7 @@ module.public = {
 
             external_file = function()
                 local destination = parsed_link_information.link_location_text
+
                 destination = (
                         vim.tbl_contains({ "/", "~" }, destination:sub(1, 1)) and "" or (vim.fn.expand("%:p:h") .. "/")
                     ) .. destination
@@ -420,7 +421,7 @@ module.public = {
                     end
                 end
 
-                neorg.lib.match(destination:match("%.(.+)$"))({
+                neorg.lib.match(destination:match("%.(.+)$") or "_")({
                     pdf = open_in_external_app,
                     _ = neorg.lib.wrap(vim.cmd, "e " .. destination),
                 })
