@@ -101,7 +101,9 @@ function _neorgcmd_generate_completions(_, command)
     if #split_command == 2 then
         return vim.tbl_filter(function(key)
             return key ~= "__any__" and key:find(split_command[#split_command])
-        end, vim.tbl_keys(ref))
+        end, vim.tbl_keys(
+            ref
+        ))
     end
 
     -- Splice the command to omit the beginning :Neorg bit
@@ -130,14 +132,20 @@ function _neorgcmd_generate_completions(_, command)
     -- Return everything from ref that is a potential match
     return vim.tbl_filter(function(key)
         return key ~= "__any__" and key:find(split_command[#split_command])
-    end, vim.tbl_keys(ref))
+    end, vim.tbl_keys(
+        ref
+    ))
 end
 
 module.load = function()
     -- Define the :Neorg command with autocompletion and a requirement of at least one argument (-nargs=+)
-    vim.cmd(
-        [[ command! -nargs=+ -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd.module').public.function_callback(<f-args>) ]]
-    )
+    -- TODO: move function so no `require` is needed
+    vim.api.nvim_add_user_command("Neorg", function(args)
+        require("neorg.modules.core.neorgcmd.module").public.function_callback(args.fargs)
+    end, {
+        nargs = "+",
+        complete = _neorgcmd_generate_completions,
+    })
 
     -- Loop through all the command modules we want to load and load them
     for _, command in ipairs(module.config.public.load) do
@@ -229,7 +237,7 @@ module.public = {
     -- @Param  ... (varargs) - the contents of <f-args> provided by nvim itself
     function_callback = function(...)
         -- Unpack the varargs into a table
-        local args = { ... }
+        local args = ...
 
         --[[
 		--	Ok, this is where things get messy. Read the comments from the _neorgcmd_generate_completions()
