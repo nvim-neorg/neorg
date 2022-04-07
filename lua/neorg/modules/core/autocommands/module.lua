@@ -61,31 +61,31 @@ module.public = {
     -- @Param  dont_isolate (boolean) - defaults to false. Specifies whether the autocommand should run globally (*) instead of in Neorg files (*.norg)
     enable_autocommand = function(autocmd, dont_isolate)
         dont_isolate = dont_isolate or false
+        local event = autocmd
 
         autocmd = autocmd:lower()
         local subscribed_autocommand = module.events.subscribed["core.autocommands"][autocmd]
+        local group = vim.api.nvim_create_augroup("Neorg", {
+            clear = false,
+        })
 
         if subscribed_autocommand ~= nil then
-            vim.cmd("augroup Neorg")
-
             if dont_isolate and vim.fn.exists("#Neorg#" .. autocmd .. "#*") == 0 then
-                vim.cmd(
-                    "autocmd "
-                        .. autocmd
-                        .. ' * :lua _neorg_module_autocommand_triggered("core.autocommands.events.'
-                        .. autocmd
-                        .. '", false)'
-                )
+                vim.api.nvim_create_autocmd(event, {
+                    callback = function()
+                        _neorg_module_autocommand_triggered("core.autocommands.events." .. autocmd, false)
+                    end,
+                    group = group,
+                })
             elseif vim.fn.exists("#Neorg#" .. autocmd .. "#*.norg") == 0 then
-                vim.cmd(
-                    "autocmd "
-                        .. autocmd
-                        .. ' *.norg :lua _neorg_module_autocommand_triggered("core.autocommands.events.'
-                        .. autocmd
-                        .. '", true)'
-                )
+                vim.api.nvim_create_autocmd(event, {
+                    callback = function()
+                        _neorg_module_autocommand_triggered("core.autocommands.events." .. autocmd, true)
+                    end,
+                    pattern = "*.norg",
+                    group = group,
+                })
             end
-            vim.cmd("augroup END")
             module.events.subscribed["core.autocommands"][autocmd] = true
         end
     end,
