@@ -379,7 +379,7 @@ module.public = {
             return
         end
 
-        return tree:root()
+        return tree:root():type() ~= "ERROR" and tree:root()
     end,
 
     --- Extracts the text from a node (only the first line)
