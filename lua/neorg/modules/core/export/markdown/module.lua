@@ -82,6 +82,8 @@ module.config.public = {
             ["end"] = "$$",
         },
     },
+
+    extension = "md",
 }
 
 module.public = {

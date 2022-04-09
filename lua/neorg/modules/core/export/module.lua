@@ -17,6 +17,7 @@ module.load = function()
             definitions = {
                 export = {
                     ["to-file"] = {},
+                    ["directory"] = {},
                 },
             },
             data = {
@@ -29,6 +30,11 @@ module.load = function()
                             max_args = 2,
                             name = "export.to-file",
                         },
+                        ["directory"] = {
+                            min_args = 2,
+                            max_args = 3,
+                            name = "export.directory",
+                        },
                     },
                 },
             },
@@ -36,13 +42,18 @@ module.load = function()
     end)
 end
 
+module.config.public = {
+    export_dir = "<export-dir>/<language>-export",
+}
+
 module.public = {
     get_converter = function(ftype)
         if not neorg.modules.is_module_loaded("core.export." .. ftype) then
             return
         end
 
-        return neorg.modules.get_module("core.export." .. ftype)
+        return neorg.modules.get_module("core.export." .. ftype),
+            neorg.modules.get_module_config("core.export." .. ftype)
     end,
 
     get_filetype = function(file, force_filetype)
@@ -63,10 +74,19 @@ module.public = {
     end,
 
     export = function(buffer, filetype)
-        local converter = module.public.get_converter(filetype)
+        local converter, converter_config = module.public.get_converter(filetype)
 
         if not converter then
             log.error("Unable to export file - did not find exporter for filetype '" .. filetype .. "'.")
+            return
+        end
+
+        if not converter_config.extension then
+            log.error(
+                "Unable to export file - exporter for filetype '"
+                    .. filetype
+                    .. "' did not return a preferred extension. The exporter is unable to infer extensions."
+            )
             return
         end
 
@@ -92,7 +112,7 @@ module.public = {
                 if exporter then
                     if type(exporter) == "function" then
                         local resulting_string, keep_descending, returned_state = exporter(
-                            module.required["core.integrations.treesitter"].get_node_text(node),
+                            module.required["core.integrations.treesitter"].get_node_text(node, buffer),
                             node,
                             state,
                             ts_utils
@@ -112,7 +132,10 @@ module.public = {
                             end
                         end
                     elseif exporter == true then
-                        table.insert(output, module.required["core.integrations.treesitter"].get_node_text(node))
+                        table.insert(
+                            output,
+                            module.required["core.integrations.treesitter"].get_node_text(node, buffer)
+                        )
                     else
                         table.insert(output, exporter)
                     end
@@ -132,7 +155,7 @@ module.public = {
         end
 
         local output = descend(document_root)
-        return converter.export.cleanup and converter.export.cleanup(output) or output
+        return converter.export.cleanup and converter.export.cleanup(output) or output, converter_config.extension
     end,
 }
 
@@ -150,11 +173,98 @@ module.on_event = function(event)
             vim.loop.fs_write(fd, exported, function(werr)
                 assert(
                     not werr,
-                    neorg.lib.lazy_string_concat("Failed to write to file '", event.content[1], "' for export: ", err)
+                    neorg.lib.lazy_string_concat("Failed to write to file '", event.content[1], "' for export: ", werr)
                 )
             end)
 
             vim.schedule(neorg.lib.wrap(vim.notify, "Successfully exported 1 file!"))
+        end)
+    elseif event.type == "core.neorgcmd.events.export.directory" then
+        local path = event.content[3]
+            or module.config.public.export_dir
+                :gsub("<language>", event.content[2])
+                :gsub("<export%-dir>", event.content[1])
+        vim.fn.mkdir(path, "p")
+
+        local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
+
+        vim.loop.fs_scandir(event.content[1], function(err, handle)
+            assert(not err, neorg.lib.lazy_string_concat("Failed to scan directory '", event.content[1], "': ", err))
+
+            local file_counter, parsed_counter = 0, 0
+
+            while true do
+                local name, type = vim.loop.fs_scandir_next(handle)
+
+                if not name then
+                    break
+                end
+
+                if type == "file" and vim.endswith(name, ".norg") then
+                    file_counter = file_counter + 1
+
+                    local function check_counters()
+                        parsed_counter = parsed_counter + 1
+
+                        if parsed_counter >= file_counter then
+                            vim.schedule(
+                                neorg.lib.wrap(
+                                    vim.notify,
+                                    string.format("Successfully exported %d files!", file_counter)
+                                )
+                            )
+                        end
+                    end
+
+                    vim.schedule(function()
+                        local filepath = event.content[1] .. "/" .. name
+
+                        vim.opt.eventignore = "BufEnter"
+
+                        local buffer = vim.fn.bufadd(filepath)
+                        vim.fn.bufload(buffer)
+
+                        vim.opt.eventignore = old_event_ignore
+
+                        local exported, extension = module.public.export(buffer, event.content[2])
+
+                        vim.api.nvim_buf_delete(buffer, { force = true })
+
+                        if not exported then
+                            check_counters()
+                            return
+                        end
+
+                        local write_path = path .. "/" .. name:gsub("%.%a+$", "." .. extension)
+
+                        vim.loop.fs_open(write_path, "w+", 438, function(fs_err, fd)
+                            assert(
+                                not fs_err,
+                                neorg.lib.lazy_string_concat(
+                                    "Failed to open file '",
+                                    write_path,
+                                    "' for export: ",
+                                    fs_err
+                                )
+                            )
+
+                            vim.loop.fs_write(fd, exported, function(werr)
+                                assert(
+                                    not werr,
+                                    neorg.lib.lazy_string_concat(
+                                        "Failed to write to file '",
+                                        write_path,
+                                        "' for export: ",
+                                        werr
+                                    )
+                                )
+
+                                check_counters()
+                            end)
+                        end)
+                    end)
+                end
+            end
         end)
     end
 end
@@ -162,6 +272,7 @@ end
 module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["export.to-file"] = true,
+        ["export.directory"] = true,
     },
 }
 
