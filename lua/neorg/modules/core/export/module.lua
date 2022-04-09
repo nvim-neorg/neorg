@@ -248,7 +248,7 @@ module.on_event = function(event)
                                 )
                             )
 
-                            vim.loop.fs_write(fd, exported, function(werr)
+                            vim.loop.fs_write(fd, exported, 0, function(werr)
                                 assert(
                                     not werr,
                                     neorg.lib.lazy_string_concat(
