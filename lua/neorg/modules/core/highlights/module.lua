@@ -449,6 +449,11 @@ module.config.public = {
             Value = "+TSString",
             Carryover = "+TSRepeat",
             Title = "+TSTitle",
+            Description = "+TSLabel",
+            Authors = "+TSAnnotation",
+            Categories = "+TSKeyword",
+            Created = "+TSFloat",
+            Version = "+TSFloat",
 
             Object = {
                 Bracket = "+TSPunctBracket",
