@@ -227,6 +227,11 @@ module.public = {
         ]]
 
         local document_root = module.required["core.integrations.treesitter"].get_document_root()
+
+        if not document_root then
+            return
+        end
+
         local query = vim.treesitter.parse_query("norg", query_str)
 
         for id, node in query:iter_captures(document_root, 0) do

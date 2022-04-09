@@ -113,6 +113,10 @@ module.public = {
         -- Get the root node of the document (required to iterate over query captures)
         local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
+        if not document_root then
+            return
+        end
+
         -- Loop through all icons that the user has enabled
         for _, icon_data in ipairs(icon_set) do
             schedule(function()

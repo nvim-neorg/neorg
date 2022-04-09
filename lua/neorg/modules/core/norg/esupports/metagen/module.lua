@@ -81,6 +81,10 @@ module.public = {
 
         local root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
+        if not root then
+            return false, { 0, 0 }
+        end
+
         local _, found = query:iter_matches(root, buf)()
         local range = { 0, 0 }
 
