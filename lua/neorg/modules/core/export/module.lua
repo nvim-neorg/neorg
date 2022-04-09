@@ -147,7 +147,7 @@ module.on_event = function(event)
                 neorg.lib.lazy_string_concat("Failed to open file '", event.content[1], "' for export: ", err)
             )
 
-            vim.loop.fs_write(fd, exported, function(werr)
+            vim.loop.fs_write(fd, exported, 0, function(werr)
                 assert(
                     not werr,
                     neorg.lib.lazy_string_concat("Failed to write to file '", event.content[1], "' for export: ", err)
