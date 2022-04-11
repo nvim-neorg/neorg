@@ -28,8 +28,6 @@
             parameter: (tag_param) @NeorgCarryoverTagParameter
         )? @NeorgCarryoverTagParameters
     ) @NeorgCarryoverTag
-
-	target: (_) @NeorgCarryoverTagTarget
 )
 
 ; Trailing Modifier
@@ -239,10 +237,6 @@ state: [
 (quote5 (quote5_prefix) @NeorgQuote5 content: (paragraph) @NeorgQuote5Content)
 (quote6 (quote6_prefix) @NeorgQuote6 content: (paragraph) @NeorgQuote6Content)
 
-; Insertion
-(insertion (insertion_prefix) @NeorgInsertionPrefix item: (lowercase_word) @NeorgInsertionVariable parameters: (paragraph_segment)? @NeorgInsertionVariableValue) @NeorgInsertion
-(insertion (insertion_prefix) @NeorgInsertionPrefix item: (capitalized_word) @NeorgInsertionItem parameters: (paragraph_segment)? @NeorgInsertionParameters) @NeorgInsertion
-
 ; Paragraph Delimiters
 (strong_paragraph_delimiter) @NeorgStrongParagraphDelimiter
 (weak_paragraph_delimiter) @NeorgWeakParagraphDelimiter
@@ -281,7 +275,6 @@ state: [
             (_
                 [
                     "_begin"
-                    type: (_)
                     "_end"
                 ] @conceal
             )
