@@ -113,7 +113,7 @@ module.public = {
         local temp_buf = module.public.get_temp_buf(bufnr)
         local root_node = module.required["core.integrations.treesitter"].get_document_root(temp_buf)
         if not root_node then
-            return
+            return {}
         end
 
         local res = module.public.query_from_tree(root_node, tree, bufnr)
