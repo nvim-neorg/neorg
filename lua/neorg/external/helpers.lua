@@ -135,6 +135,23 @@ neorg.utils = {
 
         return ret
     end,
+
+    get_filetype = function(file, force_filetype)
+        local filetype = force_filetype
+
+        -- Getting a filetype properly is... difficult
+        -- This is why we leverage Neovim instead.
+        -- We create a dummy buffer with the filepath the user wanted to export to
+        -- and query the filetype from there.
+        if not filetype then
+            local dummy_buffer = vim.uri_to_bufnr("file://" .. file)
+            vim.fn.bufload(dummy_buffer)
+            filetype = vim.api.nvim_buf_get_option(dummy_buffer, "filetype")
+            vim.api.nvim_buf_delete(dummy_buffer, { force = true })
+        end
+
+        return filetype
+    end,
 }
 
 neorg.lib = {
