@@ -116,7 +116,7 @@ module.public = {
 
     -- @Summary Retrieve a workspace
     -- @Description If present retrieve a workspace's path by its name, else returns nil
-    -- @Param  name (string) - the name of the workspace
+    ---@param name #string - the name of the workspace
     get_workspace = function(name)
         return module.config.public.workspaces[name]
     end,
@@ -130,7 +130,7 @@ module.public = {
     -- @Summary Sets the current workspace
     -- @Description Sets the workspace to the one specified (if it exists) and broadcasts the workspace_changed event
     --				Returns true if the workspace is set correctly, else returns false
-    -- @Param  ws_name (name) - the name of a valid namespace we want to switch to
+    ---@param ws_name #name - the name of a valid namespace we want to switch to
     set_workspace = function(ws_name)
         -- Grab the workspace location
         local workspace = module.config.public.workspaces[ws_name]
@@ -167,8 +167,8 @@ module.public = {
     -- @Summary Adds a new workspace
     -- @Description Dynamically defines a new workspace if the name isn't already occupied and broadcasts the workspace_added event
     --				Returns true if the workspace is added successfully, else returns false
-    -- @Param  workspace_name (string) - the unique name of the new workspace
-    -- @Param  workspace_path (string) - a full path to the workspace root
+    ---@param workspace_name #string - the unique name of the new workspace
+    ---@param workspace_path #string - a full path to the workspace root
     add_workspace = function(workspace_name, workspace_path)
         -- If the module already exists then bail
         if module.config.public.workspaces[workspace_name] then
@@ -332,8 +332,8 @@ module.public = {
 
     -- @Summary Open a Neorg file
     -- @Description Takes in a workspace name and a path for a file and opens it
-    -- @Param  workspace_name (string) - the name of the workspace to use
-    -- @Param  path (string) - a path to open the file (e.g directory/filename.norg)
+    ---@param workspace_name #string - the name of the workspace to use
+    ---@param path #string - a path to open the file (e.g directory/filename.norg)
     open_file = function(workspace_name, path)
         local workspace = module.public.get_workspace(workspace_name)
 

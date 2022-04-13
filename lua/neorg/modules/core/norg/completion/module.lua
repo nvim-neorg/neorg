@@ -229,9 +229,9 @@ module.public = {
 
     -- @Summary Provides completions to the integration engine
     -- @Description Parses the public completion table and attempts to find all valid matches
-    -- @Param  context (table) - the context provided by the integration engine
-    -- @Param  prev (table) - the previous table of completions - used for descent
-    -- @Param  saved (string) - the saved regex in the form of a string, used to concatenate children nodes with parent nodes' regexes
+    ---@param context #table - the context provided by the integration engine
+    ---@param prev #table - the previous table of completions - used for descent
+    ---@param saved #string - the saved regex in the form of a string, used to concatenate children nodes with parent nodes' regexes
     complete = function(context, prev, saved)
         -- If the save variable wasn't passed then set it to an empty string
         saved = saved or ""

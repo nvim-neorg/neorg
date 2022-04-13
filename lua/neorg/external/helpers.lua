@@ -25,7 +25,7 @@ neorg.utils = {
 
     -- @Summary Returns a list of languages, syntax or treesitter, for the current Neorg session
     -- @Description Returns an array of strings, the array being a list of languages that Neorg can inject
-    -- @Param  values (boolean) - if set to true will return an array of strings, if false will return a key-value table
+    ---@param values #boolean - if set to true will return an array of strings, if false will return a key-value table
     get_language_list = function(values)
         local regex_files = {}
         local syntax_files = vim.api.nvim_get_runtime_file("syntax/*.vim", true)

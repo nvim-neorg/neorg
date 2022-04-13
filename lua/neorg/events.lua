@@ -34,7 +34,7 @@ neorg.events.base_event = {
 -- @Summary Splits a full module event path into two
 -- @Description The working of this function is best illustrated with an example:
 --		If type == 'core.some_plugin.events.my_event', this function will return { 'core.some_plugin', 'my_event' }
--- @Param  type (string) - the full path of a module event
+---@param type #string - the full path of a module event
 function neorg.events.split_event_type(type)
     local start_str, end_str = type:find("%.events%.")
 
@@ -50,8 +50,8 @@ end
 
 -- @Summary Returns an event template as defined by a module
 -- @Description Returns an event template defined in module.events.defined
--- @Param  module (table) - a reference to the module invoking the function
--- @Param  type (string) - a full path to a valid event type (e.g. 'core.module.events.some_event')
+---@param module #table - a reference to the module invoking the function
+---@param type #string - a full path to a valid event type (e.g. 'core.module.events.some_event')
 function neorg.events.get_event_template(module, type)
     -- You can't get the event template of a type if the type isn't loaded
     if not neorg.modules.is_module_loaded(module.name) then
@@ -75,8 +75,8 @@ end
 
 -- @Summary Creates an event that derives from neorg.events.base_event
 -- @Description Creates a deep copy of the neorg.events.base_event event and returns it with a custom type and referrer
--- @Param  module (table) - a reference to the module invoking the function
--- @Param  name (string) - a relative path to a valid event template
+---@param module #table - a reference to the module invoking the function
+---@param name #string - a relative path to a valid event template
 function neorg.events.define(module, name)
     -- Create a copy of the base event and override the values with ones specified by the user
 
@@ -93,9 +93,9 @@ end
 
 -- @Summary Creates an instance of an event type
 -- @Description Returns a copy of the event template provided by a module
--- @Param  module (table) - a reference to the module invoking the function
--- @Param  type (string) - a full path to a valid event type (e.g. 'core.module.events.some_event')
--- @Param  content (any) - the content of the event, can be anything from a string to a table to whatever you please
+---@param module #table - a reference to the module invoking the function
+---@param type #string - a full path to a valid event type (e.g. 'core.module.events.some_event')
+---@param content #any - the content of the event, can be anything from a string to a table to whatever you please
 function neorg.events.create(module, type, content)
     -- Get the module that contains the event
     local module_name = neorg.events.split_event_type(type)[1]
@@ -134,8 +134,8 @@ end
 
 -- @Summary Broadcasts an event
 -- @Description Sends an event to all subscribed modules. The event contains the filename, filehead, cursor position and line content as a bonus.
--- @Param  event (table) - an event, usually created by neorg.events.create()
--- @Param callback (function) - a callback to be invoked after all events have been asynchronously broadcast
+---@param event #table - an event, usually created by neorg.events.create()
+---@param callback #(function) - a callback to be invoked after all events have been asynchronously broadcast
 function neorg.events.broadcast_event(event, callback)
     -- Broadcast the event to all modules
     if not event.split_type then
@@ -169,9 +169,9 @@ end
 
 -- @Summary Sends an event to an individual module
 -- @Description Instead of broadcasting to all loaded modules, send_event() only sends to one module
--- @Param  module (table) - a reference to the module invoking the function. Used to verify the authenticity of the function call
--- @Param  recipient (string) - the name of a loaded module that will be the recipient of the event
--- @Param  event (table) - an event, usually created by neorg.events.create()
+---@param module #table - a reference to the module invoking the function. Used to verify the authenticity of the function call
+---@param recipient #string - the name of a loaded module that will be the recipient of the event
+---@param event #table - an event, usually created by neorg.events.create()
 function neorg.events.send_event(recipient, event)
     -- If the recipient is not loaded then there's no reason to send an event to it
     if not neorg.modules.is_module_loaded(recipient) then

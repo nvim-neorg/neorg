@@ -132,8 +132,8 @@ module.public = {
 
     -- @Summary Registers a batch of keybinds
     -- @Description Like register_keybind(), except registers a batch of them
-    -- @Param  module_name (string) - the name of the module that owns the keybind. Make sure it's an absolute path.
-    -- @Param  names (list of strings) - a list of strings detailing names of the keybinds. The module_name will be prepended to each one to form a unique name.
+    ---@param module_name #string - the name of the module that owns the keybind. Make sure it's an absolute path.
+    ---@param names #list of strings - a list of strings detailing names of the keybinds. The module_name will be prepended to each one to form a unique name.
     register_keybinds = function(module_name, names)
         -- Loop through each name from the names argument
         for _, name in ipairs(names) do
@@ -267,9 +267,9 @@ module.public = {
 
             -- @Summary Maps a bunch of keys for a certain mode
             -- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
-            -- @Param  mode (string) - the neorg mode to bind the keys on
-            -- @Param  keys (table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } }) - a table of keybinds
-            -- @Param  opts (table) - the same parameters that should be passed into vim.api.nvim_set_keymap()'s opts parameter
+            ---@param mode #string - the neorg mode to bind the keys on
+            ---@param keys #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds
+            ---@param opts #table) - the same parameters that should be passed into vim.api.nvim_set_keymap('s opts parameter
             map_to_mode = function(mode, keys, opts)
                 -- If the keys table is empty then don't bother doing any parsing
                 if vim.tbl_isempty(keys) then
@@ -291,9 +291,9 @@ module.public = {
 
             -- @Summary Maps a bunch of keys for a certain mode
             -- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
-            -- @Param  mode (string) - the neorg mode to bind the keys on
-            -- @Param  keys (table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } }) - a table of keybinds
-            -- @Param  opts (table) - the same parameters that should be passed into vim.api.nvim_set_keymap()'s opts parameter
+            ---@param mode #string - the neorg mode to bind the keys on
+            ---@param keys #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds
+            ---@param opts #table) - the same parameters that should be passed into vim.api.nvim_set_keymap('s opts parameter
             map_event_to_mode = function(mode, keys, opts)
                 -- If the keys table is empty then don't bother doing any parsing
                 if vim.tbl_isempty(keys) then

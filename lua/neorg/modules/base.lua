@@ -115,7 +115,7 @@ neorg.modules.module_base = {
 
 -- @Summary Creates a new module
 -- @Description Returns a module that derives from neorg.modules.module_base, exposing all the necessary function and variables
--- @Param  name (string) - the name of the new module. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
+---@param name #string - the name of the new module. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
 function neorg.modules.create(name)
     local new_module = vim.deepcopy(neorg.modules.module_base)
 
@@ -204,7 +204,7 @@ end
 
 -- @Summary Creates a metamodule
 -- @Description Constructs a metamodule from a list of submodules. Metamodules are modules that can autoload batches of modules at once.
--- @Param  name (string) - the name of the new metamodule. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
+---@param name #string - the name of the new metamodule. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
 -- @Param  ... (varargs) - a list of module names to load.
 function neorg.modules.create_meta(name, ...)
     local module = neorg.modules.create(name)

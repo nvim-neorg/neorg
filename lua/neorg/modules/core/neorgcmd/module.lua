@@ -79,8 +79,8 @@ module.examples = {
 
 -- @Summary Generate autocompletions for the :Neorg command
 -- @Description This global function returns all available commands to be used for the :Neorg command
--- @Param  _ (nil) - placeholder variable
--- @Param  command (string) - supplied by nvim itself; the full typed out command
+---@param _ #nil - placeholder variable
+---@param command #string - supplied by nvim itself; the full typed out command
 function _neorgcmd_generate_completions(_, command)
     -- If core.neorgcmd is not loaded do not provide completion
     if not neorg.modules.is_module_loaded("core.neorgcmd") then
@@ -170,7 +170,7 @@ module.public = {
 
     -- @Summary Adds custom commands for core.neorgcmd to use
     -- @Description Recursively merges the contents of the module's config.public.funtions table with core.neorgcmd's module.config.public.neorg_commands table.
-    -- @Param  module_name (string) - an absolute path to a loaded module with a module.config.public.neorg_commands table following a valid structure
+    ---@param module_name #string - an absolute path to a loaded module with a module.config.public.neorg_commands table following a valid structure
     add_commands = function(module_name)
         local module_config = neorg.modules.get_module(module_name)
 
@@ -187,14 +187,14 @@ module.public = {
 
     -- @Summary Adds custom commands for core.neorgcmd to use
     -- @Description Recursively merges the provided table with the module.config.public.neorg_commands table.
-    -- @Param  functions (table) - a table that follows the module.config.public.neorg_commands structure
+    ---@param functions #table - a table that follows the module.config.public.neorg_commands structure
     add_commands_from_table = function(functions)
         module.public.neorg_commands = vim.tbl_deep_extend("force", module.public.neorg_commands, functions)
     end,
 
     -- @Summary Adds custom commands for core.neorgcmd to use
     -- @Description Takes a relative path (e.g "list.modules") and loads it from the commands/ directory
-    -- @Param  name (string) - the relative path of the module we want to load
+    ---@param name #string - the relative path of the module we want to load
     add_commands_from_file = function(name)
         -- Attempt to require the file
         local err, ret = pcall(require, "neorg.modules.core.neorgcmd.commands." .. name .. ".module")
@@ -358,7 +358,7 @@ module.public = {
 
     -- @Summary Overwrites the completion callback function
     -- @Description Defines a custom completion function to use for core.neorgcmd.
-    -- @Param  callback (function) - the same function format as you would receive by being called by :command -completion=customlist,v:lua.callback Neorg
+    ---@param callback #(function) - the same function format as you would receive by being called by :command -completion=customlist,v:lua.callback Neorg
     set_completion_callback = function(callback)
         _neorgcmd_generate_completions = callback
     end,

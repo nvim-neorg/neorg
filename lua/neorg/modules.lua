@@ -277,8 +277,8 @@ end
 
 -- @Summary Loads a preloaded module as a dependency of another module.
 -- @Description Has the same principle of operation as load_module_from_table(), except it then sets up the parent module's "required" table, allowing the parent to access the child as if it were a dependency.
--- @Param  module (table) - a valid table as returned by neorg.modules.create()
--- @Param  parent_module (string or table) - if a string, then the parent is searched for in the loaded modules. If a table, then the module is treated as a valid module as returned by neorg.modules.create()
+---@param module #table - a valid table as returned by neorg.modules.create()
+---@param parent_module #string or table - if a string, then the parent is searched for in the loaded modules. If a table, then the module is treated as a valid module as returned by neorg.modules.create()
 function neorg.modules.load_module_as_dependency_from_table(module, parent_module)
     if neorg.modules.load_module_from_table(module) then
         if type(parent_module) == "string" then
@@ -291,9 +291,9 @@ end
 
 -- @Summary Loads a module as a dependency of another module
 -- @Description Normally loads a module, but then sets up the parent module's "required" table, allowing the parent module to access the child as if it were a dependency.
--- @Param  module_name (string) - a path to a module on disk. A path seperator in neorg is '.', not '/'
--- @Param  parent_module (string) - the name of the parent module. This is the module which the dependency will be attached to.
--- @Param  config (table) - a configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
+---@param module_name #string - a path to a module on disk. A path seperator in neorg is '.', not '/'
+---@param parent_module #string - the name of the parent module. This is the module which the dependency will be attached to.
+---@param config #table - a configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
 function neorg.modules.load_module_as_dependency(module_name, parent_module, config)
     if neorg.modules.load_module(module_name, config) and neorg.modules.is_module_loaded(parent_module) then
         neorg.modules.loaded_modules[parent_module].required[module_name] = neorg.modules.get_module_config(module_name)
@@ -302,7 +302,7 @@ end
 
 -- @Summary Gets the public API of a module by name
 -- @Description Retrieves the public API exposed by the module
--- @Param  module_name (string) - the name of the module to retrieve
+---@param module_name #string - the name of the module to retrieve
 function neorg.modules.get_module(module_name)
     if not neorg.modules.is_module_loaded(module_name) then
         log.trace("Attempt to get module with name", module_name, "failed - module is not loaded.")
@@ -314,7 +314,7 @@ end
 
 -- @Summary Retrieves the public configuration of a module
 -- @Description Returns the module.config.public table if the module is loaded
--- @Param  module_name (string) - the name of the module to retrieve (module must be loaded)
+---@param module_name #string - the name of the module to retrieve (module must be loaded)
 function neorg.modules.get_module_config(module_name)
     if not neorg.modules.is_module_loaded(module_name) then
         log.trace("Attempt to get module configuration with name", module_name, "failed - module is not loaded.")
@@ -326,14 +326,14 @@ end
 
 -- @Summary Check whether a module is loaded
 -- @Description Returns true if module with name module_name is loaded, false otherwise
--- @Param  module_name (string) - the name of an arbitrary module
+---@param module_name #string - the name of an arbitrary module
 function neorg.modules.is_module_loaded(module_name)
     return neorg.modules.loaded_modules[module_name] ~= nil
 end
 
 -- @Summary Gets the version of a module
 -- @Description Reads the module's public table and looks for a version variable, then converts it from a string into a table, like so: { major = <number>, minor = <number>, patch = <number> }
--- @Param  module_name (string) - the name of a valid, loaded module.
+---@param module_name #string - the name of a valid, loaded module.
 -- @Return struct | nil (if any error occurs)
 function neorg.modules.get_module_version(module_name)
     -- If the module isn't loaded then don't bother retrieving its version
@@ -356,8 +356,8 @@ end
 
 -- @Summary Awaits a resource (module) to be present before executing a callback.
 -- @Description Executes `callback` once `module` is a valid and loaded module, else the callback gets instantly executed.
--- @Param module_name (string) - the name of the module to listen for.
--- @Param callback (function(public_module_table)) - the callback to execute.
+---@param module_name #string - the name of the module to listen for.
+---@param callback #(function(public_module_table)) - the callback to execute.
 function neorg.modules.await(module_name, callback)
     if neorg.modules.is_module_loaded(module_name) then
         callback(neorg.modules.get_module(module_name))

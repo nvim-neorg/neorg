@@ -140,7 +140,7 @@ module.public = {
 
             -- @Summary Function to recursively descend down the syntax tree
             -- @Description Recursively searches for a node of a given type
-            -- @Param  node (userdata/treesitter node) - the starting point for the search
+            ---@param node #userdata/treesitter node - the starting point for the search
             local function descend(node)
                 -- Iterate over all children of the node and try to match their type
                 for child, _ in node:iter_children() do
@@ -163,7 +163,7 @@ module.public = {
 
     -- @Summary Returns the first occurence of a node in the AST
     -- @Description Returns the first node of given type if present
-    -- @Param  type (string) - the type of node to search for
+    ---@param type #string - the type of node to search for
     get_first_node = function(type, buf, parent)
         if not buf then
             buf = 0
@@ -211,7 +211,7 @@ module.public = {
 
             -- @Summary Function to recursively descend down the syntax tree
             -- @Description Recursively searches for a node of a given type
-            -- @Param  node (userdata/treesitter node) - the starting point for the search
+            ---@param node #userdata/treesitter node - the starting point for the search
             local function descend(node)
                 -- Iterate over all children of the node and try to match their type
                 for child, _ in node:iter_children() do
@@ -311,7 +311,7 @@ module.public = {
     end,
 
     -- @Summary Invokes a callback for every element of the current tree
-    -- @Param  callback (function(node)) - the callback to invoke
+    ---@param callback #(function(node)) - the callback to invoke
     -- TODO: docs
     tree_map = function(callback, ts_tree)
         local tree = ts_tree or vim.treesitter.get_parser(0, "norg"):parse()[1]
