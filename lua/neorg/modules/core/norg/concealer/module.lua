@@ -125,9 +125,9 @@ module.public = {
 
     -- @Summary Activates icons for the current window
     -- @Description Parses the user configuration and enables concealing for the current window.
-    ---@param icon_set #table - the icon set to trigger
+    ---@param icon_set table #The icon set to trigger
     -- @Param namespace
-    ---@param from #number - the line number that we should start at (defaults to 0)
+    ---@param from number #The line number that we should start at (defaults to 0)
     trigger_icons = function(buf, icon_set, namespace, from, to)
         local old_extmarks = module.public.get_old_extmarks(buf, namespace, from, to and to - 1)
 
@@ -306,12 +306,12 @@ module.public = {
     -- @Summary Sets an extmark in the buffer
     -- @Description Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it more safe
     ---@param text #string|table - the virtual text to overlay (usually the icon)
-    ---@param highlight #string - the name of a highlight to use for the icon
-    ---@param line_number #number - the line number to apply the extmark in
-    ---@param end_line #number - the last line number to apply the extmark to (useful if you want an extmark to exist for more than one line)
-    ---@param start_column #number - the start column of the conceal
-    ---@param end_column #number - the end column of the conceal
-    ---@param whole_line #boolean - if true will highlight the whole line (like in diffs)
+    ---@param highlight string #The name of a highlight to use for the icon
+    ---@param line_number number #The line number to apply the extmark in
+    ---@param end_line number #The last line number to apply the extmark to (useful if you want an extmark to exist for more than one line)
+    ---@param start_column number #The start column of the conceal
+    ---@param end_column number #The end column of the conceal
+    ---@param whole_line boolean #If true will highlight the whole line (like in diffs)
     ---@param mode #string: "replace"/"combine"/"blend" - the highlight mode for the extmark
     ---@param pos #string: "overlay"/"eol"/"right_align" - the position to place the extmark in (defaults to "overlay")
     _set_extmark = function(buf, text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode, pos)
@@ -1585,9 +1585,9 @@ module.load = function()
     )
 
     -- @Summary Returns all the enabled icons from a table
-    ---@param tbl #table - the table to parse
-    ---@param parent_icon #string - Is used to pass icons from parents down to their table children to handle inheritance.
-    ---@param rec_name #string - should not be set manually. Is used for Neorg to have information about all other previous recursions
+    ---@param tbl table #The table to parse
+    ---@param parent_icon string #Is used to pass icons from parents down to their table children to handle inheritance.
+    ---@param rec_name string #Should not be set manually. Is used for Neorg to have information about all other previous recursions
     local function get_enabled_icons(tbl, parent_icon, rec_name)
         rec_name = rec_name or ""
 

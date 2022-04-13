@@ -119,8 +119,8 @@ module.public = {
     end,
 
     ---  Gets all nodes of a given type from the AST
-    --- @param  type string #the type of node to filter out
-    --- @param opts? table
+    ---@param  type string #the type of node to filter out
+    ---@param opts? table
     get_all_nodes = function(type, opts)
         local result = {}
         opts = opts or {}
@@ -163,7 +163,7 @@ module.public = {
 
     -- @Summary Returns the first occurence of a node in the AST
     -- @Description Returns the first node of given type if present
-    ---@param type #string - the type of node to search for
+    ---@param type string #The type of node to search for
     get_first_node = function(type, buf, parent)
         if not buf then
             buf = 0
@@ -369,8 +369,8 @@ module.public = {
     end,
 
     --- Extracts the document root from the current document
-    --- @param buf number The number of the buffer to extract (can be nil)
-    --- @return userdata the root node of the document
+    ---@param buf number The number of the buffer to extract (can be nil)
+    ---@return userdata the root node of the document
     get_document_root = function(buf)
         local tree = vim.treesitter.get_parser(buf or 0, "norg"):parse()[1]
 
@@ -383,9 +383,9 @@ module.public = {
     end,
 
     --- Extracts the text from a node (only the first line)
-    --- @param node userdata a treesitter node to extract the text from
-    --- @param buf number the buffer number. This is required to verify the source of the node. Can be nil in which case it is treated as "0"
-    --- @return string The contents of the node in the form of a string
+    ---@param node userdata a treesitter node to extract the text from
+    ---@param buf number the buffer number. This is required to verify the source of the node. Can be nil in which case it is treated as "0"
+    ---@return string The contents of the node in the form of a string
     get_node_text = function(node, buf)
         if not node then
             return

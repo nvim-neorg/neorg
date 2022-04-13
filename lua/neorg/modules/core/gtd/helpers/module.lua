@@ -49,7 +49,7 @@ module.public = {
     end,
 
     --- Returns the list of every excluded file in gtd
-    --- @return table
+    ---@return table
     get_gtd_excluded_files = function()
         local gtd_config = module.private.get_gtd_config()
         local res = vim.deepcopy(gtd_config.exclude) or {}
@@ -59,8 +59,8 @@ module.public = {
 
     --- Checks if the data is processed or not.
     --- Check out :h neorg-gtd to know what is an unclarified task or project
-    --- @param data core.gtd.queries.task|core.gtd.queries.project
-    --- @param extra core.gtd.queries.task[]?|core.gtd.queries.project[]
+    ---@param data core.gtd.queries.task|core.gtd.queries.project
+    ---@param extra core.gtd.queries.task[]?|core.gtd.queries.project[]
     is_processed = function(data, extra)
         return neorg.lib.match(data.type)({
             ["task"] = function()
@@ -160,15 +160,15 @@ module.public = {
 
 module.private = {
     --- Convenience wrapper to set type for gtd_config
-    --- @return core.gtd.base.config
+    ---@return core.gtd.base.config
     get_gtd_config = function()
         return neorg.modules.get_module_config("core.gtd.base")
     end,
 
     --- Remove `el` from table `t`
-    --- @param t table
-    --- @param el any
-    --- @return table
+    ---@param t table
+    ---@param el any
+    ---@return table
     remove_from_table = function(t, el)
         vim.validate({ t = { t, "table" } })
         local result = {}

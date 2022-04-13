@@ -34,9 +34,9 @@ module.config.public = {
 ---@class core.norg.esupports.hop
 module.public = {
     --- Follow link from a specific node
-    --- @param node userdata
-    --- @param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...) or new tab (mode="tab")
-    --- @param parsed_link table a table of link information gathered from parse_link()
+    ---@param node userdata
+    ---@param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...) or new tab (mode="tab")
+    ---@param parsed_link table a table of link information gathered from parse_link()
     follow_link = function(node, split, parsed_link)
         if node:type() == "anchor_declaration" then
             local located_anchor_declaration = module.public.locate_anchor_declaration_target(node)

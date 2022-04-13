@@ -106,7 +106,7 @@ module.public = {
     end,
 
     --- Find a Table of Contents insertions in the document and returns its data
-    --- @return table A table that consist of two values: { item, parameters }.
+    ---@return table A table that consist of two values: { item, parameters }.
     --- Parameters can be nil if no parameters to the insertion were given.
     find_toc = function()
         -- Extract any insertion that has a ToC value in it
@@ -170,9 +170,9 @@ module.public = {
     end,
 
     --- Generates a Table Of Contents (doesn't display it)
-    --- @param generator function the function to invoke for each node (used for building the toc)
-    --- @param display_as_links boolean
-    --- @return table a table of { text, highlight_group } pairs
+    ---@param generator function the function to invoke for each node (used for building the toc)
+    ---@param display_as_links boolean
+    ---@return table a table of { text, highlight_group } pairs
     generate_toc = function(toc_data, generator, display_as_links)
         vim.validate({
             toc_data = { toc_data, "table" },
@@ -263,7 +263,7 @@ module.public = {
     end,
 
     --- Displays the table of contents to the user
-    --- @param split boolean if true will spawn the vertical split on the right hand side
+    ---@param split boolean if true will spawn the vertical split on the right hand side
     display_toc = function(split)
         if
             module.private.toc_bufnr ~= nil
@@ -338,7 +338,7 @@ module.public = {
     end,
 
     --- Populates the quickfix list with the table of contents
-    --- @param loclist boolean if true, uses the location list instead of the quickfix one
+    ---@param loclist boolean if true, uses the location list instead of the quickfix one
     toqflist = function(loclist)
         local found_toc = module.public.find_toc()
 

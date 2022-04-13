@@ -94,7 +94,7 @@ module.public = {
 
     -- @Summary Gets the current size of the window
     -- @Description Returns a table in the form of { width, height } containing the width and height of the current window
-    ---@param half #boolean - if true returns a position that could be considered the center of the window
+    ---@param half boolean #If true returns a position that could be considered the center of the window
     get_window_size = function(half)
         return half
                 and {
@@ -106,9 +106,9 @@ module.public = {
 
     -- @Summary Applies a set of custom options to modify regular Neovim window opts
     -- @Description Returns a modified version of floating window options.
-    ---@param modifiers #table - this option set has two values - center_x and center_y.
+    ---@param modifiers table #This option set has two values - center_x and center_y.
     --                           If they either of them is set to true then the window gets centered on that axis.
-    ---@param config #table - a table containing regular Neovim options for a floating window
+    ---@param config table #A table containing regular Neovim options for a floating window
     apply_custom_options = function(modifiers, config)
         -- Default modifier options
         local user_options = {
@@ -146,7 +146,7 @@ module.public = {
 
     -- @Summary Deletes a window that holds a specific buffer
     -- @Description Attempts to force close the window that holds the specified buffer
-    ---@param buf #number - the buffer ID whose parent window to close
+    ---@param buf number #The buffer ID whose parent window to close
     delete_window = function(buf)
         -- Get the name of the buffer with the specified ID
         local name = vim.api.nvim_buf_get_name(buf)
@@ -167,8 +167,8 @@ module.public = {
     end,
 
     --- Applies a set of options to a buffer
-    --- @param buf number the buffer number to apply the options to
-    --- @param option_list table a table of option = value pairs
+    ---@param buf number the buffer number to apply the options to
+    ---@param option_list table a table of option = value pairs
     apply_buffer_options = function(buf, option_list)
         for option_name, value in pairs(option_list or {}) do
             vim.api.nvim_buf_set_option(buf, option_name, value)
@@ -230,10 +230,10 @@ module.public = {
     end,
 
     --- Creates a new vertical split
-    --- @param name string the name of the buffer
-    --- @param config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
-    --- @param left boolean if true will spawn the vertical split on the left (default is right)
-    --- @return buffer the buffer of the vertical split
+    ---@param name string the name of the buffer
+    ---@param config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
+    ---@param left boolean if true will spawn the vertical split on the left (default is right)
+    ---@return buffer the buffer of the vertical split
     create_vsplit = function(name, config, left)
         vim.validate({
             name = { name, "string" },
@@ -274,8 +274,8 @@ module.public = {
     end,
 
     --- Creates a new display in which you can place organized data
-    --- @param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
-    --- @param content table a table of content
+    ---@param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
+    ---@param content table a table of content
     create_display = function(name, split_type, content)
         if not vim.tbl_contains({ "nosplit", "vsplitl", "vsplitr", "split" }, split_type) then
             log.error(
@@ -350,10 +350,10 @@ module.public = {
     end,
 
     --- Creates a new Neorg buffer in a split or in the main window
-    --- @param name string the name of the buffer *without* the .norg extension
-    --- @param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
-    --- @param config table|nil a table of { option = value } pairs that set buffer-local options for the created Neorg buffer
-    --- @param opts table|nil
+    ---@param name string the name of the buffer *without* the .norg extension
+    ---@param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
+    ---@param config table|nil a table of { option = value } pairs that set buffer-local options for the created Neorg buffer
+    ---@param opts table|nil
     ---   - opts.keybinds (boolean)             if false, will not use the default keybinds
     ---   - opts.del_on_autocommands (table)    delete buffer on specified autocommands
     create_norg_buffer = function(name, split_type, config, opts)

@@ -34,9 +34,9 @@ module.public = {
 --- @class private_core.gtd.ui
 module.private = {
     --- Try to re-fetch the node with newer content (after an update for example)
-    --- @param node table
-    --- @param type string
-    --- @return core.gtd.queries.task|core.gtd.queries.project
+    ---@param node table
+    ---@param type string
+    ---@return core.gtd.queries.task|core.gtd.queries.project
     refetch_data_not_extracted = function(node, type)
         -- Get all nodes from the bufnr and add metadatas to it
         -- This is mandatory because we need to have the correct task position, else the update will not work

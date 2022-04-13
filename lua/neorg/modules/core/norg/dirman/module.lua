@@ -116,7 +116,7 @@ module.public = {
 
     -- @Summary Retrieve a workspace
     -- @Description If present retrieve a workspace's path by its name, else returns nil
-    ---@param name #string - the name of the workspace
+    ---@param name string #The name of the workspace
     get_workspace = function(name)
         return module.config.public.workspaces[name]
     end,
@@ -130,7 +130,7 @@ module.public = {
     -- @Summary Sets the current workspace
     -- @Description Sets the workspace to the one specified (if it exists) and broadcasts the workspace_changed event
     --				Returns true if the workspace is set correctly, else returns false
-    ---@param ws_name #name - the name of a valid namespace we want to switch to
+    ---@param ws_name name #The name of a valid namespace we want to switch to
     set_workspace = function(ws_name)
         -- Grab the workspace location
         local workspace = module.config.public.workspaces[ws_name]
@@ -167,8 +167,8 @@ module.public = {
     -- @Summary Adds a new workspace
     -- @Description Dynamically defines a new workspace if the name isn't already occupied and broadcasts the workspace_added event
     --				Returns true if the workspace is added successfully, else returns false
-    ---@param workspace_name #string - the unique name of the new workspace
-    ---@param workspace_path #string - a full path to the workspace root
+    ---@param workspace_name string #The unique name of the new workspace
+    ---@param workspace_path string #A full path to the workspace root
     add_workspace = function(workspace_name, workspace_path)
         -- If the module already exists then bail
         if module.config.public.workspaces[workspace_name] then
@@ -332,8 +332,8 @@ module.public = {
 
     -- @Summary Open a Neorg file
     -- @Description Takes in a workspace name and a path for a file and opens it
-    ---@param workspace_name #string - the name of the workspace to use
-    ---@param path #string - a path to open the file (e.g directory/filename.norg)
+    ---@param workspace_name string #The name of the workspace to use
+    ---@param path string #A path to open the file (e.g directory/filename.norg)
     open_file = function(workspace_name, path)
         local workspace = module.public.get_workspace(workspace_name)
 
@@ -376,7 +376,7 @@ module.public = {
     end,
 
     --- Checks for file existence by supplying a full path in `filepath`
-    --- @param filepath string
+    ---@param filepath string
     file_exists = function(filepath)
         local f = io.open(filepath, "r")
 
@@ -389,7 +389,7 @@ module.public = {
     end,
 
     --- Get the bufnr for a `filepath` (full path)
-    --- @param filepath string
+    ---@param filepath string
     get_file_bufnr = function(filepath)
         if module.public.file_exists(filepath) then
             local uri = vim.uri_from_fname(filepath)
@@ -398,8 +398,8 @@ module.public = {
     end,
 
     --- Returns a list of all files relative path from a `workspace_name`
-    --- @param workspace_name string
-    --- @return table
+    ---@param workspace_name string
+    ---@return table
     get_norg_files = function(workspace_name)
         local res = {}
         local workspace = module.public.get_workspace(workspace_name)
@@ -427,7 +427,7 @@ module.public = {
     end,
 
     --- Sets the current workspace and opens that workspace's index file
-    --- @param workspace string #The name of the workspace to open
+    ---@param workspace string #The name of the workspace to open
     open_workspace = function(workspace)
         -- If we have, then query that workspace
         local ws_match = module.public.get_workspace(workspace)
@@ -449,8 +449,8 @@ module.public = {
 
     --- Touches a file in workspace
     --- TODO: make the touch file recursive
-    --- @param path string
-    --- @param workspace string
+    ---@param path string
+    ---@param workspace string
     touch_file = function(path, workspace)
         vim.validate({
             path = { path, "string" },

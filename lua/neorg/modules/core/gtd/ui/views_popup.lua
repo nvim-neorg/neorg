@@ -8,8 +8,8 @@ local module = neorg.modules.extend("core.gtd.ui.views_popup", "core.gtd.ui")
 module.public = {
 
     --- Function called when doing `:Neorg gtd views`
-    --- @param tasks core.gtd.queries.task[]
-    --- @param projects core.gtd.queries.project[]
+    ---@param tasks core.gtd.queries.task[]
+    ---@param projects core.gtd.queries.project[]
     show_views_popup = function(tasks, projects)
         -- Generate views selection popup
         local buffer = module.required["core.ui"].create_split("Quick Actions")
@@ -37,10 +37,10 @@ module.public = {
 --- @class private_core.gtd.ui
 module.private = {
     --- Generates flags for gtd views
-    --- @param selection core.ui.selection
-    --- @param tasks core.gtd.queries.task[]
-    --- @param projects core.gtd.queries.project[]
-    --- @return core.ui.selection
+    ---@param selection core.ui.selection
+    ---@param tasks core.gtd.queries.task[]
+    ---@param projects core.gtd.queries.project[]
+    ---@return core.ui.selection
     generate_display_flags = function(selection, tasks, projects)
         local is_processed_cb = module.public.get_callback("is_processed")
         local unclarified_tasks = vim.tbl_filter(neorg.lib.wrap_cond_not(is_processed_cb, projects), tasks)
@@ -88,7 +88,7 @@ module.private = {
     end,
 
     --- Show informations flag
-    --- @param selection core.ui.selection
+    ---@param selection core.ui.selection
     generate_informations = function(selection)
         local function files_text(_selection, files)
             if not files then
