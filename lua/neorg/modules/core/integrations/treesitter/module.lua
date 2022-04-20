@@ -138,8 +138,7 @@ module.public = {
             -- Get the root for that tree
             local root = tree:root()
 
-            -- @Summary Function to recursively descend down the syntax tree
-            -- @Description Recursively searches for a node of a given type
+            --- Recursively searches for a node of a given type
             ---@param node #userdata/treesitter node - the starting point for the search
             local function descend(node)
                 -- Iterate over all children of the node and try to match their type
@@ -161,8 +160,7 @@ module.public = {
         return result
     end,
 
-    -- @Summary Returns the first occurence of a node in the AST
-    -- @Description Returns the first node of given type if present
+    --- Returns the first node of given type if present
     ---@param type string #The type of node to search for
     get_first_node = function(type, buf, parent)
         if not buf then
@@ -209,8 +207,7 @@ module.public = {
                 root = tree:root()
             end
 
-            -- @Summary Function to recursively descend down the syntax tree
-            -- @Description Recursively searches for a node of a given type
+            --- Recursively searches for a node of a given type
             ---@param node #userdata/treesitter node - the starting point for the search
             local function descend(node)
                 -- Iterate over all children of the node and try to match their type
@@ -235,8 +232,7 @@ module.public = {
         return result
     end,
 
-    -- @Summary Returns metadata for a tag
-    -- @Description Given a node this function will break down the AST elements and return the corresponding text for certain nodes
+    --- Given a node this function will break down the AST elements and return the corresponding text for certain nodes
     -- @Param  tag_node (userdata/treesitter node) - a node of type tag/carryover_tag
     get_tag_info = function(tag_node, check_parent)
         if not tag_node or (tag_node:type() ~= "tag" and tag_node:type() ~= "carryover_tag") then
@@ -295,8 +291,7 @@ module.public = {
         }
     end,
 
-    -- @Summary Parses data from an @ tag
-    -- @Description Used to extract data from e.g. document.meta
+    --- Used to extract data from e.g. document.meta
     -- @Param  tag_content (string) - the content of the tag (without the beginning and end declarations)
     parse_tag = function(tag_content)
         local result = {}
@@ -310,7 +305,6 @@ module.public = {
         return result
     end,
 
-    -- @Summary Invokes a callback for every element of the current tree
     ---@param callback #(function(node)) - the callback to invoke
     -- TODO: docs
     tree_map = function(callback, ts_tree)

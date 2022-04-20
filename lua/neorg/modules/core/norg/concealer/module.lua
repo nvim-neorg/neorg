@@ -123,8 +123,7 @@ module.private = {
 ---@class core.norg.concealer
 module.public = {
 
-    -- @Summary Activates icons for the current window
-    -- @Description Parses the user configuration and enables concealing for the current window.
+    --- Parses the user configuration and enables concealing for the current window.
     ---@param icon_set table #The icon set to trigger
     -- @Param namespace
     ---@param from number #The line number that we should start at (defaults to 0)
@@ -303,8 +302,7 @@ module.public = {
         end
     end,
 
-    -- @Summary Sets an extmark in the buffer
-    -- @Description Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it more safe
+    --- Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it more safe
     ---@param text #string|table - the virtual text to overlay (usually the icon)
     ---@param highlight string #The name of a highlight to use for the icon
     ---@param line_number number #The line number to apply the extmark in
@@ -1584,7 +1582,6 @@ module.load = function()
         module.config.custom
     )
 
-    -- @Summary Returns all the enabled icons from a table
     ---@param tbl table #The table to parse
     ---@param parent_icon string #Is used to pass icons from parents down to their table children to handle inheritance.
     ---@param rec_name string #Should not be set manually. Is used for Neorg to have information about all other previous recursions

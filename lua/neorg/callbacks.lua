@@ -9,8 +9,7 @@ neorg.callbacks = {
     callback_list = {},
 }
 
--- @Summary Registers a new callback
--- @Description Triggers a new callback to execute whenever an event of the requested type is executed
+--- Triggers a new callback to execute whenever an event of the requested type is executed
 ---@param event_name string #The full path to the event we want to listen on
 ---@param callback #(function(event, content)) - the function to call whenever our event gets triggered
 ---@param content_filter #(function(event)) - a filtering function to test if a certain event meets our expectations
@@ -21,8 +20,7 @@ function neorg.callbacks.on_event(event_name, callback, content_filter)
     table.insert(neorg.callbacks.callback_list[event_name], { callback, content_filter })
 end
 
--- @Summary Handles the triggering of all registered callbacks
--- @Description Used internally by Neorg to call all callbacks with an event
+--- Used internally by Neorg to call all callbacks with an event
 ---@param event table #An event as returned by neorg.events.create()
 function neorg.callbacks.handle_callbacks(event)
     -- Query the list of registered callbacks

@@ -92,8 +92,7 @@ module.public = {
             )
     end,
 
-    -- @Summary Gets the current size of the window
-    -- @Description Returns a table in the form of { width, height } containing the width and height of the current window
+    --- Returns a table in the form of { width, height } containing the width and height of the current window
     ---@param half boolean #If true returns a position that could be considered the center of the window
     get_window_size = function(half)
         return half
@@ -104,8 +103,7 @@ module.public = {
             or { vim.opt_local.columns:get(), vim.opt_local.lines:get() }
     end,
 
-    -- @Summary Applies a set of custom options to modify regular Neovim window opts
-    -- @Description Returns a modified version of floating window options.
+    --- Returns a modified version of floating window options.
     ---@param modifiers table #This option set has two values - center_x and center_y.
     --                           If they either of them is set to true then the window gets centered on that axis.
     ---@param config table #A table containing regular Neovim options for a floating window
@@ -144,8 +142,7 @@ module.public = {
         return config
     end,
 
-    -- @Summary Deletes a window that holds a specific buffer
-    -- @Description Attempts to force close the window that holds the specified buffer
+    --- Attempts to force close the window that holds the specified buffer
     ---@param buf number #The buffer ID whose parent window to close
     delete_window = function(buf)
         -- Get the name of the buffer with the specified ID

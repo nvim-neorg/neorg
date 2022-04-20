@@ -227,8 +227,7 @@ module.public = {
         },
     },
 
-    -- @Summary Provides completions to the integration engine
-    -- @Description Parses the public completion table and attempts to find all valid matches
+    --- Parses the public completion table and attempts to find all valid matches
     ---@param context table #The context provided by the integration engine
     ---@param prev table #The previous table of completions - used for descent
     ---@param saved string #The saved regex in the form of a string, used to concatenate children nodes with parent nodes' regexes

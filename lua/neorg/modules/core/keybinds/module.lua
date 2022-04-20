@@ -130,8 +130,7 @@ module.public = {
         module.required["core.neorgcmd"].add_commands_from_table(module.public.neorg_commands)
     end,
 
-    -- @Summary Registers a batch of keybinds
-    -- @Description Like register_keybind(), except registers a batch of them
+    --- Like register_keybind(), except registers a batch of them
     ---@param module_name string #The name of the module that owns the keybind. Make sure it's an absolute path.
     ---@param names #list of strings - a list of strings detailing names of the keybinds. The module_name will be prepended to each one to form a unique name.
     register_keybinds = function(module_name, names)
@@ -153,7 +152,6 @@ module.public = {
         module.required["core.neorgcmd"].add_commands_from_table(module.public.neorg_commands)
     end,
 
-    -- @Summary Rebinds all the keys defined via User Callbacks
     bind_all = function(buf, action, for_mode)
         local current_mode = for_mode or module.required["core.mode"].get_mode()
 
@@ -265,8 +263,7 @@ module.public = {
                 payload.map(neorg_mode, mode, new_key, command, opts)
             end,
 
-            -- @Summary Maps a bunch of keys for a certain mode
-            -- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
+            --- An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
             ---@param mode string #The neorg mode to bind the keys on
             ---@param keys #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds
             ---@param opts #table) - the same parameters that should be passed into vim.api.nvim_set_keymap('s opts parameter
@@ -289,8 +286,7 @@ module.public = {
                 end
             end,
 
-            -- @Summary Maps a bunch of keys for a certain mode
-            -- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
+            --- An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
             ---@param mode string #The neorg mode to bind the keys on
             ---@param keys #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds
             ---@param opts #table) - the same parameters that should be passed into vim.api.nvim_set_keymap('s opts parameter
@@ -402,8 +398,7 @@ module.public = {
         )
     end,
 
-    -- @Summary Synchronizes all autocompletions
-    -- @Description Updates the list of known modes and keybinds for easy autocompletion. Invoked automatically during neorg_post_load().
+    --- Updates the list of known modes and keybinds for easy autocompletion. Invoked automatically during neorg_post_load().
     sync = function()
         -- Reset all the autocompletions
         module.public.neorg_commands.definitions.keybind = {}

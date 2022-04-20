@@ -53,8 +53,7 @@ module.public = {
         },
     },
 
-    -- @Summary Adds a new mode to the list of available modes
-    -- @Description This function lets the core.mode module know that a new mode should be added. This will be used in autocompletion for the :Neorg command
+    --- This function lets the core.mode module know that a new mode should be added. This will be used in autocompletion for the :Neorg command
     ---@param mode_name string #The name of the mode to add
     add_mode = function(mode_name)
         -- If the mode is equal to all then error out - that mode name is reserved
@@ -86,8 +85,7 @@ module.public = {
         end
     end,
 
-    -- @Summary Sets the current neorg mode
-    -- @Description Broadcasts to all subscribed modules that the mode has been changed
+    --- Broadcasts to all subscribed modules that the mode has been changed
     ---@param mode_name string #The name of the mode to switch to
     set_mode = function(mode_name)
         -- If the mode name is the same as it used to be then don't bother
@@ -115,13 +113,11 @@ module.public = {
         )
     end,
 
-    -- @Summary Gets the current mode
     get_mode = function()
         return module.config.public.current_mode
     end,
 
-    -- @Summary Gets the previous mode
-    -- @Description Retrieves the mode that was set before the current one
+    --- Retrieves the mode that was set before the current one
     get_previous_mode = function()
         return module.config.public.previous_mode
     end,

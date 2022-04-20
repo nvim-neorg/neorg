@@ -5,8 +5,7 @@
 
 neorg.utils = {
 
-    -- @Summary Gets the current system username
-    -- @Description An OS agnostic way of querying the current user
+    --- An OS agnostic way of querying the current user
     get_username = function()
         local current_os = require("neorg.config").os_info
 
@@ -23,8 +22,7 @@ neorg.utils = {
         return ""
     end,
 
-    -- @Summary Returns a list of languages, syntax or treesitter, for the current Neorg session
-    -- @Description Returns an array of strings, the array being a list of languages that Neorg can inject
+    --- Returns an array of strings, the array being a list of languages that Neorg can inject
     ---@param values boolean #If set to true will return an array of strings, if false will return a key-value table
     get_language_list = function(values)
         local regex_files = {}
