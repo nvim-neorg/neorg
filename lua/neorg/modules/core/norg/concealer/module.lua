@@ -80,10 +80,10 @@ local function add_to_counters_if_todo_node(node, results)
     end
 end
 
-local function traverse_nodes(root_node, results, func)
-    func(root_node, results)
+local function count_todo_nodes_under_node(root_node, results)
+    add_to_counters_if_todo_node(root_node, results)
     for child_node in root_node:iter_children() do
-        traverse_nodes(child_node, results, func)
+        count_todo_nodes_under_node(child_node, results)
     end
 end
 
@@ -490,7 +490,7 @@ module.public = {
 
         get_todo_item_counts = function(start_node)
             local results = { total = 0 }
-            traverse_nodes(start_node, results, add_to_counters_if_todo_node)
+            count_todo_nodes_under_node(start_node, results)
             return results
         end,
 
