@@ -66,6 +66,27 @@ local function schedule(func)
     end)
 end
 
+local function add_to_counters_if_todo_node(node, results)
+    if vim.startswith(node:type(), "todo_item") then
+        local type_node = node:named_child(1)
+
+        if type_node then
+            local todo_item_type = type_node:type():sub(string.len("todo_item_") + 1)
+            local resulting_todo_item = results[todo_item_type] or 0
+
+            results[todo_item_type] = resulting_todo_item + 1
+            results.total = results.total + (todo_item_type == "cancelled" and 0 or 1)
+        end
+    end
+end
+
+local function traverse_nodes(root_node, results, func)
+    func(root_node, results)
+    for child_node in root_node:iter_children() do
+        traverse_nodes(child_node, results, func)
+    end
+end
+
 module.setup = function()
     return {
         success = true,
@@ -468,48 +489,8 @@ module.public = {
         end,
 
         get_todo_item_counts = function(start_node)
-            local results = {}
-
-            local total = 0
-
-            for child_node in start_node:iter_children() do
-                if child_node:type() == "generic_list" then
-                    for todo_item_node in child_node:iter_children() do
-                        if vim.startswith(todo_item_node:type(), "todo_item") then
-                            local type_node = todo_item_node:named_child(1)
-
-                            if type_node then
-                                local todo_item_type = type_node:type():sub(string.len("todo_item_") + 1)
-                                local resulting_todo_item = results[todo_item_type] or 0
-
-                                results[todo_item_type] = resulting_todo_item + 1
-                                total = total + (todo_item_type == "cancelled" and 0 or 1)
-                            end
-                        end
-                    end
-                elseif child_node:type() == "carryover_tag_set" then
-                    for carryover_child_node in child_node:iter_children() do
-                        if carryover_child_node:type() == "generic_list" then
-                            for todo_item_node in carryover_child_node:iter_children() do
-                                if vim.startswith(todo_item_node:type(), "todo_item") then
-                                    local type_node = todo_item_node:named_child(1)
-
-                                    if type_node then
-                                        local todo_item_type = type_node:type():sub(string.len("todo_item_") + 1)
-                                        local resulting_todo_item = results[todo_item_type] or 0
-
-                                        results[todo_item_type] = resulting_todo_item + 1
-                                        total = total + (todo_item_type == "cancelled" and 0 or 1)
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-
-            results.total = total
-
+            local results = { total = 0 }
+            traverse_nodes(start_node, results, add_to_counters_if_todo_node)
             return results
         end,
 
