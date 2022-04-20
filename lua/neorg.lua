@@ -50,6 +50,7 @@ function neorg.org_file_entered(manual, arguments)
         configuration.user_configuration.hook(manual, arguments)
     end
 
+    -- If Neorg was loaded manually (through `:NeorgStart`) then set this flag to true
     configuration.manual = manual
 
     -- If the user has supplied any Neorg environment variables
@@ -96,6 +97,7 @@ function neorg.org_file_entered(manual, arguments)
     -- Set this variable to prevent Neorg from loading twice
     configuration.started = true
 
+    -- Lets the entire Neorg environment know that Neorg has started!
     neorg.events.broadcast_event({
         type = "core.started",
         split_type = { "core", "started" },
@@ -108,6 +110,8 @@ function neorg.org_file_entered(manual, arguments)
     })
 end
 
+--- Returns whether or not Neorg is loaded
+---@return boolean
 function neorg.is_loaded()
     return configuration.started
 end

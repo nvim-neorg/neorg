@@ -232,12 +232,8 @@ function neorg.modules.load_module(module_name, parent, config)
 
     -- If the module doesn't exist then return false
     if not exists then
-        exists, module = pcall(require, "neorg.modules." .. module_name)
-
-        if not exists then
-            log.error("Unable to load module", module_name, "-", module)
-            return false
-        end
+        log.error("Unable to load module", module_name, "-", module)
+        return false
     end
 
     -- If the module is nil for some reason return false
@@ -250,6 +246,8 @@ function neorg.modules.load_module(module_name, parent, config)
         return false
     end
 
+    -- If the value of `module` is strictly true then it means the required file returned nothing
+    -- We obviously can't do anything meaningful with that!
     if module == true then
         log.error(
             "An error has occurred when loading",
@@ -277,7 +275,7 @@ end
 
 --- Has the same principle of operation as load_module_from_table(), except it then sets up the parent module's "required" table, allowing the parent to access the child as if it were a dependency.
 ---@param module table #A valid table as returned by neorg.modules.create()
----@param parent_module #string or table - if a string, then the parent is searched for in the loaded modules. If a table, then the module is treated as a valid module as returned by neorg.modules.create()
+---@param parent_module string|table #If a string, then the parent is searched for in the loaded modules. If a table, then the module is treated as a valid module as returned by neorg.modules.create()
 function neorg.modules.load_module_as_dependency_from_table(module, parent_module)
     if neorg.modules.load_module_from_table(module) then
         if type(parent_module) == "string" then

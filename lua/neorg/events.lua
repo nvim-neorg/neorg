@@ -107,6 +107,7 @@ function neorg.events.create(module, type, content)
         return
     end
 
+    -- Make a deep copy here - we don't want to override the actual base table!
     local new_event = vim.deepcopy(event_template)
 
     new_event.type = type
@@ -130,7 +131,7 @@ end
 
 --- Sends an event to all subscribed modules. The event contains the filename, filehead, cursor position and line content as a bonus.
 ---@param event table #An event, usually created by neorg.events.create()
----@param callback #(function) - a callback to be invoked after all events have been asynchronously broadcast
+---@param callback function #A callback to be invoked after all events have been asynchronously broadcast
 function neorg.events.broadcast_event(event, callback)
     -- Broadcast the event to all modules
     if not event.split_type then
@@ -156,6 +157,7 @@ function neorg.events.broadcast_event(event, callback)
             end
         end
 
+        -- Because the broadcasting of events is async we allow the event broadcaster to provide a callback
         if callback then
             callback()
         end
@@ -163,7 +165,6 @@ function neorg.events.broadcast_event(event, callback)
 end
 
 --- Instead of broadcasting to all loaded modules, send_event() only sends to one module
----@param module table #A reference to the module invoking the function. Used to verify the authenticity of the function call
 ---@param recipient string #The name of a loaded module that will be the recipient of the event
 ---@param event table #An event, usually created by neorg.events.create()
 function neorg.events.send_event(recipient, event)
