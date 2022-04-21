@@ -200,7 +200,7 @@ module.public = {
     --- Recursively attempts to locate a node of a given type
     ---@param type string #The type of node to look for
     ---@param opts table #A table of two options: `buf` and `ft`, for the buffer and format respectively
-    ---@return 
+    ---@return
     get_first_node_recursive = function(type, opts)
         opts = opts or {}
         local result
