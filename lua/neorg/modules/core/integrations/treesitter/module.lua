@@ -66,8 +66,14 @@ module.load = function()
 end
 
 module.config.public = {
+    --- If true will auto-configure the parsers to use the recommended setup.
+    --  Sometimes `nvim-treesitter`'s repositories lag behind and this is the only good fix.
     configure_parsers = true,
+    --- If true will automatically install parsers if they are not present.
     install_parsers = true,
+
+    --- Configurations for each parser as expected by `nvim-treesitter`.
+    --  If you want to tweak your parser configs you can do so here.
     parser_configs = {
         norg = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg",
@@ -84,10 +90,13 @@ module.config.public = {
 
 ---@class core.integrations.treesitter
 module.public = {
+    --- Gives back an instance of `nvim-treesitter.ts_utils`
+    ---@return table #`nvim-treesitter.ts_utils`
     get_ts_utils = function()
         return module.private.ts_utils
     end,
 
+    --- Jumps to the next available heading in the current buffer
     goto_next_heading = function()
         local line_number = vim.api.nvim_win_get_cursor(0)[1]
 
@@ -103,6 +112,7 @@ module.public = {
         end
     end,
 
+    --- Jumps to the previous available heading in the current buffer
     goto_previous_heading = function()
         local line_number = vim.api.nvim_win_get_cursor(0)[1]
 
@@ -119,8 +129,8 @@ module.public = {
     end,
 
     ---  Gets all nodes of a given type from the AST
-    ---@param  type string #the type of node to filter out
-    ---@param opts? table
+    ---@param  type string #The type of node to filter out
+    ---@param opts? table #A table of two options: `buf` and `ft`, for the buffer and format to use respectively.
     get_all_nodes = function(type, opts)
         local result = {}
         opts = opts or {}
@@ -139,7 +149,7 @@ module.public = {
             local root = tree:root()
 
             --- Recursively searches for a node of a given type
-            ---@param node #userdata/treesitter node - the starting point for the search
+            ---@param node userdata #The starting point for the search
             local function descend(node)
                 -- Iterate over all children of the node and try to match their type
                 for child, _ in node:iter_children() do
@@ -162,6 +172,8 @@ module.public = {
 
     --- Returns the first node of given type if present
     ---@param type string #The type of node to search for
+    ---@param buf number #The buffer to search in
+    ---@param parent userdata #The node to start searching in
     get_first_node = function(type, buf, parent)
         if not buf then
             buf = 0
@@ -185,6 +197,10 @@ module.public = {
         end)
     end,
 
+    --- Recursively attempts to locate a node of a given type
+    ---@param type string #The type of node to look for
+    ---@param opts table #A table of two options: `buf` and `ft`, for the buffer and format respectively
+    ---@return 
     get_first_node_recursive = function(type, opts)
         opts = opts or {}
         local result
@@ -208,7 +224,7 @@ module.public = {
             end
 
             --- Recursively searches for a node of a given type
-            ---@param node #userdata/treesitter node - the starting point for the search
+            ---@param node userdata #The starting point for the search
             local function descend(node)
                 -- Iterate over all children of the node and try to match their type
                 for child, _ in node:iter_children() do
@@ -305,36 +321,9 @@ module.public = {
         return result
     end,
 
-    ---@param callback #(function(node)) - the callback to invoke
-    -- TODO: docs
-    tree_map = function(callback, ts_tree)
-        local tree = ts_tree or vim.treesitter.get_parser(0, "norg"):parse()[1]
-
-        local root = tree:root()
-
-        for child, _ in root:iter_children() do
-            callback(child)
-        end
-    end,
-
-    tree_map_rec = function(callback, ts_tree)
-        local tree = ts_tree or vim.treesitter.get_parser(0, "norg"):parse()[1]
-
-        local root = tree:root()
-
-        local function descend(start)
-            for child, _ in start:iter_children() do
-                local stop_descending = callback(child)
-                if not stop_descending then
-                    descend(child)
-                end
-            end
-        end
-
-        descend(root)
-    end,
-
-    -- Gets the range of a given node
+    --- Gets the range of a given node
+    ---@param node userdata #The node to get the range of
+    ---@return table #A table of `row_start`, `column_start`, `row_end` and `column_end` values
     get_node_range = function(node)
         if not node then
             return {
@@ -364,7 +353,7 @@ module.public = {
 
     --- Extracts the document root from the current document
     ---@param buf number The number of the buffer to extract (can be nil)
-    ---@return userdata the root node of the document
+    ---@return userdata #The root node of the document
     get_document_root = function(buf)
         local tree = vim.treesitter.get_parser(buf or 0, "norg"):parse()[1]
 
@@ -379,7 +368,7 @@ module.public = {
     --- Extracts the text from a node (only the first line)
     ---@param node userdata a treesitter node to extract the text from
     ---@param buf number the buffer number. This is required to verify the source of the node. Can be nil in which case it is treated as "0"
-    ---@return string The contents of the node in the form of a string
+    ---@return string #The contents of the node in the form of a string
     get_node_text = function(node, buf)
         if not node then
             return
@@ -394,6 +383,10 @@ module.public = {
         return text[#text] == "\n" and table.concat(vim.list_slice(text, 0, -2), " ") or table.concat(text, " ")
     end,
 
+    --- Attempts to find a parent of a node recursively
+    ---@param node userdata #The node to start at
+    ---@param types table|string #If `types` is a table, this function will attempt to match any of the types present in the table.
+    -- If the type is a string, the function will attempt to pattern match the `types` value with the node type.
     find_parent = function(node, types)
         local _node = node
 
@@ -410,6 +403,13 @@ module.public = {
         end
     end,
 
+    --- Retrieves the first node at a specific line
+    ---@param buf number #The buffer to search in (0 for current)
+    ---@param line number #The line number (0-indexed) to get the node from
+    ---@param unnamed? boolean #If true will also target and return unnamed nodes
+    ---@param lenient? boolean #If true will not employ an extra check that ensures the target node begins on
+    -- the same line as `line`.
+    ---@return userdata|nil #The first node on `line`
     get_first_node_on_line = function(buf, line, unnamed, lenient)
         local query_str = [[
             _ @node
