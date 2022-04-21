@@ -65,6 +65,7 @@ module.on_event = function(event)
         })
 
         vim.api.nvim_buf_add_highlight(buf, ns, "Special", 0, 4, 25)
+        vim.api.nvim_buf_set_option(buf, "modifiable", false)
     end
 end
 
