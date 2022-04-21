@@ -12,7 +12,7 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.neorgcmd.commands.module.list")
 
 module.setup = function()
-    return { success = true, requires = { "core.neorgcmd" } }
+    return { success = true, requires = { "core.neorgcmd", "core.ui" } }
 end
 
 module.public = {
@@ -41,13 +41,16 @@ module.public = {
 
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.module.list" then
-        local lines = { "--- Loaded Neorg Modules ---" }
+        local lines = {
+            -- neorg.modules.get_module_config("core.norg.concealer").icons.heading.level_1.icon
+            "*" .. " " .. "Loaded Neorg Modules",
+        }
         local ns = vim.api.nvim_create_namespace("neorg-module-list")
 
         for _, mod in pairs(neorg.modules.loaded_modules) do
-            table.insert(lines, mod.name)
+            table.insert(lines, "  - `" .. mod.name .. "`")
         end
-        local buf = vim.api.nvim_create_buf(false, true)
+        local buf = module.required["core.ui"].create_norg_buffer("module_list", "nosplit")
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
         vim.api.nvim_buf_set_keymap(buf, "n", "q", "<cmd>q<CR>", { noremap = true, silent = true, nowait = true })
         local width = vim.api.nvim_win_get_width(0)
@@ -64,9 +67,10 @@ module.on_event = function(event)
             style = "minimal",
         })
 
-        vim.api.nvim_buf_add_highlight(buf, ns, "Special", 0, 4, 25)
+        vim.api.nvim_buf_add_highlight(buf, ns, "NeorgHeading1Title", 0, 4, 25)
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
-        vim.api.nvim_buf_set_name(buf, "Loaded Neorg Modules")
+        vim.api.nvim_buf_set_option(buf, "filetype", "norg")
+        vim.api.nvim_buf_set_name(buf, "loaded_modules.norg")
     end
 end
 
