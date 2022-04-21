@@ -8,7 +8,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - v0.6.0
+          - v0.7.0
           - nightly
     runs-on: ubuntu-latest
     steps:
