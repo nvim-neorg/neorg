@@ -41,15 +41,30 @@ module.public = {
 
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.module.list" then
-        vim.cmd('echom "--- PRINTING ALL LOADED MODULES ---"')
+        local lines = { "--- Loaded Neorg Modules ---" }
+        local ns = vim.api.nvim_create_namespace("neorg-module-list")
 
         for _, mod in pairs(neorg.modules.loaded_modules) do
-            vim.cmd('echom "' .. mod.name .. '"')
+            table.insert(lines, mod.name)
         end
+        local buf = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+        vim.api.nvim_buf_set_keymap(buf, "n", "q", "<cmd>q<CR>", { noremap = true, silent = true, nowait = true })
+        local width = vim.api.nvim_win_get_width(0)
+        local height = vim.api.nvim_win_get_height(0)
 
-        vim.cmd(
-            'echom "Execute :messages to see output. BETA PRINTER FOR LOADED MODULES. This is obviously not final :P. Soon modules will be shown in a floating window."'
-        )
+        vim.api.nvim_open_win(buf, true, {
+            relative = "win",
+            win = 0,
+            width = math.floor(width * 0.7),
+            height = math.floor(height * 0.9),
+            col = math.floor(width * 0.15),
+            row = math.floor(height * 0.05),
+            border = "single",
+            style = "minimal",
+        })
+
+        vim.api.nvim_buf_add_highlight(buf, ns, "Special", 0, 4, 25)
     end
 end
 
