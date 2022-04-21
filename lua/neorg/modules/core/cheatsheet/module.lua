@@ -8,6 +8,7 @@ module.setup = function()
         success = true,
         requires = {
             "core.neorgcmd",
+            "core.ui",
         },
     }
 end
@@ -503,8 +504,10 @@ module.private = {
         end
         local width = vim.o.columns
         local height = vim.o.lines
-        module.private.buf = vim.api.nvim_create_buf(false, true)
+        module.private.buf = module.required["core.ui"].create_norg_buffer("cheatsheet", "nosplit")
         vim.api.nvim_buf_set_option(module.private.buf, "bufhidden", "wipe")
+        vim.api.nvim_buf_set_lines(module.private.buf, 0, -1, false, module.private.lines)
+        vim.api.nvim_buf_set_option(module.private.buf, "modifiable", false)
         local nore_silent = { noremap = true, silent = true, nowait = true }
         if type(module.config.public.keybinds.close) == "table" then
             for _, keybind in ipairs(module.config.public.keybinds.close) do
@@ -529,7 +532,6 @@ module.private = {
             "<cmd>Neorg keybind norg core.norg.esupports.hop.hop-link<CR>",
             nore_silent
         )
-        vim.api.nvim_buf_set_lines(module.private.buf, 0, -1, false, module.private.lines)
         vim.api.nvim_buf_set_option(module.private.buf, "filetype", "norg")
         module.private.win = vim.api.nvim_open_win(module.private.buf, true, {
             relative = "editor",
