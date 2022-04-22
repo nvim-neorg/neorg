@@ -67,7 +67,6 @@ module.on_event = function(event)
             style = "minimal",
         })
 
-        vim.api.nvim_buf_add_highlight(buf, ns, "NeorgHeading1Title", 0, 4, 25)
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
         vim.api.nvim_buf_set_option(buf, "filetype", "norg")
         vim.api.nvim_buf_set_name(buf, "loaded_modules.norg")
