@@ -32,6 +32,9 @@ module.setup = function()
 end
 
 module.private = {
+    --- Opens a diary entry at the given time
+    ---@param time number #The time to open the journal entry at as returned by `os.time()`
+    ---@param custom_date string #A YYYY-mm-dd string that specifies a date to open the diary at instead
     open_diary = function(time, custom_date)
         local workspace = module.config.public.workspace
         local folder_name = module.config.public.journal_folder
@@ -63,14 +66,17 @@ module.private = {
         )
     end,
 
+    --- Opens a diary entry for tomorrow's date
     diary_tomorrow = function()
         module.private.open_diary(os.time() + 24 * 60 * 60)
     end,
 
+    --- Opens a diary entry for yesterday's date
     diary_yesterday = function()
         module.private.open_diary(os.time() - 24 * 60 * 60)
     end,
 
+    --- Opens a diary entry for today's date
     diary_today = function()
         module.private.open_diary()
     end,

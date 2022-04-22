@@ -50,6 +50,8 @@ require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.concealer")
 
+--- Schedule a function if there is no debounce active or if deferred updates have been disabled
+---@param func function #Any function to execute
 local function schedule(func)
     vim.schedule(function()
         if
@@ -123,11 +125,15 @@ module.private = {
 ---@class core.norg.concealer
 module.public = {
 
-    --- Parses the user configuration and enables concealing for the current window.
-    ---@param icon_set table #The icon set to trigger
-    -- @Param namespace
-    ---@param from number #The line number that we should start at (defaults to 0)
+    --- Triggers an icon set for the current buffer
+    ---@param buf number #The name of the buffer to apply conceals in
+    ---@param icon_set table #The icon set to use
+    ---@param namespace number #The extmark namespace to use when setting extmarks
+    ---@param from? number #The line number to start parsing from (used for incremental updates)
+    ---@param to? number #The line number to keep parsing to (used for incremental updates)
     trigger_icons = function(buf, icon_set, namespace, from, to)
+        -- Get old extmarks - this is done to reduce visual glitches; all old extmarks are stored,
+        -- the new extmarks are applied on top of the old ones, then the old ones are deleted.
         local old_extmarks = module.public.get_old_extmarks(buf, namespace, from, to and to - 1)
 
         -- Get the root node of the document (required to iterate over query captures)
@@ -154,6 +160,8 @@ module.public = {
                     end
 
                     -- Go through every found node and try to apply an icon to it
+                    -- The reason `iter_prepared_matches` and other `nvim-treesitter` functions are used here is because
+                    -- we also want to support special captures and predicates like `(#has-parent?)`
                     for match in nvim_ts_query.iter_prepared_matches(query, document_root, buf, from or 0, to or -1) do
                         nvim_locals.recurse_local_nodes(match, function(_, node, capture)
                             if capture == "icon" then
@@ -212,6 +220,7 @@ module.public = {
             end)
         end
 
+        -- After we have applied every extmark we can remove the old ones
         schedule(function()
             neorg.lib.map(old_extmarks, function(_, id)
                 vim.api.nvim_buf_del_extmark(buf, namespace, id)
@@ -219,12 +228,18 @@ module.public = {
         end)
     end,
 
+    --- Dims code blocks in the buffer
+    ---@param buf number #The buffer to apply the dimming in
+    ---@param from? number #The line number to start parsing from (used for incremental updates)
+    ---@param to? number #The line number to keep parsing until (used for incremental updates)
     trigger_code_block_highlights = function(buf, from, to)
         -- If the code block dimming is disabled, return right away.
         if not module.config.public.dim_code_blocks then
             return
         end
 
+        -- Similarly to `trigger_icons()`, we get all old extmarks here, apply the new dims on top of the old ones,
+        -- then delete the old extmarks to prevent flickering
         local old_extmarks = module.public.get_old_extmarks(buf, module.private.code_block_namespace, from, to)
 
         -- The next block of code will be responsible for dimming code blocks accordingly
@@ -276,6 +291,9 @@ module.public = {
                                     "blend"
                                 )
                             else
+                                -- There may be scenarios where the line is empty, or the line is shorter than the indentation
+                                -- level of the code block, in that case we place the extmark at the very beginning of the line
+                                -- and pad it with enough spaces to "emulate" the existence of whitespace
                                 module.public._set_extmark(
                                     buf,
                                     { { string.rep(" ", range.column_start) } },
@@ -302,16 +320,16 @@ module.public = {
         end
     end,
 
-    --- Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it more safe
-    ---@param text #string|table - the virtual text to overlay (usually the icon)
+    --- Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it safer
+    ---@param text string|table #The virtual text to overlay (usually the icon)
     ---@param highlight string #The name of a highlight to use for the icon
     ---@param line_number number #The line number to apply the extmark in
     ---@param end_line number #The last line number to apply the extmark to (useful if you want an extmark to exist for more than one line)
     ---@param start_column number #The start column of the conceal
     ---@param end_column number #The end column of the conceal
     ---@param whole_line boolean #If true will highlight the whole line (like in diffs)
-    ---@param mode #string: "replace"/"combine"/"blend" - the highlight mode for the extmark
-    ---@param pos #string: "overlay"/"eol"/"right_align" - the position to place the extmark in (defaults to "overlay")
+    ---@param mode string #"replace"/"combine"/"blend" - the highlight mode for the extmark
+    ---@param pos string #"overlay"/"eol"/"right_align" - the position to place the extmark in (defaults to "overlay")
     _set_extmark = function(buf, text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode, pos)
         if not vim.api.nvim_buf_is_loaded(buf) then
             return
@@ -334,6 +352,12 @@ module.public = {
         })
     end,
 
+    --- Gets the already present extmarks in a buffer
+    ---@param buf number #The buffer to get the extmarks from
+    ---@param namespace number #The namespace to query the extmarks from
+    ---@param from? number #The first line to extract the extmarks from
+    ---@param to? number #The last line to extract the extmarks from
+    ---@return list #A list of extmark IDs
     get_old_extmarks = function(buf, namespace, from, to)
         return neorg.lib.map(
             neorg.lib.inline_pcall(
@@ -351,6 +375,9 @@ module.public = {
     end,
 
     completion_levels = {
+        --- Displays the completion level with incremental updates
+        ---@param buf number #The number of the buffer to parse
+        ---@param line number #The line number the user is at
         trigger_completion_levels_incremental = function(buf, line)
             -- Get the root node of the document (required to iterate over query captures)
             local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
@@ -416,6 +443,10 @@ module.public = {
             end)
         end,
 
+        --- Triggers the completion level check for a range of lines
+        ---@param buf number #The number of the buffer to trigger completion levels in
+        ---@param from? number #The start line
+        ---@param to? number #The end line
         trigger_completion_levels = function(buf, from, to)
             module.public.completion_levels.clear_completion_levels(buf, from, to)
 
@@ -486,12 +517,20 @@ module.public = {
             end
         end,
 
+        --- Counts the number of todo items under a node
+        ---@param start_node userdata #The treesitter node to start at
+        ---@return table #A table of data regarding all todo item counts
         get_todo_item_counts = function(start_node)
             local results = { total = 0 }
             count_todo_nodes_under_node(start_node, results)
             return results
         end,
 
+        --- Converts a formatted string to a raw string
+        ---@param str string #The formatted string
+        ---@param item_counts table #A table of data regarding all todo item counts
+        ---@see get_todo_item_counts
+        ---@return string #The string with all valid formatting replaced
         substitute_item_counts_in_str = function(str, item_counts)
             local types = {
                 "undone",
@@ -528,6 +567,10 @@ module.public = {
             return result
         end,
 
+        --- Clears the completion level namespace
+        ---@param buf number #The buffer to clear the extmarks in
+        ---@param from? number #The start line
+        ---@param to? number #The end line
         clear_completion_levels = function(buf, from, to)
             vim.api.nvim_buf_clear_namespace(buf, module.private.completion_level_namespace, from or 0, to or -1)
         end,
@@ -795,6 +838,8 @@ module.public = {
         },
     },
 
+    --- Custom foldtext to be used with the native folding support
+    ---@return string #The foldtext
     foldtext = function()
         local foldstart = vim.v.foldstart
         local line = vim.api.nvim_buf_get_lines(0, foldstart - 1, foldstart, true)[1]
@@ -860,7 +905,7 @@ module.config.public = {
     -- E.g `core.norg.concealer.preset_diamond` will be `preset = "diamond"`
     icon_preset = "basic",
 
-    -- Icons related config
+    -- Configuration for icons: their looks and behaviours are contained here
     icons = {
         todo = {
             enabled = true,
@@ -1582,6 +1627,7 @@ module.load = function()
         module.config.custom
     )
 
+    --- Queries all icons that have their `enable = true` flags set
     ---@param tbl table #The table to parse
     ---@param parent_icon string #Is used to pass icons from parents down to their table children to handle inheritance.
     ---@param rec_name string #Should not be set manually. Is used for Neorg to have information about all other previous recursions
@@ -1660,6 +1706,12 @@ module.on_event = function(event)
             module.public.trigger_code_block_highlights(buf)
             module.public.completion_levels.trigger_completion_levels(buf)
         else
+            -- This bit of code gets triggered if the line count of the file is bigger than one increment level
+            -- provided by the user.
+            -- In this case, the concealer enters a block mode and splits up the file into chunks. It then goes through each
+            -- chunk at a set interval and applies the conceals that way to reduce load and improve performance.
+
+            -- This points to the current block the user's cursor is in
             local block_current = math.floor(
                 (line_count / module.config.public.performance.increment) % event.cursor_position[1]
             )
@@ -1717,6 +1769,8 @@ module.on_event = function(event)
 
         vim.api.nvim_buf_attach(buf, false, {
             on_lines = function(_, cur_buf, _, start, _end)
+                -- There are edge cases where the current buffer is not the same as the tracked buffer,
+                -- which causes desyncs
                 if buf ~= cur_buf then
                     return true
                 end

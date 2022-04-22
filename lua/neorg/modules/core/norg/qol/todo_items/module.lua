@@ -248,7 +248,10 @@ module.on_event = function(event)
             local todo_item_type = module.public.get_todo_item_type(todo_item_at_cursor)
             local types = module.config.public.order
 
-            -- TODO: Docs
+            --- Gets the next item of a flat list based on the first item
+            ---@param type_list list #A list of { "type", "char" } items
+            ---@param item_type string #The `type` field from the `type_list` array
+            ---@return number #An index into the next item of `type_list`
             local function get_index(type_list, item_type)
                 for i, element in ipairs(type_list) do
                     if element[1] == item_type then
