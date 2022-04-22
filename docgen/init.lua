@@ -391,7 +391,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 local configs = docgen.get_module_configs(buf)
 
                 if not configs then
-                    table.insert(results, "No configuration provided")
+                    table.insert(results, "This module exposes no customization options.")
                 else
                     local inserted = {}
                     local current_key = {}

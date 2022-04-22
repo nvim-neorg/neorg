@@ -2,7 +2,7 @@
     File: Nvim-Compe
     Title: Integrating Neorg with `nvim-compe`
     Summary: A module for integrating nvim-compe with Neorg.
-    Show: false.
+    Internal: true
     ---
 A module for integrating nvim-compe with Neorg.
 Works with core.norg.completion to provide intelligent completions.

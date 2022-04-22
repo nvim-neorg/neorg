@@ -2,7 +2,7 @@
     File: Queries-Module
     Title: Queries Module
     Summary: TS wrapper in order to fetch nodes using a custom table.
-    Show: false.
+    Internal: true
     ---
 This module uses tree-like tables in order to fetch useful informations from a TS tree.
 --]]

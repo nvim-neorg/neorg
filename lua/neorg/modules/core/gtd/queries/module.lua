@@ -2,7 +2,7 @@
     File: GTD-Queries
     Title: GTD Queries module
     Summary: Gets tasks, projects and useful information for the GTD system.
-    Show: false.
+    Internal: true
     ---
 
 Custom gtd queries, that respect the neorg GTD specs (`:h neorg-gtd-format`)

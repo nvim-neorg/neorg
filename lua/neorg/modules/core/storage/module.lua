@@ -2,7 +2,7 @@
     File: Storage
     Title: Store persistent data and query it easily with `core.storage`
     Summary: Deals with storing persistent data across Neorg sessions.
-    Show: false.
+    Internal: true
     ---
 --]]
 

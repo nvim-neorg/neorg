@@ -2,7 +2,7 @@
     File: GTD-helpers
     Title: GTD Helpers module
     Summary: Nice helpers for GTD modules.
-    Show: false.
+    Internal: true
     ---
 
 This module is a set of public functions designed to ease GTD development.
