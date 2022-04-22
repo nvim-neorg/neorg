@@ -26,72 +26,6 @@ end
 
 ---@class core.ui
 module.public = {
-    -- TODO: Remove this. This is just a showcase
-    test_display = function()
-        -- Creates a buffer
-        local buffer = module.public.create_split("selection/Test selection")
-
-        -- Binds a selection to that buffer
-        local selection = module.public.begin_selection(buffer)
-            :apply({
-                -- A title will simply be text with a custom highlight
-                title = function(self, text)
-                    return self:text(text, "TSTitle")
-                end,
-            })
-            :listener("destroy", { "<Esc>" }, function(self)
-                self:destroy()
-            end)
-            :listener("go-back", { "<BS>" }, function(self)
-                self:pop_page()
-            end)
-
-        selection
-            :options({
-                text = {
-                    highlight = "TSUnderline",
-                },
-            })
-            :title("Hello World!")
-            :blank()
-            :text("Flags:")
-            :flag("<CR>", "finish")
-            :flag("t", "test flag", function()
-                log.warn("The test flag has been pressed!")
-            end)
-            :blank()
-            :text("Other flags:")
-            :rflag("a", "press me!", function()
-                selection:setstate("test", "hello from the other side")
-
-                -- Create more elements for the selection
-                selection
-                    :title("Another Title!")
-                    :blank()
-                    :text("Other Flags:")
-                    :flag("a", "i do nothing :)")
-                    :rflag("b", "yet another nested flag", function()
-                        selection
-                            :title("Final Title")
-                            :blank()
-                            :text("Btw, did you know that you can")
-                            :text("Press <BS> to go back a page? Try it!")
-                            :blank()
-                            :text("Also, psst, pressing `g` will give you a small surprise")
-                            :blank()
-                            :flag("a", "does nothing too")
-                            :listener("print-message", { "g" }, function()
-                                log.warn("You are awesome :)")
-                            end)
-                    end)
-            end)
-            :stateof( -- To view this press `a` and then <BS> to go back
-                "test",
-                "This is a custom message: %s." --[[ you can supply a third argument which
-                will forcefully render the message even if the state isn't present. The state will be replaced with a " " ]]
-            )
-    end,
-
     --- Returns a table in the form of { width, height } containing the width and height of the current window
     ---@param half boolean #If true returns a position that could be considered the center of the window
     get_window_size = function(half)
@@ -271,8 +205,9 @@ module.public = {
     end,
 
     --- Creates a new display in which you can place organized data
-    ---@param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
-    ---@param content table a table of content
+    ---@param name string #The name of the display
+    ---@param split_type string #"vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
+    ---@param content table #A table of content for the display
     create_display = function(name, split_type, content)
         if not vim.tbl_contains({ "nosplit", "vsplitl", "vsplitr", "split" }, split_type) then
             log.error(
@@ -416,6 +351,73 @@ module.public = {
 
 module.private = {
     user_scrolloff = nil,
+}
+
+module.examples = {
+    ["Create a selection popup"] = function()
+        -- Creates the buffer
+        local buffer = module.public.create_split("selection/Test selection")
+
+        -- Binds a selection to that buffer
+        local selection = module.public.begin_selection(buffer)
+            :apply({
+                -- A title will simply be text with a custom highlight
+                title = function(self, text)
+                    return self:text(text, "TSTitle")
+                end,
+            })
+            :listener("destroy", { "<Esc>" }, function(self)
+                self:destroy()
+            end)
+            :listener("go-back", { "<BS>" }, function(self)
+                self:pop_page()
+            end)
+
+        selection
+            :options({
+                text = {
+                    highlight = "TSUnderline",
+                },
+            })
+            :title("Hello World!")
+            :blank()
+            :text("Flags:")
+            :flag("<CR>", "finish")
+            :flag("t", "test flag", function()
+                log.warn("The test flag has been pressed!")
+            end)
+            :blank()
+            :text("Other flags:")
+            :rflag("a", "press me!", function()
+                selection:setstate("test", "hello from the other side")
+
+                -- Create more elements for the selection
+                selection
+                    :title("Another Title!")
+                    :blank()
+                    :text("Other Flags:")
+                    :flag("a", "i do nothing :)")
+                    :rflag("b", "yet another nested flag", function()
+                        selection
+                            :title("Final Title")
+                            :blank()
+                            :text("Btw, did you know that you can")
+                            :text("Press <BS> to go back a page? Try it!")
+                            :blank()
+                            :text("Also, psst, pressing `g` will give you a small surprise")
+                            :blank()
+                            :flag("a", "does nothing too")
+                            :listener("print-message", { "g" }, function()
+                                log.warn("You are awesome :)")
+                            end)
+                    end)
+            end)
+            :stateof( -- To view this press `a` and then <BS> to go back
+                "test",
+                "This is a custom message: %s." --[[ you can supply a third argument which
+                will forcefully render the message even if the state isn't present. The state will be replaced with a " " ]]
+            )
+    end
 }
 
 return module
