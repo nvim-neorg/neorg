@@ -93,11 +93,11 @@ end
 docgen.get_module_configs = function(buf)
     local nodes = ts.get_all_nodes("variable_declaration", { ft = "lua", buf = buf })
     for _, node in pairs(nodes) do
-        local _node = ts.get_first_node_recursive("variable_declarator", { ft = "lua", buf = buf, parent = node })
-        local text = ts_utils.get_node_text(_node, buf)[1]
+        local node = ts.get_first_node_recursive("variable_declarator", { ft = "lua", buf = buf, parent = node })
+        local text = ts_utils.get_node_text(node, buf)[1]
         if text == "module.config.public" then
-            _node = ts.get_first_node_recursive("table", { ft = "lua", buf = buf, parent = node })
-            return _node
+            node = ts.get_first_node_recursive("table", { ft = "lua", buf = buf, parent = node })
+            return node
         end
     end
 end
@@ -178,20 +178,20 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 end
 
                 local res = {}
-                for _module, _config in pairs(modules) do
-                    if vim.tbl_contains(core_defaults.config.public.enable, _config.name) and _config.show_module then
+                for module, config in pairs(modules) do
+                    if vim.tbl_contains(core_defaults.config.public.enable, config.name) and config.show_module then
                         local insert
-                        if _config.filename then
+                        if config.filename then
                             insert = "- [`"
-                                .. _config.name
+                                .. config.name
                                 .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                                .. _config.filename
+                                .. config.filename
                                 .. ")"
                         else
-                            insert = "- `" .. _module .. "`"
+                            insert = "- `" .. module .. "`"
                         end
-                        if _config.summary then
-                            insert = insert .. " - " .. _config.summary
+                        if config.summary then
+                            insert = insert .. " - " .. config.summary
                         else
                             insert = insert .. " - undocumented module"
                         end
@@ -214,24 +214,24 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     return
                 end
 
-                for _module, _config in pairs(modules) do
+                for module, config in pairs(modules) do
                     if
-                        not _config.is_extension
-                        and not vim.tbl_contains(core_defaults.config.public.enable, _config.name)
-                        and _config.show_module
+                        not config.is_extension
+                        and not vim.tbl_contains(core_defaults.config.public.enable, config.name)
+                        and config.show_module
                     then
                         local insert
-                        if _config.filename then
+                        if config.filename then
                             insert = "- [`"
-                                .. _config.name
+                                .. config.name
                                 .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                                .. _config.filename
+                                .. config.filename
                                 .. ")"
                         else
-                            insert = "- `" .. _module .. "`"
+                            insert = "- `" .. module .. "`"
                         end
-                        if _config.summary then
-                            insert = insert .. " - " .. _config.summary
+                        if config.summary then
+                            insert = insert .. " - " .. config.summary
                         else
                             insert = insert .. " - undocumented module"
                         end
@@ -254,24 +254,24 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     return
                 end
 
-                for _module, _config in pairs(modules) do
+                for module, config in pairs(modules) do
                     if
-                        not _config.is_extension
-                        and not vim.tbl_contains(core_defaults.config.public.enable, _config.name)
-                        and not _config.show_module
+                        not config.is_extension
+                        and not vim.tbl_contains(core_defaults.config.public.enable, config.name)
+                        and not config.show_module
                     then
                         local insert
-                        if _config.filename then
+                        if config.filename then
                             insert = "- [`"
-                                .. _config.name
+                                .. config.name
                                 .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                                .. _config.filename
+                                .. config.filename
                                 .. ")"
                         else
-                            insert = "- `" .. _module .. "`"
+                            insert = "- `" .. module .. "`"
                         end
-                        if _config.summary then
-                            insert = insert .. " - " .. _config.summary
+                        if config.summary then
+                            insert = insert .. " - " .. config.summary
                         else
                             insert = insert .. " - undocumented module"
                         end
@@ -314,15 +314,15 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 end
                 table.sort(names)
                 for _, name in ipairs(names) do
-                    local _config = modules[name]
-                    if _config.show_module then
+                    local config = modules[name]
+                    if config.show_module then
                         local insert = ""
-                        if _config.filename then
+                        if config.filename then
                             insert = insert
                                 .. "- [`"
-                                .. _config.name
+                                .. config.name
                                 .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                                .. _config.filename
+                                .. config.filename
                                 .. ")"
                         else
                             insert = insert .. "- `" .. name .. "`"
@@ -407,9 +407,9 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 local count
                                 -- Remove whitespaces
                                 value[#value], count = string.gsub(value[#value], "%s*", "")
-                                for i, _value in pairs(value) do
+                                for i, value in pairs(value) do
                                     local pattern = string.rep("%s", count)
-                                    value[i] = string.gsub(_value, pattern, "")
+                                    value[i] = string.gsub(value, pattern, "")
                                 end
                             end
 
@@ -426,13 +426,13 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     for _, insert in pairs(inserted) do
                         table.insert(results, "- `" .. insert.name .. "`")
                         table.insert(results, "")
-                        for _, _value in pairs(insert.comment) do
-                            table.insert(results, string.sub(_value, 4))
+                        for _, value in pairs(insert.comment) do
+                            table.insert(results, string.sub(value, 4))
                             table.insert(results, "")
                         end
                         table.insert(results, "```lua")
-                        for _, _value in pairs(insert.value) do
-                            table.insert(results, _value)
+                        for _, value in pairs(insert.value) do
+                            table.insert(results, value)
                         end
                         table.insert(results, "```")
                     end
@@ -472,10 +472,10 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "### Examples",
             {
                 query = [[
-                (variable_declaration
-                    (variable_declarator
-                        (field_expression) @_field
-                        (#eq? @_field "module.examples")
+                (assignment_statement
+                    (variable_list
+                        name: (dot_index_expression) @_name
+                        (#eq? @_name "module.examples")
                     )
                 ) @declaration
             ]],
@@ -489,19 +489,20 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     local result = {}
                     local index = 0
 
-                    for _, variable_declaration in main_query:iter_captures(tree:root(), buf) do
-                        if variable_declaration:type() == "variable_declaration" then
+                    for variable_declaration_id, variable_declaration in main_query:iter_captures(tree:root(), buf) do
+                        if main_query.captures[variable_declaration_id] == "declaration" then
                             local query = vim.treesitter.parse_query(
                                 "lua",
                                 [[
-                            (table
+                            (table_constructor
                                 (field
-                                    [
+                                    name: [
                                         (identifier)
                                         (string)
                                     ] @identifier
-                                    (function_definition
-                                        (parameters)
+                                    value: (function_definition
+                                        parameters: (parameters)
+                                        body: (block)
                                     )
                                 )
                             )
@@ -521,25 +522,15 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                         "```lua",
                                     }
 
-                                    local start_node = node:next_named_sibling()
+                                    local body_node = node:next_named_sibling():named_child(1)
+                                    local body_node_column = ts.get_node_range(body_node).column_start
+                                    local body_text = vim.split(vim.treesitter.get_node_text(body_node, buf), "\n")
 
-                                    if not start_node then
-                                        table.insert(result[index], "-- empty code block")
+                                    table.insert(result[index], body_text[1])
+
+                                    for i = 2, #body_text do
+                                        table.insert(result[index], body_text[i]:sub(body_node_column + 1))
                                     end
-
-                                    local text = ts_utils.get_node_text(start_node)
-
-                                    -- Remove the function() and "end" keywords
-                                    table.remove(text, 1)
-                                    table.remove(text)
-
-                                    local start = vim.api.nvim_strwidth(text[1]:match("^%s*")) + 1
-
-                                    for i = 1, #text do
-                                        text[i] = text[i]:sub(start)
-                                    end
-
-                                    vim.list_extend(result[index], text)
 
                                     table.insert(result[index], "```")
                                     table.insert(result[index], "")
@@ -697,7 +688,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
     module.summary = lint(arguments.summary)
     module.title = arguments.title
     -- Do not show the module on sidebar and Home page
-    module.show_module = arguments.show ~= "false."
+    module.show_module = arguments.internal ~= "true"
 
     -- Construct the desired filename
     local output_filename = module.filename .. ".md"
