@@ -417,7 +417,7 @@ module.examples = {
                 "This is a custom message: %s." --[[ you can supply a third argument which
                 will forcefully render the message even if the state isn't present. The state will be replaced with a " " ]]
             )
-    end
+    end,
 }
 
 return module
