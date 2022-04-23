@@ -4,8 +4,8 @@
     ---
 This module exposes functionality for subscribing to autocommands and performing actions based on those autocommands.
 
-In your `module.setup()`, make sure to require core.autocommands (requires = { "core.autocommands" })
-Afterwards in a function of your choice that gets called *after* core.autocommmands gets intialized e.g. load():
+In your `module.setup()`, make sure to require `core.autocommands` (`requires = { "core.autocommands" }`)
+Afterwards in a function of your choice that gets called *after* core.autocommmands gets intialized (e.g. `load()`):
 
 ```lua
 module.load = function()
@@ -17,11 +17,9 @@ Afterwards, be sure to subscribe to the event:
 
 ```lua
 module.events.subscribed = {
-
     ["core.autocommands"] = {
         vimleavepre = true
     }
-
 }
 ```
 

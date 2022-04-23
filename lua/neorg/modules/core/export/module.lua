@@ -1,4 +1,26 @@
---[[]]
+--[[
+    File: Exporting-Files
+    Title: Converting Neorg Files to other Filetypes with `core.export`
+    Summary: Exports Neorg documents into any other supported filetype.
+    ---
+All export functionality is provided by the `:Neorg export` command.
+
+To export the currently opened buffer to another file format, you should use the `:Neorg export to-file` command.
+The command takes the following arguments:
+- `path` - the path to export to. Examples are: `my-file.md`, `~/output.md`.
+  If the second argument is not provided Neorg will try to infer the filetype to convert to through
+  the file extension.
+- `filetype` (optional) - the filetype to export to. Useful if you want to use a non-standard extension, or
+  if the filetype you're using cannot be inferred automatically. Note that this filetype *must* be a filetype
+  that Neovim itself provides and/or understands, i.e. `md` or `markd` is not a valid filetype, however `markdown` is.
+
+Neorg also supports exporting a directory of files: this is where the `:Neorg export directory` command comes into play.
+It takes 3 arguments:
+- `directory` - the directory to export
+- `filetype` - the filetype to export to
+- `output-dir` (optional) - a custom output directory to use. If not provided will fall back to `config.public.export_dir`
+  (see [configuration](#configuration)).
+--]]
 
 local module = neorg.modules.create("core.export")
 
