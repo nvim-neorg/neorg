@@ -88,20 +88,6 @@ docgen.get_module_queries = function(buf, query)
     return vim.treesitter.parse_query("lua", query)
 end
 
---- Get module.config.public TS node from buffer
---- @param buf number
-docgen.get_module_configs = function(buf)
-    local nodes = ts.get_all_nodes("variable_declaration", { ft = "lua", buf = buf })
-    for _, node in pairs(nodes) do
-        local node = ts.get_first_node_recursive("variable_declarator", { ft = "lua", buf = buf, parent = node })
-        local text = ts_utils.get_node_text(node, buf)[1]
-        if text == "module.config.public" then
-            node = ts.get_first_node_recursive("table", { ft = "lua", buf = buf, parent = node })
-            return node
-        end
-    end
-end
-
 --- The actual code that generates a md file from a template
 --- @param buf number
 --- @param path string
@@ -386,60 +372,107 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 .. "` to your liking.",
             "",
             "### Configuration",
-            function()
-                local results = {}
-                local configs = docgen.get_module_configs(buf)
+            {
+                query = [[
+                    (assignment_statement
+                        (variable_list) @_name
+                        (#eq? @_name "module.config.public")
+                    ) @declaration
+                ]],
+                callback = function(main_query)
+                    local results = {}
 
-                if not configs then
-                    table.insert(results, "This module exposes no customization options.")
-                else
-                    local inserted = {}
-                    local current_key = {}
-                    for child, _ in configs:iter_children() do
-                        if child:type() == "comment" then
-                            local insert = ts_utils.get_node_text(child, buf)
-                            current_key = current_key and vim.list_extend(current_key, insert)
-                        elseif child:type() == "field" and not vim.tbl_isempty(current_key) then
-                            local name = ts_utils.get_node_text(child:named_child(0), buf)[1]
-                            local value = ts_utils.get_node_text(child:named_child(1), buf)
+                    local tree = vim.treesitter.get_parser(buf, "lua"):parse()[1]
 
-                            if child:named_child(1):type() == "table" then
-                                local count
-                                -- Remove whitespaces
-                                value[#value], count = string.gsub(value[#value], "%s*", "")
-                                for i, value in pairs(value) do
-                                    local pattern = string.rep("%s", count)
-                                    value[i] = string.gsub(value, pattern, "")
+                    if not tree then
+                        return {}
+                    end
+
+                    local has_capture = false
+
+                    for id, public_config in main_query:iter_captures(tree:root(), buf) do
+                        if main_query.captures[id] == "declaration" then
+                            has_capture = true
+
+                            local query = vim.treesitter.parse_query("lua", [[
+                                (
+                                    (comment)+ @comment
+                                    .
+                                    (field
+                                        name: [
+                                            (identifier) @identifier
+                                            (string
+                                                content: ("string_content") @identifier
+                                            )
+                                        ]
+                                        value: (_) @value
+                                    ) @field
+                                )
+                            ]])
+
+                            local indent_level = 0
+                            local comments = {}
+                            local identifier = nil
+                            local values = {}
+
+                            for id, parsed_config_option in query:iter_captures(public_config, buf) do
+                                local capture = query.captures[id]
+
+                                if capture == "field" then
+                                    indent_level = ts.get_node_range(parsed_config_option).column_start + 1
+                                elseif capture == "identifier" then
+                                    identifier = "`" .. ts.get_node_text(parsed_config_option) .. "`"
+                                elseif capture == "comment" then
+                                    table.insert(comments, --[[ this is required -> ]] "" .. ts.get_node_text(parsed_config_option):gsub("^%-+%s+", ""))
+                                elseif capture == "value" then
+                                    if parsed_config_option:type() ~= "table_constructor" then
+                                        values = { "  Default value: `" .. ts.get_node_text(parsed_config_option) .. "`" }
+                                    else
+                                        table.insert(values, "  Default Value:")
+                                        table.insert(values, "  ```lua")
+
+                                        local text = neorg.lib.map(ts.get_ts_utils().get_node_text(parsed_config_option), function(_, value) return "  " .. value end)
+                                        for i = 2, #text do
+                                            text[i] = text[i]:sub(indent_level)
+                                        end
+
+                                        vim.list_extend(values, text)
+                                        table.insert(values, "  ```")
+                                    end
+                                end
+
+                                if not vim.tbl_isempty(comments) and identifier and not vim.tbl_isempty(values) then
+                                    table.insert(results, identifier)
+
+                                    for i, comment in ipairs(comments) do
+                                        if i == 1 then
+                                            table.insert(results, ": " .. comment)
+                                        else
+                                            table.insert(results, "  " .. comment)
+                                        end
+                                    end
+
+                                    table.insert(results, "")
+                                    vim.list_extend(results, values)
+                                    table.insert(results, "")
+
+                                    indent_level = 0
+                                    comments = {}
+                                    identifier = nil
+                                    values = {}
                                 end
                             end
-
-                            table.insert(inserted, { comment = current_key, value = value, name = name })
-                            current_key = {}
-                        else
-                            current_key = {}
                         end
                     end
 
-                    if vim.tbl_isempty(inserted) then
-                        table.insert(results, "No public configuration")
+                    if not has_capture then
+                        table.insert(results, "This module exposes no customization options.")
+                        return results
                     end
-                    for _, insert in pairs(inserted) do
-                        table.insert(results, "- `" .. insert.name .. "`")
-                        table.insert(results, "")
-                        for _, value in pairs(insert.comment) do
-                            table.insert(results, string.sub(value, 4))
-                            table.insert(results, "")
-                        end
-                        table.insert(results, "```lua")
-                        for _, value in pairs(insert.value) do
-                            table.insert(results, value)
-                        end
-                        table.insert(results, "```")
-                    end
+
+                    return results
                 end
-
-                return results
-            end,
+            },
             "## Developer Usage",
             "### Public API",
             "This segment will detail all of the functions `"

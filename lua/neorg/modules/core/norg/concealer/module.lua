@@ -27,8 +27,8 @@ between the icon and actual text) like so:
 
 ```lua
 icon = module.private.ordered_concealing.punctuation.dot(
-module.private.ordered_concealing.icon_renderer.numeric
-),
+    module.private.ordered_concealing.icon_renderer.numeric
+)
 ```
 
 Note: this will produce icons like `1.`, `2.`, etc.
@@ -37,10 +37,10 @@ You can even chain multiple punctuation wrappers like so:
 
 ```lua
 icon = module.private.ordered_concealing.punctuation.parenthesis(
-module.private.ordered_concealing.punctuation.dot(
-module.private.ordered_concealing.icon_renderer.numeric
+    module.private.ordered_concealing.punctuation.dot(
+        module.private.ordered_concealing.icon_renderer.numeric
+    )
 )
-),
 ```
 
 Note: this will produce icons like `1.)`, `2.)`, etc.

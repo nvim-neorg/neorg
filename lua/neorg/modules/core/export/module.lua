@@ -65,8 +65,8 @@ module.load = function()
 end
 
 module.config.public = {
-    --- The directory to export to when running `:Neorg export directory`
-    -- The string can be formatted with the special keys: `<export-dir>` and `<language>`
+    --- The directory to export to when running `:Neorg export directory`.
+    -- The string can be formatted with the special keys: `<export-dir>` and `<language>`.
     export_dir = "<export-dir>/<language>-export",
 }
 
