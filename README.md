@@ -195,12 +195,16 @@ To make it permanent, you want to alter your treesitter configuration a little:
 
 ```lua
 require('nvim-treesitter.configs').setup {
-    ensure_installed = { "norg", "norg_meta", --[[other parsers you would wish to have]] },
+    ensure_installed = { "norg", --[[ other parsers you would wish to have ]] },
     highlight = { -- Be sure to enable highlights if you haven't!
         enable = true,
     }
 }
 ```
+
+NOTE: Putting `"norg_meta"` into your `ensure_installed` table may trigger unintended errors.
+This is because `norg_meta` isn't in the native `nvim-treesitter` repositories, and the parser is
+only defined while using Neorg. This is why using `:Neorg sync-parsers` is recommended.
 
 ### Troubleshooting Treesitter
 - Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
