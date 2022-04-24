@@ -394,7 +394,9 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                         if main_query.captures[id] == "declaration" then
                             has_capture = true
 
-                            local query = vim.treesitter.parse_query("lua", [[
+                            local query = vim.treesitter.parse_query(
+                                "lua",
+                                [[
                                 (
                                     (comment)+ @comment
                                     .
@@ -408,7 +410,8 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                         value: (_) @value
                                     ) @field
                                 )
-                            ]])
+                            ]]
+                            )
 
                             local indent_level = 0
                             local comments = {}
@@ -423,15 +426,25 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 elseif capture == "identifier" then
                                     identifier = "`" .. ts.get_node_text(parsed_config_option) .. "`"
                                 elseif capture == "comment" then
-                                    table.insert(comments, --[[ this is required -> ]] "" .. ts.get_node_text(parsed_config_option):gsub("^%-+%s+", ""))
+                                    table.insert(
+                                        comments, --[[ this is required -> ]]
+                                        "" .. ts.get_node_text(parsed_config_option):gsub("^%-+%s+", "")
+                                    )
                                 elseif capture == "value" then
                                     if parsed_config_option:type() ~= "table_constructor" then
-                                        values = { "  Default value: `" .. ts.get_node_text(parsed_config_option) .. "`" }
+                                        values = {
+                                            "  Default value: `" .. ts.get_node_text(parsed_config_option) .. "`",
+                                        }
                                     else
                                         table.insert(values, "  Default Value:")
                                         table.insert(values, "  ```lua")
 
-                                        local text = neorg.lib.map(ts.get_ts_utils().get_node_text(parsed_config_option), function(_, value) return "  " .. value end)
+                                        local text = neorg.lib.map(
+                                            ts.get_ts_utils().get_node_text(parsed_config_option),
+                                            function(_, value)
+                                                return "  " .. value
+                                            end
+                                        )
                                         for i = 2, #text do
                                             text[i] = text[i]:sub(indent_level)
                                         end
@@ -471,7 +484,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     end
 
                     return results
-                end
+                end,
             },
             "## Developer Usage",
             "### Public API",
