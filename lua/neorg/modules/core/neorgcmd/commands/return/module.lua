@@ -2,7 +2,7 @@
     File: Neorgcmd-return
     Title: Provides `:Neorg return` command
     Summary: Return to last location before entering Neorg.
-    Show: false.
+    Internal: true
     ---
 Command module for core.neorgcmd designed to return to the last location the user was in before they entered Neorg
 --]]

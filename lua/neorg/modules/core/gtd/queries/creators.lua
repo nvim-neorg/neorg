@@ -4,12 +4,12 @@ local module = neorg.modules.extend("core.gtd.queries.creators")
 module.public = {
     --- Creates a new project/task (depending of `type`) from the `node` table and insert it in `bufnr` at `location`
     --- supported `string`: project|task
-    --- @param type string
-    --- @param node core.gtd.queries.task|core.gtd.queries.project
-    --- @param bufnr number
-    --- @param location table
-    --- @param delimit boolean #Add delimiter before the task/project if true
-    --- @param opts table|nil opts
+    ---@param type string
+    ---@param node core.gtd.queries.task|core.gtd.queries.project
+    ---@param bufnr number
+    ---@param location table
+    ---@param delimit boolean #Add delimiter before the task/project if true
+    ---@param opts table|nil opts
     ---   - opts.new_line(boolean)   if false, do not add a newline before the content
     ---   - opts.no_save(boolean)    if true, don't save the buffer
     create = function(type, node, bufnr, location, delimit, opts)
@@ -71,9 +71,9 @@ module.public = {
 
     --- Returns the end of the `project`
     --- If the project has blank lines at the end, will not take them ino account
-    --- @param node userdata
-    --- @param bufnr number
-    --- @return number
+    ---@param node userdata
+    ---@param bufnr number
+    ---@return number
     get_end_project = function(node, bufnr)
         vim.validate({
             node = { node, "userdata" },
@@ -113,8 +113,8 @@ module.public = {
     end,
 
     --- Returns the end of the document content position of a `file`
-    --- @param bufnr string
-    --- @return number, number, boolean
+    ---@param bufnr string
+    ---@return number, number, boolean
     get_end_document_content = function(bufnr)
         vim.validate({
             file = { bufnr, "number" },
@@ -153,14 +153,14 @@ module.public = {
 
 module.private = {
     --- Insert a `content` (with specific `type`) at specified `location`
-    --- @param content string
-    --- @param bufnr number
-    --- @param location number
-    --- @param type string #project|task
-    --- @param opts table
+    ---@param content string
+    ---@param bufnr number
+    ---@param location number
+    ---@param type string #project|task
+    ---@param opts table
     ---   - opts.newline (bool):    is true, insert a newline before the content
     ---   - opts.delimiter (bool):  if true, insert a delimiter before the content
-    --- @return userdata|nil #the newly created node. Else returns nil
+    ---@return userdata|nil #the newly created node. Else returns nil
     insert_content_new = function(content, bufnr, location, type, opts)
         vim.validate({
             content = { content, "string" },
@@ -209,10 +209,10 @@ module.private = {
     end,
 
     --- Insert the tag above a `type`
-    --- @param node table #Must be { node, bufnr }
-    --- @param content? string|table
-    --- @param prefix string
-    --- @return boolean #Whether inserting succeeded (if so, save the file)
+    ---@param node table #Must be { node, bufnr }
+    ---@param content? string|table
+    ---@param prefix string
+    ---@return boolean #Whether inserting succeeded (if so, save the file)
     insert_tag = function(node, content, prefix, opts)
         vim.validate({
             node = { node, "table" },

@@ -2,7 +2,7 @@
     File: Scanner-Module
     Title: Scanner module for Neorg.
 	Summary: This module is an implementation of a scanner that can be used anywhere TS can't be used.
-    Show: false.
+    Internal: true
     ---
 --]]
 
@@ -10,9 +10,12 @@ require("neorg.modules.base")
 
 local module = neorg.modules.create("core.scanner")
 
+-- NOTE: This module is very small and very simple, therefore I don't believe it requires any documentation
+
 ---@class core.scanner
 module.public = {
     initialize_new = function(self, source)
+        self:end_session()
         self.source = source
     end,
 

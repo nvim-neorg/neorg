@@ -68,6 +68,9 @@ module.public = {
         },
     },
 
+    --- Returns true if there is a `@document.meta` tag in the current document
+    ---@param buf number #The buffer to check in
+    ---@return boolean,table #Whether the metadata was present, and the range of the metadata node
     is_metadata_present = function(buf)
         local query = vim.treesitter.parse_query(
             "norg",
@@ -103,6 +106,9 @@ module.public = {
         return true, range
     end,
 
+    --- Creates the metadata contents from the configuration's template.
+    ---@param buf number #The buffer to query potential data from
+    ---@return table #A table of strings that can be directly piped to `nvim_buf_set_lines`
     construct_metadata = function(buf)
         local template = module.config.public.template
         local whitespace = type(module.config.public.tab) == "function" and module.config.public.tab()
@@ -130,6 +136,9 @@ module.public = {
         return result
     end,
 
+    --- Inject the metadata into a buffer
+    ---@param buf number #The number of the buffer to inject the metadata into
+    ---@param force boolean #Whether to forcefully override existing metadata
     inject_metadata = function(buf, force)
         local present, range = module.public.is_metadata_present(buf)
         if force or not present then

@@ -1,7 +1,7 @@
 --[[
     File: Syntax
     Title: Syntax Module for Neorg
-    Summary: Handles interaction for syntax files for code blocks
+    Summary: Handles interaction for syntax files for code blocks.
     ---
     Author's note:
     This module will appear as spaghetti code at first glance. This is intenional.

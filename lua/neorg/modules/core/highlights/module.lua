@@ -2,7 +2,7 @@
     File: Core-Highlights
     Title: Neorg module for managing highlight groups
     Summary: Manages your highlight groups with this module.
-    Show: false.
+    Internal: true
 --]]
 
 require("neorg.modules.base")
@@ -499,14 +499,12 @@ end
 ---@class core.highlights
 module.public = {
 
-    -- @Summary	Defines all the highlight groups for Neorg
-    -- @Description Reads the highlights configuration table and applies all defined highlights
+    --- Reads the highlights configuration table and applies all defined highlights
     trigger_highlights = function()
-        -- @Summary Descends down a tree of highlights and applies them
-        -- @Description Recursively descends down the highlight configuration and applies every highlight accordingly
-        -- @Param  highlights (table) - the table of highlights to descend down
-        -- @Param  callback (function(hl_name, highlight, prefix) -> bool) - a callback function to be invoked for every highlight. If it returns true then we should recurse down the table tree further
-        -- @Param  prefix (string) - should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
+        --- Recursively descends down the highlight configuration and applies every highlight accordingly
+        ---@param highlights table #The table of highlights to descend down
+        ---@param callback #(function(hl_name, highlight, prefix) -> bool) - a callback function to be invoked for every highlight. If it returns true then we should recurse down the table tree further
+        ---@param prefix string #Should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
         local function descend(highlights, callback, prefix)
             -- Loop through every highlight defined in the provided table
             for hl_name, highlight in pairs(highlights) do
@@ -596,9 +594,8 @@ module.public = {
         end, "")
     end,
 
-    -- @Summary Adds a set of highlights from a table
-    -- @Description Takes in a table of highlights and applies them to the current buffer
-    -- @Param  highlights (table) - a table of highlights
+    --- Takes in a table of highlights and applies them to the current buffer
+    ---@param highlights table #A table of highlights
     add_highlights = function(highlights)
         module.config.public.highlights = vim.tbl_deep_extend(
             "force",
@@ -608,21 +605,18 @@ module.public = {
         module.public.trigger_highlights()
     end,
 
-    -- @Summary Adds a set of dims from a table
-    -- @Description Takes in a table of items to dim and applies the dimming to them
-    -- @Param  dim (table) - a table of items to dim
+    --- Takes in a table of items to dim and applies the dimming to them
+    ---@param dim table #A table of items to dim
     add_dim = function(dim)
         module.config.public.dim = vim.tbl_deep_extend("force", module.config.public.dim, dim or {})
         module.public.trigger_highlights()
     end,
 
-    -- @Summary Clears all the highlights defined by Neorg
-    -- @Description Assigns all Neorg* highlights to `clear`
+    --- Assigns all Neorg* highlights to `clear`
     clear_highlights = function()
-        -- @Summary Descends down a tree of highlights and clears them
-        -- @Description Recursively descends down the highlight configuration and clears every highlight accordingly
-        -- @Param  highlights (table) - the table of highlights to descend down
-        -- @Param  prefix (string) - should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
+        --- Recursively descends down the highlight configuration and clears every highlight accordingly
+        ---@param highlights table #The table of highlights to descend down
+        ---@param prefix string #Should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
         local function descend(highlights, prefix)
             -- Loop through every defined highlight
             for hl_name, highlight in pairs(highlights) do

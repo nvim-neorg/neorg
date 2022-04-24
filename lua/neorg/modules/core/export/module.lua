@@ -1,4 +1,26 @@
---[[]]
+--[[
+    File: Exporting-Files
+    Title: Converting Neorg Files to other Filetypes with `core.export`
+    Summary: Exports Neorg documents into any other supported filetype.
+    ---
+All export functionality is provided by the `:Neorg export` command.
+
+To export the currently opened buffer to another file format, you should use the `:Neorg export to-file` command.
+The command takes the following arguments:
+- `path` - the path to export to. Examples are: `my-file.md`, `~/output.md`.
+  If the second argument is not provided Neorg will try to infer the filetype to convert to through
+  the file extension.
+- `filetype` (optional) - the filetype to export to. Useful if you want to use a non-standard extension, or
+  if the filetype you're using cannot be inferred automatically. Note that this filetype *must* be a filetype
+  that Neovim itself provides and/or understands, i.e. `md` or `markd` is not a valid filetype, however `markdown` is.
+
+Neorg also supports exporting a directory of files: this is where the `:Neorg export directory` command comes into play.
+It takes 3 arguments:
+- `directory` - the directory to export
+- `filetype` - the filetype to export to
+- `output-dir` (optional) - a custom output directory to use. If not provided will fall back to `config.public.export_dir`
+  (see [configuration](#configuration)).
+--]]
 
 local module = neorg.modules.create("core.export")
 
@@ -43,10 +65,15 @@ module.load = function()
 end
 
 module.config.public = {
+    --- The directory to export to when running `:Neorg export directory`.
+    -- The string can be formatted with the special keys: `<export-dir>` and `<language>`.
     export_dir = "<export-dir>/<language>-export",
 }
 
 module.public = {
+    --- Returns a module that can handle conversion from `.norg` to the target filetype
+    ---@param ftype string #The filetype to export to (as returned by e.g. `get_filetype()`)
+    ---@return table,table #The export module and its configuration, else nil
     get_converter = function(ftype)
         if not neorg.modules.is_module_loaded("core.export." .. ftype) then
             return
@@ -56,6 +83,10 @@ module.public = {
             neorg.modules.get_module_config("core.export." .. ftype)
     end,
 
+    --- Queries the filetype for a certain file extension
+    ---@param file string #A filepath with an extension
+    ---@param force_filetype string #Force a specific filetype instead of querying
+    ---@return string #The filetype as extracted from the filename
     get_filetype = function(file, force_filetype)
         local filetype = force_filetype
 
@@ -73,6 +104,10 @@ module.public = {
         return filetype
     end,
 
+    --- Takes a buffer and exports it to a specific file
+    ---@param buffer number #The buffer ID to read the contents from
+    ---@param filetype string #A Neovim filetype to specify which language to export to
+    ---@return string #The entire buffer parsed, converted and returned as a string.
     export = function(buffer, filetype)
         local converter, converter_config = module.public.get_converter(filetype)
 
@@ -81,6 +116,8 @@ module.public = {
             return
         end
 
+        -- Each converter must have a `extension` field in its public config
+        -- This is done to do a backwards lookup, e.g. `markdown` uses the `.md` file extension.
         if not converter_config.extension then
             log.error(
                 "Unable to export file - exporter for filetype '"
@@ -96,10 +133,16 @@ module.public = {
             return
         end
 
+        -- Initialize the state. The state is a table that exists throughout the entire duration
+        -- of the export, and can be used to e.g. retain indent levels and/or keep references.
         local state = converter.export.init_state and converter.export.init_state() or {}
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
+        --- Descends down a node and its children
+        ---@param start userdata #The TS node to begin at
+        ---@return string #The exported/converted node as a string
         local function descend(start)
+            -- We do not want to parse erroneous nodes, so we skip them instead
             if start:type() == "ERROR" then
                 return ""
             end
@@ -107,10 +150,20 @@ module.public = {
             local output = {}
 
             for node in start:iter_children() do
+                -- See if there is a conversion function for the specific node type we're dealing with
                 local exporter = converter.export.functions[node:type()]
 
                 if exporter then
+                    -- The value of `exporter` can be of 3 different types:
+                    --  a function, in which case it should be executed
+                    --  a boolean (true), which signifies to use the content of the node as-is without changing anything
+                    --  a string, in which case every time the node is encountered it will always be converted to a static value
                     if type(exporter) == "function" then
+                        -- An exporter function can return 3 values:
+                        --  `resulting_string` - the converted text
+                        --  `keep_descending`  - if true will continue to recurse down the current node's children despite the current
+                        --                      node already being parsed
+                        --  `returned_state`   - a modified version of the state that then gets merged into the main state table
                         local resulting_string, keep_descending, returned_state = exporter(
                             module.required["core.integrations.treesitter"].get_node_text(node, buffer),
                             node,
@@ -139,7 +192,7 @@ module.public = {
                     else
                         table.insert(output, exporter)
                     end
-                else
+                else -- If no exporter exists for the current node then keep descending
                     local ret = descend(node)
 
                     if ret then
@@ -148,6 +201,20 @@ module.public = {
                 end
             end
 
+            -- Recollectors exist to collect all the converted children nodes of a parent node
+            -- and to optionally rearrange them into a new layout. Consider the following Neorg markup:
+            --  $ Term
+            --    Definition
+            -- The markdown version looks like this:
+            --  Term
+            --  : Definition
+            -- Without a recollector such a conversion wouldn't be possible, as by simply converting each
+            -- node individually you'd end up with:
+            --  : Term
+            --    Definition
+            --
+            -- The recollector can encounter a `definition` node, see the nodes it is made up of ({ ": ", "Term", "Definition" })
+            -- and rearrange its components to { "Term", ": ", "Definition" } to then achieve the desired result.
             local recollector = converter.export.recollectors[start:type()]
 
             return recollector and table.concat(recollector(output, state) or {})
@@ -155,12 +222,17 @@ module.public = {
         end
 
         local output = descend(document_root)
+
+        -- Every converter can also come with a `cleanup` function that performs some final tweaks to the output string
         return converter.export.cleanup and converter.export.cleanup(output) or output, converter_config.extension
     end,
 }
 
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.export.to-file" then
+        -- Syntax: Neorg export to-file file.extension forced-filetype?
+        -- Example: Neorg export to-file my-custom-file markdown
+
         local filetype = module.public.get_filetype(event.content[1], event.content[2])
         local exported = module.public.export(event.buffer, filetype)
 
@@ -186,6 +258,9 @@ module.on_event = function(event)
                 :gsub("<export%-dir>", event.content[1])
         vim.fn.mkdir(path, "p")
 
+        -- The old value of `eventignore` is stored here. This is done because the eventignore
+        -- value is set to ignore BufEnter events before loading all the Neorg buffers, as they can mistakenly
+        -- activate the concealer, which not only slows down performance notably but also causes errors.
         local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
 
         vim.loop.fs_scandir(event.content[1], function(err, handle)

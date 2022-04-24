@@ -2,7 +2,7 @@
     File: Neorgcmd-List
     Title: Provides `:Neorg list` command
     Summary: List loaded modules.
-    Show: false.
+    Internal: true
     ---
 After module is loaded execute `:Neorg module list` to see a primitive list of currently loaded modules.
 --]]
