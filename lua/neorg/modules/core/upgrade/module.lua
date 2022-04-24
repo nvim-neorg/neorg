@@ -4,7 +4,8 @@ module.setup = function()
     return {
         requires = {
             "core.export",
-            "core.neorgcmd"
+            "core.neorgcmd",
+            "core.integrations.treesitter"
         }
     }
 end
@@ -41,14 +42,22 @@ module.on_event = function(event)
     if event.type == "core.neorgcmd.events.core.upgrade.current-file" then
         local buffer_name = vim.api.nvim_buf_get_name(event.buffer)
 
+        if module.config.public.ask_for_backup then
+            vim.ui.select({ ("Create backup (%s.old)"):format(buffer_name), "Don't create backup" }, {
+                prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?"
+            }, function(_, idx)
+                if idx == 1 then
+                    local current_path = vim.fn.expand("%:p")
+                    local ok, err = vim.loop.fs_copyfile(current_path, current_path .. ".old")
 
-        vim.ui.select({ ("Create backup (%s.old)"):format(buffer_name), "Don't create backup" }, {
-            prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?"
-        }, function(_, idx)
-            if idx == 1 then
-            else
-            end
-        end)
+                    if not ok then
+                        log.error(("Failed to create backup (%s) - upgrading aborted."):format(err))
+                        return
+                    end
+                else
+                end
+            end)
+        end
 
         if not event.content[1] then
             -- Grab from metadata
