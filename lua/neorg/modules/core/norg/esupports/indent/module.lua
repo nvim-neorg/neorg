@@ -1,4 +1,9 @@
---[[]]
+--[[
+    File: Indent
+    Title: Proper Indents with `core.norg.esupports.indent`
+    Summary: A set of instructions for Neovim to indent Neorg documents.
+    ---
+--]]
 
 local module = neorg.modules.create("core.norg.esupports.indent")
 

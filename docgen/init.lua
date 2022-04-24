@@ -432,9 +432,15 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                     )
                                 elseif capture == "value" then
                                     if parsed_config_option:type() ~= "table_constructor" then
-                                        values = {
-                                            "  Default value: `" .. ts.get_node_text(parsed_config_option) .. "`",
-                                        }
+                                        if parsed_config_option:type() == "function_definition" then
+                                            values = {
+                                                "  Default value: `function" .. ts.get_node_text(parsed_config_option:named_child(0)) .. "`"
+                                            }
+                                        else
+                                            values = {
+                                                "  Default value: `" .. ts.get_node_text(parsed_config_option) .. "`",
+                                            }
+                                        end
                                     else
                                         table.insert(values, "  Default Value:")
                                         table.insert(values, "  ```lua")
