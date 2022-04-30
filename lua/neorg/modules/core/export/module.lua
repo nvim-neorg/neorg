@@ -154,6 +154,10 @@ module.public = {
                 return ""
             end
 
+            if start:child_count() == 0 and converter_config.verbatim then
+                return table.concat(ts_utils.get_node_text(start), "\n")
+            end
+
             local output = {}
 
             for node in start:iter_children() do
@@ -222,7 +226,7 @@ module.public = {
             --
             -- The recollector can encounter a `definition` node, see the nodes it is made up of ({ ": ", "Term", "Definition" })
             -- and rearrange its components to { "Term", ": ", "Definition" } to then achieve the desired result.
-            local recollector = converter.export.recollectors[start:type()]
+            local recollector = converter.export.recollectors and converter.export.recollectors[start:type()]
 
             return recollector and table.concat(recollector(output, state) or {})
                 or (not vim.tbl_isempty(output) and table.concat(output))

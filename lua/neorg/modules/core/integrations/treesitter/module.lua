@@ -340,16 +340,97 @@ module.public = {
         }
     end,
 
-    --- Used to extract data from e.g. document.meta
-    -- @Param  tag_content (string) - the content of the tag (without the beginning and end declarations)
-    parse_tag = function(tag_content)
+    --- Parses the document metadata for a given buffer
+    ---@param buf number #The ID of the buffer to extract the metadata from
+    ---@return table #A table of key-value pairs reflecting the data within the metadata
+    get_document_metadata = function(buf)
+        buf = buf or 0
+
+        local languagetree = vim.treesitter.get_parser(buf, "norg")
+
+        if not languagetree then
+            return
+        end
+
         local result = {}
 
-        tag_content = tag_content:gsub("([^%s])~\n%s*", "%1 ")
+        languagetree:for_each_child(function(tree)
+            if tree:lang() ~= "norg_meta" then
+                return
+            end
 
-        for name, content in tag_content:gmatch("%s*(%w+):%s+([^\n]*)") do
-            result[name] = content
-        end
+            local meta_language_tree = tree:parse()[1]
+
+            if not meta_language_tree then
+                return
+            end
+
+            local query = vim.treesitter.parse_query(
+                "norg_meta",
+                [[
+                (metadata
+                    (pair
+                        (key) @key
+                    )
+                )
+            ]]
+            )
+
+            local function parse_data(node)
+                return neorg.lib.match(node:type())({
+                    value = neorg.lib.wrap(module.public.get_node_text, node, buf),
+                    array = function()
+                        local resulting_array = {}
+
+                        for child in node:iter_children() do
+                            if child:named() then
+                                local parsed_data = parse_data(child)
+
+                                if parsed_data then
+                                    table.insert(resulting_array, parsed_data)
+                                end
+                            end
+                        end
+
+                        return resulting_array
+                    end,
+                    object = function()
+                        local resulting_object = {}
+
+                        for child in node:iter_children() do
+                            if not child:named() or child:type() ~= "pair" then
+                                goto continue
+                            end
+
+                            local key = child:named_child(0)
+                            local value = child:named_child(1)
+
+                            if not key then
+                                goto continue
+                            end
+
+                            local key_content = module.public.get_node_text(key, buf)
+
+                            resulting_object[key_content] = (value and parse_data(value) or vim.NIL)
+
+                            ::continue::
+                        end
+
+                        return resulting_object
+                    end,
+                })
+            end
+
+            for id, node in query:iter_captures(meta_language_tree:root(), buf) do
+                if query.captures[id] == "key" then
+                    local key_content = module.public.get_node_text(node, buf)
+
+                    result[key_content] = (
+                            node:next_named_sibling() and parse_data(node:next_named_sibling()) or vim.NIL
+                        )
+                end
+            end
+        end)
 
         return result
     end,
