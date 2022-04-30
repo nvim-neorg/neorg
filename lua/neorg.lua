@@ -108,6 +108,11 @@ function neorg.org_file_entered(manual, arguments)
         line_content = "",
         broadcast = true,
     })
+
+    -- Sometimes external plugins prefer hooking in to an autocommand
+    vim.api.nvim_exec_autocmds("User", {
+        pattern = "NeorgStarted"
+    })
 end
 
 --- Returns whether or not Neorg is loaded
