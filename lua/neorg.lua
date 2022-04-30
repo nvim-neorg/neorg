@@ -111,7 +111,7 @@ function neorg.org_file_entered(manual, arguments)
 
     -- Sometimes external plugins prefer hooking in to an autocommand
     vim.api.nvim_exec_autocmds("User", {
-        pattern = "NeorgStarted"
+        pattern = "NeorgStarted",
     })
 end
 
