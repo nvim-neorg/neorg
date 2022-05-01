@@ -369,6 +369,8 @@ require('neorg').setup {
 | [`core.integrations.telescope`](https://github.com/nvim-neorg/neorg-telescope)    | Neorg integration with [Telescope](https://github.com/nvim-telescope/telescope.nvim) |
 | [`external.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base`        |
 | [`external.integrations.gtd-things`](https://github.com/danymat/neorg-gtd-things) | Use Things3 database to fetch and update tasks instead. Requires `core.gtd.base`     |
+| [`external.context`](https://github.com/max397574/neorg-contexts) | Display headings in which you are at the top of the window in a float popup. |
+| [`external.kanban`](https://github.com/max397574/neorg-kanban) | Display your gtd todos in a kanban-like board in floating windows. Requires `core.gtd.base` |
 
 </details>
 <br>
