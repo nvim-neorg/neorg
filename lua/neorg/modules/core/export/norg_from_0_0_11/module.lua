@@ -1,13 +1,5 @@
 local module = neorg.modules.create("core.export.norg_from_0_0_11")
 
-local function convert_todo_item(text)
-    -- NOTE(vhyrro): We must extract the return value of `gsub` into a single variable
-    -- If we inline the function call to be in the return statement then
-    -- we may accidentally return two values, which we don't want.
-    local substitution = text:gsub("^(%-+%s+)%[([ %p])%]", "%1|%2|")
-    return substitution
-end
-
 local function convert_unordered_link(text)
     local substitution = text:gsub("^([%-~]+)>", "%1")
     return substitution
@@ -35,18 +27,33 @@ module.public = {
                 end
             end,
 
-            ["_prefix"] = function(_, node)
+            ["_prefix"] = function(text, node)
                 if node:parent():type() == "carryover_tag" then
                     return "|"
                 end
+
+                return text
             end,
 
-            ["todo_item1"] = convert_todo_item,
-            ["todo_item2"] = convert_todo_item,
-            ["todo_item3"] = convert_todo_item,
-            ["todo_item4"] = convert_todo_item,
-            ["todo_item5"] = convert_todo_item,
-            ["todo_item6"] = convert_todo_item,
+            ["tag_name"] = function(text, node)
+                local next = node:next_named_sibling()
+                if next and next:type() == "tag_parameters" then
+                    return text .. " "
+                end
+
+                -- HACK: This is a workaround for the TS parser
+                -- not having a _line_break node after the tag declaration
+                return text .. "\n"
+            end,
+
+            ["todo_item_undone"] = "| | ",
+            ["todo_item_pending"] = "|-| ",
+            ["todo_item_done"] = "|x| ",
+            ["todo_item_on_hold"] = "|=| ",
+            ["todo_item_cancelled"] = "|_| ",
+            ["todo_item_urgent"] = "|!| ",
+            ["todo_item_uncertain"] = "|?| ",
+            ["todo_item_recurring"] = "|+| ",
 
             ["unordered_link1"] = convert_unordered_link,
             ["unordered_link2"] = convert_unordered_link,
