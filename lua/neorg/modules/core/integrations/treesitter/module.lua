@@ -20,6 +20,12 @@ end
 module.load = function()
     local success, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
 
+    -- HACK(vhyrro): Yes, this is very hacky.
+    -- Yes, it also works :)
+    ts_utils.get_node_text = function(node, buffer)
+        return vim.split(vim.treesitter.query.get_node_text(node, buffer), "\n")
+    end
+
     assert(success, "Unable to load nvim-treesitter.ts_utils :(")
 
     if module.config.public.configure_parsers then
