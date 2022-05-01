@@ -170,6 +170,39 @@ module.public = {
         return result
     end,
 
+    --- Executes function callback on each child node of the root
+    ---@param callback function
+    ---@param ts_tree #Optional syntax tree
+    tree_map = function(callback, ts_tree)
+        local tree = ts_tree or vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+        local root = tree:root()
+
+        for child, _ in root:iter_children() do
+            callback(child)
+        end
+    end,
+
+    --- Executes callback on each child recursive
+    ---@param callback function Executes with each node as parameter, can return false to stop recursion
+    ---@param ts_tree #Optional syntax tree
+    tree_map_rec = function(callback, ts_tree)
+        local tree = ts_tree or vim.treesitter.get_parser(0, "norg"):parse()[1]
+
+        local root = tree:root()
+
+        local function descend(start)
+            for child, _ in start:iter_children() do
+                local stop_descending = callback(child)
+                if not stop_descending then
+                    descend(child)
+                end
+            end
+        end
+
+        descend(root)
+    end,
+
     --- Returns the first node of given type if present
     ---@param type string #The type of node to search for
     ---@param buf number #The buffer to search in
