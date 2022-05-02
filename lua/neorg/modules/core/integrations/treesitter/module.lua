@@ -487,7 +487,7 @@ module.public = {
         return find_closest_unnamed_node(result)
     end,
 
-    get_document_metadata = function(buf)
+    get_document_metadata = function(buf, no_trim)
         buf = buf or 0
 
         local languagetree = vim.treesitter.get_parser(buf, "norg")
@@ -520,9 +520,15 @@ module.public = {
             ]]
             )
 
+            local function trim(value)
+                return no_trim and value or vim.trim(value)
+            end
+
             local function parse_data(node)
                 return neorg.lib.match(node:type())({
-                    value = neorg.lib.wrap(module.public.get_node_text, node, buf),
+                    value = function()
+                        return trim(module.public.get_node_text(node, buf))
+                    end,
                     array = function()
                         local resulting_array = {}
 
@@ -553,7 +559,7 @@ module.public = {
                                 goto continue
                             end
 
-                            local key_content = module.public.get_node_text(key, buf)
+                            local key_content = trim(module.public.get_node_text(key, buf))
 
                             resulting_object[key_content] = (value and parse_data(value) or vim.NIL)
 
@@ -567,7 +573,7 @@ module.public = {
 
             for id, node in query:iter_captures(meta_language_tree:root(), buf) do
                 if query.captures[id] == "key" then
-                    local key_content = module.public.get_node_text(node, buf)
+                    local key_content = trim(module.public.get_node_text(node, buf))
 
                     result[key_content] = (
                             node:next_named_sibling() and parse_data(node:next_named_sibling()) or vim.NIL
