@@ -30,25 +30,6 @@ module.config.public = {
 
                     { "<CR>", "core.norg.esupports.hop.hop-link" },
                     { "<M-CR>", "core.norg.esupports.hop.hop-link", "vsplit" },
-
-                    { "<M-k>", "core.norg.manoeuvre.item_up" },
-                    { "<M-j>", "core.norg.manoeuvre.item_down" },
-
-                    -- mnemonic: markup toggle
-                    { leader .. "mt", "core.norg.concealer.toggle-markup" },
-
-                    { "<C-s>", "core.integrations.telescope.find_linkable" },
-                },
-
-                o = {
-                    { "ah", "core.norg.manoeuvre.textobject.around-heading" },
-                    { "ih", "core.norg.manoeuvre.textobject.inner-heading" },
-                    { "at", "core.norg.manoeuvre.textobject.around-tag" },
-                    { "it", "core.norg.manoeuvre.textobject.inner-tag" },
-                    { "al", "core.norg.manoeuvre.textobject.around-whole-list" },
-                },
-                i = {
-                    { "<C-l>", "core.integrations.telescope.insert_link" },
                 },
             }, {
                 silent = true,

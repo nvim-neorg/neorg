@@ -1,3 +1,14 @@
+--[[
+    File: Markdown-Export
+    Title: Neorg's Markdown Exporter
+    Summary: Interface for `core.export` to allow exporting to markdown.
+    Internal: true
+    ---
+This module exists as an interface for `core.export` to export `.norg` files to MD.
+As a user the only reason you would ever have to touch this module is to configure *how* you'd
+like your markdown to be exported (i.e. do you want to support certain extensions during the export).
+--]]
+
 -- TODO: One day this module will need to be restructured or maybe even rewritten.
 -- It's not atrocious, but there are a lot of moving parts that make it difficult to understand
 -- from another person's perspective. Some cleanup and rethinking of certain implementation
@@ -69,9 +80,14 @@ end
 module.config.public = {
     -- Any extensions you may want to use when exporting to markdown. By
     -- default no extensions are loaded (the exporter is commonmark compliant).
-    -- You can also set this value to `all` to enable all extensions.
+    -- You can also set this value to `"all"` to enable all extensions.
+    -- The full extension list is: `todo-items-basic`, `todo-items-pending`, `todo-items-extended`,
+    -- `definition-lists` and `mathematics`.
     extensions = {},
 
+    -- Data about how to render mathematics.
+    -- The default is recommended as it is the most common, although certain flavours
+    -- of markdown use different syntax.
     mathematics = {
         inline = {
             start = "$",
@@ -83,6 +99,9 @@ module.config.public = {
         },
     },
 
+    -- Used by the exporter to know what extension to use
+    -- when creating markdown files.
+    -- The default is recommended, although you can change it.
     extension = "md",
 }
 

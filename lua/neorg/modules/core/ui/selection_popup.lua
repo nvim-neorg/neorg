@@ -11,9 +11,9 @@ module.private = {
 ---@class core.ui
 module.public = {
     --- Invokes a key callback in a certain selection
-    --- @param name string #The name of the selection
-    --- @param key string #The key that was pressed
-    --- @param type string #The type of element the callback belongs to (could be "flag", "switch" etc.)
+    ---@param name string #The name of the selection
+    ---@param key string #The key that was pressed
+    ---@param type string #The type of element the callback belongs to (could be "flag", "switch" etc.)
     invoke_key_in_selection = function(name, key, type)
         local self = module.private.callbacks[name]
         local real_type = ({ type:gsub("<(.+)>", "%1") })[1]
@@ -32,8 +32,8 @@ module.public = {
     end,
 
     --- Constructs a new selection
-    --- @param buffer number #The number of the buffer the selection should attach to
-    --- @return table #A selection object
+    ---@param buffer number #The number of the buffer the selection should attach to
+    ---@return table #A selection object
     begin_selection = function(buffer)
         -- Data that is gathered up over the lifetime of the selection popup
         local data = {}
@@ -99,33 +99,33 @@ module.public = {
             states = {},
 
             --- Retrieves the options for a certain type
-            --- @param type string #The type of element to extract the options for
-            --- @return table #The options for said type or {}
+            ---@param type string #The type of element to extract the options for
+            ---@return table #The options for said type or {}
             options_for = function(self, type)
                 return self.opts[type] or {}
             end,
 
             --- Applies some new functions for the selection
-            --- @param tbl_of_functions table #A table of custom elements
-            --- @return core.ui.selection
+            ---@param tbl_of_functions table #A table of custom elements
+            ---@return core.ui.selection
             apply = function(self, tbl_of_functions)
                 self = vim.tbl_deep_extend("force", self, tbl_of_functions)
                 return self
             end,
 
             --- Adds a new element to the current page
-            --- @param element function #A pointer to the function that created the item
+            ---@param element function #A pointer to the function that created the item
             --- @vararg any #The arguments that were used to construct the element
             add = function(self, element, ...)
                 table.insert(self.pages[self.page], { self[element], { ... } })
             end,
 
             --- Attaches a key listener to the current buffer
-            --- @param type string #The type of element to attach to (can be "flag" or "switch" or something)
-            --- @param keys table #An array of keys to bind
-            --- @param func function #A callback to invoke whenever the key has been pressed
-            --- @param mode string #Optional, default "n": the mode to create the listener for
-            --- @return core.ui.selection
+            ---@param type string #The type of element to attach to (can be "flag" or "switch" or something)
+            ---@param keys table #An array of keys to bind
+            ---@param func function #A callback to invoke whenever the key has been pressed
+            ---@param mode string #Optional, default "n": the mode to create the listener for
+            ---@return core.ui.selection
             listener = function(self, type, keys, func, mode)
                 -- Remove the <> characters from the string because that causes issues with Lua internally
                 type = ({ type:gsub("<(.+)>", "%1") })[1]
@@ -163,11 +163,11 @@ module.public = {
             end,
 
             --- Attaches a key listener to the current page
-            --- @param type string #The type of element to attach to (can be "flag" or "switch" or something)
-            --- @param keys table #An array of keys to bind
-            --- @param func function #A callback to invoke whenever the key has been pressed
-            --- @param mode string #Optional, default "n": the mode to create the listener for
-            --- @return core.ui.selection
+            ---@param type string #The type of element to attach to (can be "flag" or "switch" or something)
+            ---@param keys table #An array of keys to bind
+            ---@param func function #A callback to invoke whenever the key has been pressed
+            ---@param mode string #Optional, default "n": the mode to create the listener for
+            ---@return core.ui.selection
             locallistener = function(self, type, keys, func, mode)
                 -- Remove the <> characters from the string because that causes issues with Lua internally
                 type = ({ type:gsub("<(.+)>", "%1") })[1]
@@ -206,8 +206,8 @@ module.public = {
             end,
 
             --- Sets some options for the selection to take into account
-            --- @param opts table #A table of options
-            --- @return core.ui.selection
+            ---@param opts table #A table of options
+            ---@return core.ui.selection
             options = function(self, opts)
                 self.opts = vim.tbl_deep_extend("force", self.opts, opts)
                 return self
@@ -219,8 +219,8 @@ module.public = {
             end,
 
             --- Add a pair of key, value in data
-            --- @param key string #The name for the key
-            --- @param value any #Its content
+            ---@param key string #The name for the key
+            ---@param value any #Its content
             set_data = function(_, key, value)
                 data[key] = value
             end,
@@ -255,9 +255,9 @@ module.public = {
             end,
 
             --- Renders some text on the screen
-            --- @param text string #The text to display
-            --- @param highlight string #An optional highlight group to use (defaults to "Normal")
-            --- @return core.ui.selection
+            ---@param text string #The text to display
+            ---@param highlight string #An optional highlight group to use (defaults to "Normal")
+            ---@return core.ui.selection
             text = function(self, text, highlight)
                 local custom_highlight = self:options_for("text").highlight
 
@@ -272,15 +272,15 @@ module.public = {
             end,
 
             --- Generates a title
-            --- @param text string #The text to display
-            --- @return core.ui.selection
+            ---@param text string #The text to display
+            ---@return core.ui.selection
             title = function(self, text)
                 return self:text(text, "TSTitle")
             end,
 
             --- Simply enters a blank line
-            --- @param count number #An optional number of blank lines to apply
-            --- @return core.ui.selection
+            ---@param count number #An optional number of blank lines to apply
+            ---@return core.ui.selection
             blank = function(self, count)
                 count = count or 1
                 renderer:render()
@@ -295,10 +295,10 @@ module.public = {
             end,
 
             --- Creates a pressable flag
-            --- @param flag string #The flag. These should be a single character
-            --- @param description string #The description for the flag
-            --- @param callback table|function #The callback to invoke or configuration options for the flag
-            --- @return core.ui.selection
+            ---@param flag string #The flag. These should be a single character
+            ---@param description string #The description for the flag
+            ---@param callback table|function #The callback to invoke or configuration options for the flag
+            ---@return core.ui.selection
             flag = function(self, flag, description, callback)
                 -- Set up the configuration by properly merging everything
                 local configuration = vim.tbl_deep_extend(
@@ -361,10 +361,10 @@ module.public = {
             end,
 
             --- Constructs a recursive (nested) flag
-            --- @param flag string #The flag key, should be one character only
-            --- @param description string #The description of the flag
-            --- @param callback function|table #The callback to invoke after the flag is entered
-            --- @return core.ui.selection
+            ---@param flag string #The flag key, should be one character only
+            ---@param description string #The description of the flag
+            ---@param callback function|table #The callback to invoke after the flag is entered
+            ---@return core.ui.selection
             rflag = function(self, flag, description, callback)
                 -- Set up the configuration by properly merging everything
                 local configuration = vim.tbl_deep_extend(
@@ -488,9 +488,9 @@ module.public = {
             end,
 
             --- Creates a prompt inside the page
-            --- @param text string #The prompt text
-            --- @param callback table|function #The callback to invoke or configuration options for the prompt
-            --- @return core.ui.selection
+            ---@param text string #The prompt text
+            ---@param callback table|function #The callback to invoke or configuration options for the prompt
+            ---@return core.ui.selection
             prompt = function(self, text, callback)
                 -- Set up the configuration by properly merging everything
                 local configuration = vim.tbl_deep_extend(
@@ -561,14 +561,14 @@ module.public = {
             --- selection
             ---   :text("test")
             ---   :concat(this_is_a_function)
-            --- @param callback function #The function to append
-            --- @return core.ui.selection
+            ---@param callback function #The function to append
+            ---@return core.ui.selection
             concat = function(self, callback)
                 self = callback(self)
                 return self
             end,
 
-            --- @return core.ui.selection
+            ---@return core.ui.selection
             setstate = function(self, key, value, rerender)
                 self.states[key] = {
                     value = value,

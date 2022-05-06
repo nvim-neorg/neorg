@@ -40,12 +40,12 @@ local module = neorg.modules.extend("core.gtd.queries.retrievers")
 ---@class core.gtd.queries
 module.public = {
     --- Get a table of all `type` in workspace
-    --- @param type string
-    --- @param opts table
+    ---@param type string
+    ---@param opts table
     ---   - opts.filename (string):     will restrict the search only for the filename provided
     ---   - opts.no_exclude (bool):     disable GTD files excluded in config
     ---   - opts.bufnr (number):        will use this bufnr to search nodes from
-    --- @return table
+    ---@return table
     get = function(type, opts)
         vim.validate({
             type = {
@@ -108,8 +108,8 @@ module.public = {
     end,
 
     --- Get the node `type` at cursor
-    --- @param type string #Either project|task
-    --- @return table #A table of type { node, bufnr }
+    ---@param type string #Either project|task
+    ---@return table #A table of type { node, bufnr }
     get_at_cursor = function(type)
         vim.validate({
             type = {
@@ -160,14 +160,14 @@ module.public = {
     end,
 
     --- Add metadatas to a list of `nodes`
-    --- @param nodes table
-    --- @param type string
-    --- @param opts table
+    ---@param nodes table
+    ---@param type string
+    ---@param opts table
     ---   - opts.extract (bool):   if false does not extract the content from the nodes
     ---   - opts.same_node (bool): if true, will only fetch metadatas from the node and not parent ones.
     ---   It will not fetch metadatas that group tasks or projects
     ---   - opts.keys (table):     a table of keys to add to the node (e.g state, waiting.for, ...)
-    --- @return core.gtd.queries.project|core.gtd.queries.task
+    ---@return core.gtd.queries.project|core.gtd.queries.task
     add_metadata = function(nodes, type, opts)
         vim.validate({
             nodes = { nodes, "table" },
@@ -274,9 +274,9 @@ module.public = {
     end,
 
     --- Ensure t[k] is a table and then add v to the end of t[k]
-    --- @param t table
-    --- @param k any key
-    --- @param v any value
+    ---@param t table
+    ---@param k any key
+    ---@param v any value
     insert = function(t, k, v)
         if not t[k] then
             t[k] = {}
@@ -285,17 +285,17 @@ module.public = {
     end,
 
     --- Sort `nodes` list by specified `sorter`.
-    --- @param sorter string
-    --- @param nodes core.gtd.queries.project|core.gtd.queries.task
-    --- @return table
+    ---@param sorter string
+    ---@param nodes core.gtd.queries.project|core.gtd.queries.task
+    ---@return table
     sort_by = function(sorter, nodes)
         vim.validate({
             sorter = {
                 sorter,
                 function(s)
-                    return vim.tbl_contains({ "waiting.for", "contexts", "project_uuid", "area_of_focus" }, s)
+                    return vim.tbl_contains({ "waiting.for", "contexts", "project_uuid", "area_of_focus", "state" }, s)
                 end,
-                "waiting.for|contexts|project_uuid|area_of_focus",
+                "waiting.for|contexts|project_uuid|area_of_focus|state",
             },
             tasks = { nodes, "table" },
         })
@@ -322,12 +322,12 @@ module.public = {
     end,
 
     --- Get a list of content for a specific `tag_name` in a `node`.
-    --- @param tag_name string
-    --- @param node core.gtd.queries.task|core.gtd.queries.project
-    --- @param type string #The current node type (task / project)
-    --- @param opts table #Options from add_metadata
-    --- @param extra_tag_names type string additional elements that tag_name can be
-    --- @return table
+    ---@param tag_name string
+    ---@param node core.gtd.queries.task|core.gtd.queries.project
+    ---@param type string #The current node type (task / project)
+    ---@param opts table #Options from add_metadata
+    ---@param extra_tag_names type string additional elements that tag_name can be
+    ---@return table
     get_tag = function(tag_name, node, type, opts, extra_tag_names)
         local allowed_tag_names = { "time.due", "time.start", "contexts", "waiting.for" }
         if extra_tag_names ~= nil then
@@ -436,8 +436,8 @@ module.public = {
 
 module.private = {
     --- Gets a bufnr from a relative `file` path
-    --- @param file string
-    --- @return number
+    ---@param file string
+    ---@return number
     get_bufnr_from_file = function(file)
         vim.validate({ file = { file, "string" } })
         local configs = neorg.modules.get_module_config("core.gtd.base")
@@ -447,10 +447,10 @@ module.private = {
     end,
 
     --- Gets content from a `node` table. If `extract`, extracts the content of the node
-    --- @param node core.gtd.queries.project|core.gtd.queries.task
-    --- @param type string
-    --- @param opts table #Options from add_metadata
-    --- @return string
+    ---@param node core.gtd.queries.project|core.gtd.queries.task
+    ---@param type string
+    ---@param opts table #Options from add_metadata
+    ---@return string
     get_content = function(node, type, opts)
         vim.validate({
             node = { node, "table" },
@@ -491,9 +491,9 @@ module.private = {
     end,
 
     --- Get project from `task` if there is one. If `extract`, extracts the content of the node
-    --- @param task core.gtd.queries.task
-    --- @param opts table #Options from add_metadata
-    --- @return string
+    ---@param task core.gtd.queries.task
+    ---@param opts table #Options from add_metadata
+    ---@return string
     get_task_project = function(task, opts)
         vim.validate({
             task = { task, "table" },
@@ -532,9 +532,9 @@ module.private = {
     end,
 
     --- Retrieve the state of the `task`. If `extract`, extracts the content of the node
-    --- @param task core.gtd.queries.task
-    --- @param opts table #Options from add_metadata
-    --- @return string
+    ---@param task core.gtd.queries.task
+    ---@param opts table #Options from add_metadata
+    ---@return string
     get_task_state = function(task, opts)
         vim.validate({
             task = { task, "table" },
@@ -572,9 +572,9 @@ module.private = {
     end,
 
     --- Get the area_of_focus for a task, or project
-    --- @param node core.gtd.queries.task|core.gtd.queries.project
-    --- @param opts table #opts from add_metadata
-    --- @return string
+    ---@param node core.gtd.queries.task|core.gtd.queries.project
+    ---@param opts table #opts from add_metadata
+    ---@return string
     get_aof = function(node, opts)
         vim.validate({
             node = { node, "table" },

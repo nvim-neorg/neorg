@@ -55,80 +55,6 @@ local module = neorg.modules.create("core.keybinds")
 
 local log = require("neorg.external.log")
 
-module.examples = {
-    ["Create keybinds in your module"] = function()
-        -- The process of defining a keybind is only a tiny bit more involved than defining e.g. an autocommand. Let's see what differs in creating a keybind rather than creating an autocommand:
-
-        require("neorg.modules.base")
-
-        local test = neorg.modules.create("test.module")
-
-        test.setup = function()
-            return { success = true, requires = { "core.keybinds" } } -- Require the keybinds module
-        end
-
-        test.load = function()
-            module.required["core.keybinds"].register_keybind(test.name, "my_keybind")
-
-            -- It is also possible to mass initialize keybindings via the public register_keybinds function. It can be used like so:
-            -- This should stop redundant calls to the same function or loops within module code.
-            module.required["core.keybinds"].register_keybinds(test.name, { "second_keybind", "my_other_keybind" })
-        end
-
-        test.on_event = function(event)
-            -- The event.split_type field is the type field except split into two.
-            -- The split point is .events., meaning if the event type is e.g. "core.keybinds.events.test.module.my_keybind" the value of split_type will be { "core.keybinds", "test.module.my_keybind" }.
-            if event.split_type[2] == "test.module.my_keybind" then
-                require("neorg.external.log").info("Keybind my_keybind has been pressed!")
-            end
-        end
-
-        test.events.subscribed = {
-
-            ["core.keybinds"] = {
-                -- The event path is a bit different here than it is normally.
-                -- Whenever you receive an event, you're used to the path looking like this: <module_path>.events.<event_name>.
-                -- Here, however, the path looks like this: <module_path>.events.test.module.<event_name>.
-                -- Why is that? Well, the module operates a bit differently under the hood.
-                -- In order to create a unique name for every keybind we use the module's name as well.
-                -- Meaning if your module is called test.module you will receive an event of type <module_path>.events.test.module.<event_name>.
-                ["test.module.my_keybind"] = true, -- Subscribe to the event
-            },
-        }
-    end,
-
-    ["Attach some keys to the create keybind"] = function()
-        -- To invoke a keybind, we can then use :Neorg keybind norg test.module.my_keybind.
-        -- :Neorg keybind tells core.neorgcmd to invoke a keybind, and the next argument (norg) is the mode that the keybind should be executed in.
-        -- Modes are a way to isolate different parts of the neorg environment easily, this includes keybinds too.
-        -- core.mode, the module designed to manage modes, is explaned in this own page (see the wiki sidebar).
-        -- Just know that by default neorg launches into the norg mode, so you'd most likely want to bind to that.
-        -- After the mode you can find the path to the keybind we want to trigger. Soo let's bind it! You should have already read the user keybinds document that details where and how to bind keys, the below code snippet is an extension of that:
-
-        -- (Somewhere in your config)
-        -- Require the user callbacks module, which allows us to tap into the core of Neorg
-        local neorg_callbacks = require("neorg.callbacks")
-
-        -- Listen for the enable_keybinds event, which signals a "ready" state meaning we can bind keys.
-        -- This hook will be called several times, e.g. whenever the Neorg Mode changes or an event that
-        -- needs to reevaluate all the bound keys is invoked
-        neorg_callbacks.on_event("core.keybinds.events.enable_keybinds", function(_, keybinds)
-            -- All your other keybinds
-
-            -- Map all the below keybinds only when the "norg" mode is active
-            keybinds.map_event_to_mode("norg", {
-                n = {
-                    { "<Leader>o", "test.module.my_keybind" },
-                },
-            }, { silent = true, noremap = true })
-        end)
-
-        -- To change the current mode as a user of neorg you can run :Neorg set-mode <mode>.
-        -- If you try changing the current mode into a non-existent mode (like :Neorg set-mode a-nonexistent-mode) you will see that all the keybinds you bound to the norg mode won't work anymore!
-        -- They'll start working again if you reset the mode back via :Neorg set-mode norg.
-    end,
-}
-
 module.setup = function()
     return {
         success = true,
@@ -204,10 +130,9 @@ module.public = {
         module.required["core.neorgcmd"].add_commands_from_table(module.public.neorg_commands)
     end,
 
-    -- @Summary Registers a batch of keybinds
-    -- @Description Like register_keybind(), except registers a batch of them
-    -- @Param  module_name (string) - the name of the module that owns the keybind. Make sure it's an absolute path.
-    -- @Param  names (list of strings) - a list of strings detailing names of the keybinds. The module_name will be prepended to each one to form a unique name.
+    --- Like register_keybind(), except registers a batch of them
+    ---@param module_name string #The name of the module that owns the keybind. Make sure it's an absolute path.
+    ---@param names #list of strings - a list of strings detailing names of the keybinds. The module_name will be prepended to each one to form a unique name.
     register_keybinds = function(module_name, names)
         -- Loop through each name from the names argument
         for _, name in ipairs(names) do
@@ -227,7 +152,6 @@ module.public = {
         module.required["core.neorgcmd"].add_commands_from_table(module.public.neorg_commands)
     end,
 
-    -- @Summary Rebinds all the keys defined via User Callbacks
     bind_all = function(buf, action, for_mode)
         local current_mode = for_mode or module.required["core.mode"].get_mode()
 
@@ -240,11 +164,11 @@ module.public = {
         payload = {
 
             --- Maps a key to a specific Neorg mode
-            --- @param neorg_mode string #The Neorg mode to bind to
-            --- @param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
-            --- @param key string #The lhs value from `:h nvim_buf_set_keymap`
-            --- @param command string|function #The rhs value from `:h nvim_buf_set_keymap`
-            --- @param opts table #The table value from `:h nvim_buf_set_keymap`
+            ---@param neorg_mode string #The Neorg mode to bind to
+            ---@param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
+            ---@param key string #The lhs value from `:h nvim_buf_set_keymap`
+            ---@param command string|function #The rhs value from `:h nvim_buf_set_keymap`
+            ---@param opts table #The table value from `:h nvim_buf_set_keymap`
             map = function(neorg_mode, mode, key, command, opts)
                 if neorg_mode ~= "all" and current_mode ~= neorg_mode then
                     return
@@ -263,19 +187,19 @@ module.public = {
             --- Maps a key to a specific Neorg keybind.
             --  `map()` binds to any rhs value, whilst `map_event()` is essentially a wrapper
             --  for <cmd>Neorg keybind `neorg_mode` `expr`<CR>
-            --- @param neorg_mode string #The Neorg mode to bind to
-            --- @param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
-            --- @param key string #The lhs value from `:h nvim_buf_set_keymap`
-            --- @param expr string #The Neorg event to bind to (e.g. `core.norg.dirman.new.note`)
-            --- @param opts table #The table value from `:h nvim_buf_set_keymap`
+            ---@param neorg_mode string #The Neorg mode to bind to
+            ---@param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
+            ---@param key string #The lhs value from `:h nvim_buf_set_keymap`
+            ---@param expr string #The Neorg event to bind to (e.g. `core.norg.dirman.new.note`)
+            ---@param opts table #The table value from `:h nvim_buf_set_keymap`
             map_event = function(neorg_mode, mode, key, expr, opts)
                 payload.map(neorg_mode, mode, key, "<cmd>Neorg keybind " .. neorg_mode .. " " .. expr .. "<CR>", opts)
             end,
 
             --- Unmaps any keybind from any Neorg mode
-            --- @param neorg_mode string #The Neorg mode to remove the key from
-            --- @param mode string #The target Neovim mode
-            --- @param key string #The key itself to unmap
+            ---@param neorg_mode string #The Neorg mode to remove the key from
+            ---@param mode string #The target Neovim mode
+            ---@param key string #The key itself to unmap
             unmap = function(neorg_mode, mode, key)
                 if neorg_mode == "all" then
                     for _, norg_mode in ipairs(module.required["core.mode"].get_modes()) do
@@ -339,11 +263,10 @@ module.public = {
                 payload.map(neorg_mode, mode, new_key, command, opts)
             end,
 
-            -- @Summary Maps a bunch of keys for a certain mode
-            -- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
-            -- @Param  mode (string) - the neorg mode to bind the keys on
-            -- @Param  keys (table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } }) - a table of keybinds
-            -- @Param  opts (table) - the same parameters that should be passed into vim.api.nvim_set_keymap()'s opts parameter
+            --- An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
+            ---@param mode string #The neorg mode to bind the keys on
+            ---@param keys #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds
+            ---@param opts #table) - the same parameters that should be passed into vim.api.nvim_set_keymap('s opts parameter
             map_to_mode = function(mode, keys, opts)
                 -- If the keys table is empty then don't bother doing any parsing
                 if vim.tbl_isempty(keys) then
@@ -363,11 +286,10 @@ module.public = {
                 end
             end,
 
-            -- @Summary Maps a bunch of keys for a certain mode
-            -- @Description An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
-            -- @Param  mode (string) - the neorg mode to bind the keys on
-            -- @Param  keys (table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } }) - a table of keybinds
-            -- @Param  opts (table) - the same parameters that should be passed into vim.api.nvim_set_keymap()'s opts parameter
+            --- An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
+            ---@param mode string #The neorg mode to bind the keys on
+            ---@param keys #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds
+            ---@param opts #table) - the same parameters that should be passed into vim.api.nvim_set_keymap('s opts parameter
             map_event_to_mode = function(mode, keys, opts)
                 -- If the keys table is empty then don't bother doing any parsing
                 if vim.tbl_isempty(keys) then
@@ -476,8 +398,7 @@ module.public = {
         )
     end,
 
-    -- @Summary Synchronizes all autocompletions
-    -- @Description Updates the list of known modes and keybinds for easy autocompletion. Invoked automatically during neorg_post_load().
+    --- Updates the list of known modes and keybinds for easy autocompletion. Invoked automatically during neorg_post_load().
     sync = function()
         -- Reset all the autocompletions
         module.public.neorg_commands.definitions.keybind = {}
@@ -570,6 +491,80 @@ module.events.subscribed = {
         mode_created = true,
         mode_set = true,
     },
+}
+
+module.examples = {
+    ["Create keybinds in your module"] = function()
+        -- The process of defining a keybind is only a tiny bit more involved than defining e.g. an autocommand. Let's see what differs in creating a keybind rather than creating an autocommand:
+
+        require("neorg.modules.base")
+
+        local test = neorg.modules.create("test.module")
+
+        test.setup = function()
+            return { success = true, requires = { "core.keybinds" } } -- Require the keybinds module
+        end
+
+        test.load = function()
+            module.required["core.keybinds"].register_keybind(test.name, "my_keybind")
+
+            -- It is also possible to mass initialize keybindings via the public register_keybinds function. It can be used like so:
+            -- This should stop redundant calls to the same function or loops within module code.
+            module.required["core.keybinds"].register_keybinds(test.name, { "second_keybind", "my_other_keybind" })
+        end
+
+        test.on_event = function(event)
+            -- The event.split_type field is the type field except split into two.
+            -- The split point is .events., meaning if the event type is e.g. "core.keybinds.events.test.module.my_keybind" the value of split_type will be { "core.keybinds", "test.module.my_keybind" }.
+            if event.split_type[2] == "test.module.my_keybind" then
+                require("neorg.external.log").info("Keybind my_keybind has been pressed!")
+            end
+        end
+
+        test.events.subscribed = {
+
+            ["core.keybinds"] = {
+                -- The event path is a bit different here than it is normally.
+                -- Whenever you receive an event, you're used to the path looking like this: <module_path>.events.<event_name>.
+                -- Here, however, the path looks like this: <module_path>.events.test.module.<event_name>.
+                -- Why is that? Well, the module operates a bit differently under the hood.
+                -- In order to create a unique name for every keybind we use the module's name as well.
+                -- Meaning if your module is called test.module you will receive an event of type <module_path>.events.test.module.<event_name>.
+                ["test.module.my_keybind"] = true, -- Subscribe to the event
+            },
+        }
+    end,
+
+    ["Attach some keys to the create keybind"] = function()
+        -- To invoke a keybind, we can then use :Neorg keybind norg test.module.my_keybind.
+        -- :Neorg keybind tells core.neorgcmd to invoke a keybind, and the next argument (norg) is the mode that the keybind should be executed in.
+        -- Modes are a way to isolate different parts of the neorg environment easily, this includes keybinds too.
+        -- core.mode, the module designed to manage modes, is explaned in this own page (see the wiki sidebar).
+        -- Just know that by default neorg launches into the norg mode, so you'd most likely want to bind to that.
+        -- After the mode you can find the path to the keybind we want to trigger. Soo let's bind it! You should have already read the user keybinds document that details where and how to bind keys, the below code snippet is an extension of that:
+
+        -- (Somewhere in your config)
+        -- Require the user callbacks module, which allows us to tap into the core of Neorg
+        local neorg_callbacks = require("neorg.callbacks")
+
+        -- Listen for the enable_keybinds event, which signals a "ready" state meaning we can bind keys.
+        -- This hook will be called several times, e.g. whenever the Neorg Mode changes or an event that
+        -- needs to reevaluate all the bound keys is invoked
+        neorg_callbacks.on_event("core.keybinds.events.enable_keybinds", function(_, keybinds)
+            -- All your other keybinds
+
+            -- Map all the below keybinds only when the "norg" mode is active
+            keybinds.map_event_to_mode("norg", {
+                n = {
+                    { "<Leader>o", "test.module.my_keybind" },
+                },
+            }, { silent = true, noremap = true })
+        end)
+
+        -- To change the current mode as a user of neorg you can run :Neorg set-mode <mode>.
+        -- If you try changing the current mode into a non-existent mode (like :Neorg set-mode a-nonexistent-mode) you will see that all the keybinds you bound to the norg mode won't work anymore!
+        -- They'll start working again if you reset the mode back via :Neorg set-mode norg.
+    end,
 }
 
 return module

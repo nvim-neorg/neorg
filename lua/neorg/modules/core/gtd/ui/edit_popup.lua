@@ -25,7 +25,7 @@ module.public = {
     end,
 
     --- Creates the gtd edit popup
-    --- @param task core.gtd.queries.task
+    ---@param task core.gtd.queries.task
     edit_task = function(task)
         -- Add metadatas to task node
         local task_extracted = module.required["core.gtd.queries"].add_metadata(
@@ -138,17 +138,17 @@ module.public = {
 --- @class private_core.gtd.ui
 module.private = {
     --- Edit content from `key`.
-    --- @param selection core.ui.selection
-    --- @param flag string #The flag to use for calling the prompt
-    --- @param text string #The text to show for the flag
-    --- @param key string #The key to modify
-    --- @param modified table #The table to insert modified text
-    --- @param opts table
+    ---@param selection core.ui.selection
+    ---@param flag string #The flag to use for calling the prompt
+    ---@param text string #The text to show for the flag
+    ---@param key string #The key to modify
+    ---@param modified table #The table to insert modified text
+    ---@param opts table
     ---   - opts.multiple_texts (bool):     if true, will split the modified content and convert into a list
     ---   - opts.pop_page (bool):           if true, will pop the page a second time
     ---   - opts.prompt_title (string):     provide custom prompt title. Else defaults to "Edit"
     ---   - opts.prompt_text (string):      provide custom text, if any
-    --- @return table #The selection
+    ---@return table #The selection
     edit_prompt = function(selection, flag, text, key, modified, opts)
         opts = opts or {}
         local prompt_title = opts.prompt_title or "Edit"
@@ -182,13 +182,13 @@ module.private = {
     end,
 
     --- Generates subflags for edit popup
-    --- @param selection core.ui.selection
-    --- @param flag string
-    --- @param texts table
-    --- @param modified boolean
-    --- @param key string
-    --- @param task core.gtd.queries.task
-    --- @return core.ui.selection
+    ---@param selection core.ui.selection
+    ---@param flag string
+    ---@param texts table
+    ---@param modified boolean
+    ---@param key string
+    ---@param task core.gtd.queries.task
+    ---@return core.ui.selection
     edit = function(selection, flag, texts, modified, key, task)
         selection = selection:rflag(flag, texts.edit, function()
             selection = selection
@@ -221,13 +221,13 @@ module.private = {
     end,
 
     --- Subflags for edition of dates
-    --- @param selection core.ui.selection
-    --- @param flag string
-    --- @param texts table
-    --- @param modified boolean
-    --- @param key string
-    --- @param task core.gtd.queries.task
-    --- @return core.ui.selection
+    ---@param selection core.ui.selection
+    ---@param flag string
+    ---@param texts table
+    ---@param modified boolean
+    ---@param key string
+    ---@param task core.gtd.queries.task
+    ---@return core.ui.selection
     edit_date = function(selection, flag, texts, modified, key, task)
         selection = selection:rflag(flag, texts.title, function()
             selection = selection

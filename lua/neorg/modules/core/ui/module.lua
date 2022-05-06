@@ -2,7 +2,7 @@
     File: Core-UI
     Title: Module for managing and displaying UIs to the user.
 	Summary: A set of public functions to help developers create and manage UI (selection popups, prompts...) in their modules.
-    Show: false.
+    Internal: true
     ---
 --]]
 
@@ -26,75 +26,8 @@ end
 
 ---@class core.ui
 module.public = {
-    -- TODO: Remove this. This is just a showcase
-    test_display = function()
-        -- Creates a buffer
-        local buffer = module.public.create_split("selection/Test selection")
-
-        -- Binds a selection to that buffer
-        local selection = module.public.begin_selection(buffer)
-            :apply({
-                -- A title will simply be text with a custom highlight
-                title = function(self, text)
-                    return self:text(text, "TSTitle")
-                end,
-            })
-            :listener("destroy", { "<Esc>" }, function(self)
-                self:destroy()
-            end)
-            :listener("go-back", { "<BS>" }, function(self)
-                self:pop_page()
-            end)
-
-        selection
-            :options({
-                text = {
-                    highlight = "TSUnderline",
-                },
-            })
-            :title("Hello World!")
-            :blank()
-            :text("Flags:")
-            :flag("<CR>", "finish")
-            :flag("t", "test flag", function()
-                log.warn("The test flag has been pressed!")
-            end)
-            :blank()
-            :text("Other flags:")
-            :rflag("a", "press me!", function()
-                selection:setstate("test", "hello from the other side")
-
-                -- Create more elements for the selection
-                selection
-                    :title("Another Title!")
-                    :blank()
-                    :text("Other Flags:")
-                    :flag("a", "i do nothing :)")
-                    :rflag("b", "yet another nested flag", function()
-                        selection
-                            :title("Final Title")
-                            :blank()
-                            :text("Btw, did you know that you can")
-                            :text("Press <BS> to go back a page? Try it!")
-                            :blank()
-                            :text("Also, psst, pressing `g` will give you a small surprise")
-                            :blank()
-                            :flag("a", "does nothing too")
-                            :listener("print-message", { "g" }, function()
-                                log.warn("You are awesome :)")
-                            end)
-                    end)
-            end)
-            :stateof( -- To view this press `a` and then <BS> to go back
-                "test",
-                "This is a custom message: %s." --[[ you can supply a third argument which
-                will forcefully render the message even if the state isn't present. The state will be replaced with a " " ]]
-            )
-    end,
-
-    -- @Summary Gets the current size of the window
-    -- @Description Returns a table in the form of { width, height } containing the width and height of the current window
-    -- @Param  half (boolean) - if true returns a position that could be considered the center of the window
+    --- Returns a table in the form of { width, height } containing the width and height of the current window
+    ---@param half boolean #If true returns a position that could be considered the center of the window
     get_window_size = function(half)
         return half
                 and {
@@ -104,11 +37,10 @@ module.public = {
             or { vim.opt_local.columns:get(), vim.opt_local.lines:get() }
     end,
 
-    -- @Summary Applies a set of custom options to modify regular Neovim window opts
-    -- @Description Returns a modified version of floating window options.
-    -- @Param  modifiers (table) - this option set has two values - center_x and center_y.
+    --- Returns a modified version of floating window options.
+    ---@param modifiers table #This option set has two values - center_x and center_y.
     --                           If they either of them is set to true then the window gets centered on that axis.
-    -- @Param  config (table) - a table containing regular Neovim options for a floating window
+    ---@param config table #A table containing regular Neovim options for a floating window
     apply_custom_options = function(modifiers, config)
         -- Default modifier options
         local user_options = {
@@ -144,9 +76,8 @@ module.public = {
         return config
     end,
 
-    -- @Summary Deletes a window that holds a specific buffer
-    -- @Description Attempts to force close the window that holds the specified buffer
-    -- @Param  buf (number) - the buffer ID whose parent window to close
+    --- Attempts to force close the window that holds the specified buffer
+    ---@param buf number #The buffer ID whose parent window to close
     delete_window = function(buf)
         -- Get the name of the buffer with the specified ID
         local name = vim.api.nvim_buf_get_name(buf)
@@ -167,8 +98,8 @@ module.public = {
     end,
 
     --- Applies a set of options to a buffer
-    --- @param buf number the buffer number to apply the options to
-    --- @param option_list table a table of option = value pairs
+    ---@param buf number the buffer number to apply the options to
+    ---@param option_list table a table of option = value pairs
     apply_buffer_options = function(buf, option_list)
         for option_name, value in pairs(option_list or {}) do
             vim.api.nvim_buf_set_option(buf, option_name, value)
@@ -230,10 +161,10 @@ module.public = {
     end,
 
     --- Creates a new vertical split
-    --- @param name string the name of the buffer
-    --- @param config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
-    --- @param left boolean if true will spawn the vertical split on the left (default is right)
-    --- @return buffer the buffer of the vertical split
+    ---@param name string the name of the buffer
+    ---@param config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
+    ---@param left boolean if true will spawn the vertical split on the left (default is right)
+    ---@return buffer the buffer of the vertical split
     create_vsplit = function(name, config, left)
         vim.validate({
             name = { name, "string" },
@@ -274,8 +205,9 @@ module.public = {
     end,
 
     --- Creates a new display in which you can place organized data
-    --- @param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
-    --- @param content table a table of content
+    ---@param name string #The name of the display
+    ---@param split_type string #"vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
+    ---@param content table #A table of content for the display
     create_display = function(name, split_type, content)
         if not vim.tbl_contains({ "nosplit", "vsplitl", "vsplitr", "split" }, split_type) then
             log.error(
@@ -350,10 +282,10 @@ module.public = {
     end,
 
     --- Creates a new Neorg buffer in a split or in the main window
-    --- @param name string the name of the buffer *without* the .norg extension
-    --- @param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
-    --- @param config table|nil a table of { option = value } pairs that set buffer-local options for the created Neorg buffer
-    --- @param opts table|nil
+    ---@param name string the name of the buffer *without* the .norg extension
+    ---@param split_type string "vsplitl"|"vsplitr"|"split"|"nosplit" - if suffixed with "l" vertical split will be spawned on the left, else on the right. "split" is a horizontal split.
+    ---@param config table|nil a table of { option = value } pairs that set buffer-local options for the created Neorg buffer
+    ---@param opts table|nil
     ---   - opts.keybinds (boolean)             if false, will not use the default keybinds
     ---   - opts.del_on_autocommands (table)    delete buffer on specified autocommands
     create_norg_buffer = function(name, split_type, config, opts)
@@ -419,6 +351,73 @@ module.public = {
 
 module.private = {
     user_scrolloff = nil,
+}
+
+module.examples = {
+    ["Create a selection popup"] = function()
+        -- Creates the buffer
+        local buffer = module.public.create_split("selection/Test selection")
+
+        -- Binds a selection to that buffer
+        local selection = module.public.begin_selection(buffer)
+            :apply({
+                -- A title will simply be text with a custom highlight
+                title = function(self, text)
+                    return self:text(text, "TSTitle")
+                end,
+            })
+            :listener("destroy", { "<Esc>" }, function(self)
+                self:destroy()
+            end)
+            :listener("go-back", { "<BS>" }, function(self)
+                self:pop_page()
+            end)
+
+        selection
+            :options({
+                text = {
+                    highlight = "TSUnderline",
+                },
+            })
+            :title("Hello World!")
+            :blank()
+            :text("Flags:")
+            :flag("<CR>", "finish")
+            :flag("t", "test flag", function()
+                log.warn("The test flag has been pressed!")
+            end)
+            :blank()
+            :text("Other flags:")
+            :rflag("a", "press me!", function()
+                selection:setstate("test", "hello from the other side")
+
+                -- Create more elements for the selection
+                selection
+                    :title("Another Title!")
+                    :blank()
+                    :text("Other Flags:")
+                    :flag("a", "i do nothing :)")
+                    :rflag("b", "yet another nested flag", function()
+                        selection
+                            :title("Final Title")
+                            :blank()
+                            :text("Btw, did you know that you can")
+                            :text("Press <BS> to go back a page? Try it!")
+                            :blank()
+                            :text("Also, psst, pressing `g` will give you a small surprise")
+                            :blank()
+                            :flag("a", "does nothing too")
+                            :listener("print-message", { "g" }, function()
+                                log.warn("You are awesome :)")
+                            end)
+                    end)
+            end)
+            :stateof( -- To view this press `a` and then <BS> to go back
+                "test",
+                "This is a custom message: %s." --[[ you can supply a third argument which
+                will forcefully render the message even if the state isn't present. The state will be replaced with a " " ]]
+            )
+    end,
 }
 
 return module

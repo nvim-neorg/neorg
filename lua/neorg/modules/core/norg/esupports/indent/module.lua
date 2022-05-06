@@ -1,8 +1,9 @@
 --[[
--- TODO
+    File: Indent
+    Title: Proper Indents with `core.norg.esupports.indent`
+    Summary: A set of instructions for Neovim to indent Neorg documents.
+    ---
 --]]
-
--- TODO: Make `get_first_node_on_line` move up the node list to the closest named parent
 
 local module = neorg.modules.create("core.norg.esupports.indent")
 
@@ -47,6 +48,7 @@ module.public = {
 
         local line_len = vim.fn.getline(vim.v.lnum):len()
 
+        -- Ensure that the cursor is within the `norg` language
         local current_lang = vim.treesitter.get_parser(buf, "norg"):language_for_range({
             vim.v.lnum - 1,
             line_len,
@@ -54,9 +56,12 @@ module.public = {
             line_len,
         })
 
+        -- If it isn't then fall back to `nvim-treesitter`'s indent instead.
         if current_lang:lang() ~= "norg" then
             local prev = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, vim.v.lnum - 2)
 
+            -- If we're in a ranged tag then apart from providing nvim-treesitter indents also make sure
+            -- to account for the indentation level of the tag itself.
             if prev and prev:type() == "ranged_tag" then
                 return module.required["core.integrations.treesitter"].get_node_range(prev).column_start
                     + vim.fn["nvim_treesitter#indent"]()
@@ -65,7 +70,9 @@ module.public = {
             end
         end
 
+        -- Indents can be a static value, so account for that here
         if type(indent_data.indent) == "number" then
+            -- If the indent is -1 then let Neovim indent instead of us
             if indent_data.indent == -1 then
                 return -1
             end

@@ -34,9 +34,9 @@ module.config.public = {
 ---@class core.norg.esupports.hop
 module.public = {
     --- Follow link from a specific node
-    --- @param node userdata
-    --- @param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...) or new tab (mode="tab")
-    --- @param parsed_link table a table of link information gathered from parse_link()
+    ---@param node userdata
+    ---@param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...) or new tab (mode="tab")
+    ---@param parsed_link table a table of link information gathered from parse_link()
     follow_link = function(node, split, parsed_link)
         if node:type() == "anchor_declaration" then
             local located_anchor_declaration = module.public.locate_anchor_declaration_target(node)
@@ -148,6 +148,8 @@ module.public = {
             :flag("b", "Place target below current link parent")
     end,
 
+    --- Locate a `link` or `anchor` node under the cursor
+    ---@return userdata|nil #A `link` or `anchor` node if present under the cursor, else `nil`
     extract_link_node = function()
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
@@ -168,6 +170,8 @@ module.public = {
         return found_node
     end,
 
+    --- Attempts to locate a `link` or `anchor` node after the cursor on the same line
+    ---@return userdata|nil #A `link` or `anchor` node if present on the current line, else `nil`
     lookahead_link_node = function()
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
@@ -209,6 +213,8 @@ module.public = {
         return resulting_node
     end,
 
+    --- Locates the node that an anchor is pointing to
+    ---@param anchor_decl_node userdata #A valid anchod declaration node
     locate_anchor_declaration_target = function(anchor_decl_node)
         if not anchor_decl_node:named_child(0) then
             return
@@ -251,6 +257,10 @@ module.public = {
         end
     end,
 
+    --- Converts a link node into a table of data related to the link
+    ---@param link_node userdata #The link node that was found by e.g. `extract_link_node()`
+    ---@param buf number #The buffer to parse the link in
+    ---@return table #A table of data about the link
     parse_link = function(link_node, buf)
         buf = buf or 0
         if not link_node or not vim.tbl_contains({ "link", "anchor_definition" }, link_node:type()) then
@@ -358,6 +368,9 @@ module.public = {
         return parsed_link_information
     end,
 
+    --- Locate the target that a link points to
+    ---@param parsed_link_information table #A table returned by `parse_link()`
+    ---@return table #A table containing data about the link target
     locate_link_target = function(parsed_link_information)
         --- A pointer to the target buffer we will be parsing.
         -- This may change depending on the target file the user gave.
@@ -384,6 +397,7 @@ module.public = {
         end
 
         return neorg.lib.match(parsed_link_information.link_type)({
+            -- If we're dealing with a URL, simply open the URL in the user's preferred method
             url = function()
                 local destination = parsed_link_information.link_location_text
 
@@ -398,6 +412,7 @@ module.public = {
                 return {}
             end,
 
+            -- If we're dealing with an external file, open it up in another Neovim buffer (unless otherwise applicable)
             external_file = function()
                 local destination = parsed_link_information.link_location_text
                 destination = (
@@ -435,7 +450,6 @@ module.public = {
             end,
 
             _ = function()
-                -- Dynamically forge query
                 local query_str = neorg.lib.match(parsed_link_information.link_type)({
                     generic = [[
                         (carryover_tag_set
@@ -608,6 +622,9 @@ module.private = {
             )
     end,
 
+    --- Fuzzy fixes a link with a loose type checking query
+    ---@param parsed_link_information table #A table as returned by `parse_link()`
+    ---@return table #A table of similarities (fuzzed items)
     fix_link_loose = function(parsed_link_information)
         local generic_query = [[
             (carryover_tag_set
@@ -625,6 +642,9 @@ module.private = {
         return module.private.fix_link(parsed_link_information, generic_query)
     end,
 
+    --- Fuzzy fixes a link with a strict type checking query
+    ---@param parsed_link_information table #A table as returned by `parse_link()`
+    ---@return table #A table of similarities (fuzzed items)
     fix_link_strict = function(parsed_link_information)
         local query = neorg.lib.when(
             parsed_link_information.link_type == "generic",
@@ -663,6 +683,10 @@ module.private = {
         return module.private.fix_link(parsed_link_information, query)
     end,
 
+    --- Query all similar targets that a link could be pointing to
+    ---@param parsed_link_information table #A table as returned by `parse_link()`
+    ---@param query_str string #The query to be used during the search
+    ---@return table #A table of similarities (fuzzed items)
     fix_link = function(parsed_link_information, query_str)
         local buffer = vim.api.nvim_get_current_buf()
 
@@ -714,6 +738,11 @@ module.private = {
         return similarities
     end,
 
+    --- Writes a link that was fixed through fuzzing into the buffer
+    ---@param link_node userdata #The treesitter node of the link, extracted by e.g. `extract_link_node()`
+    ---@param parsed_link_information table #A table as returned by `parse_link()`
+    ---@param similarities table #The table of similarities as returned by `fix_link_*()`
+    ---@param force_type boolean #If true will forcefully overwrite the link type to the target type as well (e.g. would convert `#` -> `*`)
     write_fixed_link = function(link_node, parsed_link_information, similarities, force_type)
         local most_similar = similarities[1]
 
