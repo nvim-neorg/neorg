@@ -196,6 +196,9 @@ module.config.public = {
         end,
     },
     tweaks = {},
+
+    format_on_enter = true,
+    format_on_escape = true,
 }
 
 module.load = function()
@@ -210,7 +213,8 @@ module.on_event = function(event)
             ("v:lua.neorg.modules.get_module('core.norg.esupports.indent').indentexpr(%d)"):format(event.buffer)
         )
 
-        vim.api.nvim_buf_set_option(event.buffer, "indentkeys", "o,O,*<CR>,*<Esc>,*<M-o>,*<M-O>")
+        local indentkeys = "o,O,*<M-o>,*<M-O>" .. neorg.lib.when(module.config.public.format_on_enter, ",*<CR>", "") .. neorg.lib.when(module.config.public.format_on_escape, ",*<Esc>", "")
+        vim.api.nvim_buf_set_option(event.buffer, "indentkeys", indentkeys)
     end
 end
 
