@@ -14,20 +14,36 @@
 	content: (ranged_verbatim_tag_content)?
 	(ranged_verbatim_tag_end ("_prefix") @NeorgVerbatimTagEnd ("_name") @NeorgVerbatimTagNameWord)?) @NeorgVerbatimTag
 
-(carryover_tag_set
-    (carryover_tag
-        ("_prefix" @NeorgCarryoverTagBegin)
+(weak_attribute_set
+    (weak_attribute
+        ("_prefix" @NeorgWeakAttributeBegin)
         name:
             (tag_name
                 [
-                    (tag_name_element) @NeorgCarryoverTagNameWord
-                    ("_delimiter") @NeorgCarryoverTagNameDelimiter
+                    (tag_name_element) @NeorgWeakAttributeNameWord
+                    ("_delimiter") @NeorgWeakAttributeNameDelimiter
                 ]
-            ) @NeorgCarryoverTagName
+            ) @NeorgWeakAttributeName
         (tag_parameters
-            parameter: (tag_param) @NeorgCarryoverTagParameter
-        )? @NeorgCarryoverTagParameters
-    ) @NeorgCarryoverTag
+            parameter: (tag_param) @NeorgWeakAttributeParameter
+        )? @NeorgWeakAttributeParameters
+    ) @NeorgWeakAttribute
+)
+
+(strong_attribute_set
+    (strong_attribute
+        ("_prefix" @NeorgStrongAttributeBegin)
+        name:
+            (tag_name
+                [
+                    (tag_name_element) @NeorgStrongAttributeNameWord
+                    ("_delimiter") @NeorgStrongAttributeNameDelimiter
+                ]
+            ) @NeorgStrongAttributeName
+        (tag_parameters
+            parameter: (tag_param) @NeorgStrongAttributeParameter
+        )? @NeorgStrongAttributeParameters
+    ) @NeorgStrongAttribute
 )
 
 ; Trailing Modifier
@@ -69,28 +85,8 @@
                 (paragraph) @NeorgLinkLocationFootnote
             )
             (
-                (link_target_heading1) @NeorgLinkLocationHeading1Prefix
-                (paragraph) @NeorgLinkLocationHeading1
-            )
-            (
-                (link_target_heading2) @NeorgLinkLocationHeading2Prefix
-                (paragraph) @NeorgLinkLocationHeading2
-            )
-            (
-                (link_target_heading3) @NeorgLinkLocationHeading3Prefix
-                (paragraph) @NeorgLinkLocationHeading3
-            )
-            (
-                (link_target_heading4) @NeorgLinkLocationHeading4Prefix
-                (paragraph) @NeorgLinkLocationHeading4
-            )
-            (
-                (link_target_heading5) @NeorgLinkLocationHeading5Prefix
-                (paragraph) @NeorgLinkLocationHeading5
-            )
-            (
-                (link_target_heading6) @NeorgLinkLocationHeading6Prefix
-                (paragraph) @NeorgLinkLocationHeading6
+                (link_target_heading) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading
             )
         ]
         ("_end") @NeorgLinkLocationDelimiter
@@ -150,28 +146,8 @@
                 (paragraph) @NeorgLinkLocationFootnote
             )
             (
-                (link_target_heading1) @NeorgLinkLocationHeading1Prefix
-                (paragraph) @NeorgLinkLocationHeading1
-            )
-            (
-                (link_target_heading2) @NeorgLinkLocationHeading2Prefix
-                (paragraph) @NeorgLinkLocationHeading2
-            )
-            (
-                (link_target_heading3) @NeorgLinkLocationHeading3Prefix
-                (paragraph) @NeorgLinkLocationHeading3
-            )
-            (
-                (link_target_heading4) @NeorgLinkLocationHeading4Prefix
-                (paragraph) @NeorgLinkLocationHeading4
-            )
-            (
-                (link_target_heading5) @NeorgLinkLocationHeading5Prefix
-                (paragraph) @NeorgLinkLocationHeading5
-            )
-            (
-                (link_target_heading6) @NeorgLinkLocationHeading6Prefix
-                (paragraph) @NeorgLinkLocationHeading6
+                (link_target_heading) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading
             )
         ]
         ("_end") @NeorgAnchorDefinitionDelimiter
@@ -205,9 +181,9 @@
 
 ; Todo Items
 state: [
-	(todo_item_undone) @NeorgTodoItem1Undone
-	(todo_item_pending) @NeorgTodoItem1Pending
-	(todo_item_done) @NeorgTodoItem1Done
+    (todo_item_undone) @NeorgTodoItem1Undone
+    (todo_item_pending) @NeorgTodoItem1Pending
+    (todo_item_done) @NeorgTodoItem1Done
     (todo_item_on_hold) @NeorgTodoItem1OnHold
     (todo_item_cancelled) @NeorgTodoItem1Cancelled
     (todo_item_urgent) @NeorgTodoItem1Urgent
