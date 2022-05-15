@@ -19,11 +19,7 @@ end
 module.public = {
     indentexpr = function(buf)
         local node = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, vim.v.lnum - 1)
-            or module.required["core.integrations.treesitter"].get_first_node_on_line(
-                buf,
-                vim.v.lnum - 1,
-                true
-            )
+            or module.required["core.integrations.treesitter"].get_first_node_on_line(buf, vim.v.lnum - 1, true)
             or module.required["core.integrations.treesitter"].get_first_node_on_line(buf, vim.v.lnum - 1, true, true)
 
         if not node then
