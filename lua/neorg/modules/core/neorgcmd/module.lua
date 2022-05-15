@@ -132,10 +132,27 @@ function _neorgcmd_generate_completions(_, command)
     end, vim.tbl_keys(ref))
 end
 
+--- Queries the user to select next argument
+---@param args table #previous arguments of the command Neorg
+---@param ref_definitions table #keys are the possible choices for the next argument
+local _select_next_cmd_arg = function(args, ref_definitions)
+    local current = string.format('Neorg %s', table.concat(args, ' '))
+    local choices = {}
+    for choice, _ in pairs(ref_definitions) do
+      table.insert(choices, choice)
+    end
+    vim.ui.select(choices, {
+        prompt = current,
+    }, function(choice)
+      vim.cmd(string.format('%s %s', current, choice))
+    end)
+end
+
 module.load = function()
-    -- Define the :Neorg command with autocompletion and a requirement of at least one argument (-nargs=+)
+    -- Define the :Neorg command with autocompletion taking any number of arguments (-nargs=*)
+    -- If the user passes no arguments or too few, we'll query them for the remainder, using _select_next_cmd_arg.
     vim.cmd(
-        [[ command! -nargs=+ -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd.module').public.function_callback(<f-args>) ]]
+        [[ command! -nargs=* -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd.module').public.function_callback(<f-args>) ]]
     )
 
     -- Loop through all the command modules we want to load and load them
@@ -296,15 +313,10 @@ module.public = {
             ref_data_one_above.max_args = ref_data_one_above.args
         end
 
-        -- If our recursion depth is smaller than the minimum argument count then that means we have not supplied enough arguments
-        if #args - current_depth < ref_data_one_above.min_args then
-            log.error(
-                "Unable to execute neorg command under name",
-                event_name,
-                "- minimum argument count not satisfied. The command requires at least",
-                ref_data_one_above.min_args,
-                "arguments."
-            )
+        -- If our recursion depth is smaller than the minimum argument count then that means the user has not supplied enough arguments
+        -- We'll therefore query the user for the remainder
+        if #args == 0 or #args - current_depth < ref_data_one_above.min_args then
+            _select_next_cmd_arg(args, ref_definitions)
             return
         end
 
