@@ -6,13 +6,12 @@ local module = neorg.modules.extend("core.ui.text_popup")
 
 ---@class core.ui
 module.public = {
-    -- @Summary Creates a new interactable prompt
-    -- @Description Opens a floating window at the specified position and asks for user input
-    -- @Param  name (string) - the name of the floating window
-    -- @Param  input_text (string) - the input text to prompt the user for input
-    -- @Param  callback (function(entered_text)) - a function that gets invoked whenever the user provides some text.
-    -- @Param  modifiers (table) - special table to modify certain attributes of the floating window (like centering on the x or y axis)
-    -- @Param  config (table) - a config like you would pass into nvim_open_win()
+    --- Opens a floating window at the specified position and asks for user input
+    ---@param name string #The name of the floating window
+    ---@param input_text string #The input text to prompt the user for input
+    ---@param callback #(function(entered_text)) - a function that gets invoked whenever the user provides some text.
+    ---@param modifiers table #Special table to modify certain attributes of the floating window (like centering on the x or y axis)
+    ---@param config table #A config like you would pass into nvim_open_win()
     create_prompt = function(name, input_text, callback, modifiers, config)
         -- If the window already exists then don't create another one
         if module.private.windows[name] then

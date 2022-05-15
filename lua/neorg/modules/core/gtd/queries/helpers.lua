@@ -149,8 +149,8 @@ module.public = {
 
     --- Parses a date string to table relative to today's date
     --- (e.g { weeks = 2, days = 2 } for in 2 weeks and 2 days)
-    --- @param date string #A date formatted with YY-MM-dd format
-    --- @return dateDiff
+    ---@param date string #A date formatted with YY-MM-dd format
+    ---@return dateDiff
     diff_with_today = function(date)
         vim.validate({
             date = { date, "string" },
@@ -178,9 +178,9 @@ module.public = {
     end,
 
     --- Checks whether the date starts after today
-    --- @param date string
-    --- @param strict boolean #if true, do not count today as started
-    --- @return boolean
+    ---@param date string
+    ---@param strict boolean #if true, do not count today as started
+    ---@return boolean
     starting_after_today = function(date, strict)
         local diff = module.public.diff_with_today(date)
 
@@ -197,9 +197,9 @@ module.public = {
 
 module.private = {
     --- Insert formatted `content` in `t`, with `prefix` before it. Mutates `t` !
-    --- @param t table
-    --- @param content string|table
-    --- @param prefix string
+    ---@param t table
+    ---@param content string|table
+    ---@param prefix string
     insert_content = function(t, content, prefix)
         vim.validate({
             t = { t, "table" },
@@ -229,8 +229,8 @@ module.private = {
     end,
 
     --- Converts seconds to an actual table
-    --- @param seconds number
-    --- @return dateDiff
+    ---@param seconds number
+    ---@return dateDiff
     convert_seconds = function(seconds)
         local negative_values = false
         if seconds < 0 then

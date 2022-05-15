@@ -4,8 +4,8 @@
     ---
 This module exposes functionality for subscribing to autocommands and performing actions based on those autocommands.
 
-In your `module.setup()`, make sure to require core.autocommands (requires = { "core.autocommands" })
-Afterwards in a function of your choice that gets called *after* core.autocommmands gets intialized e.g. load():
+In your `module.setup()`, make sure to require `core.autocommands` (`requires = { "core.autocommands" }`)
+Afterwards in a function of your choice that gets called *after* core.autocommmands gets intialized (e.g. `load()`):
 
 ```lua
 module.load = function()
@@ -17,11 +17,9 @@ Afterwards, be sure to subscribe to the event:
 
 ```lua
 module.events.subscribed = {
-
     ["core.autocommands"] = {
         vimleavepre = true
     }
-
 }
 ```
 
@@ -39,10 +37,9 @@ require("neorg.events")
 
 local module = neorg.modules.create("core.autocommands")
 
--- @Summary Autocommand callback
--- @Description This function gets invoked whenever a core.autocommands enabled autocommand is triggered. Note that this function should be only used internally
--- @Param  name (string) - the name of the autocommand that was just triggered
--- @Param  triggered_from_norg (boolean) - if true, that means we have received this event as part of a *.norg autocommand
+--- This function gets invoked whenever a core.autocommands enabled autocommand is triggered. Note that this function should be only used internally
+---@param name string #The name of the autocommand that was just triggered
+---@param triggered_from_norg boolean #If true, that means we have received this event as part of a *.norg autocommand
 function _neorg_module_autocommand_triggered(name, triggered_from_norg)
     neorg.events.broadcast_event(neorg.events.create(module, name, { norg = triggered_from_norg }))
 end
@@ -55,10 +52,9 @@ end
 ---@class core.autocommands
 module.public = {
 
-    -- @Summary Enable an autocommand event
-    -- @Description By default, all autocommands are disabled for performance reasons. To enable them, use this command. If an invalid autocmd is given nothing happens.
-    -- @Param  autocmd (string) - the relative name of the autocommand to enable
-    -- @Param  dont_isolate (boolean) - defaults to false. Specifies whether the autocommand should run globally (*) instead of in Neorg files (*.norg)
+    --- By default, all autocommands are disabled for performance reasons. To enable them, use this command. If an invalid autocmd is given nothing happens.
+    ---@param autocmd string #The relative name of the autocommand to enable
+    ---@param dont_isolate #boolean) - defaults to false. Specifies whether the autocommand should run globally (* instead of in Neorg files (*.norg)
     enable_autocommand = function(autocmd, dont_isolate)
         dont_isolate = dont_isolate or false
 

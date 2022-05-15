@@ -2,7 +2,7 @@
     File: Neorgcmd-List
     Title: Provides `:Neorg load ...` command
     Summary: Load a new module dynamically.
-    Show: false.
+    Internal: true
     ---
 After loading the module run `:Neorg module load <module_path>` to dynamically load in a new module.
 --]]

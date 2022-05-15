@@ -8,8 +8,8 @@ local module = neorg.modules.extend("core.gtd.ui.displayers")
 ---@class core.gtd.ui
 module.public = {
     --- Display today view for `tasks`, grouped by contexts
-    --- @param tasks core.gtd.queries.task
-    --- @param opts table
+    ---@param tasks core.gtd.queries.task
+    ---@param opts table
     ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
     --- @overload fun(tasks:table)
     display_today_tasks = function(tasks, opts)
@@ -118,8 +118,8 @@ module.public = {
     end,
 
     --- Displayer for wainting for tasks
-    --- @param tasks core.gtd.queries.task
-    --- @return number #Created bufnr
+    ---@param tasks core.gtd.queries.task
+    ---@return number #Created bufnr
     display_waiting_for = function(tasks)
         vim.validate({
             tasks = { tasks, "table" },
@@ -160,8 +160,8 @@ module.public = {
     end,
 
     --- Display contexts view for `tasks`
-    --- @param tasks core.gtd.queries.task
-    --- @param opts table
+    ---@param tasks core.gtd.queries.task
+    ---@param opts table
     ---   - opts.exclude (table):   exclude all tasks that contain one of the contexts specified in the table
     ---   - opts.priority (table):  will prioritize in the display the contexts specified (order in priority contexts not guaranteed)
     display_contexts = function(tasks, opts)
@@ -236,8 +236,8 @@ module.public = {
     end,
 
     --- integer percent calculation with check for zero in denominator
-    --- @param numerator number
-    --- @param denominator number
+    ---@param numerator number
+    ---@param denominator number
     percent = function(numerator, denominator)
         if denominator == 0 then
             return 0
@@ -246,15 +246,15 @@ module.public = {
     end,
 
     --- make a progress bar from a percentage
-    --- @param pct number
+    ---@param pct number
     percent_string = function(pct)
         local completed_over_10 = math.floor(pct / 10)
         return "[" .. string.rep("=", completed_over_10) .. string.rep(" ", 10 - completed_over_10) .. "]"
     end,
 
     --- Display formatted projects from `tasks` table. Uses `projects` table to find all projects
-    --- @param tasks core.gtd.queries.task
-    --- @param projects core.gtd.queries.project
+    ---@param tasks core.gtd.queries.task
+    ---@param projects core.gtd.queries.project
     display_projects = function(tasks, projects)
         vim.validate({
             tasks = { tasks, "table" },
@@ -339,8 +339,8 @@ module.public = {
     end,
 
     --- Display someday tasks
-    --- @param tasks core.gtd.queries.task
-    --- @return number #Created bufnr
+    ---@param tasks core.gtd.queries.task
+    ---@return number #Created bufnr
     display_someday = function(tasks)
         vim.validate({
             tasks = { tasks, "table" },
@@ -386,8 +386,8 @@ module.public = {
     end,
 
     --- Display weekly summary
-    --- @param tasks core.gtd.queries.task
-    --- @return number #Created bufnr
+    ---@param tasks core.gtd.queries.task
+    ---@return number #Created bufnr
     display_weekly_summary = function(tasks)
         local name = "Weekly Summary"
         local res = {
@@ -477,10 +477,10 @@ module.public = {
     end,
 
     --- Display every task or project that is unclarified
-    --- @param type string
-    --- @param data core.gtd.queries.task[]|core.gtd.queries.project[]
-    --- @param extras core.gtd.queries.task[]?
-    --- @return number
+    ---@param type string
+    ---@param data core.gtd.queries.task[]|core.gtd.queries.project[]
+    ---@param extras core.gtd.queries.task[]?
+    ---@return number
     display_unclarified = function(type, data, extras)
         local inbox = neorg.modules.get_module_config("core.gtd.base").default_lists.inbox
         local name = "Unclarified " .. type .. "s"
@@ -580,8 +580,8 @@ module.private = {
     end,
 
     --- Checks if the task should be in today view
-    --- @param task core.gtd.queries.task
-    --- @return boolean
+    ---@param task core.gtd.queries.task
+    ---@return boolean
     today_task = function(task)
         local today_context = false
         if task.contexts then
@@ -614,9 +614,9 @@ module.private = {
     end,
 
     --- Create the buffer and attach options to it
-    --- @param name string the buffer name
-    --- @param vars table the variables to add in the data. Must be of a table of type [line] = data
-    --- @param res table the lines to add
+    ---@param name string the buffer name
+    ---@param vars table the variables to add in the data. Must be of a table of type [line] = data
+    ---@param res table the lines to add
     generate_display = function(name, vars, res)
         local buf = module.required["core.ui"].create_norg_buffer(name, "vsplitr", nil, { keybinds = false })
         module.required["core.mode"].set_mode("gtd-displays")
@@ -631,9 +631,9 @@ module.private = {
     end,
 
     --- Update created variables inside the buffer (will offset the variables depending of the lines_inserted)
-    --- @param lines_inserted table the lines inserted
-    --- @param line number the position of the line we inserted the values from
-    --- @param remove boolean|nil if true, will offset the variables negatively
+    ---@param lines_inserted table the lines inserted
+    ---@param line number the position of the line we inserted the values from
+    ---@param remove boolean|nil if true, will offset the variables negatively
     update_vars = function(lines_inserted, line, remove)
         local lines = vim.api.nvim_buf_line_count(module.private.current_bufnr)
         local updated_vars = {}
@@ -662,7 +662,7 @@ module.private = {
     end,
 
     --- Get the corresponding task from the buffer variable in the current line
-    --- @return core.gtd.queries.task the task node
+    ---@return core.gtd.queries.task the task node
     get_by_var = function()
         -- Get the current task at cursor
         local current_line = vim.api.nvim_win_get_cursor(0)[1]

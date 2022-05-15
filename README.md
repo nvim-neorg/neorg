@@ -187,65 +187,26 @@ You can install it through your favorite plugin manager:
 ### Treesitter
 
 ###### _Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system for this step!_
+Neorg will automatically attempt to install the parsers for you upon entering a `.norg` file if you have `core.defaults` loaded.
+A command is also exposed to reinstall and/or update these parsers: `:Neorg sync-parsers`.
 
-Neorg's main treesitter parser is part of the `nvim-treesitter` repository, and can be installed through:
-
-```vim
-:TSInstall norg
-```
-
-If you want the parser to be more persistent across different installations of your config, make sure to set `norg` as a parser in the `ensure_installed` table, then run `:TSUpdate`.
-If you use the "maintained"/"all" parser collections then `norg` will be autoincluded.
-
-In addition to the main parser you may also want to install additional subparsers which are injected into the `norg` parser.
-To do so, you want to run this code snippet **before** you invoke `require('nvim-treesitter.configs').setup()`:
-
-```lua
-local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
-
--- These two are optional and provide syntax highlighting
--- for Neorg tables and the @document.meta tag
-parser_configs.norg_meta = {
-    install_info = {
-        url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
-        files = { "src/parser.c" },
-        branch = "main"
-    },
-}
-
-parser_configs.norg_table = {
-    install_info = {
-        url = "https://github.com/nvim-neorg/tree-sitter-norg-table",
-        files = { "src/parser.c" },
-        branch = "main"
-    },
-}
-```
-
-Then run `:TSInstall norg_meta norg_table`.
-
-Here's an example config for `nvim-treesitter`, yours will probably be different:
+Note that the `:Neorg sync-parsers` command is only available when in a `.norg` file, and the installation isn't reproducible.
+To make it permanent, you want to alter your treesitter configuration a little:
 
 ```lua
 require('nvim-treesitter.configs').setup {
-    ensure_installed = { "norg", "norg_meta", "norg_table", "haskell", "cpp", "c", "javascript", "markdown" },
+    ensure_installed = { "norg", --[[ other parsers you would wish to have ]] },
     highlight = { -- Be sure to enable highlights if you haven't!
         enable = true,
     }
 }
 ```
 
-### Troubleshooting Treesitter
+NOTE: Putting `"norg_meta"` into your `ensure_installed` table may trigger unintended errors.
+This is because `norg_meta` isn't in the native `nvim-treesitter` repositories, and the parser is
+only defined while using Neorg. This is why using `:Neorg sync-parsers` is recommended.
 
-- Some people have reported that using the `before` key in `nvim-treesitter`'s
-  `use` call in packer works better as opposed to the `after` key:
-  ```lua
-  use {
-      "nvim-treesitter/nvim-treesitter",
-      before = "neorg",
-      config = ...,
-  }
-  ```
+### Troubleshooting Treesitter
 - Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
 - If on MacOS, ensure that the `CC` environment variable points to a compiler that has C++14 support.
   You can run Neovim like so: `CC=/path/to/newer/compiler nvim -c
@@ -408,6 +369,8 @@ require('neorg').setup {
 | [`core.integrations.telescope`](https://github.com/nvim-neorg/neorg-telescope)    | Neorg integration with [Telescope](https://github.com/nvim-telescope/telescope.nvim) |
 | [`external.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base`        |
 | [`external.integrations.gtd-things`](https://github.com/danymat/neorg-gtd-things) | Use Things3 database to fetch and update tasks instead. Requires `core.gtd.base`     |
+| [`external.context`](https://github.com/max397574/neorg-contexts) | Display headings in which you are at the top of the window in a float popup. |
+| [`external.kanban`](https://github.com/max397574/neorg-kanban) | Display your gtd todos in a kanban-like board in floating windows. Requires `core.gtd.base` |
 
 </details>
 <br>

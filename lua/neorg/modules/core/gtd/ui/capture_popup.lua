@@ -35,8 +35,8 @@ module.public = {
 module.private = {
 
     --- Content of the capture popup
-    --- @param selection core.ui.selection
-    --- @return core.ui.selection
+    ---@param selection core.ui.selection
+    ---@return core.ui.selection
     capture_task = function(selection)
         return selection:title("Add a task"):blank():prompt("Task", {
             callback = function(text)
@@ -114,11 +114,11 @@ module.private = {
     end,
 
     --- Generate flags for specific mode
-    --- @param selection core.ui.selection
-    --- @param task core.gtd.queries.task
-    --- @param mode string #Date mode to use: waiting_for|contexts
-    --- @param flag string #The flag to use
-    --- @return core.ui.selection
+    ---@param selection core.ui.selection
+    ---@param task core.gtd.queries.task
+    ---@param mode string #Date mode to use: waiting_for|contexts
+    ---@param flag string #The flag to use
+    ---@return core.ui.selection
     generate_default_flags = function(selection, task, mode, flag)
         if not vim.tbl_contains({ "contexts", "waiting.for" }, mode) then
             log.error("Invalid mode")
@@ -157,11 +157,11 @@ module.private = {
     end,
 
     --- Generate flags for specific mode (date related)
-    --- @param selection table
-    --- @param task core.gtd.queries.task
-    --- @param mode string #Date mode to use: start|due
-    --- @param flag string #The flag to use
-    --- @return table #`selection`
+    ---@param selection table
+    ---@param task core.gtd.queries.task
+    ---@param mode string #Date mode to use: start|due
+    ---@param flag string #The flag to use
+    ---@return table #`selection`
     generate_date_flags = function(selection, task, mode, flag)
         local title = "Add a " .. mode .. " date"
         return selection:rflag(flag, title, function()
@@ -237,10 +237,10 @@ module.private = {
     end,
 
     --- Generates projects flags when capturing a task to a project
-    --- @param selection core.ui.selection
-    --- @param task core.gtd.queries.task
-    --- @param flag string
-    --- @return core.ui.selection
+    ---@param selection core.ui.selection
+    ---@param task core.gtd.queries.task
+    ---@param flag string
+    ---@return core.ui.selection
     generate_project_flags = function(selection, task, flag)
         return selection:flag(flag, "Add to project", {
             callback = function()
@@ -328,10 +328,10 @@ module.private = {
     end,
 
     --- Generates flags to create a project
-    --- @param selection core.ui.selection
-    --- @param file string
-    --- @param task core.gtd.queries.task
-    --- @param project core.gtd.queries.project
+    ---@param selection core.ui.selection
+    ---@param file string
+    ---@param task core.gtd.queries.task
+    ---@param project core.gtd.queries.project
     create_project = function(selection, file, task, project)
         local tree = {
             {
@@ -417,15 +417,15 @@ module.private = {
     end,
 
     --- Will try to descend the project and ask the user in which subheading append the task
-    --- @param selection core.ui.selection
-    --- @param node userdata
-    --- @param bufnr number
-    --- @param project_title string
-    --- @param task core.gtd.queries.task
-    --- @param is_project_root boolean
+    ---@param selection core.ui.selection
+    ---@param node userdata
+    ---@param bufnr number
+    ---@param project_title string
+    ---@param task core.gtd.queries.task
+    ---@param is_project_root boolean
     create_recursive_project_placement = function(selection, node, bufnr, project_title, task, is_project_root)
         ---- Creates flags for generic lists from current node
-        --- @param _node core.gtd.queries.project
+        ---@param _node core.gtd.queries.project
         local function get_generic_lists(_node, _bufnr)
             local tree = {
                 { query = { "all", "generic_list" } },
@@ -514,8 +514,8 @@ module.private = {
 
     --- Generates a flag from the alphabet.
     --- e.g If index == 2, flag generated will be `b`
-    --- @param index number
-    --- @return string
+    ---@param index number
+    ---@return string
     create_flag = function(index)
         local alphabet = "abcdefghijklmnopqrstuvwxyz"
         index = (index % #alphabet)
