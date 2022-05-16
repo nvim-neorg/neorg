@@ -443,6 +443,8 @@ module.public = {
 
                 neorg.lib.match(destination:match("%.(.+)$"))({
                     pdf = open_in_external_app,
+                    png = open_in_external_app,
+                    [{ "jpg", "jpeg" }] = open_in_external_app,
                     _ = neorg.lib.wrap(vim.cmd, "e " .. destination),
                 })
 
