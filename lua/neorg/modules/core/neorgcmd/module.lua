@@ -139,12 +139,20 @@ local _select_next_cmd_arg = function(args, ref_definitions)
     local current = string.format('Neorg %s', table.concat(args, ' '))
     local choices = {}
     for choice, _ in pairs(ref_definitions) do
-      table.insert(choices, choice)
+        table.insert(choices, choice)
     end
-    vim.ui.select(choices, {
+    local query
+    if vim.tbl_isempty(ref_definitions) then
+        query = function(...) vim.ui.input(...) end
+    else
+        query = function(...) vim.ui.select(choices, ...) end
+    end
+    query({
         prompt = current,
     }, function(choice)
-      vim.cmd(string.format('%s %s', current, choice))
+        if choice ~= nil then
+            vim.cmd(string.format('%s %s', current, choice))
+        end
     end)
 end
 
