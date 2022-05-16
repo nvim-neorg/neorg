@@ -29,6 +29,8 @@ end
 module.config.public = {
     lookahead = true,
     fuzzing_threshold = 0.5,
+    -- List of strings specifying which filetypes to open in an external application
+    external_filetypes = {},
 }
 
 ---@class core.norg.esupports.hop
@@ -445,6 +447,7 @@ module.public = {
                     pdf = open_in_external_app,
                     png = open_in_external_app,
                     [{ "jpg", "jpeg" }] = open_in_external_app,
+                    [module.config.public.external_filetypes] = open_in_external_app,
                     _ = neorg.lib.wrap(vim.cmd, "e " .. destination),
                 })
 
