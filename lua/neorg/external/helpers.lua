@@ -167,6 +167,21 @@ neorg.lib = {
             -- Go through every statement, compare it, and perform the desired action
             -- if the comparison was successful
             for case, action in pairs(statements) do
+                -- If the case statement is a list of data then compare that
+                if type(case) == "table" and vim.tbl_islist(case) then
+                    for _, subcase in ipairs(case) do
+                        if compare(value, subcase) then
+                            -- The action can be a function, in which case it is invoked
+                            -- and the return value of that function is returned instead.
+                            if type(action) == "function" then
+                                return action(value)
+                            end
+
+                            return action
+                        end
+                    end
+                end
+
                 if compare(value, case) then
                     -- The action can be a function, in which case it is invoked
                     -- and the return value of that function is returned instead.
