@@ -93,12 +93,17 @@ module.public = {
 module.config.public = {
     indents = {
         _ = {
-            modifiers = { "under-headings" },
+            modifiers = { "under-headings", "under-indent-segments" },
             indent = 0,
         },
 
         ["paragraph_segment"] = {
-            modifiers = { "under-headings", "under-nestable-detached-modifiers" },
+            modifiers = { "under-headings", "under-indent-segments", "under-nestable-detached-modifiers" },
+            indent = 0,
+        },
+
+        ["indent_segment"] = {
+            modifiers = { "under-headings" },
             indent = 0,
         },
 
@@ -138,11 +143,6 @@ module.config.public = {
             indent = 0,
         },
 
-        ["ranged_tag"] = {
-            modifiers = { "under-headings" },
-            indent = 0,
-        },
-
         ["ranged_tag_content"] = {
             indent = -1,
         },
@@ -163,6 +163,16 @@ module.config.public = {
             end
 
             return module.required["core.integrations.treesitter"].get_node_range(heading:named_child(1)).column_start
+        end,
+
+        ["under-indent-segments"] = function(_, node)
+            local indent_segment = module.required["core.integrations.treesitter"].find_parent(node, "indent_segment%d?")
+
+            if not indent_segment then
+                return 0
+            end
+
+            return module.required["core.integrations.treesitter"].get_node_range(indent_segment:named_child(0)).column_start + string.len("\\\n")
         end,
 
         -- For any object that should be indented under a list
