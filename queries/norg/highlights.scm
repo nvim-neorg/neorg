@@ -233,6 +233,8 @@ state: [
 (inline_math ["_open" "_close"] @NeorgMarkupMathDelimiter) @NeorgMarkupMath
 (variable ["_open" "_close"] @NeorgMarkupVariableDelimiter) @NeorgMarkupVariable
 
+(inline_comment) @comment
+
 (superscript (subscript) @NeorgError (#set! priority 300))
 (subscript (superscript) @NeorgError (#set! priority 300))
 
