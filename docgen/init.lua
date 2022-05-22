@@ -1,5 +1,9 @@
 local docgen = {}
 
+local function get_node_text(node, buf)
+    return vim.split(vim.treesitter.get_node_text(node, buf) or "", "\n")
+end
+
 -- Create the directory if it does not exist
 docgen.output_dir = "wiki"
 pcall(vim.fn.mkdir, docgen.output_dir)
@@ -64,7 +68,7 @@ docgen.get_module_top_comment = function(path)
         return
     end
 
-    local comment = ts_utils.get_node_text(node, buf)
+    local comment = get_node_text(node, buf)
 
     -- Stops execution if it's not a multiline comment
     if not comment[1] == "--[[" or not comment[#comment] == "--]]" then
@@ -448,7 +452,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                         table.insert(values, "  ```lua")
 
                                         local text = neorg.lib.map(
-                                            ts.get_ts_utils().get_node_text(parsed_config_option),
+                                            get_node_text(parsed_config_option),
                                             function(_, value)
                                                 return "  " .. value
                                             end
