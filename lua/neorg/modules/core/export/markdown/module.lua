@@ -2,7 +2,6 @@
     File: Markdown-Export
     Title: Neorg's Markdown Exporter
     Summary: Interface for `core.export` to allow exporting to markdown.
-    Internal: true
     ---
 This module exists as an interface for `core.export` to export `.norg` files to MD.
 As a user the only reason you would ever have to touch this module is to configure *how* you'd
