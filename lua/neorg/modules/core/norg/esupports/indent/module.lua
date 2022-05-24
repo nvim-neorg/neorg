@@ -166,13 +166,17 @@ module.config.public = {
         end,
 
         ["under-indent-segments"] = function(_, node)
-            local indent_segment = module.required["core.integrations.treesitter"].find_parent(node, "indent_segment%d?")
+            local indent_segment = module.required["core.integrations.treesitter"].find_parent(
+                node,
+                "indent_segment%d?"
+            )
 
             if not indent_segment then
                 return 0
             end
 
-            return module.required["core.integrations.treesitter"].get_node_range(indent_segment:named_child(0)).column_start + string.len("\\\n")
+            return module.required["core.integrations.treesitter"].get_node_range(indent_segment:named_child(0)).column_start
+                + string.len("\\\n")
         end,
 
         -- For any object that should be indented under a list
