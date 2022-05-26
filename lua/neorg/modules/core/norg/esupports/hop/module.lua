@@ -9,6 +9,7 @@ require("neorg.modules.base")
 require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.norg.esupports.hop")
+local job = require("plenary.job")
 
 module.setup = function()
     return {
@@ -400,14 +401,21 @@ module.public = {
         return neorg.lib.match(parsed_link_information.link_type)({
             -- If we're dealing with a URL, simply open the URL in the user's preferred method
             url = function()
-                local destination = parsed_link_information.link_location_text
+                local function open_with(command)
+                    job
+                        :new({
+                            command = command,
+                            args = { parsed_link_information.link_location_text },
+                        })
+                        :start()
+                end
 
                 if neorg.configuration.os_info == "linux" then
-                    vim.cmd('silent !xdg-open "' .. vim.fn.fnameescape(destination) .. '"')
+                    open_with("xdg-open")
                 elseif neorg.configuration.os_info == "mac" then
-                    vim.cmd('silent !open "' .. vim.fn.fnameescape(destination) .. '"')
+                    open_with("open")
                 else
-                    vim.cmd('silent !start "' .. vim.fn.fnameescape(destination) .. '"')
+                    open_with("start")
                 end
 
                 return {}
@@ -422,24 +430,21 @@ module.public = {
                     ) .. destination
 
                 local function open_in_external_app()
+                    local function open_with(command)
+                        job
+                            :new({
+                                command = command,
+                                args = { vim.uri_from_fname(vim.fn.expand(destination)) },
+                            })
+                            :start()
+                    end
+
                     if neorg.configuration.os_info == "linux" then
-                        vim.cmd(
-                            'silent !xdg-open "'
-                                .. vim.fn.fnameescape(vim.uri_from_fname(vim.fn.expand(destination)))
-                                .. '"'
-                        )
+                        open_with("xdg-open")
                     elseif neorg.configuration.os_info == "mac" then
-                        vim.cmd(
-                            'silent !open "'
-                                .. vim.fn.fnameescape(vim.uri_from_fname(vim.fn.expand(destination)))
-                                .. '"'
-                        )
+                        open_with("open")
                     else
-                        vim.cmd(
-                            'silent !start "'
-                                .. vim.fn.fnameescape(vim.uri_from_fname(vim.fn.expand(destination)))
-                                .. '"'
-                        )
+                        open_with("start")
                     end
                 end
 
