@@ -33,7 +33,7 @@ end
 
 --- This function gets called upon entering a .norg file and loads all of the user-defined modules.
 ---@param manual boolean #If true then the environment was kickstarted manually by the user
----@param arguments string #A list of arguments in the format of "key=value other_key=other_value"
+---@param arguments string? #A list of arguments in the format of "key=value other_key=other_value"
 function neorg.org_file_entered(manual, arguments)
     -- Extract the module list from the user configuration
     local module_list = configuration.user_configuration and configuration.user_configuration.load or {}
