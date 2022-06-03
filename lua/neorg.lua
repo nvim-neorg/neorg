@@ -24,7 +24,7 @@ function neorg.setup(config)
     vim.filetype.add({
         extension = {
             norg = "norg",
-        }
+        },
     })
 
     -- If the file we have entered has a .norg extension
