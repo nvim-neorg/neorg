@@ -137,21 +137,25 @@ end
 ---@param args table #previous arguments of the command Neorg
 ---@param choices table #all possible choices for the next argument
 local _select_next_cmd_arg = function(args, choices)
-    local current = string.format('Neorg %s', table.concat(args, ' '))
+    local current = string.format("Neorg %s", table.concat(args, " "))
 
     local query
 
     if vim.tbl_isempty(choices) then
-        query = function(...) vim.ui.input(...) end
+        query = function(...)
+            vim.ui.input(...)
+        end
     else
-        query = function(...) vim.ui.select(choices, ...) end
+        query = function(...)
+            vim.ui.select(choices, ...)
+        end
     end
 
     query({
         prompt = current,
     }, function(choice)
         if choice ~= nil then
-            vim.cmd(string.format('%s %s', current, choice))
+            vim.cmd(string.format("%s %s", current, choice))
         end
     end)
 end
@@ -329,7 +333,7 @@ module.public = {
             -- performs a recursion on the data of each keybind versus the completions of each keybind. This means
             -- that keybinds with many arguments wouldn't be registered and would instead cause this function to
             -- loop. The only solution is to query completions for the next item here.
-            local completions = _neorgcmd_generate_completions(_, string.format("Neorg %s ", table.concat(args, " "))
+            local completions = _neorgcmd_generate_completions(_, string.format("Neorg %s ", table.concat(args, " ")))
             _select_next_cmd_arg(args, completions)
             return
         end
