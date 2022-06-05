@@ -46,6 +46,7 @@ module.examples = {
                 },
             })
         end
+
         -- Afterwards, you want to subscribe to the corresponding event:
 
         module.events.subscribed = {
@@ -132,10 +133,38 @@ function _neorgcmd_generate_completions(_, command)
     end, vim.tbl_keys(ref))
 end
 
+--- Queries the user to select next argument
+---@param args table #previous arguments of the command Neorg
+---@param choices table #all possible choices for the next argument
+local _select_next_cmd_arg = function(args, choices)
+    local current = string.format("Neorg %s", table.concat(args, " "))
+
+    local query
+
+    if vim.tbl_isempty(choices) then
+        query = function(...)
+            vim.ui.input(...)
+        end
+    else
+        query = function(...)
+            vim.ui.select(choices, ...)
+        end
+    end
+
+    query({
+        prompt = current,
+    }, function(choice)
+        if choice ~= nil then
+            vim.cmd(string.format("%s %s", current, choice))
+        end
+    end)
+end
+
 module.load = function()
-    -- Define the :Neorg command with autocompletion and a requirement of at least one argument (-nargs=+)
+    -- Define the :Neorg command with autocompletion taking any number of arguments (-nargs=*)
+    -- If the user passes no arguments or too few, we'll query them for the remainder, using _select_next_cmd_arg.
     vim.cmd(
-        [[ command! -nargs=+ -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd.module').public.function_callback(<f-args>) ]]
+        [[ command! -nargs=* -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd.module').public.function_callback(<f-args>) ]]
     )
 
     -- Loop through all the command modules we want to load and load them
@@ -296,15 +325,16 @@ module.public = {
             ref_data_one_above.max_args = ref_data_one_above.args
         end
 
-        -- If our recursion depth is smaller than the minimum argument count then that means we have not supplied enough arguments
-        if #args - current_depth < ref_data_one_above.min_args then
-            log.error(
-                "Unable to execute neorg command under name",
-                event_name,
-                "- minimum argument count not satisfied. The command requires at least",
-                ref_data_one_above.min_args,
-                "arguments."
-            )
+        -- If our recursion depth is smaller than the minimum argument count then that means the user has not supplied enough arguments
+        -- We'll therefore query the user for the remainder
+        if #args == 0 or #args - current_depth < ref_data_one_above.min_args then
+            -- When an insufficient amount of arguments are provided Neorg will query for the next mandatory
+            -- argument - this may not be done with the `ref_definitions` table however, as `ref_definitions`
+            -- performs a recursion on the data of each keybind versus the completions of each keybind. This means
+            -- that keybinds with many arguments wouldn't be registered and would instead cause this function to
+            -- loop. The only solution is to query completions for the next item here.
+            local completions = _neorgcmd_generate_completions(_, string.format("Neorg %s ", table.concat(args, " ")))
+            _select_next_cmd_arg(args, completions)
             return
         end
 
