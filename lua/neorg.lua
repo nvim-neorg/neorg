@@ -89,12 +89,25 @@ function neorg.org_file_entered(manual, arguments)
         )
     end
 
+    -- Load some modules, on which other modules rely first
+    local prioritized_modules = { "core.defaults", "core.norg.dirman" }
+    for _, module in ipairs(prioritized_modules) do
+        if vim.tbl_contains(vim.tbl_keys(module_list), module) then
+            if not neorg.modules.load_module(module) then
+                log.warn("Recovering from error...")
+                neorg.modules.loaded_modules[module] = nil
+            end
+        end
+    end
+
     -- After all configurations are merged proceed to actually load the modules
     for name, _ in pairs(module_list) do
-        -- If it could not be loaded then halt
-        if not neorg.modules.load_module(name) then
-            log.warn("Recovering from error...")
-            neorg.modules.loaded_modules[name] = nil
+        if not vim.tbl_contains(prioritized_modules, name) then
+            -- If it could not be loaded then halt
+            if not neorg.modules.load_module(name) then
+                log.warn("Recovering from error...")
+                neorg.modules.loaded_modules[name] = nil
+            end
         end
     end
 
