@@ -165,7 +165,7 @@ module.public = {
                         --                      node already being parsed
                         --  `returned_state`   - a modified version of the state that then gets merged into the main state table
                         local resulting_string, keep_descending, returned_state = exporter(
-                            module.required["core.integrations.treesitter"].get_node_text(node, buffer),
+                            vim.treesitter.get_node_text(node, buffer),
                             node,
                             state,
                             ts_utils
