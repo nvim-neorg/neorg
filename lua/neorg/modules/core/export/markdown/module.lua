@@ -70,6 +70,7 @@ module.load = function()
             "todo-items-extended",
             "definition-lists",
             "mathematics",
+            "metadata",
         }
     end
 
@@ -81,7 +82,7 @@ module.config.public = {
     -- default no extensions are loaded (the exporter is commonmark compliant).
     -- You can also set this value to `"all"` to enable all extensions.
     -- The full extension list is: `todo-items-basic`, `todo-items-pending`, `todo-items-extended`,
-    -- `definition-lists` and `mathematics`.
+    -- `definition-lists`, `mathematics` and 'metadata'.
     extensions = {},
 
     -- Data about how to render mathematics.
@@ -96,6 +97,14 @@ module.config.public = {
             start = "$$",
             ["end"] = "$$",
         },
+    },
+
+    -- Data about how to render metadata
+    -- There are a few ways to render metadata blocks, but this is the most
+    -- common.
+    metadata = {
+        start = "---",
+        ["end"] = "---", -- Is usually also "..."
     },
 
     -- Used by the exporter to know what extension to use
@@ -121,6 +130,7 @@ module.public = {
                 tag_close = "",
                 ranged_tag_indentation_level = 0,
                 is_url = false,
+                is_in_metadata_block = false,
             }
         end,
 
@@ -266,12 +276,24 @@ module.public = {
                         {
                             tag_close = module.config.public.mathematics.block["end"],
                         }
+                elseif text == "document.meta" and module.config.public.extensions["metadata"] then
+                    return module.config.public.metadata["start"] .. "\n", false, {
+                        tag_close = module.config.public.metadata["end"],
+                        is_in_metadata_block = true,
+                    }
+                end
+            end,
+
+            ["ranged_tag_content"] = function(text, _, state)
+                if state.is_in_metadata_block and module.config.public.extensions["metadata"] then
+                    return text
                 end
             end,
 
             ["ranged_tag_end"] = function(_, _, state)
                 local tag_close = state.tag_close
                 state.tag_close = nil
+                state.is_in_metadata_block = false
                 return tag_close
             end,
 
@@ -424,7 +446,7 @@ module.public = {
 
         cleanup = function(text)
             last_parsed_link_location = ""
-            return text:gsub("\n\n\n+", "\n\n")
+            -- return text:gsub("\n\n\n+", "\n\n")
         end,
     },
 }
