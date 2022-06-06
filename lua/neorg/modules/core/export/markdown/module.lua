@@ -277,10 +277,12 @@ module.public = {
                             tag_close = module.config.public.mathematics.block["end"],
                         }
                 elseif text == "document.meta" and module.config.public.extensions["metadata"] then
-                    return module.config.public.metadata["start"] .. "\n", false, {
-                        tag_close = module.config.public.metadata["end"],
-                        is_in_metadata_block = true,
-                    }
+                    return module.config.public.metadata["start"] .. "\n",
+                        false,
+                        {
+                            tag_close = module.config.public.metadata["end"],
+                            is_in_metadata_block = true,
+                        }
                 end
             end,
 
