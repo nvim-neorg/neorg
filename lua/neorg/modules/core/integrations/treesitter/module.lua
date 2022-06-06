@@ -20,12 +20,6 @@ end
 module.load = function()
     local success, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
 
-    -- HACK(vhyrro): Yes, this is very hacky.
-    -- Yes, it also works :)
-    ts_utils.get_node_text = function(node, buffer)
-        return vim.split(vim.treesitter.query.get_node_text(node, buffer), "\n")
-    end
-
     assert(success, "Unable to load nvim-treesitter.ts_utils :(")
 
     if module.config.public.configure_parsers then
@@ -320,14 +314,14 @@ module.public = {
         for child, _ in tag_node:iter_children() do
             -- If we're dealing with the tag name then append the text of the tag_name node to this table
             if child:type() == "tag_name" then
-                table.insert(resulting_name, module.private.ts_utils.get_node_text(child)[1])
+                table.insert(resulting_name, vim.split(vim.treesitter.query.get_node_text(child), "\n")[1])
             elseif child:type() == "tag_parameters" then
-                table.insert(params, module.private.ts_utils.get_node_text(child)[1])
+                table.insert(params, vim.split(vim.treesitter.query.get_node_text(child), "\n")[1])
             elseif child:type() == "leading_whitespace" then
-                leading_whitespace = module.private.ts_utils.get_node_text(child)[1]:len()
+                leading_whitespace = vim.split(vim.treesitter.query.get_node_text(child), "\n")[1]:len()
             elseif child:type() == "tag_content" then
                 -- If we're dealing with tag content then retrieve that content
-                content = module.private.ts_utils.get_node_text(child)
+                content = vim.split(vim.treesitter.query.get_node_text(child, 0), "\n")
             end
         end
 
@@ -413,7 +407,7 @@ module.public = {
             return
         end
 
-        local text = module.private.ts_utils.get_node_text(node, buf or 0)
+        local text = vim.split(vim.treesitter.query.get_node_text(node, buf or 0), "\n")
 
         if not text then
             return

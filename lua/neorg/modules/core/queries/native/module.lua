@@ -132,7 +132,7 @@ module.public = {
 
         for _, node in ipairs(nodes) do
             local temp_buf = module.public.get_temp_buf(node[2])
-            local extracted = ts_utils.get_node_text(node[1], temp_buf)
+            local extracted = vim.split(vim.treesitter.query.get_node_text(node[1], temp_buf), "\n")
 
             if opts.all_lines then
                 table.insert(res, extracted)
@@ -232,7 +232,11 @@ module.public = {
             neorg.lib.when(vim.fn.bufloaded(buf) == 1, function()
                 vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
                 vim.api.nvim_buf_call(buf, neorg.lib.wrap(vim.cmd, "write!"))
-            end, neorg.lib.wrap(vim.fn.writefile, lines, fname))
+            end, neorg.lib.wrap(
+                vim.fn.writefile,
+                lines,
+                fname
+            ))
 
             -- We reset the state as false because we are consistent with the original file
             temp_buf.changed = false
@@ -388,7 +392,10 @@ With that in mind, you can do something like this (for example):
 
             if where[1] == "child_content" then
                 local temp_buf = module.public.get_temp_buf(opts.bufnr)
-                if node:type() == where[2] and ts_utils.get_node_text(node, temp_buf)[1] == where[3] then
+                if
+                    node:type() == where[2]
+                    and vim.split(vim.treesitter.query.get_node_text(node, temp_buf), "\n")[1] == where[3]
+                then
                     return true
                 end
             end
