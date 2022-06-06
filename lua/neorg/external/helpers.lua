@@ -10,13 +10,13 @@ neorg.utils = {
         local current_os = require("neorg.config").os_info
 
         if not current_os then
-            return current_os
+            return ""
         end
 
         if current_os == "linux" or current_os == "mac" then
-            return os.getenv("USER")
+            return os.getenv("USER") or ""
         elseif current_os == "windows" then
-            return os.getenv("username")
+            return os.getenv("username") or ""
         end
 
         return ""
