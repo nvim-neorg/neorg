@@ -120,6 +120,10 @@ module.private = {
 
     disable_deferred_updates = false,
     debounce_counters = {},
+
+    enabled = true,
+
+    attach_uid = 0,
 }
 
 ---@class core.norg.concealer
@@ -897,6 +901,25 @@ module.public = {
             end,
         })
     end,
+
+    toggle_concealer = function()
+        module.private.enabled = not module.private.enabled
+
+        if module.private.enabled then
+            neorg.events.send_event("core.norg.concealer", neorg.events.create(module, "core.autocommands.events.bufenter", {
+                norg = true
+            }))
+        else
+            for _, namespace in ipairs({
+                "icon_namespace",
+                "code_block_namespace",
+                "completion_level_namespace",
+            }) do
+                vim.api.nvim_buf_clear_namespace(0, module.private[namespace], 0, -1)
+            end
+
+        end
+    end,
 }
 
 module.config.public = {
@@ -1535,9 +1558,31 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
     module.required["core.autocommands"].enable_autocommand("VimLeavePre")
+
+    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+        neorgcmd.add_commands_from_table({
+            definitions = {
+                ["toggle-concealer"] = {},
+            },
+            data = {
+                ["toggle-concealer"] = {
+                    name = "core.norg.concealer.toggle",
+                    args = 0,
+                },
+            },
+        })
+    end)
 end
 
 module.on_event = function(event)
+    if event.type == "core.neorgcmd.events.core.norg.concealer.toggle" then
+        module.public.toggle_concealer()
+    end
+
+    if not module.private.enabled then
+        return
+    end
+
     module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
         or 0
 
@@ -1626,11 +1671,14 @@ module.on_event = function(event)
             )
         end
 
+        module.private.attach_uid = module.private.attach_uid + 1
+        local uid_upvalue = module.private.attach_uid
+
         vim.api.nvim_buf_attach(buf, false, {
             on_lines = function(_, cur_buf, _, start, _end)
                 -- There are edge cases where the current buffer is not the same as the tracked buffer,
                 -- which causes desyncs
-                if buf ~= cur_buf then
+                if buf ~= cur_buf or not module.private.enabled or uid_upvalue ~= module.private.attach_uid then
                     return true
                 end
 
@@ -1766,6 +1814,10 @@ module.events.subscribed = {
         insertenter = true,
         insertleave = true,
         vimleavepre = true,
+    },
+
+    ["core.neorgcmd"] = {
+        ["core.norg.concealer.toggle"] = true,
     },
 }
 
