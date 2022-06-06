@@ -906,9 +906,12 @@ module.public = {
         module.private.enabled = not module.private.enabled
 
         if module.private.enabled then
-            neorg.events.send_event("core.norg.concealer", neorg.events.create(module, "core.autocommands.events.bufenter", {
-                norg = true
-            }))
+            neorg.events.send_event(
+                "core.norg.concealer",
+                neorg.events.create(module, "core.autocommands.events.bufenter", {
+                    norg = true,
+                })
+            )
         else
             for _, namespace in ipairs({
                 "icon_namespace",
@@ -917,7 +920,6 @@ module.public = {
             }) do
                 vim.api.nvim_buf_clear_namespace(0, module.private[namespace], 0, -1)
             end
-
         end
     end,
 }
