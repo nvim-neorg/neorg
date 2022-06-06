@@ -206,7 +206,7 @@ module.public = {
 
                     local line, _, _ = node:start()
                     local heading_text_node = ts.get_first_node("paragraph_segment", 0, node)
-                    local heading_text = ts_utils.get_node_text(heading_text_node, 0)
+                    local heading_text = vim.split(vim.treesitter.query.get_node_text(heading_text_node, 0), "\n")
 
                     local prefix = string.rep(display_as_links and "-" or "*", heading_level)
                         .. (display_as_links and "> " or " ")
