@@ -90,10 +90,18 @@ function neorg.modules.load_module_from_table(module, parent)
             -- This would've always returned false had we not added the current module to the loaded module list earlier above
             if not neorg.modules.is_module_loaded(required_module) then
                 if neorg.configuration.user_configuration[required_module] then
-                    log.trace("Wanted module", require_module, "isn't loaded but can be as it's defined in the user's config. Loading...")
+                    log.trace(
+                        "Wanted module",
+                        require_module,
+                        "isn't loaded but can be as it's defined in the user's config. Loading..."
+                    )
 
                     if not neorg.modules.load_module(required_module) then
-                        log.error("Unable to load wanted module for", loaded_module.name, "- the module didn't load successfully")
+                        log.error(
+                            "Unable to load wanted module for",
+                            loaded_module.name,
+                            "- the module didn't load successfully"
+                        )
 
                         -- Make sure to clean up after ourselves if the module failed to load
                         neorg.modules.loaded_modules[module.name] = nil
