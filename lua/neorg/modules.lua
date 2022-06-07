@@ -89,15 +89,27 @@ function neorg.modules.load_module_from_table(module, parent)
 
             -- This would've always returned false had we not added the current module to the loaded module list earlier above
             if not neorg.modules.is_module_loaded(required_module) then
-                log.error(
-                    (
-                        "Unable to load module %s, wanted dependency %s was not satisfied. Be sure to load the module and its appropriate config too!"
-                    ):format(module.name, required_module)
-                )
+                if neorg.configuration.user_configuration[required_module] then
+                    log.trace("Wanted module", require_module, "isn't loaded but can be as it's defined in the user's config. Loading...")
 
-                -- Make sure to clean up after ourselves if the module failed to load
-                neorg.modules.loaded_modules[module.name] = nil
-                return false
+                    if not neorg.modules.load_module(required_module) then
+                        log.error("Unable to load wanted module for", loaded_module.name, "- the module didn't load successfully")
+
+                        -- Make sure to clean up after ourselves if the module failed to load
+                        neorg.modules.loaded_modules[module.name] = nil
+                        return false
+                    end
+                else
+                    log.error(
+                        (
+                            "Unable to load module %s, wanted dependency %s was not satisfied. Be sure to load the module and its appropriate config too!"
+                        ):format(module.name, required_module)
+                    )
+
+                    -- Make sure to clean up after ourselves if the module failed to load
+                    neorg.modules.loaded_modules[module.name] = nil
+                    return false
+                end
             end
 
             -- Create a reference to the dependency's public table
