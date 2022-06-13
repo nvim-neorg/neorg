@@ -1,4 +1,4 @@
-local module = neorg.modules.create("core.export.norg_from_0_0_11")
+local module = neorg.modules.create("core.export.norg_from_0_0_10")
 
 local function convert_unordered_link(text)
     local substitution = text:gsub("^([%-~]+)>", "%1")
@@ -11,10 +11,21 @@ module.config.public = {
 }
 
 module.public = {
-    output = "0.0.12",
+    output = "0.0.11",
 
     export = {
         functions = {
+            _ = function(text, node, _, ts_utils)
+                local prev = ts_utils.get_previous_node(node, true, true)
+                -- TODO: Fix
+                log.warn(node, prev, node:child_count())
+
+                local prev_start_line, prev_start_column = prev and prev:range()
+                local start_line, start_column = node:range()
+
+                return (prev_start_line ~= start_line and string.rep(" ", start_column) .. text or text)
+            end,
+
             ["_open"] = function(_, node)
                 if node:parent():type() == "spoiler" then
                     return "!"

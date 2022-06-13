@@ -155,7 +155,18 @@ module.public = {
             end
 
             if start:child_count() == 0 and converter_config.verbatim then
-                return table.concat(ts_utils.get_node_text(start), "\n")
+                local resulting_string, keep_descending, returned_state = vim.treesitter.get_node_text(start, buffer), false, {}
+
+                if converter.export.functions._ then
+                    resulting_string, keep_descending, returned_state = converter.export.functions._(
+                        vim.treesitter.get_node_text(start, buffer),
+                        start,
+                        state,
+                        ts_utils
+                    )
+                end
+
+                return resulting_string
             end
 
             local output = {}
@@ -163,6 +174,17 @@ module.public = {
             for node in start:iter_children() do
                 -- See if there is a conversion function for the specific node type we're dealing with
                 local exporter = converter.export.functions[node:type()]
+
+                local resulting_string, keep_descending, returned_state = "", false, {}
+
+                if converter.export.functions._ then
+                    resulting_string, keep_descending, returned_state = converter.export.functions._(
+                        vim.treesitter.get_node_text(node, buffer),
+                        node,
+                        state,
+                        ts_utils
+                    )
+                end
 
                 if exporter then
                     -- The value of `exporter` can be of 3 different types:
@@ -175,7 +197,7 @@ module.public = {
                         --  `keep_descending`  - if true will continue to recurse down the current node's children despite the current
                         --                      node already being parsed
                         --  `returned_state`   - a modified version of the state that then gets merged into the main state table
-                        local resulting_string, keep_descending, returned_state = exporter(
+                        resulting_string, keep_descending, returned_state = exporter(
                             vim.treesitter.get_node_text(node, buffer),
                             node,
                             state,
