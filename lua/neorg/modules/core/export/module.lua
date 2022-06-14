@@ -33,6 +33,22 @@ module.setup = function()
     }
 end
 
+-- TODO: Document
+local function get_node_text(node, source)
+    local start_row, start_col, start_byte = node:start()
+    local end_row, end_col, end_byte = node:end_()
+
+    local eof_row = vim.api.nvim_buf_line_count(source)
+
+    if start_row >= eof_row then
+        return nil
+    end
+
+    local lines = vim.api.nvim_buf_get_text(source, start_row, start_col, end_row, end_col, {})
+
+    return table.concat(lines, "\n")
+end
+
 module.load = function()
     neorg.modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
@@ -155,18 +171,7 @@ module.public = {
             end
 
             if start:child_count() == 0 and converter_config.verbatim then
-                local resulting_string, keep_descending, returned_state = vim.treesitter.get_node_text(start, buffer), false, {}
-
-                if converter.export.functions._ then
-                    resulting_string, keep_descending, returned_state = converter.export.functions._(
-                        vim.treesitter.get_node_text(start, buffer),
-                        start,
-                        state,
-                        ts_utils
-                    )
-                end
-
-                return resulting_string
+                return get_node_text(start, buffer)
             end
 
             local output = {}
@@ -174,17 +179,6 @@ module.public = {
             for node in start:iter_children() do
                 -- See if there is a conversion function for the specific node type we're dealing with
                 local exporter = converter.export.functions[node:type()]
-
-                local resulting_string, keep_descending, returned_state = "", false, {}
-
-                if converter.export.functions._ then
-                    resulting_string, keep_descending, returned_state = converter.export.functions._(
-                        vim.treesitter.get_node_text(node, buffer),
-                        node,
-                        state,
-                        ts_utils
-                    )
-                end
 
                 if exporter then
                     -- The value of `exporter` can be of 3 different types:
@@ -197,7 +191,7 @@ module.public = {
                         --  `keep_descending`  - if true will continue to recurse down the current node's children despite the current
                         --                      node already being parsed
                         --  `returned_state`   - a modified version of the state that then gets merged into the main state table
-                        resulting_string, keep_descending, returned_state = exporter(
+                        local resulting_string, keep_descending, returned_state = exporter(
                             vim.treesitter.get_node_text(node, buffer),
                             node,
                             state,
