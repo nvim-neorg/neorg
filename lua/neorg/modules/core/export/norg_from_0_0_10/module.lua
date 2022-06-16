@@ -18,7 +18,7 @@ local function save_whitespace_information()
 
         if not prev then
             return nil, true, {
-                [start_line] = (state[start_line] and math.max(state[start_line], start_column) or start_column),
+                [start_line] = (state[start_line] and math.min(state[start_line], start_column) or start_column),
             }
         end
 
@@ -31,7 +31,7 @@ local function save_whitespace_information()
         -- log.warn(current_line_indentation_level, state[start_line])
 
         return nil, true, {
-            [start_line] = (state[start_line] and math.max(state[start_line], start_column) or start_column),
+            [start_line] = (state[start_line] and math.min(state[start_line], start_column) or start_column),
         }
     end
 end
@@ -40,7 +40,7 @@ local function retain_whitespace()
     return function(output, state, node)
         local start_line, start_column = node:range()
 
-        if not node:prev_sibling() then
+        if start_column == vim.fn.getline(start_line + 1):match("^%s*"):len() then
             table.insert(output, 1, string.rep(" ", state[start_line]))
             state[start_line] = 0
         end
