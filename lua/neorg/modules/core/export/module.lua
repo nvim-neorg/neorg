@@ -76,7 +76,9 @@ module.public = {
     ---@return table,table #The export module and its configuration, else nil
     get_converter = function(ftype)
         if not neorg.modules.is_module_loaded("core.export." .. ftype) then
-            return
+            if not neorg.modules.load_module("core.export." .. ftype) then
+                return
+            end
         end
 
         return neorg.modules.get_module("core.export." .. ftype),
