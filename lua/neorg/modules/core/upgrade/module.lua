@@ -47,6 +47,8 @@ module.on_event = function(event)
         local buffer_name = vim.api.nvim_buf_get_name(event.buffer)
 
         if module.config.public.ask_for_backup then
+            local halt = false
+
             vim.ui.select({ ("Create backup (%s.old)"):format(buffer_name), "Don't create backup" }, {
                 prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?",
             }, function(_, idx)
@@ -55,12 +57,17 @@ module.on_event = function(event)
                     local ok, err = vim.loop.fs_copyfile(current_path, current_path .. ".old")
 
                     if not ok then
+                        halt = true
                         log.error(("Failed to create backup (%s) - upgrading aborted."):format(err))
                         return
                     end
                 else
                 end
             end)
+
+            if halt then
+                return
+            end
         end
 
         local function perform_upgrade(version)
