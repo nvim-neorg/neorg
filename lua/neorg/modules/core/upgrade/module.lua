@@ -19,9 +19,9 @@ module.load = function()
         definitions = {
             upgrade = {
                 ["current-file"] = {},
+                -- ["current-directory"] = {},
                 -- ["file"] = {},
                 -- ["directory"] = {},
-                -- ["current-directory"] = {},
             },
         },
         data = {
@@ -32,6 +32,10 @@ module.load = function()
                         max_args = 1,
                         name = "core.upgrade.current-file",
                     },
+                    -- ["current-directory"] = {
+                    --     max_args = 1,
+                    --     name = "core.upgrade.current-directory",
+                    -- },
                 },
             },
         },
@@ -64,11 +68,24 @@ module.on_event = function(event)
                 neorg.modules.load_module("core.export.norg_from_" .. version)
             end
 
-            -- TODO: The exporting works mostly fine, however there are issues with newlines in certain
-            -- node types (most notably ranged verbatim tags). Those will have to be fixed on a treesitter
-            -- level first before this exporter starts working as intended
             local exported = module.required["core.export"].export(event.buffer, "norg_from_" .. version)
-            log.warn(exported)
+            local filepath = vim.fn.fnamemodify(buffer_name, ":p")
+
+            vim.loop.fs_open(filepath, "w", 438, function(err, fd)
+                assert(
+                    not err,
+                    neorg.lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err)
+                )
+
+                vim.loop.fs_write(fd, exported, 0, function(werr)
+                    assert(
+                        not werr,
+                        neorg.lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr)
+                    )
+                end)
+
+                vim.schedule(neorg.lib.wrap(vim.notify, "Successfully upgraded 1 file!"))
+            end)
         end
 
         if not event.content[1] then
