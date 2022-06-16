@@ -28,8 +28,6 @@ local function save_whitespace_information()
             return nil, true
         end
 
-        -- log.warn(current_line_indentation_level, state[start_line])
-
         return nil, true, {
             [start_line] = (state[start_line] and math.min(state[start_line], start_column) or start_column),
         }
@@ -56,16 +54,24 @@ module.public = {
         functions = {
             _ = save_whitespace_information(),
 
-            ["_open"] = function(_, node)
+            ["_open"] = function(text, node)
                 if node:parent():type() == "spoiler" then
                     return "!"
+                elseif node:parent():type() == "variable" then
+                    return "&"
                 end
+
+                return text
             end,
 
-            ["_close"] = function(_, node)
+            ["_close"] = function(text, node)
                 if node:parent():type() == "spoiler" then
                     return "!"
+                elseif node:parent():type() == "variable" then
+                    return "&"
                 end
+
+                return text
             end,
 
             ["_prefix"] = function(text, node)
@@ -76,6 +82,8 @@ module.public = {
                 return text
             end,
 
+            -- TODO: Apply this also to macro invocations
+            -- Support new markers
             ["tag_name"] = function(text, node)
                 local next = node:next_named_sibling()
                 if next and next:type() == "tag_parameters" then
