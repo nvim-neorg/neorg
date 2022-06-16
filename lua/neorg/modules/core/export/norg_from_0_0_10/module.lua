@@ -10,21 +10,51 @@ module.config.public = {
     verbatim = true,
 }
 
+local function save_whitespace_information()
+    return function(text, node, state, ts_utils)
+        local start_line, start_column = node:range()
+
+        local prev = node:prev_sibling()
+
+        if not prev then
+            return nil, true, {
+                [start_line] = (state[start_line] and math.max(state[start_line], start_column) or start_column),
+            }
+        end
+
+        local _, _, prev_end_line = prev:range()
+
+        if start_line == prev_end_line then
+            return nil, true
+        end
+
+        -- log.warn(current_line_indentation_level, state[start_line])
+
+        return nil, true, {
+            [start_line] = (state[start_line] and math.max(state[start_line], start_column) or start_column),
+        }
+    end
+end
+
+local function retain_whitespace()
+    return function(output, state, node)
+        local start_line, start_column = node:range()
+
+        if not node:prev_sibling() then
+            table.insert(output, 1, string.rep(" ", state[start_line]))
+            state[start_line] = 0
+        end
+
+        return output
+    end
+end
+
 module.public = {
     output = "0.0.11",
 
     export = {
         functions = {
-            _ = function(text, node, _, ts_utils)
-                local prev = ts_utils.get_previous_node(node, true, true)
-                -- TODO: Fix
-                log.warn(node, prev, node:child_count())
-
-                local prev_start_line, prev_start_column = prev and prev:range()
-                local start_line, start_column = node:range()
-
-                return (prev_start_line ~= start_line and string.rep(" ", start_column) .. text or text)
-            end,
+            _ = save_whitespace_information(),
 
             ["_open"] = function(_, node)
                 if node:parent():type() == "spoiler" then
@@ -79,8 +109,12 @@ module.public = {
             ["ordered_link4"] = convert_unordered_link,
             ["ordered_link5"] = convert_unordered_link,
             ["ordered_link6"] = convert_unordered_link,
+        },
+
+        recollectors = {
+            _ = retain_whitespace(),
         }
-    }
+    },
 }
 
 return module

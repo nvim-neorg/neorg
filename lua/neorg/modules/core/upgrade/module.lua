@@ -5,8 +5,8 @@ module.setup = function()
         requires = {
             "core.export",
             "core.neorgcmd",
-            "core.integrations.treesitter"
-        }
+            "core.integrations.treesitter",
+        },
     }
 end
 
@@ -22,7 +22,7 @@ module.load = function()
                 -- ["file"] = {},
                 -- ["directory"] = {},
                 -- ["current-directory"] = {},
-            }
+            },
         },
         data = {
             upgrade = {
@@ -31,10 +31,10 @@ module.load = function()
                     ["current-file"] = {
                         max_args = 1,
                         name = "core.upgrade.current-file",
-                    }
-                }
-            }
-        }
+                    },
+                },
+            },
+        },
     })
 end
 
@@ -44,7 +44,7 @@ module.on_event = function(event)
 
         if module.config.public.ask_for_backup then
             vim.ui.select({ ("Create backup (%s.old)"):format(buffer_name), "Don't create backup" }, {
-                prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?"
+                prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?",
             }, function(_, idx)
                 if idx == 1 then
                     local current_path = vim.fn.expand("%:p")
@@ -108,7 +108,7 @@ end
 module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["core.upgrade.current-file"] = true,
-    }
+    },
 }
 
 return module

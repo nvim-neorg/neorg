@@ -171,7 +171,14 @@ module.public = {
             end
 
             if start:child_count() == 0 and converter_config.verbatim then
-                return get_node_text(start, buffer)
+                local resulting_string = converter.export.functions._ and converter.export.functions._(
+                    get_node_text(start, buffer),
+                    start,
+                    state,
+                    ts_utils
+                ) or get_node_text(start, buffer)
+
+                return resulting_string
             end
 
             local output = {}
@@ -180,19 +187,32 @@ module.public = {
                 -- See if there is a conversion function for the specific node type we're dealing with
                 local exporter = converter.export.functions[node:type()]
 
+                -- An exporter function can return 3 values:
+                --  `resulting_string` - the converted text
+                --  `keep_descending`  - if true will continue to recurse down the current node's children despite the current
+                --                      node already being parsed
+                --  `returned_state`   - a modified version of the state that then gets merged into the main state table
+                local resulting_string, keep_descending, returned_state = "", false, {}
+
+                if converter.export.functions._ then
+                    resulting_string, keep_descending, returned_state = converter.export.functions._(
+                        get_node_text(node, buffer),
+                        node,
+                        state,
+                        ts_utils
+                    )
+
+                    state = returned_state and vim.tbl_extend("force", state, returned_state) or state
+                end
+
                 if exporter then
                     -- The value of `exporter` can be of 3 different types:
                     --  a function, in which case it should be executed
                     --  a boolean (true), which signifies to use the content of the node as-is without changing anything
                     --  a string, in which case every time the node is encountered it will always be converted to a static value
                     if type(exporter) == "function" then
-                        -- An exporter function can return 3 values:
-                        --  `resulting_string` - the converted text
-                        --  `keep_descending`  - if true will continue to recurse down the current node's children despite the current
-                        --                      node already being parsed
-                        --  `returned_state`   - a modified version of the state that then gets merged into the main state table
-                        local resulting_string, keep_descending, returned_state = exporter(
-                            vim.treesitter.get_node_text(node, buffer),
+                        resulting_string, keep_descending, returned_state = exporter(
+                            get_node_text(node, buffer),
                             node,
                             state,
                             ts_utils
@@ -244,8 +264,15 @@ module.public = {
             -- and rearrange its components to { "Term", ": ", "Definition" } to then achieve the desired result.
             local recollector = converter.export.recollectors and converter.export.recollectors[start:type()]
 
-            return recollector and table.concat(recollector(output, state) or {})
-                or (not vim.tbl_isempty(output) and table.concat(output))
+            if recollector then
+                ret = table.concat(recollector(output, state, start) or {})
+            elseif converter.export.recollectors._ then
+                ret = table.concat(converter.export.recollectors._(output, state, start) or {})
+            elseif not vim.tbl_isempty(output) then
+                ret = table.concat(output)
+            end
+
+            return ret
         end
 
         local output = descend(document_root)
