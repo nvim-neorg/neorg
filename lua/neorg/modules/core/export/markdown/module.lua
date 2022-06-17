@@ -446,7 +446,7 @@ module.public = {
             end,
         },
 
-        cleanup = function(text)
+        cleanup = function()
             last_parsed_link_location = ""
             -- return text:gsub("\n\n\n+", "\n\n")
         end,

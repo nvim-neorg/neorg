@@ -179,7 +179,6 @@ module.public = {
             generator = { generator, "function", true },
         })
 
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
         local ts = module.required["core.integrations.treesitter"]
 
         -- Initialize the default generator if it can't be found

@@ -66,9 +66,9 @@ module.public = {
 
         selection
             :blank()
-            :concat(function(_selection)
+            :concat(function()
                 return module.private.edit_prompt(
-                    _selection,
+                    selection,
                     "e",
                     "Edit content",
                     "content",
@@ -78,9 +78,9 @@ module.public = {
             end)
             :blank()
             :text("General Metadatas")
-            :concat(function(_selection)
+            :concat(function()
                 return module.private.edit(
-                    _selection,
+                    selection,
                     "c",
                     { edit = "Edit contexts", delete = "Delete contexts" },
                     modified,
@@ -88,9 +88,9 @@ module.public = {
                     task_extracted
                 )
             end)
-            :concat(function(_selection)
+            :concat(function()
                 return module.private.edit(
-                    _selection,
+                    selection,
                     "w",
                     { edit = "Edit waiting fors", delete = "Delete waiting fors" },
                     modified,
@@ -100,15 +100,15 @@ module.public = {
             end)
             :blank()
             :text("Due/Start dates")
-            :concat(function(_selection)
-                return module.private.edit_date(_selection, "s", {
+            :concat(function()
+                return module.private.edit_date(selection, "s", {
                     title = "Reschedule or remove start date",
                     edit = "Reschedule date",
                     delete = "Remove start date",
                 }, modified, "time.start", task)
             end)
-            :concat(function(_selection)
-                return module.private.edit_date(_selection, "d", {
+            :concat(function()
+                return module.private.edit_date(selection, "d", {
                     title = "Reschedule or remove due date",
                     edit = "Reschedule date",
                     delete = "Remove due date",
@@ -194,8 +194,8 @@ module.private = {
             selection = selection
                 :text(texts.edit)
                 :blank()
-                :concat(function(_selection)
-                    selection = module.private.edit_prompt(_selection, "e", texts.edit, key, modified, {
+                :concat(function()
+                    selection = module.private.edit_prompt(selection, "e", texts.edit, key, modified, {
                         prompt_title = texts.edit,
                         pop_page = true,
                         multiple_texts = true,

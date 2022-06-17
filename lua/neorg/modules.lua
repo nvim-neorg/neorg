@@ -92,7 +92,7 @@ function neorg.modules.load_module_from_table(module, parent)
                 if neorg.configuration.user_configuration[required_module] then
                     log.trace(
                         "Wanted module",
-                        require_module,
+                        required_module,
                         "isn't loaded but can be as it's defined in the user's config. Loading..."
                     )
 

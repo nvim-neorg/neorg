@@ -391,8 +391,12 @@ module.public = {
             },
         }
 
-        local extract = function(_node, extracted)
-            local tag_content_nodes = module.required["core.queries.native"].query_from_tree(_node[1], tree, _node[2])
+        local extract = function(node_to_extract, extracted)
+            local tag_content_nodes = module.required["core.queries.native"].query_from_tree(
+                node_to_extract[1],
+                tree,
+                node_to_extract[2]
+            )
 
             if #tag_content_nodes == 0 then
                 return nil
