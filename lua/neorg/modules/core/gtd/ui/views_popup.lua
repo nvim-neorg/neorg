@@ -26,8 +26,8 @@ module.public = {
             end
         )
 
-        selection:title("Views"):blank():concat(function(_selection)
-            return module.private.generate_display_flags(_selection, tasks, projects)
+        selection:title("Views"):blank():concat(function()
+            return module.private.generate_display_flags(selection, tasks, projects)
         end)
 
         module.public.display_messages()
@@ -90,15 +90,15 @@ module.private = {
     --- Show informations flag
     ---@param selection core.ui.selection
     generate_informations = function(selection)
-        local function files_text(_selection, files)
+        local function files_text(files)
             if not files then
-                return _selection:text("No files found")
+                return selection:text("No files found")
             end
 
             for _, file in pairs(files) do
-                _selection:text("- " .. file, "TSComment")
+                selection:text("- " .. file, "TSComment")
             end
-            return _selection
+            return selection
         end
 
         local files = module.required["core.gtd.helpers"].get_gtd_files()
@@ -117,10 +117,10 @@ module.private = {
                     })
                     :blank()
                     :text("Files used for GTD")
-                    :concat(neorg.lib.wrap(files_text, selection, files))
+                    :concat(neorg.lib.wrap(files_text, files))
                     :blank()
                     :text("Files excluded")
-                    :concat(neorg.lib.wrap(files_text, selection, excluded_files))
+                    :concat(neorg.lib.wrap(files_text, excluded_files))
             end,
             destroy = false,
         })

@@ -404,7 +404,7 @@ module.public = {
 
                 local snip = string.format("textSnip%s", string.upper(lang_name))
                 local start_marker = string.format("@code %s", lang_name)
-                local end_marker = "@end"
+                -- local end_marker = "@end"
                 local regex_fallback_hl = string.format(
                     [[
                         syntax sync match %s

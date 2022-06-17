@@ -45,14 +45,15 @@ module.on_event = function(event)
             -- neorg.modules.get_module_config("core.norg.concealer").icons.heading.level_1.icon
             "*" .. " " .. "Loaded Neorg Modules",
         }
-        local ns = vim.api.nvim_create_namespace("neorg-module-list")
 
         for _, mod in pairs(neorg.modules.loaded_modules) do
             table.insert(lines, "  - `" .. mod.name .. "`")
         end
+
         local buf = module.required["core.ui"].create_norg_buffer("module_list", "nosplit")
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
         vim.api.nvim_buf_set_keymap(buf, "n", "q", "<cmd>q<CR>", { noremap = true, silent = true, nowait = true })
+
         local width = vim.api.nvim_win_get_width(0)
         local height = vim.api.nvim_win_get_height(0)
 

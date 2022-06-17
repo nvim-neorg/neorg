@@ -426,12 +426,12 @@ module.private = {
     create_recursive_project_placement = function(selection, node, bufnr, project_title, task, is_project_root)
         ---- Creates flags for generic lists from current node
         ---@param _node core.gtd.queries.project
-        local function get_generic_lists(_node, _bufnr)
+        local function get_generic_lists()
             local tree = {
                 { query = { "all", "generic_list" } },
                 { query = { "all", "carryover_tag_set" } },
             }
-            local nodes = module.required["core.queries.native"].query_from_tree(_node, tree, _bufnr)
+            local nodes = module.required["core.queries.native"].query_from_tree(node, tree, bufnr)
 
             if nodes and not vim.tbl_isempty(nodes) then
                 return nodes
@@ -440,8 +440,8 @@ module.private = {
 
         --- Recursively creates subheadings flags
         ---@param _node userdata
-        local function create_subheadings(_selection, _node, _bufnr)
-            local node_type = _node:type()
+        local function create_subheadings()
+            local node_type = node:type()
             -- Get subheading level
             local heading_level = string.sub(node_type, -1)
             heading_level = tonumber(heading_level) + 1
@@ -453,21 +453,21 @@ module.private = {
                 },
             }
 
-            local nodes = module.required["core.queries.native"].query_from_tree(_node, tree, _bufnr)
+            local nodes = module.required["core.queries.native"].query_from_tree(node, tree, bufnr)
             local extracted_nodes = module.required["core.queries.native"].extract_nodes(nodes)
 
             for i, n in pairs(extracted_nodes) do
                 local f = module.private.create_flag(i)
                 if not f then
-                    _selection:title("Too much subheadings...")
+                    selection:title("Too much subheadings...")
                     break
                 end
                 n = string.sub(n, heading_level + 2)
-                _selection:flag(f, "Append to " .. n .. " (subheading)", {
+                selection:flag(f, "Append to " .. n .. " (subheading)", {
                     callback = function()
-                        _selection:push_page()
+                        selection:push_page()
                         module.private.create_recursive_project_placement(
-                            _selection,
+                            selection,
                             nodes[i][1],
                             nodes[i][2],
                             project_title,
@@ -486,10 +486,10 @@ module.private = {
         local location
 
         selection:text("Where do you want to add the task ?")
-        create_subheadings(selection, node, bufnr)
+        create_subheadings()
         selection:flag("<CR>", description, {
             callback = function()
-                local generic_lists = get_generic_lists(node, bufnr)
+                local generic_lists = get_generic_lists()
                 if generic_lists then
                     local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
