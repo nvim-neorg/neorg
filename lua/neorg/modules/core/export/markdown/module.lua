@@ -64,7 +64,11 @@ local function handle_heading_newlines()
     return function(output, _, node, ts_utils)
         local prev = ts_utils.get_previous_node(node, true, true)
 
-        if prev and not vim.tbl_contains({ "_line_break", "_paragraph_break" }, prev:type()) and ((prev:end_()) + 1) ~= (node:start()) then
+        if
+            prev
+            and not vim.tbl_contains({ "_line_break", "_paragraph_break" }, prev:type())
+            and ((prev:end_()) + 1) ~= (node:start())
+        then
             output[1] = "\n" .. output[1]
         end
 
