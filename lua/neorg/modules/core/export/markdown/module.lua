@@ -72,7 +72,10 @@ local function handle_heading_newlines()
             output[1] = "\n" .. output[1]
         end
 
-        output[3] = output[3] .. "\n"
+        if output[3] then
+            output[3] = output[3] .. "\n"
+        end
+
         return output
     end
 end
