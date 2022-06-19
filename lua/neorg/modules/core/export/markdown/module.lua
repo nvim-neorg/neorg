@@ -60,6 +60,19 @@ local function todo_item_recollector()
     end
 end
 
+local function handle_heading_newlines()
+    return function(output, _, node, ts_utils)
+        local prev = ts_utils.get_previous_node(node, true, true)
+
+        if prev and not vim.tbl_contains({ "_line_break", "_paragraph_break" }, prev:type()) and ((prev:end_()) + 1) ~= (node:start()) then
+            output[1] = "\n" .. output[1]
+        end
+
+        output[3] = output[3] .. "\n"
+        return output
+    end
+end
+
 ---
 
 module.load = function()
@@ -444,6 +457,13 @@ module.public = {
 
                 return output
             end,
+
+            ["heading1"] = handle_heading_newlines(),
+            ["heading2"] = handle_heading_newlines(),
+            ["heading3"] = handle_heading_newlines(),
+            ["heading4"] = handle_heading_newlines(),
+            ["heading5"] = handle_heading_newlines(),
+            ["heading6"] = handle_heading_newlines(),
         },
 
         cleanup = function()
