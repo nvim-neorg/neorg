@@ -219,7 +219,7 @@ module.public = {
             -- and rearrange its components to { "Term", ": ", "Definition" } to then achieve the desired result.
             local recollector = converter.export.recollectors[start:type()]
 
-            return recollector and table.concat(recollector(output, state) or {})
+            return recollector and table.concat(recollector(output, state, start, ts_utils) or {})
                 or (not vim.tbl_isempty(output) and table.concat(output))
         end
 
