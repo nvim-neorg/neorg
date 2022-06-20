@@ -150,7 +150,6 @@ module.public = {
                 tag_close = "",
                 ranged_tag_indentation_level = 0,
                 is_url = false,
-                is_in_metadata_block = false,
             }
         end,
 
@@ -285,7 +284,7 @@ module.public = {
 
             ["tag_parameters"] = true,
 
-            ["tag_name"] = function(text)
+            ["tag_name"] = function(text, _, state)
                 if text == "code" then
                     return "```", false, {
                         tag_close = "```",
@@ -301,21 +300,20 @@ module.public = {
                         false,
                         {
                             tag_close = module.config.public.metadata["end"],
-                            is_in_metadata_block = true,
                         }
                 end
+
+                state.tag_close = nil
+                return nil, false, state
             end,
 
             ["ranged_tag_content"] = function(text, _, state)
-                if state.is_in_metadata_block and module.config.public.extensions["metadata"] then
-                    return text
-                end
+                return state.tag_close and (text .. "\n")
             end,
 
             ["ranged_tag_end"] = function(_, _, state)
                 local tag_close = state.tag_close
                 state.tag_close = nil
-                state.is_in_metadata_block = false
                 return tag_close
             end,
 
