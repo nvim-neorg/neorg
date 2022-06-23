@@ -1,16 +1,16 @@
 (ranged_tag
     ("_prefix") @NeorgTagBegin
 	name: (tag_name
-        [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
-	(tag_parameters parameter: (tag_param)+ @NeorgTagParameter)? @NeorgTagParameters
+        [(word) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]+) @NeorgTagName
+	(tag_parameters (tag_param)+ @NeorgTagParameter)? @NeorgTagParameters
 	content: (ranged_tag_content)?
 	(ranged_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)?) @NeorgTag
 
 (ranged_verbatim_tag
     ("_prefix") @NeorgVerbatimTagBegin
 	name: (tag_name
-        [(tag_name_element) @NeorgVerbatimTagNameWord ("_delimiter") @NeorgVerbatimTagNameDelimiter]+) @NeorgVerbatimTagName
-	(tag_parameters parameter: (tag_param)+ @NeorgVerbatimTagParameter)? @NeorgVerbatimTagParameters
+        [(word) @NeorgVerbatimTagNameWord ("_delimiter") @NeorgVerbatimTagNameDelimiter]+) @NeorgVerbatimTagName
+	(tag_parameters (tag_param)+ @NeorgVerbatimTagParameter)? @NeorgVerbatimTagParameters
 	content: (ranged_verbatim_tag_content)?
 	(ranged_verbatim_tag_end ("_prefix") @NeorgVerbatimTagEnd ("_name") @NeorgVerbatimTagNameWord)?) @NeorgVerbatimTag
 
@@ -20,12 +20,12 @@
         name:
             (tag_name
                 [
-                    (tag_name_element) @NeorgWeakAttributeNameWord
+                    (word) @NeorgWeakAttributeNameWord
                     ("_delimiter") @NeorgWeakAttributeNameDelimiter
                 ]
             ) @NeorgWeakAttributeName
         (tag_parameters
-            parameter: (tag_param) @NeorgWeakAttributeParameter
+            (tag_param) @NeorgWeakAttributeParameter
         )? @NeorgWeakAttributeParameters
     ) @NeorgWeakAttribute
 )
@@ -36,12 +36,12 @@
         name:
             (tag_name
                 [
-                    (tag_name_element) @NeorgStrongAttributeNameWord
+                    (word) @NeorgStrongAttributeNameWord
                     ("_delimiter") @NeorgStrongAttributeNameDelimiter
                 ]
             ) @NeorgStrongAttributeName
         (tag_parameters
-            parameter: (tag_param) @NeorgStrongAttributeParameter
+            (tag_param) @NeorgStrongAttributeParameter
         )? @NeorgStrongAttributeParameters
     ) @NeorgStrongAttribute
 )
