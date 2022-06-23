@@ -1,5 +1,5 @@
 test:
-	nvim --headless\
+	nvim --headless \
 	-u tests/custom_init.vim \
 	-c "PlenaryBustedDirectory tests/ {minimal_init = 'tests/custom_init.vim'}"
 
