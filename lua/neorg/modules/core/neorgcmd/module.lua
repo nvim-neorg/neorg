@@ -101,7 +101,9 @@ function _neorgcmd_generate_completions(_, command)
     if #split_command == 2 then
         return vim.tbl_filter(function(key)
             return key ~= "__any__" and key:find(split_command[#split_command])
-        end, vim.tbl_keys(ref))
+        end, vim.tbl_keys(
+            ref
+        ))
     end
 
     -- Splice the command to omit the beginning :Neorg bit
@@ -130,7 +132,9 @@ function _neorgcmd_generate_completions(_, command)
     -- Return everything from ref that is a potential match
     return vim.tbl_filter(function(key)
         return key ~= "__any__" and key:find(split_command[#split_command])
-    end, vim.tbl_keys(ref))
+    end, vim.tbl_keys(
+        ref
+    ))
 end
 
 --- Queries the user to select next argument
@@ -163,9 +167,12 @@ end
 module.load = function()
     -- Define the :Neorg command with autocompletion taking any number of arguments (-nargs=*)
     -- If the user passes no arguments or too few, we'll query them for the remainder, using _select_next_cmd_arg.
-    vim.cmd(
-        [[ command! -nargs=* -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd.module').public.function_callback(<f-args>) ]]
-    )
+    vim.api.nvim_create_user_command("Neorg", function(args)
+        require("neorg.modules.core.neorgcmd.module").public.function_callback(args.fargs)
+    end, {
+        nargs = "+",
+        complete = _neorgcmd_generate_completions,
+    })
 
     -- Loop through all the command modules we want to load and load them
     for _, command in ipairs(module.config.public.load) do
@@ -252,7 +259,7 @@ module.public = {
     -- @Param  ... (varargs) - the contents of <f-args> provided by nvim itself
     function_callback = function(...)
         -- Unpack the varargs into a table
-        local args = { ... }
+        local args = ...
 
         --[[
 		--	Ok, this is where things get messy. Read the comments from the _neorgcmd_generate_completions()
@@ -273,6 +280,7 @@ module.public = {
         local ref_data = module.public.neorg_commands.data
         local ref_data_one_above = module.public.neorg_commands.data
         local event_name = ""
+        local callback = nil
         local current_depth = 0
 
         -- For every argument we have received do
@@ -289,6 +297,8 @@ module.public = {
 
                     -- Set the event_name string
                     event_name = ref_data_one_above.name
+
+                    callback = ref_data_one_above.callback or nil
 
                     -- Increase the current recursion depth
                     current_depth = current_depth + 1
@@ -339,20 +349,24 @@ module.public = {
         end
 
         -- If our event name is nil then that means the command did not have a `name` field defined
-        if not event_name then
-            log.error("Unable to execute neorg command. The command does not have a 'name' field to identify it.")
+        if not event_name and not callback then
+            log.error(
+                "Unable to execute neorg command. The command does not have a 'name' field to identify it or a callback."
+            )
             return
         end
 
         -- If our recursion depth is larger than the maximum argument count then that means we have supplied too many arguments
         if ref_data_one_above.max_args and #args - current_depth > ref_data_one_above.max_args then
             if ref_data_one_above.max_args == 0 then
+                -- TODO: make this independent of `name`
                 log.error(
                     "Unable to execute neorg command under name",
                     event_name,
                     "- exceeded maximum argument count. The command does not take any arguments."
                 )
             else
+                -- TODO: make this independent of `name`
                 log.error(
                     "Unable to execute neorg command under name",
                     event_name,
@@ -362,6 +376,11 @@ module.public = {
                 )
             end
 
+            return
+        end
+
+        if callback then
+            callback()
             return
         end
 
