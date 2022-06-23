@@ -230,7 +230,7 @@ module.public = {
         local query_str = [[
             (anchor_definition
                 (link_description
-                    text: (paragraph_segment) @text
+                    text: (paragraph) @text
                 )
             )
         ]]
@@ -266,6 +266,7 @@ module.public = {
     ---@return table #A table of data about the link
     parse_link = function(link_node, buf)
         buf = buf or 0
+
         if not link_node or not vim.tbl_contains({ "link", "anchor_definition" }, link_node:type()) then
             return
         end
@@ -291,15 +292,15 @@ module.public = {
                             (link_target_heading5)
                             (link_target_heading6)
                         ]? @link_type
-                        text: (paragraph_segment)? @link_location_text
+                        text: (paragraph)? @link_location_text
                     )
                     (link_description
-                        text: (paragraph_segment) @link_description
+                        text: (paragraph) @link_description
                     )?
                 )
                 (anchor_definition
                     (link_description
-                        text: (paragraph_segment) @link_description
+                        text: (paragraph) @link_description
                     )
                     (link_location
                         file: (
@@ -319,7 +320,7 @@ module.public = {
                             (link_target_heading5)
                             (link_target_heading6)
                         ] @link_type
-                        text: (paragraph_segment) @link_location_text
+                        text: (paragraph) @link_location_text
                     )
                 )
             ]
@@ -346,8 +347,6 @@ module.public = {
             if
                 capture_node_range.row_start >= range.row_start
                 and capture_node_range.row_end <= capture_node_range.row_end
-                and capture_node_range.column_start >= range.column_start
-                and capture_node_range.column_end <= range.column_end
             then
                 local extract_node_text = neorg.lib.wrap(
                     module.required["core.integrations.treesitter"].get_node_text,
@@ -425,6 +424,7 @@ module.public = {
             -- If we're dealing with an external file, open it up in another Neovim buffer (unless otherwise applicable)
             external_file = function()
                 local destination = parsed_link_information.link_location_text
+
                 destination = (
                         vim.tbl_contains({ "/", "~" }, destination:sub(1, 1)) and "" or (vim.fn.expand("%:p:h") .. "/")
                     ) .. destination
@@ -448,7 +448,7 @@ module.public = {
                     end
                 end
 
-                neorg.lib.match(destination:match("%.(.+)$"))({
+                neorg.lib.match(destination:match("%.(.+)$") or "_")({
                     pdf = open_in_external_app,
                     png = open_in_external_app,
                     [{ "jpg", "jpeg" }] = open_in_external_app,
@@ -532,7 +532,7 @@ module.public = {
                             (%s
                                 (%s_prefix)
                                 title: (paragraph_segment) @title
-                            )?
+                            )
                         ]],
                         neorg.lib.reparg(parsed_link_information.link_type, 2)
                     ),
@@ -773,8 +773,8 @@ module.private = {
                 heading5 = "*****",
                 heading6 = "******",
                 marker = "|",
-                -- single_definition = "$",
-                -- multi_definition = "$",
+                single_definition = "$",
+                multi_definition = "$",
                 _ = "#",
             })
         ) .. " "
@@ -786,7 +786,7 @@ module.private = {
                 range.column_start,
                 range.row_end,
                 range.column_end,
-                { replace }
+                { unpack(vim.split(replace, "\n")) }
             )
         end
 
@@ -821,7 +821,7 @@ module.on_event = function(event)
             return
         end
 
-        local parsed_link = module.public.parse_link(link_node_at_cursor)
+        local parsed_link = module.public.parse_link(link_node_at_cursor, event.buffer)
 
         module.public.follow_link(link_node_at_cursor, split_mode, parsed_link)
     end

@@ -45,6 +45,22 @@ module.config.public = {
             Parameter = "+TSType",
         },
 
+        VerbatimTag = {
+            -- The + tells neorg to link to an existing hl
+            Begin = "+TSKeyword",
+
+            -- Supply any arguments you would to :highlight here
+            -- Example: ["end"] = "guifg=#93042b",
+            ["End"] = "+TSKeyword",
+
+            Name = {
+                [""] = "+TSNone",
+                Word = "+TSKeyword",
+            },
+
+            Parameter = "+TSType",
+        },
+
         CarryoverTag = {
             Begin = "+TSLabel",
 

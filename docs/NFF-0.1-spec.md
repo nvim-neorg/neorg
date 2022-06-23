@@ -127,7 +127,7 @@ changes:
   - `-some text-` - marks text as ~~strikethrough~~.
   - `^some text^` - superscript
   - `,some text,` - subscript
-  - `|some text|` - spoilers
+  - `!some text!` - spoilers
   - \`some text\` - inline code block (verbatim)
   - `$some text$` - inline mathematics
   - `+some text+` - inline comment
@@ -471,17 +471,9 @@ changes:
   - [x] Done item
   -- [x] Nested done item
 
-  Unordered links:
-  -> {# To a location}[link]
-  --> {# To another location}[nested link]
-
   Ordered lists:
   ~ Ordered list item
     ~~ Nested ordered list
-
-  Ordered links:
-  ~> {# To a location}[link]
-  ~~> {# To another location}[nested link]
 
   Quotes:
   > A quote

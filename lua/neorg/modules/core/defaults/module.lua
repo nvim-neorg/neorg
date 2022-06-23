@@ -11,16 +11,17 @@ require("neorg.modules.base")
 
 return neorg.modules.create_meta(
     "core.defaults",
-    "core.syntax",
     "core.autocommands",
-    "core.neorgcmd",
+    "core.highlights",
+    "core.integrations.treesitter",
     "core.keybinds",
     "core.mode",
-    "core.norg.qol.todo_items",
+    "core.neorgcmd",
+    "core.norg.esupports.hop",
     "core.norg.esupports.indent",
     "core.norg.esupports.metagen",
-    "core.norg.esupports.hop",
-    "core.integrations.treesitter",
+    "core.norg.news",
+    "core.norg.qol.todo_items",
     "core.storage",
-    "core.norg.news"
+    "core.syntax"
 )

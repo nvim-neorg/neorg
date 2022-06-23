@@ -256,7 +256,7 @@ module.public = {
                 vim.treesitter.parse_query,
                 "norg",
                 [[(
-                    (ranged_tag (tag_name) @_name) @tag
+                    (ranged_verbatim_tag (tag_name) @_name) @tag
                     (#eq? @_name "code")
                 )]]
             )
@@ -271,7 +271,7 @@ module.public = {
                 schedule(function()
                     local id_name = query.captures[id]
 
-                    -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                    -- If the capture name is "tag" then that means we're dealing with our ranged_verbatim_tag;
                     if id_name == "tag" then
                         -- Get the range of the code block
                         local range = module.required["core.integrations.treesitter"].get_node_range(node)
@@ -940,9 +940,6 @@ module.config.public = {
                 icon = "",
                 highlight = "NeorgTodoItemDoneMark",
                 query = "(todo_item_done) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             pending = {
@@ -950,9 +947,6 @@ module.config.public = {
                 icon = "",
                 highlight = "NeorgTodoItemPendingMark",
                 query = "(todo_item_pending) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             undone = {
@@ -960,9 +954,6 @@ module.config.public = {
                 icon = "×",
                 highlight = "NeorgTodoItemUndoneMark",
                 query = "(todo_item_undone) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             uncertain = {
@@ -970,9 +961,6 @@ module.config.public = {
                 icon = "",
                 highlight = "NeorgTodoItemUncertainMark",
                 query = "(todo_item_uncertain) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             on_hold = {
@@ -980,9 +968,6 @@ module.config.public = {
                 icon = "",
                 highlight = "NeorgTodoItemOnHoldMark",
                 query = "(todo_item_on_hold) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             cancelled = {
@@ -990,9 +975,6 @@ module.config.public = {
                 icon = "",
                 highlight = "NeorgTodoItemCancelledMark",
                 query = "(todo_item_cancelled) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             recurring = {
@@ -1000,9 +982,6 @@ module.config.public = {
                 icon = "↺",
                 highlight = "NeorgTodoItemRecurringMark",
                 query = "(todo_item_recurring) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             urgent = {
@@ -1010,9 +989,6 @@ module.config.public = {
                 icon = "⚠",
                 highlight = "NeorgTodoItemUrgentMark",
                 query = "(todo_item_urgent) @icon",
-                extract = function()
-                    return 1
-                end,
             },
         },
 
@@ -1059,46 +1035,14 @@ module.config.public = {
                 icon = "     •",
                 highlight = "NeorgUnorderedList6",
                 query = "(unordered_list6_prefix) @icon",
-            },
-        },
-
-        link = {
-            enabled = true,
-            level_1 = {
-                enabled = true,
-                icon = " ",
-                highlight = "NeorgUnorderedLink1",
-                query = "(unordered_link1_prefix) @icon",
-            },
-            level_2 = {
-                enabled = true,
-                icon = "  ",
-                highlight = "NeorgUnorderedLink2",
-                query = "(unordered_link2_prefix) @icon",
-            },
-            level_3 = {
-                enabled = true,
-                icon = "   ",
-                highlight = "NeorgUnorderedLink3",
-                query = "(unordered_link3_prefix) @icon",
-            },
-            level_4 = {
-                enabled = true,
-                icon = "    ",
-                highlight = "NeorgUnorderedLink4",
-                query = "(unordered_link4_prefix) @icon",
-            },
-            level_5 = {
-                enabled = true,
-                icon = "     ",
-                highlight = "NeorgUnorderedLink5",
-                query = "(unordered_link5_prefix) @icon",
-            },
-            level_6 = {
-                enabled = true,
-                icon = "      ",
-                highlight = "NeorgUnorderedLink6",
-                query = "(unordered_link6_prefix) @icon",
+                render = function(self, text)
+                    return {
+                        {
+                            string.rep(" ", text:len() - 7) .. self.icon,
+                            self.highlight,
+                        },
+                    }
+                end,
             },
         },
 
@@ -1181,98 +1125,10 @@ module.config.public = {
                 ),
                 highlight = "NeorgOrderedList6",
                 query = "(ordered_list6_prefix) @icon",
-                render = function(self, _, node)
+                render = function(self, text, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_list6")
                     return {
-                        { "     " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-        },
-
-        ordered_link = {
-            enabled = true,
-            level_1 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.numeric
-                ),
-                highlight = "NeorgOrderedLink1",
-                query = "(ordered_link1_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link1")
-                    return {
-                        { " " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_2 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_uppercase
-                ),
-                highlight = "NeorgOrderedLink2",
-                query = "(ordered_link2_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link2")
-                    return {
-                        { "  " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_3 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_lowercase
-                ),
-                highlight = "NeorgOrderedLink3",
-                query = "(ordered_link3_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link3")
-                    return {
-                        { "   " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_4 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.numeric
-                ),
-                highlight = "NeorgOrderedLink4",
-                query = "(ordered_link4_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link4")
-                    return {
-                        { "    " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_5 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_uppercase
-                ),
-                highlight = "NeorgOrderedLink5",
-                query = "(ordered_link5_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link5")
-                    return {
-                        { "     " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_6 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_lowercase
-                ),
-                highlight = "NeorgOrderedLink6",
-                query = "(ordered_link6_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link6")
-                    return {
-                        { "      " .. self.icon(count), self.highlight },
+                        { string.rep(" ", text:len() - 2) .. self.icon(count), self.highlight },
                     }
                 end,
             },
@@ -1351,14 +1207,17 @@ module.config.public = {
                 icon = "│",
                 highlight = "NeorgQuote6",
                 query = "(quote6_prefix) @icon",
-                render = function(self)
+                render = function(self, text)
                     return {
                         { self.icon, module.config.public.icons.quote.level_1.highlight },
                         { self.icon, module.config.public.icons.quote.level_2.highlight },
                         { self.icon, module.config.public.icons.quote.level_3.highlight },
                         { self.icon, module.config.public.icons.quote.level_4.highlight },
                         { self.icon, module.config.public.icons.quote.level_5.highlight },
-                        { self.icon, self.highlight },
+                        {
+                            string.rep(self.icon, text:len() - 6),
+                            self.highlight,
+                        },
                     }
                 end,
             },
@@ -1371,46 +1230,46 @@ module.config.public = {
                 enabled = true,
                 icon = "◉",
                 highlight = "NeorgHeading1",
-                query = "[ (heading1_prefix) (link_target_heading1) ] @icon",
+                query = "[ (heading1_prefix) (link_target_heading) ] @icon",
             },
 
             level_2 = {
                 enabled = true,
                 icon = " ◎",
                 highlight = "NeorgHeading2",
-                query = "[ (heading2_prefix) (link_target_heading2) ] @icon",
+                query = "[ (heading2_prefix) ] @icon",
             },
 
             level_3 = {
                 enabled = true,
                 icon = "  ○",
                 highlight = "NeorgHeading3",
-                query = "[ (heading3_prefix) (link_target_heading3) ] @icon",
+                query = "[ (heading3_prefix) ] @icon",
             },
 
             level_4 = {
                 enabled = true,
                 icon = "   ✺",
                 highlight = "NeorgHeading4",
-                query = "[ (heading4_prefix) (link_target_heading4) ] @icon",
+                query = "[ (heading4_prefix) ] @icon",
             },
 
             level_5 = {
                 enabled = true,
                 icon = "    ▶",
                 highlight = "NeorgHeading5",
-                query = "[ (heading5_prefix) (link_target_heading5) ] @icon",
+                query = "[ (heading5_prefix) ] @icon",
             },
 
             level_6 = {
                 enabled = true,
                 icon = "     ⤷",
                 highlight = "NeorgHeading6",
-                query = "[ (heading6_prefix) (link_target_heading6) ] @icon",
+                query = "[ (heading6_prefix) ] @icon",
                 render = function(self, text)
                     return {
                         {
-                            string.rep(" ", text:len() - string.len("******") - string.len(" ")) .. self.icon,
+                            string.rep(" ", text:len() - 7) .. self.icon,
                             self.highlight,
                         },
                     }
@@ -1517,7 +1376,7 @@ module.config.public = {
 
                         if prev_sibling then
                             -- Get the text of the previous sibling and store its longest line width-wise
-                            local text = ts.get_node_text(prev_sibling)
+                            local text = ts.get_node_text(prev_sibling, 0)
                             local longest = 3
 
                             if
