@@ -34,15 +34,16 @@ end
 module.private = {
     --- Opens a diary entry at the given time
     ---@param time number #The time to open the journal entry at as returned by `os.time()`
-    ---@param custom_date string #A YYYY-mm-dd string that specifies a date to open the diary at instead
-    open_diary = function(time, custom_date)
+    ---@param custom_date_args table #A table with YYYY-mm-dd strings that specifies dates to open the diary at instead
+    open_diary = function(time, custom_date_args)
+        local custom_date = custom_date_args[1]
         local workspace = module.config.public.workspace
         local folder_name = module.config.public.journal_folder
 
         if custom_date then
             local year, month, day = custom_date:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
 
-            if not year or not month or not day then
+            if not (year and month and day) then
                 log.error("Wrong date format: use YYYY-mm-dd")
                 return
             end
@@ -55,7 +56,8 @@ module.private = {
         end
 
         local path = os.date(
-            type(module.config.public.strategy) == "function" and module.config.public.strategy(os.date("*t", time))
+            type(module.config.public.strategy) == "function"
+                    and module.config.public.strategy(os.date("*t", time))
                 or module.config.public.strategy,
             time
         )
@@ -127,37 +129,40 @@ module.load = function()
                 min_args = 1,
                 max_args = 2,
                 subcommands = {
-                    tomorrow = { args = 0, name = "journal.tomorrow" },
-                    yesterday = { args = 0, name = "journal.yesterday" },
-                    today = { args = 0, name = "journal.today" },
-                    custom = { args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
+                    tomorrow = {
+                        args = 0,
+                        name = "journal.tomorrow",
+                        callback = module.private.diary_tomorrow,
+                    },
+                    yesterday = {
+                        args = 0,
+                        name = "journal.yesterday",
+                        callback = module.private.diary_yesterday,
+                    },
+                    today = {
+                        args = 0,
+                        name = "journal.today",
+                        callback = module.private.diary_today,
+                    },
+                    custom = {
+                        args = 1,
+                        name = "journal.custom",
+                        callback = module.private.open_diary,
+                        parameters = { os.time(), "args" },
+                    }, -- format :yyyy-mm-dd
                 },
             },
         },
     })
 end
 
-module.on_event = function(event)
-    if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.split_type[1]) then
-        if event.split_type[2] == "journal.tomorrow" then
-            module.private.diary_tomorrow()
-        elseif event.split_type[2] == "journal.yesterday" then
-            module.private.diary_yesterday()
-        elseif event.split_type[2] == "journal.custom" then
-            module.private.open_diary(nil, event.content[1])
-        elseif event.split_type[2] == "journal.today" then
-            module.private.diary_today()
-        end
-    end
-end
-
-module.events.subscribed = {
-    ["core.neorgcmd"] = {
-        ["journal.yesterday"] = true,
-        ["journal.tomorrow"] = true,
-        ["journal.today"] = true,
-        ["journal.custom"] = true,
-    },
-}
+-- module.events.subscribed = {
+--     ["core.neorgcmd"] = {
+--         ["journal.yesterday"] = true,
+--         ["journal.tomorrow"] = true,
+--         ["journal.today"] = true,
+--         ["journal.custom"] = true,
+--     },
+-- }
 
 return module
