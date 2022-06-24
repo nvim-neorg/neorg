@@ -281,6 +281,7 @@ module.public = {
         local ref_data_one_above = module.public.neorg_commands.data
         local event_name = ""
         local callback = nil
+        local parameters = nil
         local current_depth = 0
 
         -- For every argument we have received do
@@ -299,6 +300,7 @@ module.public = {
                     event_name = ref_data_one_above.name
 
                     callback = ref_data_one_above.callback or nil
+                    parameters = ref_data_one_above.parameters or nil
 
                     -- Increase the current recursion depth
                     current_depth = current_depth + 1
@@ -380,7 +382,13 @@ module.public = {
         end
 
         if callback then
-            callback()
+            parameters = parameters or {}
+            for i, parameter in ipairs(parameters) do
+                if parameter == "args" then
+                    parameters[i] = vim.list_slice(args, #args - (#args - current_depth) + 1)
+                end
+            end
+            callback(unpack(parameters))
             return
         end
 
