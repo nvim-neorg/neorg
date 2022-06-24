@@ -85,27 +85,6 @@ module.public = {
             neorg.modules.get_module_config("core.export." .. ftype)
     end,
 
-    --- Queries the filetype for a certain file extension
-    ---@param file string #A filepath with an extension
-    ---@param force_filetype string #Force a specific filetype instead of querying
-    ---@return string #The filetype as extracted from the filename
-    get_filetype = function(file, force_filetype)
-        local filetype = force_filetype
-
-        -- Getting an extension properly is... difficult
-        -- This is why we leverage Neovim instead.
-        -- We create a dummy buffer with the filepath the user wanted to export to
-        -- and query the filetype from there.
-        if not filetype then
-            local dummy_buffer = vim.uri_to_bufnr("file://" .. file)
-            vim.fn.bufload(dummy_buffer)
-            filetype = vim.api.nvim_buf_get_option(dummy_buffer, "filetype")
-            vim.api.nvim_buf_delete(dummy_buffer, { force = true })
-        end
-
-        return filetype
-    end,
-
     --- Takes a buffer and exports it to a specific file
     ---@param buffer number #The buffer ID to read the contents from
     ---@param filetype string #A Neovim filetype to specify which language to export to
@@ -235,7 +214,7 @@ module.on_event = function(event)
         -- Syntax: Neorg export to-file file.extension forced-filetype?
         -- Example: Neorg export to-file my-custom-file markdown
 
-        local filetype = module.public.get_filetype(event.content[1], event.content[2])
+        local filetype = neorg.utils.get_filetype(event.content[1], event.content[2])
         local exported = module.public.export(event.buffer, filetype)
 
         vim.loop.fs_open(event.content[1], "w", 438, function(err, fd)
