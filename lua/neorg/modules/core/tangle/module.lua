@@ -39,16 +39,9 @@ module.load = function()
     })
 end
 
-module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.core.tangle.file" then
-        local buffer = event.buffer
-
-        if event.content[1] then
-            buffer = vim.fn.bufadd(event.content[1])
-            vim.fn.bufload(buffer)
-        end
-
-        local parsed_document_metadata = module.required["core.integrations.treesitter"].get_document_metadata(event.buffer)
+module.public = {
+    tangle = function(buffer)
+        local parsed_document_metadata = module.required["core.integrations.treesitter"].get_document_metadata(buffer)
 
         if vim.tbl_isempty(parsed_document_metadata) then
             log.error("Unable to tangle document - no document metadata present!")
@@ -64,7 +57,7 @@ module.on_event = function(event)
 
         local options = {
             languages = {},
-            scope = parsed_document_metadata.tangle.scope or "all", -- "all" | "tagged"
+            scope = parsed_document_metadata.tangle.scope or "all", -- "all" | "tagged" | "main"
         }
 
         if type(parsed_document_metadata.tangle) == "table" then
@@ -79,11 +72,66 @@ module.on_event = function(event)
             end
         end
 
-        log.warn(options)
+        local tangles = {
+            -- filename = { content }
+        }
 
-        -- local tangles = {}
+        local query_str = neorg.lib.match(options.scope) {
+            all = [[
+                (ranged_tag
+                    name: (tag_name) @_name
+                    (#eq? @_name "code")
+                    (tag_parameters
+                        .
+                        parameter: (tag_param) @_language)
+                        (#any-of? @_language "%s")) @tag
+            ]],
+            tagged = [[
+                (carryover_tag
+                    name: (tag_name) @_carryover_tag_name
+                    (#eq? @_carryover_tag_name "tangle"))
+                .
+                (ranged_tag
+                    name: (tag_name) @_name
+                    (#eq? @_name "code")
+                    (tag_parameters
+                        .
+                        parameter: (tag_param) @_language)
+                        (#any-of? @_language "%s")) @tag
+            ]],
+        }
 
-        -- log.warn(tangles)
+        local query = vim.treesitter.parse_query("norg", string.format(query_str, table.concat(vim.tbl_keys(options.languages), "\" \"")))
+
+        for id, node in query:iter_captures(document_root, buffer, 0, -1) do
+            local capture = query.captures[id]
+
+            if capture == "tag" then
+                local parsed_tag = module.required["core.integrations.treesitter"].get_tag_info(node)
+
+                if parsed_tag then
+                    local file_to_tangle_to = options.languages[parsed_tag.parameters[1]]
+
+                    for _, attribute in ipairs(parsed_tag.attributes) do
+                        if attribute.name == "tangle" and attribute.parameters[1] then
+                            file_to_tangle_to = table.concat(attribute.parameters)
+                        end
+                    end
+
+                    tangles[file_to_tangle_to] = tangles[file_to_tangle_to] or {}
+                    vim.list_extend(tangles[file_to_tangle_to], parsed_tag.content)
+                end
+            end
+        end
+
+        return tangles
+    end,
+}
+
+module.on_event = function(event)
+    if event.type == "core.neorgcmd.events.core.tangle.file" then
+        local tangles = module.public.tangle(event.buffer)
+        log.warn(tangles)
     end
 end
 
