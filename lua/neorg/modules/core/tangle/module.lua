@@ -149,8 +149,8 @@ module.setup = function()
     return {
         requires = {
             "core.integrations.treesitter",
-            "core.neorgcmd"
-        }
+            "core.neorgcmd",
+        },
     }
 end
 
@@ -160,7 +160,7 @@ module.load = function()
             tangle = {
                 ["current-file"] = {},
                 -- directory = {},
-            }
+            },
         },
 
         data = {
@@ -176,9 +176,9 @@ module.load = function()
                     --     max_args = 1,
                     --     name = "core.tangle.directory",
                     -- }
-                }
-            }
-        }
+                },
+            },
+        },
     })
 end
 
@@ -210,14 +210,15 @@ module.public = {
                 end
             end
         elseif type(parsed_document_metadata.tangle) == "string" then
-            options.languages[neorg.utils.get_filetype(parsed_document_metadata.tangle)] = parsed_document_metadata.tangle
+            options.languages[neorg.utils.get_filetype(parsed_document_metadata.tangle)] =
+                parsed_document_metadata.tangle
         end
 
         local tangles = {
             -- filename = { content }
         }
 
-        local query_str = neorg.lib.match(options.scope) {
+        local query_str = neorg.lib.match(options.scope)({
             _ = [[
                 (ranged_tag
                     name: (tag_name) @_name
@@ -238,7 +239,7 @@ module.public = {
                             .
                             parameter: (tag_param) @_language)) @tag)
             ]],
-        }
+        })
 
         local query = vim.treesitter.parse_query("norg", query_str)
 
@@ -288,10 +289,7 @@ module.on_event = function(event)
 
         for file, content in pairs(tangles) do
             vim.loop.fs_open(file, "w", 438, function(err, fd)
-                assert(
-                    not err,
-                    neorg.lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err)
-                )
+                assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
                 vim.loop.fs_write(fd, table.concat(content, "\n"), 0, function(werr)
                     assert(
@@ -310,7 +308,7 @@ module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["core.tangle.current-file"] = true,
         ["core.tangle.directory"] = true,
-    }
+    },
 }
 
 return module

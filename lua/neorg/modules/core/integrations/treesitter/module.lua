@@ -326,7 +326,9 @@ module.public = {
                         then
                             table.insert(attributes, meta)
                         else
-                            log.warn("Two carryover tags with the same name detected, the top level tag will take precedence")
+                            log.warn(
+                                "Two carryover tags with the same name detected, the top level tag will take precedence"
+                            )
                         end
                     end
                 end
@@ -350,7 +352,12 @@ module.public = {
         for i, line in ipairs(content) do
             if i == 1 then
                 if content_start_column < start_column then
-                    log.error(string.format("Unable to query information about tag on line %d: content is indented less than tag start!", start_row + 1))
+                    log.error(
+                        string.format(
+                            "Unable to query information about tag on line %d: content is indented less than tag start!",
+                            start_row + 1
+                        )
+                    )
                     return nil
                 end
                 content[i] = string.rep(" ", content_start_column - start_column) .. line
@@ -589,8 +596,8 @@ module.public = {
                     local key_content = trim(module.public.get_node_text(node, buf))
 
                     result[key_content] = (
-                            node:next_named_sibling() and parse_data(node:next_named_sibling()) or vim.NIL
-                        )
+                        node:next_named_sibling() and parse_data(node:next_named_sibling()) or vim.NIL
+                    )
                 end
             end
         end)
