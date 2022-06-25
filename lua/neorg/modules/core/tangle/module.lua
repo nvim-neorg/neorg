@@ -113,13 +113,17 @@ module.public = {
                     local file_to_tangle_to = options.languages[parsed_tag.parameters[1]]
 
                     for _, attribute in ipairs(parsed_tag.attributes) do
-                        if attribute.name == "tangle" and attribute.parameters[1] then
+                        if attribute.name == "tangle.none" then
+                            goto skip_tag
+                        elseif attribute.name == "tangle" and attribute.parameters[1] then
                             file_to_tangle_to = table.concat(attribute.parameters)
                         end
                     end
 
                     tangles[file_to_tangle_to] = tangles[file_to_tangle_to] or {}
                     vim.list_extend(tangles[file_to_tangle_to], parsed_tag.content)
+
+                    ::skip_tag::
                 end
             end
         end
