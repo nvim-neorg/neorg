@@ -15,7 +15,7 @@ module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         definitions = {
             tangle = {
-                file = {},
+                ["current-file"] = {},
                 -- directory = {},
             }
         },
@@ -25,9 +25,9 @@ module.load = function()
                 args = 1,
 
                 subcommands = {
-                    file = {
-                        max_args = 1,
-                        name = "core.tangle.file",
+                    ["current-file"] = {
+                        args = 0,
+                        name = "core.tangle.current-file",
                     },
                     -- directory = {
                     --     max_args = 1,
@@ -133,7 +133,7 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.core.tangle.file" then
+    if event.type == "core.neorgcmd.events.core.tangle.current-file" then
         local tangles = module.public.tangle(event.buffer)
         log.warn(tangles)
     end
@@ -141,7 +141,7 @@ end
 
 module.events.subscribed = {
     ["core.neorgcmd"] = {
-        ["core.tangle.file"] = true,
+        ["core.tangle.current-file"] = true,
         ["core.tangle.directory"] = true,
     }
 }
