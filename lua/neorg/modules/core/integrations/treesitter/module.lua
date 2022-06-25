@@ -203,6 +203,23 @@ module.public = {
         descend(root)
     end,
 
+    get_node_text = function(node, source)
+        source = source or 0
+
+        local start_row, start_col, start_byte = node:start()
+        local end_row, end_col, end_byte = node:end_()
+
+        local eof_row = vim.api.nvim_buf_line_count(source)
+
+        if start_row >= eof_row then
+            return nil
+        end
+
+        local lines = vim.api.nvim_buf_get_text(source, start_row, start_col, end_row, end_col, {})
+
+        return table.concat(lines, "\n")
+    end,
+
     --- Returns the first node of given type if present
     ---@param type string #The type of node to search for
     ---@param buf number #The buffer to search in
@@ -284,29 +301,35 @@ module.public = {
     --- Given a node this function will break down the AST elements and return the corresponding text for certain nodes
     -- @Param  tag_node (userdata/treesitter node) - a node of type tag/carryover_tag
     get_tag_info = function(tag_node, check_parent)
-        if not tag_node or (tag_node:type() ~= "tag" and tag_node:type() ~= "carryover_tag") then
+        if not tag_node or (tag_node:type() ~= "ranged_tag" and tag_node:type() ~= "carryover_tag") then
             return nil
         end
 
+        local start_row, start_column, end_row, end_column = tag_node:range()
+
         local attributes = {}
-        local leading_whitespace, resulting_name, params, content = 0, {}, {}, {}
+        local resulting_name, params, content = {}, {}, {}
+        local content_start_column = 0
 
         if check_parent == true or check_parent == nil then
             local parent = tag_node:parent()
 
-            while parent:type() == "carryover_tag" do
-                local meta = module.public.get_tag_info(parent, false)
+            if parent:type() == "carryover_tag_set" then
+                for child in parent:iter_children() do
+                    if child:type() == "carryover_tag" then
+                        local meta = module.public.get_tag_info(child, false)
 
-                if
-                    vim.tbl_isempty(vim.tbl_filter(function(attribute)
-                        return attribute.name == meta.name
-                    end, attributes))
-                then
-                    table.insert(attributes, meta)
-                else
-                    log.warn("Two carryover tags with the same name detected, the top level tag will take precedence")
+                        if
+                            vim.tbl_isempty(vim.tbl_filter(function(attribute)
+                                return attribute.name == meta.name
+                            end, attributes))
+                        then
+                            table.insert(attributes, meta)
+                        else
+                            log.warn("Two carryover tags with the same name detected, the top level tag will take precedence")
+                        end
+                    end
                 end
-                parent = parent:parent()
             end
         end
 
@@ -314,26 +337,34 @@ module.public = {
         for child, _ in tag_node:iter_children() do
             -- If we're dealing with the tag name then append the text of the tag_name node to this table
             if child:type() == "tag_name" then
-                table.insert(resulting_name, vim.split(vim.treesitter.query.get_node_text(child), "\n")[1])
+                table.insert(resulting_name, vim.split(module.public.get_node_text(child), "\n")[1])
             elseif child:type() == "tag_parameters" then
-                table.insert(params, vim.split(vim.treesitter.query.get_node_text(child), "\n")[1])
-            elseif child:type() == "leading_whitespace" then
-                leading_whitespace = vim.split(vim.treesitter.query.get_node_text(child), "\n")[1]:len()
-            elseif child:type() == "tag_content" then
+                table.insert(params, vim.split(module.public.get_node_text(child), "\n")[1])
+            elseif child:type() == "ranged_tag_content" then
                 -- If we're dealing with tag content then retrieve that content
-                content = vim.split(vim.treesitter.query.get_node_text(child, 0), "\n")
+                content = vim.split(module.public.get_node_text(child), "\n")
+                _, content_start_column = child:range()
             end
         end
 
-        content = table.concat(content, "\n")
+        for i, line in ipairs(content) do
+            if i == 1 then
+                if content_start_column < start_column then
+                    log.error(string.format("Unable to query information about tag on line %d: content is indented less than tag start!", start_row + 1))
+                    return nil
+                end
+                content[i] = string.rep(" ", content_start_column - start_column) .. line
+            else
+                content[i] = line:sub(1 + start_column)
+            end
+        end
 
-        local start_row, start_column, end_row, end_column = tag_node:range()
+        content[#content] = nil
 
         return {
             name = table.concat(resulting_name, "."),
             parameters = params,
-            content = content:sub(2, content:len() - 1),
-            indent_amount = leading_whitespace,
+            content = content,
             attributes = vim.fn.reverse(attributes),
             start = { row = start_row, column = start_column },
             ["end"] = { row = end_row, column = end_column },
@@ -382,24 +413,6 @@ module.public = {
         end
 
         return tree:root():type() ~= "ERROR" and tree:root()
-    end,
-
-    --- Extracts the text from a node (only the first line)
-    ---@param node userdata a treesitter node to extract the text from
-    ---@param buf number the buffer number. This is required to verify the source of the node. Can be nil in which case it is treated as "0"
-    ---@return string #The contents of the node in the form of a string
-    get_node_text = function(node, buf)
-        if not node then
-            return
-        end
-
-        local text = vim.split(vim.treesitter.query.get_node_text(node, buf or 0), "\n")
-
-        if not text then
-            return
-        end
-
-        return text[#text] == "\n" and table.concat(vim.list_slice(text, 0, -2), " ") or table.concat(text, " ")
     end,
 
     --- Attempts to find a parent of a node recursively
