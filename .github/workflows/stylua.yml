@@ -11,6 +11,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: .
+          version: 0.13.1
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "chore: autoformat with stylua"
