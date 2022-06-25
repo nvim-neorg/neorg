@@ -206,8 +206,8 @@ module.public = {
     get_node_text = function(node, source)
         source = source or 0
 
-        local start_row, start_col, start_byte = node:start()
-        local end_row, end_col, end_byte = node:end_()
+        local start_row, start_col = node:start()
+        local end_row, end_col = node:end_()
 
         local eof_row = vim.api.nvim_buf_line_count(source)
 
