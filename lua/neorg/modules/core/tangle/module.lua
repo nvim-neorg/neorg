@@ -111,7 +111,7 @@ print("Sup")
 print("Ayo")
 @end
 ```
-The first code block will not be touched, the second code block will be tangled to `./output.lua` and the third code block will be tangled to `other-file.lua. You
+The first code block will not be touched, the second code block will be tangled to `./output.lua` and the third code block will be tangled to `other-file.lua`. You
 can probably see that this system can get expressive pretty quick.
 
 #### The `main` scope
