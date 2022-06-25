@@ -1,4 +1,147 @@
---[[ TODO ]]
+--[[
+    File: Tangling
+    Summary: An Advanced Code Block Exporter.
+    ---
+The goal of this module is to allow users to spit out the contents of code blocks into
+many different files. This is the primary component required for a literate configuration in Neorg.
+
+## Commands
+- `:Neorg tangle current-file` - performs all possible tangling operations on the current file
+
+## Mini-Tutorial
+By default, *zero* code blocks are tangled. You must provide where you'd like to tangle each code block manually (we'll get to global configuration later).
+To do so, add a `#tangle <output-file>` tag above the code block you'd wish to export. For example:
+
+```norg
+#tangle init.lua
+@code lua
+print("Hello World!")
+@end
+```
+The above snippet will *only* tangle that single code block to the desired output file: `init.lua`.
+
+### Global Tangling for Single Files
+Apart from tangling a single or a set of code blocks, you can declare a global output file in the document's metadata:
+```norg
+@document.meta
+tangle: ./init.lua
+@end
+```
+
+This will tangle all `lua` code blocks to `init.lua`, *unless* the code block has an explicit `#tangle` tag associated with it, in which case
+the `#tangle` tag takes precedence.
+
+### Global Tangling for Multiple Files
+Apart from a single filepath, you can provide many in an array:
+```norg
+@document.meta
+tangle: [
+    ./init.lua
+    ./output.hs
+]
+@end
+```
+
+The above snippet tells the Neorg tangling engine to tangle all `lua` code blocks to `./init.lua` and all `haskell` code blocks to `./output.hs`.
+As always if any of the code blocks have a `#tangle` tag then that takes precedence.
+
+### Ignoring Code Blocks
+Sometimes when tangling you may want to omit some code blocks. For this you may use the `#tangle.none` tag:
+```norg
+#tangle.none
+@code lua
+print("I won't be tangled!")
+@end
+```
+
+### Global Tangling with Extra Options
+But wait, it doesn't stop there! You can supply a string to `tangle`, an array to `tangle`, but also an object!
+It looks like this:
+```norg
+@document.meta
+tangle: {
+    languages: {
+        lua: ./output.lua
+        haskell: my-haskell-file
+    }
+    scope: all
+}
+@end
+```
+
+The `scope` option is discussed in a [later section](#tangling-scopes), what we want to focus on is the `languages` object.
+It's a simple language-filepath mapping, but it's especially useful when the output file's language type cannot be inferred from the name.
+So far we've been using `init.lua`, `output.hs` - but what if we wanted to export all `haskell` code blocks into `my-file-without-an-extension`?
+The only way to do that is through the `languages` object, where we explicitly define the language to tangle. Neat!
+
+### Tangling Scopes
+What you've seen so far is the tangler operating in `all` mode. This means it captures all code blocks of a certain type unless that code block is tagged
+with `#tangle.none`. There are two other types: `tagged` and `main`.
+
+#### The `tagged` Scope
+When in this mode, the tangler will only tangle code blocks that have been `tagged` with a `#tangle` tag.
+Note that you don't have to always provide a filetype, and that:
+```norg
+#tangle
+@code lua
+@end
+```
+Will use the global output file for that language as defined in the metadata. I.e., if I do:
+```norg
+@document.meta
+tangle: {
+    languages: {
+        lua: ./output.lua
+    }
+    scope: tagged
+}
+@end
+
+@code lua
+print("Hello")
+@end
+
+#tangle
+@code lua
+print("Sup")
+@end
+
+#tangle other-file.lua
+@code lua
+print("Ayo")
+@end
+```
+The first code block will not be touched, the second code block will be tangled to `./output.lua` and the third code block will be tangled to `other-file.lua. You
+can probably see that this system can get expressive pretty quick.
+
+#### The `main` scope
+This mode is the opposite of the `tagged` one in that it will only tangle code blocks to files that are defined in the document metadata. I.e. in this case:
+```norg
+@document.meta
+tangle: {
+    languages: {
+        lua: ./output.lua
+    }
+    scope: main
+}
+@end
+
+@code lua
+print("Hello")
+@end
+
+#tangle
+@code lua
+print("Sup")
+@end
+
+#tangle other-file.lua
+@code lua
+print("Ayo")
+@end
+```
+The first code block will be tangled to `./output.lua`, the second code block will also be tangled to `./output.lua` and the third code block will be ignored.
+--]]
 
 local module = neorg.modules.create("core.tangle")
 
