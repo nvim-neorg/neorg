@@ -18,13 +18,7 @@ module.config.public = {
     type = "none",
 
     -- How to generate a tabulation inside the `@document.meta` tag
-    tab = function()
-        if not vim.opt_local.expandtab then
-            return "	"
-        else
-            return string.rep(" ", vim.opt_local.tabstop:get())
-        end
-    end,
+    tab = "",
 
     -- Custom delimiter between tag and value
     delimiter = ": ",
