@@ -23,7 +23,25 @@ module.load = function()
 end
 
 module.public = {
-    sync_text_segment = function(source, target, start, _end) end,
+    sync_text_segment = function(source, source_start, source_end, target)
+        vim.api.nvim_buf_attach(source, false, {
+            on_lines = function(_, _, _, first, _, last)
+                if not vim.api.nvim_buf_is_loaded(target) then
+                    return true
+                end
+
+                local cursor_row = vim.api.nvim_win_get_cursor(0)[1]
+
+                if cursor_row < source_start or cursor_row > source_end then
+                    return
+                end
+
+                vim.schedule(function()
+                    vim.api.nvim_buf_set_lines(target, first - source_start - 1, last - source_end - 1, true, vim.api.nvim_buf_get_lines(source, first, last, true))
+                end)
+            end,
+        })
+    end,
 }
 
 module.on_event = function(event)
@@ -73,12 +91,14 @@ module.on_event = function(event)
             true
         )
 
-        if not vpslit then
+        if not vsplit then
             vim.notify("Unable to magnify current code block because our split didn't want to open :(")
             return
         end
 
-        -- module.public.sync_text_segment()
+        vim.api.nvim_buf_set_lines(vsplit, 0, -1, true, code_block_info.content)
+
+        module.public.sync_text_segment(event.buffer, code_block_info.start.row, code_block_info["end"].row, vsplit)
     end
 end
 
