@@ -24,15 +24,21 @@ end
 
 module.public = {
     sync_text_segment = function(source, source_window, source_start, source_end, target, target_window)
+        -- Create a unique but deterministic namespace name for the code block
         local namespace = vim.api.nvim_create_namespace(
             "neorg/code-block-" .. tostring(source) .. tostring(source_start) .. tostring(source_end)
         )
 
+        -- Clear any leftover extmarks
         vim.api.nvim_buf_clear_namespace(source, namespace, 0, -1)
 
+        -- Create two extmarks, one at the beginning of the code block and one at the end.
+        -- This lets us track size changes of the code block (shrinking and enlarging)
         local start_extmark = vim.api.nvim_buf_set_extmark(source, namespace, source_start, 0, {})
         local end_extmark = vim.api.nvim_buf_set_extmark(source, namespace, source_end, 0, {})
 
+        -- This autocommand handles the synchronization from the source buffer to the target buffer
+        -- (from the code block to the split)
         vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
             buffer = source,
             callback = function()
@@ -43,25 +49,35 @@ module.public = {
                 local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
                 vim.schedule(function()
+                    -- Get the positions of both the extmarks (this has to be in the schedule function else it returns
+                    -- outdated information).
                     local extmark_begin = vim.api.nvim_buf_get_extmark_by_id(source, namespace, start_extmark, {})
                     local extmark_end = vim.api.nvim_buf_get_extmark_by_id(source, namespace, end_extmark, {})
 
+                    -- Both extmarks will have the same row if the user deletes the whole code block.
+                    -- In other words, this is a method to detect when a code block has been deleted.
                     if extmark_end[1] == extmark_begin[1] then
                         vim.api.nvim_buf_delete(target, { force = true })
                         vim.api.nvim_buf_clear_namespace(source, namespace, 0, -1)
                         return true
                     end
 
+                    -- Make sure that the cursor is within bounds of the code block
                     if cursor_pos[1] > extmark_begin[1] and cursor_pos[1] <= (extmark_end[1] + 1) then
+                        -- For extra information grab the current node under the cursor
                         local current_node =
                             module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor(0, true)
 
+                        -- If we are within bounds of the code block but the current node type is not part of a ranged
+                        -- tag then it means the user malformed the code block in some way and we should bail
                         if not current_node or not current_node:type():match("^ranged_tag.*") then
                             vim.api.nvim_buf_delete(target, { force = true })
                             vim.api.nvim_buf_clear_namespace(source, namespace, 0, -1)
                             return true
                         end
 
+                        -- Now that we have full information that we are in fact in a valid code block
+                        -- take the lines from within the code block and put them in the buffer
                         vim.api.nvim_buf_set_lines(
                             target,
                             0,
@@ -72,9 +88,16 @@ module.public = {
 
                         local target_line_count = vim.api.nvim_buf_line_count(target)
 
+                        -- Set the cursor in the target window to the place the text is being changed.
+                        -- Useful to keep up with long ranges of text.
+                        --
+                        -- This check exists as sometimes the cursor position can be larger than the size of the
+                        -- target buffer which causes errors.
                         if cursor_pos[1] - extmark_begin[1] > target_line_count then
                             vim.api.nvim_win_set_cursor(target_window, { target_line_count, cursor_pos[2] })
                         else
+                            -- Here we subtract the beginning extmark's row position from the current cursor position
+                            -- in order to create an offset that can be applied to the target buffer.
                             vim.api.nvim_win_set_cursor(
                                 target_window,
                                 { cursor_pos[1] - extmark_begin[1], cursor_pos[2] }
@@ -85,9 +108,12 @@ module.public = {
             end,
         })
 
+        -- Target -> source binding
+        -- This binding is much simpler, as it captures changed from the vertical split and applies them
+        -- to the source code block.
         vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
             buffer = target,
-            callback = vim.schedule_wrap(function()
+            callback = vim.schedule_wrap(function() -- Schedule wrap is needed for up-to-date extmark information
                 local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
                 local extmark_begin = vim.api.nvim_buf_get_extmark_by_id(source, namespace, start_extmark, {})
@@ -100,12 +126,15 @@ module.public = {
                     true,
                     vim.api.nvim_buf_get_lines(target, 0, -1, true)
                 )
+
                 vim.api.nvim_win_set_cursor(source_window, { cursor_pos[1] + extmark_begin[1], cursor_pos[2] })
             end),
         })
 
+        -- For when the user closes the target buffer or vertical split.
         vim.api.nvim_create_autocmd({ "BufDelete", "WinClosed" }, {
             buffer = target,
+            once = true,
             callback = function()
                 pcall(vim.api.nvim_buf_delete, target, { force = true })
                 vim.api.nvim_buf_clear_namespace(source, namespace, 0, -1)
@@ -116,6 +145,7 @@ module.public = {
 
 module.on_event = function(event)
     if event.split_type[2] == "core.looking-glass.magnify-code-block" then
+        -- First we must check if the user has their cursor under a code block
         local query = vim.treesitter.parse_query(
             "norg",
             [[
@@ -127,6 +157,7 @@ module.on_event = function(event)
 
         local document_root = module.required["core.integrations.treesitter"].get_document_root(event.buffer)
 
+        --- Table containing information about the code block that is potentially under the cursor
         local code_block_info
 
         do
@@ -148,13 +179,15 @@ module.on_event = function(event)
             end
         end
 
+        -- If the query above failed then we know that the user isn't under a code block
         if not code_block_info then
             vim.notify("No code block found under cursor!")
             return
         end
 
+        -- TODO: Make the vsplit location configurable (i.e. whether it spawns on the left or the right)
         local vsplit = module.required["core.ui"].create_vsplit(
-            "code-block-" .. tostring(code_block_info.start.row) .. tostring(code_block_info["end"].row),
+            "code-block-" .. tostring(code_block_info.start.row) .. tostring(code_block_info["end"].row), -- This is done to make the name of the vsplit unique
             {
                 filetype = (code_block_info.parameters[1] or "none"),
             },
@@ -166,6 +199,7 @@ module.on_event = function(event)
             return
         end
 
+        -- Set the content of the target buffer to the content of the code block (initial synchronization)
         vim.api.nvim_buf_set_lines(vsplit, 0, -1, true, code_block_info.content)
 
         module.public.sync_text_segment(
