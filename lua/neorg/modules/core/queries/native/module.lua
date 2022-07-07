@@ -264,11 +264,8 @@ module.private = {
     matching_nodes = function(parent, tree, bufnr)
         local res = {}
         local where = tree.where
-        local matched_query, how_to_fix = module.private.matching_query(
-            parent,
-            tree.query,
-            { recursive = tree.recursive }
-        )
+        local matched_query, how_to_fix =
+            module.private.matching_query(parent, tree.query, { recursive = tree.recursive })
 
         if type(matched_query) == "string" then
             return matched_query, how_to_fix

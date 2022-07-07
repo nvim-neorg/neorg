@@ -261,10 +261,8 @@ module.public = {
                             if lang_name == syntax then
                                 if empty_result == 0 then
                                     -- get the file name for the syntax file
-                                    local file = vim.api.nvim_get_runtime_file(
-                                        string.format("syntax/%s.vim", syntax),
-                                        false
-                                    )
+                                    local file =
+                                        vim.api.nvim_get_runtime_file(string.format("syntax/%s.vim", syntax), false)
                                     if file == nil then
                                         file = vim.api.nvim_get_runtime_file(
                                             string.format("after/syntax/%s.vim", syntax),
@@ -277,11 +275,8 @@ module.public = {
 
                                     -- make sure that group has things when needed
                                     local regex = group .. "%s+cluster=(.+)"
-                                    local _, found_cluster = pcall(
-                                        vim.api.nvim_exec,
-                                        string.format("syntax list @%s", group),
-                                        true
-                                    )
+                                    local _, found_cluster =
+                                        pcall(vim.api.nvim_exec, string.format("syntax list @%s", group), true)
                                     local actual_cluster
                                     for match in found_cluster:gmatch(regex) do
                                         actual_cluster = match

@@ -1525,12 +1525,10 @@ module.config.public = {
                                 and double_prev_sibling
                                 and double_prev_sibling:type() == "marker_prefix"
                             then
-                                local range_of_prefix = module.required["core.integrations.treesitter"].get_node_range(
-                                    double_prev_sibling
-                                )
-                                local range_of_title = module.required["core.integrations.treesitter"].get_node_range(
-                                    prev_sibling
-                                )
+                                local range_of_prefix =
+                                    module.required["core.integrations.treesitter"].get_node_range(double_prev_sibling)
+                                local range_of_title =
+                                    module.required["core.integrations.treesitter"].get_node_range(prev_sibling)
                                 resulting_length = (range_of_prefix.column_end - range_of_prefix.column_start)
                                     + (range_of_title.column_end - range_of_title.column_start)
                             else
@@ -1681,11 +1679,8 @@ module.load = function()
                 else
                     -- If we don't have an icon variable then we need to descend further down the lua table.
                     -- To do this we recursively call this very function and merge the results into the result table
-                    result = vim.tbl_deep_extend(
-                        "force",
-                        result,
-                        get_enabled_icons(icons, parent_icon, rec_name .. name)
-                    )
+                    result =
+                        vim.tbl_deep_extend("force", result, get_enabled_icons(icons, parent_icon, rec_name .. name))
                 end
             end
         end
@@ -1759,9 +1754,8 @@ module.on_event = function(event)
             -- chunk at a set interval and applies the conceals that way to reduce load and improve performance.
 
             -- This points to the current block the user's cursor is in
-            local block_current = math.floor(
-                (line_count / module.config.public.performance.increment) % event.cursor_position[1]
-            )
+            local block_current =
+                math.floor((line_count / module.config.public.performance.increment) % event.cursor_position[1])
 
             local function trigger_conceals_for_block(block)
                 local line_begin = block == 0 and 0 or block * module.config.public.performance.increment - 1

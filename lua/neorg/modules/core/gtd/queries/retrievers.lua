@@ -142,12 +142,8 @@ module.public = {
             return
         end
 
-        local current_node = root:named_descendant_for_range(
-            cursor_range[1],
-            cursor_range[2],
-            cursor_range[1],
-            cursor_range[2]
-        )
+        local current_node =
+            root:named_descendant_for_range(cursor_range[1], cursor_range[2], cursor_range[1], cursor_range[2])
 
         local node_type = type == "project" and "heading1" or "todo_item1"
         local parent = module.required["core.queries.native"].find_parent_node({ current_node, buf }, node_type)
@@ -208,12 +204,8 @@ module.public = {
             exported.inbox = vim.uri_from_bufnr(exported.internal.bufnr):sub(-#inbox) == inbox
 
             if type == "task" then
-                exported.project_uuid = get_key(
-                    "project_uuid",
-                    module.private.get_task_project,
-                    exported,
-                    { project_node = true }
-                )
+                exported.project_uuid =
+                    get_key("project_uuid", module.private.get_task_project, exported, { project_node = true })
                 if exported.project_uuid then
                     exported.project_uuid = exported.project_uuid:id()
                 end
@@ -224,38 +216,14 @@ module.public = {
             local config = neorg.modules.get_module_config("core.gtd.base")
             local syntax = config.syntax
 
-            exported.contexts = get_key(
-                "contexts",
-                module.public.get_tag,
-                string.sub(syntax.context, 2),
-                exported,
-                type,
-                opts
-            )
-            exported["time.start"] = get_key(
-                "time.start",
-                module.public.get_tag,
-                string.sub(syntax.start, 2),
-                exported,
-                type,
-                opts
-            )
-            exported["time.due"] = get_key(
-                "time.due",
-                module.public.get_tag,
-                string.sub(syntax.due, 2),
-                exported,
-                type,
-                opts
-            )
-            exported["waiting.for"] = get_key(
-                "waiting.for",
-                module.public.get_tag,
-                string.sub(syntax.waiting, 2),
-                exported,
-                type,
-                opts
-            )
+            exported.contexts =
+                get_key("contexts", module.public.get_tag, string.sub(syntax.context, 2), exported, type, opts)
+            exported["time.start"] =
+                get_key("time.start", module.public.get_tag, string.sub(syntax.start, 2), exported, type, opts)
+            exported["time.due"] =
+                get_key("time.due", module.public.get_tag, string.sub(syntax.due, 2), exported, type, opts)
+            exported["waiting.for"] =
+                get_key("waiting.for", module.public.get_tag, string.sub(syntax.waiting, 2), exported, type, opts)
             exported["area_of_focus"] = get_key("area_of_focus", module.private.get_aof, exported, opts)
 
             -- Add position in file for each node
@@ -392,11 +360,8 @@ module.public = {
         }
 
         local extract = function(node_to_extract, extracted)
-            local tag_content_nodes = module.required["core.queries.native"].query_from_tree(
-                node_to_extract[1],
-                tree,
-                node_to_extract[2]
-            )
+            local tag_content_nodes =
+                module.required["core.queries.native"].query_from_tree(node_to_extract[1], tree, node_to_extract[2])
 
             if #tag_content_nodes == 0 then
                 return nil
@@ -476,11 +441,8 @@ module.private = {
             table.insert(tree, { query = { "first", "paragraph" } })
         end
 
-        local content = module.required["core.queries.native"].query_from_tree(
-            node.internal.node,
-            tree,
-            node.internal.bufnr
-        )
+        local content =
+            module.required["core.queries.native"].query_from_tree(node.internal.node, tree, node.internal.bufnr)
 
         if #content == 0 then
             return {}
@@ -521,11 +483,8 @@ module.private = {
             { query = { "all", "paragraph_segment" } },
         }
 
-        local project_content_node = module.required["core.queries.native"].query_from_tree(
-            project_node[1],
-            tree,
-            project_node[2]
-        )
+        local project_content_node =
+            module.required["core.queries.native"].query_from_tree(project_node[1], tree, project_node[2])
 
         if not opts.extract then
             return project_content_node[1][1]
@@ -557,11 +516,8 @@ module.private = {
             { query = { "first", "todo_item_recurring" } },
         }
 
-        local task_state_nodes = module.required["core.queries.native"].query_from_tree(
-            task.internal.node,
-            tree,
-            task.internal.bufnr
-        )
+        local task_state_nodes =
+            module.required["core.queries.native"].query_from_tree(task.internal.node, tree, task.internal.bufnr)
 
         if not task_state_nodes then
             log.error("This task does not contain any state !")

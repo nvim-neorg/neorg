@@ -288,11 +288,8 @@ function neorg.modules.load_module(module_name, parent, config)
         module.config.custom = config
         module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
     else
-        module.config.public = vim.tbl_deep_extend(
-            "force",
-            module.config.public,
-            require("neorg.config").modules[module_name] or {}
-        )
+        module.config.public =
+            vim.tbl_deep_extend("force", module.config.public, require("neorg.config").modules[module_name] or {})
     end
 
     -- Pass execution onto load_module_from_table() and let it handle the rest

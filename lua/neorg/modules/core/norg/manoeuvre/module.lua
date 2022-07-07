@@ -84,22 +84,16 @@ module.public = {
         if type(expected_sibling_name) == "string" then
             if next_element and next_element:type():match(expected_sibling_name) then
                 -- TODO: This is a bit buggy and doesn't always set the cursor position to where you'd expect
-                module.required["core.integrations.treesitter"].get_ts_utils().swap_nodes(
-                    element,
-                    next_element,
-                    0,
-                    true
-                )
+                module.required["core.integrations.treesitter"]
+                    .get_ts_utils()
+                    .swap_nodes(element, next_element, 0, true)
             end
         else
             for _, expected in ipairs(expected_sibling_name) do
                 if next_element and next_element:type():match(expected) then
-                    module.required["core.integrations.treesitter"].get_ts_utils().swap_nodes(
-                        element,
-                        next_element,
-                        0,
-                        true
-                    )
+                    module.required["core.integrations.treesitter"]
+                        .get_ts_utils()
+                        .swap_nodes(element, next_element, 0, true)
                     return
                 end
             end
@@ -117,22 +111,16 @@ module.public = {
 
         if type(expected_sibling_name) == "string" then
             if prev_element and prev_element:type():match(expected_sibling_name) then
-                module.required["core.integrations.treesitter"].get_ts_utils().swap_nodes(
-                    element,
-                    prev_element,
-                    0,
-                    true
-                )
+                module.required["core.integrations.treesitter"]
+                    .get_ts_utils()
+                    .swap_nodes(element, prev_element, 0, true)
             end
         else
             for _, expected in ipairs(expected_sibling_name) do
                 if prev_element and prev_element:type():match(expected) then
-                    module.required["core.integrations.treesitter"].get_ts_utils().swap_nodes(
-                        element,
-                        prev_element,
-                        0,
-                        true
-                    )
+                    module.required["core.integrations.treesitter"]
+                        .get_ts_utils()
+                        .swap_nodes(element, prev_element, 0, true)
                     return
                 end
             end

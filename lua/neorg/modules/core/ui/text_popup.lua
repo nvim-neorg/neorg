@@ -26,10 +26,8 @@ module.public = {
         }
 
         -- Apply any custom modifiers that the user has specified
-        window_config = module.public.apply_custom_options(
-            modifiers,
-            vim.tbl_extend("force", window_config, config or {})
-        )
+        window_config =
+            module.public.apply_custom_options(modifiers, vim.tbl_extend("force", window_config, config or {}))
 
         local buf = vim.api.nvim_create_buf(false, true)
 

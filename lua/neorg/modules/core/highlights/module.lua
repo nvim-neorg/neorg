@@ -597,11 +597,8 @@ module.public = {
     --- Takes in a table of highlights and applies them to the current buffer
     ---@param highlights table #A table of highlights
     add_highlights = function(highlights)
-        module.config.public.highlights = vim.tbl_deep_extend(
-            "force",
-            module.config.public.highlights,
-            highlights or {}
-        )
+        module.config.public.highlights =
+            vim.tbl_deep_extend("force", module.config.public.highlights, highlights or {})
         module.public.trigger_highlights()
     end,
 

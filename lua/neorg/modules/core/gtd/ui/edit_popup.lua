@@ -42,13 +42,11 @@ module.public = {
         if not buffer then
             return
         end
-        local selection = module.required["core.ui"].begin_selection(buffer):listener(
-            "destroy",
-            { "<Esc>" },
-            function(self)
+        local selection = module.required["core.ui"]
+            .begin_selection(buffer)
+            :listener("destroy", { "<Esc>" }, function(self)
                 self:destroy()
-            end
-        )
+            end)
 
         selection:title("Edit Task"):blank():text("Task: " .. task_extracted.content)
         if task_extracted.contexts then
