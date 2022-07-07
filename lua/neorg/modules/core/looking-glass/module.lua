@@ -26,7 +26,7 @@ module.public = {
     sync_text_segment = function(source, source_window, source_start, source_end, target, target_window)
         -- Create a unique but deterministic namespace name for the code block
         local namespace = vim.api.nvim_create_namespace(
-            "neorg/code-block-" .. tostring(source) .. tostring(source_start) .. tostring(source_end)
+            "neorg/code-block-" .. tostring(source) .. tostring(source_start.row) .. tostring(source_end.row)
         )
 
         -- Clear any leftover extmarks
@@ -34,8 +34,8 @@ module.public = {
 
         -- Create two extmarks, one at the beginning of the code block and one at the end.
         -- This lets us track size changes of the code block (shrinking and enlarging)
-        local start_extmark = vim.api.nvim_buf_set_extmark(source, namespace, source_start, 0, {})
-        local end_extmark = vim.api.nvim_buf_set_extmark(source, namespace, source_end, 0, {})
+        local start_extmark = vim.api.nvim_buf_set_extmark(source, namespace, source_start.row, source_start.column, {})
+        local end_extmark = vim.api.nvim_buf_set_extmark(source, namespace, source_end.row, source_end.column, {})
 
         -- This autocommand handles the synchronization from the source buffer to the target buffer
         -- (from the code block to the split)
@@ -49,6 +49,10 @@ module.public = {
                 local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
                 vim.schedule(function()
+                    if vim.api.nvim_get_current_buf() ~= source then
+                        return
+                    end
+
                     -- Get the positions of both the extmarks (this has to be in the schedule function else it returns
                     -- outdated information).
                     local extmark_begin = vim.api.nvim_buf_get_extmark_by_id(source, namespace, start_extmark, {})
@@ -76,6 +80,12 @@ module.public = {
                             return true
                         end
 
+                        local lines = vim.api.nvim_buf_get_lines(source, extmark_begin[1] + 1, extmark_end[1], true)
+
+                        for i, line in ipairs(lines) do
+                            lines[i] = line:sub(extmark_begin[2] + 1)
+                        end
+
                         -- Now that we have full information that we are in fact in a valid code block
                         -- take the lines from within the code block and put them in the buffer
                         vim.api.nvim_buf_set_lines(
@@ -83,7 +93,7 @@ module.public = {
                             0,
                             -1,
                             false,
-                            vim.api.nvim_buf_get_lines(source, extmark_begin[1] + 1, extmark_end[1], true)
+                            lines
                         )
 
                         local target_line_count = vim.api.nvim_buf_line_count(target)
@@ -119,15 +129,21 @@ module.public = {
                 local extmark_begin = vim.api.nvim_buf_get_extmark_by_id(source, namespace, start_extmark, {})
                 local extmark_end = vim.api.nvim_buf_get_extmark_by_id(source, namespace, end_extmark, {})
 
+                local lines = vim.api.nvim_buf_get_lines(target, 0, -1, true)
+
+                for i, line in ipairs(lines) do
+                    lines[i] = string.rep(" ", extmark_begin[2]) .. line
+                end
+
                 vim.api.nvim_buf_set_lines(
                     source,
                     extmark_begin[1] + 1,
                     extmark_end[1],
                     true,
-                    vim.api.nvim_buf_get_lines(target, 0, -1, true)
+                    lines
                 )
 
-                vim.api.nvim_win_set_cursor(source_window, { cursor_pos[1] + extmark_begin[1], cursor_pos[2] })
+                vim.api.nvim_win_set_cursor(source_window, { cursor_pos[1] + extmark_begin[1], cursor_pos[2] + extmark_begin[2] })
             end),
         })
 
@@ -205,8 +221,8 @@ module.on_event = function(event)
         module.public.sync_text_segment(
             event.buffer,
             event.window,
-            code_block_info.start.row,
-            code_block_info["end"].row,
+            code_block_info.start,
+            code_block_info["end"],
             vsplit,
             vim.api.nvim_get_current_win()
         )
