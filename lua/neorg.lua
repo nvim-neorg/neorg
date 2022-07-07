@@ -82,11 +82,8 @@ function neorg.org_file_entered(manual, arguments)
         end
 
         -- Apply the configuration
-        configuration.modules[name] = vim.tbl_deep_extend(
-            "force",
-            configuration.modules[name] or {},
-            module.config or {}
-        )
+        configuration.modules[name] =
+            vim.tbl_deep_extend("force", configuration.modules[name] or {}, module.config or {})
     end
 
     -- After all configurations are merged proceed to actually load the modules

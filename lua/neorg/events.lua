@@ -97,10 +97,8 @@ function neorg.events.create(module, type, content)
     local module_name = neorg.events.split_event_type(type)[1]
 
     -- Retrieve the template from module.events.defined
-    local event_template = neorg.events.get_event_template(
-        neorg.modules.loaded_modules[module_name] or { name = "" },
-        type
-    )
+    local event_template =
+        neorg.events.get_event_template(neorg.modules.loaded_modules[module_name] or { name = "" }, type)
 
     if not event_template then
         log.warn("Unable to create event of type", type, ". Returning nil...")

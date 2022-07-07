@@ -145,12 +145,8 @@ module.public = {
                         --  `keep_descending`  - if true will continue to recurse down the current node's children despite the current
                         --                      node already being parsed
                         --  `returned_state`   - a modified version of the state that then gets merged into the main state table
-                        local resulting_string, keep_descending, returned_state = exporter(
-                            vim.treesitter.get_node_text(node, buffer),
-                            node,
-                            state,
-                            ts_utils
-                        )
+                        local resulting_string, keep_descending, returned_state =
+                            exporter(vim.treesitter.get_node_text(node, buffer), node, state, ts_utils)
 
                         state = returned_state and vim.tbl_extend("force", state, returned_state) or state
 

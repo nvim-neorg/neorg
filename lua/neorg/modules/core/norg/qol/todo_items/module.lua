@@ -115,10 +115,9 @@ module.public = {
         local range = module.required["core.integrations.treesitter"].get_node_range(list_node_at_cursor)
 
         -- Replace the line where the todo item is situated
-        local current_line = vim.fn.getline(range.row_start + 1):gsub(
-            "^(%s*%-+%s+%[%s*)[+!=%_%-x%*%s](%s*%]%s+)",
-            "%1" .. resulting_char .. "%2"
-        )
+        local current_line = vim.fn
+            .getline(range.row_start + 1)
+            :gsub("^(%s*%-+%s+%[%s*)[+!=%_%-x%*%s](%s*%]%s+)", "%1" .. resulting_char .. "%2")
 
         vim.fn.setline(range.row_start + 1, current_line)
 
@@ -186,18 +185,14 @@ module.public = {
             -- 3 is the default amount of children a todo_item should have. If it has more then it has children
             -- and we should handle those too
             if node:named_child_count() <= 3 then
-                local current_line = vim.fn.getline(position + 1):gsub(
-                    "^(%s*%-+%s+%[%s*)[+!=%_%-x%*%s](%s*%]%s+)",
-                    "%1" .. char .. "%2"
-                )
+                local current_line =
+                    vim.fn.getline(position + 1):gsub("^(%s*%-+%s+%[%s*)[+!=%_%-x%*%s](%s*%]%s+)", "%1" .. char .. "%2")
 
                 vim.fn.setline(position + 1, current_line)
                 return
             else
-                local current_line = vim.fn.getline(position + 1):gsub(
-                    "^(%s*%-+%s+%[%s*)[+!=%_%-x%*%s](%s*%]%s+)",
-                    "%1" .. char .. "%2"
-                )
+                local current_line =
+                    vim.fn.getline(position + 1):gsub("^(%s*%-+%s+%[%s*)[+!=%_%-x%*%s](%s*%]%s+)", "%1" .. char .. "%2")
 
                 vim.fn.setline(position + 1, current_line)
 

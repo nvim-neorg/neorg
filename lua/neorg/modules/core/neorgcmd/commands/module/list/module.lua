@@ -43,7 +43,9 @@ module.on_event = function(event)
     if event.type == "core.neorgcmd.events.module.list" then
         local lines = {
             -- neorg.modules.get_module_config("core.norg.concealer").icons.heading.level_1.icon
-            "*" .. " " .. "Loaded Neorg Modules",
+            "*"
+                .. " "
+                .. "Loaded Neorg Modules",
         }
 
         for _, mod in pairs(neorg.modules.loaded_modules) do

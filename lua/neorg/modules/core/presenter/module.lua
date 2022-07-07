@@ -137,12 +137,8 @@ module.public = {
         end
 
         -- Generate views selection popup
-        local buffer = module.required["core.ui"].create_norg_buffer(
-            "Norg Presenter",
-            "nosplit",
-            nil,
-            { keybinds = false }
-        )
+        local buffer =
+            module.required["core.ui"].create_norg_buffer("Norg Presenter", "nosplit", nil, { keybinds = false })
 
         vim.api.nvim_buf_set_option(buffer, "modifiable", true)
         vim.api.nvim_buf_set_lines(buffer, 0, -1, false, results[1])
