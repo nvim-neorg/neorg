@@ -109,7 +109,7 @@ module.public = {
         })
 
         -- Target -> source binding
-        -- This binding is much simpler, as it captures changed from the vertical split and applies them
+        -- This binding is much simpler, as it captures changes from the vertical split and applies them
         -- to the source code block.
         vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
             buffer = target,
