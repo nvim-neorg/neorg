@@ -1743,6 +1743,10 @@ module.on_event = function(event)
         local buf = event.buffer
         local line_count = vim.api.nvim_buf_line_count(buf)
 
+        vim.api.nvim_buf_clear_namespace(buf, module.private.icon_namespace, 0, -1)
+        vim.api.nvim_buf_clear_namespace(buf, module.private.code_block_namespace, 0, -1)
+        vim.api.nvim_buf_clear_namespace(buf, module.private.completion_level_namespace, 0, -1)
+
         if line_count < module.config.public.performance.increment then
             module.public.trigger_icons(buf, module.private.icons, module.private.icon_namespace)
             module.public.trigger_code_block_highlights(buf)
