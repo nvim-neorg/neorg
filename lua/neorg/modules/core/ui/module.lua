@@ -157,7 +157,8 @@ module.public = {
                 "autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once lua require('neorg.modules.core.ui.module').public.delete_window(%s)"
             ):format(buf, buf)
         )
-        return buf
+
+        return buf, vim.api.nvim_get_current_win()
     end,
 
     --- Creates a new vertical split
@@ -201,7 +202,7 @@ module.public = {
         -- Merge the user provided options with the default options and apply them to the new buffer
         module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
 
-        return buf
+        return buf, vim.api.nvim_get_current_win()
     end,
 
     --- Creates a new display in which you can place organized data
