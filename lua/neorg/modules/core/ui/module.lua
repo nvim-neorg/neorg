@@ -20,6 +20,7 @@ module.setup = function()
         imports = {
             "selection_popup",
             "text_popup",
+            "calendar",
         },
     }
 end
