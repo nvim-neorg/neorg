@@ -37,6 +37,13 @@ function neorg.setup(config)
 			autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered(false)
 			command! -nargs=* NeorgStart delcommand NeorgStart | lua require('neorg').org_file_entered(true, <q-args>)
 		]])
+
+        vim.api.nvim_create_autocmd("FileType", {
+            pattern = "norg",
+            callback = function()
+                neorg.org_file_entered(false)
+            end,
+        })
     end
 end
 
