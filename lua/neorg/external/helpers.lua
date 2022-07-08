@@ -144,7 +144,7 @@ neorg.utils = {
         -- We create a dummy buffer with the filepath the user wanted to export to
         -- and query the filetype from there.
         if not filetype then
-            local dummy_buffer = vim.uri_to_bufnr("file://" .. file)
+            local dummy_buffer = vim.uri_to_bufnr(vim.uri_from_fname(file))
             vim.fn.bufload(dummy_buffer)
             filetype = vim.api.nvim_buf_get_option(dummy_buffer, "filetype")
             vim.api.nvim_buf_delete(dummy_buffer, { force = true })
