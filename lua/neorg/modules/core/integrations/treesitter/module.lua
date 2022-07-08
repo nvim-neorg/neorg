@@ -151,7 +151,7 @@ module.public = {
             return
         end
 
-        local next_heading_query = vim.treesitter.parse_query("norg", [[
+        local previous_heading_query = vim.treesitter.parse_query("norg", [[
             [
                 (heading1
                     title: (paragraph_segment) @next-segment
@@ -176,8 +176,8 @@ module.public = {
 
         local final_node = nil
 
-        for id, node in next_heading_query:iter_captures(document_root, 0, 0, line_number - 1) do
-            if next_heading_query.captures[id] == "next-segment" then
+        for id, node in previous_heading_query:iter_captures(document_root, 0, 0, line_number - 1) do
+            if previous_heading_query.captures[id] == "next-segment" then
                 local start_line = node:range()
 
                 if vim.fn.foldclosed(start_line + 1) == -1 and start_line < (line_number - 1) then
