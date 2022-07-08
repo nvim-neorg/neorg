@@ -168,7 +168,13 @@ module.public = {
                     -- we also want to support special captures and predicates like `(#has-parent?)`
                     for match in nvim_ts_query.iter_prepared_matches(query, document_root, buf, from or 0, to or -1) do
                         nvim_locals.recurse_local_nodes(match, function(_, node, capture)
+                            local rs, _, re = node:range()
+
                             if capture == "icon" then
+                                if rs < (from or 0) or re > (to or math.huge) then
+                                    goto continue
+                                end
+
                                 -- Extract both the text and the range of the node
                                 local text = module.required["core.integrations.treesitter"].get_node_text(node, buf)
                                 local range = module.required["core.integrations.treesitter"].get_node_range(node)
@@ -218,6 +224,8 @@ module.public = {
                                     )
                                 end
                             end
+
+                            ::continue::
                         end)
                     end
                 end
