@@ -110,74 +110,74 @@ module.config.public = {
             ["1"] = {
                 [""] = "+NeorgUnorderedList1",
 
-                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
-                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
-                Done = { [""] = "+TSString", Content = "+TSString" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
-                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
-                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
-                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
+                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
+                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
+                Done = { [""] = "+TSString", Content = "+Normal" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
+                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
+                OnHold = { [""] = "+TSNote", Content = "+Normal" },
+                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
             },
             ["2"] = {
                 [""] = "+NeorgUnorderedList2",
 
-                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
-                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
-                Done = { [""] = "+TSString", Content = "+TSString" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
-                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
-                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
-                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
+                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
+                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
+                Done = { [""] = "+TSString", Content = "+Normal" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
+                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
+                OnHold = { [""] = "+TSNote", Content = "+Normal" },
+                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
             },
             ["3"] = {
                 [""] = "+NeorgUnorderedList3",
 
-                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
-                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
-                Done = { [""] = "+TSString", Content = "+TSString" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
-                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
-                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
-                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
+                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
+                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
+                Done = { [""] = "+TSString", Content = "+Normal" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
+                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
+                OnHold = { [""] = "+TSNote", Content = "+Normal" },
+                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
             },
             ["4"] = {
                 [""] = "+NeorgUnorderedList4",
 
-                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
-                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
-                Done = { [""] = "+TSString", Content = "+TSString" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
-                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
-                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
-                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
+                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
+                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
+                Done = { [""] = "+TSString", Content = "+Normal" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
+                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
+                OnHold = { [""] = "+TSNote", Content = "+Normal" },
+                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
             },
             ["5"] = {
                 [""] = "+NeorgUnorderedList5",
 
-                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
-                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
-                Done = { [""] = "+TSString", Content = "+TSString" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
-                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
-                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
-                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
+                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
+                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
+                Done = { [""] = "+TSString", Content = "+Normal" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
+                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
+                OnHold = { [""] = "+TSNote", Content = "+Normal" },
+                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
             },
             ["6"] = {
                 [""] = "+NeorgUnorderedList6",
 
-                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
-                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
-                Done = { [""] = "+TSString", Content = "+TSString" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
-                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
-                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
-                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
+                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
+                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
+                Done = { [""] = "+TSString", Content = "+Normal" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
+                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
+                OnHold = { [""] = "+TSNote", Content = "+Normal" },
+                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
             },
         },
 
@@ -485,6 +485,14 @@ module.config.public = {
             },
         },
     },
+
+    -- This can be one of four values: `false`, `"all"`, `"except_undone"` and `"cancelled"`.
+    -- When set to `false` the content of TODO items will not be coloured in any special way.
+    -- When set to `"all"` the content of TODO items will directly reflect the colour of the item's TODO box.
+    -- When set to `"except_undone"`, will have the same behaviour as `"all"` but will exclude undone TODO items.
+    -- When set to `"cancelled"` will only highlight the content of TODO items for cancelled tasks.
+    -- Default value: "cancelled".
+    todo_items_match_color = "cancelled",
 }
 
 module.setup = function()
@@ -494,6 +502,32 @@ end
 module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufEnter")
     module.required["core.autocommands"].enable_autocommand("ColorScheme", true)
+
+    if module.config.public.todo_items_match_color then
+        if not vim.tbl_contains({ "all", "except_undone", "cancelled" }, module.config.public.todo_items_match_color) then
+            log.error("Error when parsing `todo_items_match_color` for `core.highlights`, the key only accepts the following values: all, except_undone and cancelled.")
+            return
+        end
+
+        for i = 1, 6 do
+            local todo_item = module.config.public.highlights.TodoItem[tostring(i)]
+
+            if module.config.public.todo_items_match_color ~= "cancelled" then
+                if module.config.public.todo_items_match_color ~= "except_undone" then
+                    todo_item.Undone.Content = todo_item.Undone[""]
+                end
+
+                todo_item.Pending.Content = todo_item.Pending[""]
+                todo_item.Done.Content = todo_item.Done[""]
+                todo_item.Urgent.Content = todo_item.Urgent[""]
+                todo_item.OnHold.Content = todo_item.OnHold[""]
+                todo_item.Recurring.Content = todo_item.Recurring[""]
+                todo_item.Uncertain.Content = todo_item.Uncertain[""]
+            end
+
+            todo_item.Cancelled.Content = todo_item.Cancelled[""]
+        end
+    end
 end
 
 ---@class core.highlights
