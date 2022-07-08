@@ -133,7 +133,7 @@ module.public = {
             if next_heading_query.captures[id] == "next-segment" then
                 local start_line = node:range()
 
-                if vim.fn.foldclosed(start_line + 1) == -1 and start_line >= line_number then
+                if vim.tbl_contains({ -1, start_line + 1 }, vim.fn.foldclosed(start_line + 1)) and start_line >= line_number then
                     module.private.ts_utils.goto_node(node)
                     return
                 end
@@ -180,7 +180,7 @@ module.public = {
             if previous_heading_query.captures[id] == "next-segment" then
                 local start_line = node:range()
 
-                if vim.fn.foldclosed(start_line + 1) == -1 and start_line < (line_number - 1) then
+                if vim.tbl_contains({ -1, start_line + 1 }, vim.fn.foldclosed(start_line + 1)) and start_line < (line_number - 1) then
                     final_node = node
                 end
             end
