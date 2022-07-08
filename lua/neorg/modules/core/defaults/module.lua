@@ -10,8 +10,8 @@ modules that any user would want to have a "just works" experience.
 require("neorg.modules.base")
 
 return neorg.modules.create_meta(
-    "core.autocommands",
     "core.defaults",
+    "core.autocommands",
     "core.integrations.treesitter",
     "core.keybinds",
     "core.looking-glass",
