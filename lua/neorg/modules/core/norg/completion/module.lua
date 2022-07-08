@@ -11,7 +11,7 @@ require("neorg.modules")
 local module = neorg.modules.create("core.norg.completion")
 
 module.config.public = {
-    -- We currently only support compe
+    -- We currently support: (`nvim-compe`, `nvim-cmp`)
     engine = nil,
     name = "[Neorg]",
 }
