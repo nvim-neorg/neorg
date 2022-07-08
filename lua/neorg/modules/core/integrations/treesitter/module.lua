@@ -100,14 +100,43 @@ module.public = {
     goto_next_heading = function()
         local line_number = vim.api.nvim_win_get_cursor(0)[1]
 
-        local lines = vim.api.nvim_buf_get_lines(0, line_number, -1, true)
+        local document_root = module.public.get_document_root(0)
 
-        for relative_line_number, line in ipairs(lines) do
-            local match = line:match("^%s*%*+%s+")
+        if not document_root then
+            return
+        end
 
-            if match then
-                vim.api.nvim_win_set_cursor(0, { line_number + relative_line_number, match:len() })
-                break
+        local next_heading_query = vim.treesitter.parse_query("norg", [[
+            [
+                (heading1
+                    title: (paragraph_segment) @next-segment
+                )
+                (heading2
+                    title: (paragraph_segment) @next-segment
+                )
+                (heading3
+                    title: (paragraph_segment) @next-segment
+                )
+                (heading4
+                    title: (paragraph_segment) @next-segment
+                )
+                (heading5
+                    title: (paragraph_segment) @next-segment
+                )
+                (heading6
+                    title: (paragraph_segment) @next-segment
+                )
+            ]
+        ]])
+
+        for id, node in next_heading_query:iter_captures(document_root, 0, line_number + 1, -1) do
+            if next_heading_query.captures[id] == "next-segment" then
+                local start_line = node:range()
+
+                if start_line >= line_number then
+                    module.private.ts_utils.goto_node(node)
+                    return
+                end
             end
         end
     end,
@@ -116,15 +145,49 @@ module.public = {
     goto_previous_heading = function()
         local line_number = vim.api.nvim_win_get_cursor(0)[1]
 
-        local lines = vim.fn.reverse(vim.api.nvim_buf_get_lines(0, 0, line_number - 1, true))
+        local document_root = module.public.get_document_root(0)
 
-        for relative_line_number, line in ipairs(lines) do
-            local match = line:match("^%s*%*+%s+")
+        if not document_root then
+            return
+        end
 
-            if match then
-                vim.api.nvim_win_set_cursor(0, { line_number - relative_line_number, match:len() })
-                break
+        local next_heading_query = vim.treesitter.parse_query("norg", [[
+            [
+                (heading1
+                    title: (paragraph_segment) @next-segment
+                )
+                (heading2
+                    title: (paragraph_segment) @next-segment
+                )
+                (heading3
+                    title: (paragraph_segment) @next-segment
+                )
+                (heading4
+                    title: (paragraph_segment) @next-segment
+                )
+                (heading5
+                    title: (paragraph_segment) @next-segment
+                )
+                (heading6
+                    title: (paragraph_segment) @next-segment
+                )
+            ]
+        ]])
+
+        local final_node = nil
+
+        for id, node in next_heading_query:iter_captures(document_root, 0, 0, line_number - 1) do
+            if next_heading_query.captures[id] == "next-segment" then
+                local start_line = node:range()
+
+                if start_line < (line_number - 1) then
+                    final_node = node
+                end
             end
+        end
+
+        if final_node then
+            module.private.ts_utils.goto_node(final_node)
         end
     end,
 
