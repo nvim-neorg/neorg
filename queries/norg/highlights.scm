@@ -200,101 +200,65 @@
 (escape_sequence) @NeorgEscapeSequence
 
 ; Todo Items
-(todo_item1
-	(unordered_list1_prefix) @NeorgTodoItem1
-	state:
-		[
-			(todo_item_undone) @NeorgTodoItem1Undone
-			(todo_item_pending) @NeorgTodoItem1Pending
-			(todo_item_done) @NeorgTodoItem1Done
-                        (todo_item_on_hold) @NeorgTodoItem1OnHold
-                        (todo_item_cancelled) @NeorgTodoItem1Cancelled
-                        (todo_item_urgent) @NeorgTodoItem1Urgent
-                        (todo_item_uncertain) @NeorgTodoItem1Uncertain
-                        (todo_item_recurring) @NeorgTodoItem1Recurring
-		]
-	content:
-		(paragraph) @NeorgTodoItem1Content)
+(todo_item1 (unordered_list1_prefix) @NeorgTodoItem1)
+(todo_item1 state: (todo_item_undone) @NeorgTodoItem1Undone content: (paragraph) @NeorgTodoItem1UndoneContent)
+(todo_item1 state: (todo_item_pending) @NeorgTodoItem1Pending content: (paragraph) @NeorgTodoItem1PendingContent)
+(todo_item1 state: (todo_item_done) @NeorgTodoItem1Done content: (paragraph) @NeorgTodoItem1DoneContent)
+(todo_item1 state: (todo_item_on_hold) @NeorgTodoItem1OnHold content: (paragraph) @NeorgTodoItem1OnHoldContent)
+(todo_item1 state: (todo_item_cancelled) @NeorgTodoItem1Cancelled content: (paragraph) @NeorgTodoItem1CancelledContent)
+(todo_item1 state: (todo_item_urgent) @NeorgTodoItem1Urgent content: (paragraph) @NeorgTodoItem1UrgentContent)
+(todo_item1 state: (todo_item_uncertain) @NeorgTodoItem1Uncertain content: (paragraph) @NeorgTodoItem1UncertainContent)
+(todo_item1 state: (todo_item_recurring) @NeorgTodoItem1Recurring content: (paragraph) @NeorgTodoItem1RecurringContent)
 
-(todo_item2
-	(unordered_list2_prefix) @NeorgTodoItem2
-	state:
-		[
-			(todo_item_undone) @NeorgTodoItem2Undone
-			(todo_item_pending) @NeorgTodoItem2Pending
-			(todo_item_done) @NeorgTodoItem2Done
-            (todo_item_on_hold) @NeorgTodoItem2OnHold
-            (todo_item_cancelled) @NeorgTodoItem2Cancelled
-            (todo_item_urgent) @NeorgTodoItem2Urgent
-            (todo_item_uncertain) @NeorgTodoItem2Uncertain
-            (todo_item_recurring) @NeorgTodoItem2Recurring
-		]
-	content:
-		(paragraph) @NeorgTodoItem2Content)
+(todo_item2 (unordered_list2_prefix) @NeorgTodoItem2)
+(todo_item2 state: (todo_item_undone) @NeorgTodoItem2Undone content: (paragraph) @NeorgTodoItem2UndoneContent)
+(todo_item2 state: (todo_item_pending) @NeorgTodoItem2Pending content: (paragraph) @NeorgTodoItem2PendingContent)
+(todo_item2 state: (todo_item_done) @NeorgTodoItem2Done content: (paragraph) @NeorgTodoItem2DoneContent)
+(todo_item2 state: (todo_item_on_hold) @NeorgTodoItem2OnHold content: (paragraph) @NeorgTodoItem2OnHoldContent)
+(todo_item2 state: (todo_item_cancelled) @NeorgTodoItem2Cancelled content: (paragraph) @NeorgTodoItem2CancelledContent)
+(todo_item2 state: (todo_item_urgent) @NeorgTodoItem2Urgent content: (paragraph) @NeorgTodoItem2UrgentContent)
+(todo_item2 state: (todo_item_uncertain) @NeorgTodoItem2Uncertain content: (paragraph) @NeorgTodoItem2UncertainContent)
+(todo_item2 state: (todo_item_recurring) @NeorgTodoItem2Recurring content: (paragraph) @NeorgTodoItem2RecurringContent)
 
-(todo_item3
-	(unordered_list3_prefix) @NeorgTodoItem3
-	state:
-		[
-			(todo_item_undone) @NeorgTodoItem3Undone
-			(todo_item_pending) @NeorgTodoItem3Pending
-			(todo_item_done) @NeorgTodoItem3Done
-                        (todo_item_on_hold) @NeorgTodoItem3OnHold
-                        (todo_item_cancelled) @NeorgTodoItem3Cancelled
-                        (todo_item_urgent) @NeorgTodoItem3Urgent
-                        (todo_item_uncertain) @NeorgTodoItem3Uncertain
-                        (todo_item_recurring) @NeorgTodoItem3Recurring
-		]
-	content:
-		(paragraph) @NeorgTodoItem3Content)
+(todo_item3 (unordered_list3_prefix) @NeorgTodoItem3)
+(todo_item3 state: (todo_item_undone) @NeorgTodoItem3Undone content: (paragraph) @NeorgTodoItem3UndoneContent)
+(todo_item3 state: (todo_item_pending) @NeorgTodoItem3Pending content: (paragraph) @NeorgTodoItem3PendingContent)
+(todo_item3 state: (todo_item_done) @NeorgTodoItem3Done content: (paragraph) @NeorgTodoItem3DoneContent)
+(todo_item3 state: (todo_item_on_hold) @NeorgTodoItem3OnHold content: (paragraph) @NeorgTodoItem3OnHoldContent)
+(todo_item3 state: (todo_item_cancelled) @NeorgTodoItem3Cancelled content: (paragraph) @NeorgTodoItem3CancelledContent)
+(todo_item3 state: (todo_item_urgent) @NeorgTodoItem3Urgent content: (paragraph) @NeorgTodoItem3UrgentContent)
+(todo_item3 state: (todo_item_uncertain) @NeorgTodoItem3Uncertain content: (paragraph) @NeorgTodoItem3UncertainContent)
+(todo_item3 state: (todo_item_recurring) @NeorgTodoItem3Recurring content: (paragraph) @NeorgTodoItem3RecurringContent)
 
-(todo_item4
-	(unordered_list4_prefix) @NeorgTodoItem4
-	state:
-		[
-			(todo_item_undone) @NeorgTodoItem4Undone
-			(todo_item_pending) @NeorgTodoItem4Pending
-			(todo_item_done) @NeorgTodoItem4Done
-                        (todo_item_on_hold) @NeorgTodoItem4OnHold
-                        (todo_item_cancelled) @NeorgTodoItem4Cancelled
-                        (todo_item_urgent) @NeorgTodoItem4Urgent
-                        (todo_item_uncertain) @NeorgTodoItem4Uncertain
-                        (todo_item_recurring) @NeorgTodoItem4Recurring
-		]
-	content:
-		(paragraph) @NeorgTodoItem4Content)
+(todo_item4 (unordered_list4_prefix) @NeorgTodoItem4)
+(todo_item4 state: (todo_item_undone) @NeorgTodoItem4Undone content: (paragraph) @NeorgTodoItem4UndoneContent)
+(todo_item4 state: (todo_item_pending) @NeorgTodoItem4Pending content: (paragraph) @NeorgTodoItem4PendingContent)
+(todo_item4 state: (todo_item_done) @NeorgTodoItem4Done content: (paragraph) @NeorgTodoItem4DoneContent)
+(todo_item4 state: (todo_item_on_hold) @NeorgTodoItem4OnHold content: (paragraph) @NeorgTodoItem4OnHoldContent)
+(todo_item4 state: (todo_item_cancelled) @NeorgTodoItem4Cancelled content: (paragraph) @NeorgTodoItem4CancelledContent)
+(todo_item4 state: (todo_item_urgent) @NeorgTodoItem4Urgent content: (paragraph) @NeorgTodoItem4UrgentContent)
+(todo_item4 state: (todo_item_uncertain) @NeorgTodoItem4Uncertain content: (paragraph) @NeorgTodoItem4UncertainContent)
+(todo_item4 state: (todo_item_recurring) @NeorgTodoItem4Recurring content: (paragraph) @NeorgTodoItem4RecurringContent)
 
-(todo_item5
-	(unordered_list5_prefix) @NeorgTodoItem5
-	state:
-		[
-			(todo_item_undone) @NeorgTodoItem5Undone
-			(todo_item_pending) @NeorgTodoItem5Pending
-			(todo_item_done) @NeorgTodoItem5Done
-                        (todo_item_on_hold) @NeorgTodoItem5OnHold
-                        (todo_item_cancelled) @NeorgTodoItem5Cancelled
-                        (todo_item_urgent) @NeorgTodoItem5Urgent
-                        (todo_item_uncertain) @NeorgTodoItem5Uncertain
-                        (todo_item_recurring) @NeorgTodoItem5Recurring
-		]
-	content:
-		(paragraph) @NeorgTodoItem5Content)
+(todo_item5 (unordered_list5_prefix) @NeorgTodoItem5)
+(todo_item5 state: (todo_item_undone) @NeorgTodoItem5Undone content: (paragraph) @NeorgTodoItem5UndoneContent)
+(todo_item5 state: (todo_item_pending) @NeorgTodoItem5Pending content: (paragraph) @NeorgTodoItem5PendingContent)
+(todo_item5 state: (todo_item_done) @NeorgTodoItem5Done content: (paragraph) @NeorgTodoItem5DoneContent)
+(todo_item5 state: (todo_item_on_hold) @NeorgTodoItem5OnHold content: (paragraph) @NeorgTodoItem5OnHoldContent)
+(todo_item5 state: (todo_item_cancelled) @NeorgTodoItem5Cancelled content: (paragraph) @NeorgTodoItem5CancelledContent)
+(todo_item5 state: (todo_item_urgent) @NeorgTodoItem5Urgent content: (paragraph) @NeorgTodoItem5UrgentContent)
+(todo_item5 state: (todo_item_uncertain) @NeorgTodoItem5Uncertain content: (paragraph) @NeorgTodoItem5UncertainContent)
+(todo_item5 state: (todo_item_recurring) @NeorgTodoItem5Recurring content: (paragraph) @NeorgTodoItem5RecurringContent)
 
-(todo_item6
-	(unordered_list6_prefix) @NeorgTodoItem6
-	state:
-		[
-			(todo_item_undone) @NeorgTodoItem6Undone
-			(todo_item_pending) @NeorgTodoItem6Pending
-			(todo_item_done) @NeorgTodoItem6Done
-                        (todo_item_on_hold) @NeorgTodoItem6OnHold
-                        (todo_item_cancelled) @NeorgTodoItem6Cancelled
-                        (todo_item_urgent) @NeorgTodoItem6Urgent
-                        (todo_item_uncertain) @NeorgTodoItem6Uncertain
-                        (todo_item_recurring) @NeorgTodoItem6Recurring
-		]
-	content:
-		(paragraph) @NeorgTodoItem6Content)
+(todo_item6 (unordered_list6_prefix) @NeorgTodoItem6)
+(todo_item6 state: (todo_item_undone) @NeorgTodoItem6Undone content: (paragraph) @NeorgTodoItem6UndoneContent)
+(todo_item6 state: (todo_item_pending) @NeorgTodoItem6Pending content: (paragraph) @NeorgTodoItem6PendingContent)
+(todo_item6 state: (todo_item_done) @NeorgTodoItem6Done content: (paragraph) @NeorgTodoItem6DoneContent)
+(todo_item6 state: (todo_item_on_hold) @NeorgTodoItem6OnHold content: (paragraph) @NeorgTodoItem6OnHoldContent)
+(todo_item6 state: (todo_item_cancelled) @NeorgTodoItem6Cancelled content: (paragraph) @NeorgTodoItem6CancelledContent)
+(todo_item6 state: (todo_item_urgent) @NeorgTodoItem6Urgent content: (paragraph) @NeorgTodoItem6UrgentContent)
+(todo_item6 state: (todo_item_uncertain) @NeorgTodoItem6Uncertain content: (paragraph) @NeorgTodoItem6UncertainContent)
+(todo_item6 state: (todo_item_recurring) @NeorgTodoItem6Recurring content: (paragraph) @NeorgTodoItem6RecurringContent)
 
 ; Unordered lists
 (unordered_list1 (unordered_list1_prefix) @NeorgUnorderedList1 content: (paragraph) @NeorgUnorderedList1Content)

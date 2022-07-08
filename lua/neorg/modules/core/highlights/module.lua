@@ -110,74 +110,74 @@ module.config.public = {
             ["1"] = {
                 [""] = "+NeorgUnorderedList1",
 
-                Undone = "+TSPunctDelimiter",
-                Pending = "+TSNamespace",
-                Done = "+TSString",
-                Cancelled = "+Whitespace",
-                Urgent = "+TSDanger",
-                OnHold = "+TSNote",
-                Recurring = "+TSRepeat",
-                Uncertain = "+TSBoolean",
+                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
+                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
+                Done = { [""] = "+TSString", Content = "+TSString" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
+                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
+                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
+                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
             },
             ["2"] = {
                 [""] = "+NeorgUnorderedList2",
 
-                Undone = "+TSPunctDelimiter",
-                Pending = "+TSNamespace",
-                Done = "+TSString",
-                Cancelled = "+Whitespace",
-                Urgent = "+TSDanger",
-                OnHold = "+TSNote",
-                Recurring = "+TSRepeat",
-                Uncertain = "+TSBoolean",
+                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
+                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
+                Done = { [""] = "+TSString", Content = "+TSString" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
+                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
+                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
+                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
             },
             ["3"] = {
                 [""] = "+NeorgUnorderedList3",
 
-                Undone = "+TSPunctDelimiter",
-                Pending = "+TSNamespace",
-                Done = "+TSString",
-                Cancelled = "+Whitespace",
-                Urgent = "+TSDanger",
-                OnHold = "+TSNote",
-                Recurring = "+TSRepeat",
-                Uncertain = "+TSBoolean",
+                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
+                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
+                Done = { [""] = "+TSString", Content = "+TSString" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
+                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
+                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
+                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
             },
             ["4"] = {
                 [""] = "+NeorgUnorderedList4",
 
-                Undone = "+TSPunctDelimiter",
-                Pending = "+TSNamespace",
-                Done = "+TSString",
-                Cancelled = "+Whitespace",
-                Urgent = "+TSDanger",
-                OnHold = "+TSNote",
-                Recurring = "+TSRepeat",
-                Uncertain = "+TSBoolean",
+                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
+                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
+                Done = { [""] = "+TSString", Content = "+TSString" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
+                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
+                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
+                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
             },
             ["5"] = {
                 [""] = "+NeorgUnorderedList5",
 
-                Undone = "+TSPunctDelimiter",
-                Pending = "+TSNamespace",
-                Done = "+TSString",
-                Cancelled = "+Whitespace",
-                Urgent = "+TSDanger",
-                OnHold = "+TSNote",
-                Recurring = "+TSRepeat",
-                Uncertain = "+TSBoolean",
+                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
+                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
+                Done = { [""] = "+TSString", Content = "+TSString" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
+                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
+                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
+                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
             },
             ["6"] = {
                 [""] = "+NeorgUnorderedList6",
 
-                Undone = "+TSPunctDelimiter",
-                Pending = "+TSNamespace",
-                Done = "+TSString",
-                Cancelled = "+Whitespace",
-                Urgent = "+TSDanger",
-                OnHold = "+TSNote",
-                Recurring = "+TSRepeat",
-                Uncertain = "+TSBoolean",
+                Undone = { [""] = "+TSPunctDelimiter", ["Content"] = "+TSPunctDelimiter" },
+                Pending = { [""] = "+TSNamespace", Content = "+TSNamespace" },
+                Done = { [""] = "+TSString", Content = "+TSString" },
+                Cancelled = { [""] = "+Whitespace", Content = "+Whitespace" },
+                Urgent = { [""] = "+TSDanger", Content = "+TSDanger" },
+                OnHold = { [""] = "+TSNote", Content = "+TSNote" },
+                Recurring = { [""] = "+TSRepeat", Content = "+TSRepeat" },
+                Uncertain = { [""] = "+TSBoolean", Content = "+TSBoolean" },
             },
         },
 
@@ -536,8 +536,7 @@ module.public = {
 
                 -- If the highlight already exists then assume the user doesn't want it to be
                 -- overwritten
-                if
-                    vim.fn.hlexists(full_highlight_name) == 1
+                if vim.fn.hlexists(full_highlight_name) == 1
                     and not vim.api.nvim_exec("highlight " .. full_highlight_name, true):match("xxx%s+cleared")
                 then
                     return
@@ -568,8 +567,7 @@ module.public = {
 
             -- If the highlight already exists then assume the user doesn't want it to be
             -- overwritten
-            if
-                vim.fn.hlexists(full_highlight_name) == 1
+            if vim.fn.hlexists(full_highlight_name) == 1
                 and not vim.api.nvim_exec("highlight " .. full_highlight_name, true):match("xxx%s+cleared")
             then
                 return
@@ -578,18 +576,18 @@ module.public = {
             -- Apply the dimmed highlight
             vim.cmd(
                 "highlight! Neorg"
-                    .. prefix
-                    .. hl_name
-                    .. " "
-                    .. (highlight.affect == "background" and "guibg" or "guifg")
-                    .. "="
-                    .. module.public.dim_color(
-                        module.public.get_attribute(
-                            highlight.reference or ("Neorg" .. prefix .. hl_name),
-                            highlight.affect or "foreground"
-                        ),
-                        highlight.percentage
-                    )
+                .. prefix
+                .. hl_name
+                .. " "
+                .. (highlight.affect == "background" and "guibg" or "guifg")
+                .. "="
+                .. module.public.dim_color(
+                    module.public.get_attribute(
+                        highlight.reference or ("Neorg" .. prefix .. hl_name),
+                        highlight.affect or "foreground"
+                    ),
+                    highlight.percentage
+                )
             )
         end, "")
     end,
@@ -597,8 +595,11 @@ module.public = {
     --- Takes in a table of highlights and applies them to the current buffer
     ---@param highlights table #A table of highlights
     add_highlights = function(highlights)
-        module.config.public.highlights =
-            vim.tbl_deep_extend("force", module.config.public.highlights, highlights or {})
+        module.config.public.highlights = vim.tbl_deep_extend(
+            "force",
+            module.config.public.highlights,
+            highlights or {}
+        )
         module.public.trigger_highlights()
     end,
 
