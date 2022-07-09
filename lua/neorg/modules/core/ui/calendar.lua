@@ -71,17 +71,17 @@ module.public = {
         -- We render the first month at the very center of the screen. Each month takes up a static 26 characters.
 
         -- Render the top text of the month (June, August etc.)
-        -- The top text displays the abbreviated month
+        -- The top text displays the month
         -- TODO: Extract this logic out into a function because different views
-        -- will supply different abbreviations to render.
-        local abbreviated_month_name = os.date("%b", os.time({
+        -- will supply different things to render.
+        local month_name = os.date("%B", os.time({
             year = year,
             month = month,
             day = day,
         }))
 
-        vim.api.nvim_buf_set_extmark(buffer, logical_namespace, 4, half_width - math.floor(string.len(abbreviated_month_name) / 2), {
-            virt_text = { { abbreviated_month_name, "TSUnderline" } },
+        vim.api.nvim_buf_set_extmark(buffer, logical_namespace, 4, half_width - math.floor(string.len(month_name) / 2), {
+            virt_text = { { month_name, "TSUnderline" } },
             virt_text_pos = "overlay",
         })
 
@@ -89,20 +89,24 @@ module.public = {
         -- To effectively do this, we grab all the weekdays from a constant time.
         -- This makes the weekdays retrieved locale dependent (which is what we want).
         local weekdays = {}
+        local weekdays_string_length = 0
 
         for i = 1, 7 do
             table.insert(weekdays, { os.date("%a", os.time({
                 year = 2000,
                 month = 5,
                 day = i,
-            })):sub(1, 1), "TSTitle" })
-            table.insert(weekdays, { " " })
+            })):sub(1, 2), "TSTitle" })
+            table.insert(weekdays, { "  " })
+            weekdays_string_length = weekdays_string_length + 4
         end
 
-        vim.api.nvim_buf_set_extmark(buffer, logical_namespace, 5, half_width - math.floor(#weekdays / 2) + 1, {
+        vim.api.nvim_buf_set_extmark(buffer, logical_namespace, 5, half_width - math.floor(weekdays_string_length / 2) + 1, {
             virt_text = weekdays,
             virt_text_pos = "overlay",
         })
+
+        -- Render the numbers for weekdays
     end,
 
     select_date = function(options)
