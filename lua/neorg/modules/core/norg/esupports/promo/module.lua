@@ -29,12 +29,16 @@ module.public = {
 module.on_event = function(event)
     local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
-    local function indent_whole_node(node)
+    local function indent_whole_node(node, amount)
         local rs, _, re = node:range()
 
-        for i = rs + 1, re + 1, 100 do
-            vim.schedule(function() vim.cmd(tostring(rs + 1) .. ":normal! 100=j") end)
+        local lines = vim.api.nvim_buf_get_lines(event.buffer, rs + 1, re, true)
+
+        for i = 1, #lines do
+            lines[i] = (amount >= 0 and (string.rep(" ", amount) .. lines[i]) or lines[i]:sub(-amount + 1))
         end
+
+        vim.api.nvim_buf_set_lines(event.buffer, rs + 1, re, false, lines)
     end
 
     -- nvim_feedkeys doesn't seem to work with `^` properly
@@ -65,15 +69,27 @@ module.on_event = function(event)
 
     if event.type == "core.keybinds.events.core.norg.esupports.promo.promote" then
         vim.api.nvim_buf_set_text(event.buffer, rs, cs, re, ce, { text:sub(1, 1) .. text })
-        indent_whole_node(node_at_cursor:parent())
+
+        -- HACK(vhyrro): Sometimes for whatever reason `node_at_cursor:parent()` returns
+        -- the exact same node as `node_at_cursor`.
+        if vim.endswith(node_at_cursor:parent():type(), "_prefix") then
+            node_at_cursor = node_at_cursor:parent()
+        end
+
+        indent_whole_node(node_at_cursor:parent(), 1)
     elseif event.type == "core.keybinds.events.core.norg.esupports.promo.demote" then
         if text:match("[^%s]*"):len() == 1 then
             vim.api.nvim_echo({{ "Cannot demote any further!" }}, false, {})
             goto skip
         end
 
+        -- HACK(vhyrro): See comment in previous if branch
+        if vim.endswith(node_at_cursor:parent():type(), "_prefix") then
+            node_at_cursor = node_at_cursor:parent()
+        end
+
         vim.api.nvim_buf_set_text(event.buffer, rs, cs, re, ce, { text:sub(2) })
-        indent_whole_node(node_at_cursor:parent())
+        indent_whole_node(node_at_cursor:parent(), -1)
     end
 
     ::skip::
