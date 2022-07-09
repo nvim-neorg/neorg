@@ -21,36 +21,9 @@ module.load = function()
 end
 
 module.config.private = {
-    -- To be used in the future
-    promote_whitelist = {
-        "paragraph"
-    }
 }
 
 module.public = {
-    promote = function(node)
-        local node_text = module.required["core.integrations.treesitter"].get_node_text(node)
-        local prefix = node_text:sub(0, 1)
-
-        local tab = (function()
-            if not vim.opt_local.expandtab then
-                return "	"
-            else
-                return string.rep(" ", vim.opt_local.tabstop:get())
-            end
-        end)()
-
-        if vim.tbl_contains({
-            "-",
-            "*",
-            ">",
-            "~",
-        }, prefix) then
-            return tab .. prefix .. node_text
-        end
-
-        return tab .. node_text
-    end
 }
 
 module.on_event = function(event)
