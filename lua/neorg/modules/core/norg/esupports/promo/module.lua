@@ -56,12 +56,11 @@ module.public = {
 module.on_event = function(event)
     local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
-    local function indent_next_sibling(node)
-        local next_sibling = node:next_named_sibling()
+    local function indent_whole_node(node)
+        local rs, _, re = node:range()
 
-        if next_sibling then
-            local rs, _, re = next_sibling:range()
-            vim.cmd(tostring(rs + 1) .. "," .. tostring(re + 1) .. ":normal! ==")
+        for i = rs + 1, re + 1, 100 do
+            vim.schedule(function() vim.cmd(tostring(rs + 1) .. ":normal! 100=j") end)
         end
     end
 
@@ -93,7 +92,7 @@ module.on_event = function(event)
 
     if event.type == "core.keybinds.events.core.norg.esupports.promo.promote" then
         vim.api.nvim_buf_set_text(event.buffer, rs, cs, re, ce, { text:sub(1, 1) .. text })
-        indent_next_sibling(node_at_cursor)
+        indent_whole_node(node_at_cursor:parent())
     elseif event.type == "core.keybinds.events.core.norg.esupports.promo.demote" then
         if text:match("[^%s]*"):len() == 1 then
             vim.api.nvim_echo({{ "Cannot demote any further!" }}, false, {})
@@ -101,7 +100,7 @@ module.on_event = function(event)
         end
 
         vim.api.nvim_buf_set_text(event.buffer, rs, cs, re, ce, { text:sub(2) })
-        indent_next_sibling(node_at_cursor)
+        indent_whole_node(node_at_cursor:parent())
     end
 
     ::skip::
