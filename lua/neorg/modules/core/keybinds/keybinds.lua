@@ -28,6 +28,12 @@ module.config.public = {
                     -- Keys for managing notes
                     { leader .. "nn", "core.norg.dirman.new.note" },
 
+                    { ">>", "core.norg.esupports.promo.promote-recursive" },
+                    { "<<", "core.norg.esupports.promo.demote-recursive" },
+
+                    { "><", "core.norg.esupports.promo.promote" },
+                    { "<>", "core.norg.esupports.promo.demote" },
+
                     { "<CR>", "core.norg.esupports.hop.hop-link" },
                     { "<M-CR>", "core.norg.esupports.hop.hop-link", "vsplit" },
                 },
