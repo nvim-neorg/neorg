@@ -75,10 +75,10 @@ module.on_event = function(event)
     local text = module.required["core.integrations.treesitter"].get_node_text(node_at_cursor)
 
     if not node_at_cursor:type():match("^.+_prefix$") then
-        local parent = module.required["core.integrations.treesitter"].find_parent(node_at_cursor, "^.+%d$")
+        local parent = module.required["core.integrations.treesitter"].find_parent(node_at_cursor, "^paragraph$") or node_at_cursor
 
-        if parent and parent:named_child(0) and parent:named_child(0):type():match("^.+_prefix$") then
-            node_at_cursor = parent:named_child(0)
+        if parent:prev_named_sibling() and parent:prev_named_sibling():type():match("^.+_prefix$") then
+            node_at_cursor = parent:prev_named_sibling()
             rs, cs, re, ce = node_at_cursor:range()
             text = module.required["core.integrations.treesitter"].get_node_text(node_at_cursor)
         else
