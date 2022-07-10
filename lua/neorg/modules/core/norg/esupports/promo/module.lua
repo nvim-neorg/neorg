@@ -40,7 +40,7 @@ module.private = {
 }
 
 module.public = {
-    some_function = function(node, buffer, window, mode)
+    promote_or_demote = function(node, buffer, window, mode)
         local rs, cs, re, ce = node:range()
         local text = module.required["core.integrations.treesitter"].get_node_text(node)
 
@@ -79,7 +79,8 @@ module.public = {
                 return
             end
 
-            -- HACK(vhyrro): See comment in previous if branch
+            -- HACK(vhyrro): Sometimes for whatever reason `node:parent()`
+            -- returns the exact same node as just `node`.
             if vim.endswith(node:parent():type(), "_prefix") then
                 node = node:parent()
             end
@@ -105,7 +106,7 @@ module.on_event = function(event)
         ["core.keybinds.events.core.norg.esupports.promo.demote-recursive"] = "demote-recursive",
     })
 
-    module.public.some_function(node_at_cursor, event.buffer, event.window, mode)
+    module.public.promote_or_demote(node_at_cursor, event.buffer, event.window, mode)
 
     vim.api.nvim_win_set_cursor(event.window, old_cursor_pos)
 end
