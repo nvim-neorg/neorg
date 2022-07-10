@@ -27,15 +27,15 @@ module.config.private = {}
 
 module.private = {
     indent_whole_node = function(buffer, node, amount)
-        local rs, _, re = node:range()
+        local rs, cs, re, ce = node:range()
 
-        local lines = vim.api.nvim_buf_get_lines(buffer, rs + 1, re, true)
+        local lines = vim.api.nvim_buf_get_text(buffer, rs, cs, re, ce, {})
 
-        for i = 1, #lines do
+        for i = 2, ce == 0 and (#lines - 1) or #lines do
             lines[i] = (amount >= 0 and (string.rep(" ", amount) .. lines[i]) or lines[i]:sub(-amount + 1))
         end
 
-        vim.api.nvim_buf_set_lines(buffer, rs + 1, re, false, lines)
+        vim.api.nvim_buf_set_text(buffer, rs, cs, re, ce, lines)
     end,
 }
 
