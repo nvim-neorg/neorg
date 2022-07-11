@@ -679,6 +679,16 @@ module.public = {
 
         return result
     end,
+
+    is_node_first_on_line = function(node)
+        local previous_sibling = node:prev_named_sibling()
+
+        if not previous_sibling then
+            return true
+        end
+
+        return (previous_sibling:range()) < (node:range())
+    end,
 }
 
 module.on_event = function(event)
