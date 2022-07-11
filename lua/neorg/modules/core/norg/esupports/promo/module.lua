@@ -2,6 +2,13 @@
 -- Module for promoting and demoting headings
 --]]
 
+-- KNOWN BUGS:
+--> Heading that goes over 6 levels does not indent the other levels properly
+--> Because of treesitter the AST tends to not update fast enough and as a result
+--  promotion does not happen as expected.
+--> The concealer breaks when updating a large region fo text (create a concealer
+--  update-region event).
+
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.esupports.promo")
@@ -26,12 +33,12 @@ end
 module.config.private = {}
 
 module.private = {
-    indent_whole_node = function(buffer, node, amount)
+    indent_whole_node = function(buffer, node, amount, dont_skip_first_line)
         local rs, cs, re, ce = node:range()
 
         local lines = vim.api.nvim_buf_get_text(buffer, rs, cs, re, ce, {})
 
-        for i = 2, ce == 0 and (#lines - 1) or #lines do
+        for i = dont_skip_first_line and 1 or 2, ce == 0 and (#lines - 1) or #lines do
             lines[i] = (amount >= 0 and (string.rep(" ", amount) .. lines[i]) or lines[i]:sub(-amount + 1))
         end
 
@@ -64,15 +71,33 @@ module.public = {
         if mode:find("promote") then
             vim.api.nvim_buf_set_text(buffer, rs, cs, re, ce, { text:sub(1, 1) .. text })
 
-            -- NOTE: This should only be done during promotion, as doing it
-            -- when demoting gives unintended side effects.
-            -- TODO: Document what this even does.
-            vim.api.nvim_win_set_cursor(window, { rs + 1, cs + 1 })
-            vim.treesitter.get_parser(buffer, "norg"):parse()
+            if vim.endswith(mode, "recursive") then
+                local match = "^" .. node:parent():type():match("^(.+)%d+") .. "%d+"
 
-            local new_node =
-                module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor(window, true):parent()
-            module.private.indent_whole_node(buffer, new_node, 1)
+                for child_node in node:parent():iter_children() do
+                    if module.required["core.integrations.treesitter"].is_node_first_on_line(child_node) then
+                        if child_node:type():match(match) then
+                            if child_node:named_child(0) then
+                                module.public.promote_or_demote(child_node:named_child(0), buffer, window, mode)
+                            end
+                        else
+                            module.private.indent_whole_node(buffer, child_node, 1, true)
+                        end
+                    end
+                end
+            else
+                -- NOTE: This should only be done during promotion, as doing it
+                -- when demoting gives unintended side effects.
+                -- TODO: Document what this even does.
+                vim.api.nvim_win_set_cursor(window, { rs + 1, cs + 1 })
+                vim.treesitter.get_parser(buffer, "norg"):parse()
+
+                local new_node = module.required["core.integrations.treesitter"]
+                    .get_ts_utils()
+                    .get_node_at_cursor(window, true)
+                    :parent()
+                module.private.indent_whole_node(buffer, new_node, 1)
+            end
         elseif mode:find("demote") then
             if text:match("[^%s]*"):len() == 1 then
                 vim.api.nvim_echo({ { "Cannot demote any further!" } }, false, {})
