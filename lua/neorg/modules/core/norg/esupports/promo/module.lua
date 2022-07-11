@@ -117,6 +117,8 @@ module.public = {
 }
 
 module.on_event = function(event)
+    vim.treesitter.get_parser(event.buffer, "norg"):parse()
+
     local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
     local old_cursor_pos = vim.api.nvim_win_get_cursor(event.window)
