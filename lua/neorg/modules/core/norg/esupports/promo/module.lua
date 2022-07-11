@@ -85,6 +85,13 @@ module.public = {
                         end
                     end
                 end
+
+                local parent_range = { node:parent():range() }
+
+                neorg.events.broadcast_event(neorg.events.create(module, "core.norg.concealer.events.update_region", {
+                    start = parent_range[1],
+                    ["end"] = parent_range[3],
+                }))
             else
                 -- NOTE: This should only be done during promotion, as doing it
                 -- when demoting gives unintended side effects.
