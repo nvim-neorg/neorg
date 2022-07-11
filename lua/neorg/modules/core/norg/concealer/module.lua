@@ -1954,8 +1954,41 @@ module.on_event = function(event)
         end)
     elseif event.type == "core.autocommands.events.vimleavepre" then
         module.private.disable_deferred_updates = true
+    elseif event.type == "core.norg.concealer.events.update_region" then
+        schedule(function()
+            vim.api.nvim_buf_clear_namespace(
+                event.buffer,
+                module.private.icon_namespace,
+                event.content.start,
+                event.content["end"]
+            )
+            vim.api.nvim_buf_clear_namespace(
+                event.buffer,
+                module.private.completion_level_namespace,
+                event.content.start,
+                event.content["end"]
+            )
+
+            module.public.trigger_icons(
+                event.buffer,
+                module.private.icons,
+                module.private.icon_namespace,
+                event.content.start,
+                event.content["end"]
+            )
+
+            module.public.completion_levels.trigger_completion_levels(
+                event.buffer,
+                event.content.start,
+                event.content["end"]
+            )
+        end)
     end
 end
+
+module.events.defined = {
+    update_region = neorg.events.define(module, "update_region"),
+}
 
 module.events.subscribed = {
     ["core.autocommands"] = {
@@ -1967,6 +2000,10 @@ module.events.subscribed = {
 
     ["core.neorgcmd"] = {
         ["core.norg.concealer.toggle"] = true,
+    },
+
+    ["core.norg.concealer"] = {
+        update_region = true,
     },
 }
 

@@ -88,13 +88,7 @@ module.public = {
 
                         -- Now that we have full information that we are in fact in a valid code block
                         -- take the lines from within the code block and put them in the buffer
-                        vim.api.nvim_buf_set_lines(
-                            target,
-                            0,
-                            -1,
-                            false,
-                            lines
-                        )
+                        vim.api.nvim_buf_set_lines(target, 0, -1, false, lines)
 
                         local target_line_count = vim.api.nvim_buf_line_count(target)
 
@@ -135,15 +129,12 @@ module.public = {
                     lines[i] = string.rep(" ", extmark_begin[2]) .. line
                 end
 
-                vim.api.nvim_buf_set_lines(
-                    source,
-                    extmark_begin[1] + 1,
-                    extmark_end[1],
-                    true,
-                    lines
-                )
+                vim.api.nvim_buf_set_lines(source, extmark_begin[1] + 1, extmark_end[1], true, lines)
 
-                vim.api.nvim_win_set_cursor(source_window, { cursor_pos[1] + extmark_begin[1], cursor_pos[2] + extmark_begin[2] })
+                vim.api.nvim_win_set_cursor(
+                    source_window,
+                    { cursor_pos[1] + extmark_begin[1], cursor_pos[2] + extmark_begin[2] }
+                )
             end),
         })
 
