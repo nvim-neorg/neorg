@@ -1,7 +1,29 @@
 local module = neorg.modules.extend("core.ui.calendar", "core.ui")
 
+module.private = {
+    extmarks = {
+        decorational = {
+            calendar_text = -1,
+            help = -1,
+            custom_input = -1,
+            current_view = -1,
+            month_headings = {},
+            weekday_displays = {},
+        },
+        logical = {
+            year = -1,
+            months = {
+                {
+                    dates = {},
+                },
+            },
+        },
+    },
+}
+
 module.public = {
     create_calendar = function(buffer, window, options)
+        -- Variables
         local width = vim.api.nvim_win_get_width(window)
         local height = vim.api.nvim_win_get_height(window)
 
@@ -18,62 +40,95 @@ module.public = {
         vim.api.nvim_buf_clear_namespace(buffer, decorational_namespace, 0, -1)
         vim.api.nvim_buf_clear_namespace(buffer, logical_namespace, 0, -1)
 
-        do
-            -- TODO: Remove, this is for debugging
-            vim.api.nvim_buf_set_option(buffer, "textwidth", vim.api.nvim_win_get_width(window))
+        -- Utility Functions
 
-            -- There are many steps to render a calendar.
-            -- The first step is to fill the entire buffer with spaces. This lets
-            -- us place extmarks at any position in the document. Won't be used for
-            -- the meaty stuff, but will come in handy for rendering decorational
-            -- elements.
-            do
-                local fill = {}
-                local filler = string.rep(" ", width)
+        local function set_decorational_extmark(row, col, virt_text, alignment)
+            if alignment then
+                local text_length = 0
 
-                for i = 1, height do
-                    fill[i] = filler
+                for _, tuple in ipairs(virt_text) do
+                    text_length = text_length + tuple[1]:len()
                 end
 
-                vim.api.nvim_buf_set_lines(buffer, 0, -1, true, fill)
+                if alignment == "center" then
+                    col = col + (half_width - math.floor(text_length / 2))
+                elseif alignment == "right" then
+                    col = col + (width - text_length)
+                end
             end
 
-            --> Decorational section
-            -- CALENDAR text:
-            vim.api.nvim_buf_set_extmark(
-                buffer,
-                decorational_namespace,
-                0,
-                half_width - math.floor(string.len("CALENDAR") / 2),
-                {
-                    virt_text = { { "CALENDAR", "TSStrong" } },
-                    virt_text_pos = "overlay",
-                }
-            )
-
-            -- Help text at the bottom right of the screen
-            vim.api.nvim_buf_set_extmark(buffer, decorational_namespace, height - 1, 0, {
-                virt_text = {
-                    { "?", "TSCharacter" },
-                    { " - " },
-                    { "help", "TSStrong" },
-                    { "    " },
-                    { "i", "TSCharacter" },
-                    { " - " },
-                    { "custom input", "TSStrong" },
-                },
+            return vim.api.nvim_buf_set_extmark(buffer, decorational_namespace, row, col, {
+                virt_text = virt_text,
                 virt_text_pos = "overlay",
             })
+        end
 
-            vim.api.nvim_buf_set_extmark(
-                buffer,
-                decorational_namespace,
+        local function set_logical_extmark(row, col, virt_text, alignment)
+            if alignment then
+                local text_length = 0
+
+                for _, tuple in ipairs(virt_text) do
+                    text_length = text_length .. tuple[1]:len()
+                end
+
+                if alignment == "center" then
+                    col = col + (half_width - math.floor(text_length / 2))
+                elseif alignment == "right" then
+                    col = col + (width - text_length)
+                end
+            end
+
+            return vim.api.nvim_buf_set_extmark(buffer, logical_namespace, row, col, {
+                virt_text = virt_text,
+                virt_text_pos = "overlay",
+            })
+        end
+
+        --------------------------------------------------
+
+        -- There are many steps to render a calendar.
+        -- The first step is to fill the entire buffer with spaces. This lets
+        -- us place extmarks at any position in the document. Won't be used for
+        -- the meaty stuff, but will come in handy for rendering decorational
+        -- elements.
+        do
+            local fill = {}
+            local filler = string.rep(" ", width)
+
+            for i = 1, height do
+                fill[i] = filler
+            end
+
+            vim.api.nvim_buf_set_lines(buffer, 0, -1, true, fill)
+        end
+
+        -- This `do .. end` block is a routine that draws (almost) all
+        -- decorational content like the "CALENDAR" text, the "help", "custom
+        -- input" and "[VIEW]" texts.
+        do
+            --> Decorational section
+            -- CALENDAR text:
+            set_decorational_extmark(0, 0, {
+                { "CALENDAR", "TSStrong" },
+            }, "center")
+
+            -- Help text at the bottom left of the screen
+            set_decorational_extmark(height - 1, 0, {
+                { "?", "TSCharacter" },
+                { " - " },
+                { "help", "TSStrong" },
+                { "    " },
+                { "i", "TSCharacter" },
+                { " - " },
+                { "custom input", "TSStrong" },
+            })
+
+            -- The current view (bottom right of the screen)
+            set_decorational_extmark(
                 height - 1,
-                width - string.len("[" .. view .. "]"),
-                {
-                    virt_text = { { "[", "Whitespace" }, { view, "TSLabel" }, { "]", "Whitespace" } },
-                    virt_text_pos = "overlay",
-                }
+                0,
+                { { "[", "Whitespace" }, { view, "TSLabel" }, { "]", "Whitespace" } },
+                "right"
             )
         end
 
