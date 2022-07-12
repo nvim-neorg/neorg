@@ -68,7 +68,7 @@ module.public = {
                 local text_length = 0
 
                 for _, tuple in ipairs(virt_text) do
-                    text_length = text_length .. tuple[1]:len()
+                    text_length = text_length + tuple[1]:len()
                 end
 
                 if alignment == "center" then
