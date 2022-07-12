@@ -193,7 +193,12 @@ module.public = {
                 beginning_of_weekday_extmark[1] + render_row,
                 beginning_of_weekday_extmark[2] + (4 * render_column),
                 {
-                    virt_text = { { (day_of_month < 10 and "0" or "") .. tostring(day_of_month) } },
+                    virt_text = {
+                        {
+                            (day_of_month < 10 and "0" or "") .. tostring(day_of_month),
+                            (tostring(day_of_month) == day and "TSTodo" or nil),
+                        },
+                    },
                     virt_text_pos = "overlay",
                 }
             )
