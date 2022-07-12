@@ -4,8 +4,7 @@ module.private = {
     extmarks = {
         decorational = {
             calendar_text = -1,
-            help = -1,
-            custom_input = -1,
+            help_and_custom_input = -1,
             current_view = -1,
             month_headings = {},
             weekday_displays = {},
@@ -108,49 +107,47 @@ module.public = {
         do
             --> Decorational section
             -- CALENDAR text:
-            set_decorational_extmark(0, 0, {
-                { "CALENDAR", "TSStrong" },
-            }, "center")
+            module.private.extmarks.decorational = {
+                calendar_text = set_decorational_extmark(0, 0, {
+                    { "CALENDAR", "TSStrong" },
+                }, "center"),
 
-            -- Help text at the bottom left of the screen
-            set_decorational_extmark(height - 1, 0, {
-                { "?", "TSCharacter" },
-                { " - " },
-                { "help", "TSStrong" },
-                { "    " },
-                { "i", "TSCharacter" },
-                { " - " },
-                { "custom input", "TSStrong" },
-            })
+                -- Help text at the bottom left of the screen
+                help_and_custom_input = set_decorational_extmark(height - 1, 0, {
+                    { "?", "TSCharacter" },
+                    { " - " },
+                    { "help", "TSStrong" },
+                    { "    " },
+                    { "i", "TSCharacter" },
+                    { " - " },
+                    { "custom input", "TSStrong" },
+                }),
 
-            -- The current view (bottom right of the screen)
-            set_decorational_extmark(
-                height - 1,
-                0,
-                { { "[", "Whitespace" }, { view, "TSLabel" }, { "]", "Whitespace" } },
-                "right"
-            )
+                -- The current view (bottom right of the screen)
+                current_view = set_decorational_extmark(
+                    height - 1,
+                    0,
+                    { { "[", "Whitespace" }, { view, "TSLabel" }, { "]", "Whitespace" } },
+                    "right"
+                ),
+            }
         end
 
         local year, month, day = os.date("%Y-%m-%d"):match("(%d+)%-(%d+)%-(%d+)")
 
-        -- Display the current year
-        local _year_extmark = vim.api.nvim_buf_set_extmark(
-            buffer,
-            logical_namespace,
+        -- Display the current year (i.e. `< 2022 >`)
+        module.private.extmarks.logical.year = set_logical_extmark(
             2,
-            half_width - math.floor(string.len("< " .. tostring(year) .. " >") / 2),
-            {
-                virt_text = { { "< ", "Whitespace" }, { tostring(year), "TSNumber" }, { " >", "Whitespace" } },
-                virt_text_pos = "overlay",
-            }
+            0,
+            { { "< ", "Whitespace" }, { tostring(year), "TSNumber" }, { " >", "Whitespace" } },
+            "center"
         )
 
         --> Month rendering routine
-        -- We render the first month at the very center of the screen. Each month takes up a static 26 characters.
+        -- We render the first month at the very center of the screen. Each
+        -- month takes up a static amount of characters.
 
         -- Render the top text of the month (June, August etc.)
-        -- The top text displays the month
         -- TODO: Extract this logic out into a function because different views
         -- will supply different things to render.
         local month_name = os.date(
