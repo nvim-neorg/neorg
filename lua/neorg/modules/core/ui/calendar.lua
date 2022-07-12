@@ -107,10 +107,16 @@ module.public = {
             })
         )
 
-        vim.api.nvim_buf_set_extmark(buffer, logical_namespace, 4, half_width - math.floor(string.len(month_name) / 2), {
-            virt_text = { { month_name, "TSUnderline" } },
-            virt_text_pos = "overlay",
-        })
+        vim.api.nvim_buf_set_extmark(
+            buffer,
+            decorational_namespace,
+            4,
+            half_width - math.floor(string.len(month_name) / 2),
+            {
+                virt_text = { { month_name, "TSUnderline" } },
+                virt_text_pos = "overlay",
+            }
+        )
 
         -- Render the days of the week
         -- To effectively do this, we grab all the weekdays from a constant time.
