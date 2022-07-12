@@ -6,7 +6,7 @@ module.public = {
         local height = vim.api.nvim_win_get_height(window)
 
         local half_width = math.floor(width / 2)
-        local half_height = math.floor(height / 2)
+        local _half_height = math.floor(height / 2)
 
         local view = options.view or "MONTHLY"
 
@@ -26,7 +26,7 @@ module.public = {
                 for i = 1, height do
                     fill[i] = filler
                 end
-                
+
                 vim.api.nvim_buf_set_lines(buffer, 0, -1, true, fill)
             end
 
@@ -38,21 +38,41 @@ module.public = {
 
             --> Decorational section
             -- CALENDAR text:
-            vim.api.nvim_buf_set_extmark(buffer, decorational_namespace, 0, half_width - math.floor(string.len("CALENDAR") / 2), {
-                virt_text = { { "CALENDAR", "TSStrong" } },
-                virt_text_pos = "overlay"
-            })
+            vim.api.nvim_buf_set_extmark(
+                buffer,
+                decorational_namespace,
+                0,
+                half_width - math.floor(string.len("CALENDAR") / 2),
+                {
+                    virt_text = { { "CALENDAR", "TSStrong" } },
+                    virt_text_pos = "overlay",
+                }
+            )
 
             -- Help text at the bottom right of the screen
             vim.api.nvim_buf_set_extmark(buffer, decorational_namespace, height - 1, 0, {
-                virt_text = { { "?", "TSCharacter" }, { " - " }, { "help", "TSStrong" }, { "    " }, { "i", "TSCharacter" }, { " - " }, { "custom input", "TSStrong" } },
-                virt_text_pos = "overlay"
+                virt_text = {
+                    { "?", "TSCharacter" },
+                    { " - " },
+                    { "help", "TSStrong" },
+                    { "    " },
+                    { "i", "TSCharacter" },
+                    { " - " },
+                    { "custom input", "TSStrong" },
+                },
+                virt_text_pos = "overlay",
             })
 
-            vim.api.nvim_buf_set_extmark(buffer, decorational_namespace, height - 1, width - string.len("[" .. view .. "]"), {
-                virt_text = { { "[", "Whitespace" }, { view, "TSLabel" }, { "]", "Whitespace" } },
-                virt_text_pos = "overlay"
-            })
+            vim.api.nvim_buf_set_extmark(
+                buffer,
+                decorational_namespace,
+                height - 1,
+                width - string.len("[" .. view .. "]"),
+                {
+                    virt_text = { { "[", "Whitespace" }, { view, "TSLabel" }, { "]", "Whitespace" } },
+                    virt_text_pos = "overlay",
+                }
+            )
         end
 
         local logical_namespace = vim.api.nvim_create_namespace("neorg/calendar/logical")
@@ -62,10 +82,16 @@ module.public = {
         local year, month, day = os.date("%Y-%m-%d"):match("(%d+)%-(%d+)%-(%d+)")
 
         -- Display the current year
-        local year_extmark = vim.api.nvim_buf_set_extmark(buffer, logical_namespace, 2, half_width - math.floor(string.len("< " .. tostring(year) .. " >") / 2), {
-            virt_text = { { "< ", "Whitespace" }, { tostring(year), "TSNumber" }, { " >", "Whitespace" } },
-            virt_text_pos = "overlay",
-        })
+        local _year_extmark = vim.api.nvim_buf_set_extmark(
+            buffer,
+            logical_namespace,
+            2,
+            half_width - math.floor(string.len("< " .. tostring(year) .. " >") / 2),
+            {
+                virt_text = { { "< ", "Whitespace" }, { tostring(year), "TSNumber" }, { " >", "Whitespace" } },
+                virt_text_pos = "overlay",
+            }
+        )
 
         --> Month rendering routine
         -- We render the first month at the very center of the screen. Each month takes up a static 26 characters.
@@ -74,11 +100,14 @@ module.public = {
         -- The top text displays the month
         -- TODO: Extract this logic out into a function because different views
         -- will supply different things to render.
-        local month_name = os.date("%B", os.time({
-            year = year,
-            month = month,
-            day = day,
-        }))
+        local month_name = os.date(
+            "%B",
+            os.time({
+                year = year,
+                month = month,
+                day = day,
+            })
+        )
 
         vim.api.nvim_buf_set_extmark(buffer, logical_namespace, 4, half_width - math.floor(string.len(month_name) / 2), {
             virt_text = { { month_name, "TSUnderline" } },
@@ -92,25 +121,97 @@ module.public = {
         local weekdays_string_length = 0
 
         for i = 1, 7 do
-            table.insert(weekdays, { os.date("%a", os.time({
-                year = 2000,
-                month = 5,
-                day = i,
-            })):sub(1, 2), "TSTitle" })
+            table.insert(weekdays, {
+                os
+                    .date(
+                        "%a",
+                        os.time({
+                            year = 2000,
+                            month = 5,
+                            day = i,
+                        })
+                    )
+                    :sub(1, 2),
+                "TSTitle",
+            })
             table.insert(weekdays, { "  " })
             weekdays_string_length = weekdays_string_length + 4
         end
 
-        vim.api.nvim_buf_set_extmark(buffer, logical_namespace, 5, half_width - math.floor(weekdays_string_length / 2) + 1, {
-            virt_text = weekdays,
-            virt_text_pos = "overlay",
-        })
+        local days_of_week_extmark = vim.api.nvim_buf_set_extmark(
+            buffer,
+            logical_namespace,
+            6,
+            half_width - math.floor(weekdays_string_length / 2) + 1,
+            {
+                virt_text = weekdays,
+                virt_text_pos = "overlay",
+            }
+        )
 
         -- Render the numbers for weekdays
+        local days_of_month = {
+            -- [day of month] = <day of week>,
+        }
+
+        local days_in_current_month = ({
+            31,
+            (tonumber(year) % 4 == 0) and 29 or 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        })[tonumber(
+            month
+        )]
+
+        for i = 1, days_in_current_month do
+            days_of_month[i] = tonumber(os.date(
+                "%u",
+                os.time({
+                    year = year,
+                    month = month,
+                    day = i,
+                })
+            ))
+        end
+
+        local beginning_of_weekday_extmark =
+            vim.api.nvim_buf_get_extmark_by_id(buffer, logical_namespace, days_of_week_extmark, {})
+
+        local render_column = days_of_month[1] - 1
+        local render_row = 1
+
+        for day_of_month, day_of_week in ipairs(days_of_month) do
+            vim.api.nvim_buf_set_extmark(
+                buffer,
+                logical_namespace,
+                beginning_of_weekday_extmark[1] + render_row,
+                beginning_of_weekday_extmark[2] + (4 * render_column),
+                {
+                    virt_text = { { (day_of_month < 10 and "0" or "") .. tostring(day_of_month) } },
+                    virt_text_pos = "overlay",
+                }
+            )
+
+            if day_of_week == 7 then
+                render_column = 0
+                render_row = render_row + 1
+            else
+                render_column = render_column + 1
+            end
+        end
     end,
 
     select_date = function(options)
-        local buffer, window = module.public.create_split("calendar", {}, math.floor(vim.opt.lines:get() * 0.4))
+        local buffer, window =
+            module.public.create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
 
         return module.public.create_calendar(buffer, window, options)
     end,
