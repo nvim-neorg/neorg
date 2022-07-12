@@ -10,6 +10,14 @@ module.public = {
 
         local view = options.view or "MONTHLY"
 
+        -- Next, we need two namespaces: one for rendering decorational
+        -- extmarks, and one for logical operations.
+        local decorational_namespace = vim.api.nvim_create_namespace("neorg/calendar/decorational")
+        local logical_namespace = vim.api.nvim_create_namespace("neorg/calendar/logical")
+
+        vim.api.nvim_buf_clear_namespace(buffer, decorational_namespace, 0, -1)
+        vim.api.nvim_buf_clear_namespace(buffer, logical_namespace, 0, -1)
+
         do
             -- TODO: Remove, this is for debugging
             vim.api.nvim_buf_set_option(buffer, "textwidth", vim.api.nvim_win_get_width(window))
@@ -29,12 +37,6 @@ module.public = {
 
                 vim.api.nvim_buf_set_lines(buffer, 0, -1, true, fill)
             end
-
-            -- Next, we need two namespaces: one for rendering decorational
-            -- extmarks, and one for logical operations.
-            local decorational_namespace = vim.api.nvim_create_namespace("neorg/calendar/decorational")
-
-            vim.api.nvim_buf_clear_namespace(buffer, decorational_namespace, 0, -1)
 
             --> Decorational section
             -- CALENDAR text:
@@ -74,10 +76,6 @@ module.public = {
                 }
             )
         end
-
-        local logical_namespace = vim.api.nvim_create_namespace("neorg/calendar/logical")
-
-        vim.api.nvim_buf_clear_namespace(buffer, logical_namespace, 0, -1)
 
         local year, month, day = os.date("%Y-%m-%d"):match("(%d+)%-(%d+)%-(%d+)")
 
@@ -140,7 +138,7 @@ module.public = {
 
         local days_of_week_extmark = vim.api.nvim_buf_set_extmark(
             buffer,
-            logical_namespace,
+            decorational_namespace,
             6,
             half_width - math.floor(weekdays_string_length / 2) + 1,
             {
@@ -183,7 +181,7 @@ module.public = {
         end
 
         local beginning_of_weekday_extmark =
-            vim.api.nvim_buf_get_extmark_by_id(buffer, logical_namespace, days_of_week_extmark, {})
+            vim.api.nvim_buf_get_extmark_by_id(buffer, decorational_namespace, days_of_week_extmark, {})
 
         local render_column = days_of_month[1] - 1
         local render_row = 1
