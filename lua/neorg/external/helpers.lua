@@ -25,20 +25,30 @@ neorg.utils = {
     --- Returns an array of strings, the array being a list of languages that Neorg can inject
     ---@param values boolean #If set to true will return an array of strings, if false will return a key-value table
     get_language_list = function(values)
-        local regex_files = vim.api.nvim_get_runtime_file("syntax/*.vim", true)
-        vim.list_extend(regex_files, vim.api.nvim_get_runtime_file("after/syntax/*.vim", true))
-
-        local regex = "([^/]*).vim$"
+        local regex_files = {}
+        local ts_files = {}
+        -- search for regex files in syntax and after/syntax
+        -- its best if we strip out anything but the ft name
+        for _, lang in pairs(vim.api.nvim_get_runtime_file("syntax/*.vim", true)) do
+            local lang_name = vim.fn.fnamemodify(lang, ":t:r")
+            table.insert(regex_files, lang_name)
+        end
+        for _, lang in pairs(vim.api.nvim_get_runtime_file("after/syntax/*.vim", true)) do
+            local lang_name = vim.fn.fnamemodify(lang, ":t:r")
+            table.insert(regex_files, lang_name)
+        end
+        -- search for available parsers
+        for _, parser in pairs(vim.api.nvim_get_runtime_file("parser/*.so", true)) do
+            local parser_name = vim.fn.fnamemodify(parser, ":t:r")
+            ts_files[parser_name] = true
+        end
         local ret = {}
 
         for _, syntax in pairs(regex_files) do
-            for match in string.gmatch(syntax, regex) do
-                local ok = pcall(vim.treesitter.require_language, match)
-                if ok then
-                    ret[match] = { type = "treesitter" }
-                else
-                    ret[match] = { type = "syntax" }
-                end
+            if ts_files[syntax] then
+                ret[syntax] = { type = "treesitter" }
+            else
+                ret[syntax] = { type = "syntax" }
             end
         end
 
