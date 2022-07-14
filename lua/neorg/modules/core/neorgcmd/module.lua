@@ -205,11 +205,8 @@ module.public = {
             return
         end
 
-        module.public.neorg_commands = vim.tbl_deep_extend(
-            "force",
-            module.public.neorg_commands,
-            module_config.neorg_commands
-        )
+        module.public.neorg_commands =
+            vim.tbl_deep_extend("force", module.public.neorg_commands, module_config.neorg_commands)
     end,
 
     --- Recursively merges the provided table with the module.config.public.neorg_commands table.

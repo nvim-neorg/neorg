@@ -166,10 +166,8 @@ module.config.public = {
         end,
 
         ["under-indent-segments"] = function(_, node)
-            local indent_segment = module.required["core.integrations.treesitter"].find_parent(
-                node,
-                "indent_segment%d?"
-            )
+            local indent_segment =
+                module.required["core.integrations.treesitter"].find_parent(node, "indent_segment%d?")
 
             if not indent_segment then
                 return 0

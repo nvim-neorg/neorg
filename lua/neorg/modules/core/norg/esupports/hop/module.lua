@@ -48,9 +48,8 @@ module.public = {
                 return
             end
 
-            local range = module.required["core.integrations.treesitter"].get_node_range(
-                located_anchor_declaration.node
-            )
+            local range =
+                module.required["core.integrations.treesitter"].get_node_range(located_anchor_declaration.node)
 
             vim.cmd([[normal! m`]])
             vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
@@ -85,9 +84,8 @@ module.public = {
                     return
                 end
 
-                local range = module.required["core.integrations.treesitter"].get_node_range(
-                    located_link_information.node
-                )
+                local range =
+                    module.required["core.integrations.treesitter"].get_node_range(located_link_information.node)
 
                 vim.cmd([[normal! m`]])
                 vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
@@ -96,9 +94,8 @@ module.public = {
             return
         end
 
-        local selection = module.required["core.ui"].begin_selection(
-            module.required["core.ui"].create_split("link-not-found")
-        )
+        local selection = module.required["core.ui"]
+            .begin_selection(module.required["core.ui"].create_split("link-not-found"))
             :listener("delete-buffer", {
                 "<Esc>",
             }, function(self)
@@ -223,9 +220,9 @@ module.public = {
             return
         end
 
-        local target = module.required["core.integrations.treesitter"].get_node_text(
-            anchor_decl_node:named_child(0):named_child(0)
-        ):gsub("[%s\\]", "")
+        local target = module.required["core.integrations.treesitter"]
+            .get_node_text(anchor_decl_node:named_child(0):named_child(0))
+            :gsub("[%s\\]", "")
 
         local query_str = [[
             (anchor_definition
@@ -348,10 +345,8 @@ module.public = {
                 capture_node_range.row_start >= range.row_start
                 and capture_node_range.row_end <= capture_node_range.row_end
             then
-                local extract_node_text = neorg.lib.wrap(
-                    module.required["core.integrations.treesitter"].get_node_text,
-                    node
-                )
+                local extract_node_text =
+                    neorg.lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
 
                 parsed_link_information[capture] = parsed_link_information[capture]
                     or neorg.lib.match(capture)({
@@ -380,9 +375,8 @@ module.public = {
 
         -- Check whether our target is from a different file
         if parsed_link_information.link_file_text then
-            local expanded_link_text = module.required["core.norg.dirman.utils"].expand_path(
-                parsed_link_information.link_file_text
-            )
+            local expanded_link_text =
+                module.required["core.norg.dirman.utils"].expand_path(parsed_link_information.link_file_text)
 
             if expanded_link_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
@@ -426,8 +420,8 @@ module.public = {
                 local destination = parsed_link_information.link_location_text
 
                 destination = (
-                        vim.tbl_contains({ "/", "~" }, destination:sub(1, 1)) and "" or (vim.fn.expand("%:p:h") .. "/")
-                    ) .. destination
+                    vim.tbl_contains({ "/", "~" }, destination:sub(1, 1)) and "" or (vim.fn.expand("%:p:h") .. "/")
+                ) .. destination
 
                 local function open_in_external_app()
                     local function open_with(command)
@@ -550,10 +544,8 @@ module.public = {
                     local capture = query.captures[id]
 
                     if capture == "title" then
-                        local original_title = module.required["core.integrations.treesitter"].get_node_text(
-                            node,
-                            buf_pointer
-                        )
+                        local original_title =
+                            module.required["core.integrations.treesitter"].get_node_text(node, buf_pointer)
 
                         if original_title then
                             local title = original_title:gsub("[%s\\]", "")
@@ -701,9 +693,8 @@ module.private = {
         local buffer = vim.api.nvim_get_current_buf()
 
         if parsed_link_information.link_file_text then
-            local expanded_link_text = module.required["core.norg.dirman.utils"].expand_path(
-                parsed_link_information.link_file_text
-            )
+            local expanded_link_text =
+                module.required["core.norg.dirman.utils"].expand_path(parsed_link_information.link_file_text)
 
             if expanded_link_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file

@@ -398,11 +398,8 @@ module.public = {
                     -- similarly to what we did earlier
                 elseif completion_data.descend then
                     -- Recursively call function with new parameters
-                    local descent = module.public.complete(
-                        context,
-                        completion_data.descend,
-                        saved .. completion_data.regex
-                    )
+                    local descent =
+                        module.public.complete(context, completion_data.descend, saved .. completion_data.regex)
 
                     -- If we had some completions from that function then return those completions
                     if not vim.tbl_isempty(descent.items) then
