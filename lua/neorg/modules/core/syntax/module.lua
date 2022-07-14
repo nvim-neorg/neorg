@@ -474,15 +474,62 @@ module.on_event = function(event)
 
         local line_count = vim.api.nvim_buf_line_count(buf)
 
-        -- TODO mess with performance stuff
         if line_count < module.config.public.performance.increment then
             module.public.check_code_block_type(buf, false)
             module.public.trigger_highlight_regex_code_block(buf, false, false)
         else
-            -- don't increment on a bufenter at all
-            module.public.check_code_block_type(buf, false)
-            module.public.trigger_highlight_regex_code_block(buf, false, false)
+            -- This bit of code gets triggered if the line count of the file is bigger than one increment level
+            -- provided by the user.
+            -- In this case, the syntax trigger enters a block mode and splits up the file into chunks. It then goes through each
+            -- chunk at a set interval and applies the syntax that way to reduce load and improve performance.
+
+            -- This points to the current block the user's cursor is in
+            local block_current =
+                math.floor((line_count / module.config.public.performance.increment) % event.cursor_position[1])
+
+            local function trigger_syntax_for_block(block)
+                local line_begin = block == 0 and 0 or block * module.config.public.performance.increment - 1
+                local line_end = math.min(
+                    block * module.config.public.performance.increment + module.config.public.performance.increment - 1,
+                    line_count
+                )
+
+                module.public.check_code_block_type(buf, false, line_begin, line_end)
+                module.public.trigger_highlight_regex_code_block(buf, false, false, line_begin, line_end)
+            end
+
+            trigger_syntax_for_block(block_current)
+
+            local block_bottom, block_top = block_current - 1, block_current + 1
+
+            local timer = vim.loop.new_timer()
+
+            timer:start(
+                module.config.public.performance.timeout,
+                module.config.public.performance.interval,
+                vim.schedule_wrap(function()
+                    local block_bottom_valid = block_bottom == 0
+                        or (block_bottom * module.config.public.performance.increment - 1 >= 0)
+                    local block_top_valid = block_top * module.config.public.performance.increment - 1 < line_count
+
+                    if not block_bottom_valid and not block_top_valid then
+                        timer:stop()
+                        return
+                    end
+
+                    if block_bottom_valid then
+                        trigger_syntax_for_block(block_bottom)
+                        block_bottom = block_bottom - 1
+                    end
+
+                    if block_top_valid then
+                        trigger_syntax_for_block(block_top)
+                        block_top = block_top + 1
+                    end
+                end)
+            )
         end
+
         vim.api.nvim_buf_attach(buf, false, {
             on_lines = function(_, cur_buf, _, start, _end)
                 if buf ~= cur_buf then
@@ -577,8 +624,9 @@ module.on_event = function(event)
     elseif event.type == "core.autocommands.events.vimleavepre" then
         module.private.disable_deferred_updates = true
         -- this autocmd is used to fix hi link syntax languages
-    elseif event.type == "core.autocommands.events.textchanged" then
-        module.private.trigger_highlight_regex_code_block(event.buffer, false, true)
+        -- TEMP(vhyrro): Temporarily removed for testing - executes code twice when it should not.
+        -- elseif event.type == "core.autocommands.events.textchanged" then
+        -- module.private.trigger_highlight_regex_code_block(event.buffer, false, true)
         -- elseif event.type == "core.autocommands.events.textchangedi" then
         --     module.private.trigger_highlight_regex_code_block(event.buffer, false, true)
     elseif event.type == "core.autocommands.events.colorscheme" then
