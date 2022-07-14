@@ -25,17 +25,12 @@ neorg.utils = {
     --- Returns an array of strings, the array being a list of languages that Neorg can inject
     ---@param values boolean #If set to true will return an array of strings, if false will return a key-value table
     get_language_list = function(values)
-        local regex_files = {}
-        local syntax_files = vim.api.nvim_get_runtime_file("syntax/*.vim", true)
-        for _, lang in pairs(syntax_files) do
-            table.insert(regex_files, lang)
-        end
-        syntax_files = vim.api.nvim_get_runtime_file("after/syntax/*.vim", true)
-        for _, lang in pairs(syntax_files) do
-            table.insert(regex_files, lang)
-        end
+        local regex_files = vim.api.nvim_get_runtime_file("syntax/*.vim", true)
+        vim.list_extend(regex_files, vim.api.nvim_get_runtime_file("after/syntax/*.vim", true))
+
         local regex = "([^/]*).vim$"
         local ret = {}
+
         for _, syntax in pairs(regex_files) do
             for match in string.gmatch(syntax, regex) do
                 local ok = pcall(vim.treesitter.require_language, match)
@@ -47,11 +42,7 @@ neorg.utils = {
             end
         end
 
-        if values then
-            return vim.tbl_keys(ret)
-        else
-            return ret
-        end
+        return values and vim.tbl_keys(ret) or ret
     end,
 
     get_language_shorthands = function(reverse_lookup)
