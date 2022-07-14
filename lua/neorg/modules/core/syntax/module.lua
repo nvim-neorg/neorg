@@ -108,7 +108,7 @@ module.public = {
             local code_lang = vim.treesitter.parse_query(
                 "norg",
                 [[(
-                    (ranged_tag (tag_name) @_tagname (tag_parameters) @language)
+                    (ranged_verbatim_tag (tag_name) @_tagname (tag_parameters) @language)
                     (#eq? @_tagname "code")
                 )]]
             )
