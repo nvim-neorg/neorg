@@ -103,86 +103,90 @@ module.private = {
             weekdays_string_length = weekdays_string_length + 4
         end
 
+        local month_banner_id = module.private.set_decorational_extmark(ui_info, 6, 0, weekdays, "center")
+
         table.insert(
             module.private.extmarks.decorational.weekday_displays,
-            module.private.set_decorational_extmark(ui_info, 6, 0, weekdays, "center")
+            month_banner_id
         )
+
+        return month_banner_id
     end,
 
-    -- render_month = function()
-    --     --> Month rendering routine
-    --     -- We render the first month at the very center of the screen. Each
-    --     -- month takes up a static amount of characters.
+    render_month = function(ui_info, date, month_banner_extmark_id)
+        --> Month rendering routine
+        -- We render the first month at the very center of the screen. Each
+        -- month takes up a static amount of characters.
 
-    --     -- Render the top text of the month (June, August etc.)
-    --     -- Render the numbers for weekdays
-    --     local days_of_month = {
-    --         -- [day of month] = <day of week>,
-    --     }
+        -- Render the top text of the month (June, August etc.)
+        -- Render the numbers for weekdays
+        local days_of_month = {
+            -- [day of month] = <day of week>,
+        }
 
-    --     local days_in_current_month = ({
-    --         31,
-    --         (tonumber(year) % 4 == 0) and 29 or 28,
-    --         31,
-    --         30,
-    --         31,
-    --         30,
-    --         31,
-    --         31,
-    --         30,
-    --         31,
-    --         30,
-    --         31,
-    --     })[tonumber(
-    --         month
-    --     )]
+        local days_in_current_month = ({
+            31,
+            (tonumber(year) % 4 == 0) and 29 or 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        })[tonumber(
+            month
+        )]
 
-    --     for i = 1, days_in_current_month do
-    --         days_of_month[i] = tonumber(os.date(
-    --             "%u",
-    --             os.time({
-    --                 year = year,
-    --                 month = month,
-    --                 day = i,
-    --             })
-    --         ))
-    --     end
+        for i = 1, days_in_current_month do
+            days_of_month[i] = tonumber(os.date(
+                "%u",
+                os.time({
+                    year = year,
+                    month = month,
+                    day = i,
+                })
+            ))
+        end
 
-    --     local beginning_of_weekday_extmark = vim.api.nvim_buf_get_extmark_by_id(
-    --         ui_info.buffer,
-    --         module.private.namespaces.decorational,
-    --         days_of_week_extmark,
-    --         {}
-    --     )
+        local beginning_of_weekday_extmark = vim.api.nvim_buf_get_extmark_by_id(
+            ui_info.buffer,
+            module.private.namespaces.decorational,
+            days_of_week_extmark,
+            {}
+        )
 
-    --     local render_column = days_of_month[1] - 1
-    --     local render_row = 1
+        local render_column = days_of_month[1] - 1
+        local render_row = 1
 
-    --     for day_of_month, day_of_week in ipairs(days_of_month) do
-    --         vim.api.nvim_buf_set_extmark(
-    --             buffer,
-    --             module.private.namespaces.logical,
-    --             beginning_of_weekday_extmark[1] + render_row,
-    --             beginning_of_weekday_extmark[2] + (4 * render_column),
-    --             {
-    --                 virt_text = {
-    --                     {
-    --                         (day_of_month < 10 and "0" or "") .. tostring(day_of_month),
-    --                         (tostring(day_of_month) == day and "TSTodo" or nil),
-    --                     },
-    --                 },
-    --                 virt_text_pos = "overlay",
-    --             }
-    --         )
+        for day_of_month, day_of_week in ipairs(days_of_month) do
+            vim.api.nvim_buf_set_extmark(
+                buffer,
+                module.private.namespaces.logical,
+                beginning_of_weekday_extmark[1] + render_row,
+                beginning_of_weekday_extmark[2] + (4 * render_column),
+                {
+                    virt_text = {
+                        {
+                            (day_of_month < 10 and "0" or "") .. tostring(day_of_month),
+                            (tostring(day_of_month) == day and "TSTodo" or nil),
+                        },
+                    },
+                    virt_text_pos = "overlay",
+                }
+            )
 
-    --         if day_of_week == 7 then
-    --             render_column = 0
-    --             render_row = render_row + 1
-    --         else
-    --             render_column = render_column + 1
-    --         end
-    --     end
-    -- end,
+            if day_of_week == 7 then
+                render_column = 0
+                render_row = render_row + 1
+            else
+                render_column = render_column + 1
+            end
+        end
+    end,
 }
 
 module.public = {
