@@ -1439,7 +1439,7 @@ module.config.public = {
             enabled = true,
             icon = "",
             highlight = "NeorgMarker",
-            query = "[ (marker_prefix) (link_target_marker) ] @icon",
+            query = "[ (marker_prefix) (link_target_marker) @no-conceal ] @icon",
         },
 
         definition = {
@@ -1449,7 +1449,7 @@ module.config.public = {
                 enabled = true,
                 icon = "≡",
                 highlight = "NeorgDefinition",
-                query = "[ (single_definition_prefix) (link_target_definition) ] @icon",
+                query = "[ (single_definition_prefix) (link_target_definition) @no-conceal ] @icon",
             },
             multi_prefix = {
                 enabled = true,
@@ -1472,7 +1472,7 @@ module.config.public = {
                 enabled = true,
                 icon = "⁎",
                 highlight = "NeorgFootnote",
-                query = "[ (single_footnote_prefix) (link_target_footnote) ] @icon",
+                query = "[ (single_footnote_prefix) (link_target_footnote) @no-conceal ] @icon",
             },
             multi_prefix = {
                 enabled = true,
