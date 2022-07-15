@@ -504,8 +504,12 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("ColorScheme", true)
 
     if module.config.public.todo_items_match_color then
-        if not vim.tbl_contains({ "all", "except_undone", "cancelled" }, module.config.public.todo_items_match_color) then
-            log.error("Error when parsing `todo_items_match_color` for `core.highlights`, the key only accepts the following values: all, except_undone and cancelled.")
+        if
+            not vim.tbl_contains({ "all", "except_undone", "cancelled" }, module.config.public.todo_items_match_color)
+        then
+            log.error(
+                "Error when parsing `todo_items_match_color` for `core.highlights`, the key only accepts the following values: all, except_undone and cancelled."
+            )
             return
         end
 
@@ -570,7 +574,8 @@ module.public = {
 
                 -- If the highlight already exists then assume the user doesn't want it to be
                 -- overwritten
-                if vim.fn.hlexists(full_highlight_name) == 1
+                if
+                    vim.fn.hlexists(full_highlight_name) == 1
                     and not vim.api.nvim_exec("highlight " .. full_highlight_name, true):match("xxx%s+cleared")
                 then
                     return
@@ -601,7 +606,8 @@ module.public = {
 
             -- If the highlight already exists then assume the user doesn't want it to be
             -- overwritten
-            if vim.fn.hlexists(full_highlight_name) == 1
+            if
+                vim.fn.hlexists(full_highlight_name) == 1
                 and not vim.api.nvim_exec("highlight " .. full_highlight_name, true):match("xxx%s+cleared")
             then
                 return
@@ -610,18 +616,18 @@ module.public = {
             -- Apply the dimmed highlight
             vim.cmd(
                 "highlight! Neorg"
-                .. prefix
-                .. hl_name
-                .. " "
-                .. (highlight.affect == "background" and "guibg" or "guifg")
-                .. "="
-                .. module.public.dim_color(
-                    module.public.get_attribute(
-                        highlight.reference or ("Neorg" .. prefix .. hl_name),
-                        highlight.affect or "foreground"
-                    ),
-                    highlight.percentage
-                )
+                    .. prefix
+                    .. hl_name
+                    .. " "
+                    .. (highlight.affect == "background" and "guibg" or "guifg")
+                    .. "="
+                    .. module.public.dim_color(
+                        module.public.get_attribute(
+                            highlight.reference or ("Neorg" .. prefix .. hl_name),
+                            highlight.affect or "foreground"
+                        ),
+                        highlight.percentage
+                    )
             )
         end, "")
     end,
@@ -629,11 +635,8 @@ module.public = {
     --- Takes in a table of highlights and applies them to the current buffer
     ---@param highlights table #A table of highlights
     add_highlights = function(highlights)
-        module.config.public.highlights = vim.tbl_deep_extend(
-            "force",
-            module.config.public.highlights,
-            highlights or {}
-        )
+        module.config.public.highlights =
+            vim.tbl_deep_extend("force", module.config.public.highlights, highlights or {})
         module.public.trigger_highlights()
     end,
 

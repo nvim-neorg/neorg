@@ -106,7 +106,9 @@ module.public = {
             return
         end
 
-        local next_heading_query = vim.treesitter.parse_query("norg", [[
+        local next_heading_query = vim.treesitter.parse_query(
+            "norg",
+            [[
             [
                 (heading1
                     title: (paragraph_segment) @next-segment
@@ -127,13 +129,17 @@ module.public = {
                     title: (paragraph_segment) @next-segment
                 )
             ]
-        ]])
+        ]]
+        )
 
         for id, node in next_heading_query:iter_captures(document_root, 0, line_number + 1, -1) do
             if next_heading_query.captures[id] == "next-segment" then
                 local start_line = node:range()
 
-                if vim.tbl_contains({ -1, start_line + 1 }, vim.fn.foldclosed(start_line + 1)) and start_line >= line_number then
+                if
+                    vim.tbl_contains({ -1, start_line + 1 }, vim.fn.foldclosed(start_line + 1))
+                    and start_line >= line_number
+                then
                     module.private.ts_utils.goto_node(node)
                     return
                 end
@@ -151,7 +157,9 @@ module.public = {
             return
         end
 
-        local previous_heading_query = vim.treesitter.parse_query("norg", [[
+        local previous_heading_query = vim.treesitter.parse_query(
+            "norg",
+            [[
             [
                 (heading1
                     title: (paragraph_segment) @next-segment
@@ -172,7 +180,8 @@ module.public = {
                     title: (paragraph_segment) @next-segment
                 )
             ]
-        ]])
+        ]]
+        )
 
         local final_node = nil
 
@@ -180,7 +189,10 @@ module.public = {
             if previous_heading_query.captures[id] == "next-segment" then
                 local start_line = node:range()
 
-                if vim.tbl_contains({ -1, start_line + 1 }, vim.fn.foldclosed(start_line + 1)) and start_line < (line_number - 1) then
+                if
+                    vim.tbl_contains({ -1, start_line + 1 }, vim.fn.foldclosed(start_line + 1))
+                    and start_line < (line_number - 1)
+                then
                     final_node = node
                 end
             end
