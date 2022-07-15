@@ -147,6 +147,12 @@ module.public = {
             return
         end
 
+        -- First we check if concealing is enabled for the current window.
+        -- NOTE(vhyrro): `bufwinid` returns the first window that houses the buffer.
+        -- Many windows may have the same buffer, I wonder whether this could cause problems.
+        local cur_win = vim.fn.bufwinid(buf)
+        local has_conceal_enabled = (vim.api.nvim_win_get_option(cur_win, "conceallevel") > 0)
+
         -- Loop through all icons that the user has enabled
         for _, icon_data in ipairs(icon_set) do
             schedule(function()
@@ -155,78 +161,81 @@ module.public = {
                     -- A query must have at least one capture, e.g. "(test_node) @icon"
                     local query = vim.treesitter.parse_query("norg", icon_data.query)
 
-                    local ok_ts_query, nvim_ts_query = pcall(require, "nvim-treesitter.query")
-                    local ok_ts_locals, nvim_locals = pcall(require, "nvim-treesitter.locals")
-
-                    if not ok_ts_query or not ok_ts_locals then
-                        log.error("Unable to trigger icons - nvim-treesitter is not loaded.")
-                        return
-                    end
+                    -- This is a mapping of [id] = to_omit pairs, where `id` is a treesitter
+                    -- node's id and `to_omit` is a boolean.
+                    -- The reason we do this is because some nodes should not be iconified
+                    -- if `conceallevel` > 2.
+                    local nodes_to_omit = {}
 
                     -- Go through every found node and try to apply an icon to it
                     -- The reason `iter_prepared_matches` and other `nvim-treesitter` functions are used here is because
                     -- we also want to support special captures and predicates like `(#has-parent?)`
-                    for match in nvim_ts_query.iter_prepared_matches(query, document_root, buf, from or 0, to or -1) do
-                        nvim_locals.recurse_local_nodes(match, function(_, node, capture)
-                            local rs, _, re = node:range()
+                    for id, node in query:iter_captures(document_root, buf, from or 0, to or -1) do
+                        local capture = query.captures[id]
+                        local rs, _, re = node:range()
 
-                            if capture == "icon" then
-                                if rs < (from or 0) or re > (to or math.huge) then
-                                    goto continue
-                                end
+                        -- If the node has a `no-conceal` capture name then omit it
+                        -- when rendering icons.
+                        if capture == "no-conceal" and has_conceal_enabled then
+                            nodes_to_omit[node:id()] = true
+                        end
 
-                                -- Extract both the text and the range of the node
-                                local text = module.required["core.integrations.treesitter"].get_node_text(node, buf)
-                                local range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-                                -- Set the offset to 0 here. The offset is a special value that, well, offsets
-                                -- the location of the icon column-wise
-                                -- It's used in scenarios where the node spans more than what we want to iconify.
-                                -- A prime example of this is the todo item, whose content looks like this: "[x]".
-                                -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
-                                -- to use an offset of 1 to start the icon at the "x"
-                                local offset = 0
-
-                                -- The extract function is used exactly to calculate this offset
-                                -- If that function is present then run it and grab the return value
-                                if icon_data.extract then
-                                    offset = icon_data.extract(text, node) or 0
-                                end
-
-                                -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
-                                -- This is primarily used in nested quotes
-                                -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
-                                if not icon_data.render then
-                                    module.public._set_extmark(
-                                        buf,
-                                        icon_data.icon,
-                                        icon_data.highlight,
-                                        namespace,
-                                        range.row_start,
-                                        range.row_end,
-                                        range.column_start + offset,
-                                        range.column_end,
-                                        false,
-                                        "combine"
-                                    )
-                                else
-                                    module.public._set_extmark(
-                                        buf,
-                                        icon_data:render(text, node),
-                                        icon_data.highlight,
-                                        namespace,
-                                        range.row_start,
-                                        range.row_end,
-                                        range.column_start + offset,
-                                        range.column_end,
-                                        false,
-                                        "combine"
-                                    )
-                                end
+                        if capture == "icon" and not nodes_to_omit[node:id()] then
+                            if rs < (from or 0) or re > (to or math.huge) then
+                                goto continue
                             end
 
-                            ::continue::
-                        end)
+                            -- Extract both the text and the range of the node
+                            local text = module.required["core.integrations.treesitter"].get_node_text(node, buf)
+                            local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+                            -- Set the offset to 0 here. The offset is a special value that, well, offsets
+                            -- the location of the icon column-wise
+                            -- It's used in scenarios where the node spans more than what we want to iconify.
+                            -- A prime example of this is the todo item, whose content looks like this: "[x]".
+                            -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
+                            -- to use an offset of 1 to start the icon at the "x"
+                            local offset = 0
+
+                            -- The extract function is used exactly to calculate this offset
+                            -- If that function is present then run it and grab the return value
+                            if icon_data.extract then
+                                offset = icon_data.extract(text, node) or 0
+                            end
+
+                            -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
+                            -- This is primarily used in nested quotes
+                            -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
+                            if not icon_data.render then
+                                module.public._set_extmark(
+                                    buf,
+                                    icon_data.icon,
+                                    icon_data.highlight,
+                                    namespace,
+                                    range.row_start,
+                                    range.row_end,
+                                    range.column_start + offset,
+                                    range.column_end,
+                                    false,
+                                    "combine"
+                                )
+                            else
+                                module.public._set_extmark(
+                                    buf,
+                                    icon_data:render(text, node),
+                                    icon_data.highlight,
+                                    namespace,
+                                    range.row_start,
+                                    range.row_end,
+                                    range.column_start + offset,
+                                    range.column_end,
+                                    false,
+                                    "combine"
+                                )
+                            end
+                        end
+
+                        ::continue::
                     end
                 end
             end)
@@ -1379,42 +1388,42 @@ module.config.public = {
                 enabled = true,
                 icon = "◉",
                 highlight = "NeorgHeading1",
-                query = "[ (heading1_prefix) (link_target_heading1) ] @icon",
+                query = "[ (heading1_prefix) (link_target_heading1) @no-conceal ] @icon",
             },
 
             level_2 = {
                 enabled = true,
                 icon = " ◎",
                 highlight = "NeorgHeading2",
-                query = "[ (heading2_prefix) (link_target_heading2) ] @icon",
+                query = "[ (heading2_prefix) (link_target_heading2) @no-conceal ] @icon",
             },
 
             level_3 = {
                 enabled = true,
                 icon = "  ○",
                 highlight = "NeorgHeading3",
-                query = "[ (heading3_prefix) (link_target_heading3) ] @icon",
+                query = "[ (heading3_prefix) (link_target_heading3) @no-conceal ] @icon",
             },
 
             level_4 = {
                 enabled = true,
                 icon = "   ✺",
                 highlight = "NeorgHeading4",
-                query = "[ (heading4_prefix) (link_target_heading4) ] @icon",
+                query = "[ (heading4_prefix) (link_target_heading4) @no-conceal ] @icon",
             },
 
             level_5 = {
                 enabled = true,
                 icon = "    ▶",
                 highlight = "NeorgHeading5",
-                query = "[ (heading5_prefix) (link_target_heading5) ] @icon",
+                query = "[ (heading5_prefix) (link_target_heading5) @no-conceal ] @icon",
             },
 
             level_6 = {
                 enabled = true,
                 icon = "     ⤷",
                 highlight = "NeorgHeading6",
-                query = "[ (heading6_prefix) (link_target_heading6) ] @icon",
+                query = "[ (heading6_prefix) (link_target_heading6) @no-conceal ] @icon",
                 render = function(self, text)
                     return {
                         {
@@ -1718,6 +1727,15 @@ module.load = function()
             },
         })
     end)
+
+    if neorg.utils.is_minimum_version(0, 7, 0) then
+        vim.api.nvim_create_autocmd("OptionSet", {
+            pattern = "conceallevel",
+            callback = function(info)
+                module.public.trigger_icons(info.buf, module.private.icons, module.private.icon_namespace)
+            end,
+        })
+    end
 end
 
 module.on_event = function(event)
