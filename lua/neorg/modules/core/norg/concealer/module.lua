@@ -260,7 +260,7 @@ module.public = {
     ---@param to? number #The line number to keep parsing until (used for incremental updates)
     trigger_code_block_highlights = function(buf, from, to)
         -- If the code block dimming is disabled, return right away.
-        if not module.config.public.dim_code_blocks then
+        if not module.config.public.dim_code_blocks.enabled then
             return
         end
 
@@ -288,6 +288,13 @@ module.public = {
                 return
             end
 
+            -- First we check if concealing is enabled for the current window.
+            local cur_win = vim.fn.bufwinid(buf)
+
+            if cur_win == -1 then
+                return
+            end
+
             -- Go through every found capture
             for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 schedule(function()
@@ -297,6 +304,15 @@ module.public = {
                     if id_name == "tag" then
                         -- Get the range of the code block
                         local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+                        if module.config.public.dim_code_blocks.adaptive then
+                            module.config.public.dim_code_blocks.content_only = (vim.api.nvim_win_get_option(cur_win, "conceallevel") > 0)
+                        end
+
+                        if module.config.public.dim_code_blocks.content_only then
+                            range.row_start = range.row_start + 1
+                            range.row_end = range.row_end - 1
+                        end
 
                         -- Go through every line in the code block and give it a magical highlight
                         for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(buf) and 0 or range.row_end, 1 do
@@ -1603,7 +1619,18 @@ module.config.public = {
     },
 
     -- If you want to dim code blocks
-    dim_code_blocks = true,
+    dim_code_blocks = {
+        enabled = true,
+        -- If true will only dim the content of the code block,
+        -- not the code block itself.
+        content_only = true,
+
+        -- Will adapt based on the `conceallevel` option.
+        -- If `conceallevel` > 0, then only the content will be dimmed,
+        -- else the whole code block will be dimmed.
+        adaptive = true,
+    },
+
     folds = true,
 
     completion_level = {
@@ -1736,8 +1763,14 @@ module.load = function()
     if neorg.utils.is_minimum_version(0, 7, 0) then
         vim.api.nvim_create_autocmd("OptionSet", {
             pattern = "conceallevel",
-            callback = function(info)
-                module.public.trigger_icons(info.buf, module.private.icons, module.private.icon_namespace)
+            callback = function()
+                local current_buffer = vim.api.nvim_get_current_buf()
+
+                module.public.trigger_icons(current_buffer, module.private.icons, module.private.icon_namespace)
+
+                if module.config.public.dim_code_blocks.adaptive then
+                    module.public.trigger_code_block_highlights(current_buffer)
+                end
             end,
         })
     end
