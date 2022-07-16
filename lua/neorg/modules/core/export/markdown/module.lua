@@ -410,6 +410,8 @@ module.public = {
                     end
                 end
             end,
+
+            ["carryover_tag"] = "",
         },
 
         recollectors = {
