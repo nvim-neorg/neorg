@@ -147,6 +147,7 @@ module.public = {
                     0,
                     0,
                 },
+                tag_indent = 0,
                 tag_close = "",
                 ranged_tag_indentation_level = 0,
                 is_url = false,
