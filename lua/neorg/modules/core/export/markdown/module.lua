@@ -423,7 +423,7 @@ module.public = {
                 table.insert(output, #output - 1, "#")
 
                 last_parsed_link_location = output[#output - 1]
-                output[#output - 1] = output[#output - 1]:lower():gsub("[^%s%w]+", ""):gsub("%s+", "-")
+                output[#output - 1] = output[#output - 1]:lower():gsub("-", " "):gsub("%p+", ""):gsub("%s+", "-")
 
                 return output
             end,
