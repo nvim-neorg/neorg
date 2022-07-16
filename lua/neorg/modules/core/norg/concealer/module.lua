@@ -130,12 +130,13 @@ module.private = {
 module.public = {
 
     --- Triggers an icon set for the current buffer
-    ---@param buf number #The name of the buffer to apply conceals in
+    ---@param buf number #The ID of the buffer to apply conceals in
+    ---@param has_conceal boolean #Whether or not concealing is enabled
     ---@param icon_set table #The icon set to use
     ---@param namespace number #The extmark namespace to use when setting extmarks
     ---@param from? number #The line number to start parsing from (used for incremental updates)
     ---@param to? number #The line number to keep parsing to (used for incremental updates)
-    trigger_icons = function(buf, icon_set, namespace, from, to)
+    trigger_icons = function(buf, has_conceal, icon_set, namespace, from, to)
         -- Get old extmarks - this is done to reduce visual glitches; all old extmarks are stored,
         -- the new extmarks are applied on top of the old ones, then the old ones are deleted.
         local old_extmarks = module.public.get_old_extmarks(buf, namespace, from, to and to - 1)
@@ -146,17 +147,6 @@ module.public = {
         if not document_root then
             return
         end
-
-        -- First we check if concealing is enabled for the current window.
-        -- NOTE(vhyrro): `bufwinid` returns the first window that houses the buffer.
-        -- Many windows may have the same buffer, I wonder whether this could cause problems.
-        local cur_win = vim.fn.bufwinid(buf)
-
-        if cur_win == -1 then
-            return
-        end
-
-        local has_conceal_enabled = (vim.api.nvim_win_get_option(cur_win, "conceallevel") > 0)
 
         -- Loop through all icons that the user has enabled
         for _, icon_data in ipairs(icon_set) do
@@ -181,7 +171,7 @@ module.public = {
 
                         -- If the node has a `no-conceal` capture name then omit it
                         -- when rendering icons.
-                        if capture == "no-conceal" and has_conceal_enabled then
+                        if capture == "no-conceal" and has_conceal then
                             nodes_to_omit[node:id()] = true
                         end
 
@@ -258,7 +248,7 @@ module.public = {
     ---@param buf number #The buffer to apply the dimming in
     ---@param from? number #The line number to start parsing from (used for incremental updates)
     ---@param to? number #The line number to keep parsing until (used for incremental updates)
-    trigger_code_block_highlights = function(buf, from, to)
+    trigger_code_block_highlights = function(buf, has_conceal, from, to)
         -- If the code block dimming is disabled, return right away.
         if not module.config.public.dim_code_blocks.enabled then
             return
@@ -288,13 +278,6 @@ module.public = {
                 return
             end
 
-            -- First we check if concealing is enabled for the current window.
-            local cur_win = vim.fn.bufwinid(buf)
-
-            if cur_win == -1 then
-                return
-            end
-
             -- Go through every found capture
             for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 schedule(function()
@@ -306,7 +289,7 @@ module.public = {
                         local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
                         if module.config.public.dim_code_blocks.adaptive then
-                            module.config.public.dim_code_blocks.content_only = (vim.api.nvim_win_get_option(cur_win, "conceallevel") > 0)
+                            module.config.public.dim_code_blocks.content_only = has_conceal
                         end
 
                         if module.config.public.dim_code_blocks.content_only then
@@ -1765,11 +1748,12 @@ module.load = function()
             pattern = "conceallevel",
             callback = function()
                 local current_buffer = vim.api.nvim_get_current_buf()
+                local has_conceal = (tonumber(vim.v.option_new) > 0)
 
-                module.public.trigger_icons(current_buffer, module.private.icons, module.private.icon_namespace)
+                module.public.trigger_icons(current_buffer, has_conceal, module.private.icons, module.private.icon_namespace)
 
                 if module.config.public.dim_code_blocks.adaptive then
-                    module.public.trigger_code_block_highlights(current_buffer)
+                    module.public.trigger_code_block_highlights(current_buffer, has_conceal)
                 end
             end,
         })
@@ -1793,6 +1777,8 @@ module.on_event = function(event)
             >= module.config.public.performance.max_debounce
     end
 
+    local has_conceal = (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
+
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         if module.config.public.folds then
             vim.api.nvim_win_set_option(event.window, "foldmethod", "expr")
@@ -1812,8 +1798,8 @@ module.on_event = function(event)
         vim.api.nvim_buf_clear_namespace(buf, module.private.completion_level_namespace, 0, -1)
 
         if line_count < module.config.public.performance.increment then
-            module.public.trigger_icons(buf, module.private.icons, module.private.icon_namespace)
-            module.public.trigger_code_block_highlights(buf)
+            module.public.trigger_icons(buf, has_conceal, module.private.icons, module.private.icon_namespace)
+            module.public.trigger_code_block_highlights(buf, has_conceal)
             module.public.completion_levels.trigger_completion_levels(buf)
         else
             -- This bit of code gets triggered if the line count of the file is bigger than one increment level
@@ -1834,13 +1820,14 @@ module.on_event = function(event)
 
                 module.public.trigger_icons(
                     buf,
+                    has_conceal,
                     module.private.icons,
                     module.private.icon_namespace,
                     line_begin,
                     line_end
                 )
 
-                module.public.trigger_code_block_highlights(buf, line_begin, line_end)
+                module.public.trigger_code_block_highlights(buf, has_conceal, line_begin, line_end)
                 module.public.completion_levels.trigger_completion_levels(buf, line_begin, line_end)
             end
 
@@ -1900,6 +1887,7 @@ module.on_event = function(event)
                         + 1
 
                     schedule(function()
+                        has_conceal = (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
                         local new_line_count = vim.api.nvim_buf_line_count(buf)
 
                         -- Sometimes occurs with one-line undos
@@ -1915,6 +1903,7 @@ module.on_event = function(event)
 
                         module.public.trigger_icons(
                             buf,
+                            has_conceal,
                             module.private.icons,
                             module.private.icon_namespace,
                             start,
@@ -1924,7 +1913,7 @@ module.on_event = function(event)
                         -- NOTE(vhyrro): It is simply not possible to perform incremental
                         -- updates here. Code blocks require more context than simply a few lines.
                         -- It's still incredibly fast despite this fact though.
-                        module.public.trigger_code_block_highlights(buf)
+                        module.public.trigger_code_block_highlights(buf, has_conceal)
 
                         module.public.completion_levels.trigger_completion_levels(buf, start, _end)
 
@@ -1934,7 +1923,7 @@ module.on_event = function(event)
                         end)
                     end)
                 else
-                    schedule(neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, start, _end))
+                    schedule(neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, has_conceal, start, _end))
 
                     if module.private.largest_change_start == -1 then
                         module.private.largest_change_start = start
@@ -1981,6 +1970,7 @@ module.on_event = function(event)
             if not module.private.last_change.active or module.private.largest_change_end == -1 then
                 module.public.trigger_icons(
                     event.buffer,
+                    has_conceal,
                     module.private.icons,
                     module.private.icon_namespace,
                     module.private.last_change.line,
@@ -1994,6 +1984,7 @@ module.on_event = function(event)
             else
                 module.public.trigger_icons(
                     event.buffer,
+                    has_conceal,
                     module.private.icons,
                     module.private.icon_namespace,
                     module.private.largest_change_start,
