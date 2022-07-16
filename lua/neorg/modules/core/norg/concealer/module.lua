@@ -289,14 +289,36 @@ module.public = {
                         local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
                         if module.config.public.dim_code_blocks.conceal then
-                            pcall(vim.api.nvim_buf_set_extmark, buf, module.private.code_block_namespace, range.row_start, 0, {
-                                end_col = (vim.api.nvim_buf_get_lines(buf, range.row_start, range.row_start + 1, false)[1] or ""):len(),
-                                conceal = "",
-                            })
-                            pcall(vim.api.nvim_buf_set_extmark, buf, module.private.code_block_namespace, range.row_end, 0, {
-                                end_col = (vim.api.nvim_buf_get_lines(buf, range.row_end, range.row_end + 1, false)[1] or ""):len(),
-                                conceal = "",
-                            })
+                            pcall(
+                                vim.api.nvim_buf_set_extmark,
+                                buf,
+                                module.private.code_block_namespace,
+                                range.row_start,
+                                0,
+                                {
+                                    end_col = (vim.api.nvim_buf_get_lines(
+                                        buf,
+                                        range.row_start,
+                                        range.row_start + 1,
+                                        false
+                                    )[1] or ""):len(),
+                                    conceal = "",
+                                }
+                            )
+                            pcall(
+                                vim.api.nvim_buf_set_extmark,
+                                buf,
+                                module.private.code_block_namespace,
+                                range.row_end,
+                                0,
+                                {
+                                    end_col = (
+                                        vim.api.nvim_buf_get_lines(buf, range.row_end, range.row_end + 1, false)[1]
+                                        or ""
+                                    ):len(),
+                                    conceal = "",
+                                }
+                            )
                         end
 
                         if module.config.public.dim_code_blocks.adaptive then
@@ -367,7 +389,20 @@ module.public = {
     ---@param mode string #"replace"/"combine"/"blend" - the highlight mode for the extmark
     ---@param pos string #"overlay"/"eol"/"right_align" - the position to place the extmark in (defaults to "overlay")
     ---@param conceal string #The char to use for concealing
-    _set_extmark = function(buf, text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode, pos, conceal)
+    _set_extmark = function(
+        buf,
+        text,
+        highlight,
+        ns,
+        line_number,
+        end_line,
+        start_column,
+        end_column,
+        whole_line,
+        mode,
+        pos,
+        conceal
+    )
         if not vim.api.nvim_buf_is_loaded(buf) then
             return
         end
@@ -1767,7 +1802,12 @@ module.load = function()
                 local current_buffer = vim.api.nvim_get_current_buf()
                 local has_conceal = (tonumber(vim.v.option_new) > 0)
 
-                module.public.trigger_icons(current_buffer, has_conceal, module.private.icons, module.private.icon_namespace)
+                module.public.trigger_icons(
+                    current_buffer,
+                    has_conceal,
+                    module.private.icons,
+                    module.private.icon_namespace
+                )
 
                 if module.config.public.dim_code_blocks.adaptive then
                     module.public.trigger_code_block_highlights(current_buffer, has_conceal)
@@ -1794,7 +1834,9 @@ module.on_event = function(event)
             >= module.config.public.performance.max_debounce
     end
 
-    local has_conceal = (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
+    local has_conceal = vim.api.nvim_win_is_valid(event.window)
+            and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
+        or false
 
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         if module.config.public.folds then
@@ -1904,7 +1946,9 @@ module.on_event = function(event)
                         + 1
 
                     schedule(function()
-                        has_conceal = (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
+                        has_conceal = vim.api.nvim_win_is_valid(event.window)
+                                and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
+                            or false
                         local new_line_count = vim.api.nvim_buf_line_count(buf)
 
                         -- Sometimes occurs with one-line undos
