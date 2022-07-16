@@ -288,6 +288,17 @@ module.public = {
                         -- Get the range of the code block
                         local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
+                        if module.config.public.dim_code_blocks.conceal then
+                            pcall(vim.api.nvim_buf_set_extmark, buf, module.private.code_block_namespace, range.row_start, 0, {
+                                end_col = (vim.api.nvim_buf_get_lines(buf, range.row_start, range.row_start + 1, false)[1] or ""):len(),
+                                conceal = "",
+                            })
+                            pcall(vim.api.nvim_buf_set_extmark, buf, module.private.code_block_namespace, range.row_end, 0, {
+                                end_col = (vim.api.nvim_buf_get_lines(buf, range.row_end, range.row_end + 1, false)[1] or ""):len(),
+                                conceal = "",
+                            })
+                        end
+
                         if module.config.public.dim_code_blocks.adaptive then
                             module.config.public.dim_code_blocks.content_only = has_conceal
                         end
@@ -355,7 +366,8 @@ module.public = {
     ---@param whole_line boolean #If true will highlight the whole line (like in diffs)
     ---@param mode string #"replace"/"combine"/"blend" - the highlight mode for the extmark
     ---@param pos string #"overlay"/"eol"/"right_align" - the position to place the extmark in (defaults to "overlay")
-    _set_extmark = function(buf, text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode, pos)
+    ---@param conceal string #The char to use for concealing
+    _set_extmark = function(buf, text, highlight, ns, line_number, end_line, start_column, end_column, whole_line, mode, pos, conceal)
         if not vim.api.nvim_buf_is_loaded(buf) then
             return
         end
@@ -369,11 +381,12 @@ module.public = {
         pcall(vim.api.nvim_buf_set_extmark, buf, ns, line_number, start_column, {
             end_col = end_column,
             hl_group = highlight,
-            end_line = end_line,
+            end_row = end_line,
             virt_text = text,
             virt_text_pos = pos or "overlay",
             hl_mode = mode,
             hl_eol = whole_line,
+            conceal = conceal,
         })
     end,
 
@@ -1612,6 +1625,10 @@ module.config.public = {
         -- If `conceallevel` > 0, then only the content will be dimmed,
         -- else the whole code block will be dimmed.
         adaptive = true,
+
+        -- If `true` will conceal the `@code` and `@end` portion of the code
+        -- block.
+        conceal = true,
     },
 
     folds = true,
