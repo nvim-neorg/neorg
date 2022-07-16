@@ -151,6 +151,11 @@ module.public = {
         -- NOTE(vhyrro): `bufwinid` returns the first window that houses the buffer.
         -- Many windows may have the same buffer, I wonder whether this could cause problems.
         local cur_win = vim.fn.bufwinid(buf)
+
+        if cur_win == -1 then
+            return
+        end
+
         local has_conceal_enabled = (vim.api.nvim_win_get_option(cur_win, "conceallevel") > 0)
 
         -- Loop through all icons that the user has enabled
