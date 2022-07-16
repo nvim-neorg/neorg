@@ -373,3 +373,13 @@
     ]
     (#set! conceal "")
 )
+
+(ranged_tag
+    [
+        ("_prefix")
+        (tag_name)
+        (tag_parameters)
+        (ranged_tag_end)
+    ] @conceal
+    (#set! conceal "")
+)
