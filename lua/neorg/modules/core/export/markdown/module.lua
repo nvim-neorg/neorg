@@ -284,21 +284,28 @@ module.public = {
 
             ["tag_parameters"] = true,
 
-            ["tag_name"] = function(text, _, state)
+            ["tag_name"] = function(text, node, state)
+                local _, tag_start_column = node:range()
+
                 if text == "code" then
-                    return "```", false, {
-                        tag_close = "```",
-                    }
+                    return "```",
+                        false,
+                        {
+                            tag_indent = tag_start_column - 1, -- Minus one to account for the `@`
+                            tag_close = "```",
+                        }
                 elseif text == "math" and module.config.public.extensions["mathematics"] then
                     return module.config.public.mathematics.block["start"],
                         false,
                         {
+                            tag_indent = tag_start_column - 1,
                             tag_close = module.config.public.mathematics.block["end"],
                         }
                 elseif text == "document.meta" and module.config.public.extensions["metadata"] then
                     return module.config.public.metadata["start"] .. "\n",
                         false,
                         {
+                            tag_indent = tag_start_column - 1,
                             tag_close = module.config.public.metadata["end"],
                         }
                 end
@@ -307,8 +314,18 @@ module.public = {
                 return nil, false, state
             end,
 
-            ["ranged_tag_content"] = function(text, _, state)
-                return state.tag_close and (text .. "\n")
+            ["ranged_tag_content"] = function(text, node, state)
+                local _, ranged_tag_content_column_start = node:range()
+
+                local split_text = vim.split(text, "\n")
+
+                split_text[1] = string.rep(" ", ranged_tag_content_column_start - state.tag_indent) .. split_text[1]
+
+                for i = 2, #split_text do
+                    split_text[i] = split_text[i]:sub(state.tag_indent + 1)
+                end
+
+                return state.tag_close and (table.concat(split_text, "\n") .. "\n")
             end,
 
             ["ranged_tag_end"] = function(_, _, state)
