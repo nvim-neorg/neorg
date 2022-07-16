@@ -170,7 +170,7 @@ module.public = {
             end,
 
             ["_paragraph_break"] = function(newlines, _, state)
-                return string.rep("\n", newlines:len()) .. string.rep(" ", state.indent),
+                return string.rep("\n\n", newlines:len()) .. string.rep(" ", state.indent),
                     false,
                     {
                         weak_indent = 0,
