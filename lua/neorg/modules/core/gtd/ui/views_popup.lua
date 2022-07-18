@@ -51,7 +51,7 @@ module.private = {
         selection
             :text("All tasks and projects")
             :flag("a", "All tasks", neorg.lib.wrap(module.public.display_all_tasks, tasks))
-            :flag("<C-a>", "All projects", neorg.lib.wrap(module.public.display_projects, tasks, projects))
+            :flag("A", "All projects", neorg.lib.wrap(module.public.display_projects, tasks, projects))
             :blank()
             :text("Unclarified")
             :flag(
@@ -60,7 +60,7 @@ module.private = {
                 neorg.lib.wrap(module.public.display_unclarified, "task", unclarified_tasks)
             )
             :flag(
-                "<C-u>",
+                "U",
                 "Unclarified projects",
                 neorg.lib.wrap(module.public.display_unclarified, "project", unclarified_projects, unclarified_tasks)
             )
