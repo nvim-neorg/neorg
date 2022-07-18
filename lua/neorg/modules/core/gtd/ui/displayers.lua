@@ -721,7 +721,7 @@ module.private = {
         if #data > 1 then
             for _, task in pairs(data) do
                 if task.type == "task" then
-                    local inserted = "  " .. helpers.state_to_text(task.state) .. task.content
+                    local inserted = "  " .. helpers.state_to_text(task.state) .. " " .. task.content
                     table.insert(res, inserted)
                 end
             end
@@ -734,7 +734,7 @@ module.private = {
                 table.insert(res, "  - /No tasks found for this project/")
             else
                 for _, task in pairs(tasks) do
-                    table.insert(res, "  " .. helpers.state_to_text(task.state) .. task.content)
+                    table.insert(res, "  " .. helpers.state_to_text(task.state) .. " " .. task.content)
                 end
             end
         elseif data.type == "task" then
