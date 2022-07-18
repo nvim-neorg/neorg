@@ -30,6 +30,9 @@ module.setup = function()
 end
 
 module.load = function()
+    -- Register keybinds for the toc buffer:
+    --   - hop-toc-link: follow headings
+    --   - close: close toc buffer
     module.required["core.keybinds"].register_keybinds(module.name, { "hop-toc-link", "close" })
 
     module.required["core.autocommands"].enable_autocommand("BufLeave")
@@ -264,8 +267,7 @@ module.public = {
     --- Displays the table of contents to the user
     ---@param split boolean if true will spawn the vertical split on the right hand side
     display_toc = function(split)
-        if
-            module.private.toc_bufnr ~= nil
+        if module.private.toc_bufnr ~= nil
             or (module.private.toc_namespace ~= nil and vim.api.nvim_get_namespaces()["Neorg ToC"])
         then
             log.warn("Toc is already displayed.")
@@ -385,31 +387,55 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.split_type[1] == "core.neorgcmd" then
-        neorg.lib.match(event.split_type[2])({
-            ["toc.split"] = neorg.lib.wrap(module.public.display_toc, true),
-            ["toc.inline"] = neorg.lib.wrap(module.public.display_toc),
-            ["toc.toqflist"] = neorg.lib.wrap(module.public.toqflist),
-            ["toc.close"] = neorg.lib.wrap(module.public.close),
-        })
-    elseif event.split_type[1] == "core.keybinds" then
-        if event.split_type[2] == "core.norg.qol.toc.hop-toc-link" then
-            module.public.follow_link_toc()
-        elseif event.split_type[2] == "core.norg.qol.toc.close" then
-            module.private.close_buffer()
-        end
-    elseif event.split_type[1] == "core.autocommands" and module.private.toc_bufnr ~= nil then
-        if event.split_type[2] == "quitpre" then
-            local previous_mode = module.required["core.mode"].get_previous_mode()
-            module.required["core.mode"].set_mode(previous_mode)
-            module.private.close_buffer()
-        elseif event.split_type[2] == "bufleave" then
-            local previous_mode = module.required["core.mode"].get_previous_mode()
-            module.required["core.mode"].set_mode(previous_mode)
-        elseif event.split_type[2] == "bufenter" and module.private.toc_bufnr == vim.api.nvim_get_current_buf() then
-            module.required["core.mode"].set_mode("toc-split")
-        end
-    end
+    local module_name = event.split_type[1]
+    local message = event.split_type[2]
+
+    neorg.lib.match(module_name)({
+        ["core.neorgcmd"] = function()
+            neorg.lib.match(message)({
+                ["toc.split"] = neorg.lib.wrap(module.public.display_toc, true),
+                ["toc.inline"] = neorg.lib.wrap(module.public.display_toc),
+                ["toc.toqflist"] = neorg.lib.wrap(module.public.toqflist),
+                ["toc.close"] = neorg.lib.wrap(module.public.close),
+            })
+        end,
+        ["core.keybinds"] = function()
+            -- Do not process keybinds if user is not inside toc
+            if module.private.toc_bufnr ~= vim.api.nvim_get_current_buf() then
+                return
+            end
+
+            neorg.lib.match(message)({
+                ["core.norg.qol.toc.hop-toc-link"] = neorg.lib.wrap(module.public.follow_link_toc),
+                ["core.norg.qol.toc.close"] = neorg.lib.wrap(module.private.close_buffer),
+            })
+        end,
+        ["core.autocommands"] = function()
+            -- Do not process autocommands when toc is not active
+            if module.private.toc_bufnr == nil then
+                return
+            end
+
+            neorg.lib.match(message)({
+                ["quitpre"] = function()
+                    local previous_mode = module.required["core.mode"].get_previous_mode()
+                    module.required["core.mode"].set_mode(previous_mode)
+                    module.private.close_buffer()
+                end,
+                ["bufleave"] = function()
+                    local previous_mode = module.required["core.mode"].get_previous_mode()
+                    module.required["core.mode"].set_mode(previous_mode)
+                end,
+                ["bufenter"] = function()
+                    -- Only set mode to toc when entering toc
+                    if module.private.toc_bufnr ~= vim.api.nvim_get_current_buf() then
+                        return
+                    end
+                    module.required["core.mode"].set_mode("toc-split")
+                end,
+            })
+        end,
+    })
 end
 
 module.events.subscribed = {
