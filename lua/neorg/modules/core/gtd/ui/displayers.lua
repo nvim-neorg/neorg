@@ -326,8 +326,11 @@ module.public = {
 
                     local pct = module.public.percent(#completed, #tasks_project)
                     local pct_str = module.public.percent_string(pct)
-                    table.insert(res, "   " .. pct_str .. " " .. pct .. "% done")
+                    table.insert(res, "  " .. pct_str .. " " .. pct .. "% done")
                     table.insert(added_projects, project.uuid)
+                    if not module.required["core.gtd.helpers"].is_processed(project, tasks_project) then
+                        table.insert(res, "  " .. "`unclarified project`")
+                    end
                     table.insert(res, "")
                 end
                 ::continue::
