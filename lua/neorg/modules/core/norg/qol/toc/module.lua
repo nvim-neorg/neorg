@@ -400,6 +400,10 @@ module.on_event = function(event)
             })
         end,
         ["core.keybinds"] = function()
+            if module.private.toc_bufnr ~= vim.api.nvim_get_current_buf() then
+                return
+            end
+
             neorg.lib.match(message)({
                 ["core.norg.qol.toc.hop-toc-link"] = neorg.lib.wrap(module.public.follow_link_toc),
                 ["core.norg.qol.toc.close"] = neorg.lib.wrap(module.private.close_buffer),
@@ -409,6 +413,7 @@ module.on_event = function(event)
             if module.private.toc_bufnr == nil then
                 return
             end
+
             neorg.lib.match(message)({
                 ["quitpre"] = function()
                     local previous_mode = module.required["core.mode"].get_previous_mode()
@@ -420,7 +425,7 @@ module.on_event = function(event)
                     module.required["core.mode"].set_mode(previous_mode)
                 end,
                 ["bufenter"] = function()
-                    if not module.private.toc_bufnr == vim.api.nvim_get_current_buf() then
+                    if module.private.toc_bufnr ~= vim.api.nvim_get_current_buf() then
                         return
                     end
                     module.required["core.mode"].set_mode("toc-split")
