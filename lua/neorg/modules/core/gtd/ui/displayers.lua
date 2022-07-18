@@ -546,6 +546,31 @@ module.public = {
         module.private.extras = extras
         return module.private.generate_display(name, positions, res)
     end,
+
+    display_all_tasks = function(tasks)
+        vim.validate({
+            tasks = { tasks, "table" },
+        })
+
+        local name = "All Tasks"
+        local res = {
+            "* " .. name,
+            "",
+        }
+        local positions = {}
+
+        for _, task in pairs(tasks) do
+            local helpers = module.required["core.gtd.helpers"]
+            local inserted = helpers.state_to_text(task.state) .. " " .. task.content
+            if not helpers.is_processed(task) then
+                inserted = inserted .. " `(unclarified)`"
+            end
+            table.insert(res, inserted)
+            positions[#res] = task
+        end
+
+        return module.private.generate_display(name, positions, res)
+    end,
 }
 
 --- @class private_core.gtd.ui
@@ -606,7 +631,7 @@ module.private = {
 
         return state
             and (
-                starting_today
+            starting_today
                 or due_today
                 or (today_context and already_started)
                 or (task.state == "pending" and already_started)

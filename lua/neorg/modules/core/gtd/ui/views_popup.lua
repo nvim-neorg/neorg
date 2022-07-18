@@ -18,11 +18,13 @@ module.public = {
             return
         end
 
-        local selection = module.required["core.ui"]
-            .begin_selection(buffer)
-            :listener("destroy", { "<Esc>" }, function(self)
+        local selection = module.required["core.ui"].begin_selection(buffer):listener(
+            "destroy",
+            { "<Esc>" },
+            function(self)
                 self:destroy()
-            end)
+            end
+        )
 
         selection:title("Views"):blank():concat(function()
             return module.private.generate_display_flags(selection, tasks, projects)
@@ -47,6 +49,10 @@ module.private = {
         local clarified_tasks = vim.tbl_filter(neorg.lib.wrap_cond(is_processed_cb, projects), tasks)
 
         selection
+            :text("All tasks and projects")
+            :flag("a", "All tasks", neorg.lib.wrap(module.public.display_all_tasks, tasks))
+            :flag("x", "All projects", neorg.lib.wrap(module.public.display_projects, tasks, projects))
+            :blank()
             :text("Unclarified")
             :flag(
                 "u",
