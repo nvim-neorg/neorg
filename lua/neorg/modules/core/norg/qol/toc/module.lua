@@ -400,6 +400,7 @@ module.on_event = function(event)
             })
         end,
         ["core.keybinds"] = function()
+            -- Do not process keybinds if user is not inside toc
             if module.private.toc_bufnr ~= vim.api.nvim_get_current_buf() then
                 return
             end
@@ -410,6 +411,7 @@ module.on_event = function(event)
             })
         end,
         ["core.autocommands"] = function()
+            -- Do not process autocommands when toc is not active
             if module.private.toc_bufnr == nil then
                 return
             end
@@ -425,6 +427,7 @@ module.on_event = function(event)
                     module.required["core.mode"].set_mode(previous_mode)
                 end,
                 ["bufenter"] = function()
+                    -- Only set mode to toc when entering toc
                     if module.private.toc_bufnr ~= vim.api.nvim_get_current_buf() then
                         return
                     end
