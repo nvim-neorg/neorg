@@ -308,10 +308,10 @@ module.public = {
                                 neovim_mode,
                                 keymap[1],
                                 "<cmd>Neorg keybind "
-                                    .. mode
-                                    .. " "
-                                    .. table.concat(vim.list_slice(keymap, 2), " ")
-                                    .. "<CR>",
+                                .. mode
+                                .. " "
+                                .. table.concat(vim.list_slice(keymap, 2), " ")
+                                .. "<CR>",
                                 keymap[3] or opts
                             )
                         end
@@ -340,8 +340,7 @@ module.public = {
             end
         end, "map", "map_event", "unmap", "remap", "remap_key", "remap_event")
 
-        if
-            module.config.public.default_keybinds
+        if module.config.public.default_keybinds
             and module.config.public.keybind_presets[module.config.public.keybind_preset]
         then
             module.config.public.keybind_presets[module.config.public.keybind_preset](payload)
@@ -382,7 +381,8 @@ module.public = {
                                 if not ok then
                                     log.trace(
                                         string.format(
-                                            "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s",
+                                            "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s"
+                                            ,
                                             key,
                                             mode,
                                             current_mode,
@@ -430,47 +430,53 @@ module.private = {
 module.neorg_post_load = module.public.sync
 
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.core.keybinds.trigger" then
-        -- Query the current mode and the expected mode (the one passed in by the user)
-        local expected_mode = event.content[1]
-        local current_mode = module.required["core.mode"].get_mode()
+    neorg.lib.match(event.type)({
+        ["core.neorgcmd.events.core.keybinds.trigger"] = function()
+            -- Query the current mode and the expected mode (the one passed in by the user)
+            local expected_mode = event.content[1]
+            local current_mode = module.required["core.mode"].get_mode()
 
-        -- If the modes don't match then don't execute the keybind
-        if expected_mode ~= current_mode and expected_mode ~= "all" then
-            return
-        end
+            -- If the modes don't match then don't execute the keybind
+            if expected_mode ~= current_mode and expected_mode ~= "all" then
+                return
+            end
 
-        -- Get the event path to the keybind
-        local keybind_event_path = event.content[2]
+            -- Get the event path to the keybind
+            local keybind_event_path = event.content[2]
 
-        -- If it is defined then broadcast the event
-        if module.events.defined[keybind_event_path] then
-            neorg.events.broadcast_event(
-                neorg.events.create(
-                    module,
-                    "core.keybinds.events." .. keybind_event_path,
-                    vim.list_slice(event.content, 3)
+            -- If it is defined then broadcast the event
+            if module.events.defined[keybind_event_path] then
+                neorg.events.broadcast_event(
+                    neorg.events.create(
+                        module,
+                        "core.keybinds.events." .. keybind_event_path,
+                        vim.list_slice(event.content, 3)
+                    )
                 )
-            )
-        else -- Otherwise throw an error
-            log.error("Unable to trigger keybind", keybind_event_path, "- the keybind does not exist")
-        end
-    elseif event.type == "core.mode.events.mode_created" then
-        -- If a new mode has been created then resync
-        module.public.sync()
-    elseif event.type == "core.mode.events.mode_set" then
-        -- If a new mode has been set then reset all of our keybinds
-        module.public.bind_all(event.buffer, function(buf, mode, key)
-            vim.api.nvim_buf_del_keymap(buf, mode, key)
-        end, event.content.current)
-        module.public.bind_all(event.buffer)
-    elseif event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        -- If a new mode has been set then reset all of our keybinds
-        module.public.bind_all(event.buffer, function(buf, mode, key)
-            vim.api.nvim_buf_del_keymap(buf, mode, key)
-        end, module.required["core.mode"].get_previous_mode())
-        module.public.bind_all(event.buffer)
-    end
+            else -- Otherwise throw an error
+                log.error("Unable to trigger keybind", keybind_event_path, "- the keybind does not exist")
+            end
+        end,
+        ["core.mode.events.mode_created"] = neorg.lib.wrap(module.public.sync),
+        ["core.mode.events.mode_set"] = function()
+            -- If a new mode has been set then reset all of our keybinds
+            module.public.bind_all(event.buffer, function(buf, mode, key)
+                vim.api.nvim_buf_del_keymap(buf, mode, key)
+            end, event.content.current)
+            module.public.bind_all(event.buffer)
+        end,
+        ["core.autocommands.events.bufenter"] = function()
+            if not event.content.norg then
+                return
+            end
+
+            -- If a new mode has been set then reset all of our keybinds
+            module.public.bind_all(event.buffer, function(buf, mode, key)
+                vim.api.nvim_buf_del_keymap(buf, mode, key)
+            end, module.required["core.mode"].get_previous_mode())
+            module.public.bind_all(event.buffer)
+        end,
+    })
 end
 
 module.events.defined = {
