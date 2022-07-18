@@ -418,13 +418,11 @@ module.on_event = function(event)
 
             neorg.lib.match(message)({
                 ["quitpre"] = function()
-                    local previous_mode = module.required["core.mode"].get_previous_mode()
-                    module.required["core.mode"].set_mode(previous_mode)
+                    module.required["core.mode"].set_previous_mode()
                     module.private.close_buffer()
                 end,
                 ["bufleave"] = function()
-                    local previous_mode = module.required["core.mode"].get_previous_mode()
-                    module.required["core.mode"].set_mode(previous_mode)
+                    module.required["core.mode"].set_previous_mode()
                 end,
                 ["bufenter"] = function()
                     -- Only set mode to toc when entering toc

@@ -113,6 +113,12 @@ module.public = {
         )
     end,
 
+    --- Set mode to previous one
+    set_previous_mode = function()
+        local mode = module.public.get_previous_mode()
+        module.public.set_mode(mode)
+    end,
+
     get_mode = function()
         return module.config.public.current_mode
     end,
