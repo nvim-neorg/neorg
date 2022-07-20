@@ -3,6 +3,10 @@
     Title: Get completions in Neorg files
     Summary: A wrapper to interface with several different completion engines.
     ---
+
+This module is an intermediary between Neorg and the completion engine of your
+choice. To learn more visit the integration module for your engine of choice
+(e.g. `nvim-cmp` or `nvim-compe`).
 --]]
 
 require("neorg.modules.base")
