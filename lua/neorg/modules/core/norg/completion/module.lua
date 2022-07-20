@@ -6,7 +6,7 @@
 
 This module is an intermediary between Neorg and the completion engine of your
 choice. To learn more visit the integration module for your engine of choice
-(e.g. `nvim-cmp` or `nvim-compe`).
+(e.g. [`nvim-cmp`](@core.integrations.nvim-cmp) or [`nvim-compe`](@core.integrations.nvim-compe)).
 --]]
 
 require("neorg.modules.base")
@@ -15,7 +15,10 @@ require("neorg.modules")
 local module = neorg.modules.create("core.norg.completion")
 
 module.config.public = {
-    -- We currently support: (`nvim-compe`, `nvim-cmp`)
+    -- The engine to use for completion
+    -- Possible values:
+    -- - [`nvim-cmp`](@core.integrations.nvim-cmp)
+    -- - [`nvim-compe`](@core.integrations.nvim-compe)
     engine = nil,
     name = "[Neorg]",
 }
