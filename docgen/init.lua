@@ -468,6 +468,28 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     return results
                 end,
             },
+            "## Keybinds",
+            function()
+                -- TODO: Add metadata to each keybind in a k-v pair
+                -- with descriptions of the keybind and their default
+                -- values.
+                local keybinds = module.keybinds
+
+                if not keybinds or vim.tbl_isempty(keybinds) then
+                    return {
+                        "This module defines no keybinds."
+                    }
+                end
+
+                local output = {}
+
+                for _, keybind in ipairs(keybinds) do
+                    table.insert(output, "- `" .. keybind .. "`")
+                end
+
+                return output
+            end,
+            "",
             "## How to Apply",
             function()
                 local core_defaults = modules["core.defaults"]
@@ -760,6 +782,21 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
 
     -- Construct the desired filename
     local output_filename = module.filename .. ".md"
+
+    -- If there are any keybinds for the current module place them in
+    if modules["core.keybinds"] then
+        local keybinds = {}
+
+        for keybind in pairs(modules["core.keybinds"].public.keybinds) do
+            if vim.startswith(keybind, module.name) then
+                if not modules[keybind:sub(2 + module.name:len()):match("[^%.]+")] then
+                    table.insert(keybinds, keybind)
+                end
+            end
+        end
+
+        module.keybinds = keybinds
+    end
 
     local output = {}
 
