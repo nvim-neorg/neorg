@@ -429,18 +429,27 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 end
 
                                 if not vim.tbl_isempty(comments) and identifier and not vim.tbl_isempty(values) then
+                                    table.insert(results, "")
+
                                     table.insert(results, "<dl>")
 
                                     table.insert(results, "<dt>")
                                     table.insert(results, identifier)
                                     table.insert(results, "</dt>")
 
+                                    table.insert(results, "")
+
                                     table.insert(results, "<dd>")
                                     vim.list_extend(results, comments)
+
+                                    table.insert(results, "")
+
                                     vim.list_extend(results, values)
                                     table.insert(results, "</dd>")
 
                                     table.insert(results, "</dl>")
+
+                                    table.insert(results, "")
 
                                     indent_level = 0
                                     comments = {}
