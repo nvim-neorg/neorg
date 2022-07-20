@@ -936,7 +936,7 @@ module.public = {
 
                 for _, extmark in ipairs(icon_extmarks) do
                     local extmark_details = extmark[4]
-                    local extmark_column = extmark[3] + (line_length - line:len())
+                    local extmark_column = extmark[3] + (line_length - vim.api.nvim_strwidth(line))
 
                     for _, virt_text in ipairs(extmark_details.virt_text or {}) do
                         line = line:sub(1, extmark_column)
