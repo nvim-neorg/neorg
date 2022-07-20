@@ -15,7 +15,8 @@ require("neorg.modules")
 local module = neorg.modules.create("core.norg.completion")
 
 module.config.public = {
-    -- The engine to use for completion
+    -- The engine to use for completion.
+    --
     -- Possible values:
     -- - [`nvim-cmp`](@core.integrations.nvim-cmp)
     -- - [`nvim-compe`](@core.integrations.nvim-compe)
