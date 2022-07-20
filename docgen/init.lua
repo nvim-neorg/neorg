@@ -394,7 +394,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 elseif capture == "comment" then
                                     table.insert(
                                         comments, --[[ this is required -> ]]
-                                        "" .. ts.get_node_text(parsed_config_option):gsub("^%-+%s+", "")
+                                        "" .. ts.get_node_text(parsed_config_option):gsub("^%-+%s*", "")
                                     )
                                 elseif capture == "value" then
                                     if parsed_config_option:type() ~= "table_constructor" then
