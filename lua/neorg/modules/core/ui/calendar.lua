@@ -155,7 +155,7 @@ module.private = {
         local beginning_of_weekday_extmark = vim.api.nvim_buf_get_extmark_by_id(
             ui_info.buffer,
             module.private.namespaces.decorational,
-            days_of_week_extmark,
+            month_banner_extmark_id,
             {}
         )
 
