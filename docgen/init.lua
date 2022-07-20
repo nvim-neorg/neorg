@@ -390,7 +390,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 if capture == "field" then
                                     indent_level = ts.get_node_range(parsed_config_option).column_start + 1
                                 elseif capture == "identifier" then
-                                    identifier = "`" .. ts.get_node_text(parsed_config_option) .. "`"
+                                    identifier = ts.get_node_text(parsed_config_option)
                                 elseif capture == "comment" then
                                     table.insert(
                                         comments, --[[ this is required -> ]]
