@@ -337,7 +337,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "## Overview",
             "<comment>",
             "",
-            "### Configuration",
+            "## Configuration",
             {
                 query = [[
                     (assignment_statement
