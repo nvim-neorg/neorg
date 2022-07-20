@@ -337,44 +337,6 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "## Overview",
             "<comment>",
             "",
-            "## Usage",
-            "### How to Apply",
-            function()
-                local core_defaults = modules["core.defaults"]
-
-                if not core_defaults then
-                    return
-                end
-
-                if
-                    not vim.tbl_isempty(vim.tbl_filter(function(elem)
-                        return elem == module.name
-                    end, core_defaults.config.public.enable or {}))
-                then
-                    return {
-                        "- This module is already present in the [`core.defaults`](https://github.com/nvim-neorg/neorg/wiki/"
-                            .. core_defaults.filename
-                            .. ") metamodule.",
-                        "  You can load the module with:",
-                        "  ```lua",
-                        '  ["core.defaults"] = {},',
-                        "  ```",
-                        "  In your Neorg setup.",
-                    }
-                end
-            end,
-            "- To manually load the module, place this code in your Neorg setup:",
-            "  ```lua",
-            '  ["' .. module.name .. '"] = {',
-            "     config = { -- Note that this table is optional and doesn't need to be provided",
-            "         -- Configuration here",
-            "     }",
-            "  }",
-            "  ```",
-            "  Consult the [configuration](#Configuration) section to see how you can configure `"
-                .. module.name
-                .. "` to your liking.",
-            "",
             "### Configuration",
             {
                 query = [[
@@ -498,6 +460,46 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     return results
                 end,
             },
+            "## How to Apply",
+            function()
+                local core_defaults = modules["core.defaults"]
+
+                if not core_defaults then
+                    return
+                end
+
+                if
+                    not vim.tbl_isempty(vim.tbl_filter(function(elem)
+                        return elem == module.name
+                    end, core_defaults.config.public.enable or {}))
+                then
+                    return {
+                        "- This module is already present in the [`core.defaults`](https://github.com/nvim-neorg/neorg/wiki/"
+                            .. core_defaults.filename
+                            .. ") metamodule.",
+                        "  You can load the module with:",
+                        "  ```lua",
+                        '  ["core.defaults"] = {},',
+                        "  ```",
+                        "  In your Neorg setup.",
+                    }
+                end
+            end,
+            "- To manually load the module, place this code in your Neorg setup:",
+            "  ```lua",
+            '  ["' .. module.name .. '"] = {',
+            "     config = { -- Note that this table is optional and doesn't need to be provided",
+            "         -- Configuration here",
+            "     }",
+            "  }",
+            "  ```",
+            "  Consult the [configuration](#Configuration) section to see how you can configure `"
+                .. module.name
+                .. "` to your liking.",
+            "",
+            "---",
+            "",
+            "# Technical Information",
             "## Developer Usage",
             "### Public API",
             "This segment will detail all of the functions `"
@@ -753,10 +755,31 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
 
     local output = {}
 
+    local function parse_reference_syntax(line)
+        if not line then
+            return
+        end
+
+        for match in line:gmatch("@([%-%.%w]+)") do
+            line = line:gsub(
+                "@" .. match:gsub("%p", "%%%1"),
+                "https://github.com/nvim-neorg/neorg/wiki/" .. (modules[match] and modules[match].filename or "")
+            )
+        end
+
+        return line
+    end
+
     -- Generate structure
     for _, item in ipairs(structure) do
         if type(item) == "string" then
+            item = parse_reference_syntax(item)
+
             if item == "<comment>" then
+                for i, line in ipairs(comment) do
+                    comment[i] = parse_reference_syntax(line)
+                end
+
                 vim.list_extend(output, comment)
             else
                 table.insert(output, item)
@@ -768,11 +791,17 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 local ret = item.callback(query)
 
                 for _, str in ipairs(ret) do
-                    table.insert(output, str)
+                    table.insert(output, parse_reference_syntax(str))
                 end
             end
         elseif type(item) == "function" then
-            vim.list_extend(output, item() or {})
+            local function_output = item() or {}
+
+            for i, line in ipairs(function_output) do
+                function_output[i] = parse_reference_syntax(line)
+            end
+
+            vim.list_extend(output, function_output)
         end
     end
 
