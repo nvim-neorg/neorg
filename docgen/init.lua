@@ -788,7 +788,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
         local keybinds = {}
 
         for keybind in pairs(modules["core.keybinds"].public.keybinds) do
-            if vim.startswith(keybind, module.name) then
+            if module.name and vim.startswith(keybind, module.name) then
                 if not modules[keybind:sub(2 + module.name:len()):match("[^%.]+")] then
                     table.insert(keybinds, keybind)
                 end
