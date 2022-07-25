@@ -604,7 +604,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 "- [`%s`](%s)%s %s- %s",
                                 metadata.keybind:gsub("^leader%s+%.%.%s+", "<NeorgLeader> + "):gsub('"', ""),
                                 "#TODO",
-                                metadata.mnemonic and ("/`" .. metadata.mnemonic .. "`") or "",
+                                metadata.mnemonic and (" | _" .. metadata.mnemonic:gsub("%u", "**%0**") .. "_") or "",
                                 keybind_param:len() > 0 and ('(with "' .. keybind_param .. '") ') or "",
                                 metadata.comments and metadata.comments[1] or "*No description*"
                             )
