@@ -74,6 +74,7 @@ do
     local modes = {}
     local parameters = {}
     local mnemonics = {}
+    local line_positions = {}
     local last_comment_start
     local last_parameter_start
 
@@ -127,6 +128,10 @@ do
                         table.insert(modes, current_mode)
                     end
 
+                    if vim.tbl_isempty(current_parameters) then
+                        table.insert(line_positions, subnode:range() + 1)
+                    end
+
                     insert(current_parameters, get_string_content(subnode_text))
                     last_parameter_start = subnode:range()
                 end
@@ -141,6 +146,7 @@ do
                 mnemonic = mnemonics[i],
                 mode = modes[i],
                 comments = comments[i],
+                linenr = line_positions[i],
             },
         })
     end
@@ -603,7 +609,8 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                             string.format(
                                 "- [`%s`](%s)%s %s- %s",
                                 metadata.keybind:gsub("^leader%s+%.%.%s+", "<NeorgLeader> + "):gsub('"', ""),
-                                "#TODO",
+                                "https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/keybinds.lua#L"
+                                    .. tostring(metadata.linenr or 0),
                                 metadata.mnemonic and (" | _" .. metadata.mnemonic:gsub("%u", "**%0**") .. "_") or "",
                                 keybind_param:len() > 0 and ('(with "' .. keybind_param .. '") ') or "",
                                 metadata.comments and metadata.comments[1] or "*No description*"
