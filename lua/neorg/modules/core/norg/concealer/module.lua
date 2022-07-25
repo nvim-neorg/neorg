@@ -1839,7 +1839,7 @@ module.on_event = function(event)
         or false
 
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        if module.config.public.folds then
+        if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
             vim.api.nvim_win_set_option(event.window, "foldmethod", "expr")
             vim.api.nvim_win_set_option(event.window, "foldexpr", "nvim_treesitter#foldexpr()")
             vim.api.nvim_win_set_option(
