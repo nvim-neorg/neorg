@@ -14,7 +14,10 @@ module.setup = function()
 end
 
 module.config.public = {
-    -- One of "none" or "auto"
+    -- One of "none", "auto" or "empty"
+    -- - None generates no metadata
+    -- - Auto generates metadata if it is not present
+    -- - Empty generates metadata only for new files/buffers.
     type = "none",
 
     -- How to generate a tabulation inside the `@document.meta` tag
@@ -46,6 +49,7 @@ module.config.public = {
 
 module.private = {
     buffers = {},
+    listen_event = "none",
 }
 
 ---@class core.norg.esupports.metagen
@@ -145,15 +149,18 @@ module.public = {
 module.load = function()
     if module.config.public.type == "auto" then
         module.required["core.autocommands"].enable_autocommand("BufEnter")
+        module.private.listen_event = "bufenter"
+    elseif module.config.public.type == "empty" then
+        module.required["core.autocommands"].enable_autocommand("BufNewFile")
+        module.private.listen_event = "bufnewfile"
     end
 end
 
 module.on_event = function(event)
     if
-        event.type == "core.autocommands.events.bufenter"
+        event.type == ("core.autocommands.events." .. module.private.listen_event)
         and event.content.norg
         and vim.api.nvim_buf_is_loaded(event.buffer)
-        and module.config.public.type == "auto"
         and vim.api.nvim_buf_get_option(event.buffer, "modifiable")
         and not module.private.buffers[event.buffer]
         and not vim.startswith(event.filehead, "neorg://") -- Do not inject metadata on displays created by neorg by default
@@ -169,6 +176,7 @@ end
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
+        bufnewfile = true,
     },
 
     ["core.neorgcmd"] = {
