@@ -1834,9 +1834,10 @@ module.on_event = function(event)
             >= module.config.public.performance.max_debounce
     end
 
-    local has_conceal = vim.api.nvim_win_is_valid(event.window)
-            and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
+    local has_conceal = (
+        vim.api.nvim_win_is_valid(event.window) and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
         or false
+    )
 
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
@@ -1941,14 +1942,17 @@ module.on_event = function(event)
 
                 local mode = vim.api.nvim_get_mode().mode
 
+                has_conceal = (
+                    vim.api.nvim_win_is_valid(event.window)
+                        and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
+                    or false
+                )
+
                 if mode ~= "i" then
                     module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
                         + 1
 
                     schedule(function()
-                        has_conceal = vim.api.nvim_win_is_valid(event.window)
-                                and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
-                            or false
                         local new_line_count = vim.api.nvim_buf_line_count(buf)
 
                         -- Sometimes occurs with one-line undos
