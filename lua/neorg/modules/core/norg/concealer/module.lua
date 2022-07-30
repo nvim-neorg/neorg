@@ -1731,7 +1731,7 @@ module.config.public = {
         --
         -- When set to `content`, will only span as far as the longest line
         -- within the code block.
-        width = "content",
+        width = "fullwidth",
 
         -- TODO: Add left-padding
 
