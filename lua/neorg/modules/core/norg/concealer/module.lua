@@ -254,9 +254,9 @@ module.public = {
             return
         end
 
-        -- Similarly to `trigger_icons()`, we get all old extmarks here, apply the new dims on top of the old ones,
+        -- Similarly to `trigger_icons()`, we gather all old extmarks here, apply the new dims on top of the old ones,
         -- then delete the old extmarks to prevent flickering
-        local old_extmarks = module.public.get_old_extmarks(buf, module.private.code_block_namespace, from, to)
+        local old_extmarks = {}
 
         -- The next block of code will be responsible for dimming code blocks accordingly
         local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
@@ -389,6 +389,7 @@ module.public = {
     ---@param mode string #"replace"/"combine"/"blend" - the highlight mode for the extmark
     ---@param pos string #"overlay"/"eol"/"right_align" - the position to place the extmark in (defaults to "overlay")
     ---@param conceal string #The char to use for concealing
+    ---@param fixed boolean #When true the extmark will not move
     _set_extmark = function(
         buf,
         text,
@@ -401,7 +402,8 @@ module.public = {
         whole_line,
         mode,
         pos,
-        conceal
+        conceal,
+        fixed
     )
         if not vim.api.nvim_buf_is_loaded(buf) then
             return
@@ -419,6 +421,7 @@ module.public = {
             end_row = end_line,
             virt_text = text,
             virt_text_pos = pos or "overlay",
+            virt_text_win_col = (fixed and start_column or nil),
             hl_mode = mode,
             hl_eol = whole_line,
             conceal = conceal,
