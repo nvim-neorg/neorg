@@ -372,7 +372,7 @@ module.public = {
                                     module.private.code_block_namespace,
                                     linenr,
                                     linenr + 1,
-                                    range.column_start,
+                                    math.max(range.column_start - module.config.public.dim_code_blocks.padding.left, 0),
                                     nil,
                                     hl_eol,
                                     "blend",
@@ -384,7 +384,17 @@ module.public = {
                                 if width == "content" then
                                     module.public._set_extmark(
                                         buf,
-                                        { { string.rep(" ", longest_len - line_width), "NeorgCodeBlock" } },
+                                        {
+                                            {
+                                                string.rep(
+                                                    " ",
+                                                    longest_len
+                                                        - line_width
+                                                        + module.config.public.dim_code_blocks.padding.right
+                                                ),
+                                                "NeorgCodeBlock",
+                                            },
+                                        },
                                         nil,
                                         module.private.code_block_namespace,
                                         linenr,
@@ -405,9 +415,31 @@ module.public = {
                                 module.public._set_extmark(
                                     buf,
                                     {
-                                        { string.rep(" ", range.column_start) },
+                                        {
+                                            string.rep(
+                                                " ",
+                                                math.max(
+                                                    range.column_start
+                                                        - module.config.public.dim_code_blocks.padding.left,
+                                                    0
+                                                )
+                                            ),
+                                        },
                                         (width == "content" and {
-                                            string.rep(" ", longest_len - range.column_start),
+                                            string.rep(
+                                                " ",
+                                                math.max(
+                                                    (longest_len - range.column_start)
+                                                        + module.config.public.dim_code_blocks.padding.left
+                                                        + module.config.public.dim_code_blocks.padding.right
+                                                        - math.max(
+                                                            module.config.public.dim_code_blocks.padding.left
+                                                                - range.column_start,
+                                                            0
+                                                        ),
+                                                    0
+                                                )
+                                            ),
                                             "NeorgCodeBlock",
                                         } or nil),
                                     },
@@ -1733,7 +1765,13 @@ module.config.public = {
         -- within the code block.
         width = "fullwidth",
 
-        -- TODO: Add left-padding
+        -- Additional padding to apply to either the left or the right.
+        -- Making these values negative is undefined behaviour (it may work, but
+        -- it's not officially supported).
+        padding = {
+            left = 0,
+            right = 0,
+        },
 
         -- If `true` will conceal the `@code` and `@end` portion of the code
         -- block.
