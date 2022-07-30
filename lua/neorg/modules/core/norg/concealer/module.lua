@@ -280,14 +280,24 @@ module.public = {
 
             -- Go through every found capture
             for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
-                schedule(function()
-                    local id_name = query.captures[id]
+                local id_name = query.captures[id]
 
-                    -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
-                    if id_name == "tag" then
-                        -- Get the range of the code block
-                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
+                -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                if id_name == "tag" then
+                    -- Get the range of the code block
+                    local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
+                    vim.list_extend(
+                        old_extmarks,
+                        module.public.get_old_extmarks(
+                            buf,
+                            module.private.code_block_namespace,
+                            range.row_start,
+                            range.row_end
+                        )
+                    )
+
+                    schedule(function()
                         if module.config.public.dim_code_blocks.conceal then
                             pcall(
                                 vim.api.nvim_buf_set_extmark,
@@ -330,9 +340,28 @@ module.public = {
                             range.row_end = range.row_end - 1
                         end
 
+                        local width = module.config.public.dim_code_blocks.width
+                        local hl_eol = width == "fullwidth"
+
+                        local lines = vim.api.nvim_buf_get_lines(
+                            buf,
+                            range.row_start,
+                            (range.row_end >= vim.api.nvim_buf_line_count(buf) and range.row_start or range.row_end + 1),
+                            false
+                        )
+
+                        local longest_len = 0
+
+                        if width == "content" then
+                            for _, line in ipairs(lines) do
+                                longest_len = math.max(longest_len, vim.api.nvim_strwidth(line))
+                            end
+                        end
+
                         -- Go through every line in the code block and give it a magical highlight
-                        for i = range.row_start, range.row_end >= vim.api.nvim_buf_line_count(buf) and 0 or range.row_end, 1 do
-                            local line = vim.api.nvim_buf_get_lines(buf, i, i + 1, true)[1]
+                        for i, line in ipairs(lines) do
+                            local linenr = range.row_start + (i - 1)
+                            local line_width = vim.api.nvim_strwidth(line)
 
                             -- If our line is valid and it's not too short then apply the dimmed highlight
                             if line and line:len() >= range.column_start then
@@ -341,33 +370,63 @@ module.public = {
                                     nil,
                                     "NeorgCodeBlock",
                                     module.private.code_block_namespace,
-                                    i,
-                                    i + 1,
+                                    linenr,
+                                    linenr + 1,
                                     range.column_start,
                                     nil,
-                                    true,
-                                    "blend"
+                                    hl_eol,
+                                    "blend",
+                                    nil,
+                                    nil,
+                                    true
                                 )
+
+                                if width == "content" then
+                                    module.public._set_extmark(
+                                        buf,
+                                        { { string.rep(" ", longest_len - line_width), "NeorgCodeBlock" } },
+                                        nil,
+                                        module.private.code_block_namespace,
+                                        linenr,
+                                        linenr + 1,
+                                        line_width,
+                                        nil,
+                                        hl_eol,
+                                        "blend",
+                                        nil,
+                                        nil,
+                                        true
+                                    )
+                                end
                             else
                                 -- There may be scenarios where the line is empty, or the line is shorter than the indentation
                                 -- level of the code block, in that case we place the extmark at the very beginning of the line
                                 -- and pad it with enough spaces to "emulate" the existence of whitespace
                                 module.public._set_extmark(
                                     buf,
-                                    { { string.rep(" ", range.column_start) } },
+                                    {
+                                        { string.rep(" ", range.column_start) },
+                                        (width == "content" and {
+                                            string.rep(" ", longest_len - range.column_start),
+                                            "NeorgCodeBlock",
+                                        } or nil),
+                                    },
                                     "NeorgCodeBlock",
                                     module.private.code_block_namespace,
-                                    i,
-                                    i + 1,
+                                    linenr,
+                                    linenr + 1,
                                     0,
                                     nil,
-                                    true,
-                                    "blend"
+                                    hl_eol,
+                                    "blend",
+                                    nil,
+                                    nil,
+                                    true
                                 )
                             end
                         end
-                    end
-                end)
+                    end)
+                end
             end
 
             schedule(function()
@@ -1655,6 +1714,7 @@ module.config.public = {
     -- If you want to dim code blocks
     dim_code_blocks = {
         enabled = true,
+
         -- If true will only dim the content of the code block,
         -- not the code block itself.
         content_only = true,
@@ -1663,6 +1723,17 @@ module.config.public = {
         -- If `conceallevel` > 0, then only the content will be dimmed,
         -- else the whole code block will be dimmed.
         adaptive = true,
+
+        -- The width to use for code block backgrounds.
+        --
+        -- When set to `fullwidth` (the default), will create a background
+        -- that spans the width of the buffer.
+        --
+        -- When set to `content`, will only span as far as the longest line
+        -- within the code block.
+        width = "content",
+
+        -- TODO: Add left-padding
 
         -- If `true` will conceal the `@code` and `@end` portion of the code
         -- block.
