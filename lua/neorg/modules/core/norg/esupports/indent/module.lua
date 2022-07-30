@@ -58,12 +58,21 @@ module.public = {
 
         -- If it isn't then fall back to `nvim-treesitter`'s indent instead.
         if current_lang:lang() ~= "norg" then
-            local prev = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, vim.v.lnum - 2)
-
             -- If we're in a ranged tag then apart from providing nvim-treesitter indents also make sure
             -- to account for the indentation level of the tag itself.
-            if prev and prev:type() == "ranged_tag" then
-                return module.required["core.integrations.treesitter"].get_node_range(prev).column_start
+            if node:type() == "ranged_tag_content" then
+                local lnum = vim.v.lnum - 1
+                local start = node:range()
+
+                while lnum > start do
+                    if vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, true)[1]:match("^%s*$") then
+                        lnum = lnum - 1
+                    else
+                        return vim.fn["nvim_treesitter#indent"]()
+                    end
+                end
+
+                return module.required["core.integrations.treesitter"].get_node_range(node:parent()).column_start
                     + vim.fn["nvim_treesitter#indent"]()
             else
                 return vim.fn["nvim_treesitter#indent"]()
