@@ -308,10 +308,10 @@ module.public = {
                                 neovim_mode,
                                 keymap[1],
                                 "<cmd>Neorg keybind "
-                                .. mode
-                                .. " "
-                                .. table.concat(vim.list_slice(keymap, 2), " ")
-                                .. "<CR>",
+                                    .. mode
+                                    .. " "
+                                    .. table.concat(vim.list_slice(keymap, 2), " ")
+                                    .. "<CR>",
                                 keymap[3] or opts
                             )
                         end
@@ -340,7 +340,8 @@ module.public = {
             end
         end, "map", "map_event", "unmap", "remap", "remap_key", "remap_event")
 
-        if module.config.public.default_keybinds
+        if
+            module.config.public.default_keybinds
             and module.config.public.keybind_presets[module.config.public.keybind_preset]
         then
             module.config.public.keybind_presets[module.config.public.keybind_preset](payload)
@@ -381,8 +382,7 @@ module.public = {
                                 if not ok then
                                     log.trace(
                                         string.format(
-                                            "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s"
-                                            ,
+                                            "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s",
                                             key,
                                             mode,
                                             current_mode,

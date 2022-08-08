@@ -267,7 +267,8 @@ module.public = {
     --- Displays the table of contents to the user
     ---@param split boolean if true will spawn the vertical split on the right hand side
     display_toc = function(split)
-        if module.private.toc_bufnr ~= nil
+        if
+            module.private.toc_bufnr ~= nil
             or (module.private.toc_namespace ~= nil and vim.api.nvim_get_namespaces()["Neorg ToC"])
         then
             log.warn("Toc is already displayed.")

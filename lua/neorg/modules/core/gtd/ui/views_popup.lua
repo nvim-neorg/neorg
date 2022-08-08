@@ -18,13 +18,11 @@ module.public = {
             return
         end
 
-        local selection = module.required["core.ui"].begin_selection(buffer):listener(
-            "destroy",
-            { "<Esc>" },
-            function(self)
+        local selection = module.required["core.ui"]
+            .begin_selection(buffer)
+            :listener("destroy", { "<Esc>" }, function(self)
                 self:destroy()
-            end
-        )
+            end)
 
         selection:title("Views"):blank():concat(function()
             return module.private.generate_display_flags(selection, tasks, projects)

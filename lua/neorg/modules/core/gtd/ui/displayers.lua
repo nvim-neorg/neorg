@@ -634,7 +634,7 @@ module.private = {
 
         return state
             and (
-            starting_today
+                starting_today
                 or due_today
                 or (today_context and already_started)
                 or (task.state == "pending" and already_started)
