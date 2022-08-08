@@ -65,10 +65,15 @@ module.load = function()
         if neorg.configuration.arguments.workspace then
             module.public.open_workspace(neorg.configuration.arguments.workspace)
             vim.notify("Start in custom workspace -> " .. neorg.configuration.arguments.workspace)
-        elseif neorg.configuration.manual and module.config.public.open_last_workspace then
-            -- If we have loaded this module by invoking :NeorgStart then try jumping
-            -- to the last cached workspace
-            module.public.set_last_workspace()
+        elseif neorg.configuration.manual then
+            if module.config.public.open_last_workspace then
+                -- If we have loaded this module by invoking :NeorgStart then try jumping
+                -- to the last cached workspace
+                module.public.set_last_workspace()
+            elseif module.config.public.default_workspace then
+                -- If we don't want to open the last workspace then we can load the default workspace instead.
+                module.public.set_workspace(module.config.public.default_workspace)
+            end
         end
     end
 
