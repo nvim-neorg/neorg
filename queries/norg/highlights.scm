@@ -373,3 +373,8 @@
     ]
     (#set! conceal "")
 )
+
+(
+    (escape_sequence_prefix) @conceal
+    (#set! conceal "")
+)
