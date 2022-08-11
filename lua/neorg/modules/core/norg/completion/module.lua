@@ -5,8 +5,9 @@
     ---
 
 This module is an intermediary between Neorg and the completion engine of your
-choice. To learn more visit the integration module for your engine of choice
-(e.g. [`nvim-cmp`](@core.integrations.nvim-cmp) or [`nvim-compe`](@core.integrations.nvim-compe)).
+choice. After setting up this module, please read the corresponding neorg wiki
+page for the engine you selected ([`nvim-cmp`](@core.integrations.nvim-cmp) or
+[`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
 --]]
 
 require("neorg.modules.base")
