@@ -13,7 +13,7 @@ neorg.configuration = {
     manual = nil,
     arguments = {},
 
-    version = "0.0.11",
+    version = "0.0.12",
 }
 
 -- Grab OS info on startup
