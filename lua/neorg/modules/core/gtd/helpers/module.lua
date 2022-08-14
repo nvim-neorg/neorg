@@ -152,7 +152,7 @@ module.public = {
             uncertain = "- [?]",
             urgent = "- [!]",
             recurring = "- [+]",
-            onhold = "- [=]",
+            on_hold = "- [=]",
             cancelled = "- [_]",
         })
     end,
