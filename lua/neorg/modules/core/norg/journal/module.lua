@@ -4,7 +4,7 @@
     Summary: Easily create files for a journal.
     ---
 How to use this module:
-This module creates four commands.
+This module creates five commands.
 - `:Neorg journal today`
 - `:Neorg journal yesterday`
 - `:Neorg journal tomorrow`
@@ -13,6 +13,9 @@ With this commands you can open the config files for the dates.
 - `Neorg journal custom`
 This command requires a date as an argument.
 The date should have to format yyyy-mm-dd.
+
+- `:Neorg journal template`
+This command creates a template file which will be used whenever a new journal entry is created.
 --]]
 
 require("neorg.modules.base")
@@ -38,6 +41,7 @@ module.private = {
     open_diary = function(time, custom_date)
         local workspace = module.config.public.workspace
         local folder_name = module.config.public.journal_folder
+        local template_name = module.config.public.template_name
 
         if custom_date then
             local year, month, day = custom_date:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
@@ -60,10 +64,23 @@ module.private = {
             time
         )
 
+        local journal_file_exists = false
+        if module.required["core.norg.dirman"].file_exists(folder_name .. neorg.configuration.pathsep .. path) then
+            journal_file_exists = true
+        end
+
         module.required["core.norg.dirman"].create_file(
             folder_name .. neorg.configuration.pathsep .. path,
             workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
         )
+
+        if
+            not journal_file_exists
+            and module.config.public.use_template
+            and module.required["core.norg.dirman"].file_exists(folder_name .. "/" .. template_name)
+        then
+            vim.cmd("0read " .. folder_name .. "/" .. template_name .. "| w")
+        end
     end,
 
     --- Opens a diary entry for tomorrow's date
@@ -80,6 +97,18 @@ module.private = {
     diary_today = function()
         module.private.open_diary()
     end,
+
+    --- Creates a template file
+    create_template = function()
+        local workspace = module.config.public.workspace
+        local folder_name = module.config.public.journal_folder
+        local template_name = module.config.public.template_name
+
+        module.required["core.norg.dirman"].create_file(
+            folder_name .. neorg.configuration.pathsep .. template_name,
+            workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
+        )
+    end,
 }
 
 module.config.public = {
@@ -94,7 +123,10 @@ module.config.public = {
     -- that returns a lua string with the same format.
     strategy = "nested",
 
-    -- TODO: Add templates
+    -- the name of the template file
+    template_name = "template.norg",
+    -- use your journal_folder template
+    use_template = true,
 }
 
 module.config.private = {
@@ -120,6 +152,7 @@ module.load = function()
                 yesterday = {},
                 today = {},
                 custom = {},
+                template = {},
             },
         },
         data = {
@@ -131,6 +164,7 @@ module.load = function()
                     yesterday = { args = 0, name = "journal.yesterday" },
                     today = { args = 0, name = "journal.today" },
                     custom = { args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
+                    template = { args = 0, name = "journal.template" },
                 },
             },
         },
@@ -147,6 +181,8 @@ module.on_event = function(event)
             module.private.open_diary(nil, event.content[1])
         elseif event.split_type[2] == "journal.today" then
             module.private.diary_today()
+        elseif event.split_type[2] == "journal.template" then
+            module.private.create_template()
         end
     end
 end
@@ -157,6 +193,7 @@ module.events.subscribed = {
         ["journal.tomorrow"] = true,
         ["journal.today"] = true,
         ["journal.custom"] = true,
+        ["journal.template"] = true,
     },
 }
 
