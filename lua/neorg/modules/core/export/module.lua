@@ -210,20 +210,20 @@ module.on_event = function(event)
         -- Syntax: Neorg export to-file file.extension forced-filetype?
         -- Example: Neorg export to-file my-custom-file markdown
 
-        local path = vim.fn.expand(event.content[1])
-        local filetype = neorg.utils.get_filetype(path, event.content[2])
+        local filepath = vim.fn.expand(event.content[1])
+        local filetype = neorg.utils.get_filetype(filepath, event.content[2])
         local exported = module.public.export(event.buffer, filetype)
 
-        vim.loop.fs_open(path, "w", 438, function(err, fd)
+        vim.loop.fs_open(filepath, "w", 438, function(err, fd)
             assert(
                 not err,
-                neorg.lib.lazy_string_concat("Failed to open file '", path, "' for export: ", err)
+                neorg.lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err)
             )
 
             vim.loop.fs_write(fd, exported, 0, function(werr)
                 assert(
                     not werr,
-                    neorg.lib.lazy_string_concat("Failed to write to file '", path, "' for export: ", werr)
+                    neorg.lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr)
                 )
             end)
 
@@ -270,7 +270,7 @@ module.on_event = function(event)
                     end
 
                     vim.schedule(function()
-                        local filepath = event.content[1] .. "/" .. name
+                        local filepath = vim.fn.expand(event.content[1]) .. "/" .. name
 
                         vim.opt.eventignore = "BufEnter"
 
