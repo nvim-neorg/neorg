@@ -424,6 +424,8 @@ module.public = {
 
         recollectors = {
             ["link_location"] = function(output, state)
+                last_parsed_link_location = output[#output - 1]
+
                 if state.is_url then
                     state.is_url = false
                     output[#output - 1] = vim.uri_from_fname(output[#output - 1]):sub(string.len("file://") + 1)
@@ -431,8 +433,6 @@ module.public = {
                 end
 
                 table.insert(output, #output - 1, "#")
-
-                last_parsed_link_location = output[#output - 1]
                 output[#output - 1] = output[#output - 1]:lower():gsub("-", " "):gsub("%p+", ""):gsub("%s+", "-")
 
                 return output
