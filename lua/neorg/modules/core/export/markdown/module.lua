@@ -295,6 +295,13 @@ module.public = {
                             tag_indent = tag_start_column - 1, -- Minus one to account for the `@`
                             tag_close = "```",
                         }
+                elseif text == "comment" then
+                    return "<!--",
+                        false,
+                        {
+                            tag_indent = tag_start_column - 1,
+                            tag_close = "-->",
+                        }
                 elseif text == "math" and module.config.public.extensions["mathematics"] then
                     return module.config.public.mathematics.block["start"],
                         false,
