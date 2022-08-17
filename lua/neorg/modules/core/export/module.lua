@@ -230,7 +230,7 @@ module.on_event = function(event)
             vim.schedule(neorg.lib.wrap(vim.notify, "Successfully exported 1 file!"))
         end)
     elseif event.type == "core.neorgcmd.events.export.directory" then
-        local path = vim.fn.expand(event.content[3])
+        local path = event.content[3] and vim.fn.expand(event.content[3])
             or module.config.public.export_dir
                 :gsub("<language>", event.content[2])
                 :gsub("<export%-dir>", event.content[1])
