@@ -312,7 +312,7 @@ module.public = {
                                     .. " "
                                     .. table.concat(vim.list_slice(keymap, 2), " ")
                                     .. "<CR>",
-                                keymap[3] or opts
+                                opts
                             )
                         end
                     end
