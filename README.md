@@ -242,7 +242,7 @@ You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) whi
 
 ## ⚙ Usage
 
-We recommend reading the [spec](docs/NFF-0.1-spec.md) and familiarizing yourself with the new format.
+A new and official specification is in the works, we recommend reading it [here](https://github.com/nvim-neorg/tree-sitter-norg/blob/dev/docs/NFF-0.1-spec.norg).
 You can view a summary directly in your neovim instance by running `:h neorg` if you don't like reading a lot!
 
 Afterwards it's as simple as hopping into a `.norg` file and typing away.
