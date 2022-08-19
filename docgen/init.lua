@@ -611,7 +611,10 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 metadata.keybind:gsub("^leader%s+%.%.%s+", "<NeorgLeader> + "):gsub('"', ""),
                                 "https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/keybinds.lua#L"
                                     .. tostring(metadata.linenr or 0),
-                                metadata.mnemonic and (" | _" .. metadata.mnemonic:gsub("%u", "**%0**") .. "_") or "",
+                                --[[metadata.mnemonic:len() > 0
+                                        and (" | _" .. metadata.mnemonic:gsub("%u", "**%0**") .. "_")
+                                    or]]
+                                "",
                                 keybind_param:len() > 0 and ('(with "' .. keybind_param .. '") ') or "",
                                 metadata.comments and metadata.comments[1] or "*No description*"
                             )
@@ -942,10 +945,16 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
         end
 
         for match in line:gmatch("@([%-%.%w]+)") do
+            if not modules[match] then
+                goto continue
+            end
+
             line = line:gsub(
                 "@" .. match:gsub("%p", "%%%1"),
                 "https://github.com/nvim-neorg/neorg/wiki/" .. (modules[match] and modules[match].filename or "")
             )
+
+            ::continue::
         end
 
         return line
