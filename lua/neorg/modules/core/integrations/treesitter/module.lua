@@ -666,6 +666,109 @@ module.public = {
 
         return result
     end,
+
+    --- Converts a link node into a table of data related to the link
+    ---@param link_node userdata #A treesitter node of type `link` or `anchor_definition`
+    ---@param buf number #The buffer to parse the link in
+    ---@return table #A table of data about the link
+    parse_link = function(link_node, buf)
+        buf = buf or 0
+        if not link_node or not vim.tbl_contains({ "link", "anchor_definition" }, link_node:type()) then
+            return
+        end
+
+        local query_text = [[
+            [
+                (link
+                    (link_location
+                        file: (
+                            (link_file_text) @link_file_text
+                        )?
+                        type: [
+                            (link_target_url)
+                            (link_target_generic)
+                            (link_target_external_file)
+                            (link_target_marker)
+                            (link_target_definition)
+                            (link_target_footnote)
+                            (link_target_heading1)
+                            (link_target_heading2)
+                            (link_target_heading3)
+                            (link_target_heading4)
+                            (link_target_heading5)
+                            (link_target_heading6)
+                        ]? @link_type
+                        text: (paragraph_segment)? @link_location_text
+                    )
+                    (link_description
+                        text: (paragraph_segment) @link_description
+                    )?
+                )
+                (anchor_definition
+                    (link_description
+                        text: (paragraph_segment) @link_description
+                    )
+                    (link_location
+                        file: (
+                            (link_file_text) @link_file_text
+                        )?
+                        type: [
+                            (link_target_url)
+                            (link_target_generic)
+                            (link_target_external_file)
+                            (link_target_marker)
+                            (link_target_definition)
+                            (link_target_footnote)
+                            (link_target_heading1)
+                            (link_target_heading2)
+                            (link_target_heading3)
+                            (link_target_heading4)
+                            (link_target_heading5)
+                            (link_target_heading6)
+                        ] @link_type
+                        text: (paragraph_segment) @link_location_text
+                    )
+                )
+            ]
+        ]]
+
+        local query = vim.treesitter.parse_query("norg", query_text)
+        local range = module.public.get_node_range(link_node)
+
+        local parsed_link_information = {}
+
+        for id, node in query:iter_captures(link_node, buf, range.row_start, range.row_end + 1) do
+            local capture = query.captures[id]
+
+            local capture_node_range = module.public.get_node_range(node)
+
+            -- Check whether the node captured node is in bounds.
+            -- There are certain rare cases where incorrect nodes would be parsed.
+            if
+                capture_node_range.row_start >= range.row_start
+                and capture_node_range.row_end <= capture_node_range.row_end
+                and capture_node_range.column_start >= range.column_start
+                and capture_node_range.column_end <= range.column_end
+            then
+                local extract_node_text =
+                    neorg.lib.wrap(module.public.get_node_text, node)
+
+                parsed_link_information[capture] = parsed_link_information[capture]
+                    or neorg.lib.match(capture)({
+                        link_file_text = extract_node_text,
+                        link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_target_") + 1),
+                        link_location_text = extract_node_text,
+                        link_description = extract_node_text,
+
+                        _ = function()
+                            log.error("Unknown capture type encountered when parsing link:", capture)
+                        end,
+                    })
+            end
+        end
+
+        return parsed_link_information
+    end,
 }
 
 module.on_event = function(event)
