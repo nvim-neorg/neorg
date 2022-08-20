@@ -750,8 +750,7 @@ module.public = {
                 and capture_node_range.column_start >= range.column_start
                 and capture_node_range.column_end <= range.column_end
             then
-                local extract_node_text =
-                    neorg.lib.wrap(module.public.get_node_text, node)
+                local extract_node_text = neorg.lib.wrap(module.public.get_node_text, node)
 
                 parsed_link_information[capture] = parsed_link_information[capture]
                     or neorg.lib.match(capture)({
