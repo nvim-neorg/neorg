@@ -236,25 +236,22 @@ module.private = {
                                     local title = file[1]
 
                                     -- Insert a new entry
-                                    table.insert(
-                                        entries,
-                                        {
-                                            tonumber(name),
-                                            tonumber(mname),
-                                            tonumber(file[1]),
-                                            "{:$"
-                                                .. neorg.configuration.pathsep
-                                                .. module.config.public.journal_folder
-                                                .. neorg.configuration.pathsep
-                                                .. name
-                                                .. neorg.configuration.pathsep
-                                                .. mname
-                                                .. neorg.configuration.pathsep
-                                                .. file[1]
-                                                .. ":}",
-                                            title,
-                                        }
-                                    )
+                                    table.insert(entries, {
+                                        tonumber(name),
+                                        tonumber(mname),
+                                        tonumber(file[1]),
+                                        "{:$"
+                                            .. neorg.configuration.pathsep
+                                            .. module.config.public.journal_folder
+                                            .. neorg.configuration.pathsep
+                                            .. name
+                                            .. neorg.configuration.pathsep
+                                            .. mname
+                                            .. neorg.configuration.pathsep
+                                            .. file[1]
+                                            .. ":}",
+                                        title,
+                                    })
                                 end
                             end
                         end
@@ -279,21 +276,18 @@ module.private = {
                     local title = parts[3]
 
                     -- And insert a new entry that corresponds to the file
-                    table.insert(
-                        entries,
-                        {
-                            parts[1],
-                            parts[2],
-                            parts[3],
-                            "{:$"
-                                .. neorg.configuration.pathsep
-                                .. module.config.public.journal_folder
-                                .. neorg.configuration.pathsep
-                                .. file[1]
-                                .. ":}",
-                            title,
-                        }
-                    )
+                    table.insert(entries, {
+                        parts[1],
+                        parts[2],
+                        parts[3],
+                        "{:$"
+                            .. neorg.configuration.pathsep
+                            .. module.config.public.journal_folder
+                            .. neorg.configuration.pathsep
+                            .. file[1]
+                            .. ":}",
+                        title,
+                    })
                 end
             end
 
