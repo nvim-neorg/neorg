@@ -310,7 +310,7 @@ module.public = {
                         }
                 elseif text == "document.meta" and module.config.public.extensions["metadata"] then
                     return module.config.public.metadata["start"],
-                        true,
+                        false,
                         {
                             tag_indent = tag_start_column - 1,
                             tag_close = module.config.public.metadata["end"],
@@ -526,6 +526,11 @@ module.public = {
             ["heading4"] = handle_heading_newlines(),
             ["heading5"] = handle_heading_newlines(),
             ["heading6"] = handle_heading_newlines(),
+
+            ["pair"] = function(output)
+                table.insert(output, "\n")
+                return output
+            end,
         },
 
         cleanup = function()
