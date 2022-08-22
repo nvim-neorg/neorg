@@ -155,9 +155,9 @@ describe("CORE.GTD.HELPERS -", function()
 
             assert.equal(expected, actual)
         end)
-        it("onhold", function()
+        it("on_hold", function()
             local expected = "- [=]"
-            local input = "onhold"
+            local input = "on_hold"
 
             local actual = helpers.state_to_text(input)
 
