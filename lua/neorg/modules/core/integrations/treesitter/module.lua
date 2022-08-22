@@ -483,18 +483,28 @@ module.public = {
         }
     end,
 
-    --- Extracts the document root from the current document
-    ---@param buf number The number of the buffer to extract (can be nil)
+    --- Extracts the document root from the current document or from the string
+    ---@param src number|string The number of the buffer to extract or string with code (can be nil)
+    ---@param filetype The filetype of the buffer or the string with code
     ---@return userdata #The root node of the document
-    get_document_root = function(buf)
-        local tree = vim.treesitter.get_parser(buf or 0, "norg"):parse()[1]
+    get_document_root = function(src, filetype)
+        filetype = filetype or "norg"
 
-        if not tree or not tree:root() then
+        local parser
+        if type(src) == "string" then
+            parser = vim.treesitter.get_string_parser(src, filetype)
+        else
+            parser = vim.treesitter.get_parser(src or 0, filetype)
+        end
+
+        local tree = parser:parse()[1]
+
+        if not tree or not tree:root() or tree:root():type() == "ERROR" then
             log.warn("Unable to parse the current document's syntax tree :(")
             return
         end
 
-        return tree:root():type() ~= "ERROR" and tree:root()
+        return tree:root()
     end,
 
     --- Attempts to find a parent of a node recursively

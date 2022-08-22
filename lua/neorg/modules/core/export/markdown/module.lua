@@ -64,8 +64,7 @@ local function handle_heading_newlines()
     return function(output, _, node, ts_utils)
         local prev = ts_utils.get_previous_node(node, true, true)
 
-        if
-            prev
+        if prev
             and not vim.tbl_contains({ "_line_break", "_paragraph_break" }, prev:type())
             and ((prev:end_()) + 1) ~= (node:start())
         then
@@ -310,11 +309,12 @@ module.public = {
                             tag_close = module.config.public.mathematics.block["end"],
                         }
                 elseif text == "document.meta" and module.config.public.extensions["metadata"] then
-                    return module.config.public.metadata["start"] .. "\n",
-                        false,
+                    return module.config.public.metadata["start"],
+                        true,
                         {
                             tag_indent = tag_start_column - 1,
                             tag_close = module.config.public.metadata["end"],
+                            is_meta = true,
                         }
                 end
 
@@ -323,6 +323,13 @@ module.public = {
             end,
 
             ["ranged_tag_content"] = function(text, node, state)
+                if state.is_meta then
+                    state.is_meta = false
+                    return "", true, {
+                        parse_as = "norg_meta",
+                    }
+                end
+
                 local _, ranged_tag_content_column_start = node:range()
 
                 local split_text = vim.split(text, "\n")
@@ -420,6 +427,29 @@ module.public = {
             end,
 
             ["carryover_tag"] = "",
+
+            ["key"] = true,
+
+            [":"] = ": ",
+
+            ["["] = function(_, _, state)
+                return "", false, {
+                    indent = state.indent + 2,
+                }
+            end,
+            ["]"] = function(_, _, state)
+                return "", false, {
+                    indent = state.indent - 2,
+                }
+            end,
+
+            ["value"] = function(text, node, state)
+                if node:parent():type() == "array" then
+                    return "\n" .. string.rep(" ", state.indent) .. "- " .. text
+                end
+
+                return text, false
+            end,
         },
 
         recollectors = {
