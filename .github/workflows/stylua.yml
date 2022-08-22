@@ -9,16 +9,17 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Cache cargo modules
-          uses: actions/cache@v2
-          env:
-            cache-name: cache-node-modules
-          with:
-            path: ~/.cargo
-            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
-            restore-keys: |
-              ${{ runner.os }}-build-${{ env.cache-name }}-
-              ${{ runner.os }}-build-
-              ${{ runner.os }}-
+        id: cache-cargo
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
 
       - name: Install cargo
         run: curl https://sh.rustup.rs -sSf | sh -s -- -y
@@ -27,4 +28,4 @@ jobs:
         run: cargo install stylua --features lua52
 
       - name: Run formatting
-      - run: stylua -v --verify .
+        run: stylua -v --verify .
