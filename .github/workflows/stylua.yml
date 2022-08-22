@@ -7,12 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: JohnnyMorganz/stylua-action@1.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: .
-          version: 0.13.1
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "chore: autoformat with stylua"
-          branch: ${{ github.head_ref }}
+      - run: curl https://sh.rustup.rs -sSf | sh
+      - run: cargo install stylua --features lua52
+      - run: stylua -v --verify .
