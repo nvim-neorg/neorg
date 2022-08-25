@@ -14,6 +14,14 @@ An LSP is actually in the works, but there is more to this module than just bein
 Exporting files, for instance, sometimes requires semantic information about the current document.
 *Requiring* an LSP in order to query this semantic info is not a good call. It's much easier to make
 a semantic analyzer in lua as well, cause we have treesitter quite literally builtin.
+
+### TODO
+- Send off this computation to another neovim instance (`nvim --headless --listen 127.0.0.1:myport`)
+- Create a client/server model to make these processes communicate
+- When communicating, do it incrementally with a callback (i.e. as every singular node is parsed) versus
+  sending back the whole result after the fact. This will help in incrementally displaying some diagnostics
+  without needing to parse every single file out the gate.
+- Set up a file watcher to reparse files?
 --]]
 
 local module = neorg.modules.create("core.semantic-analyzer")
@@ -45,7 +53,6 @@ module.private = {
             return
         end
 
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
         local semantics = {}
 
         local function next_node(node)
@@ -88,23 +95,92 @@ module.private = {
 
     parse_node = function(buffer, prev, next, semantics)
         local ts = module.required["core.integrations.treesitter"]
-        local ts_utils = ts.get_ts_utils()
-
-        local function peek(node)
-            return ts_utils.get_next_node(node, true, true)
-        end
 
         local function parse_prefix(type)
             if vim.startswith(type, "heading") then
                 local level = tonumber(type:sub(-1, -1))
-                local title = ts.get_node_text(next):gsub("(%S)~\n", "%1 "):gsub("%s%s+", " ")
+                local title = ts.get_node_text(next):gsub("(%S)~\n", "%1 "):gsub("%s", ""):lower()
 
                 neorg.lib.ensure_nested(semantics, buffer, "headings", level, title)
-                semantics[buffer].headings[level][title] = {}
-                -- TODO: Deal with duplicate heading names
-                -- TODO: Deal with backlinks and references
-            else
+                local heading = semantics[buffer].headings[level][title]
+
+                if heading[#heading] and not heading[#heading].range then
+                    heading[#heading].range = ts.get_node_range(prev:parent())
+                else
+                    table.insert(semantics[buffer].headings[level][title], {
+                        range = ts.get_node_range(prev:parent()),
+                    })
+                end
+                -- else
             end
+        end
+
+        local function parse_link(link)
+            local parsed_link = module.required["core.integrations.treesitter"].parse_link(link, buffer)
+            local type, level = parsed_link.link_type:match("^([^%d]+)(%d?)$")
+            level = level and tonumber(level)
+
+            local trimmed_link_location_text = parsed_link.link_location_text:gsub("%s", ""):lower()
+
+            local function try_create_reference(index)
+                return function()
+                    neorg.lib.ensure_nested(semantics, buffer, "headings", index)
+
+                    if semantics[buffer].headings[index][trimmed_link_location_text] then
+                        return semantics[buffer].headings[index][trimmed_link_location_text][1]
+                    end
+
+                    semantics[buffer].headings[index][trimmed_link_location_text] = {
+                        {
+                            references = {},
+                        },
+                    }
+                    return semantics[buffer].headings[index][trimmed_link_location_text][1]
+                end
+            end
+
+            neorg.lib.ensure_nested(
+                semantics,
+                buffer,
+                "links",
+                parsed_link.link_file_text or "",
+                type,
+                level or 1,
+                trimmed_link_location_text
+            )
+
+            local link_address =
+                semantics[buffer].links[parsed_link.link_file_text or ""][type][level or 1][trimmed_link_location_text]
+
+            table.insert(link_address, {
+                type = parsed_link.link_type,
+                title = parsed_link.link_description,
+                reference = neorg.lib.match(parsed_link.link_type)({
+                    heading1 = try_create_reference(1),
+                    heading2 = try_create_reference(2),
+                    heading3 = try_create_reference(3),
+                    heading4 = try_create_reference(4),
+                    heading5 = try_create_reference(5),
+                    heading6 = try_create_reference(6),
+                    _ = nil,
+                }),
+                range = ts.get_node_range(link),
+            })
+
+            neorg.lib.ensure_nested(
+                semantics,
+                buffer,
+                "headings",
+                level or 1,
+                trimmed_link_location_text,
+                1,
+                "references",
+                parsed_link.link_file_text or ""
+            )
+            table.insert(
+                semantics[buffer].headings[level or 1][trimmed_link_location_text][1].references[parsed_link.link_file_text or ""],
+                link_address
+            )
         end
 
         neorg.lib.match(prev:type())({
@@ -114,6 +190,10 @@ module.private = {
             heading4_prefix = neorg.lib.wrap(parse_prefix, "heading4"),
             heading5_prefix = neorg.lib.wrap(parse_prefix, "heading5"),
             heading6_prefix = neorg.lib.wrap(parse_prefix, "heading6"),
+            [{ --[[TODO: Readd back in one day | "anchor_declaration"]]
+                "anchor_definition",
+                "link",
+            }] = neorg.lib.wrap(parse_link, prev),
             _ = function() end,
         })
 
@@ -142,10 +222,13 @@ module.private = {
         --     links = {
         --         [""] = {}, -- For the current file
         --         ["OtherFile"] = {
-        --             ["A link to somewhere"] = {
-        --                 type = "heading1",
-        --                 reference = self.headings[1]["A link to somewhere"],
-        --                 title = "Custom text for the link",
+        --             ["A link to somewhere"] = { -- For when there are duplicates
+        --                 {
+        --                      type = "heading1",
+        --                      reference = self.headings[1]["A link to somewhere"],
+        --                      title = "Custom text for the link",
+        --                      range = {},
+        --                 },
         --             },
         --         },
         --     },
