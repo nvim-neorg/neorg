@@ -482,22 +482,23 @@ module.load = function()
         end
 
         for i = 1, 6 do
-            local todo_item = module.config.public.highlights.TodoItem[tostring(i)]
+            local todo_items = module.config.public.highlights.todo_items
+            local index = tostring(i)
 
             if module.config.public.todo_items_match_color ~= "cancelled" then
                 if module.config.public.todo_items_match_color ~= "except_undone" then
-                    todo_item.Undone.Content = todo_item.Undone[""]
+                    todo_items.undone[index].content = todo_item.undone[index][""]
                 end
 
-                todo_item.Pending.Content = todo_item.Pending[""]
-                todo_item.Done.Content = todo_item.Done[""]
-                todo_item.Urgent.Content = todo_item.Urgent[""]
-                todo_item.OnHold.Content = todo_item.OnHold[""]
-                todo_item.Recurring.Content = todo_item.Recurring[""]
-                todo_item.Uncertain.Content = todo_item.Uncertain[""]
+                todo_items.pending[index].content = todo_items.pending[index][""]
+                todo_items.done[index].content = todo_items.done[index][""]
+                todo_items.urgent[index].content = todo_items.urgent[index][""]
+                todo_items.onhold[index].content = todo_items.onhold[index][""]
+                todo_items.recurring[index].content = todo_items.recurring[index][""]
+                todo_items.uncertain[index].content = todo_items.uncertain[index][""]
             end
 
-            todo_item.Cancelled.Content = todo_item.Cancelled[""]
+            todo_items.cancelled[index].content = todo_items.cancelled[index][""]
         end
     end
 end
