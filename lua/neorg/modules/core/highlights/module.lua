@@ -12,474 +12,441 @@ local module = neorg.modules.create("core.highlights")
 --[[
     Nested trees concatenate
     So:
-        Tag = { Begin = "+Comment" }
+        tag = { begin = "+@comment" }
 	matches the highlight group:
-		NeorgTagBegin
+		@neorg.tag.begin
 	and converts into the command:
-		highlight! link NeorgTagBegin Comment
+		highlight! link @neorg.tag.begin @comment
 --]]
 module.config.public = {
     -- The TS highlights for each Neorg type
     highlights = {
-        SelectionWindow = {
-            Heading = "+TSAnnotation",
-            Arrow = "+Normal",
-            Key = "+TSNamespace",
-            Keyname = "+TSMath",
-            Nestedkeyname = "+TSString",
-        },
-
-        Tag = {
+        selectionwindow = {
             -- The + tells neorg to link to an existing hl
-            Begin = "+TSKeyword",
-
-            -- Supply any arguments you would to :highlight here
-            -- Example: ["end"] = "guifg=#93042b",
-            ["End"] = "+TSKeyword",
-
-            Name = {
-                [""] = "+TSNone",
-                Word = "+TSKeyword",
-            },
-
-            Parameter = "+TSType",
+            -- You may also supply any arguments you would to :highlight here
+            -- Example: ["heading"] = "guifg=#93042b",
+            heading = "+@annotation",
+            arrow = "+@none",
+            key = "+@namespace",
+            keyname = "+@text.math",
+            nestedkeyname = "+@string",
         },
 
-        CarryoverTag = {
-            Begin = "+TSLabel",
+        tags = {
+            ranged_verbatim = {
+                begin = "+@keyword",
 
-            Name = {
-                [""] = "+TSNone",
-                Word = "+TSLabel",
+                ["end"] = "+@keyword",
+
+                name = {
+                    [""] = "+@none",
+                    delimiter = "+@none",
+                    word = "+@keyword",
+                },
+
+                parameters = "+@type",
             },
 
-            Parameter = "+TSString",
+            carryover = {
+                begin = "+@label",
+
+                name = {
+                    [""] = "+@none",
+                    word = "+@label",
+                    delimiter = "+@none",
+                },
+
+                parameters = "+@string",
+            },
         },
 
-        Heading = {
+        headings = {
             ["1"] = {
-                Title = "+TSAttribute",
-                Prefix = "+TSAttribute",
+                title = "+@attribute",
+                prefix = "+@attribute",
             },
             ["2"] = {
-                Title = "+TSLabel",
-                Prefix = "+TSLabel",
+                title = "+@label",
+                prefix = "+@label",
             },
             ["3"] = {
-                Title = "+TSMath",
-                Prefix = "+TSMath",
+                title = "+@text.math",
+                prefix = "+@text.math",
             },
             ["4"] = {
-                Title = "+TSString",
-                Prefix = "+TSString",
+                title = "+@string",
+                prefix = "+@string",
             },
             ["5"] = {
-                Title = "+TSLabel",
-                Prefix = "+TSLabel",
+                title = "+@label",
+                prefix = "+@label",
             },
             ["6"] = {
-                Title = "+TSMath",
-                Prefix = "+TSMath",
+                title = "+@text.math",
+                prefix = "+@text.math",
             },
         },
 
-        Error = "+TSError",
+        error = "+@error",
 
-        Marker = {
-            [""] = "+TSLabel",
-            Title = "+TSNone",
+        marker = {
+            prefix = "+@label",
+            title = "+@none",
         },
 
-        Definition = {
-            [""] = "+TSPunctDelimiter",
-            End = "+TSPunctDelimiter",
-            Title = "+TSStrong",
-            Content = "+TSEmphasis",
+        definition = {
+            prefix = "+@punctuation.delimiter",
+            suffix = "+@punctuation.delimiter",
+            title = "+@text.strong",
+            content = "+@text.emphasis",
         },
 
-        Footnote = {
-            [""] = "+TSPunctDelimiter",
-            End = "+TSPunctDelimiter",
-            Title = "+TSStrong",
-            Content = "+TSEmphasis",
+        footnote = {
+            prefix = "+@punctuation.delimiter",
+            suffix = "+@punctuation.delimiter",
+            title = "+@text.strong",
+            content = "+@text.emphasis",
         },
 
-        EscapeSequence = "+TSType",
+        todo_items = {
+            undone = {
+                ["1"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
+                ["2"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
+                ["3"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
+                ["4"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
+                ["5"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
+                ["6"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
+            },
+            pending = {
+                ["1"] = { [""] = "+@namespace", content = "+@none" },
+                ["2"] = { [""] = "+@namespace", content = "+@none" },
+                ["3"] = { [""] = "+@namespace", content = "+@none" },
+                ["4"] = { [""] = "+@namespace", content = "+@none" },
+                ["5"] = { [""] = "+@namespace", content = "+@none" },
+                ["6"] = { [""] = "+@namespace", content = "+@none" },
+            },
+            done = {
+                ["1"] = { [""] = "+@string", content = "+@none" },
+                ["2"] = { [""] = "+@string", content = "+@none" },
+                ["3"] = { [""] = "+@string", content = "+@none" },
+                ["4"] = { [""] = "+@string", content = "+@none" },
+                ["5"] = { [""] = "+@string", content = "+@none" },
+                ["6"] = { [""] = "+@string", content = "+@none" },
+            },
+            on_hold = {
+                ["1"] = { [""] = "+@text.note", content = "+@none" },
+                ["2"] = { [""] = "+@text.note", content = "+@none" },
+                ["3"] = { [""] = "+@text.note", content = "+@none" },
+                ["4"] = { [""] = "+@text.note", content = "+@none" },
+                ["5"] = { [""] = "+@text.note", content = "+@none" },
+                ["6"] = { [""] = "+@text.note", content = "+@none" },
+            },
+            cancelled = {
+                ["1"] = { [""] = "+Whitespace", content = "+@none" },
+                ["2"] = { [""] = "+Whitespace", content = "+@none" },
+                ["3"] = { [""] = "+Whitespace", content = "+@none" },
+                ["4"] = { [""] = "+Whitespace", content = "+@none" },
+                ["5"] = { [""] = "+Whitespace", content = "+@none" },
+                ["6"] = { [""] = "+Whitespace", content = "+@none" },
+            },
+            urgent = {
+                ["1"] = { [""] = "+@text.danger", content = "+@none" },
+                ["2"] = { [""] = "+@text.danger", content = "+@none" },
+                ["3"] = { [""] = "+@text.danger", content = "+@none" },
+                ["4"] = { [""] = "+@text.danger", content = "+@none" },
+                ["5"] = { [""] = "+@text.danger", content = "+@none" },
+                ["6"] = { [""] = "+@text.danger", content = "+@none" },
+            },
+            uncertain = {
+                ["1"] = { [""] = "+@boolean", content = "+@none" },
+                ["2"] = { [""] = "+@boolean", content = "+@none" },
+                ["3"] = { [""] = "+@boolean", content = "+@none" },
+                ["4"] = { [""] = "+@boolean", content = "+@none" },
+                ["5"] = { [""] = "+@boolean", content = "+@none" },
+                ["6"] = { [""] = "+@boolean", content = "+@none" },
+            },
+            recurring = {
+                ["1"] = { [""] = "+@repeat", content = "+@none" },
+                ["2"] = { [""] = "+@repeat", content = "+@none" },
+                ["3"] = { [""] = "+@repeat", content = "+@none" },
+                ["4"] = { [""] = "+@repeat", content = "+@none" },
+                ["5"] = { [""] = "+@repeat", content = "+@none" },
+                ["6"] = { [""] = "+@repeat", content = "+@none" },
+            },
+        },
 
-        TodoItem = {
+        lists = {
+            unordered = {
+                ["1"] = {
+                    prefix = "+@punctuation.delimiter",
+                    content = "+@none",
+                },
+                ["2"] = {
+                    prefix = "+@punctuation.delimiter",
+                    content = "+@none",
+                },
+                ["3"] = {
+                    prefix = "+@punctuation.delimiter",
+                    content = "+@none",
+                },
+                ["4"] = {
+                    prefix = "+@punctuation.delimiter",
+                    content = "+@none",
+                },
+                ["5"] = {
+                    prefix = "+@punctuation.delimiter",
+                    content = "+@none",
+                },
+                ["6"] = {
+                    prefix = "+@punctuation.delimiter",
+                    content = "+@none",
+                },
+            },
+
+            ordered = {
+                ["1"] = {
+                    prefix = "+@repeat",
+                    content = "+@none",
+                },
+                ["2"] = {
+                    prefix = "+@repeat",
+                    content = "+@none",
+                },
+                ["3"] = {
+                    prefix = "+@repeat",
+                    content = "+@none",
+                },
+                ["4"] = {
+                    prefix = "+@repeat",
+                    content = "+@none",
+                },
+                ["5"] = {
+                    prefix = "+@repeat",
+                    content = "+@none",
+                },
+                ["6"] = {
+                    prefix = "+@repeat",
+                    content = "+@none",
+                },
+            },
+        },
+
+        quote = {
             ["1"] = {
-                [""] = "+NeorgUnorderedList1",
-
-                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
-                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
-                Done = { [""] = "+TSString", Content = "+Normal" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
-                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
-                OnHold = { [""] = "+TSNote", Content = "+Normal" },
-                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
+                prefix = "+@punctuation.delimiter",
+                content = "+@punctuation.delimiter",
             },
             ["2"] = {
-                [""] = "+NeorgUnorderedList2",
-
-                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
-                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
-                Done = { [""] = "+TSString", Content = "+Normal" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
-                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
-                OnHold = { [""] = "+TSNote", Content = "+Normal" },
-                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
+                prefix = "+Blue",
+                content = "+Blue",
             },
             ["3"] = {
-                [""] = "+NeorgUnorderedList3",
-
-                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
-                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
-                Done = { [""] = "+TSString", Content = "+Normal" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
-                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
-                OnHold = { [""] = "+TSNote", Content = "+Normal" },
-                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
+                prefix = "+Yellow",
+                content = "+Yellow",
             },
             ["4"] = {
-                [""] = "+NeorgUnorderedList4",
-
-                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
-                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
-                Done = { [""] = "+TSString", Content = "+Normal" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
-                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
-                OnHold = { [""] = "+TSNote", Content = "+Normal" },
-                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
+                prefix = "+Red",
+                content = "+Red",
             },
             ["5"] = {
-                [""] = "+NeorgUnorderedList5",
-
-                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
-                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
-                Done = { [""] = "+TSString", Content = "+Normal" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
-                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
-                OnHold = { [""] = "+TSNote", Content = "+Normal" },
-                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
+                prefix = "+Green",
+                content = "+Green",
             },
             ["6"] = {
-                [""] = "+NeorgUnorderedList6",
-
-                Undone = { [""] = "+TSPunctDelimiter", Content = "+Normal" },
-                Pending = { [""] = "+TSNamespace", Content = "+Normal" },
-                Done = { [""] = "+TSString", Content = "+Normal" },
-                Cancelled = { [""] = "+Whitespace", Content = "+Normal" },
-                Urgent = { [""] = "+TSDanger", Content = "+Normal" },
-                OnHold = { [""] = "+TSNote", Content = "+Normal" },
-                Recurring = { [""] = "+TSRepeat", Content = "+Normal" },
-                Uncertain = { [""] = "+TSBoolean", Content = "+Normal" },
+                prefix = "+Brown",
+                content = "+Brown",
             },
         },
 
-        Unordered = {
-            List = {
-                ["1"] = {
-                    [""] = "+TSPunctDelimiter",
-                },
-                ["2"] = {
-                    [""] = "+TSPunctDelimiter",
-                },
-                ["3"] = {
-                    [""] = "+TSPunctDelimiter",
-                },
-                ["4"] = {
-                    [""] = "+TSPunctDelimiter",
-                },
-                ["5"] = {
-                    [""] = "+TSPunctDelimiter",
-                },
-                ["6"] = {
-                    [""] = "+TSPunctDelimiter",
-                },
+        anchors = {
+            declaration = {
+                [""] = "+@text.reference",
+                delimiter = "+NonText",
             },
-
-            Link = {
-                ["1"] = {
-                    [""] = "+NeorgUnorderedList1",
-                },
-                ["2"] = {
-                    [""] = "+NeorgUnorderedList2",
-                },
-                ["3"] = {
-                    [""] = "+NeorgUnorderedList3",
-                },
-                ["4"] = {
-                    [""] = "+NeorgUnorderedList4",
-                },
-                ["5"] = {
-                    [""] = "+NeorgUnorderedList5",
-                },
-                ["6"] = {
-                    [""] = "+NeorgUnorderedList6",
-                },
+            definition = {
+                delimiter = "+NonText",
             },
         },
 
-        Ordered = {
-            List = {
-                ["1"] = {
-                    [""] = "+TSRepeat",
-                },
-                ["2"] = {
-                    [""] = "+TSRepeat",
-                },
-                ["3"] = {
-                    [""] = "+TSRepeat",
-                },
-                ["4"] = {
-                    [""] = "+TSRepeat",
-                },
-                ["5"] = {
-                    [""] = "+TSRepeat",
-                },
-                ["6"] = {
-                    [""] = "+TSRepeat",
-                },
-            },
-
-            Link = {
-                ["1"] = {
-                    [""] = "+NeorgOrderedList1",
-                },
-                ["2"] = {
-                    [""] = "+NeorgOrderedList2",
-                },
-                ["3"] = {
-                    [""] = "+NeorgOrderedList3",
-                },
-                ["4"] = {
-                    [""] = "+NeorgOrderedList4",
-                },
-                ["5"] = {
-                    [""] = "+NeorgOrderedList5",
-                },
-                ["6"] = {
-                    [""] = "+NeorgOrderedList6",
-                },
-            },
-        },
-
-        Quote = {
-            ["1"] = {
-                [""] = "+TSPunctDelimiter",
-                Content = "+TSPunctDelimiter",
-            },
-            ["2"] = {
-                [""] = "+Blue",
-                Content = "+Blue",
-            },
-            ["3"] = {
-                [""] = "+Yellow",
-                Content = "+Yellow",
-            },
-            ["4"] = {
-                [""] = "+Red",
-                Content = "+Red",
-            },
-            ["5"] = {
-                [""] = "+Green",
-                Content = "+Green",
-            },
-            ["6"] = {
-                [""] = "+Brown",
-                Content = "+Brown",
-            },
-        },
-
-        Anchor = {
-            Declaration = {
-                Delimiter = "+NonText",
-                Text = "+TSTextReference",
-            },
-            Definition = {
-                Delimiter = "+NonText",
-            },
-        },
-
-        Insertion = {
+        insertion = {
             [""] = "cterm=bold gui=bold",
-            Prefix = "+TSPunctDelimiter",
-            Variable = {
-                [""] = "+TSString",
-                Value = "+TSPunctDelimiter",
+            prefix = "+@punctuation.delimiter",
+            variable = {
+                name = "+@string",
+                value = "+@punctuation.delimiter",
             },
-            Item = "+TSNamespace",
-            Parameters = "+TSComment",
+            item = "+@namespace",
+            parameters = "+@comment",
         },
 
-        Link = {
-            Text = {
-                [""] = "+TSURI",
-                Delimiter = "+NonText",
+        links = {
+            file = {
+                [""] = "+@comment",
+                delimiter = "+NonText",
             },
 
-            File = {
-                [""] = "+TSComment",
-                Delimiter = "+NonText",
-            },
+            location = {
+                delimiter = "+NonText",
 
-            Location = {
-                Delimiter = "+NonText",
+                url = "+@text.uri",
 
-                URL = "+TSURI",
-
-                Generic = {
-                    [""] = "+TSType",
-                    Prefix = "+TSType",
+                generic = {
+                    [""] = "+@type",
+                    prefix = "+@type",
                 },
 
-                ExternalFile = {
-                    [""] = "+TSLabel",
-                    Prefix = "+TSLabel",
+                external_file = {
+                    [""] = "+@label",
+                    prefix = "+@label",
                 },
 
-                Marker = {
+                marker = {
                     [""] = "+NeorgMarkerTitle",
-                    Prefix = "+NeorgMarker",
+                    prefix = "+NeorgMarker",
                 },
 
-                Definition = {
+                definition = {
                     [""] = "+NeorgDefinitionTitle",
-                    Prefix = "+NeorgDefinition",
+                    prefix = "+NeorgDefinition",
                 },
 
-                Footnote = {
+                footnote = {
                     [""] = "+NeorgFootnoteTitle",
-                    Prefix = "+NeorgFootnote",
+                    prefix = "+NeorgFootnote",
                 },
 
-                Heading = {
+                heading = {
                     ["1"] = {
                         [""] = "+NeorgHeading1Title",
-                        Prefix = "+NeorgHeading1Prefix",
+                        prefix = "+NeorgHeading1Prefix",
                     },
 
                     ["2"] = {
                         [""] = "+NeorgHeading2Title",
-                        Prefix = "+NeorgHeading2Prefix",
+                        prefix = "+NeorgHeading2Prefix",
                     },
 
                     ["3"] = {
                         [""] = "+NeorgHeading3Title",
-                        Prefix = "+NeorgHeading3Prefix",
+                        prefix = "+NeorgHeading3Prefix",
                     },
 
                     ["4"] = {
                         [""] = "+NeorgHeading4Title",
-                        Prefix = "+NeorgHeading4Prefix",
+                        prefix = "+NeorgHeading4Prefix",
                     },
 
                     ["5"] = {
                         [""] = "+NeorgHeading5Title",
-                        Prefix = "+NeorgHeading5Prefix",
+                        prefix = "+NeorgHeading5Prefix",
                     },
 
                     ["6"] = {
                         [""] = "+NeorgHeading6Title",
-                        Prefix = "+NeorgHeading6Prefix",
+                        prefix = "+NeorgHeading6Prefix",
                     },
                 },
             },
         },
 
-        Markup = {
-            Bold = {
-                [""] = "+TSStrong",
-                Delimiter = "+NonText",
+        markup = {
+            bold = {
+                [""] = "+@text.strong",
+                delimiter = "+NonText",
             },
-            Italic = {
-                [""] = "+TSEmphasis",
-                Delimiter = "+NonText",
+            italic = {
+                [""] = "+@text.emphasis",
+                delimiter = "+NonText",
             },
-            Underline = {
-                [""] = "+TSUnderline",
-                Delimiter = "+NonText",
+            underline = {
+                [""] = "cterm=underline gui=underline",
+                delimiter = "+NonText",
             },
-            Strikethrough = {
-                [""] = "+TSStrike",
-                Delimiter = "+NonText",
+            strikethrough = {
+                [""] = "cterm=strikethrough gui=strikethrough",
+                delimiter = "+NonText",
             },
-            Spoiler = {
-                [""] = "+TSDanger",
-                Delimiter = "+NonText",
+            spoiler = {
+                [""] = "+@text.danger",
+                delimiter = "+NonText",
             },
-            Subscript = {
-                [""] = "+TSLabel",
-                Delimiter = "+NonText",
+            subscript = {
+                [""] = "+@label",
+                delimiter = "+NonText",
             },
-            Superscript = {
-                [""] = "+TSNumber",
-                Delimiter = "+NonText",
+            superscript = {
+                [""] = "+@number",
+                delimiter = "+NonText",
             },
-            Math = {
-                [""] = "+TSMath",
-                Delimiter = "+NonText",
+            math = {
+                [""] = "+@text.math",
+                delimiter = "+NonText",
             },
-            Variable = {
+            variable = {
                 [""] = "+NeorgInsertionVariable",
-                Delimiter = "+NonText",
+                delimiter = "+NonText",
             },
-            Verbatim = {
-                Delimiter = "+NonText",
+            verbatim = {
+                delimiter = "+NonText",
             },
-            InlineComment = {
-                Delimiter = "+NonText",
+            inline_comment = {
+                delimiter = "+NonText",
             },
         },
 
-        StrongParagraphDelimiter = "+TSPunctDelimiter",
-        WeakParagraphDelimiter = "+TSPunctDelimiter",
-        HorizontalLine = "+TSPunctDelimiter",
+        delimiters = {
+            strong = "+@punctuation.delimiter",
+            weak = "+@punctuation.delimiter",
+            horizontal_line = "+@punctuation.delimiter",
+        },
 
-        TrailingModifier = "+NonText",
-        LinkModifier = "+NonText",
+        modifiers = {
+            trailing = "+NonText",
+            link = "+NonText",
+            escape = "+@type",
+        },
 
-        DocumentMeta = {
-            Key = "+TSField",
-            Value = "+TSString",
-            Carryover = "+TSRepeat",
-            Title = "+TSTitle",
-            Description = "+TSLabel",
-            Authors = "+TSAnnotation",
-            Categories = "+TSKeyword",
-            Created = "+TSFloat",
-            Version = "+TSFloat",
+        documentmeta = {
+            key = "+@field",
+            value = "+@string",
+            carryover = "+@repeat",
+            title = "+@text.title",
+            description = "+@label",
+            authors = "+@annotation",
+            categories = "+@keyword",
+            created = "+@float",
+            version = "+@float",
 
-            Object = {
-                Bracket = "+TSPunctBracket",
+            object = {
+                bracket = "+@punctuation.bracket",
             },
 
-            Array = {
-                Bracket = "+TSPunctBracket",
-                Value = "+Normal",
+            array = {
+                bracket = "+@punctuation.bracket",
+                value = "+@none",
             },
         },
     },
 
     -- Where and how to dim TS types
     dim = {
-        CodeBlock = {
-            reference = "Normal",
-            percentage = 15,
-            affect = "background",
+        tags = {
+            ranged_verbatim = {
+                code_block = {
+                    reference = "Normal",
+                    percentage = 15,
+                    affect = "background",
+                },
+            },
         },
-        Markup = {
-            Verbatim = {
+
+        markup = {
+            verbatim = {
                 reference = "Normal",
                 percentage = 20,
             },
 
-            InlineComment = {
+            inline_comment = {
                 reference = "Normal",
                 percentage = 40,
             },
@@ -487,10 +454,11 @@ module.config.public = {
     },
 
     -- This can be one of four values: `false`, `"all"`, `"except_undone"` and `"cancelled"`.
-    -- When set to `false` the content of TODO items will not be coloured in any special way.
-    -- When set to `"all"` the content of TODO items will directly reflect the colour of the item's TODO box.
-    -- When set to `"except_undone"`, will have the same behaviour as `"all"` but will exclude undone TODO items.
-    -- When set to `"cancelled"` will only highlight the content of TODO items for cancelled tasks.
+    -- - When set to `false` the content of TODO items will not be coloured in any special way.
+    -- - When set to `"all"` the content of TODO items will directly reflect the colour of the item's TODO box.
+    -- - When set to `"except_undone"`, will have the same behaviour as `"all"` but will exclude undone TODO items.
+    -- - When set to `"cancelled"` will only highlight the content of TODO items for cancelled tasks.
+    --
     -- Default value: "cancelled".
     todo_items_match_color = "cancelled",
 }
