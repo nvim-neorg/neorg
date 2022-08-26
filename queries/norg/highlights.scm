@@ -1,331 +1,326 @@
-(ranged_tag ("_prefix") @NeorgTagBegin
-	name: (tag_name [(tag_name_element) @NeorgTagNameWord ("_delimiter") @NeorgTagNameDelimiter]) @NeorgTagName
-	(tag_parameters parameter: (tag_param) @NeorgTagParameter)? @NeorgTagParameters
+(ranged_tag ("_prefix") @neorg.tags.ranged-verbatim.begin
+	name: (tag_name [(tag_name_element) @neorg.tags.ranged-verbatim.name.word ("_delimiter") @neorg.tags.ranged-verbatim.name.delimiter]) @neorg.tags.ranged-verbatim.name
+	(tag_parameters parameter: (tag_param) @neorg.tags.ranged-verbatim.parameters.word)? @neorg.tags.ranged-verbatim.parameters
 	content: (ranged_tag_content)?
-	(ranged_tag_end ("_prefix") @NeorgTagEnd ("_name") @NeorgTagNameWord)) @NeorgTag
+	(ranged_tag_end ("_prefix") @neorg.tags.ranged-verbatim.end ("_name") @neorg.tags.ranged-verbatim.name.word))
 
 ; TODO: Make the content of @comment darker
 
 (carryover_tag_set
     (carryover_tag
-        ("_prefix" @NeorgCarryoverTagBegin)
+        ("_prefix" @neorg.tags.carryover.begin)
         name:
             (tag_name
                 [
-                    (tag_name_element) @NeorgCarryoverTagNameWord
-                    ("_delimiter") @NeorgCarryoverTagNameDelimiter
+                    (tag_name_element) @neorg.tags.carryover.name.word
+                    ("_delimiter") @neorg.tags.carryover.name.delimiter
                 ]
-            ) @NeorgCarryoverTagName
+            ) @neorg.tags.carryover.name
         (tag_parameters
-            parameter: (tag_param) @NeorgCarryoverTagParameter
-        )? @NeorgCarryoverTagParameters
-    ) @NeorgCarryoverTag
+            parameter: (tag_param) @neorg.tags.carryover.parameters.word
+        )? @neorg.tags.carryover.parameters
+    ) @neorg.tags.carryover
 
-	target: (_) @NeorgCarryoverTagTarget
+	target: (_) @neorg.tags.carryover.target
 )
 
 ; Trailing Modifier
-("_trailing_modifier") @NeorgTrailingModifier
+("_trailing_modifier") @neorg.modifiers.trailing
 
 ; Link Modifier
-(link_modifier) @NeorgLinkModifier
+(link_modifier) @neorg.modifiers.link
 
 ; Links
 (link
     (link_location
-        ("_begin") @NeorgLinkLocationDelimiter
+        ("_begin") @neorg.links.location.delimiter
         [
             (
-                ("_begin") @NeorgLinkFileDelimiter
-                file: (link_file_text) @NeorgLinkFile
-                ("_end") @NeorgLinkFileDelimiter
+                ("_begin") @neorg.links.file.delimiter
+                file: (link_file_text) @neorg.links.file
+                ("_end") @neorg.links.file.delimiter
             )
             (
                 (link_target_url) ; Doesn't require a highlight since it's a 0-width node
-                (paragraph_segment) @NeorgLinkLocationURL
+                (paragraph_segment) @neorg.links.location.url
             )
             (
-                (link_target_generic) @NeorgLinkLocationGenericPrefix
-                (paragraph_segment) @NeorgLinkLocationGeneric
+                (link_target_generic) @neorg.links.location.generic.prefix
+                (paragraph_segment) @neorg.links.location.generic
             )
             (
-                (link_target_external_file) @NeorgLinkLocationExternalFilePrefix
-                (paragraph_segment) @NeorgLinkLocationExternalFile
+                (link_target_external_file) @neorg.links.location.external-file.prefix
+                (paragraph_segment) @neorg.links.location.external-file
             )
             (
-                (link_target_marker) @NeorgLinkLocationMarkerPrefix
-                (paragraph_segment) @NeorgLinkLocationMarker
+                (link_target_marker) @neorg.links.location.marker.prefix
+                (paragraph_segment) @neorg.links.location.marker
             )
             (
-                (link_target_definition) @NeorgLinkLocationDefinitionPrefix
-                (paragraph_segment) @NeorgLinkLocationDefinition
+                (link_target_definition) @neorg.links.location.definition.prefix
+                (paragraph_segment) @neorg.links.location.definition
             )
             (
-                (link_target_footnote) @NeorgLinkLocationFootnotePrefix
-                (paragraph_segment) @NeorgLinkLocationFootnote
+                (link_target_footnote) @neorg.links.location.footnote.prefix
+                (paragraph_segment) @neorg.links.location.footnote
             )
             (
-                (link_target_heading1) @NeorgLinkLocationHeading1Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading1
+                (link_target_heading1) @neorg.links.location.heading1.prefix
+                (paragraph_segment) @neorg.links.location.heading1.prefix
             )
             (
-                (link_target_heading2) @NeorgLinkLocationHeading2Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading2
+                (link_target_heading2) @neorg.links.location.heading2.prefix
+                (paragraph_segment) @neorg.links.location.heading2
             )
             (
-                (link_target_heading3) @NeorgLinkLocationHeading3Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading3
+                (link_target_heading3) @neorg.links.location.heading3.prefix
+                (paragraph_segment) @neorg.links.location.heading3
             )
             (
-                (link_target_heading4) @NeorgLinkLocationHeading4Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading4
+                (link_target_heading4) @neorg.links.location.heading4.prefix
+                (paragraph_segment) @neorg.links.location.heading4
             )
             (
-                (link_target_heading5) @NeorgLinkLocationHeading5Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading5
+                (link_target_heading5) @neorg.links.location.heading5.prefix
+                (paragraph_segment) @neorg.links.location.heading5
             )
             (
-                (link_target_heading6) @NeorgLinkLocationHeading6Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading6
+                (link_target_heading6) @neorg.links.location.heading6.prefix
+                (paragraph_segment) @neorg.links.location.heading6
             )
         ]
-        ("_end") @NeorgLinkLocationDelimiter
+        ("_end") @neorg.links.location.delimiter
     )
     (link_description
-        ("_begin") @NeorgLinkTextDelimiter
-        text: (paragraph_segment) @NeorgLinkText
-        ("_end") @NeorgLinkTextDelimiter
+        ("_begin") @neorg.links.description.delimiter
+        text: (paragraph_segment) @neorg.links.description
+        ("_end") @neorg.links.description.delimiter
     )?
-) @NeorgLink
+)
 
 ; Anchors
 (anchor_declaration
     (link_description
-        ("_begin") @NeorgAnchorDeclarationDelimiter
-        text: (paragraph_segment) @NeorgAnchorDeclarationText
-        ("_end") @NeorgAnchorDeclarationDelimiter
+        ("_begin") @neorg.anchors.declaration.delimiter
+        text: (paragraph_segment) @neorg.anchors.declaration
+        ("_end") @neorg.anchors.declaration.delimiter
     )
-) @NeorgAnchor
+)
 
 (anchor_definition
     (link_description
-        ("_begin") @NeorgAnchorDeclarationDelimiter
-        text: (paragraph_segment) @NeorgAnchorDeclarationText
-        ("_end") @NeorgAnchorDeclarationDelimiter
-    )
+        ("_begin") @neorg.anchors.declaration.delimiter
+        text: (paragraph_segment) @neorg.anchors.declaration
+        ("_end") @neorg.anchors.declaration.delimiter
+    ) @neorg.anchors
     (link_location
-        ("_begin") @NeorgAnchorDefinitionDelimiter
+        ("_begin") @neorg.links.location.delimiter
         [
             (
-                ("_begin") @NeorgLinkFileDelimiter
-                file: (link_file_text) @NeorgLinkFile
-                ("_end") @NeorgLinkFileDelimiter
+                ("_begin") @neorg.links.file.delimiter
+                file: (link_file_text) @neorg.links.file
+                ("_end") @neorg.links.file.delimiter
             )
             (
                 (link_target_url) ; Doesn't require a highlight since it's a 0-width node
-                (paragraph_segment) @NeorgLinkLocationURL
+                (paragraph_segment) @neorg.links.location.url
             )
             (
-                (link_target_generic) @NeorgLinkLocationGenericPrefix
-                (paragraph_segment) @NeorgLinkLocationGeneric
+                (link_target_generic) @neorg.links.location.generic.prefix
+                (paragraph_segment) @neorg.links.location.generic
             )
             (
-                (link_target_external_file) @NeorgLinkLocationExternalFilePrefix
-                (paragraph_segment) @NeorgLinkLocationExternalFile
+                (link_target_external_file) @neorg.links.location.external-file.prefix
+                (paragraph_segment) @neorg.links.location.external-file
             )
             (
-                (link_target_marker) @NeorgLinkLocationMarkerPrefix
-                (paragraph_segment) @NeorgLinkLocationMarker
+                (link_target_marker) @neorg.links.location.marker.prefix
+                (paragraph_segment) @neorg.links.location.marker
             )
             (
-                (link_target_definition) @NeorgLinkLocationDefinitionPrefix
-                (paragraph_segment) @NeorgLinkLocationDefinition
+                (link_target_definition) @neorg.links.location.definition.prefix
+                (paragraph_segment) @neorg.links.location.definition
             )
             (
-                (link_target_footnote) @NeorgLinkLocationFootnotePrefix
-                (paragraph_segment) @NeorgLinkLocationFootnote
+                (link_target_footnote) @neorg.links.location.footnote.prefix
+                (paragraph_segment) @neorg.links.location.footnote
             )
             (
-                (link_target_heading1) @NeorgLinkLocationHeading1Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading1
+                (link_target_heading1) @neorg.links.location.heading1.prefix
+                (paragraph_segment) @neorg.links.location.heading1.prefix
             )
             (
-                (link_target_heading2) @NeorgLinkLocationHeading2Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading2
+                (link_target_heading2) @neorg.links.location.heading2.prefix
+                (paragraph_segment) @neorg.links.location.heading2
             )
             (
-                (link_target_heading3) @NeorgLinkLocationHeading3Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading3
+                (link_target_heading3) @neorg.links.location.heading3.prefix
+                (paragraph_segment) @neorg.links.location.heading3
             )
             (
-                (link_target_heading4) @NeorgLinkLocationHeading4Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading4
+                (link_target_heading4) @neorg.links.location.heading4.prefix
+                (paragraph_segment) @neorg.links.location.heading4
             )
             (
-                (link_target_heading5) @NeorgLinkLocationHeading5Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading5
+                (link_target_heading5) @neorg.links.location.heading5.prefix
+                (paragraph_segment) @neorg.links.location.heading5
             )
             (
-                (link_target_heading6) @NeorgLinkLocationHeading6Prefix
-                (paragraph_segment) @NeorgLinkLocationHeading6
+                (link_target_heading6) @neorg.links.location.heading6.prefix
+                (paragraph_segment) @neorg.links.location.heading6
             )
         ]
-        ("_end") @NeorgAnchorDefinitionDelimiter
-    )?
-) @NeorgAnchor
+        ("_end") @neorg.links.location.delimiter
+    )
+)
 
 ; Headings
-(heading1 (heading1_prefix) @NeorgHeading1Prefix title: (paragraph_segment) @NeorgHeading1Title) @NeorgHeading1
-(heading2 (heading2_prefix) @NeorgHeading2Prefix title: (paragraph_segment) @NeorgHeading2Title) @NeorgHeading2
-(heading3 (heading3_prefix) @NeorgHeading3Prefix title: (paragraph_segment) @NeorgHeading3Title) @NeorgHeading3
-(heading4 (heading4_prefix) @NeorgHeading4Prefix title: (paragraph_segment) @NeorgHeading4Title) @NeorgHeading4
-(heading5 (heading5_prefix) @NeorgHeading5Prefix title: (paragraph_segment) @NeorgHeading5Title) @NeorgHeading5
-(heading6 (heading6_prefix) @NeorgHeading6Prefix title: (paragraph_segment) @NeorgHeading6Title) @NeorgHeading6
+(heading1 (heading1_prefix) @neorg.headings.1.prefix title: (paragraph_segment) @neorg.headings.1.title)
+(heading2 (heading2_prefix) @neorg.headings.2.prefix title: (paragraph_segment) @neorg.headings.2.title)
+(heading3 (heading3_prefix) @neorg.headings.3.prefix title: (paragraph_segment) @neorg.headings.3.title)
+(heading4 (heading4_prefix) @neorg.headings.4.prefix title: (paragraph_segment) @neorg.headings.4.title)
+(heading5 (heading5_prefix) @neorg.headings.5.prefix title: (paragraph_segment) @neorg.headings.5.title)
+(heading6 (heading6_prefix) @neorg.headings.6.prefix title: (paragraph_segment) @neorg.headings.6.title)
 
 ; Display errors
-(ERROR) @NeorgError
+(ERROR) @neorg.error
 
 ; Markers
-(marker (marker_prefix) @NeorgMarkerPrefix (paragraph_segment) @NeorgMarkerTitle)
+(marker (marker_prefix) @neorg.markers.prefix (paragraph_segment) @neorg.markers.title)
 
 ; Definitions
-(single_definition (single_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle definition: [(_) "_paragraph_break"]* @NeorgDefinitionContent)
-(multi_definition (multi_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle content: [(_) "_paragraph_break"]* @NeorgDefinitionContent end: (multi_definition_suffix) @NeorgDefinitionEnd)
+(single_definition (single_definition_prefix) @neorg.definitions.prefix title: (paragraph_segment) @neorg.definitions.title definition: [(_) "_paragraph_break"]* @neorg.definitions.content)
+(multi_definition (multi_definition_prefix) @neorg.definitions.prefix title: (paragraph_segment) @neorg.definitions.title content: [(_) "_paragraph_break"]* @neorg.definitions.content end: (multi_definition_suffix) @neorg.definitions.suffix)
 
 ; Footnotes
-(single_footnote (single_footnote_prefix) @NeorgFootnote title: (paragraph_segment) @NeorgFootnoteTitle content: [(_) "_paragraph_break"]* @NeorgFootnoteContent)
-(multi_footnote (multi_footnote_prefix) @NeorgFootnote title: (paragraph_segment) @NeorgFootnoteTitle content: [(_) "_paragraph_break"]* @NeorgFootnoteContent end: (multi_footnote_suffix) @NeorgFootnoteEnd)
+(single_footnote (single_footnote_prefix) @neorg.footnotes.prefix title: (paragraph_segment) @neorg.footnotes.title content: [(_) "_paragraph_break"]* @neorg.footnotes.content)
+(multi_footnote (multi_footnote_prefix) @neorg.footnotes.prefix title: (paragraph_segment) @neorg.footnotes.title content: [(_) "_paragraph_break"]* @neorg.footnotes.content end: (multi_footnote_suffix) @neorg.footnotes.suffix)
 
 ; Escape sequences (\char)
-(escape_sequence) @NeorgEscapeSequence
+(escape_sequence) @neorg.modifiers.escape
 
 ; Todo Items
-(todo_item1 (unordered_list1_prefix) @NeorgTodoItem1)
-(todo_item1 state: (todo_item_undone) @NeorgTodoItem1Undone content: (paragraph) @NeorgTodoItem1UndoneContent)
-(todo_item1 state: (todo_item_pending) @NeorgTodoItem1Pending content: (paragraph) @NeorgTodoItem1PendingContent)
-(todo_item1 state: (todo_item_done) @NeorgTodoItem1Done content: (paragraph) @NeorgTodoItem1DoneContent)
-(todo_item1 state: (todo_item_on_hold) @NeorgTodoItem1OnHold content: (paragraph) @NeorgTodoItem1OnHoldContent)
-(todo_item1 state: (todo_item_cancelled) @NeorgTodoItem1Cancelled content: (paragraph) @NeorgTodoItem1CancelledContent)
-(todo_item1 state: (todo_item_urgent) @NeorgTodoItem1Urgent content: (paragraph) @NeorgTodoItem1UrgentContent)
-(todo_item1 state: (todo_item_uncertain) @NeorgTodoItem1Uncertain content: (paragraph) @NeorgTodoItem1UncertainContent)
-(todo_item1 state: (todo_item_recurring) @NeorgTodoItem1Recurring content: (paragraph) @NeorgTodoItem1RecurringContent)
+(todo_item1 state: (todo_item_undone)    @neorg.todo-items.undone.1    content: (paragraph) @neorg.todo-items.undone.1.content)
+(todo_item1 state: (todo_item_pending)   @neorg.todo-items.pending.1   content: (paragraph) @neorg.todo-items.pending.1.content)
+(todo_item1 state: (todo_item_done)      @neorg.todo-items.done.1      content: (paragraph) @neorg.todo-items.done.1.content)
+(todo_item1 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.1   content: (paragraph) @neorg.todo-items.on-hold.1.content)
+(todo_item1 state: (todo_item_cancelled) @neorg.todo-items.cancelled.1 content: (paragraph) @neorg.todo-items.cancelled.1.content)
+(todo_item1 state: (todo_item_urgent)    @neorg.todo-items.urgent.1    content: (paragraph) @neorg.todo-items.urgent.1.content)
+(todo_item1 state: (todo_item_uncertain) @neorg.todo-items.uncertain.1 content: (paragraph) @neorg.todo-items.uncertain.1.content)
+(todo_item1 state: (todo_item_recurring) @neorg.todo-items.recurring.1 content: (paragraph) @neorg.todo-items.recurring.1.content)
 
-(todo_item2 (unordered_list2_prefix) @NeorgTodoItem2)
-(todo_item2 state: (todo_item_undone) @NeorgTodoItem2Undone content: (paragraph) @NeorgTodoItem2UndoneContent)
-(todo_item2 state: (todo_item_pending) @NeorgTodoItem2Pending content: (paragraph) @NeorgTodoItem2PendingContent)
-(todo_item2 state: (todo_item_done) @NeorgTodoItem2Done content: (paragraph) @NeorgTodoItem2DoneContent)
-(todo_item2 state: (todo_item_on_hold) @NeorgTodoItem2OnHold content: (paragraph) @NeorgTodoItem2OnHoldContent)
-(todo_item2 state: (todo_item_cancelled) @NeorgTodoItem2Cancelled content: (paragraph) @NeorgTodoItem2CancelledContent)
-(todo_item2 state: (todo_item_urgent) @NeorgTodoItem2Urgent content: (paragraph) @NeorgTodoItem2UrgentContent)
-(todo_item2 state: (todo_item_uncertain) @NeorgTodoItem2Uncertain content: (paragraph) @NeorgTodoItem2UncertainContent)
-(todo_item2 state: (todo_item_recurring) @NeorgTodoItem2Recurring content: (paragraph) @NeorgTodoItem2RecurringContent)
+(todo_item2 state: (todo_item_undone)    @neorg.todo-items.undone.2    content: (paragraph) @neorg.todo-items.undone.2.content)
+(todo_item2 state: (todo_item_pending)   @neorg.todo-items.pending.2   content: (paragraph) @neorg.todo-items.pending.2.content)
+(todo_item2 state: (todo_item_done)      @neorg.todo-items.done.2      content: (paragraph) @neorg.todo-items.done.2.content)
+(todo_item2 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.2   content: (paragraph) @neorg.todo-items.on-hold.2.content)
+(todo_item2 state: (todo_item_cancelled) @neorg.todo-items.cancelled.2 content: (paragraph) @neorg.todo-items.cancelled.2.content)
+(todo_item2 state: (todo_item_urgent)    @neorg.todo-items.urgent.2    content: (paragraph) @neorg.todo-items.urgent.2.content)
+(todo_item2 state: (todo_item_uncertain) @neorg.todo-items.uncertain.2 content: (paragraph) @neorg.todo-items.uncertain.2.content)
+(todo_item2 state: (todo_item_recurring) @neorg.todo-items.recurring.2 content: (paragraph) @neorg.todo-items.recurring.2.content)
 
-(todo_item3 (unordered_list3_prefix) @NeorgTodoItem3)
-(todo_item3 state: (todo_item_undone) @NeorgTodoItem3Undone content: (paragraph) @NeorgTodoItem3UndoneContent)
-(todo_item3 state: (todo_item_pending) @NeorgTodoItem3Pending content: (paragraph) @NeorgTodoItem3PendingContent)
-(todo_item3 state: (todo_item_done) @NeorgTodoItem3Done content: (paragraph) @NeorgTodoItem3DoneContent)
-(todo_item3 state: (todo_item_on_hold) @NeorgTodoItem3OnHold content: (paragraph) @NeorgTodoItem3OnHoldContent)
-(todo_item3 state: (todo_item_cancelled) @NeorgTodoItem3Cancelled content: (paragraph) @NeorgTodoItem3CancelledContent)
-(todo_item3 state: (todo_item_urgent) @NeorgTodoItem3Urgent content: (paragraph) @NeorgTodoItem3UrgentContent)
-(todo_item3 state: (todo_item_uncertain) @NeorgTodoItem3Uncertain content: (paragraph) @NeorgTodoItem3UncertainContent)
-(todo_item3 state: (todo_item_recurring) @NeorgTodoItem3Recurring content: (paragraph) @NeorgTodoItem3RecurringContent)
+(todo_item3 state: (todo_item_undone)    @neorg.todo-items.undone.3    content: (paragraph) @neorg.todo-items.undone.3.content)
+(todo_item3 state: (todo_item_pending)   @neorg.todo-items.pending.3   content: (paragraph) @neorg.todo-items.pending.3.content)
+(todo_item3 state: (todo_item_done)      @neorg.todo-items.done.3      content: (paragraph) @neorg.todo-items.done.3.content)
+(todo_item3 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.3   content: (paragraph) @neorg.todo-items.on-hold.3.content)
+(todo_item3 state: (todo_item_cancelled) @neorg.todo-items.cancelled.3 content: (paragraph) @neorg.todo-items.cancelled.3.content)
+(todo_item3 state: (todo_item_urgent)    @neorg.todo-items.urgent.3    content: (paragraph) @neorg.todo-items.urgent.3.content)
+(todo_item3 state: (todo_item_uncertain) @neorg.todo-items.uncertain.3 content: (paragraph) @neorg.todo-items.uncertain.3.content)
+(todo_item3 state: (todo_item_recurring) @neorg.todo-items.recurring.3 content: (paragraph) @neorg.todo-items.recurring.3.content)
 
-(todo_item4 (unordered_list4_prefix) @NeorgTodoItem4)
-(todo_item4 state: (todo_item_undone) @NeorgTodoItem4Undone content: (paragraph) @NeorgTodoItem4UndoneContent)
-(todo_item4 state: (todo_item_pending) @NeorgTodoItem4Pending content: (paragraph) @NeorgTodoItem4PendingContent)
-(todo_item4 state: (todo_item_done) @NeorgTodoItem4Done content: (paragraph) @NeorgTodoItem4DoneContent)
-(todo_item4 state: (todo_item_on_hold) @NeorgTodoItem4OnHold content: (paragraph) @NeorgTodoItem4OnHoldContent)
-(todo_item4 state: (todo_item_cancelled) @NeorgTodoItem4Cancelled content: (paragraph) @NeorgTodoItem4CancelledContent)
-(todo_item4 state: (todo_item_urgent) @NeorgTodoItem4Urgent content: (paragraph) @NeorgTodoItem4UrgentContent)
-(todo_item4 state: (todo_item_uncertain) @NeorgTodoItem4Uncertain content: (paragraph) @NeorgTodoItem4UncertainContent)
-(todo_item4 state: (todo_item_recurring) @NeorgTodoItem4Recurring content: (paragraph) @NeorgTodoItem4RecurringContent)
+(todo_item4 state: (todo_item_undone)    @neorg.todo-items.undone.4    content: (paragraph) @neorg.todo-items.undone.4.content)
+(todo_item4 state: (todo_item_pending)   @neorg.todo-items.pending.4   content: (paragraph) @neorg.todo-items.pending.4.content)
+(todo_item4 state: (todo_item_done)      @neorg.todo-items.done.4      content: (paragraph) @neorg.todo-items.done.4.content)
+(todo_item4 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.4   content: (paragraph) @neorg.todo-items.on-hold.4.content)
+(todo_item4 state: (todo_item_cancelled) @neorg.todo-items.cancelled.4 content: (paragraph) @neorg.todo-items.cancelled.4.content)
+(todo_item4 state: (todo_item_urgent)    @neorg.todo-items.urgent.4    content: (paragraph) @neorg.todo-items.urgent.4.content)
+(todo_item4 state: (todo_item_uncertain) @neorg.todo-items.uncertain.4 content: (paragraph) @neorg.todo-items.uncertain.4.content)
+(todo_item4 state: (todo_item_recurring) @neorg.todo-items.recurring.4 content: (paragraph) @neorg.todo-items.recurring.4.content)
 
-(todo_item5 (unordered_list5_prefix) @NeorgTodoItem5)
-(todo_item5 state: (todo_item_undone) @NeorgTodoItem5Undone content: (paragraph) @NeorgTodoItem5UndoneContent)
-(todo_item5 state: (todo_item_pending) @NeorgTodoItem5Pending content: (paragraph) @NeorgTodoItem5PendingContent)
-(todo_item5 state: (todo_item_done) @NeorgTodoItem5Done content: (paragraph) @NeorgTodoItem5DoneContent)
-(todo_item5 state: (todo_item_on_hold) @NeorgTodoItem5OnHold content: (paragraph) @NeorgTodoItem5OnHoldContent)
-(todo_item5 state: (todo_item_cancelled) @NeorgTodoItem5Cancelled content: (paragraph) @NeorgTodoItem5CancelledContent)
-(todo_item5 state: (todo_item_urgent) @NeorgTodoItem5Urgent content: (paragraph) @NeorgTodoItem5UrgentContent)
-(todo_item5 state: (todo_item_uncertain) @NeorgTodoItem5Uncertain content: (paragraph) @NeorgTodoItem5UncertainContent)
-(todo_item5 state: (todo_item_recurring) @NeorgTodoItem5Recurring content: (paragraph) @NeorgTodoItem5RecurringContent)
+(todo_item5 state: (todo_item_undone)    @neorg.todo-items.undone.5    content: (paragraph) @neorg.todo-items.undone.5.content)
+(todo_item5 state: (todo_item_pending)   @neorg.todo-items.pending.5   content: (paragraph) @neorg.todo-items.pending.5.content)
+(todo_item5 state: (todo_item_done)      @neorg.todo-items.done.5      content: (paragraph) @neorg.todo-items.done.5.content)
+(todo_item5 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.5   content: (paragraph) @neorg.todo-items.on-hold.5.content)
+(todo_item5 state: (todo_item_cancelled) @neorg.todo-items.cancelled.5 content: (paragraph) @neorg.todo-items.cancelled.5.content)
+(todo_item5 state: (todo_item_urgent)    @neorg.todo-items.urgent.5    content: (paragraph) @neorg.todo-items.urgent.5.content)
+(todo_item5 state: (todo_item_uncertain) @neorg.todo-items.uncertain.5 content: (paragraph) @neorg.todo-items.uncertain.5.content)
+(todo_item5 state: (todo_item_recurring) @neorg.todo-items.recurring.5 content: (paragraph) @neorg.todo-items.recurring.5.content)
 
-(todo_item6 (unordered_list6_prefix) @NeorgTodoItem6)
-(todo_item6 state: (todo_item_undone) @NeorgTodoItem6Undone content: (paragraph) @NeorgTodoItem6UndoneContent)
-(todo_item6 state: (todo_item_pending) @NeorgTodoItem6Pending content: (paragraph) @NeorgTodoItem6PendingContent)
-(todo_item6 state: (todo_item_done) @NeorgTodoItem6Done content: (paragraph) @NeorgTodoItem6DoneContent)
-(todo_item6 state: (todo_item_on_hold) @NeorgTodoItem6OnHold content: (paragraph) @NeorgTodoItem6OnHoldContent)
-(todo_item6 state: (todo_item_cancelled) @NeorgTodoItem6Cancelled content: (paragraph) @NeorgTodoItem6CancelledContent)
-(todo_item6 state: (todo_item_urgent) @NeorgTodoItem6Urgent content: (paragraph) @NeorgTodoItem6UrgentContent)
-(todo_item6 state: (todo_item_uncertain) @NeorgTodoItem6Uncertain content: (paragraph) @NeorgTodoItem6UncertainContent)
-(todo_item6 state: (todo_item_recurring) @NeorgTodoItem6Recurring content: (paragraph) @NeorgTodoItem6RecurringContent)
+(todo_item6 state: (todo_item_undone)    @neorg.todo-items.undone.6    content: (paragraph) @neorg.todo-items.undone.6.content)
+(todo_item6 state: (todo_item_pending)   @neorg.todo-items.pending.6   content: (paragraph) @neorg.todo-items.pending.6.content)
+(todo_item6 state: (todo_item_done)      @neorg.todo-items.done.6      content: (paragraph) @neorg.todo-items.done.6.content)
+(todo_item6 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.6   content: (paragraph) @neorg.todo-items.on-hold.6.content)
+(todo_item6 state: (todo_item_cancelled) @neorg.todo-items.cancelled.6 content: (paragraph) @neorg.todo-items.cancelled.6.content)
+(todo_item6 state: (todo_item_urgent)    @neorg.todo-items.urgent.6    content: (paragraph) @neorg.todo-items.urgent.6.content)
+(todo_item6 state: (todo_item_uncertain) @neorg.todo-items.uncertain.6 content: (paragraph) @neorg.todo-items.uncertain.6.content)
+(todo_item6 state: (todo_item_recurring) @neorg.todo-items.recurring.6 content: (paragraph) @neorg.todo-items.recurring.6.content)
+
 
 ; Unordered lists
-(unordered_list1 (unordered_list1_prefix) @NeorgUnorderedList1 content: (paragraph) @NeorgUnorderedList1Content)
-(unordered_list2 (unordered_list2_prefix) @NeorgUnorderedList2 content: (paragraph) @NeorgUnorderedList2Content)
-(unordered_list3 (unordered_list3_prefix) @NeorgUnorderedList3 content: (paragraph) @NeorgUnorderedList3Content)
-(unordered_list4 (unordered_list4_prefix) @NeorgUnorderedList4 content: (paragraph) @NeorgUnorderedList4Content)
-(unordered_list5 (unordered_list5_prefix) @NeorgUnorderedList5 content: (paragraph) @NeorgUnorderedList5Content)
-(unordered_list6 (unordered_list6_prefix) @NeorgUnorderedList6 content: (paragraph) @NeorgUnorderedList6Content)
+(unordered_list1 (unordered_list1_prefix) @neorg.lists.unordered.1.prefix content: (paragraph) @neorg.lists.unordered.1.content)
+(unordered_list2 (unordered_list2_prefix) @neorg.lists.unordered.2.prefix content: (paragraph) @neorg.lists.unordered.2.content)
+(unordered_list3 (unordered_list3_prefix) @neorg.lists.unordered.3.prefix content: (paragraph) @neorg.lists.unordered.3.content)
+(unordered_list4 (unordered_list4_prefix) @neorg.lists.unordered.4.prefix content: (paragraph) @neorg.lists.unordered.4.content)
+(unordered_list5 (unordered_list5_prefix) @neorg.lists.unordered.5.prefix content: (paragraph) @neorg.lists.unordered.5.content)
+(unordered_list6 (unordered_list6_prefix) @neorg.lists.unordered.6.prefix content: (paragraph) @neorg.lists.unordered.6.content)
 
 ; Ordered lists
-(ordered_list1 (ordered_list1_prefix) @NeorgOrderedList1 content: (paragraph) @NeorgOrderedList1Content)
-(ordered_list2 (ordered_list2_prefix) @NeorgOrderedList2 content: (paragraph) @NeorgOrderedList2Content)
-(ordered_list3 (ordered_list3_prefix) @NeorgOrderedList3 content: (paragraph) @NeorgOrderedList3Content)
-(ordered_list4 (ordered_list4_prefix) @NeorgOrderedList4 content: (paragraph) @NeorgOrderedList4Content)
-(ordered_list5 (ordered_list5_prefix) @NeorgOrderedList5 content: (paragraph) @NeorgOrderedList5Content)
-(ordered_list6 (ordered_list6_prefix) @NeorgOrderedList6 content: (paragraph) @NeorgOrderedList6Content)
+(ordered_list1 (ordered_list1_prefix) @neorg.lists.ordered.1.prefix content: (paragraph) @neorg.lists.ordered.1.content)
+(ordered_list2 (ordered_list2_prefix) @neorg.lists.ordered.2.prefix content: (paragraph) @neorg.lists.ordered.2.content)
+(ordered_list3 (ordered_list3_prefix) @neorg.lists.ordered.3.prefix content: (paragraph) @neorg.lists.ordered.3.content)
+(ordered_list4 (ordered_list4_prefix) @neorg.lists.ordered.4.prefix content: (paragraph) @neorg.lists.ordered.4.content)
+(ordered_list5 (ordered_list5_prefix) @neorg.lists.ordered.5.prefix content: (paragraph) @neorg.lists.ordered.5.content)
+(ordered_list6 (ordered_list6_prefix) @neorg.lists.ordered.6.prefix content: (paragraph) @neorg.lists.ordered.6.content)
 
-; Unordered links
-(unordered_link1 (unordered_link1_prefix) @NeorgUnorderedLink1 location: (link) @NeorgUnorderedLink1Location)
-(unordered_link2 (unordered_link2_prefix) @NeorgUnorderedLink2 location: (link) @NeorgUnorderedLink2Location)
-(unordered_link3 (unordered_link3_prefix) @NeorgUnorderedLink3 location: (link) @NeorgUnorderedLink3Location)
-(unordered_link4 (unordered_link4_prefix) @NeorgUnorderedLink4 location: (link) @NeorgUnorderedLink4Location)
-(unordered_link5 (unordered_link5_prefix) @NeorgUnorderedLink5 location: (link) @NeorgUnorderedLink5Location)
-(unordered_link6 (unordered_link6_prefix) @NeorgUnorderedLink6 location: (link) @NeorgUnorderedLink6Location)
+; Unordered links (DEPRECATED)
+; (unordered_link1 (unordered_link1_prefix) location: (link) )
+; (unordered_link2 (unordered_link2_prefix) location: (link) )
+; (unordered_link3 (unordered_link3_prefix) location: (link) )
+; (unordered_link4 (unordered_link4_prefix) location: (link) )
+; (unordered_link5 (unordered_link5_prefix) location: (link) )
+; (unordered_link6 (unordered_link6_prefix) location: (link) )
 
-; Ordered links
-(ordered_link1 (ordered_link1_prefix) @NeorgOrderedLink1 location: (link) @NeorgOrderedLink1Location)
-(ordered_link2 (ordered_link2_prefix) @NeorgOrderedLink2 location: (link) @NeorgOrderedLink2Location)
-(ordered_link3 (ordered_link3_prefix) @NeorgOrderedLink3 location: (link) @NeorgOrderedLink3Location)
-(ordered_link4 (ordered_link4_prefix) @NeorgOrderedLink4 location: (link) @NeorgOrderedLink4Location)
-(ordered_link5 (ordered_link5_prefix) @NeorgOrderedLink5 location: (link) @NeorgOrderedLink5Location)
-(ordered_link6 (ordered_link6_prefix) @NeorgOrderedLink6 location: (link) @NeorgOrderedLink6Location)
+; Ordered links (DEPRECATED)
+; (ordered_link1 (ordered_link1_prefix) location: (link) )
+; (ordered_link2 (ordered_link2_prefix) location: (link) )
+; (ordered_link3 (ordered_link3_prefix) location: (link) )
+; (ordered_link4 (ordered_link4_prefix) location: (link) )
+; (ordered_link5 (ordered_link5_prefix) location: (link) )
+; (ordered_link6 (ordered_link6_prefix) location: (link) )
 
 ; Quotes
-(quote1 (quote1_prefix) @NeorgQuote1 content: (paragraph_segment) @NeorgQuote1Content)
-(quote2 (quote2_prefix) @NeorgQuote2 content: (paragraph_segment) @NeorgQuote2Content)
-(quote3 (quote3_prefix) @NeorgQuote3 content: (paragraph_segment) @NeorgQuote3Content)
-(quote4 (quote4_prefix) @NeorgQuote4 content: (paragraph_segment) @NeorgQuote4Content)
-(quote5 (quote5_prefix) @NeorgQuote5 content: (paragraph_segment) @NeorgQuote5Content)
-(quote6 (quote6_prefix) @NeorgQuote6 content: (paragraph_segment) @NeorgQuote6Content)
+(quote1 (quote1_prefix) @neorg.quotes.1.prefix content: (paragraph_segment) @neorg.quotes.1.content)
+(quote2 (quote2_prefix) @neorg.quotes.2.prefix content: (paragraph_segment) @neorg.quotes.2.content)
+(quote3 (quote3_prefix) @neorg.quotes.3.prefix content: (paragraph_segment) @neorg.quotes.3.content)
+(quote4 (quote4_prefix) @neorg.quotes.4.prefix content: (paragraph_segment) @neorg.quotes.4.content)
+(quote5 (quote5_prefix) @neorg.quotes.5.prefix content: (paragraph_segment) @neorg.quotes.5.content)
+(quote6 (quote6_prefix) @neorg.quotes.6.prefix content: (paragraph_segment) @neorg.quotes.6.content)
 
 ; Insertion
-(insertion (insertion_prefix) @NeorgInsertionPrefix item: (lowercase_word) @NeorgInsertionVariable parameters: (paragraph_segment)? @NeorgInsertionVariableValue) @NeorgInsertion
-(insertion (insertion_prefix) @NeorgInsertionPrefix item: (capitalized_word) @NeorgInsertionItem parameters: (paragraph_segment)? @NeorgInsertionParameters) @NeorgInsertion
+(insertion (insertion_prefix) @neorg.insertions.prefix item: (lowercase_word) @neorg.insertions.variable.name parameters: (paragraph_segment)? @neorg.insertions.variable.value)
+(insertion (insertion_prefix) @neorg.insertions.prefix item: (capitalized_word) @neorg.insertions.item parameters: (paragraph_segment)? @neorg.insertions.parameters)
 
 ; Paragraph Delimiters
-(strong_paragraph_delimiter) @NeorgStrongParagraphDelimiter
-(weak_paragraph_delimiter) @NeorgWeakParagraphDelimiter
-(horizontal_line) @NeorgHorizontalLine
+(strong_paragraph_delimiter) @neorg.delimiters.strong
+(weak_paragraph_delimiter) @neorg.delimiters.weak
+(horizontal_line) @neorg.delimiters.horizontal-line
 
 ; Markup
-(bold ["_open" "_close"] @NeorgMarkupBoldDelimiter) @NeorgMarkupBold
-(italic ["_open" "_close"] @NeorgMarkupItalicDelimiter) @NeorgMarkupItalic
-(strikethrough ["_open" "_close"] @NeorgMarkupStrikethroughDelimiter) @NeorgMarkupStrikethrough
-(underline ["_open" "_close"] @NeorgMarkupUnderlineDelimiter) @NeorgMarkupUnderline
-(spoiler ["_open" "_close"] @NeorgMarkupSpoilerDelimiter) @NeorgMarkupSpoiler
-(verbatim ["_open" "_close"] @NeorgMarkupVerbatimDelimiter) @NeorgMarkupVerbatim
-(superscript ["_open" "_close"] @NeorgMarkupSuperscriptDelimiter) @NeorgMarkupSuperscript
-(subscript ["_open" "_close"] @NeorgMarkupSubscriptDelimiter) @NeorgMarkupSubscript
-(inline_comment ["_open" "_close"] @NeorgMarkupInlineCommentDelimiter) @NeorgMarkupInlineComment
-(inline_math ["_open" "_close"] @NeorgMarkupMathDelimiter) @NeorgMarkupMath
-(variable ["_open" "_close"] @NeorgMarkupVariableDelimiter) @NeorgMarkupVariable
+(bold ["_open" "_close"] @neorg.markup.bold.delimiter) @neorg.markup.bold
+(italic ["_open" "_close"] @neorg.markup.italic.delimiter) @neorg.markup.italic
+(strikethrough ["_open" "_close"] @neorg.markup.strikethrough.delimiter) @neorg.markup.strikethrough
+(underline ["_open" "_close"] @neorg.markup.underline.delimiter) @neorg.markup.underline
+(spoiler ["_open" "_close"] @neorg.markup.spoiler.delimiter) @neorg.markup.spoiler
+(verbatim ["_open" "_close"] @neorg.markup.verbatim.delimiter) @neorg.markup.verbatim
+(superscript ["_open" "_close"] @neorg.markup.superscript.delimiter) @neorg.markup.superscript
+(subscript ["_open" "_close"] @neorg.markup.subscript.delimiter) @neorg.markup.subscript
+(inline_comment ["_open" "_close"] @neorg.markup.inline-comment.delimiter) @neorg.markup.inline-comment
+(inline_math ["_open" "_close"] @neorg.markup.inline-math.delimiter) @neorg.markup.inline-math
+(variable ["_open" "_close"] @neorg.markup.variable.delimiter) @neorg.markup.variable
 
-(inline_comment) @comment
+(inline_comment) @neorg.comment @comment
 
-(superscript (subscript) @NeorgError (#set! priority 300))
-(subscript (superscript) @NeorgError (#set! priority 300))
+(superscript (subscript) @neorg.error (#set! priority 300))
+(subscript (superscript) @neorg.error (#set! priority 300))
 
 ; Conceals
 (
