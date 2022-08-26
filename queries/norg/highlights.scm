@@ -1,8 +1,8 @@
-(ranged_tag ("_prefix") @neorg.tags.ranged-verbatim.begin
-	name: (tag_name [(tag_name_element) @neorg.tags.ranged-verbatim.name.word ("_delimiter") @neorg.tags.ranged-verbatim.name.delimiter]) @neorg.tags.ranged-verbatim.name
-	(tag_parameters parameter: (tag_param) @neorg.tags.ranged-verbatim.parameters.word)? @neorg.tags.ranged-verbatim.parameters
+(ranged_tag ("_prefix") @neorg.tags.ranged_verbatim.begin
+	name: (tag_name [(tag_name_element) @neorg.tags.ranged_verbatim.name.word ("_delimiter") @neorg.tags.ranged_verbatim.name.delimiter]) @neorg.tags.ranged_verbatim.name
+	(tag_parameters parameter: (tag_param) @neorg.tags.ranged_verbatim.parameters.word)? @neorg.tags.ranged_verbatim.parameters
 	content: (ranged_tag_content)?
-	(ranged_tag_end ("_prefix") @neorg.tags.ranged-verbatim.end ("_name") @neorg.tags.ranged-verbatim.name.word))
+	(ranged_tag_end ("_prefix") @neorg.tags.ranged_verbatim.end ("_name") @neorg.tags.ranged_verbatim.name.word))
 
 ; TODO: Make the content of @comment darker
 
@@ -49,8 +49,8 @@
                 (paragraph_segment) @neorg.links.location.generic
             )
             (
-                (link_target_external_file) @neorg.links.location.external-file.prefix
-                (paragraph_segment) @neorg.links.location.external-file
+                (link_target_external_file) @neorg.links.location.external_file.prefix
+                (paragraph_segment) @neorg.links.location.external_file
             )
             (
                 (link_target_marker) @neorg.links.location.marker.prefix
@@ -109,9 +109,9 @@
 
 (anchor_definition
     (link_description
-        ("_begin") @neorg.anchors.declaration.delimiter
+        ("_begin") @neorg.anchors.definition.delimiter
         text: (paragraph_segment) @neorg.anchors.declaration
-        ("_end") @neorg.anchors.declaration.delimiter
+        ("_end") @neorg.anchors.definition.delimiter
     ) @neorg.anchors
     (link_location
         ("_begin") @neorg.links.location.delimiter
@@ -130,8 +130,8 @@
                 (paragraph_segment) @neorg.links.location.generic
             )
             (
-                (link_target_external_file) @neorg.links.location.external-file.prefix
-                (paragraph_segment) @neorg.links.location.external-file
+                (link_target_external_file) @neorg.links.location.external_file.prefix
+                (paragraph_segment) @neorg.links.location.external_file
             )
             (
                 (link_target_marker) @neorg.links.location.marker.prefix
@@ -146,28 +146,28 @@
                 (paragraph_segment) @neorg.links.location.footnote
             )
             (
-                (link_target_heading1) @neorg.links.location.heading1.prefix
-                (paragraph_segment) @neorg.links.location.heading1.prefix
+                (link_target_heading1) @neorg.links.location.heading.1.prefix
+                (paragraph_segment) @neorg.links.location.heading.1.prefix
             )
             (
-                (link_target_heading2) @neorg.links.location.heading2.prefix
-                (paragraph_segment) @neorg.links.location.heading2
+                (link_target_heading2) @neorg.links.location.heading.2.prefix
+                (paragraph_segment) @neorg.links.location.heading.2
             )
             (
-                (link_target_heading3) @neorg.links.location.heading3.prefix
-                (paragraph_segment) @neorg.links.location.heading3
+                (link_target_heading3) @neorg.links.location.heading.3.prefix
+                (paragraph_segment) @neorg.links.location.heading.3
             )
             (
-                (link_target_heading4) @neorg.links.location.heading4.prefix
-                (paragraph_segment) @neorg.links.location.heading4
+                (link_target_heading4) @neorg.links.location.heading.4.prefix
+                (paragraph_segment) @neorg.links.location.heading.4
             )
             (
-                (link_target_heading5) @neorg.links.location.heading5.prefix
-                (paragraph_segment) @neorg.links.location.heading5
+                (link_target_heading5) @neorg.links.location.heading.5.prefix
+                (paragraph_segment) @neorg.links.location.heading.5
             )
             (
-                (link_target_heading6) @neorg.links.location.heading6.prefix
-                (paragraph_segment) @neorg.links.location.heading6
+                (link_target_heading6) @neorg.links.location.heading.6.prefix
+                (paragraph_segment) @neorg.links.location.heading.6
             )
         ]
         ("_end") @neorg.links.location.delimiter
@@ -200,59 +200,59 @@
 (escape_sequence) @neorg.modifiers.escape
 
 ; Todo Items
-(todo_item1 state: (todo_item_undone)    @neorg.todo-items.undone.1    content: (paragraph) @neorg.todo-items.undone.1.content)
-(todo_item1 state: (todo_item_pending)   @neorg.todo-items.pending.1   content: (paragraph) @neorg.todo-items.pending.1.content)
-(todo_item1 state: (todo_item_done)      @neorg.todo-items.done.1      content: (paragraph) @neorg.todo-items.done.1.content)
-(todo_item1 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.1   content: (paragraph) @neorg.todo-items.on-hold.1.content)
-(todo_item1 state: (todo_item_cancelled) @neorg.todo-items.cancelled.1 content: (paragraph) @neorg.todo-items.cancelled.1.content)
-(todo_item1 state: (todo_item_urgent)    @neorg.todo-items.urgent.1    content: (paragraph) @neorg.todo-items.urgent.1.content)
-(todo_item1 state: (todo_item_uncertain) @neorg.todo-items.uncertain.1 content: (paragraph) @neorg.todo-items.uncertain.1.content)
-(todo_item1 state: (todo_item_recurring) @neorg.todo-items.recurring.1 content: (paragraph) @neorg.todo-items.recurring.1.content)
+(todo_item1 state: (todo_item_undone)    @neorg.todo_items.undone.1    content: (paragraph) @neorg.todo_items.undone.1.content)
+(todo_item1 state: (todo_item_pending)   @neorg.todo_items.pending.1   content: (paragraph) @neorg.todo_items.pending.1.content)
+(todo_item1 state: (todo_item_done)      @neorg.todo_items.done.1      content: (paragraph) @neorg.todo_items.done.1.content)
+(todo_item1 state: (todo_item_on_hold)   @neorg.todo_items.on_hold.1   content: (paragraph) @neorg.todo_items.on_hold.1.content)
+(todo_item1 state: (todo_item_cancelled) @neorg.todo_items.cancelled.1 content: (paragraph) @neorg.todo_items.cancelled.1.content)
+(todo_item1 state: (todo_item_urgent)    @neorg.todo_items.urgent.1    content: (paragraph) @neorg.todo_items.urgent.1.content)
+(todo_item1 state: (todo_item_uncertain) @neorg.todo_items.uncertain.1 content: (paragraph) @neorg.todo_items.uncertain.1.content)
+(todo_item1 state: (todo_item_recurring) @neorg.todo_items.recurring.1 content: (paragraph) @neorg.todo_items.recurring.1.content)
 
-(todo_item2 state: (todo_item_undone)    @neorg.todo-items.undone.2    content: (paragraph) @neorg.todo-items.undone.2.content)
-(todo_item2 state: (todo_item_pending)   @neorg.todo-items.pending.2   content: (paragraph) @neorg.todo-items.pending.2.content)
-(todo_item2 state: (todo_item_done)      @neorg.todo-items.done.2      content: (paragraph) @neorg.todo-items.done.2.content)
-(todo_item2 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.2   content: (paragraph) @neorg.todo-items.on-hold.2.content)
-(todo_item2 state: (todo_item_cancelled) @neorg.todo-items.cancelled.2 content: (paragraph) @neorg.todo-items.cancelled.2.content)
-(todo_item2 state: (todo_item_urgent)    @neorg.todo-items.urgent.2    content: (paragraph) @neorg.todo-items.urgent.2.content)
-(todo_item2 state: (todo_item_uncertain) @neorg.todo-items.uncertain.2 content: (paragraph) @neorg.todo-items.uncertain.2.content)
-(todo_item2 state: (todo_item_recurring) @neorg.todo-items.recurring.2 content: (paragraph) @neorg.todo-items.recurring.2.content)
+(todo_item2 state: (todo_item_undone)    @neorg.todo_items.undone.2    content: (paragraph) @neorg.todo_items.undone.2.content)
+(todo_item2 state: (todo_item_pending)   @neorg.todo_items.pending.2   content: (paragraph) @neorg.todo_items.pending.2.content)
+(todo_item2 state: (todo_item_done)      @neorg.todo_items.done.2      content: (paragraph) @neorg.todo_items.done.2.content)
+(todo_item2 state: (todo_item_on_hold)   @neorg.todo_items.on_hold.2   content: (paragraph) @neorg.todo_items.on_hold.2.content)
+(todo_item2 state: (todo_item_cancelled) @neorg.todo_items.cancelled.2 content: (paragraph) @neorg.todo_items.cancelled.2.content)
+(todo_item2 state: (todo_item_urgent)    @neorg.todo_items.urgent.2    content: (paragraph) @neorg.todo_items.urgent.2.content)
+(todo_item2 state: (todo_item_uncertain) @neorg.todo_items.uncertain.2 content: (paragraph) @neorg.todo_items.uncertain.2.content)
+(todo_item2 state: (todo_item_recurring) @neorg.todo_items.recurring.2 content: (paragraph) @neorg.todo_items.recurring.2.content)
 
-(todo_item3 state: (todo_item_undone)    @neorg.todo-items.undone.3    content: (paragraph) @neorg.todo-items.undone.3.content)
-(todo_item3 state: (todo_item_pending)   @neorg.todo-items.pending.3   content: (paragraph) @neorg.todo-items.pending.3.content)
-(todo_item3 state: (todo_item_done)      @neorg.todo-items.done.3      content: (paragraph) @neorg.todo-items.done.3.content)
-(todo_item3 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.3   content: (paragraph) @neorg.todo-items.on-hold.3.content)
-(todo_item3 state: (todo_item_cancelled) @neorg.todo-items.cancelled.3 content: (paragraph) @neorg.todo-items.cancelled.3.content)
-(todo_item3 state: (todo_item_urgent)    @neorg.todo-items.urgent.3    content: (paragraph) @neorg.todo-items.urgent.3.content)
-(todo_item3 state: (todo_item_uncertain) @neorg.todo-items.uncertain.3 content: (paragraph) @neorg.todo-items.uncertain.3.content)
-(todo_item3 state: (todo_item_recurring) @neorg.todo-items.recurring.3 content: (paragraph) @neorg.todo-items.recurring.3.content)
+(todo_item3 state: (todo_item_undone)    @neorg.todo_items.undone.3    content: (paragraph) @neorg.todo_items.undone.3.content)
+(todo_item3 state: (todo_item_pending)   @neorg.todo_items.pending.3   content: (paragraph) @neorg.todo_items.pending.3.content)
+(todo_item3 state: (todo_item_done)      @neorg.todo_items.done.3      content: (paragraph) @neorg.todo_items.done.3.content)
+(todo_item3 state: (todo_item_on_hold)   @neorg.todo_items.on_hold.3   content: (paragraph) @neorg.todo_items.on_hold.3.content)
+(todo_item3 state: (todo_item_cancelled) @neorg.todo_items.cancelled.3 content: (paragraph) @neorg.todo_items.cancelled.3.content)
+(todo_item3 state: (todo_item_urgent)    @neorg.todo_items.urgent.3    content: (paragraph) @neorg.todo_items.urgent.3.content)
+(todo_item3 state: (todo_item_uncertain) @neorg.todo_items.uncertain.3 content: (paragraph) @neorg.todo_items.uncertain.3.content)
+(todo_item3 state: (todo_item_recurring) @neorg.todo_items.recurring.3 content: (paragraph) @neorg.todo_items.recurring.3.content)
 
-(todo_item4 state: (todo_item_undone)    @neorg.todo-items.undone.4    content: (paragraph) @neorg.todo-items.undone.4.content)
-(todo_item4 state: (todo_item_pending)   @neorg.todo-items.pending.4   content: (paragraph) @neorg.todo-items.pending.4.content)
-(todo_item4 state: (todo_item_done)      @neorg.todo-items.done.4      content: (paragraph) @neorg.todo-items.done.4.content)
-(todo_item4 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.4   content: (paragraph) @neorg.todo-items.on-hold.4.content)
-(todo_item4 state: (todo_item_cancelled) @neorg.todo-items.cancelled.4 content: (paragraph) @neorg.todo-items.cancelled.4.content)
-(todo_item4 state: (todo_item_urgent)    @neorg.todo-items.urgent.4    content: (paragraph) @neorg.todo-items.urgent.4.content)
-(todo_item4 state: (todo_item_uncertain) @neorg.todo-items.uncertain.4 content: (paragraph) @neorg.todo-items.uncertain.4.content)
-(todo_item4 state: (todo_item_recurring) @neorg.todo-items.recurring.4 content: (paragraph) @neorg.todo-items.recurring.4.content)
+(todo_item4 state: (todo_item_undone)    @neorg.todo_items.undone.4    content: (paragraph) @neorg.todo_items.undone.4.content)
+(todo_item4 state: (todo_item_pending)   @neorg.todo_items.pending.4   content: (paragraph) @neorg.todo_items.pending.4.content)
+(todo_item4 state: (todo_item_done)      @neorg.todo_items.done.4      content: (paragraph) @neorg.todo_items.done.4.content)
+(todo_item4 state: (todo_item_on_hold)   @neorg.todo_items.on_hold.4   content: (paragraph) @neorg.todo_items.on_hold.4.content)
+(todo_item4 state: (todo_item_cancelled) @neorg.todo_items.cancelled.4 content: (paragraph) @neorg.todo_items.cancelled.4.content)
+(todo_item4 state: (todo_item_urgent)    @neorg.todo_items.urgent.4    content: (paragraph) @neorg.todo_items.urgent.4.content)
+(todo_item4 state: (todo_item_uncertain) @neorg.todo_items.uncertain.4 content: (paragraph) @neorg.todo_items.uncertain.4.content)
+(todo_item4 state: (todo_item_recurring) @neorg.todo_items.recurring.4 content: (paragraph) @neorg.todo_items.recurring.4.content)
 
-(todo_item5 state: (todo_item_undone)    @neorg.todo-items.undone.5    content: (paragraph) @neorg.todo-items.undone.5.content)
-(todo_item5 state: (todo_item_pending)   @neorg.todo-items.pending.5   content: (paragraph) @neorg.todo-items.pending.5.content)
-(todo_item5 state: (todo_item_done)      @neorg.todo-items.done.5      content: (paragraph) @neorg.todo-items.done.5.content)
-(todo_item5 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.5   content: (paragraph) @neorg.todo-items.on-hold.5.content)
-(todo_item5 state: (todo_item_cancelled) @neorg.todo-items.cancelled.5 content: (paragraph) @neorg.todo-items.cancelled.5.content)
-(todo_item5 state: (todo_item_urgent)    @neorg.todo-items.urgent.5    content: (paragraph) @neorg.todo-items.urgent.5.content)
-(todo_item5 state: (todo_item_uncertain) @neorg.todo-items.uncertain.5 content: (paragraph) @neorg.todo-items.uncertain.5.content)
-(todo_item5 state: (todo_item_recurring) @neorg.todo-items.recurring.5 content: (paragraph) @neorg.todo-items.recurring.5.content)
+(todo_item5 state: (todo_item_undone)    @neorg.todo_items.undone.5    content: (paragraph) @neorg.todo_items.undone.5.content)
+(todo_item5 state: (todo_item_pending)   @neorg.todo_items.pending.5   content: (paragraph) @neorg.todo_items.pending.5.content)
+(todo_item5 state: (todo_item_done)      @neorg.todo_items.done.5      content: (paragraph) @neorg.todo_items.done.5.content)
+(todo_item5 state: (todo_item_on_hold)   @neorg.todo_items.on_hold.5   content: (paragraph) @neorg.todo_items.on_hold.5.content)
+(todo_item5 state: (todo_item_cancelled) @neorg.todo_items.cancelled.5 content: (paragraph) @neorg.todo_items.cancelled.5.content)
+(todo_item5 state: (todo_item_urgent)    @neorg.todo_items.urgent.5    content: (paragraph) @neorg.todo_items.urgent.5.content)
+(todo_item5 state: (todo_item_uncertain) @neorg.todo_items.uncertain.5 content: (paragraph) @neorg.todo_items.uncertain.5.content)
+(todo_item5 state: (todo_item_recurring) @neorg.todo_items.recurring.5 content: (paragraph) @neorg.todo_items.recurring.5.content)
 
-(todo_item6 state: (todo_item_undone)    @neorg.todo-items.undone.6    content: (paragraph) @neorg.todo-items.undone.6.content)
-(todo_item6 state: (todo_item_pending)   @neorg.todo-items.pending.6   content: (paragraph) @neorg.todo-items.pending.6.content)
-(todo_item6 state: (todo_item_done)      @neorg.todo-items.done.6      content: (paragraph) @neorg.todo-items.done.6.content)
-(todo_item6 state: (todo_item_on_hold)   @neorg.todo-items.on-hold.6   content: (paragraph) @neorg.todo-items.on-hold.6.content)
-(todo_item6 state: (todo_item_cancelled) @neorg.todo-items.cancelled.6 content: (paragraph) @neorg.todo-items.cancelled.6.content)
-(todo_item6 state: (todo_item_urgent)    @neorg.todo-items.urgent.6    content: (paragraph) @neorg.todo-items.urgent.6.content)
-(todo_item6 state: (todo_item_uncertain) @neorg.todo-items.uncertain.6 content: (paragraph) @neorg.todo-items.uncertain.6.content)
-(todo_item6 state: (todo_item_recurring) @neorg.todo-items.recurring.6 content: (paragraph) @neorg.todo-items.recurring.6.content)
+(todo_item6 state: (todo_item_undone)    @neorg.todo_items.undone.6    content: (paragraph) @neorg.todo_items.undone.6.content)
+(todo_item6 state: (todo_item_pending)   @neorg.todo_items.pending.6   content: (paragraph) @neorg.todo_items.pending.6.content)
+(todo_item6 state: (todo_item_done)      @neorg.todo_items.done.6      content: (paragraph) @neorg.todo_items.done.6.content)
+(todo_item6 state: (todo_item_on_hold)   @neorg.todo_items.on_hold.6   content: (paragraph) @neorg.todo_items.on_hold.6.content)
+(todo_item6 state: (todo_item_cancelled) @neorg.todo_items.cancelled.6 content: (paragraph) @neorg.todo_items.cancelled.6.content)
+(todo_item6 state: (todo_item_urgent)    @neorg.todo_items.urgent.6    content: (paragraph) @neorg.todo_items.urgent.6.content)
+(todo_item6 state: (todo_item_uncertain) @neorg.todo_items.uncertain.6 content: (paragraph) @neorg.todo_items.uncertain.6.content)
+(todo_item6 state: (todo_item_recurring) @neorg.todo_items.recurring.6 content: (paragraph) @neorg.todo_items.recurring.6.content)
 
 
 ; Unordered lists
@@ -302,7 +302,7 @@
 ; Paragraph Delimiters
 (strong_paragraph_delimiter) @neorg.delimiters.strong
 (weak_paragraph_delimiter) @neorg.delimiters.weak
-(horizontal_line) @neorg.delimiters.horizontal-line
+(horizontal_line) @neorg.delimiters.horizontal_line
 
 ; Markup
 (bold ["_open" "_close"] @neorg.markup.bold.delimiter) @neorg.markup.bold
@@ -313,11 +313,9 @@
 (verbatim ["_open" "_close"] @neorg.markup.verbatim.delimiter) @neorg.markup.verbatim
 (superscript ["_open" "_close"] @neorg.markup.superscript.delimiter) @neorg.markup.superscript
 (subscript ["_open" "_close"] @neorg.markup.subscript.delimiter) @neorg.markup.subscript
-(inline_comment ["_open" "_close"] @neorg.markup.inline-comment.delimiter) @neorg.markup.inline-comment
-(inline_math ["_open" "_close"] @neorg.markup.inline-math.delimiter) @neorg.markup.inline-math
+(inline_comment ["_open" "_close"] @neorg.markup.inline_comment.delimiter) @neorg.markup.inline_comment
+(inline_math ["_open" "_close"] @neorg.markup.inline_math.delimiter) @neorg.markup.inline_math
 (variable ["_open" "_close"] @neorg.markup.variable.delimiter) @neorg.markup.variable
-
-(inline_comment) @neorg.comment @comment
 
 (superscript (subscript) @neorg.error (#set! priority 300))
 (subscript (superscript) @neorg.error (#set! priority 300))
