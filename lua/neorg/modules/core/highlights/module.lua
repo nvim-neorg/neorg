@@ -89,19 +89,19 @@ module.config.public = {
 
         error = "+@error",
 
-        marker = {
+        markers = {
             prefix = "+@label",
             title = "+@none",
         },
 
-        definition = {
+        definitions = {
             prefix = "+@punctuation.delimiter",
             suffix = "+@punctuation.delimiter",
             title = "+@text.strong",
             content = "+@text.emphasis",
         },
 
-        footnote = {
+        footnotes = {
             prefix = "+@punctuation.delimiter",
             suffix = "+@punctuation.delimiter",
             title = "+@text.strong",
@@ -231,7 +231,7 @@ module.config.public = {
             },
         },
 
-        quote = {
+        quotes = {
             ["1"] = {
                 prefix = "+@punctuation.delimiter",
                 content = "+@punctuation.delimiter",
@@ -268,7 +268,7 @@ module.config.public = {
             },
         },
 
-        insertion = {
+        insertions = {
             [""] = "cterm=bold gui=bold",
             prefix = "+@punctuation.delimiter",
             variable = {
@@ -301,49 +301,49 @@ module.config.public = {
                 },
 
                 marker = {
-                    [""] = "+NeorgMarkerTitle",
-                    prefix = "+NeorgMarker",
+                    [""] = "+@neorg.markers.title",
+                    prefix = "+@neorg.markers.prefix",
                 },
 
                 definition = {
-                    [""] = "+NeorgDefinitionTitle",
-                    prefix = "+NeorgDefinition",
+                    [""] = "+@neorg.definitions.title",
+                    prefix = "+@neorg.definitions.prefix",
                 },
 
                 footnote = {
-                    [""] = "+NeorgFootnoteTitle",
-                    prefix = "+NeorgFootnote",
+                    [""] = "+@neorg.footnotes.title",
+                    prefix = "+@neorg.footnotes.prefix",
                 },
 
                 heading = {
                     ["1"] = {
-                        [""] = "+NeorgHeading1Title",
-                        prefix = "+NeorgHeading1Prefix",
+                        [""] = "+@neorg.headings.1.title",
+                        prefix = "+@neorg.headings.1.prefix",
                     },
 
                     ["2"] = {
-                        [""] = "+NeorgHeading2Title",
-                        prefix = "+NeorgHeading2Prefix",
+                        [""] = "+@neorg.headings.2.title",
+                        prefix = "+@neorg.headings.2.prefix",
                     },
 
                     ["3"] = {
-                        [""] = "+NeorgHeading3Title",
-                        prefix = "+NeorgHeading3Prefix",
+                        [""] = "+@neorg.headings.3.title",
+                        prefix = "+@neorg.headings.3.prefix",
                     },
 
                     ["4"] = {
-                        [""] = "+NeorgHeading4Title",
-                        prefix = "+NeorgHeading4Prefix",
+                        [""] = "+@neorg.headings.4.title",
+                        prefix = "+@neorg.headings.4.prefix",
                     },
 
                     ["5"] = {
-                        [""] = "+NeorgHeading5Title",
-                        prefix = "+NeorgHeading5Prefix",
+                        [""] = "+@neorg.headings.5.title",
+                        prefix = "+@neorg.headings.5.prefix",
                     },
 
                     ["6"] = {
-                        [""] = "+NeorgHeading6Title",
-                        prefix = "+NeorgHeading6Prefix",
+                        [""] = "+@neorg.headings.6.title",
+                        prefix = "+@neorg.headings.6.prefix",
                     },
                 },
             },
@@ -383,7 +383,7 @@ module.config.public = {
                 delimiter = "+NonText",
             },
             variable = {
-                [""] = "+NeorgInsertionVariable",
+                [""] = "+@neorg.insertions.variable.name",
                 delimiter = "+NonText",
             },
             verbatim = {
