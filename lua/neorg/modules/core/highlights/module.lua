@@ -487,7 +487,7 @@ module.load = function()
 
             if module.config.public.todo_items_match_color ~= "cancelled" then
                 if module.config.public.todo_items_match_color ~= "except_undone" then
-                    todo_items.undone[index].content = todo_item.undone[index][""]
+                    todo_items.undone[index].content = todo_items.undone[index][""]
                 end
 
                 todo_items.pending[index].content = todo_items.pending[index][""]
