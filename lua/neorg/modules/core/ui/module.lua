@@ -153,9 +153,10 @@ module.public = {
 
         -- Make sure to clean up the window if the user leaves the popup at any time
         vim.cmd(
-            (
-                "autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once lua require('neorg.modules.core.ui.module').public.delete_window(%s)"
-            ):format(buf, buf)
+            ("autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once lua require('neorg.modules.core.ui.module').public.delete_window(%s)"):format(
+                buf,
+                buf
+            )
         )
         return buf
     end,

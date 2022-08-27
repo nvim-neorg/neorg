@@ -438,9 +438,9 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                     if parsed_config_option:type() ~= "table_constructor" then
                                         if parsed_config_option:type() == "function_definition" then
                                             values = {
-                                                "  Default value: `function" .. ts.get_node_text(
-                                                    parsed_config_option:named_child(0)
-                                                ) .. "`",
+                                                "  Default value: `function"
+                                                    .. ts.get_node_text(parsed_config_option:named_child(0))
+                                                    .. "`",
                                             }
                                         else
                                             values = {

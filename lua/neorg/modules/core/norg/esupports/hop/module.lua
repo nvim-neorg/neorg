@@ -396,12 +396,10 @@ module.public = {
             -- If we're dealing with a URL, simply open the URL in the user's preferred method
             url = function()
                 local function open_with(command)
-                    job
-                        :new({
-                            command = command,
-                            args = { parsed_link_information.link_location_text },
-                        })
-                        :start()
+                    job:new({
+                        command = command,
+                        args = { parsed_link_information.link_location_text },
+                    }):start()
                 end
 
                 if neorg.configuration.os_info == "linux" then
@@ -425,12 +423,10 @@ module.public = {
 
                 local function open_in_external_app()
                     local function open_with(command)
-                        job
-                            :new({
-                                command = command,
-                                args = { vim.uri_from_fname(vim.fn.expand(destination)) },
-                            })
-                            :start()
+                        job:new({
+                            command = command,
+                            args = { vim.uri_from_fname(vim.fn.expand(destination)) },
+                        }):start()
                     end
 
                     if neorg.configuration.os_info == "linux" then
