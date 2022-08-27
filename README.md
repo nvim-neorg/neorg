@@ -118,7 +118,7 @@ Plus fancy completion powered by `nvim-cmp`.
 
 ## 🔧 Installation
 
-**Neorg requires at least Neovim 0.7+ to operate.**
+**Neorg requires at least Neovim 0.8+ to operate.**
 
 You can install it through your favorite plugin manager:
 
@@ -137,7 +137,7 @@ You can install it through your favorite plugin manager:
   ```
 
   Every time Neorg hits a new release, a new tag is created by us, so you don't have to worry about all the updates inbetween.
-  That means, adding `tag = "*"` in Packer will update to latest stable release.
+  That means that adding `tag = "*"` in Packer will update to latest stable release.
   
   You can also pin Neorg to one specific version through e.g. `tag = "0.0.9"`.
   
