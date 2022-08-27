@@ -1,15 +1,3 @@
-@document.meta
-title: 0.0.13
-description: Breaking changes :/
-authors: vhyrro
-categories: [
-    neorg
-    breaking changes
-]
-created: 2022-08-27
-version: 0.0.12
-@end
-
 | 0.0.13
 
 * Breakages in Highlights
@@ -24,7 +12,10 @@ version: 0.0.12
   - Neorg is now stricty reliant on Neovim `0.8+`. You can always use the
     `0.0.12` tag alongside an earlier version of treesitter to combat this,
     however if you have updated other plugins then it may already be too late.
+    I've tried to make things backwards compatible, but then quickly realized
+    it's impossible. Sorry!
   - Assume that all custom Neorg highlights you may have set are broken. You'll need
     to do some solid refactoring. To see all the key/values consult
     {https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/highlights/module.lua#L23}[this part of the source code].
-  - Some highlights may accidentally stop working - if they did, let me know via a github issue!
+  - Some highlights may have accidentally stop working - if they have, let me
+    know via a github issue!
