@@ -21,7 +21,7 @@ local module = neorg.modules.create("core.highlights")
 module.config.public = {
     -- The TS highlights for each Neorg type
     highlights = {
-        selectionwindow = {
+        selection_window = {
             -- The + tells neorg to link to an existing hl
             -- You may also supply any arguments you would to :highlight here
             -- Example: ["heading"] = "gui=underline",
