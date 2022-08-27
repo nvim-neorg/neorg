@@ -7,12 +7,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: JohnnyMorganz/stylua-action@1.0.0
+
+      - name: Cache cargo modules
+        id: cache-cargo
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: .
-          version: 0.13.1
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "chore: autoformat with stylua"
-          branch: ${{ github.head_ref }}
+          path: ~/.cargo
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Install cargo
+        run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+      - name: Install stylua
+        run: cargo install stylua --features lua52
+
+      - name: Run formatting
+        run: stylua -v --verify .
