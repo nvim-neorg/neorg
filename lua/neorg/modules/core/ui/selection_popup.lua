@@ -309,9 +309,9 @@ module.public = {
                         },
                         highlights = {
                             -- TODO: Change highlight group names
-                            key = "NeorgSelectionWindowKey",
-                            description = "NeorgSelectionWindowKeyname",
-                            delimiter = "NeorgSelectionWindowArrow",
+                            key = "@neorg.selection_window.key",
+                            description = "@neorg.selection_window.keyname",
+                            delimiter = "@neorg.selection_window.arrow",
                         },
                         delimiter = " -> ",
                         -- Whether to destroy the selection popup when this flag is pressed
@@ -375,9 +375,9 @@ module.public = {
                         },
                         highlights = {
                             -- TODO: Change highlight group names
-                            key = "NeorgSelectionWindowKey",
-                            description = "NeorgSelectionWindowNestedKeyname",
-                            delimiter = "NeorgSelectionWindowArrow",
+                            key = "@neorg.selection_window.key",
+                            description = "@neorg.selection_window.keyname",
+                            delimiter = "@neorg.selection_window.arrow",
                         },
                         delimiter = " -> ",
                     },
