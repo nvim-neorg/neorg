@@ -73,10 +73,6 @@
                 (paragraph) @NeorgLinkLocationExternalFile
             )
             (
-                (link_target_marker) @NeorgLinkLocationMarkerPrefix
-                (paragraph) @NeorgLinkLocationMarker
-            )
-            (
                 (link_target_definition) @NeorgLinkLocationDefinitionPrefix
                 (paragraph) @NeorgLinkLocationDefinition
             )
@@ -85,8 +81,28 @@
                 (paragraph) @NeorgLinkLocationFootnote
             )
             (
-                (link_target_heading) @NeorgLinkLocationHeadingPrefix
-                (paragraph) @NeorgLinkLocationHeading
+                (link_target_heading1) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading1
+            )
+            (
+                (link_target_heading2) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading2
+            )
+            (
+                (link_target_heading3) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading3
+            )
+            (
+                (link_target_heading4) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading4
+            )
+            (
+                (link_target_heading5) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading5
+            )
+            (
+                (link_target_heading6) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading6
             )
         ]
         ("_end") @NeorgLinkLocationDelimiter
@@ -134,10 +150,6 @@
                 (paragraph) @NeorgLinkLocationExternalFile
             )
             (
-                (link_target_marker) @NeorgLinkLocationMarkerPrefix
-                (paragraph) @NeorgLinkLocationMarker
-            )
-            (
                 (link_target_definition) @NeorgLinkLocationDefinitionPrefix
                 (paragraph) @NeorgLinkLocationDefinition
             )
@@ -146,8 +158,28 @@
                 (paragraph) @NeorgLinkLocationFootnote
             )
             (
-                (link_target_heading) @NeorgLinkLocationHeadingPrefix
-                (paragraph) @NeorgLinkLocationHeading
+                (link_target_heading1) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading1
+            )
+            (
+                (link_target_heading2) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading2
+            )
+            (
+                (link_target_heading3) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading3
+            )
+            (
+                (link_target_heading4) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading4
+            )
+            (
+                (link_target_heading5) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading5
+            )
+            (
+                (link_target_heading6) @NeorgLinkLocationHeadingPrefix
+                (paragraph) @NeorgLinkLocationHeading6
             )
         ]
         ("_end") @NeorgAnchorDefinitionDelimiter
@@ -164,9 +196,6 @@
 
 ; Display errors
 (ERROR) @NeorgError
-
-; Markers
-(marker (marker_prefix) @NeorgMarkerPrefix (paragraph_segment) @NeorgMarkerTitle)
 
 ; Definitions
 (single_definition (single_definition_prefix) @NeorgDefinition title: (paragraph_segment) @NeorgDefinitionTitle content: _ @NeorgDefinitionContent)
