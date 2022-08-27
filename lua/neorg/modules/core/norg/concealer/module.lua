@@ -368,7 +368,7 @@ module.public = {
                                 module.public._set_extmark(
                                     buf,
                                     nil,
-                                    "NeorgCodeBlock",
+                                    "@neorg.tags.ranged_verbatim.code_block",
                                     module.private.code_block_namespace,
                                     linenr,
                                     linenr + 1,
@@ -392,7 +392,7 @@ module.public = {
                                                         - line_width
                                                         + module.config.public.dim_code_blocks.padding.right
                                                 ),
-                                                "NeorgCodeBlock",
+                                                "@neorg.tags.ranged_verbatim.code_block",
                                             },
                                         },
                                         nil,
@@ -440,10 +440,10 @@ module.public = {
                                                     0
                                                 )
                                             ),
-                                            "NeorgCodeBlock",
+                                            "@neorg.tags.ranged_verbatim.code_block",
                                         } or nil),
                                     },
-                                    "NeorgCodeBlock",
+                                    "@neorg.tags.ranged_verbatim.code_block",
                                     module.private.code_block_namespace,
                                     linenr,
                                     linenr + 1,
@@ -1101,7 +1101,6 @@ module.config.public = {
             done = {
                 enabled = true,
                 icon = "",
-                highlight = "NeorgTodoItemDoneMark",
                 query = "(todo_item_done) @icon",
                 extract = function()
                     return 1
@@ -1111,7 +1110,6 @@ module.config.public = {
             pending = {
                 enabled = true,
                 icon = "",
-                highlight = "NeorgTodoItemPendingMark",
                 query = "(todo_item_pending) @icon",
                 extract = function()
                     return 1
@@ -1121,7 +1119,6 @@ module.config.public = {
             undone = {
                 enabled = true,
                 icon = "×",
-                highlight = "NeorgTodoItemUndoneMark",
                 query = "(todo_item_undone) @icon",
                 extract = function()
                     return 1
@@ -1131,7 +1128,6 @@ module.config.public = {
             uncertain = {
                 enabled = true,
                 icon = "",
-                highlight = "NeorgTodoItemUncertainMark",
                 query = "(todo_item_uncertain) @icon",
                 extract = function()
                     return 1
@@ -1141,7 +1137,6 @@ module.config.public = {
             on_hold = {
                 enabled = true,
                 icon = "",
-                highlight = "NeorgTodoItemOnHoldMark",
                 query = "(todo_item_on_hold) @icon",
                 extract = function()
                     return 1
@@ -1151,7 +1146,6 @@ module.config.public = {
             cancelled = {
                 enabled = true,
                 icon = "",
-                highlight = "NeorgTodoItemCancelledMark",
                 query = "(todo_item_cancelled) @icon",
                 extract = function()
                     return 1
@@ -1161,7 +1155,6 @@ module.config.public = {
             recurring = {
                 enabled = true,
                 icon = "↺",
-                highlight = "NeorgTodoItemRecurringMark",
                 query = "(todo_item_recurring) @icon",
                 extract = function()
                     return 1
@@ -1171,7 +1164,6 @@ module.config.public = {
             urgent = {
                 enabled = true,
                 icon = "⚠",
-                highlight = "NeorgTodoItemUrgentMark",
                 query = "(todo_item_urgent) @icon",
                 extract = function()
                     return 1
@@ -1185,42 +1177,36 @@ module.config.public = {
             level_1 = {
                 enabled = true,
                 icon = "•",
-                highlight = "NeorgUnorderedList1",
                 query = "(unordered_list1_prefix) @icon",
             },
 
             level_2 = {
                 enabled = true,
                 icon = " •",
-                highlight = "NeorgUnorderedList2",
                 query = "(unordered_list2_prefix) @icon",
             },
 
             level_3 = {
                 enabled = true,
                 icon = "  •",
-                highlight = "NeorgUnorderedList3",
                 query = "(unordered_list3_prefix) @icon",
             },
 
             level_4 = {
                 enabled = true,
                 icon = "   •",
-                highlight = "NeorgUnorderedList4",
                 query = "(unordered_list4_prefix) @icon",
             },
 
             level_5 = {
                 enabled = true,
                 icon = "    •",
-                highlight = "NeorgUnorderedList5",
                 query = "(unordered_list5_prefix) @icon",
             },
 
             level_6 = {
                 enabled = true,
                 icon = "     •",
-                highlight = "NeorgUnorderedList6",
                 query = "(unordered_list6_prefix) @icon",
             },
         },
@@ -1230,37 +1216,31 @@ module.config.public = {
             level_1 = {
                 enabled = true,
                 icon = " ",
-                highlight = "NeorgUnorderedLink1",
                 query = "(unordered_link1_prefix) @icon",
             },
             level_2 = {
                 enabled = true,
                 icon = "  ",
-                highlight = "NeorgUnorderedLink2",
                 query = "(unordered_link2_prefix) @icon",
             },
             level_3 = {
                 enabled = true,
                 icon = "   ",
-                highlight = "NeorgUnorderedLink3",
                 query = "(unordered_link3_prefix) @icon",
             },
             level_4 = {
                 enabled = true,
                 icon = "    ",
-                highlight = "NeorgUnorderedLink4",
                 query = "(unordered_link4_prefix) @icon",
             },
             level_5 = {
                 enabled = true,
                 icon = "     ",
-                highlight = "NeorgUnorderedLink5",
                 query = "(unordered_link5_prefix) @icon",
             },
             level_6 = {
                 enabled = true,
                 icon = "      ",
-                highlight = "NeorgUnorderedLink6",
                 query = "(unordered_link6_prefix) @icon",
             },
         },
@@ -1273,7 +1253,6 @@ module.config.public = {
                 icon = module.public.concealing.ordered.punctuation.unicode_dot(
                     module.public.concealing.ordered.enumerator.numeric
                 ),
-                highlight = "NeorgOrderedList1",
                 query = "(ordered_list1_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_list1")
@@ -1286,7 +1265,6 @@ module.config.public = {
             level_2 = {
                 enabled = true,
                 icon = module.public.concealing.ordered.enumerator.latin_uppercase,
-                highlight = "NeorgOrderedList2",
                 query = "(ordered_list2_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_list2")
@@ -1299,7 +1277,6 @@ module.config.public = {
             level_3 = {
                 enabled = true,
                 icon = module.public.concealing.ordered.enumerator.latin_lowercase,
-                highlight = "NeorgOrderedList3",
                 query = "(ordered_list3_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_list3")
@@ -1314,7 +1291,6 @@ module.config.public = {
                 icon = module.public.concealing.ordered.punctuation.unicode_double_parenthesis(
                     module.public.concealing.ordered.enumerator.numeric
                 ),
-                highlight = "NeorgOrderedList4",
                 query = "(ordered_list4_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_list4")
@@ -1327,7 +1303,6 @@ module.config.public = {
             level_5 = {
                 enabled = true,
                 icon = module.public.concealing.ordered.enumerator.latin_uppercase,
-                highlight = "NeorgOrderedList5",
                 query = "(ordered_list5_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_list5")
@@ -1342,7 +1317,6 @@ module.config.public = {
                 icon = module.public.concealing.ordered.punctuation.unicode_double_parenthesis(
                     module.public.concealing.ordered.enumerator.latin_lowercase
                 ),
-                highlight = "NeorgOrderedList6",
                 query = "(ordered_list6_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_list6")
@@ -1360,7 +1334,6 @@ module.config.public = {
                 icon = module.public.concealing.ordered.punctuation.unicode_circle(
                     module.public.concealing.ordered.enumerator.numeric
                 ),
-                highlight = "NeorgOrderedLink1",
                 query = "(ordered_link1_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_link1")
@@ -1374,7 +1347,6 @@ module.config.public = {
                 icon = module.public.concealing.ordered.punctuation.unicode_circle(
                     module.public.concealing.ordered.enumerator.latin_uppercase
                 ),
-                highlight = "NeorgOrderedLink2",
                 query = "(ordered_link2_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_link2")
@@ -1388,7 +1360,6 @@ module.config.public = {
                 icon = module.public.concealing.ordered.punctuation.unicode_circle(
                     module.public.concealing.ordered.enumerator.latin_lowercase
                 ),
-                highlight = "NeorgOrderedLink3",
                 query = "(ordered_link3_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_link3")
@@ -1402,7 +1373,6 @@ module.config.public = {
                 icon = module.public.concealing.ordered.punctuation.unicode_circle(
                     module.public.concealing.ordered.enumerator.numeric
                 ),
-                highlight = "NeorgOrderedLink4",
                 query = "(ordered_link4_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_link4")
@@ -1416,7 +1386,6 @@ module.config.public = {
                 icon = module.public.concealing.ordered.punctuation.unicode_circle(
                     module.public.concealing.ordered.enumerator.latin_uppercase
                 ),
-                highlight = "NeorgOrderedLink5",
                 query = "(ordered_link5_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_link5")
@@ -1430,7 +1399,6 @@ module.config.public = {
                 icon = module.public.concealing.ordered.punctuation.unicode_circle(
                     module.public.concealing.ordered.enumerator.latin_lowercase
                 ),
-                highlight = "NeorgOrderedLink6",
                 query = "(ordered_link6_prefix) @icon",
                 render = function(self, _, node)
                     local count = module.public.concealing.ordered.get_index(node, "ordered_link6")
@@ -1447,14 +1415,14 @@ module.config.public = {
             level_1 = {
                 enabled = true,
                 icon = "│",
-                highlight = "NeorgQuote1",
+                highlight = "@neorg.quotes.1.prefix",
                 query = "(quote1_prefix) @icon",
             },
 
             level_2 = {
                 enabled = true,
                 icon = "│",
-                highlight = "NeorgQuote2",
+                highlight = "@neorg.quotes.2.prefix",
                 query = "(quote2_prefix) @icon",
                 render = function(self)
                     return {
@@ -1467,7 +1435,7 @@ module.config.public = {
             level_3 = {
                 enabled = true,
                 icon = "│",
-                highlight = "NeorgQuote3",
+                highlight = "@neorg.quotes.3.prefix",
                 query = "(quote3_prefix) @icon",
                 render = function(self)
                     return {
@@ -1481,7 +1449,7 @@ module.config.public = {
             level_4 = {
                 enabled = true,
                 icon = "│",
-                highlight = "NeorgQuote4",
+                highlight = "@neorg.quotes.4.prefix",
                 query = "(quote4_prefix) @icon",
                 render = function(self)
                     return {
@@ -1496,7 +1464,7 @@ module.config.public = {
             level_5 = {
                 enabled = true,
                 icon = "│",
-                highlight = "NeorgQuote5",
+                highlight = "@neorg.quotes.5.prefix",
                 query = "(quote5_prefix) @icon",
                 render = function(self)
                     return {
@@ -1512,7 +1480,7 @@ module.config.public = {
             level_6 = {
                 enabled = true,
                 icon = "│",
-                highlight = "NeorgQuote6",
+                highlight = "@neorg.quotes.6.prefix",
                 query = "(quote6_prefix) @icon",
                 render = function(self)
                     return {
@@ -1533,42 +1501,42 @@ module.config.public = {
             level_1 = {
                 enabled = true,
                 icon = "◉",
-                highlight = "NeorgHeading1",
+                highlight = "@neorg.headings.1.prefix",
                 query = "[ (heading1_prefix) (link_target_heading1) @no-conceal ] @icon",
             },
 
             level_2 = {
                 enabled = true,
                 icon = " ◎",
-                highlight = "NeorgHeading2",
+                highlight = "@neorg.headings.2.prefix",
                 query = "[ (heading2_prefix) (link_target_heading2) @no-conceal ] @icon",
             },
 
             level_3 = {
                 enabled = true,
                 icon = "  ○",
-                highlight = "NeorgHeading3",
+                highlight = "@neorg.headings.3.prefix",
                 query = "[ (heading3_prefix) (link_target_heading3) @no-conceal ] @icon",
             },
 
             level_4 = {
                 enabled = true,
                 icon = "   ✺",
-                highlight = "NeorgHeading4",
+                highlight = "@neorg.headings.4.prefix",
                 query = "[ (heading4_prefix) (link_target_heading4) @no-conceal ] @icon",
             },
 
             level_5 = {
                 enabled = true,
                 icon = "    ▶",
-                highlight = "NeorgHeading5",
+                highlight = "@neorg.headings.5.prefix",
                 query = "[ (heading5_prefix) (link_target_heading5) @no-conceal ] @icon",
             },
 
             level_6 = {
                 enabled = true,
                 icon = "     ⤷",
-                highlight = "NeorgHeading6",
+                highlight = "@neorg.headings.6.prefix",
                 query = "[ (heading6_prefix) (link_target_heading6) @no-conceal ] @icon",
                 render = function(self, text)
                     return {
@@ -1584,7 +1552,6 @@ module.config.public = {
         marker = {
             enabled = true,
             icon = "",
-            highlight = "NeorgMarker",
             query = "[ (marker_prefix) (link_target_marker) @no-conceal ] @icon",
         },
 
@@ -1594,19 +1561,16 @@ module.config.public = {
             single = {
                 enabled = true,
                 icon = "≡",
-                highlight = "NeorgDefinition",
                 query = "[ (single_definition_prefix) (link_target_definition) @no-conceal ] @icon",
             },
             multi_prefix = {
                 enabled = true,
                 icon = "⋙ ",
-                highlight = "NeorgDefinition",
                 query = "(multi_definition_prefix) @icon",
             },
             multi_suffix = {
                 enabled = true,
                 icon = "⋘ ",
-                highlight = "NeorgDefinitionEnd",
                 query = "(multi_definition_suffix) @icon",
             },
         },
@@ -1617,19 +1581,16 @@ module.config.public = {
             single = {
                 enabled = true,
                 icon = "⁎",
-                highlight = "NeorgFootnote",
                 query = "[ (single_footnote_prefix) (link_target_footnote) @no-conceal ] @icon",
             },
             multi_prefix = {
                 enabled = true,
                 icon = "⁑ ",
-                highlight = "NeorgFootnote",
                 query = "(multi_footnote_prefix) @icon",
             },
             multi_suffix = {
                 enabled = true,
                 icon = "⁑ ",
-                highlight = "NeorgFootnoteEnd",
                 query = "(multi_footnote_suffix) @icon",
             },
         },
@@ -1640,7 +1601,7 @@ module.config.public = {
             weak = {
                 enabled = true,
                 icon = "⟨",
-                highlight = "NeorgWeakParagraphDelimiter",
+                highlight = "@neorg.delimiters.weak",
                 query = "(weak_paragraph_delimiter) @icon",
                 render = function(self, text)
                     return {
@@ -1652,7 +1613,7 @@ module.config.public = {
             strong = {
                 enabled = true,
                 icon = "⟪",
-                highlight = "NeorgStrongParagraphDelimiter",
+                highlight = "@neorg.delimiters.strong",
                 query = "(strong_paragraph_delimiter) @icon",
                 render = function(self, text)
                     return {
@@ -1664,7 +1625,7 @@ module.config.public = {
             horizontal_line = {
                 enabled = true,
                 icon = "─",
-                highlight = "NeorgHorizontalLine",
+                highlight = "@neorg.delimiters.horizontal_line",
                 query = "(horizontal_line) @icon",
                 render = function(self, _, node)
                     -- Get the length of the Neovim window (used to render to the edge of the screen)
@@ -1734,7 +1695,7 @@ module.config.public = {
             spoiler = {
                 enabled = true,
                 icon = "•",
-                highlight = "NeorgMarkupSpoiler",
+                highlight = "@neorg.markup.spoiler",
                 query = '(spoiler ("_open") _ @icon ("_close"))',
                 render = function(self, text)
                     return { { string.rep(self.icon, text:len()), self.highlight } }
@@ -1795,7 +1756,7 @@ module.config.public = {
                             "(",
                             { "<done>", "TSField" },
                             " of ",
-                            { "<total>", "NeorgTodoItem1Done" },
+                            { "<total>", "@neorg.todo_items.done.1" },
                             ") [<percentage>% complete]",
                         },
 
