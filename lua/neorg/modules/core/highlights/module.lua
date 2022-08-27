@@ -45,6 +45,27 @@ module.config.public = {
                 },
 
                 parameters = "+@type",
+
+                document_meta = {
+                    key = "+@field",
+                    value = "+@string",
+                    carryover = "+@repeat",
+                    title = "+@text.title",
+                    description = "+@label",
+                    authors = "+@annotation",
+                    categories = "+@keyword",
+                    created = "+@float",
+                    version = "+@float",
+
+                    object = {
+                        bracket = "+@punctuation.bracket",
+                    },
+
+                    array = {
+                        bracket = "+@punctuation.bracket",
+                        value = "+@none",
+                    },
+                },
             },
 
             carryover = {
@@ -280,6 +301,11 @@ module.config.public = {
         },
 
         links = {
+            description = {
+                [""] = "+@text.uri",
+                delimiter = "+NonText",
+            },
+
             file = {
                 [""] = "+@comment",
                 delimiter = "+NonText",
@@ -378,10 +404,6 @@ module.config.public = {
                 [""] = "+@number",
                 delimiter = "+NonText",
             },
-            math = {
-                [""] = "+@text.math",
-                delimiter = "+NonText",
-            },
             variable = {
                 [""] = "+@neorg.insertions.variable.name",
                 delimiter = "+NonText",
@@ -390,6 +412,10 @@ module.config.public = {
                 delimiter = "+NonText",
             },
             inline_comment = {
+                delimiter = "+NonText",
+            },
+            inline_math = {
+                [""] = "+@text.math",
                 delimiter = "+NonText",
             },
         },
@@ -404,27 +430,6 @@ module.config.public = {
             trailing = "+NonText",
             link = "+NonText",
             escape = "+@type",
-        },
-
-        documentmeta = {
-            key = "+@field",
-            value = "+@string",
-            carryover = "+@repeat",
-            title = "+@text.title",
-            description = "+@label",
-            authors = "+@annotation",
-            categories = "+@keyword",
-            created = "+@float",
-            version = "+@float",
-
-            object = {
-                bracket = "+@punctuation.bracket",
-            },
-
-            array = {
-                bracket = "+@punctuation.bracket",
-                value = "+@none",
-            },
         },
     },
 
