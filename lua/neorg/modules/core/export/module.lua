@@ -155,6 +155,14 @@ module.public = {
                         end
 
                         if keep_descending then
+                            if state.parse_as then
+                                node = module.required["core.integrations.treesitter"].get_document_root(
+                                    "\n" .. vim.treesitter.get_node_text(node, buffer),
+                                    state.parse_as
+                                )
+                                state.parse_as = nil
+                            end
+
                             local ret = descend(node)
 
                             if ret then
@@ -215,10 +223,7 @@ module.on_event = function(event)
         local exported = module.public.export(event.buffer, filetype)
 
         vim.loop.fs_open(filepath, "w", 438, function(err, fd)
-            assert(
-                not err,
-                neorg.lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err)
-            )
+            assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err))
 
             vim.loop.fs_write(fd, exported, 0, function(werr)
                 assert(
