@@ -24,7 +24,7 @@ module.config.public = {
         selectionwindow = {
             -- The + tells neorg to link to an existing hl
             -- You may also supply any arguments you would to :highlight here
-            -- Example: ["heading"] = "guifg=#93042b",
+            -- Example: ["heading"] = "gui=underline",
             heading = "+@annotation",
             arrow = "+@none",
             key = "+@namespace",
@@ -548,7 +548,9 @@ module.public = {
                     return
                 end
 
-                vim.cmd("highlight! link " .. full_highlight_name .. " " .. highlight:sub(2))
+                vim.api.nvim_set_hl(0, full_highlight_name, {
+                    link = highlight:sub(2),
+                })
             else -- Otherwise simply apply the highlight options the user provided
                 -- If the highlight already exists then assume the user doesn't want it to be
                 -- overwritten
@@ -556,7 +558,12 @@ module.public = {
                     return
                 end
 
-                vim.cmd("highlight! " .. full_highlight_name .. " " .. highlight)
+                -- We have to use vim.cmd here
+                vim.cmd({
+                    cmd = "highlight",
+                    args = { full_highlight_name, highlight },
+                    bang = true,
+                })
             end
         end, "")
 
@@ -577,20 +584,15 @@ module.public = {
             end
 
             -- Apply the dimmed highlight
-            vim.cmd(
-                "highlight! "
-                    .. full_highlight_name
-                    .. " "
-                    .. (highlight.affect == "background" and "guibg" or "guifg")
-                    .. "="
-                    .. module.public.dim_color(
-                        module.public.get_attribute(
-                            highlight.reference or full_highlight_name,
-                            highlight.affect or "foreground"
-                        ),
-                        highlight.percentage
-                    )
-            )
+            vim.api.nvim_set_hl(0, full_highlight_name, {
+                [highlight.affect == "background" and "bg" or "fg"] = module.public.dim_color(
+                    module.public.get_attribute(
+                        highlight.reference or full_highlight_name,
+                        highlight.affect or "foreground"
+                    ),
+                    highlight.percentage
+                ),
+            })
         end, "")
     end,
 
