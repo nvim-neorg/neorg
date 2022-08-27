@@ -517,7 +517,7 @@ module.public = {
             for hl_name, highlight in pairs(highlights) do
                 -- If the callback returns true then descend further down the table tree
                 if callback(hl_name, highlight, prefix) then
-                    descend(highlight, callback, prefix .. hl_name)
+                    descend(highlight, callback, prefix .. "." .. hl_name)
                 end
             end
         end
@@ -537,26 +537,22 @@ module.public = {
             -- by checking for the existence of the + sign at the front
             local is_link = highlight:sub(1, 1) == "+"
 
+            local full_highlight_name = "@neorg" .. prefix .. (hl_name:len() > 0 and ("." .. hl_name) or "")
+            local does_hl_exist = neorg.lib.inline_pcall(vim.api.nvim_exec, "highlight " .. full_highlight_name, true)
+
             -- If we are dealing with a link then link the highlights together (excluding the + symbol)
             if is_link then
-                local full_highlight_name = "Neorg" .. prefix .. hl_name
-
                 -- If the highlight already exists then assume the user doesn't want it to be
                 -- overwritten
-                if
-                    vim.fn.hlexists(full_highlight_name) == 1
-                    and not vim.api.nvim_exec("highlight " .. full_highlight_name, true):match("xxx%s+cleared")
-                then
+                if does_hl_exist and does_hl_exist:len() > 0 and not does_hl_exist:match("xxx%s+cleared") then
                     return
                 end
 
                 vim.cmd("highlight! link " .. full_highlight_name .. " " .. highlight:sub(2))
             else -- Otherwise simply apply the highlight options the user provided
-                local full_highlight_name = "Neorg" .. prefix .. hl_name
-
                 -- If the highlight already exists then assume the user doesn't want it to be
                 -- overwritten
-                if vim.fn.hlexists(full_highlight_name) == 1 then
+                if does_hl_exist and does_hl_exist:len() > 0 then
                     return
                 end
 
@@ -571,28 +567,25 @@ module.public = {
                 return true
             end
 
-            local full_highlight_name = "Neorg" .. prefix .. hl_name
+            local full_highlight_name = "@neorg" .. prefix .. (hl_name:len() > 0 and ("." .. hl_name) or "")
+            local does_hl_exist = neorg.lib.inline_pcall(vim.api.nvim_exec, "highlight " .. full_highlight_name, true)
 
             -- If the highlight already exists then assume the user doesn't want it to be
             -- overwritten
-            if
-                vim.fn.hlexists(full_highlight_name) == 1
-                and not vim.api.nvim_exec("highlight " .. full_highlight_name, true):match("xxx%s+cleared")
-            then
+            if does_hl_exist and does_hl_exist:len() > 0 and not does_hl_exist:match("xxx%s+cleared") then
                 return
             end
 
             -- Apply the dimmed highlight
             vim.cmd(
-                "highlight! Neorg"
-                    .. prefix
-                    .. hl_name
+                "highlight! "
+                    .. full_highlight_name
                     .. " "
                     .. (highlight.affect == "background" and "guibg" or "guifg")
                     .. "="
                     .. module.public.dim_color(
                         module.public.get_attribute(
-                            highlight.reference or ("Neorg" .. prefix .. hl_name),
+                            highlight.reference or full_highlight_name,
                             highlight.affect or "foreground"
                         ),
                         highlight.percentage
