@@ -58,6 +58,9 @@ module.config.public = {
 
                     -- Hop to the destination of the link under the cursor
                     { "<CR>", "core.norg.esupports.hop.hop-link" },
+                    { "gd", "core.norg.esupports.hop.hop-link" },
+                    { "gf", "core.norg.esupports.hop.hop-link" },
+                    { "gF", "core.norg.esupports.hop.hop-link" },
 
                     -- Same as `<CR>`, except opens the destination in a vertical split
                     { "<M-CR>", "core.norg.esupports.hop.hop-link", "vsplit" },
@@ -139,6 +142,7 @@ module.config.public = {
                 n = {
                     { leader .. "mn", ":Neorg mode norg<CR>" },
                     { leader .. "mh", ":Neorg mode traverse-heading<CR>" },
+                    { "gO", ":Neorg toc split<CR>" },
                 },
             }, {
                 silent = true,
