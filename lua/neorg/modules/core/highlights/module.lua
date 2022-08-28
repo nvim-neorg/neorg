@@ -498,7 +498,7 @@ module.load = function()
                 todo_items.pending[index].content = todo_items.pending[index][""]
                 todo_items.done[index].content = todo_items.done[index][""]
                 todo_items.urgent[index].content = todo_items.urgent[index][""]
-                todo_items.onhold[index].content = todo_items.onhold[index][""]
+                todo_items.on_hold[index].content = todo_items.on_hold[index][""]
                 todo_items.recurring[index].content = todo_items.recurring[index][""]
                 todo_items.uncertain[index].content = todo_items.uncertain[index][""]
             end
