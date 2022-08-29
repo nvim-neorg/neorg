@@ -9,14 +9,11 @@ This module creates five commands.
 - `:Neorg journal yesterday`
 - `:Neorg journal tomorrow`
 With this commands you can open the config files for the dates.
-
 - `Neorg journal custom`
 This command requires a date as an argument.
 The date should have to format yyyy-mm-dd.
-
 - `:Neorg journal template`
 This command creates a template file which will be used whenever a new journal entry is created.
-
 - `:Neorg journal toc`
 This command creates a TOC file from all the entries
 located in the journal folder, named after the workspace index.
@@ -200,6 +197,14 @@ module.private = {
             return handle
         end
 
+        -- Gets the title from the metadata of a file, must be called in a vim.schedule
+        local get_title = function(file)
+            local buffer = vim.fn.bufadd(folder_name .. neorg.configuration.pathsep .. file)
+            local meta = module.required["core.integrations.treesitter"].get_document_metadata(buffer)
+            local title = meta["title"]
+            return title
+        end
+
         vim.loop.fs_scandir(folder_name .. neorg.configuration.pathsep, function(err, handle)
             while true do
                 -- Name corresponds to either a YYYY-mm-dd.norg file, or just the year ("nested" strategy)
@@ -232,29 +237,37 @@ module.private = {
 
                                 -- If it's a .norg file, also ensure it is a day entry
                                 if dtype == "file" and string.match(dname, "%d%d%.norg") then
-                                    -- Split the file name (Should be dd.norg)
+                                    -- Split the file name
                                     local file = vim.split(dname, ".", { plain = true })
 
-                                    -- Until a solution for getting the metadata is found, the title will always be the day
-                                    local title = file[1]
+                                    vim.schedule(function()
+                                        -- Get the title from the metadata, else, it just defaults to the name of the file
+                                        local title = get_title(
+                                            name
+                                                .. neorg.configuration.pathsep
+                                                .. mname
+                                                .. neorg.configuration.pathsep
+                                                .. dname
+                                        ) or file[1]
 
-                                    -- Insert a new entry
-                                    table.insert(entries, {
-                                        tonumber(name),
-                                        tonumber(mname),
-                                        tonumber(file[1]),
-                                        "{:$"
-                                            .. neorg.configuration.pathsep
-                                            .. module.config.public.journal_folder
-                                            .. neorg.configuration.pathsep
-                                            .. name
-                                            .. neorg.configuration.pathsep
-                                            .. mname
-                                            .. neorg.configuration.pathsep
-                                            .. file[1]
-                                            .. ":}",
-                                        title,
-                                    })
+                                        -- Insert a new entry
+                                        table.insert(entries, {
+                                            tonumber(name),
+                                            tonumber(mname),
+                                            tonumber(file[1]),
+                                            "{:$"
+                                                .. neorg.configuration.pathsep
+                                                .. module.config.public.journal_folder
+                                                .. neorg.configuration.pathsep
+                                                .. name
+                                                .. neorg.configuration.pathsep
+                                                .. mname
+                                                .. neorg.configuration.pathsep
+                                                .. file[1]
+                                                .. ":}",
+                                            title,
+                                        })
+                                    end)
                                 end
                             end
                         end
@@ -275,22 +288,24 @@ module.private = {
                         parts[k] = tonumber(v)
                     end
 
-                    -- Until a solution for getting the metadata is found, the title will always be the day
-                    local title = parts[3]
+                    vim.schedule(function()
+                        -- Get the title from the metadata, else, it just defaults to the name of the file
+                        local title = get_title(name) or parts[3]
 
-                    -- And insert a new entry that corresponds to the file
-                    table.insert(entries, {
-                        parts[1],
-                        parts[2],
-                        parts[3],
-                        "{:$"
-                            .. neorg.configuration.pathsep
-                            .. module.config.public.journal_folder
-                            .. neorg.configuration.pathsep
-                            .. file[1]
-                            .. ":}",
-                        title,
-                    })
+                        -- And insert a new entry that corresponds to the file
+                        table.insert(entries, {
+                            parts[1],
+                            parts[2],
+                            parts[3],
+                            "{:$"
+                                .. neorg.configuration.pathsep
+                                .. module.config.public.journal_folder
+                                .. neorg.configuration.pathsep
+                                .. file[1]
+                                .. ":}",
+                            title,
+                        })
+                    end)
                 end
             end
 
@@ -365,7 +380,7 @@ module.config.public = {
     use_template = true,
 
     -- formatter function used to generate the toc file
-    -- receives a table that contains tables like { yy, mm, dd, link, title}
+    -- receives a table that contains tables like { yy, mm, dd, link, title }
     -- must return a table of strings
     toc_format = nil,
 }
