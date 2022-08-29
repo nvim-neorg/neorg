@@ -187,6 +187,8 @@ module.private = {
         -- Each entry is a table that contains tables like { yy, mm, dd, link, title}
         local entries = {}
 
+        -- Get a filesystem handle for the files in the journal folder
+        -- path is for each subfolder
         local get_fs_handle = function(path)
             path = path or ""
             local handle = vim.loop.fs_scandir(folder_name .. neorg.configuration.pathsep .. path)
@@ -199,19 +201,19 @@ module.private = {
         end
 
         vim.loop.fs_scandir(folder_name .. neorg.configuration.pathsep, function(err, handle)
-            assert(not err, neorg.lib.lazy_string_concat("Failed to scan directory '", workspace, path, "': ", handle))
-
             while true do
+                -- Name corresponds to either a YYYY-mm-dd.norg file, or just the year ("nested" strategy)
                 local name, type = vim.loop.fs_scandir_next(handle)
 
                 if not name then
                     break
                 end
 
-                -- Handles nested entries
+                -- Handle nested entries
                 if type == "directory" then
                     local years_handle = get_fs_handle(name)
                     while true do
+                        -- mname is the month
                         local mname, mtype = vim.loop.fs_scandir_next(years_handle)
 
                         if not mname then
@@ -221,6 +223,7 @@ module.private = {
                         if mtype == "directory" then
                             local months_handle = get_fs_handle(name .. neorg.configuration.pathsep .. mname)
                             while true do
+                                -- dname is the day
                                 local dname, dtype = vim.loop.fs_scandir_next(months_handle)
 
                                 if not dname then
@@ -228,7 +231,7 @@ module.private = {
                                 end
 
                                 -- If it's a .norg file, also ensure it is a day entry
-                                if dtype == "file" and vim.endswith(dname, ".norg") and string.match(dname, "%d%d") then
+                                if dtype == "file" and string.match(dname, "%d%d%.norg") then
                                     -- Split the file name (Should be dd.norg)
                                     local file = vim.split(dname, ".", { plain = true })
 
@@ -262,7 +265,7 @@ module.private = {
                 -- If it is a .norg file, but it's not any user generated file.
                 -- The match is here to avoid handling files made by the user, like a template file, or
                 -- the toc file
-                if type == "file" and vim.endswith(name, ".norg") and string.match(name, "%d+[/-]%d+[/-]%d+") then
+                if type == "file" and string.match(name, "%d+-%d+-%d+%.norg") then
                     -- Split yyyy-mm-dd to a table
                     local file = vim.split(name, ".", { plain = true })
                     local parts = vim.split(file[1], "-")
@@ -337,7 +340,6 @@ module.private = {
                 )
 
                 -- The current buffer now must be the toc file, so we set our toc entries there
-                print(vim.inspect(entries))
                 vim.api.nvim_buf_set_lines(0, 0, -1, false, format(entries))
                 vim.cmd("w")
             end)
