@@ -197,7 +197,7 @@ module.public = {
                 elseif type == "italic" then
                     return "_"
                 elseif type == "underline" then
-                    return "__"
+                    return "<u>"
                 elseif type == "strikethrough" then
                     return "~~"
                 elseif type == "spoiler" then
@@ -219,7 +219,7 @@ module.public = {
                 elseif type == "italic" then
                     return "_"
                 elseif type == "underline" then
-                    return "__"
+                    return "</u>"
                 elseif type == "strikethrough" then
                     return "~~"
                 elseif type == "spoiler" then
