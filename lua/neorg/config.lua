@@ -2,6 +2,7 @@
 neorg.configuration = {
 
     user_configuration = {
+        lazy_loading = true,
         load = {
             --[[
 				["name"] = { config = { ... } }
