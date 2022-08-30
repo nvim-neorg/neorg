@@ -32,7 +32,6 @@ module.public = {
             return 0
         end
 
-        -- local initial_indent = module.required["core.integrations.treesitter"].get_node_range(node).column_start
         local initial_indent = module.required["core.integrations.treesitter"].get_node_range(node).column_start
 
         local indent = 0
