@@ -172,7 +172,14 @@ module.config.public = {
                 return 0
             end
 
-            return module.required["core.integrations.treesitter"].get_node_range(heading:named_child(1)).column_start - 1
+            local column_start =
+                module.required["core.integrations.treesitter"].get_node_range(heading:named_child(1)).column_start
+
+            if heading:type() == "heading1" then
+                return column_start
+            end
+
+            return column_start - 1
         end,
 
         -- For any object that should be indented under a list
