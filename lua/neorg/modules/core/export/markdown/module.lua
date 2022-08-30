@@ -283,8 +283,8 @@ module.public = {
             ["ordered_list6_prefix"] = ordered_list_prefix(6),
 
             ["tag_parameters"] = function(text, _, state)
-                if state.is_export then
-                    state.is_export = nil
+                if state.ignore_tag_parameters then
+                    state.ignore_tag_parameters = nil
                     return "", false, state
                 end
 
@@ -332,12 +332,14 @@ module.public = {
                         {
                             tag_indent = tag_start_column - 1,
                             tag_close = "",
-                            is_export = true,
+                            ignore_tag_parameters = true,
                         }
                 end
 
                 state.tag_close = nil
-                return nil, false, state
+                return nil, false, {
+                    ignore_tag_parameters = true,
+                }
             end,
 
             ["ranged_tag_content"] = function(text, node, state)
