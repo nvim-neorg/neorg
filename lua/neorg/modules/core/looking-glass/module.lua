@@ -158,7 +158,7 @@ module.on_event = function(event)
             [[
             (ranged_tag
                 name: (tag_name) @_name
-                (#eq? @_name "code")) @tag
+                (#any-of? @_name "code" "embed")) @tag
         ]]
         )
 

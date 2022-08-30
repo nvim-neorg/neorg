@@ -131,6 +131,17 @@ module.public = {
                     descend = {},
                 },
                 {
+                    regex = "export%s+%w*",
+
+                    complete = require("neorg.external.helpers").get_language_list(true),
+
+                    options = {
+                        type = "Language",
+                    },
+
+                    descend = {},
+                },
+                {
                     regex = "tangle%s+%w*",
 
                     complete = {

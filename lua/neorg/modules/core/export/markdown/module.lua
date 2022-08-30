@@ -290,9 +290,16 @@ module.public = {
             ["ordered_list5_prefix"] = ordered_list_prefix(5),
             ["ordered_list6_prefix"] = ordered_list_prefix(6),
 
-            ["tag_parameters"] = true,
+            ["tag_parameters"] = function(text, _, state)
+                if state.ignore_tag_parameters then
+                    state.ignore_tag_parameters = nil
+                    return "", false, state
+                end
 
-            ["tag_name"] = function(text, node, state)
+                return text
+            end,
+
+            ["tag_name"] = function(text, node, state, ts_utils)
                 local _, tag_start_column = node:range()
 
                 if text == "code" then
@@ -324,10 +331,23 @@ module.public = {
                             tag_close = module.config.public.metadata["end"],
                             is_meta = true,
                         }
+                elseif text == "embed"
+                    and node:next_sibling()
+                    and ts_utils.get_node_text(node:next_sibling())[1] == "markdown"
+                then
+                    return "",
+                        false,
+                        {
+                            tag_indent = tag_start_column - 1,
+                            tag_close = "",
+                            ignore_tag_parameters = true,
+                        }
                 end
 
                 state.tag_close = nil
-                return nil, false, state
+                return nil, false, {
+                    ignore_tag_parameters = true,
+                }
             end,
 
             ["ranged_tag_content"] = function(text, node, state)
