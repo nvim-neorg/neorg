@@ -282,9 +282,16 @@ module.public = {
             ["ordered_list5_prefix"] = ordered_list_prefix(5),
             ["ordered_list6_prefix"] = ordered_list_prefix(6),
 
-            ["tag_parameters"] = true,
+            ["tag_parameters"] = function(text, _, state)
+                if state.is_export then
+                    state.is_export = nil
+                    return "", false, state
+                end
 
-            ["tag_name"] = function(text, node, state)
+                return text
+            end,
+
+            ["tag_name"] = function(text, node, state, ts_utils)
                 local _, tag_start_column = node:range()
 
                 if text == "code" then
@@ -315,6 +322,17 @@ module.public = {
                             tag_indent = tag_start_column - 1,
                             tag_close = module.config.public.metadata["end"],
                             is_meta = true,
+                        }
+                elseif text == "export"
+                    and node:next_sibling()
+                    and ts_utils.get_node_text(node:next_sibling())[1] == "markdown"
+                then
+                    return "",
+                        false,
+                        {
+                            tag_indent = tag_start_column - 1,
+                            tag_close = "",
+                            is_export = true,
                         }
                 end
 

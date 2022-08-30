@@ -269,7 +269,7 @@ module.public = {
                 "norg",
                 [[(
                     (ranged_tag (tag_name) @_name) @tag
-                    (#eq? @_name "code")
+                    (#any-of? @_name "code" "export")
                 )]]
             )
 

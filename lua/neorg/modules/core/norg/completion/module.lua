@@ -86,6 +86,7 @@ module.public = {
             complete = {
                 "table",
                 "code",
+                "export",
                 "image",
                 "embed",
                 "document",
@@ -128,6 +129,17 @@ module.public = {
                     },
 
                     -- Don't descend any further, we've narrowed down our match
+                    descend = {},
+                },
+                {
+                    regex = "export%s+%w*",
+
+                    complete = require("neorg.external.helpers").get_language_list(true),
+
+                    options = {
+                        type = "Language",
+                    },
+
                     descend = {},
                 },
                 {
