@@ -109,7 +109,7 @@ module.public = {
                 "norg",
                 [[(
                     (ranged_tag (tag_name) @_tagname (tag_parameters) @language)
-                    (#any-of? @_tagname "code" "export")
+                    (#any-of? @_tagname "code" "embed")
                 )]]
             )
 

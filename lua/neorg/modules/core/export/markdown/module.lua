@@ -323,7 +323,7 @@ module.public = {
                             tag_close = module.config.public.metadata["end"],
                             is_meta = true,
                         }
-                elseif text == "export"
+                elseif text == "embed"
                     and node:next_sibling()
                     and ts_utils.get_node_text(node:next_sibling())[1] == "markdown"
                 then

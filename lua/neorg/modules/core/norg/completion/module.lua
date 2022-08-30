@@ -86,7 +86,6 @@ module.public = {
             complete = {
                 "table",
                 "code",
-                "export",
                 "image",
                 "embed",
                 "document",
