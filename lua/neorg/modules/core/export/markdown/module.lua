@@ -337,23 +337,27 @@ module.public = {
                             tag_indent = tag_start_column - 1,
                             tag_close = module.config.public.metadata["end"],
                             is_meta = true,
-                        }
-                elseif text == "embed"
+                        },
+                    }
+                elseif
+                    text == "embed"
                     and node:next_sibling()
                     and ts_utils.get_node_text(node:next_sibling())[1] == "markdown"
                 then
-                    return "",
-                        false,
-                        {
+                    return {
+                        state = {
                             tag_indent = tag_start_column - 1,
                             tag_close = "",
                             ignore_tag_parameters = true,
-                        }
+                        },
+                    }
                 end
 
-                state.tag_close = nil
-                return nil, false, {
-                    ignore_tag_parameters = true,
+                return {
+                    state = {
+                        ignore_tag_parameters = true,
+                        tag_close = nil,
+                    },
                 }
             end,
 
