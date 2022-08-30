@@ -197,13 +197,17 @@ module.public = {
                 elseif type == "italic" then
                     return "_"
                 elseif type == "underline" then
-                    return "__"
+                    return "<u>"
                 elseif type == "strikethrough" then
                     return "~~"
                 elseif type == "spoiler" then
                     return "|"
                 elseif type == "verbatim" then
                     return "`"
+                elseif type == "superscript" then
+                    return "<sup>"
+                elseif type == "subscript" then
+                    return "<sub>"
                 elseif type == "inline_comment" then
                     return "<!-- "
                 elseif type == "inline_math" and module.config.public.extensions["mathematics"] then
@@ -219,13 +223,17 @@ module.public = {
                 elseif type == "italic" then
                     return "_"
                 elseif type == "underline" then
-                    return "__"
+                    return "</u>"
                 elseif type == "strikethrough" then
                     return "~~"
                 elseif type == "spoiler" then
                     return "|"
                 elseif type == "verbatim" then
                     return "`"
+                elseif type == "superscript" then
+                    return "</sup>"
+                elseif type == "subscript" then
+                    return "</sub>"
                 elseif type == "inline_comment" then
                     return " -->"
                 elseif type == "inline_math" and module.config.public.extensions["mathematics"] then
