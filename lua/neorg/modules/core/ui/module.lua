@@ -131,7 +131,7 @@ module.public = {
             bufhidden = "hide",
             buftype = "nofile",
             buflisted = false,
-            filetype = "neorg",
+            filetype = "norg",
         }
 
         vim.api.nvim_buf_set_name(buf, bufname)
@@ -188,7 +188,7 @@ module.public = {
             bufhidden = "hide",
             buftype = "nofile",
             buflisted = false,
-            filetype = "neorg",
+            filetype = "norg",
         }
 
         vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
