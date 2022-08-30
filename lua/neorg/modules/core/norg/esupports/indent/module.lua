@@ -32,6 +32,7 @@ module.public = {
             return 0
         end
 
+        -- local initial_indent = module.required["core.integrations.treesitter"].get_node_range(node).column_start
         local initial_indent = module.required["core.integrations.treesitter"].get_node_range(node).column_start
 
         local indent = 0
@@ -132,19 +133,19 @@ module.config.public = {
             indent = 0,
         },
         ["heading2"] = {
-            indent = 0,
+            indent = 2,
         },
         ["heading3"] = {
-            indent = 0,
+            indent = 4,
         },
         ["heading4"] = {
-            indent = 0,
+            indent = 6,
         },
         ["heading5"] = {
-            indent = 0,
+            indent = 8,
         },
         ["heading6"] = {
-            indent = 0,
+            indent = 10,
         },
 
         ["ranged_tag"] = {
@@ -171,7 +172,7 @@ module.config.public = {
                 return 0
             end
 
-            return module.required["core.integrations.treesitter"].get_node_range(heading:named_child(1)).column_start
+            return module.required["core.integrations.treesitter"].get_node_range(heading:named_child(1)).column_start - 1
         end,
 
         -- For any object that should be indented under a list
