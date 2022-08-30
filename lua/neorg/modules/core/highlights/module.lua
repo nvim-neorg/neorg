@@ -79,6 +79,10 @@ module.config.public = {
 
                 parameters = "+@string",
             },
+
+            comment = {
+                content = "+@comment"
+            }
         },
 
         headings = {

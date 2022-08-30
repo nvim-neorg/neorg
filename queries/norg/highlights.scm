@@ -4,7 +4,9 @@
 	content: (ranged_tag_content)?
 	(ranged_tag_end ("_prefix") @neorg.tags.ranged_verbatim.end ("_name") @neorg.tags.ranged_verbatim.name.word))
 
-; TODO: Make the content of @comment darker
+(ranged_tag ("_prefix")
+	name: (tag_name) @neorg.tags.ranged_verbatim.name (#eq? @neorg.tags.ranged_verbatim.name "comment")
+	content: (ranged_tag_content)? @neorg.tags.comment.content)
 
 (carryover_tag_set
     (carryover_tag
