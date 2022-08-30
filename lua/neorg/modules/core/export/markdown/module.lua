@@ -15,6 +15,15 @@ like your markdown to be exported (i.e. do you want to support certain extension
 
 local module = neorg.modules.create("core.export.markdown")
 
+module.setup = function()
+    return {
+        success = true,
+        wants = {
+            "core.integrations.treesitter",
+        },
+    }
+end
+
 local last_parsed_link_location = ""
 
 --> Generic Utility Functions
@@ -299,7 +308,7 @@ module.public = {
                 return text
             end,
 
-            ["tag_name"] = function(text, node, state, ts_utils)
+            ["tag_name"] = function(text, node, state)
                 local _, tag_start_column = node:range()
 
                 if text == "code" then
@@ -333,7 +342,7 @@ module.public = {
                         }
                 elseif text == "embed"
                     and node:next_sibling()
-                    and ts_utils.get_node_text(node:next_sibling())[1] == "markdown"
+                    and module.required["core.integrations.treesitter"].get_node_text(node:next_sibling()) == "markdown"
                 then
                     return "",
                         false,
