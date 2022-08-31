@@ -393,25 +393,27 @@ module.public = {
             end
         end
 
+        local function os_open_link(link_location)
+            local o = {}
+            if neorg.configuration.os_info == "windows" then
+                o.command = "rundll32.exe"
+                o.args = { "url.dll,FileProtocolHandler", link_location }
+            else
+                if neorg.configuration.os_info == "linux" then
+                    o.command = "xdg-open"
+                elseif neorg.configuration.os_info == "mac" then
+                    o.command = "open"
+                end
+                o.args = { link_location }
+            end
+
+            job:new(o):start()
+        end
+
         return neorg.lib.match(parsed_link_information.link_type)({
             -- If we're dealing with a URL, simply open the URL in the user's preferred method
             url = function()
-                local function open_with(command)
-                    job
-                        :new({
-                            command = command,
-                            args = { parsed_link_information.link_location_text },
-                        })
-                        :start()
-                end
-
-                if neorg.configuration.os_info == "linux" then
-                    open_with("xdg-open")
-                elseif neorg.configuration.os_info == "mac" then
-                    open_with("open")
-                else
-                    open_with("start")
-                end
+                os_open_link(parsed_link_information.link_location_text)
 
                 return {}
             end,
@@ -424,22 +426,7 @@ module.public = {
                 ) .. destination
 
                 local function open_in_external_app()
-                    local function open_with(command)
-                        job
-                            :new({
-                                command = command,
-                                args = { vim.uri_from_fname(vim.fn.expand(destination)) },
-                            })
-                            :start()
-                    end
-
-                    if neorg.configuration.os_info == "linux" then
-                        open_with("xdg-open")
-                    elseif neorg.configuration.os_info == "mac" then
-                        open_with("open")
-                    else
-                        open_with("start")
-                    end
+                    os_open_link(vim.uri_from_fname(vim.fn.expand(destination)))
                 end
 
                 neorg.lib.match(destination:match("%.(.+)$"))({
