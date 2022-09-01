@@ -28,7 +28,7 @@ function neorg.setup(config)
     })
 
     -- If the file we have entered has a .norg extension
-    if vim.fn.expand("%:e") == "norg" then
+    if vim.fn.expand("%:e") == "norg" or not config.lazy_loading then
         -- Then boot up the environment
         neorg.org_file_entered(false)
     else
