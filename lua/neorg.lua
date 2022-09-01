@@ -13,7 +13,7 @@ local configuration = require("neorg.config")
 --- This function takes in a user configuration, parses it, initializes everything and launches neorg if inside a .norg or .org file
 ---@param config table #A table that reflects the structure of configuration.user_configuration
 function neorg.setup(config)
-    configuration.user_configuration = config or {}
+    configuration.user_configuration = vim.tbl_deep_extend("force", configuration.user_configuration, config or {})
 
     -- Create a new global instance of the neorg logger
     require("neorg.external.log").new(configuration.user_configuration.logger or log.get_default_config(), true)
@@ -28,7 +28,7 @@ function neorg.setup(config)
     })
 
     -- If the file we have entered has a .norg extension
-    if vim.fn.expand("%:e") == "norg" or not config.lazy_loading then
+    if vim.fn.expand("%:e") == "norg" or not configuration.user_configuration.lazy_loading then
         -- Then boot up the environment
         neorg.org_file_entered(false)
     else
