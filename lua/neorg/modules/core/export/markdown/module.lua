@@ -21,11 +21,13 @@ local last_parsed_link_location = ""
 
 local function unordered_list_prefix(level)
     return function()
-        return string.rep(" ", (level - 1) * 4) .. "- ",
-            true,
-            {
+        return {
+            output = string.rep(" ", (level - 1) * 4) .. "- ",
+            keep_descending = true,
+            state = {
                 weak_indent = ((level - 1) * 4) + 2,
-            }
+            },
+        }
     end
 end
 
@@ -38,17 +40,22 @@ local function ordered_list_prefix(level)
             state.ordered_list_level[i] = 0
         end
 
-        return string.rep(" ", (level - 1) * 4) .. tostring(state.ordered_list_level[level]) .. ". ", true, state
+        return {
+            output = string.rep(" ", (level - 1) * 4) .. tostring(state.ordered_list_level[level]) .. ". ",
+            keep_descending = true,
+            state = state,
+        }
     end
 end
 
 local function todo_item_extended(replace_text)
     return function(_, _, state)
-        return module.config.public.extensions["todo-items-extended"] and replace_text,
-            false,
-            {
+        return {
+            output = module.config.public.extensions["todo-items-extended"] and replace_text or nil,
+            state = {
                 weak_indent = state.weak_indent + replace_text:len(),
-            }
+            },
+        }
     end
 end
 
@@ -170,12 +177,13 @@ module.public = {
             end,
 
             ["_paragraph_break"] = function(newlines, _, state)
-                return string.rep("\n\n", newlines:len()) .. string.rep(" ", state.indent),
-                    false,
-                    {
+                return {
+                    output = string.rep("\n\n", newlines:len()) .. string.rep(" ", state.indent),
+                    state = {
                         weak_indent = 0,
                         ordered_list_level = { 0, 0, 0, 0, 0, 0 },
-                    }
+                    },
+                }
             end,
 
             ["_segment"] = function(text, node, state)
@@ -296,13 +304,16 @@ module.public = {
             ["tag_parameters"] = function(text, _, state)
                 if state.ignore_tag_parameters then
                     state.ignore_tag_parameters = nil
-                    return "", false, state
+                    return {
+                        output = "",
+                        state = state,
+                    }
                 end
 
                 return text
             end,
 
-            ["tag_name"] = function(text, node, state, ts_utils)
+            ["tag_name"] = function(text, node, _, ts_utils)
                 local _, tag_start_column = node:range()
 
                 if text == "code" then
