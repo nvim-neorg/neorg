@@ -18,7 +18,7 @@ local module = neorg.modules.create("core.export.markdown")
 module.setup = function()
     return {
         success = true,
-        wants = {
+        requires = {
             "core.integrations.treesitter",
         },
     }
