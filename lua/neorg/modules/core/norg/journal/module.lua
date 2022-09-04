@@ -14,9 +14,10 @@ This command requires a date as an argument.
 The date should have to format yyyy-mm-dd.
 - `:Neorg journal template`
 This command creates a template file which will be used whenever a new journal entry is created.
-- `:Neorg journal toc`
-This command creates a TOC file from all the entries
-located in the journal folder, named after the workspace index.
+- `:Neorg journal toc update`
+This command creates or updates a TOC file containing all the entries located in the journal folder, named after the workspace index.
+- `:Neorg journal toc open`
+This command opens the TOC file without updating it.
 --]]
 
 require("neorg.modules.base")
@@ -174,7 +175,25 @@ module.private = {
         )
     end,
 
-    --- Creates a toc file
+    --- Opens the toc file
+    open_toc = function()
+        local workspace = module.config.public.workspace
+            or module.required["core.norg.dirman"].get_current_workspace()[1]
+        local index = neorg.modules.get_module_config("core.norg.dirman").index
+        local folder_name = module.config.public.journal_folder
+
+        -- If the toc exists, open it, if not, create it
+        if module.required["core.norg.dirman"].file_exists(folder_name .. neorg.configuration.pathsep .. index) then
+            module.required["core.norg.dirman"].open_file(
+                workspace,
+                folder_name .. neorg.configuration.pathsep .. index
+            )
+        else
+            module.private.create_toc()
+        end
+    end,
+
+    --- Creates or updates the toc file
     create_toc = function()
         local workspace = module.config.public.workspace
             or module.required["core.norg.dirman"].get_current_workspace()[1]
@@ -409,7 +428,10 @@ module.load = function()
                 today = {},
                 custom = {},
                 template = {},
-                toc = {},
+                toc = {
+                    open = {},
+                    update = {},
+                },
             },
         },
         data = {
@@ -422,7 +444,14 @@ module.load = function()
                     today = { args = 0, name = "journal.today" },
                     custom = { args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
                     template = { args = 0, name = "journal.template" },
-                    toc = { args = 0, name = "journal.toc" },
+                    toc = {
+                        args = 1,
+                        name = "journal.toc",
+                        subcommands = {
+                            open = { args = 0, name = "journal.toc.open" },
+                            update = { args = 0, name = "journal.toc.update" },
+                        },
+                    },
                 },
             },
         },
@@ -441,7 +470,9 @@ module.on_event = function(event)
             module.private.diary_today()
         elseif event.split_type[2] == "journal.template" then
             module.private.create_template()
-        elseif event.split_type[2] == "journal.toc" then
+        elseif event.split_type[2] == "journal.toc.open" then
+            module.private.open_toc()
+        elseif event.split_type[2] == "journal.toc.update" then
             module.private.create_toc()
         end
     end
@@ -454,7 +485,8 @@ module.events.subscribed = {
         ["journal.today"] = true,
         ["journal.custom"] = true,
         ["journal.template"] = true,
-        ["journal.toc"] = true,
+        ["journal.toc.update"] = true,
+        ["journal.toc.open"] = true,
     },
 }
 
