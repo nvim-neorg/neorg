@@ -30,11 +30,13 @@ local last_parsed_link_location = ""
 
 local function unordered_list_prefix(level)
     return function()
-        return string.rep(" ", (level - 1) * 4) .. "- ",
-            true,
-            {
+        return {
+            output = string.rep(" ", (level - 1) * 4) .. "- ",
+            keep_descending = true,
+            state = {
                 weak_indent = ((level - 1) * 4) + 2,
-            }
+            },
+        }
     end
 end
 
@@ -47,17 +49,22 @@ local function ordered_list_prefix(level)
             state.ordered_list_level[i] = 0
         end
 
-        return string.rep(" ", (level - 1) * 4) .. tostring(state.ordered_list_level[level]) .. ". ", true, state
+        return {
+            output = string.rep(" ", (level - 1) * 4) .. tostring(state.ordered_list_level[level]) .. ". ",
+            keep_descending = true,
+            state = state,
+        }
     end
 end
 
 local function todo_item_extended(replace_text)
     return function(_, _, state)
-        return module.config.public.extensions["todo-items-extended"] and replace_text,
-            false,
-            {
+        return {
+            output = module.config.public.extensions["todo-items-extended"] and replace_text or nil,
+            state = {
                 weak_indent = state.weak_indent + replace_text:len(),
-            }
+            },
+        }
     end
 end
 
@@ -73,7 +80,8 @@ local function handle_heading_newlines()
     return function(output, _, node, ts_utils)
         local prev = ts_utils.get_previous_node(node, true, true)
 
-        if prev
+        if
+            prev
             and not vim.tbl_contains({ "_line_break", "_paragraph_break" }, prev:type())
             and ((prev:end_()) + 1) ~= (node:start())
         then
@@ -178,12 +186,13 @@ module.public = {
             end,
 
             ["_paragraph_break"] = function(newlines, _, state)
-                return string.rep("\n\n", newlines:len()) .. string.rep(" ", state.indent),
-                    false,
-                    {
+                return {
+                    output = string.rep("\n\n", newlines:len()) .. string.rep(" ", state.indent),
+                    state = {
                         weak_indent = 0,
                         ordered_list_level = { 0, 0, 0, 0, 0, 0 },
-                    }
+                    },
+                }
             end,
 
             ["_segment"] = function(text, node, state)
@@ -275,8 +284,10 @@ module.public = {
             end,
 
             ["link_target_url"] = function()
-                return nil, false, {
-                    is_url = true,
+                return {
+                    state = {
+                        is_url = true,
+                    },
                 }
             end,
 
@@ -302,68 +313,82 @@ module.public = {
             ["tag_parameters"] = function(text, _, state)
                 if state.ignore_tag_parameters then
                     state.ignore_tag_parameters = nil
-                    return "", false, state
+                    return {
+                        output = "",
+                        state = state,
+                    }
                 end
 
                 return text
             end,
 
-            ["tag_name"] = function(text, node, state)
+            ["tag_name"] = function(text, node, _, ts_utils)
                 local _, tag_start_column = node:range()
 
                 if text == "code" then
-                    return "```",
-                        false,
-                        {
-                            tag_indent = tag_start_column - 1, -- Minus one to account for the `@`
+                    return {
+                        output = "```",
+                        state = {
+                            -- Minus one to account for the `@`
+                            tag_indent = tag_start_column - 1,
                             tag_close = "```",
-                        }
+                        },
+                    }
                 elseif text == "comment" then
-                    return "<!--",
-                        false,
-                        {
+                    return {
+                        output = "<!--",
+                        state = {
                             tag_indent = tag_start_column - 1,
                             tag_close = "-->",
-                        }
+                        },
+                    }
                 elseif text == "math" and module.config.public.extensions["mathematics"] then
-                    return module.config.public.mathematics.block["start"],
-                        false,
-                        {
+                    return {
+                        output = module.config.public.mathematics.block["start"],
+                        state = {
                             tag_indent = tag_start_column - 1,
                             tag_close = module.config.public.mathematics.block["end"],
-                        }
+                        },
+                    }
                 elseif text == "document.meta" and module.config.public.extensions["metadata"] then
-                    return module.config.public.metadata["start"],
-                        false,
-                        {
+                    return {
+                        output = module.config.public.metadata["start"],
+                        state = {
                             tag_indent = tag_start_column - 1,
                             tag_close = module.config.public.metadata["end"],
                             is_meta = true,
-                        }
-                elseif text == "embed"
+                        },
+                    }
+                elseif
+                    text == "embed"
                     and node:next_sibling()
                     and module.required["core.integrations.treesitter"].get_node_text(node:next_sibling()) == "markdown"
                 then
-                    return "",
-                        false,
-                        {
+                    return {
+                        state = {
                             tag_indent = tag_start_column - 1,
                             tag_close = "",
                             ignore_tag_parameters = true,
-                        }
+                        },
+                    }
                 end
 
-                state.tag_close = nil
-                return nil, false, {
-                    ignore_tag_parameters = true,
+                return {
+                    state = {
+                        ignore_tag_parameters = true,
+                        tag_close = nil,
+                    },
                 }
             end,
 
             ["ranged_tag_content"] = function(text, node, state)
                 if state.is_meta then
                     state.is_meta = false
-                    return "", true, {
-                        parse_as = "norg_meta",
+                    return {
+                        keep_descending = true,
+                        state = {
+                            parse_as = "norg_meta",
+                        },
                     }
                 end
 
@@ -394,27 +419,30 @@ module.public = {
             ["quote6_prefix"] = true,
 
             ["todo_item_done"] = function(_, _, state)
-                return module.config.public.extensions["todo-items-basic"] and "[x] ",
-                    false,
-                    {
+                return {
+                    output = module.config.public.extensions["todo-items-basic"] and "[x] ",
+                    state = {
                         weak_indent = state.weak_indent + 4,
-                    }
+                    },
+                }
             end,
 
             ["todo_item_undone"] = function(_, _, state)
-                return module.config.public.extensions["todo-items-basic"] and "[ ] ",
-                    false,
-                    {
+                return {
+                    output = module.config.public.extensions["todo-items-basic"] and "[ ] ",
+                    state = {
                         weak_indent = state.weak_indent + 4,
-                    }
+                    },
+                }
             end,
 
             ["todo_item_pending"] = function(_, _, state)
-                return module.config.public.extensions["todo-items-pending"] and "[*] ",
-                    false,
-                    {
+                return {
+                    output = module.config.public.extensions["todo-items-pending"] and "[*] ",
+                    state = {
                         weak_indent = state.weak_indent + 4,
-                    }
+                    },
+                }
             end,
 
             ["todo_item_urgent"] = todo_item_extended("[ ] "),
@@ -432,8 +460,11 @@ module.public = {
                     return
                 end
 
-                return ": ", false, {
-                    indent = state.indent + 2,
+                return {
+                    output = ": ",
+                    state = {
+                        indent = state.indent + 2,
+                    },
                 }
             end,
 
@@ -442,17 +473,19 @@ module.public = {
                     return
                 end
 
-                return nil, false, {
-                    indent = state.indent - 2,
+                return {
+                    state = {
+                        indent = state.indent - 2,
+                    },
                 }
             end,
 
             ["_prefix"] = function(_, node)
-                return nil,
-                    false,
-                    {
+                return {
+                    state = {
                         ranged_tag_indentation_level = ({ node:range() })[2],
-                    }
+                    },
+                }
             end,
 
             ["capitalized_word"] = function(text, node)
@@ -470,13 +503,17 @@ module.public = {
             [":"] = ": ",
 
             ["["] = function(_, _, state)
-                return "", false, {
-                    indent = state.indent + 2,
+                return {
+                    state = {
+                        indent = state.indent + 2,
+                    },
                 }
             end,
             ["]"] = function(_, _, state)
-                return "", false, {
-                    indent = state.indent - 2,
+                return {
+                    state = {
+                        indent = state.indent - 2,
+                    },
                 }
             end,
 
@@ -485,7 +522,7 @@ module.public = {
                     return "\n" .. string.rep(" ", state.indent) .. "- " .. text
                 end
 
-                return text, false
+                return text
             end,
         },
 
@@ -572,7 +609,6 @@ module.public = {
 
         cleanup = function()
             last_parsed_link_location = ""
-            -- return text:gsub("\n\n\n+", "\n\n")
         end,
     },
 }

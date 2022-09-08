@@ -140,34 +140,37 @@ module.public = {
                     --  a boolean (true), which signifies to use the content of the node as-is without changing anything
                     --  a string, in which case every time the node is encountered it will always be converted to a static value
                     if type(exporter) == "function" then
-                        -- An exporter function can return 3 values:
-                        --  `resulting_string` - the converted text
+                        -- An exporter function can return output string or table with 3 values:
+                        --  `output` - the converted text
                         --  `keep_descending`  - if true will continue to recurse down the current node's children despite the current
                         --                      node already being parsed
-                        --  `returned_state`   - a modified version of the state that then gets merged into the main state table
-                        local resulting_string, keep_descending, returned_state =
-                            exporter(vim.treesitter.get_node_text(node, buffer), node, state, ts_utils)
+                        --  `state`   - a modified version of the state that then gets merged into the main state table
+                        local result = exporter(vim.treesitter.get_node_text(node, buffer), node, state, ts_utils)
 
-                        state = returned_state and vim.tbl_extend("force", state, returned_state) or state
+                        if type(result) == "table" then
+                            state = result.state and vim.tbl_extend("force", state, result.state) or state
 
-                        if resulting_string then
-                            table.insert(output, resulting_string)
-                        end
-
-                        if keep_descending then
-                            if state.parse_as then
-                                node = module.required["core.integrations.treesitter"].get_document_root(
-                                    "\n" .. vim.treesitter.get_node_text(node, buffer),
-                                    state.parse_as
-                                )
-                                state.parse_as = nil
+                            if result.output then
+                                table.insert(output, result.output)
                             end
 
-                            local ret = descend(node)
+                            if result.keep_descending then
+                                if state.parse_as then
+                                    node = module.required["core.integrations.treesitter"].get_document_root(
+                                        "\n" .. vim.treesitter.get_node_text(node, buffer),
+                                        state.parse_as
+                                    )
+                                    state.parse_as = nil
+                                end
 
-                            if ret then
-                                table.insert(output, ret)
+                                local ret = descend(node)
+
+                                if ret then
+                                    table.insert(output, ret)
+                                end
                             end
+                        elseif type(result) == "string" then
+                            table.insert(output, result)
                         end
                     elseif exporter == true then
                         table.insert(
