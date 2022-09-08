@@ -242,7 +242,7 @@ You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) whi
 
 ## ⚙ Usage
 
-A new and official specification is in the works, we recommend reading it [here](https://github.com/nvim-neorg/tree-sitter-norg/blob/dev/docs/NFF-0.1-spec.norg).
+A new and official specification is in the works, we recommend reading it [here](https://github.com/nvim-neorg/norg-specs/blob/main/0.1-specification.norg).
 You can view a summary directly in your neovim instance by running `:h neorg` if you don't like reading a lot!
 
 Afterwards it's as simple as hopping into a `.norg` file and typing away.
@@ -439,8 +439,8 @@ Love what I do? Want to see more get done faster? Want to support future project
 heartwarming and fuels the urge to keep going :heart:. You can show support here:
 
 - [Buy me a coffee!](https://buymeacoffee.com/vhyrro)
+- [Support me via Github Sponsors](https://github.com/sponsors/vhyrro)
 - [Support me on LiberaPay](https://liberapay.com/vhyrro)
-- [Donate directly via paypal](https://paypal.me/ewaczupryna?locale.x=en_GB)
 - [Support me on Patreon](https://patreon.com/vhyrro)
 - Donate to my monero wallet: `86CXbnPLa14F458FRQFe26PRfffZTZDbUeb4NzYiHDtzcyaoMnfq1TqVU1EiBFrbKqGshFomDzxWzYX2kMvezcNu9TaKd9t`
 - Donate via bitcoin: `bc1q4ey43t9hhstzdqh8kqcllxwnqlx9lfxqqh439s`
