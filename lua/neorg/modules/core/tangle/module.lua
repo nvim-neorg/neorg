@@ -288,8 +288,12 @@ module.on_event = function(event)
             return
         end
 
+        local file_count = vim.tbl_count(tangles)
+        local tangled_count = 0
+
         for file, content in pairs(tangles) do
             vim.loop.fs_open(vim.fn.expand(file), "w", 438, function(err, fd)
+                file_count = file_count - 1
                 assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
                 vim.loop.fs_write(fd, table.concat(content, "\n"), 0, function(werr)
@@ -299,7 +303,12 @@ module.on_event = function(event)
                     )
                 end)
 
-                vim.schedule(neorg.lib.wrap(vim.notify, "Successfully tangled 1 file!"))
+                tangled_count = tangled_count + 1
+                if file_count == 0 then
+                    vim.schedule(
+                        neorg.lib.wrap(vim.notify, string.format("Successfully tangled %d file!", tangled_count))
+                    )
+                end
             end)
         end
     end
