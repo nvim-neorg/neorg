@@ -55,6 +55,7 @@ module.config.public = {
                     authors = "+@annotation",
                     categories = "+@keyword",
                     created = "+@float",
+                    updated = "+@float",
                     version = "+@float",
 
                     object = {
