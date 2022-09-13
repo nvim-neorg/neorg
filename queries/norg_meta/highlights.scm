@@ -57,6 +57,12 @@
 
 (pair
     (key) @_key
+    (value) @neorg.tags.ranged_verbatim.document_meta.updated
+    (#eq? @_key "updated")
+)
+
+(pair
+    (key) @_key
     (value) @neorg.tags.ranged_verbatim.document_meta.version
     (#eq? @_key "version")
 )
