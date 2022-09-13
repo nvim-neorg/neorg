@@ -43,6 +43,12 @@ module.config.public = {
                 return os.date("%Y-%m-%d")
             end,
         },
+        {
+            "updated",
+            function()
+                return os.date("%Y-%m-%d")
+            end,
+        },
         { "version", require("neorg.config").version },
     },
 }
@@ -54,18 +60,6 @@ module.private = {
 
 ---@class core.norg.esupports.metagen
 module.public = {
-    neorg_commands = {
-        definitions = {
-            ["inject-metadata"] = {},
-        },
-        data = {
-            ["inject-metadata"] = {
-                args = 0,
-                name = "inject-metadata",
-            },
-        },
-    },
-
     --- Returns true if there is a `@document.meta` tag in the current document
     ---@param buf number #The buffer to check in
     ---@return boolean,table #Whether the metadata was present, and the range of the metadata node
@@ -144,9 +138,46 @@ module.public = {
             vim.api.nvim_buf_set_lines(buf, range[1], range[2], false, constructed_metadata)
         end
     end,
+
+    update_metadata = function(buf)
+        local present, range = module.public.is_metadata_present(buf)
+        if present then
+            local current_date = os.date("%Y-%m-%d")
+            local meta = vim.api.nvim_buf_get_lines(buf, range[1], range[2], false)
+            for idx, field in ipairs(meta) do
+                local updated_field = field:match("updated: %d+%-%d+%-%d+")
+                if updated_field then
+                    local updated_date = updated_field:match("%d+%-%d+-%d+")
+                    if updated_date ~= current_date then
+                        local new_date = updated_field:gsub("%d+%-%d+-%d+", current_date)
+                        vim.api.nvim_buf_set_lines(buf, idx-1, idx, false, {new_date})
+                    end
+                end
+            end
+        end
+    end,
 }
 
 module.load = function()
+    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+        neorgcmd.add_commands_from_table({
+            definitions = {
+                ["inject-metadata"] = {},
+                ["update-metadata"] = {},
+            },
+            data = {
+                ["inject-metadata"] = {
+                    args = 0,
+                    name = "inject-metadata",
+                },
+                ["update-metadata"] = {
+                    args = 0,
+                    name = "update-metadata",
+                },
+            },
+        })
+    end)
+
     if module.config.public.type == "auto" then
         module.required["core.autocommands"].enable_autocommand("BufEnter")
         module.private.listen_event = "bufenter"
@@ -154,6 +185,14 @@ module.load = function()
         module.required["core.autocommands"].enable_autocommand("BufNewFile")
         module.private.listen_event = "bufnewfile"
     end
+
+    vim.api.nvim_create_autocmd("BufWritePre", {
+        pattern = "*.norg",
+        callback = function()
+            module.public.update_metadata(vim.api.nvim_get_current_buf())
+        end,
+        desc = "Update updated date metadata field in norg documents",
+    })
 end
 
 module.on_event = function(event)
@@ -170,6 +209,9 @@ module.on_event = function(event)
     elseif event.type == "core.neorgcmd.events.inject-metadata" then
         module.public.inject_metadata(event.buffer, true)
         module.private.buffers[event.buffer] = true
+    elseif event.type == "core.neorgcmd.events.update-metadata" then
+        module.public.update_metadata(event.buffer)
+        module.private.buffers[event.buffer] = true
     end
 end
 
@@ -177,10 +219,12 @@ module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
         bufnewfile = true,
+        bufwritepre = true,
     },
 
     ["core.neorgcmd"] = {
         ["inject-metadata"] = true,
+        ["update-metadata"] = true,
     },
 }
 
