@@ -645,9 +645,55 @@ module.public = {
 module.on_event = function(event)
     if event.split_type[1] == "core.keybinds" then
         if event.split_type[2] == "core.integrations.treesitter.next.heading" then
-            module.public.goto_next_heading()
+            module.public.goto_next_query_match(
+                [[
+                 [
+                     (heading1
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading2
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading3
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading4
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading5
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading6
+                         title: (paragraph_segment) @next-segment
+                     )
+                 ]
+             ]]
+            )
         elseif event.split_type[2] == "core.integrations.treesitter.previous.heading" then
-            module.public.goto_previous_heading()
+            module.public.goto_previous_query_match(
+                [[
+                 [
+                     (heading1
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading2
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading3
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading4
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading5
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading6
+                         title: (paragraph_segment) @next-segment
+                     )
+                 ]
+             ]]
+            )
         end
     elseif event.split_type[2] == "sync-parsers" then
         pcall(vim.cmd, "TSInstall! norg")
@@ -659,6 +705,8 @@ module.events.subscribed = {
     ["core.keybinds"] = {
         ["core.integrations.treesitter.next.heading"] = true,
         ["core.integrations.treesitter.previous.heading"] = true,
+        ["core.integrations.treesitter.next.link"] = true,
+        ["core.integrations.treesitter.previous.link"] = true,
     },
 
     ["core.neorgcmd"] = {
