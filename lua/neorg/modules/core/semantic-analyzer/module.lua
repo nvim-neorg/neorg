@@ -56,28 +56,31 @@ module.private = {
         local semantics = {}
 
         local function next_node(node)
-            if node:child_count() > 0 then
-                return node:child(0)
-            elseif node:next_sibling() then
-                return node:next_sibling()
-            elseif node:parent() and node:parent():next_sibling() then
-                return node:parent():next_sibling()
-            else
-                local parent = node:parent()
+            local line_end, char_end = node:end_()
 
-                while parent do
-                    if parent:next_sibling() then
-                        return parent:next_sibling()
-                    end
+            ::retry::
+            local line = vim.api.nvim_buf_get_lines(buffer, line_end, line_end + 1, false)[1]
 
-                    parent = parent:parent()
-                end
-
+            if not line then
                 return
             end
+
+            if char_end + 1 > line:len() then
+                line_end = line_end + 1
+                char_end = -1
+            end
+
+            local ret = document_root:descendant_for_range(line_end, char_end + 1, line_end, char_end + 1)
+
+            if ret:type() == "document" then
+                char_end = char_end + 1
+                goto retry
+            end
+
+            return ret
         end
 
-        local node = document_root
+        local node = document_root:descendant_for_range(0, 0, 0, 0)
 
         while true do
             local next = next_node(node)
@@ -98,8 +101,14 @@ module.private = {
 
         local function parse_prefix(type)
             if vim.startswith(type, "heading") then
+                local title_node = prev:next_named_sibling()
+
+                if not title_node then
+                    return
+                end
+
                 local level = tonumber(type:sub(-1, -1))
-                local title = ts.get_node_text(next):gsub("(%S)~\n", "%1 "):gsub("%s", ""):lower()
+                local title = ts.get_node_text(title_node):gsub("(%S)~\n", "%1 "):gsub("%s", ""):lower()
 
                 neorg.lib.ensure_nested(semantics, buffer, "headings", level, title)
                 local heading = semantics[buffer].headings[level][title]
