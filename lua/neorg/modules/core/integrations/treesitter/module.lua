@@ -11,6 +11,32 @@ local module = neorg.modules.create("core.integrations.treesitter")
 
 module.private = {
     ts_utils = nil,
+    link_query=
+                [[
+                (link) @next-segment
+             ]],
+    heading_query=[[
+                 [
+                     (heading1
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading2
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading3
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading4
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading5
+                         title: (paragraph_segment) @next-segment
+                     )
+                     (heading6
+                         title: (paragraph_segment) @next-segment
+                     )
+                 ]
+             ]]
 }
 
 module.setup = function()
@@ -646,65 +672,19 @@ module.on_event = function(event)
     if event.split_type[1] == "core.keybinds" then
         if event.split_type[2] == "core.integrations.treesitter.next.heading" then
             module.public.goto_next_query_match(
-                [[
-                 [
-                     (heading1
-                         title: (paragraph_segment) @next-segment
-                     )
-                     (heading2
-                         title: (paragraph_segment) @next-segment
-                     )
-                     (heading3
-                         title: (paragraph_segment) @next-segment
-                     )
-                     (heading4
-                         title: (paragraph_segment) @next-segment
-                     )
-                     (heading5
-                         title: (paragraph_segment) @next-segment
-                     )
-                     (heading6
-                         title: (paragraph_segment) @next-segment
-                     )
-                 ]
-             ]]
+                module.private.heading_query
             )
         elseif event.split_type[2] == "core.integrations.treesitter.previous.heading" then
             module.public.goto_previous_query_match(
-                [[
-                 [
-                     (heading1
-                         title: (paragraph_segment) @next-segment
-                     )
-                     (heading2
-                         title: (paragraph_segment) @next-segment
-                     )
-                     (heading3
-                         title: (paragraph_segment) @next-segment
-                     )
-                     (heading4
-                         title: (paragraph_segment) @next-segment
-                     )
-                     (heading5
-                         title: (paragraph_segment) @next-segment
-                     )
-                     (heading6
-                         title: (paragraph_segment) @next-segment
-                     )
-                 ]
-             ]]
+                module.private.heading_query
             )
         elseif event.split_type[2] == "core.integrations.treesitter.next.link" then
             module.public.goto_next_query_match(
-                [[
-                (link) @next-segment
-             ]]
+                module.private.link_query
             )
         elseif event.split_type[2] == "core.integrations.treesitter.previous.link" then
             module.public.goto_previous_query_match(
-                [[
-                (link) @next-segment
-             ]]
+                module.private.link_query
             )
         end
     elseif event.split_type[2] == "sync-parsers" then
