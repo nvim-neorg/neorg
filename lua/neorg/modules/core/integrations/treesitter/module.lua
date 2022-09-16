@@ -62,7 +62,7 @@ module.load = function()
     module.private.ts_utils = ts_utils
 
     module.required["core.mode"].add_mode("traverse-heading")
-    module.required["core.keybinds"].register_keybinds(module.name, { "next.heading", "previous.heading" })
+    module.required["core.keybinds"].register_keybinds(module.name, { "next.heading", "previous.heading", "next.link", "previous.link" })
 end
 
 module.config.public = {
@@ -692,6 +692,18 @@ module.on_event = function(event)
                          title: (paragraph_segment) @next-segment
                      )
                  ]
+             ]]
+            )
+        elseif event.split_type[2] == "core.integrations.treesitter.next.link" then
+            module.public.goto_next_query_match(
+                [[
+                (link) @next-segment
+             ]]
+            )
+        elseif event.split_type[2] == "core.integrations.treesitter.previous.link" then
+            module.public.goto_previous_query_match(
+                [[
+                (link) @next-segment
              ]]
             )
         end
