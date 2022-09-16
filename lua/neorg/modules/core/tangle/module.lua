@@ -288,7 +288,7 @@ module.on_event = function(event)
         end
 
         for file, content in pairs(tangles) do
-            vim.loop.fs_open(file, "w", 438, function(err, fd)
+            vim.loop.fs_open(vim.fn.expand(file), "w", 438, function(err, fd)
                 assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
                 vim.loop.fs_write(fd, table.concat(content, "\n"), 0, function(werr)
