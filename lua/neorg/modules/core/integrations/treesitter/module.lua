@@ -161,7 +161,7 @@ module.public = {
         local previous_match_query=vim.treesitter.parse_query("norg",query_string)
         local final_node = nil
 
-        for id, node in previous_match_query:iter_captures(document_root, 0, line_number + 1, -1) do
+        for id, node in previous_match_query:iter_captures(document_root, 0, 0, line_number -1) do
             if previous_match_query.captures[id] == "next-segment" then
                 local start_line = node:range()
 
