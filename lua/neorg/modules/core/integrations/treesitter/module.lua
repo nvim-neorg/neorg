@@ -96,8 +96,9 @@ module.public = {
         return module.private.ts_utils
     end,
 
-    --- Jumps to the next available heading in the current buffer
-    goto_next_heading = function()
+    --- Jumps to the next match of a query in the current buffer
+    ---@param query_string string Query with `@next-segment` captures
+    goto_next_query_match =function(query_string)
         local line_number = vim.api.nvim_win_get_cursor(0)[1]
 
         local document_root = module.public.get_document_root(0)
@@ -105,35 +106,9 @@ module.public = {
         if not document_root then
             return
         end
-
-        local next_heading_query = vim.treesitter.parse_query(
-            "norg",
-            [[
-            [
-                (heading1
-                    title: (paragraph_segment) @next-segment
-                )
-                (heading2
-                    title: (paragraph_segment) @next-segment
-                )
-                (heading3
-                    title: (paragraph_segment) @next-segment
-                )
-                (heading4
-                    title: (paragraph_segment) @next-segment
-                )
-                (heading5
-                    title: (paragraph_segment) @next-segment
-                )
-                (heading6
-                    title: (paragraph_segment) @next-segment
-                )
-            ]
-        ]]
-        )
-
-        for id, node in next_heading_query:iter_captures(document_root, 0, line_number + 1, -1) do
-            if next_heading_query.captures[id] == "next-segment" then
+        local next_match_query = vim.treesitter.parse_query("norg",query_string)
+        for id, node in next_match_query:iter_captures(document_root, 0, line_number + 1, -1) do
+            if next_match_query.captures[id] == "next-segment" then
                 local start_line = node:range()
 
                 if
@@ -147,8 +122,9 @@ module.public = {
         end
     end,
 
-    --- Jumps to the previous available heading in the current buffer
-    goto_previous_heading = function()
+    --- Jumps to the previous match of a query in the current buffer
+    ---@param query_string string Query with `@next-segment` captures
+    goto_previous_query_match =function(query_string)
         local line_number = vim.api.nvim_win_get_cursor(0)[1]
 
         local document_root = module.public.get_document_root(0)
@@ -156,37 +132,11 @@ module.public = {
         if not document_root then
             return
         end
-
-        local previous_heading_query = vim.treesitter.parse_query(
-            "norg",
-            [[
-            [
-                (heading1
-                    title: (paragraph_segment) @next-segment
-                )
-                (heading2
-                    title: (paragraph_segment) @next-segment
-                )
-                (heading3
-                    title: (paragraph_segment) @next-segment
-                )
-                (heading4
-                    title: (paragraph_segment) @next-segment
-                )
-                (heading5
-                    title: (paragraph_segment) @next-segment
-                )
-                (heading6
-                    title: (paragraph_segment) @next-segment
-                )
-            ]
-        ]]
-        )
-
+        local previous_match_query=vim.treesitter.parse_query("norg",query_string)
         local final_node = nil
 
-        for id, node in previous_heading_query:iter_captures(document_root, 0, 0, line_number - 1) do
-            if previous_heading_query.captures[id] == "next-segment" then
+        for id, node in previous_match_query:iter_captures(document_root, 0, line_number + 1, -1) do
+            if previous_match_query.captures[id] == "next-segment" then
                 local start_line = node:range()
 
                 if
@@ -196,12 +146,13 @@ module.public = {
                     final_node = node
                 end
             end
-        end
 
+        end
         if final_node then
             module.private.ts_utils.goto_node(final_node)
         end
     end,
+
 
     ---  Gets all nodes of a given type from the AST
     ---@param  type string #The type of node to filter out
@@ -471,9 +422,9 @@ module.public = {
             local _, _, ere, ece = node[#node]:range()
             return brs, bcs, ere, ece
         end, function()
-            local a, b, c, d = node:range()
-            return a, b, c, d
-        end)
+                local a, b, c, d = node:range()
+                return a, b, c, d
+            end)
 
         return {
             row_start = rs,
@@ -681,8 +632,8 @@ module.public = {
                     local key_content = trim(module.public.get_node_text(node, buf))
 
                     result[key_content] = (
-                        node:next_named_sibling() and parse_data(node:next_named_sibling()) or vim.NIL
-                    )
+                    node:next_named_sibling() and parse_data(node:next_named_sibling()) or vim.NIL
+                )
                 end
             end
         end)
