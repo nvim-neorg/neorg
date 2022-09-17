@@ -191,7 +191,7 @@
 (marker (marker_prefix) @neorg.markers.prefix (paragraph_segment) @neorg.markers.title)
 
 ; Definitions
-(single_definition (single_definition_prefix) @neorg.definitions.prefix title: (paragraph_segment) @neorg.definitions.title definition: [(_) "_paragraph_break"]* @neorg.definitions.content)
+(single_definition (single_definition_prefix) @neorg.definitions.prefix title: (paragraph_segment) @neorg.definitions.title content: [(_) "_paragraph_break"]* @neorg.definitions.content)
 (multi_definition (multi_definition_prefix) @neorg.definitions.prefix title: (paragraph_segment) @neorg.definitions.title content: [(_) "_paragraph_break"]* @neorg.definitions.content end: (multi_definition_suffix) @neorg.definitions.suffix)
 
 ; Footnotes
