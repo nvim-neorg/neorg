@@ -55,7 +55,13 @@ module.private = {
 
         local semantics = {}
 
+        --- Retrieves the next node just to the right of the current one.
+        ---@param node userdata #The start node
+        ---@return userdata #The next sibling node
         local function next_node(node)
+            -- NOTE: This function is an attempt to essentially emulate a
+            -- TSTreeCursor. Apparently that's not exposed in the Neovim treesiter
+            -- api :(
             local line_end, char_end = node:end_()
 
             ::retry::
@@ -65,13 +71,20 @@ module.private = {
                 return
             end
 
+            -- If we've moved our "cursor" past the current line
+            -- then move to the next line
             if char_end + 1 > line:len() then
                 line_end = line_end + 1
                 char_end = -1
             end
 
+            -- Get the node at the current "cursor"'s position
             local ret = document_root:descendant_for_range(line_end, char_end + 1, line_end, char_end + 1)
 
+            -- If we encountered some wacky node that is a parent
+            -- of what we would expect then move the "cursor" right and
+            -- try again. This prevents us from accidentally backtracking
+            -- and falling into an infinite loop.
             if ret:start() ~= line_end then
                 char_end = char_end + 1
                 goto retry
@@ -80,6 +93,7 @@ module.private = {
             return ret
         end
 
+        -- Get the first node in the document (that isn't the `document` node)
         local first_non_blank = (vim.api.nvim_buf_get_lines(buffer, 0, 1, false)[1] or ""):match("^%s*"):len()
         local node = document_root:descendant_for_range(0, first_non_blank, 0, first_non_blank)
 
