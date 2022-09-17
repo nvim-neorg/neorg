@@ -115,16 +115,16 @@ module.private = {
         local ts = module.required["core.integrations.treesitter"]
 
         local function parse_prefix(type)
+            local title_node = prev:next_named_sibling()
+
+            if not title_node then
+                return
+            end
+
+            local level = tonumber(type:sub(-1, -1))
+            local title = ts.get_node_text(title_node):gsub("(%S)~\n", "%1 "):gsub("%s", ""):lower()
+
             if vim.startswith(type, "heading") then
-                local title_node = prev:next_named_sibling()
-
-                if not title_node then
-                    return
-                end
-
-                local level = tonumber(type:sub(-1, -1))
-                local title = ts.get_node_text(title_node):gsub("(%S)~\n", "%1 "):gsub("%s", ""):lower()
-
                 neorg.lib.ensure_nested(semantics, buffer, "headings", level, title)
                 local heading = semantics[buffer].headings[level][title]
 
@@ -135,7 +135,34 @@ module.private = {
                         range = ts.get_node_range(prev:parent()),
                     })
                 end
-                -- elseif vim.startswith(type, "definition") then
+            elseif vim.startswith(type, "definition") then
+                neorg.lib.ensure_nested(semantics, buffer, "definitions", title)
+
+                local definition = semantics[buffer].definitions
+
+                local definition_content = prev:parent():field("content")
+                local row_start, col_start = definition_content[1]:start()
+                local row_end, col_end = definition_content[#definition_content]:end_()
+
+                if definition[#definition] and not definition[#definition].range then
+                    definition[#definition].range = ts.get_node_range(prev:parent())
+                    definition[#definition].content_range = {
+                        row_start = row_start,
+                        column_start = col_start,
+                        row_end = row_end,
+                        column_end = col_end,
+                    }
+                else
+                    table.insert(semantics[buffer].definitions[title], {
+                        range = ts.get_node_range(prev:parent()),
+                        content_range = {
+                            row_start = row_start,
+                            column_start = col_start,
+                            row_end = row_end,
+                            column_end = col_end,
+                        }
+                    })
+                end
             end
         end
 
@@ -237,6 +264,7 @@ module.private = {
             heading4_prefix = neorg.lib.wrap(parse_prefix, "heading4"),
             heading5_prefix = neorg.lib.wrap(parse_prefix, "heading5"),
             heading6_prefix = neorg.lib.wrap(parse_prefix, "heading6"),
+            [{ "single_definition_prefix", "multi_definition_prefix" }] = neorg.lib.wrap(parse_prefix, "definition"),
             _ = function()
                 if vim.startswith(prev:type(), "link_target_") then
                     return parse_link(prev:parent():parent())
