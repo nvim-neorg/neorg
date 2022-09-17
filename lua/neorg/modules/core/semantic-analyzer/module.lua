@@ -264,6 +264,9 @@ module.private = {
                     heading6 = try_create_nestable_reference("headings", 6),
                     definition = try_create_rangeable_modifier_reference("definitions"),
                     footnote = try_create_rangeable_modifier_reference("footnotes"),
+                    external_file = function()
+                        link_address.file_exists = (vim.fn.filereadable(vim.fn.expand(trimmed_link_location_text)) == 1)
+                    end,
                     _ = nil,
                 }),
                 range = ts.get_node_range(link),
