@@ -110,6 +110,8 @@ module.private = {
             node = next
         end
 
+        module.private.parsed[buffer_path] = true
+
         return semantics
     end,
 
@@ -307,6 +309,14 @@ module.private = {
                     link_address
                 )
             end
+
+            if not module.private.parsed[parsed_link.link_file_text] and parsed_link.link_file_text ~= buffer then
+                local buf = vim.uri_to_bufnr(vim.uri_from_fname(parsed_link.link_file_text))
+
+                vim.fn.bufload(buf)
+                semantics = module.private.parse_file(buf)
+                vim.api.nvim_buf_delete(buf, { force = true })
+            end
         end
 
         neorg.lib.match(prev:type())({
@@ -362,6 +372,8 @@ module.private = {
         --     },
         -- },
     }, -- A key(buffer)-value(table) pair describing the semantics of a document
+
+    parsed = {}, -- A list of parsed documents
 }
 
 return module
