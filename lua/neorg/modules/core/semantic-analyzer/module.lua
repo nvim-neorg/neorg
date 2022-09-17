@@ -97,6 +97,8 @@ module.private = {
         local first_non_blank = (vim.api.nvim_buf_get_lines(buffer, 0, 1, false)[1] or ""):match("^%s*"):len()
         local node = document_root:descendant_for_range(0, first_non_blank, 0, first_non_blank)
 
+        local buffer_path = vim.fn.expand("%:p")
+
         while true do
             local next = next_node(node)
 
@@ -104,7 +106,7 @@ module.private = {
                 break
             end
 
-            semantics = module.private.parse_node(buffer, node, next, semantics)
+            semantics = module.private.parse_node(buffer_path, node, next, semantics)
             node = next
         end
 
@@ -166,10 +168,21 @@ module.private = {
                     })
                 end
             end
+
+            -- neorg.lib.ensure_nested(semantics, buffer, "generics", title)
+            -- local generic = semantics[buffer].generics[title]
+
+            -- if not generic or generic.range then
+            --     return
+            -- end
         end
 
         local function parse_link(link)
             local parsed_link = module.required["core.integrations.treesitter"].parse_link(link, buffer)
+            parsed_link.link_file_text = parsed_link.link_file_text
+                    and table.concat({ vim.fn.fnamemodify(parsed_link.link_file_text, ":p"), ".norg" })
+                or buffer
+
             local type, level = parsed_link.link_type:match("^([^%d]+)(%d?)$")
             level = level and tonumber(level)
 
@@ -177,34 +190,41 @@ module.private = {
 
             local function try_create_nestable_reference(category, index)
                 return function()
-                    neorg.lib.ensure_nested(semantics, buffer, category, index)
+                    neorg.lib.ensure_nested(semantics, parsed_link.link_file_text, category, index)
 
-                    if semantics[buffer][category][index][trimmed_link_location_text] then
-                        return semantics[buffer][category][index][trimmed_link_location_text][1]
+                    if semantics[parsed_link.link_file_text][category][index][trimmed_link_location_text] then
+                        return semantics[parsed_link.link_file_text][category][index][trimmed_link_location_text][1]
                     end
 
-                    semantics[buffer][category][index][trimmed_link_location_text] = {
-                        {
-                            references = {},
-                        },
-                    }
-                    return semantics[buffer][category][index][trimmed_link_location_text][1]
+                    neorg.lib.ensure_nested(
+                        semantics,
+                        parsed_link.link_file_text,
+                        category,
+                        index,
+                        trimmed_link_location_text,
+                        1,
+                        "references"
+                    )
+                    return semantics[parsed_link.link_file_text][category][index][trimmed_link_location_text][1]
                 end
             end
 
             local function try_create_rangeable_modifier_reference(category)
                 return function()
-                    neorg.lib.ensure_nested(semantics, buffer, category)
+                    neorg.lib.ensure_nested(semantics, parsed_link.link_file_text, category)
 
-                    if semantics[buffer][category][trimmed_link_location_text] then
-                        return semantics[buffer][category][trimmed_link_location_text][1]
+                    if semantics[parsed_link.link_file_text][category][trimmed_link_location_text] then
+                        return semantics[parsed_link.link_file_text][category][trimmed_link_location_text][1]
                     end
 
-                    semantics[buffer][category][trimmed_link_location_text] = {
-                        {
-                            references = {},
-                        },
-                    }
+                    neorg.lib.ensure_nested(
+                        semantics,
+                        parsed_link.link_file_text,
+                        category,
+                        trimmed_link_location_text,
+                        1,
+                        "references"
+                    )
                     return semantics[buffer][category][trimmed_link_location_text][1]
                 end
             end
@@ -217,26 +237,25 @@ module.private = {
                         semantics,
                         buffer,
                         "links",
-                        parsed_link.link_file_text or "",
+                        parsed_link.link_file_text,
                         type,
                         level,
                         trimmed_link_location_text
                     )
 
                     link_address =
-                        semantics[buffer].links[parsed_link.link_file_text or ""][type][level][trimmed_link_location_text]
+                        semantics[buffer].links[parsed_link.link_file_text][type][level][trimmed_link_location_text]
                 else
                     neorg.lib.ensure_nested(
                         semantics,
                         buffer,
                         "links",
-                        parsed_link.link_file_text or "",
+                        parsed_link.link_file_text,
                         type,
                         trimmed_link_location_text
                     )
 
-                    link_address =
-                        semantics[buffer].links[parsed_link.link_file_text or ""][type][trimmed_link_location_text]
+                    link_address = semantics[buffer].links[parsed_link.link_file_text][type][trimmed_link_location_text]
                 end
             end
 
@@ -263,16 +282,16 @@ module.private = {
             if vim.startswith(type, "heading") then
                 neorg.lib.ensure_nested(
                     semantics,
-                    buffer,
+                    parsed_link.link_file_text,
                     "headings",
                     level or 1,
                     trimmed_link_location_text,
                     1,
                     "references",
-                    parsed_link.link_file_text or ""
+                    buffer
                 )
                 table.insert(
-                    semantics[buffer].headings[level or 1][trimmed_link_location_text][1].references[parsed_link.link_file_text or ""],
+                    semantics[parsed_link.link_file_text].headings[level or 1][trimmed_link_location_text][1].references[buffer],
                     link_address
                 )
             else
@@ -280,15 +299,15 @@ module.private = {
 
                 neorg.lib.ensure_nested(
                     semantics,
-                    buffer,
+                    parsed_link.link_file_text,
                     type_with_s,
                     trimmed_link_location_text,
                     1,
                     "references",
-                    parsed_link.link_file_text or ""
+                    parsed_link.link_file_text
                 )
                 table.insert(
-                    semantics[buffer][type_with_s][trimmed_link_location_text][1].references[parsed_link.link_file_text or ""],
+                    semantics[parsed_link.link_file_text][type_with_s][trimmed_link_location_text][1].references[parsed_link.link_file_text],
                     link_address
                 )
             end
@@ -316,7 +335,7 @@ module.private = {
     semantics = {
         -- [1] = { -- Buffer ID
         --     -- For e.g. things tagged with `#name`
-        --     anonymous = {},
+        --     generics = {},
         --     headings = {
         --         [2] = { -- Level 2 heading
         --             ["My Heading"] = {},
