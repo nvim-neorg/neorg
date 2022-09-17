@@ -138,7 +138,7 @@ module.private = {
             elseif vim.startswith(type, "definition") then
                 neorg.lib.ensure_nested(semantics, buffer, "definitions", title)
 
-                local definition = semantics[buffer].definitions
+                local definition = semantics[buffer].definitions[title]
 
                 local definition_content = prev:parent():field("content")
                 local row_start, col_start = definition_content[1]:start()
