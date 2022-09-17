@@ -135,10 +135,12 @@ module.private = {
                         range = ts.get_node_range(prev:parent()),
                     })
                 end
-            elseif vim.startswith(type, "definition") then
-                neorg.lib.ensure_nested(semantics, buffer, "definitions", title)
+            elseif type == "footnote" or type == "definition" then
+                local type_with_s = table.concat{type, "s"}
 
-                local definition = semantics[buffer].definitions[title]
+                neorg.lib.ensure_nested(semantics, buffer, type_with_s, title)
+
+                local definition = semantics[buffer][type_with_s][title]
 
                 local definition_content = prev:parent():field("content")
                 local row_start, col_start = definition_content[1]:start()
@@ -153,14 +155,14 @@ module.private = {
                         column_end = col_end,
                     }
                 else
-                    table.insert(semantics[buffer].definitions[title], {
+                    table.insert(semantics[buffer][type_with_s][title], {
                         range = ts.get_node_range(prev:parent()),
                         content_range = {
                             row_start = row_start,
                             column_start = col_start,
                             row_end = row_end,
                             column_end = col_end,
-                        }
+                        },
                     })
                 end
             end
@@ -173,37 +175,37 @@ module.private = {
 
             local trimmed_link_location_text = parsed_link.link_location_text:gsub("%s", ""):lower()
 
-            local function try_create_heading_reference(index)
+            local function try_create_nestable_reference(category, index)
                 return function()
-                    neorg.lib.ensure_nested(semantics, buffer, "headings", index)
+                    neorg.lib.ensure_nested(semantics, buffer, category, index)
 
-                    if semantics[buffer].headings[index][trimmed_link_location_text] then
-                        return semantics[buffer].headings[index][trimmed_link_location_text][1]
+                    if semantics[buffer][category][index][trimmed_link_location_text] then
+                        return semantics[buffer][category][index][trimmed_link_location_text][1]
                     end
 
-                    semantics[buffer].headings[index][trimmed_link_location_text] = {
+                    semantics[buffer][category][index][trimmed_link_location_text] = {
                         {
                             references = {},
                         },
                     }
-                    return semantics[buffer].headings[index][trimmed_link_location_text][1]
+                    return semantics[buffer][category][index][trimmed_link_location_text][1]
                 end
             end
 
-            local function try_create_definition_reference()
+            local function try_create_rangeable_modifier_reference(category)
                 return function()
-                    neorg.lib.ensure_nested(semantics, buffer, "definitions")
+                    neorg.lib.ensure_nested(semantics, buffer, category)
 
-                    if semantics[buffer].definitions[trimmed_link_location_text] then
-                        return semantics[buffer].definitions[trimmed_link_location_text][1]
+                    if semantics[buffer][category][trimmed_link_location_text] then
+                        return semantics[buffer][category][trimmed_link_location_text][1]
                     end
 
-                    semantics[buffer].definitions[trimmed_link_location_text] = {
+                    semantics[buffer][category][trimmed_link_location_text] = {
                         {
                             references = {},
                         },
                     }
-                    return semantics[buffer].definitions[trimmed_link_location_text][1]
+                    return semantics[buffer][category][trimmed_link_location_text][1]
                 end
             end
 
@@ -242,13 +244,14 @@ module.private = {
                 type = parsed_link.link_type,
                 title = parsed_link.link_description,
                 reference = neorg.lib.match(parsed_link.link_type)({
-                    heading1 = try_create_heading_reference(1),
-                    heading2 = try_create_heading_reference(2),
-                    heading3 = try_create_heading_reference(3),
-                    heading4 = try_create_heading_reference(4),
-                    heading5 = try_create_heading_reference(5),
-                    heading6 = try_create_heading_reference(6),
-                    definition = try_create_definition_reference(),
+                    heading1 = try_create_nestable_reference("headings", 1),
+                    heading2 = try_create_nestable_reference("headings", 2),
+                    heading3 = try_create_nestable_reference("headings", 3),
+                    heading4 = try_create_nestable_reference("headings", 4),
+                    heading5 = try_create_nestable_reference("headings", 5),
+                    heading6 = try_create_nestable_reference("headings", 6),
+                    definition = try_create_rangeable_modifier_reference("definitions"),
+                    footnote = try_create_rangeable_modifier_reference("footnotes"),
                     _ = nil,
                 }),
                 range = ts.get_node_range(link),
@@ -272,18 +275,20 @@ module.private = {
                     semantics[buffer].headings[level or 1][trimmed_link_location_text][1].references[parsed_link.link_file_text or ""],
                     link_address
                 )
-            elseif vim.startswith(type, "definition") then
+            else
+                local type_with_s = table.concat{type, "s"}
+
                 neorg.lib.ensure_nested(
                     semantics,
                     buffer,
-                    "definitions",
+                    type_with_s,
                     trimmed_link_location_text,
                     1,
                     "references",
                     parsed_link.link_file_text or ""
                 )
                 table.insert(
-                    semantics[buffer].definitions[trimmed_link_location_text][1].references[parsed_link.link_file_text or ""],
+                    semantics[buffer][type_with_s][trimmed_link_location_text][1].references[parsed_link.link_file_text or ""],
                     link_address
                 )
             end
@@ -297,6 +302,7 @@ module.private = {
             heading5_prefix = neorg.lib.wrap(parse_prefix, "heading5"),
             heading6_prefix = neorg.lib.wrap(parse_prefix, "heading6"),
             [{ "single_definition_prefix", "multi_definition_prefix" }] = neorg.lib.wrap(parse_prefix, "definition"),
+            [{ "single_footnote_prefix", "multi_footnote_prefix" }] = neorg.lib.wrap(parse_prefix, "footnote"),
             _ = function()
                 if vim.startswith(prev:type(), "link_target_") then
                     return parse_link(prev:parent():parent())
