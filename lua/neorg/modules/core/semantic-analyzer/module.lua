@@ -136,19 +136,19 @@ module.private = {
                     })
                 end
             elseif type == "footnote" or type == "definition" then
-                local type_with_s = table.concat{type, "s"}
+                local type_with_s = table.concat({ type, "s" })
 
                 neorg.lib.ensure_nested(semantics, buffer, type_with_s, title)
 
-                local definition = semantics[buffer][type_with_s][title]
+                local rangeable = semantics[buffer][type_with_s][title]
 
-                local definition_content = prev:parent():field("content")
-                local row_start, col_start = definition_content[1]:start()
-                local row_end, col_end = definition_content[#definition_content]:end_()
+                local rangeable_content = prev:parent():field("content")
+                local row_start, col_start = rangeable_content[1]:start()
+                local row_end, col_end = rangeable_content[#rangeable_content]:end_()
 
-                if definition[#definition] and not definition[#definition].range then
-                    definition[#definition].range = ts.get_node_range(prev:parent())
-                    definition[#definition].content_range = {
+                if rangeable[#rangeable] and not rangeable[#rangeable].range then
+                    rangeable[#rangeable].range = ts.get_node_range(prev:parent())
+                    rangeable[#rangeable].content_range = {
                         row_start = row_start,
                         column_start = col_start,
                         row_end = row_end,
@@ -276,7 +276,7 @@ module.private = {
                     link_address
                 )
             else
-                local type_with_s = table.concat{type, "s"}
+                local type_with_s = table.concat({ type, "s" })
 
                 neorg.lib.ensure_nested(
                     semantics,
