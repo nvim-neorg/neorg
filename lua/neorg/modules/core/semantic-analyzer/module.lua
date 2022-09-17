@@ -72,7 +72,7 @@ module.private = {
 
             local ret = document_root:descendant_for_range(line_end, char_end + 1, line_end, char_end + 1)
 
-            if ret:type() == "document" then
+            if ret:start() ~= line_end then
                 char_end = char_end + 1
                 goto retry
             end
@@ -80,7 +80,8 @@ module.private = {
             return ret
         end
 
-        local node = document_root:descendant_for_range(0, 0, 0, 0)
+        local first_non_blank = (vim.api.nvim_buf_get_lines(buffer, 0, 1, false)[1] or ""):match("^%s*"):len()
+        local node = document_root:descendant_for_range(0, first_non_blank, 0, first_non_blank)
 
         while true do
             local next = next_node(node)
@@ -96,7 +97,7 @@ module.private = {
         return semantics
     end,
 
-    parse_node = function(buffer, prev, next, semantics)
+    parse_node = function(buffer, prev, _next, semantics)
         local ts = module.required["core.integrations.treesitter"]
 
         local function parse_prefix(type)
@@ -120,7 +121,7 @@ module.private = {
                         range = ts.get_node_range(prev:parent()),
                     })
                 end
-                -- else
+                -- elseif vim.startswith(type, "definition") then
             end
         end
 
@@ -148,18 +149,36 @@ module.private = {
                 end
             end
 
-            neorg.lib.ensure_nested(
-                semantics,
-                buffer,
-                "links",
-                parsed_link.link_file_text or "",
-                type,
-                level or 1,
-                trimmed_link_location_text
-            )
+            local link_address
 
-            local link_address =
-                semantics[buffer].links[parsed_link.link_file_text or ""][type][level or 1][trimmed_link_location_text]
+            do
+                if level then
+                    neorg.lib.ensure_nested(
+                        semantics,
+                        buffer,
+                        "links",
+                        parsed_link.link_file_text or "",
+                        type,
+                        level,
+                        trimmed_link_location_text
+                    )
+
+                    link_address =
+                        semantics[buffer].links[parsed_link.link_file_text or ""][type][level][trimmed_link_location_text]
+                else
+                    neorg.lib.ensure_nested(
+                        semantics,
+                        buffer,
+                        "links",
+                        parsed_link.link_file_text or "",
+                        type,
+                        trimmed_link_location_text
+                    )
+
+                    link_address =
+                        semantics[buffer].links[parsed_link.link_file_text or ""][type][trimmed_link_location_text]
+                end
+            end
 
             table.insert(link_address, {
                 type = parsed_link.link_type,
@@ -176,20 +195,25 @@ module.private = {
                 range = ts.get_node_range(link),
             })
 
-            neorg.lib.ensure_nested(
-                semantics,
-                buffer,
-                "headings",
-                level or 1,
-                trimmed_link_location_text,
-                1,
-                "references",
-                parsed_link.link_file_text or ""
-            )
-            table.insert(
-                semantics[buffer].headings[level or 1][trimmed_link_location_text][1].references[parsed_link.link_file_text or ""],
-                link_address
-            )
+            -- TODO: Remove the reliance on headings and make
+            -- backreferences work with other stuff like definition etc.
+            -- Just make sure not to treat urls and the like as backlinks!
+            if vim.startswith(type, "heading") then
+                neorg.lib.ensure_nested(
+                    semantics,
+                    buffer,
+                    "headings",
+                    level or 1,
+                    trimmed_link_location_text,
+                    1,
+                    "references",
+                    parsed_link.link_file_text or ""
+                )
+                table.insert(
+                    semantics[buffer].headings[level or 1][trimmed_link_location_text][1].references[parsed_link.link_file_text or ""],
+                    link_address
+                )
+            end
         end
 
         neorg.lib.match(prev:type())({
@@ -199,11 +223,11 @@ module.private = {
             heading4_prefix = neorg.lib.wrap(parse_prefix, "heading4"),
             heading5_prefix = neorg.lib.wrap(parse_prefix, "heading5"),
             heading6_prefix = neorg.lib.wrap(parse_prefix, "heading6"),
-            [{ --[[TODO: Readd back in one day | "anchor_declaration"]]
-                "anchor_definition",
-                "link",
-            }] = neorg.lib.wrap(parse_link, prev),
-            _ = function() end,
+            _ = function()
+                if vim.startswith(prev:type(), "link_target_") then
+                    return parse_link(prev:parent():parent())
+                end
+            end,
         })
 
         return semantics
