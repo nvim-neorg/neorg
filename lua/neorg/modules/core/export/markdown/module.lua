@@ -362,7 +362,8 @@ module.public = {
                 elseif
                     text == "embed"
                     and node:next_sibling()
-                    and module.required["core.integrations.treesitter"].get_node_text(node:next_sibling()) == "markdown"
+                    and module.required["core.integrations.treesitter"].get_node_text(node:next_sibling())
+                        == "markdown"
                 then
                     return {
                         state = {

@@ -82,8 +82,8 @@ module.config.public = {
             },
 
             comment = {
-                content = "+@comment"
-            }
+                content = "+@comment",
+            },
         },
 
         headings = {
