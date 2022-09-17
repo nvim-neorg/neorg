@@ -173,7 +173,7 @@ module.private = {
 
             local trimmed_link_location_text = parsed_link.link_location_text:gsub("%s", ""):lower()
 
-            local function try_create_reference(index)
+            local function try_create_heading_reference(index)
                 return function()
                     neorg.lib.ensure_nested(semantics, buffer, "headings", index)
 
@@ -187,6 +187,23 @@ module.private = {
                         },
                     }
                     return semantics[buffer].headings[index][trimmed_link_location_text][1]
+                end
+            end
+
+            local function try_create_definition_reference()
+                return function()
+                    neorg.lib.ensure_nested(semantics, buffer, "definitions")
+
+                    if semantics[buffer].definitions[trimmed_link_location_text] then
+                        return semantics[buffer].definitions[trimmed_link_location_text][1]
+                    end
+
+                    semantics[buffer].definitions[trimmed_link_location_text] = {
+                        {
+                            references = {},
+                        },
+                    }
+                    return semantics[buffer].definitions[trimmed_link_location_text][1]
                 end
             end
 
@@ -225,12 +242,13 @@ module.private = {
                 type = parsed_link.link_type,
                 title = parsed_link.link_description,
                 reference = neorg.lib.match(parsed_link.link_type)({
-                    heading1 = try_create_reference(1),
-                    heading2 = try_create_reference(2),
-                    heading3 = try_create_reference(3),
-                    heading4 = try_create_reference(4),
-                    heading5 = try_create_reference(5),
-                    heading6 = try_create_reference(6),
+                    heading1 = try_create_heading_reference(1),
+                    heading2 = try_create_heading_reference(2),
+                    heading3 = try_create_heading_reference(3),
+                    heading4 = try_create_heading_reference(4),
+                    heading5 = try_create_heading_reference(5),
+                    heading6 = try_create_heading_reference(6),
+                    definition = try_create_definition_reference(),
                     _ = nil,
                 }),
                 range = ts.get_node_range(link),
@@ -252,6 +270,20 @@ module.private = {
                 )
                 table.insert(
                     semantics[buffer].headings[level or 1][trimmed_link_location_text][1].references[parsed_link.link_file_text or ""],
+                    link_address
+                )
+            elseif vim.startswith(type, "definition") then
+                neorg.lib.ensure_nested(
+                    semantics,
+                    buffer,
+                    "definitions",
+                    trimmed_link_location_text,
+                    1,
+                    "references",
+                    parsed_link.link_file_text or ""
+                )
+                table.insert(
+                    semantics[buffer].definitions[trimmed_link_location_text][1].references[parsed_link.link_file_text or ""],
                     link_address
                 )
             end
