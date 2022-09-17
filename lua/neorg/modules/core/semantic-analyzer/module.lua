@@ -168,13 +168,6 @@ module.private = {
                     })
                 end
             end
-
-            -- neorg.lib.ensure_nested(semantics, buffer, "generics", title)
-            -- local generic = semantics[buffer].generics[title]
-
-            -- if not generic or generic.range then
-            --     return
-            -- end
         end
 
         local function parse_link(link)
