@@ -290,7 +290,7 @@ module.private = {
                     semantics[parsed_link.link_file_text].headings[level or 1][trimmed_link_location_text][1].references[buffer],
                     link_address
                 )
-            else
+            elseif vim.tbl_contains({ "definition", "footnote" }, type) then
                 local type_with_s = table.concat({ type, "s" })
 
                 neorg.lib.ensure_nested(
