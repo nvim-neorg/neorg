@@ -322,7 +322,7 @@ module.public = {
                 return text
             end,
 
-            ["tag_name"] = function(text, node, _, ts_utils)
+            ["tag_name"] = function(text, node, _, _)
                 local _, tag_start_column = node:range()
 
                 if text == "code" then
