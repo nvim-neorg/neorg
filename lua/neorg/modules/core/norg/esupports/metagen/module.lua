@@ -20,6 +20,9 @@ module.config.public = {
     -- - Empty generates metadata only for new files/buffers.
     type = "none",
 
+    -- Whether updated date field should be automatically updated on save if required
+    update_date = true,
+
     -- How to generate a tabulation inside the `@document.meta` tag
     tab = "",
 
@@ -186,13 +189,15 @@ module.load = function()
         module.private.listen_event = "bufnewfile"
     end
 
-    vim.api.nvim_create_autocmd("BufWritePre", {
-        pattern = "*.norg",
-        callback = function()
-            module.public.update_metadata(vim.api.nvim_get_current_buf())
-        end,
-        desc = "Update updated date metadata field in norg documents",
-    })
+    if module.config.public.update_date then
+        vim.api.nvim_create_autocmd("BufWritePre", {
+            pattern = "*.norg",
+            callback = function()
+                module.public.update_metadata(vim.api.nvim_get_current_buf())
+            end,
+            desc = "Update updated date metadata field in norg documents",
+        })
+    end
 end
 
 module.on_event = function(event)
