@@ -40,20 +40,23 @@ module.load = function()
     vim.api.nvim_create_autocmd("BufEnter", {
         pattern = "*.norg",
         callback = function(info)
+            -- TODO: Remove this from the final version
+            -- and implement incremental parsing
+            module.private.parsed = {}
             log.warn(module.private.parse_file(info.buf))
         end,
     })
 end
 
 module.private = {
-    parse_file = function(buffer)
+    parse_file = function(buffer, semantics)
         local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
 
         if not document_root then
             return
         end
 
-        local semantics = {}
+        semantics = semantics or {}
 
         --- Retrieves the next node just to the right of the current one.
         ---@param node userdata #The start node
@@ -97,7 +100,7 @@ module.private = {
         local first_non_blank = (vim.api.nvim_buf_get_lines(buffer, 0, 1, false)[1] or ""):match("^%s*"):len()
         local node = document_root:descendant_for_range(0, first_non_blank, 0, first_non_blank)
 
-        local buffer_path = vim.fn.expand("%:p")
+        local buffer_path = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buffer), ":p")
 
         while true do
             local next = next_node(node)
@@ -106,7 +109,7 @@ module.private = {
                 break
             end
 
-            semantics = module.private.parse_node(buffer_path, node, next, semantics)
+            semantics = module.private.parse_node(buffer, buffer_path, node, next, semantics)
             node = next
         end
 
@@ -115,7 +118,7 @@ module.private = {
         return semantics
     end,
 
-    parse_node = function(buffer, prev, _next, semantics)
+    parse_node = function(bufid, buffer_path, prev, _next, semantics)
         local ts = module.required["core.integrations.treesitter"]
 
         local function parse_prefix(type)
@@ -126,25 +129,25 @@ module.private = {
             end
 
             local level = tonumber(type:sub(-1, -1))
-            local title = ts.get_node_text(title_node):gsub("(%S)~\n", "%1 "):gsub("%s", ""):lower()
+            local title = ts.get_node_text(title_node, bufid):gsub("(%S)~\n", "%1 "):gsub("%s", ""):lower()
 
             if vim.startswith(type, "heading") then
-                neorg.lib.ensure_nested(semantics, buffer, "headings", level, title)
-                local heading = semantics[buffer].headings[level][title]
+                neorg.lib.ensure_nested(semantics, buffer_path, "headings", level, title)
+                local heading = semantics[buffer_path].headings[level][title]
 
                 if heading[#heading] and not heading[#heading].range then
                     heading[#heading].range = ts.get_node_range(prev:parent())
                 else
-                    table.insert(semantics[buffer].headings[level][title], {
+                    table.insert(semantics[buffer_path].headings[level][title], {
                         range = ts.get_node_range(prev:parent()),
                     })
                 end
             elseif type == "footnote" or type == "definition" then
                 local type_with_s = table.concat({ type, "s" })
 
-                neorg.lib.ensure_nested(semantics, buffer, type_with_s, title)
+                neorg.lib.ensure_nested(semantics, buffer_path, type_with_s, title)
 
-                local rangeable = semantics[buffer][type_with_s][title]
+                local rangeable = semantics[buffer_path][type_with_s][title]
 
                 local rangeable_content = prev:parent():field("content")
                 local row_start, col_start = rangeable_content[1]:start()
@@ -159,7 +162,7 @@ module.private = {
                         column_end = col_end,
                     }
                 else
-                    table.insert(semantics[buffer][type_with_s][title], {
+                    table.insert(semantics[buffer_path][type_with_s][title], {
                         range = ts.get_node_range(prev:parent()),
                         content_range = {
                             row_start = row_start,
@@ -173,10 +176,10 @@ module.private = {
         end
 
         local function parse_link(link)
-            local parsed_link = module.required["core.integrations.treesitter"].parse_link(link, buffer)
+            local parsed_link = module.required["core.integrations.treesitter"].parse_link(link, buffer_path)
             parsed_link.link_file_text = parsed_link.link_file_text
                     and table.concat({ vim.fn.fnamemodify(parsed_link.link_file_text, ":p"), ".norg" })
-                or buffer
+                or buffer_path
 
             local type, level = parsed_link.link_type:match("^([^%d]+)(%d?)$")
             level = level and tonumber(level)
@@ -220,7 +223,7 @@ module.private = {
                         1,
                         "references"
                     )
-                    return semantics[buffer][category][trimmed_link_location_text][1]
+                    return semantics[buffer_path][category][trimmed_link_location_text][1]
                 end
             end
 
@@ -230,7 +233,7 @@ module.private = {
                 if level then
                     neorg.lib.ensure_nested(
                         semantics,
-                        buffer,
+                        buffer_path,
                         "links",
                         parsed_link.link_file_text,
                         type,
@@ -239,18 +242,19 @@ module.private = {
                     )
 
                     link_address =
-                        semantics[buffer].links[parsed_link.link_file_text][type][level][trimmed_link_location_text]
+                        semantics[buffer_path].links[parsed_link.link_file_text][type][level][trimmed_link_location_text]
                 else
                     neorg.lib.ensure_nested(
                         semantics,
-                        buffer,
+                        buffer_path,
                         "links",
                         parsed_link.link_file_text,
                         type,
                         trimmed_link_location_text
                     )
 
-                    link_address = semantics[buffer].links[parsed_link.link_file_text][type][trimmed_link_location_text]
+                    link_address =
+                        semantics[buffer_path].links[parsed_link.link_file_text][type][trimmed_link_location_text]
                 end
             end
 
@@ -274,9 +278,6 @@ module.private = {
                 range = ts.get_node_range(link),
             })
 
-            -- TODO: Remove the reliance on headings and make
-            -- backreferences work with other stuff like definition etc.
-            -- Just make sure not to treat urls and the like as backlinks!
             if vim.startswith(type, "heading") then
                 neorg.lib.ensure_nested(
                     semantics,
@@ -286,10 +287,10 @@ module.private = {
                     trimmed_link_location_text,
                     1,
                     "references",
-                    buffer
+                    buffer_path
                 )
                 table.insert(
-                    semantics[parsed_link.link_file_text].headings[level or 1][trimmed_link_location_text][1].references[buffer],
+                    semantics[parsed_link.link_file_text].headings[level or 1][trimmed_link_location_text][1].references[buffer_path],
                     link_address
                 )
             elseif vim.tbl_contains({ "definition", "footnote" }, type) then
@@ -302,19 +303,18 @@ module.private = {
                     trimmed_link_location_text,
                     1,
                     "references",
-                    parsed_link.link_file_text
+                    buffer_path
                 )
                 table.insert(
-                    semantics[parsed_link.link_file_text][type_with_s][trimmed_link_location_text][1].references[parsed_link.link_file_text],
+                    semantics[parsed_link.link_file_text][type_with_s][trimmed_link_location_text][1].references[buffer_path],
                     link_address
                 )
             end
 
-            if not module.private.parsed[parsed_link.link_file_text] and parsed_link.link_file_text ~= buffer then
+            if not module.private.parsed[parsed_link.link_file_text] and parsed_link.link_file_text ~= buffer_path then
                 local buf = vim.uri_to_bufnr(vim.uri_from_fname(parsed_link.link_file_text))
-
                 vim.fn.bufload(buf)
-                semantics = module.private.parse_file(buf)
+                semantics = module.private.parse_file(buf, semantics)
                 vim.api.nvim_buf_delete(buf, { force = true })
             end
         end
