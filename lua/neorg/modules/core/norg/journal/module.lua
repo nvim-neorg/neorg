@@ -200,8 +200,8 @@ module.private = {
         local index = neorg.modules.get_module_config("core.norg.dirman").index
         local folder_name = module.config.public.journal_folder
 
-        -- Each entry is a table that contains tables like { yy, mm, dd, link, title}
-        local entries = {}
+        -- Each entry is a table that contains tables like { yy, mm, dd, link, title }
+        local toc_entries = {}
 
         -- Get a filesystem handle for the files in the journal folder
         -- path is for each subfolder
@@ -224,7 +224,7 @@ module.private = {
             return title
         end
 
-        vim.loop.fs_scandir(folder_name .. neorg.configuration.pathsep, function(err, handle)
+        vim.loop.fs_scandir(folder_name .. neorg.configuration.pathsep, function(_, handle)
             while true do
                 -- Name corresponds to either a YYYY-mm-dd.norg file, or just the year ("nested" strategy)
                 local name, type = vim.loop.fs_scandir_next(handle)
@@ -270,7 +270,7 @@ module.private = {
                                         ) or file[1]
 
                                         -- Insert a new entry
-                                        table.insert(entries, {
+                                        table.insert(toc_entries, {
                                             tonumber(name),
                                             tonumber(mname),
                                             tonumber(file[1]),
@@ -312,7 +312,7 @@ module.private = {
                         local title = get_title(name) or parts[3]
 
                         -- And insert a new entry that corresponds to the file
-                        table.insert(entries, {
+                        table.insert(toc_entries, {
                             parts[1],
                             parts[2],
                             parts[3],
@@ -374,7 +374,7 @@ module.private = {
                 )
 
                 -- The current buffer now must be the toc file, so we set our toc entries there
-                vim.api.nvim_buf_set_lines(0, 0, -1, false, format(entries))
+                vim.api.nvim_buf_set_lines(0, 0, -1, false, format(toc_entries))
                 vim.cmd("w")
             end)
         end)
