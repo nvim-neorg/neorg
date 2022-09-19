@@ -77,8 +77,9 @@ module.config.public = {
     parser_configs = {
         norg = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg",
+            -- TODO: Does this even work? lol
+            branch = "17d61df817c1e0a9cdef8d915d4e4c556b7cf68c",
             files = { "src/parser.c", "src/scanner.cc" },
-            branch = "main",
         },
         norg_meta = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
