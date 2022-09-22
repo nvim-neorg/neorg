@@ -78,94 +78,13 @@ module.examples = {
     end,
 }
 
---- This global function returns all available commands to be used for the :Neorg command
----@param _ nil #Placeholder variable
----@param command string #Supplied by nvim itself; the full typed out command
-function _neorgcmd_generate_completions(_, command)
-    -- If core.neorgcmd is not loaded do not provide completion
-    if not neorg.modules.is_module_loaded("core.neorgcmd") then
-        return { "Unable to provide completions: core.neorgcmd is not loaded." }
-    end
-
-    -- Trim any leading whitespace that may be present in the command
-    command = command:gsub("^%s*", "")
-
-    -- Split the command into several smaller ones for easy parsing
-    local split_command = vim.split(command, " ")
-
-    -- Create a reference to the definitions table
-    local ref = module.public.neorg_commands.definitions
-
-    -- If the split command contains only 2 values then don't bother with
-    -- the code below, just return all the available completions and exit
-    if #split_command == 2 then
-        return vim.tbl_filter(function(key)
-            return key ~= "__any__" and key:find(split_command[#split_command])
-        end, vim.tbl_keys(ref))
-    end
-
-    -- Splice the command to omit the beginning :Neorg bit
-    local sliced_split_command = vim.list_slice(split_command, 2)
-
-    -- If the last element is not an empty string then add it, it serves as a terminator for neorgcmd's completion
-    if sliced_split_command[#sliced_split_command] ~= "" then
-        sliced_split_command[#sliced_split_command] = ""
-    end
-
-    -- This is where the magic begins - recursive reference assignment
-    -- What we do here is we recursively traverse down the module.public.neorg_commands.definitions
-    -- table and provide autocompletion based on how many commands we have typed into the :Neorg command.
-    -- If we e.g. type ":Neorg list " and then press Tab we want to traverse once down the table
-    -- and return all the contents at the first recursion level of that table.
-    for _, cmd in ipairs(sliced_split_command) do
-        if ref[cmd] then
-            ref = ref[cmd]
-        elseif cmd:len() > 0 and ref.__any__ then
-            ref = ref.__any__
-        else
-            break
-        end
-    end
-
-    -- Return everything from ref that is a potential match
-    return vim.tbl_filter(function(key)
-        return key ~= "__any__" and key:find(split_command[#split_command])
-    end, vim.tbl_keys(ref))
-end
-
---- Queries the user to select next argument
----@param args table #previous arguments of the command Neorg
----@param choices table #all possible choices for the next argument
-local _select_next_cmd_arg = function(args, choices)
-    local current = string.format("Neorg %s", table.concat(args, " "))
-
-    local query
-
-    if vim.tbl_isempty(choices) then
-        query = function(...)
-            vim.ui.input(...)
-        end
-    else
-        query = function(...)
-            vim.ui.select(choices, ...)
-        end
-    end
-
-    query({
-        prompt = current,
-    }, function(choice)
-        if choice ~= nil then
-            vim.cmd(string.format("%s %s", current, choice))
-        end
-    end)
-end
-
 module.load = function()
     -- Define the :Neorg command with autocompletion taking any number of arguments (-nargs=*)
-    -- If the user passes no arguments or too few, we'll query them for the remainder, using _select_next_cmd_arg.
-    vim.cmd(
-        [[ command! -nargs=* -complete=customlist,v:lua._neorgcmd_generate_completions Neorg :lua require('neorg.modules.core.neorgcmd.module').public.function_callback(<f-args>) ]]
-    )
+    -- If the user passes no arguments or too few, we'll query them for the remainder using select_next_cmd_arg.
+    vim.api.nvim_create_user_command("Neorg", module.private.command_callback, {
+        nargs = "*",
+        complete = module.private.generate_completions,
+    })
 
     -- Loop through all the command modules we want to load and load them
     for _, command in ipairs(module.config.public.load) do
@@ -245,14 +164,21 @@ module.public = {
         end
     end,
 
+    --- Defines a custom completion function to use for core.neorgcmd.
+    ---@param callback #(function) - the same function format as you would receive by being called by :command -completion=customlist,v:lua.callback Neorg
+    set_completion_callback = function(callback)
+        module.private.generate_completions = callback
+    end,
+}
+
+module.private = {
     --- Handles the calling of the appropriate function based on the command the user entered
     -- @Param  ... (varargs) - the contents of <f-args> provided by nvim itself
-    function_callback = function(...)
-        -- Unpack the varargs into a table
-        local args = { ... }
+    command_callback = function(data)
+        local args = data.fargs
 
         --[[
-		--	Ok, this is where things get messy. Read the comments from the _neorgcmd_generate_completions()
+		--	Ok, this is where things get messy. Read the comments from the generate_completions()
 		--	function to get a decent grasp of the code below. Before you ask, yes, all these variables
 		--	here are necessary in order for the function to work. Time to explain them one by one:
 		--		ref_definitions - a reference to the module.config.public.neorg_commands.definitions table, recursive reference assignment is done here.
@@ -299,14 +225,19 @@ module.public = {
                 else -- If we can't enter the data table then that means it's inconsistent with the definitions table
                     log.error(
                         "Unable to execute command :Neorg",
-                        ...,
+                        table.concat(args, " "),
                         cmd,
                         "- the command exists but doesn't hold any valid metadata. Metadata is required for neorg to parse the command correctly, please consult the neorg wiki if you're confused."
                     )
                     return
                 end
             else -- If we can't enter the definitions table further then that means the command we entered does not exist
-                log.error("Unable to execute command :Neorg", ..., cmd, "- such a command does not exist.")
+                log.error(
+                    "Unable to execute command :Neorg",
+                    table.concat(args, " "),
+                    cmd,
+                    "- such a command does not exist."
+                )
                 return
             end
         end
@@ -330,8 +261,9 @@ module.public = {
             -- performs a recursion on the data of each keybind versus the completions of each keybind. This means
             -- that keybinds with many arguments wouldn't be registered and would instead cause this function to
             -- loop. The only solution is to query completions for the next item here.
-            local completions = _neorgcmd_generate_completions(_, string.format("Neorg %s ", table.concat(args, " ")))
-            _select_next_cmd_arg(args, completions)
+            local completions =
+                module.private.generate_completions(_, string.format("Neorg %s ", table.concat(args, " ")))
+            module.private.select_next_cmd_arg(args, completions)
             return
         end
 
@@ -377,10 +309,86 @@ module.public = {
         )
     end,
 
-    --- Defines a custom completion function to use for core.neorgcmd.
-    ---@param callback #(function) - the same function format as you would receive by being called by :command -completion=customlist,v:lua.callback Neorg
-    set_completion_callback = function(callback)
-        _neorgcmd_generate_completions = callback
+    --- This function returns all available commands to be used for the :Neorg command
+    ---@param _ nil #Placeholder variable
+    ---@param command string #Supplied by nvim itself; the full typed out command
+    generate_completions = function(_, command)
+        -- If core.neorgcmd is not loaded do not provide completion
+        if not neorg.modules.is_module_loaded("core.neorgcmd") then
+            return { "Unable to provide completions: core.neorgcmd is not loaded." }
+        end
+
+        -- Trim any leading whitespace that may be present in the command
+        command = command:gsub("^%s*", "")
+
+        -- Split the command into several smaller ones for easy parsing
+        local split_command = vim.split(command, " ")
+
+        -- Create a reference to the definitions table
+        local ref = module.public.neorg_commands.definitions
+
+        -- If the split command contains only 2 values then don't bother with
+        -- the code below, just return all the available completions and exit
+        if #split_command == 2 then
+            return vim.tbl_filter(function(key)
+                return key ~= "__any__" and key:find(split_command[#split_command])
+            end, vim.tbl_keys(ref))
+        end
+
+        -- Splice the command to omit the beginning :Neorg bit
+        local sliced_split_command = vim.list_slice(split_command, 2)
+
+        -- If the last element is not an empty string then add it, it serves as a terminator for neorgcmd's completion
+        if sliced_split_command[#sliced_split_command] ~= "" then
+            sliced_split_command[#sliced_split_command] = ""
+        end
+
+        -- This is where the magic begins - recursive reference assignment
+        -- What we do here is we recursively traverse down the module.public.neorg_commands.definitions
+        -- table and provide autocompletion based on how many commands we have typed into the :Neorg command.
+        -- If we e.g. type ":Neorg list " and then press Tab we want to traverse once down the table
+        -- and return all the contents at the first recursion level of that table.
+        for _, cmd in ipairs(sliced_split_command) do
+            if ref[cmd] then
+                ref = ref[cmd]
+            elseif cmd:len() > 0 and ref.__any__ then
+                ref = ref.__any__
+            else
+                break
+            end
+        end
+
+        -- Return everything from ref that is a potential match
+        return vim.tbl_filter(function(key)
+            return key ~= "__any__" and key:find(split_command[#split_command])
+        end, vim.tbl_keys(ref))
+    end,
+
+    --- Queries the user to select next argument
+    ---@param args table #previous arguments of the command Neorg
+    ---@param choices table #all possible choices for the next argument
+    select_next_cmd_arg = function(args, choices)
+        local current = string.format("Neorg %s", table.concat(args, " "))
+
+        local query
+
+        if vim.tbl_isempty(choices) then
+            query = function(...)
+                vim.ui.input(...)
+            end
+        else
+            query = function(...)
+                vim.ui.select(choices, ...)
+            end
+        end
+
+        query({
+            prompt = current,
+        }, function(choice)
+            if choice ~= nil then
+                vim.cmd(string.format("%s %s", current, choice))
+            end
+        end)
     end,
 }
 
