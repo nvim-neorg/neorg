@@ -82,8 +82,8 @@ module.config.public = {
             },
 
             comment = {
-                content = "+@comment"
-            }
+                content = "+@comment",
+            },
         },
 
         headings = {
@@ -511,6 +511,12 @@ module.load = function()
             todo_items.cancelled[index].content = todo_items.cancelled[index][""]
         end
     end
+
+    module.public.trigger_highlights()
+
+    vim.api.nvim_create_autocmd("ColorScheme", {
+        callback = module.public.trigger_highlights,
+    })
 end
 
 ---@class core.highlights
@@ -686,12 +692,6 @@ module.public = {
 
     -- END of shamelessly ripped off akinsho code
 }
-
-module.on_event = function(event)
-    if event.type == "core.autocommands.events.bufenter" or event.type == "core.autocommands.events.colorscheme" then
-        module.public.trigger_highlights()
-    end
-end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
