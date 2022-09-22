@@ -153,7 +153,7 @@ module.public = {
                     local updated_date = updated_field:match("%d+%-%d+-%d+")
                     if updated_date ~= current_date then
                         local new_date = updated_field:gsub("%d+%-%d+-%d+", current_date)
-                        vim.api.nvim_buf_set_lines(buf, idx-1, idx, false, {new_date})
+                        vim.api.nvim_buf_set_lines(buf, idx - 1, idx, false, { new_date })
                     end
                 end
             end
