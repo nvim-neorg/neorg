@@ -43,23 +43,13 @@ module.load = function()
     -- Add neorgcmd capabilities
     -- All toc commands start with :Neorg toc ...
     module.required["core.neorgcmd"].add_commands_from_table({
-        definitions = {
-            toc = {
-                split = {},
-                inline = {},
-                toqflist = {},
-                close = {},
-            },
-        },
-        data = {
-            toc = {
-                args = 1,
-                subcommands = {
-                    split = { args = 0, name = "toc.split" },
-                    inline = { args = 0, name = "toc.inline" },
-                    toqflist = { args = 0, name = "toc.toqflist" },
-                    close = { args = 0, name = "toc.close" },
-                },
+        toc = {
+            args = 1,
+            subcommands = {
+                split = { args = 0, name = "toc.split" },
+                inline = { args = 0, name = "toc.inline" },
+                toqflist = { args = 0, name = "toc.toqflist" },
+                close = { args = 0, name = "toc.close" },
             },
         },
     })

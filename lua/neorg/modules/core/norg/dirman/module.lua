@@ -256,14 +256,9 @@ module.public = {
 
         -- Add the command to core.neorgcmd so it can be used by the user!
         module.required["core.neorgcmd"].add_commands_from_table({
-            definitions = {
-                workspace = workspace_autocomplete,
-            },
-            data = {
-                workspace = {
-                    max_args = 1,
-                    name = "dirman.workspace",
-                },
+            workspace = {
+                max_args = 1,
+                name = "dirman.workspace",
             },
         })
     end,

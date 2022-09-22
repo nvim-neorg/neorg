@@ -1856,14 +1856,9 @@ module.load = function()
 
     neorg.modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
-            definitions = {
-                ["toggle-concealer"] = {},
-            },
-            data = {
-                ["toggle-concealer"] = {
-                    name = "core.norg.concealer.toggle",
-                    args = 0,
-                },
+            ["toggle-concealer"] = {
+                name = "core.norg.concealer.toggle",
+                args = 0,
             },
         })
     end)

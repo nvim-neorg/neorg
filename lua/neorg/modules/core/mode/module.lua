@@ -39,17 +39,10 @@ module.public = {
 
     -- Define command for :Neorg
     neorg_commands = {
-        definitions = {
-            ["mode"] = {
-                norg = {},
-            },
-        },
-
-        data = {
-            ["mode"] = {
-                max_args = 1,
-                name = "mode",
-            },
+        ["mode"] = {
+            max_args = 1,
+            name = "mode",
+            subcommands = {},
         },
     },
 
@@ -75,7 +68,7 @@ module.public = {
         )
 
         -- Define the autocompletion tables and make them include the current mode
-        module.public.neorg_commands.definitions["mode"][mode_name] = {}
+        module.public.neorg_commands["mode"].subcommands[mode_name] = {}
 
         -- If core.neorgcmd is loaded then update all autocompletions
         local neorgcmd = neorg.modules.get_module("core.neorgcmd")

@@ -142,21 +142,12 @@ module.load = function()
     -- Add neorgcmd capabilities
     -- All gtd commands start with :Neorg gtd ...
     module.required["core.neorgcmd"].add_commands_from_table({
-        definitions = {
-            gtd = {
-                views = {},
-                edit = {},
-                capture = {},
-            },
-        },
-        data = {
-            gtd = {
-                args = 1,
-                subcommands = {
-                    views = { args = 0, name = "gtd.views" },
-                    edit = { args = 0, name = "gtd.edit" },
-                    capture = { args = 0, name = "gtd.capture" },
-                },
+        gtd = {
+            args = 1,
+            subcommands = {
+                views = { args = 0, name = "gtd.views" },
+                edit = { args = 0, name = "gtd.edit" },
+                capture = { args = 0, name = "gtd.capture" },
             },
         },
     })

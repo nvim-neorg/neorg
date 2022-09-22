@@ -164,19 +164,13 @@ module.public = {
 module.load = function()
     neorg.modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
-            definitions = {
-                ["inject-metadata"] = {},
-                ["update-metadata"] = {},
+            ["inject-metadata"] = {
+                args = 0,
+                name = "inject-metadata",
             },
-            data = {
-                ["inject-metadata"] = {
-                    args = 0,
-                    name = "inject-metadata",
-                },
-                ["update-metadata"] = {
-                    args = 0,
-                    name = "update-metadata",
-                },
+            ["update-metadata"] = {
+                args = 0,
+                name = "update-metadata",
             },
         })
     end)

@@ -18,20 +18,13 @@ end
 module.public = {
 
     neorg_commands = {
-        definitions = {
-            module = {
-                load = {},
-            },
-        },
-        data = {
-            module = {
-                args = 1,
+        module = {
+            args = 1,
 
-                subcommands = {
-                    load = {
-                        args = 1,
-                        name = "module.load",
-                    },
+            subcommands = {
+                load = {
+                    args = 1,
+                    name = "module.load",
                 },
             },
         },

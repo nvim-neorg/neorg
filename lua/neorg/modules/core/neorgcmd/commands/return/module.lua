@@ -17,16 +17,10 @@ module.setup = function()
 end
 
 module.public = {
-
     neorg_commands = {
-        definitions = {
-            ["return"] = {},
-        },
-        data = {
-            ["return"] = {
-                args = 0,
-                name = "return",
-            },
+        ["return"] = {
+            args = 0,
+            name = "return",
         },
     },
 }
