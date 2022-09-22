@@ -102,7 +102,8 @@ module.public = {
         end
 
         -- If the tree is valid then attempt to perform the query
-        local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
+        local tree = module.required["core.integrations.treesitter"].get_document_root(buf)
+
         if tree then
             -- get the language node used by the code block
             local code_lang = vim.treesitter.parse_query(

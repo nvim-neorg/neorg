@@ -259,7 +259,7 @@ module.public = {
         local old_extmarks = {}
 
         -- The next block of code will be responsible for dimming code blocks accordingly
-        local tree = vim.treesitter.get_parser(buf, "norg"):parse()[1]
+        local tree = module.required["core.integrations.treesitter"].get_document_root(buf)
 
         -- If the tree is valid then attempt to perform the query
         if tree then
