@@ -36,27 +36,19 @@ end
 module.load = function()
     neorg.modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
-            definitions = {
-                export = {
-                    ["to-file"] = {},
-                    ["directory"] = {},
-                },
-            },
-            data = {
-                export = {
-                    args = 1,
+            export = {
+                args = 1,
 
-                    subcommands = {
-                        ["to-file"] = {
-                            min_args = 1,
-                            max_args = 2,
-                            name = "export.to-file",
-                        },
-                        ["directory"] = {
-                            min_args = 2,
-                            max_args = 3,
-                            name = "export.directory",
-                        },
+                subcommands = {
+                    ["to-file"] = {
+                        min_args = 1,
+                        max_args = 2,
+                        name = "export.to-file",
+                    },
+                    ["directory"] = {
+                        min_args = 2,
+                        max_args = 3,
+                        name = "export.directory",
                     },
                 },
             },

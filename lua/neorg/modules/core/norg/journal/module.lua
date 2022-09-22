@@ -421,36 +421,21 @@ module.load = function()
     end
 
     module.required["core.neorgcmd"].add_commands_from_table({
-        definitions = {
-            journal = {
-                tomorrow = {},
-                yesterday = {},
-                today = {},
-                custom = {},
-                template = {},
+        journal = {
+            min_args = 1,
+            max_args = 2,
+            subcommands = {
+                tomorrow = { args = 0, name = "journal.tomorrow" },
+                yesterday = { args = 0, name = "journal.yesterday" },
+                today = { args = 0, name = "journal.today" },
+                custom = { args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
+                template = { args = 0, name = "journal.template" },
                 toc = {
-                    open = {},
-                    update = {},
-                },
-            },
-        },
-        data = {
-            journal = {
-                min_args = 1,
-                max_args = 2,
-                subcommands = {
-                    tomorrow = { args = 0, name = "journal.tomorrow" },
-                    yesterday = { args = 0, name = "journal.yesterday" },
-                    today = { args = 0, name = "journal.today" },
-                    custom = { args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
-                    template = { args = 0, name = "journal.template" },
-                    toc = {
-                        args = 1,
-                        name = "journal.toc",
-                        subcommands = {
-                            open = { args = 0, name = "journal.toc.open" },
-                            update = { args = 0, name = "journal.toc.update" },
-                        },
+                    args = 1,
+                    name = "journal.toc",
+                    subcommands = {
+                        open = { args = 0, name = "journal.toc.open" },
+                        update = { args = 0, name = "journal.toc.update" },
                     },
                 },
             },

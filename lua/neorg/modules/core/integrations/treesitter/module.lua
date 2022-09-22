@@ -61,14 +61,9 @@ module.load = function()
         }
 
         module.required["core.neorgcmd"].add_commands_from_table({
-            definitions = {
-                ["sync-parsers"] = {},
-            },
-            data = {
-                ["sync-parsers"] = {
-                    args = 0,
-                    name = "sync-parsers",
-                },
+            ["sync-parsers"] = {
+                args = 0,
+                name = "sync-parsers",
             },
         })
 

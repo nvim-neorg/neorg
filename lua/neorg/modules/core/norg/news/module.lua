@@ -75,41 +75,32 @@ module.load = function()
         local old_keys, new_keys = vim.tbl_keys(module.private.old_news), vim.tbl_keys(module.private.new_news)
 
         local commands_table = {
-            definitions = {
-                news = {
-                    new = lib.to_keys(new_keys),
-                    old = lib.to_keys(old_keys),
-                    all = {},
-                },
-            },
-            data = {
-                news = {
-                    args = 1,
-                    subcommands = {
-                        old = {
-                            name = "news.old",
-                            max_args = 1,
-                            subcommands = lib.construct(old_keys, function(key)
-                                return {
-                                    args = 0,
-                                    name = "news.old." .. key,
-                                }
-                            end),
-                        },
-                        new = {
-                            name = "news.new",
-                            max_args = 1,
-                            subcommands = lib.construct(new_keys, function(key)
-                                return {
-                                    args = 0,
-                                    name = "news.new." .. key,
-                                }
-                            end),
-                        },
-                        all = {
-                            name = "news.all",
-                            args = 0,
-                        },
+            news = {
+                args = 1,
+                subcommands = {
+                    old = {
+                        name = "news.old",
+                        max_args = 1,
+                        subcommands = lib.construct(old_keys, function(key)
+                            return {
+                                args = 0,
+                                name = "news.old." .. key,
+                            }
+                        end),
+                    },
+                    new = {
+                        name = "news.new",
+                        max_args = 1,
+                        subcommands = lib.construct(new_keys, function(key)
+                            return {
+                                args = 0,
+                                name = "news.new." .. key,
+                            }
+                        end),
+                    },
+                    all = {
+                        name = "news.all",
+                        args = 0,
                     },
                 },
             },
@@ -118,7 +109,7 @@ module.load = function()
         module.required["core.neorgcmd"].add_commands_from_table(commands_table)
 
         module.events.subscribed = {
-            ["core.neorgcmd"] = lib.to_keys(lib.extract(commands_table.data.news.subcommands, "name"), true),
+            ["core.neorgcmd"] = lib.to_keys(lib.extract(commands_table.news.subcommands, "name"), true),
         }
 
         if not vim.tbl_isempty(module.private.new_news) then

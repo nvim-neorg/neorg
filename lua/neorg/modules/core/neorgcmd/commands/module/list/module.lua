@@ -16,23 +16,15 @@ module.setup = function()
 end
 
 module.public = {
-
     neorg_commands = {
-        definitions = {
-            module = {
-                list = {},
-            },
-        },
-        data = {
-            module = {
-                args = 1,
+        module = {
+            args = 1,
 
-                subcommands = {
+            subcommands = {
 
-                    list = {
-                        args = 0,
-                        name = "module.list",
-                    },
+                list = {
+                    args = 0,
+                    name = "module.list",
                 },
             },
         },

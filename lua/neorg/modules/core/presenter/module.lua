@@ -46,19 +46,11 @@ module.load = function()
     keybinds.register_keybinds(module.name, { "next_page", "previous_page", "close" })
     -- Add neorgcmd capabilities
     module.required["core.neorgcmd"].add_commands_from_table({
-        definitions = {
-            presenter = {
-                start = {},
-                close = {},
-            },
-        },
-        data = {
-            presenter = {
-                args = 1,
-                subcommands = {
-                    start = { args = 0, name = "presenter.start" },
-                    close = { args = 0, name = "presenter.close" },
-                },
+        presenter = {
+            args = 1,
+            subcommands = {
+                start = { args = 0, name = "presenter.start" },
+                close = { args = 0, name = "presenter.close" },
             },
         },
     })

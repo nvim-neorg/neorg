@@ -96,14 +96,11 @@ module.public = {
 
     -- Define neorgcmd autocompletions and commands
     neorg_commands = {
-        definitions = {
-            keybind = {},
-        },
-        data = {
-            keybind = {
-                min_args = 2,
-                name = "core.keybinds.trigger",
-            },
+        keybind = {
+            min_args = 2,
+            name = "core.keybinds.trigger",
+
+            subcommands = {},
         },
     },
 
@@ -400,22 +397,22 @@ module.public = {
 
     --- Updates the list of known modes and keybinds for easy autocompletion. Invoked automatically during neorg_post_load().
     sync = function()
-        -- Reset all the autocompletions
-        module.public.neorg_commands.definitions.keybind = {}
+        -- -- Reset all the autocompletions
+        -- module.public.neorg_commands.keybind.subcommands = {}
 
-        -- Grab all the modes
-        local modes = module.required["core.mode"].get_modes()
+        -- -- Grab all the modes
+        -- local modes = module.required["core.mode"].get_modes()
 
-        -- Set autocompletion for the "all" mode
-        module.public.neorg_commands.definitions.keybind.all = module.public.keybinds
+        -- -- Set autocompletion for the "all" mode
+        -- module.public.neorg_commands.keybind.all.subcommands = module.public.keybinds
 
-        -- Convert the list of modes into completion entries for core.neorgcmd
-        for _, mode in ipairs(modes) do
-            module.public.neorg_commands.definitions.keybind[mode] = module.public.keybinds
-        end
+        -- -- Convert the list of modes into completion entries for core.neorgcmd
+        -- for _, mode in ipairs(modes) do
+        --     module.public.neorg_commands.keybind.subcommands[mode] = module.public.keybinds
+        -- end
 
-        -- Update core.neorgcmd's internal tables
-        module.required["core.neorgcmd"].add_commands_from_table(module.public.neorg_commands)
+        -- -- Update core.neorgcmd's internal tables
+        -- module.required["core.neorgcmd"].add_commands_from_table(module.public.neorg_commands)
     end,
 
     request_keys = function(module_name, callback)

@@ -156,27 +156,18 @@ end
 
 module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
-        definitions = {
-            tangle = {
-                ["current-file"] = {},
-                -- directory = {},
-            },
-        },
+        tangle = {
+            args = 1,
 
-        data = {
-            tangle = {
-                args = 1,
-
-                subcommands = {
-                    ["current-file"] = {
-                        args = 0,
-                        name = "core.tangle.current-file",
-                    },
-                    -- directory = {
-                    --     max_args = 1,
-                    --     name = "core.tangle.directory",
-                    -- }
+            subcommands = {
+                ["current-file"] = {
+                    args = 0,
+                    name = "core.tangle.current-file",
                 },
+                -- directory = {
+                --     max_args = 1,
+                --     name = "core.tangle.directory",
+                -- }
             },
         },
     })
