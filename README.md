@@ -143,14 +143,12 @@ You can install it through your favorite plugin manager:
   
 - [Packer (with lazyloading)](https://github.com/wbthomason/packer.nvim):
 
-  Want to lazy load? Know that you'll have to jump through some hoops and hurdles to get
-  it to work perfectly.
-  You can use the `ft` key to load Neorg only upon entering a `.norg` file:
+  Want to lazy load? You can use the `ft` key to load Neorg only upon entering a `.norg` file:
 
   ```lua
   use {
       "nvim-neorg/neorg",
-      -- tag = "latest",
+      -- tag = "*",
       ft = "norg",
       after = "nvim-treesitter", -- You may want to specify Telescope here as well
       config = function()
@@ -161,12 +159,9 @@ You can install it through your favorite plugin manager:
   }
   ```
 
-  Although it's proven to work for a lot of people, you might need additional setups depending on how your lazyloading system is configured.
-
-  One important thing to ask yourself is: "is it really worth it?".
-  Neorg practically lazy loads itself: only a few lines of code are run on startup, these lines check whether the current
-  extension is `.norg`, if it's not then nothing else loads. You shouldn't have to worry about performance issues when it comes to startup, but
-  hey, you do you :)
+  Although it's proven to work for a lot of people, you might need to take some
+  additional steps depending on how your lazyloading system and/or Neovim
+  config is set up.
 
 - [vim-plug](https://github.com/junegunn/vim-plug):
 
@@ -190,21 +185,23 @@ You can install it through your favorite plugin manager:
 Neorg will automatically attempt to install the parsers for you upon entering a `.norg` file if you have `core.defaults` loaded.
 A command is also exposed to reinstall and/or update these parsers: `:Neorg sync-parsers`.
 
-Note that the `:Neorg sync-parsers` command is only available when in a `.norg` file, and the installation isn't reproducible.
-To make it permanent, you want to alter your treesitter configuration a little:
-
+It is important to note that installation via this command isn't reproducible.
+There are a few ways to make it reproducible, but the recommended way is to set up an **update flag** for your plugin
+manager of choice. In packer, your configuration may look something like this:
 ```lua
-require('nvim-treesitter.configs').setup {
-    ensure_installed = { "norg", --[[ other parsers you would wish to have ]] },
-    highlight = { -- Be sure to enable highlights if you haven't!
-        enable = true,
-    }
+use {
+    "nvim-neorg/neorg",
+    run = ":Neorg sync-parsers", -- This is the important bit!
+    config = function()
+        require("neorg").setup {
+            -- configuration here
+        }
+    end,
 }
 ```
 
-NOTE: Putting `"norg_meta"` into your `ensure_installed` table may trigger unintended errors.
-This is because `norg_meta` isn't in the native `nvim-treesitter` repositories, and the parser is
-only defined while using Neorg. This is why using `:Neorg sync-parsers` is recommended.
+With the above `run` key set, every time you update Neorg the internal parsers
+will also be updated to the correct revision.
 
 ### Troubleshooting Treesitter
 - Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
@@ -267,11 +264,7 @@ require('neorg').setup {
 ```
 
 Changing workspaces is easy, just do `:Neorg workspace work`, where `work` is the name of your workspace.
-Note that `:Neorg` is only available when the Neorg environment is loaded, i.e. when you're
-in a `.norg` file or have loaded a `.norg` file already in your Neovim session.
-
-If the Neorg environment isn't loaded you'll find a `:NeorgStart` command which will launch Neorg and pop
-you in to your last (or only) workspace.
+Voila!
 
 #### It works, cool! What are the next steps?
 
