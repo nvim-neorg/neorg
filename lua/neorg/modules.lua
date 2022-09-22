@@ -215,10 +215,17 @@ function neorg.modules.load_module_from_table(module, parent)
     -- Keep track of the number of loaded modules
     neorg.modules.loaded_module_count = neorg.modules.loaded_module_count + 1
 
+    -- NOTE(vhyrro): Left here for debugging.
+    -- Maybe make controllable with a switch in the future.
+    -- local start = vim.loop.hrtime()
+
     -- Call the load function
     if module.load then
         module.load()
     end
+
+    -- local msg = ("%fms"):format((vim.loop.hrtime() - start) / 1e6)
+    -- vim.notify(msg .. " " .. module.name)
 
     neorg.events.broadcast_event({
         type = "core.module_loaded",
