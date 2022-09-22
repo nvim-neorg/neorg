@@ -79,7 +79,6 @@ module.load = function()
             once = true,
             callback = function()
                 -- HACK(vhyrro): Using internal Neovim APIs.
-                -- -- HACK(vhyrro): Using internal Neovim APIs.
                 -- It be like that sometimes.
                 if not vim._ts_has_language("norg") then
                     if module.config.public.install_parsers then
