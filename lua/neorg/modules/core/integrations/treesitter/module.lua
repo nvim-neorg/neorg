@@ -11,11 +11,10 @@ local module = neorg.modules.create("core.integrations.treesitter")
 
 module.private = {
     ts_utils = nil,
-    link_query=
-                [[
+    link_query = [[
                 (link) @next-segment
              ]],
-    heading_query=[[
+    heading_query = [[
                  [
                      (heading1
                          title: (paragraph_segment) @next-segment
@@ -36,7 +35,7 @@ module.private = {
                          title: (paragraph_segment) @next-segment
                      )
                  ]
-             ]]
+             ]],
 }
 
 module.setup = function()
@@ -75,26 +74,38 @@ module.load = function()
 
         -- luacheck: pop
 
-        if not neorg.lib.inline_pcall(vim.treesitter.parse_query, "norg", [[]]) then
-            if module.config.public.install_parsers then
-                pcall(vim.cmd, "TSInstallSync! norg")
-                pcall(vim.cmd, "TSInstallSync! norg_meta")
-            else
-                assert(false, "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it.")
-            end
-        end
+        vim.api.nvim_create_autocmd("BufEnter", {
+            pattern = "*.norg",
+            once = true,
+            callback = function()
+                -- HACK(vhyrro): Using internal Neovim APIs.
+                -- -- HACK(vhyrro): Using internal Neovim APIs.
+                -- It be like that sometimes.
+                if not vim._ts_has_language("norg") then
+                    if module.config.public.install_parsers then
+                        require("nvim-treesitter.install").commands.TSInstallSync["run!"]("norg", "norg_meta")
+                    else
+                        assert(false, "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it.")
+                    end
+                end
+            end,
+        })
     end
 
     module.private.ts_utils = ts_utils
 
     module.required["core.mode"].add_mode("traverse-heading")
-    module.required["core.keybinds"].register_keybinds(module.name, { "next.heading", "previous.heading", "next.link", "previous.link" })
+    module.required["core.keybinds"].register_keybinds(
+        module.name,
+        { "next.heading", "previous.heading", "next.link", "previous.link" }
+    )
 end
 
 module.config.public = {
     --- If true will auto-configure the parsers to use the recommended setup.
     --  Sometimes `nvim-treesitter`'s repositories lag behind and this is the only good fix.
     configure_parsers = true,
+
     --- If true will automatically install parsers if they are not present.
     install_parsers = true,
 
@@ -126,7 +137,7 @@ module.public = {
 
     --- Jumps to the next match of a query in the current buffer
     ---@param query_string string Query with `@next-segment` captures
-    goto_next_query_match =function(query_string)
+    goto_next_query_match = function(query_string)
         local line_number = vim.api.nvim_win_get_cursor(0)[1]
 
         local document_root = module.public.get_document_root(0)
@@ -134,7 +145,7 @@ module.public = {
         if not document_root then
             return
         end
-        local next_match_query = vim.treesitter.parse_query("norg",query_string)
+        local next_match_query = vim.treesitter.parse_query("norg", query_string)
         for id, node in next_match_query:iter_captures(document_root, 0, line_number + 1, -1) do
             if next_match_query.captures[id] == "next-segment" then
                 local start_line = node:range()
@@ -152,7 +163,7 @@ module.public = {
 
     --- Jumps to the previous match of a query in the current buffer
     ---@param query_string string Query with `@next-segment` captures
-    goto_previous_query_match =function(query_string)
+    goto_previous_query_match = function(query_string)
         local line_number = vim.api.nvim_win_get_cursor(0)[1]
 
         local document_root = module.public.get_document_root(0)
@@ -160,10 +171,10 @@ module.public = {
         if not document_root then
             return
         end
-        local previous_match_query=vim.treesitter.parse_query("norg",query_string)
+        local previous_match_query = vim.treesitter.parse_query("norg", query_string)
         local final_node = nil
 
-        for id, node in previous_match_query:iter_captures(document_root, 0, 0, line_number -1) do
+        for id, node in previous_match_query:iter_captures(document_root, 0, 0, line_number - 1) do
             if previous_match_query.captures[id] == "next-segment" then
                 local start_line = node:range()
 
@@ -174,13 +185,11 @@ module.public = {
                     final_node = node
                 end
             end
-
         end
         if final_node then
             module.private.ts_utils.goto_node(final_node)
         end
     end,
-
 
     ---  Gets all nodes of a given type from the AST
     ---@param  type string #The type of node to filter out
@@ -450,9 +459,9 @@ module.public = {
             local _, _, ere, ece = node[#node]:range()
             return brs, bcs, ere, ece
         end, function()
-                local a, b, c, d = node:range()
-                return a, b, c, d
-            end)
+            local a, b, c, d = node:range()
+            return a, b, c, d
+        end)
 
         return {
             row_start = rs,
@@ -660,8 +669,8 @@ module.public = {
                     local key_content = trim(module.public.get_node_text(node, buf))
 
                     result[key_content] = (
-                    node:next_named_sibling() and parse_data(node:next_named_sibling()) or vim.NIL
-                )
+                        node:next_named_sibling() and parse_data(node:next_named_sibling()) or vim.NIL
+                    )
                 end
             end
         end)
@@ -673,21 +682,13 @@ module.public = {
 module.on_event = function(event)
     if event.split_type[1] == "core.keybinds" then
         if event.split_type[2] == "core.integrations.treesitter.next.heading" then
-            module.public.goto_next_query_match(
-                module.private.heading_query
-            )
+            module.public.goto_next_query_match(module.private.heading_query)
         elseif event.split_type[2] == "core.integrations.treesitter.previous.heading" then
-            module.public.goto_previous_query_match(
-                module.private.heading_query
-            )
+            module.public.goto_previous_query_match(module.private.heading_query)
         elseif event.split_type[2] == "core.integrations.treesitter.next.link" then
-            module.public.goto_next_query_match(
-                module.private.link_query
-            )
+            module.public.goto_next_query_match(module.private.link_query)
         elseif event.split_type[2] == "core.integrations.treesitter.previous.link" then
-            module.public.goto_previous_query_match(
-                module.private.link_query
-            )
+            module.public.goto_previous_query_match(module.private.link_query)
         end
     elseif event.split_type[2] == "sync-parsers" then
         pcall(vim.cmd, "TSInstall! norg")
