@@ -21,7 +21,6 @@ module.public = {
             args = 1,
 
             subcommands = {
-
                 list = {
                     args = 0,
                     name = "module.list",
