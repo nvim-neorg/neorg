@@ -336,8 +336,6 @@ module.public = {
 
         module.public.apply_buffer_options(buf, config or {})
 
-        -- Refresh the buffer forcefully and set up autocommands
-        vim.cmd("edit")
         if opts.del_on_autocommands and #opts.del_on_autocommands ~= 0 then
             vim.cmd(
                 "autocmd "
