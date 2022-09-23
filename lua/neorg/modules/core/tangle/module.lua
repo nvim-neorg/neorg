@@ -251,6 +251,15 @@ module.public = {
 
                 if parsed_tag then
                     local file_to_tangle_to = options.languages[parsed_tag.parameters[1]]
+                    local content = parsed_tag.content
+
+                    if parsed_tag.parameters[1] == "norg" then
+                        for i, line in ipairs(content) do
+                            -- remove escape char
+                            local new_line, _ = line:gsub("\\(.?)", "%1")
+                            content[i] = new_line or ""
+                        end
+                    end
 
                     for _, attribute in ipairs(parsed_tag.attributes) do
                         if attribute.name == "tangle.none" then
@@ -266,7 +275,7 @@ module.public = {
 
                     if file_to_tangle_to then
                         tangles[file_to_tangle_to] = tangles[file_to_tangle_to] or {}
-                        vim.list_extend(tangles[file_to_tangle_to], parsed_tag.content)
+                        vim.list_extend(tangles[file_to_tangle_to], content)
                     end
 
                     ::skip_tag::
