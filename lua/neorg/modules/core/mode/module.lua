@@ -42,6 +42,7 @@ module.public = {
         ["mode"] = {
             max_args = 1,
             name = "mode",
+            condition = "norg",
             subcommands = {},
         },
     },
