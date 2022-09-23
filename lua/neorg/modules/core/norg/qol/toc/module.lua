@@ -45,6 +45,7 @@ module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         toc = {
             args = 1,
+            condition = "norg",
             subcommands = {
                 split = { args = 0, name = "toc.split" },
                 inline = { args = 0, name = "toc.inline" },

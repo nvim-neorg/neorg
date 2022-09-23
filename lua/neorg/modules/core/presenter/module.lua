@@ -48,6 +48,7 @@ module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         presenter = {
             args = 1,
+            condition = "norg",
             subcommands = {
                 start = { args = 0, name = "presenter.start" },
                 close = { args = 0, name = "presenter.close" },

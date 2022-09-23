@@ -433,6 +433,7 @@ module.load = function()
                 toc = {
                     args = 1,
                     name = "journal.toc",
+                    condition = "norg",
                     subcommands = {
                         open = { args = 0, name = "journal.toc.open" },
                         update = { args = 0, name = "journal.toc.update" },
