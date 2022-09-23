@@ -9,6 +9,12 @@
 	content: (ranged_tag_content)? @neorg.tags.comment.content)
 
 (carryover_tag_set
+  (carryover_tag
+    name: (tag_name) @_name
+    (#eq? @_name "comment"))
+    target: (paragraph) @neorg.tags.comment.content)
+
+(carryover_tag_set
     (carryover_tag
         ("_prefix" @neorg.tags.carryover.begin)
         name:
