@@ -25,7 +25,7 @@ module.examples = {
                     min_args = 1, -- Tells neorgcmd that we want at least one argument for this command
                     max_args = 1, -- Tells neorgcmd we want no more than one argument
                     args = 1, -- Setting this variable instead would be the equivalent of min_args = 1 and max_args = 1
-                    norg = false, -- When true, will only be available in .norg files. When false, will only be available outside .norg files.
+                    condition = "norg", -- This command is only avaiable within `.norg` files
 
                     subcommands = { -- Defines subcommands
                         -- Repeat the definition cycle again
@@ -178,13 +178,43 @@ module.private = {
         local is_norg = vim.api.nvim_buf_get_option(current_buf, "filetype") == "norg"
 
         command = command:gsub("^%s*", "")
-        
-        local splitcmd = vim.list_slice(vim.split(command, " ", {
-            plain = true,
-            trimempty = true,
-        }), 2)
 
-        -- TODO
+        local splitcmd = vim.list_slice(
+            vim.split(command, " ", {
+                plain = true,
+                trimempty = true,
+            }),
+            2
+        )
+
+        local ref = {
+            subcommands = module.public.neorg_commands,
+        }
+        local last_valid_ref = ref
+
+        for _, cmd in ipairs(splitcmd) do
+            if not ref then
+                break
+            end
+
+            ref = ref.subcommands or {}
+            ref = ref[cmd]
+
+            if ref then
+                last_valid_ref = ref
+            end
+        end
+
+        -- TODO: Fix `:Neorg m <tab>` giving invalid completions`
+        local keys = ref and vim.tbl_keys(ref.subcommands or {})
+            or (
+                vim.tbl_filter(function(key)
+                    return key:find(splitcmd[#splitcmd])
+                end, vim.tbl_keys(last_valid_ref.subcommands or {}))
+            )
+        table.sort(keys)
+
+        return keys
     end,
 
     --- Queries the user to select next argument
