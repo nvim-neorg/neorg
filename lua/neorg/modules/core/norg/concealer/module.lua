@@ -1859,6 +1859,7 @@ module.load = function()
             ["toggle-concealer"] = {
                 name = "core.norg.concealer.toggle",
                 args = 0,
+                condition = "norg",
             },
         })
     end)

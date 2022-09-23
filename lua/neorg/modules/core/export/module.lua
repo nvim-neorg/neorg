@@ -38,6 +38,7 @@ module.load = function()
         neorgcmd.add_commands_from_table({
             export = {
                 args = 1,
+                condition = "norg",
 
                 subcommands = {
                     ["to-file"] = {

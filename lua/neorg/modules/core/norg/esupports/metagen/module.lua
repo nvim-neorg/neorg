@@ -167,10 +167,12 @@ module.load = function()
             ["inject-metadata"] = {
                 args = 0,
                 name = "inject-metadata",
+                condition = "norg",
             },
             ["update-metadata"] = {
                 args = 0,
                 name = "update-metadata",
+                condition = "norg",
             },
         })
     end)

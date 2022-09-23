@@ -158,6 +158,7 @@ module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         tangle = {
             args = 1,
+            condition = "norg",
 
             subcommands = {
                 ["current-file"] = {
