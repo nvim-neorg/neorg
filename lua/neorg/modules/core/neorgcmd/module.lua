@@ -177,6 +177,22 @@ module.private = {
         local current_buf = vim.api.nvim_get_current_buf()
         local is_norg = vim.api.nvim_buf_get_option(current_buf, "filetype") == "norg"
 
+        local function check_condition(condition)
+            if condition == nil then
+                return true
+            end
+
+            if condition == "norg" and not is_norg then
+                return false
+            end
+
+            if type(condition) == "function" then
+                return condition(current_buf, is_norg)
+            end
+
+            return condition
+        end
+
         command = command:gsub("^%s*", "")
 
         local splitcmd = vim.list_slice(
@@ -193,7 +209,7 @@ module.private = {
         local last_valid_ref = ref
 
         for _, cmd in ipairs(splitcmd) do
-            if not ref then
+            if not ref or not check_condition(ref.condition) then
                 break
             end
 
@@ -214,7 +230,13 @@ module.private = {
             )
         table.sort(keys)
 
-        return keys
+        do
+            local subcommands = (ref and ref.subcommands or last_valid_ref.subcommands) or {}
+
+            return vim.tbl_filter(function(key)
+                return check_condition(subcommands[key].condition)
+            end, keys)
+        end
     end,
 
     --- Queries the user to select next argument
