@@ -168,6 +168,87 @@ module.private = {
     --- Handles the calling of the appropriate function based on the command the user entered
     command_callback = function(data)
         local args = data.fargs
+
+        local current_buf = vim.api.nvim_get_current_buf()
+        local is_norg = vim.api.nvim_buf_get_option(current_buf, "filetype") == "norg"
+
+        local function check_condition(condition)
+            if condition == nil then
+                return true
+            end
+
+            if condition == "norg" and not is_norg then
+                return false
+            end
+
+            if type(condition) == "function" then
+                return condition(current_buf, is_norg)
+            end
+
+            return condition
+        end
+
+        local ref = {
+            subcommands = module.public.neorg_commands,
+        }
+        local argument_index = 0
+
+        for i, cmd in ipairs(args) do
+            if not ref.subcommands or vim.tbl_isempty(ref.subcommands) then
+                break
+            end
+
+            ref = ref.subcommands[cmd]
+
+            -- TODO(vhyrro): Make error message more clear
+            -- The user should know if they executed a command that simply is disabled
+            if not ref or not check_condition(ref.condition) then
+                log.error(
+                    (
+                        "Error when executing `:Neorg %s` - such a command does not exist! Are you sure you're in the correct context?"
+                    ):format(table.concat(vim.list_slice(args, 1, i), " "))
+                )
+                return
+            end
+
+            argument_index = i
+        end
+
+        local argument_count = (#args - argument_index)
+
+        if ref.args then
+            ref.min_args = ref.args
+            ref.max_args = ref.args
+        else
+            ref.min_args = ref.min_args or 0
+            ref.max_args = ref.max_args or 0
+        end
+
+        if #args == 0 or argument_count < ref.min_args then
+            local completions = module.private.generate_completions(_, table.concat({ "Neorg ", data.args, " " }))
+            module.private.select_next_cmd_arg(data.args, completions)
+            return
+        elseif argument_count > ref.max_args then
+            log.error("Too many")
+            return
+        end
+
+        if not ref.name then
+            log.error("Unable to execute command - something something no name")
+            return
+        end
+
+        if not module.events.defined[ref.name] then
+            module.events.defined[ref.name] = neorg.events.define(module, ref.name)
+        end
+
+        neorg.events.broadcast_event(
+            neorg.events.create(
+                module,
+                table.concat({ "core.neorgcmd.events.", ref.name }),
+                vim.list_slice(args, argument_index + 1)
+            )
+        )
     end,
 
     --- This function returns all available commands to be used for the :Neorg command
@@ -221,7 +302,7 @@ module.private = {
             end
         end
 
-        -- TODO: Fix `:Neorg m <tab>` giving invalid completions`
+        -- TODO: Fix `:Neorg m <tab>` giving invalid completions
         local keys = ref and vim.tbl_keys(ref.subcommands or {})
             or (
                 vim.tbl_filter(function(key)
@@ -240,10 +321,10 @@ module.private = {
     end,
 
     --- Queries the user to select next argument
-    ---@param args table #previous arguments of the command Neorg
+    ---@param qargs table #A string of arguments previously supplied to the Neorg command
     ---@param choices table #all possible choices for the next argument
-    select_next_cmd_arg = function(args, choices)
-        local current = string.format("Neorg %s", table.concat(args, " "))
+    select_next_cmd_arg = function(qargs, choices)
+        local current = table.concat({ "Neorg ", qargs })
 
         local query
 
