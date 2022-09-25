@@ -288,6 +288,7 @@ module.private = {
             subcommands = module.public.neorg_commands,
         }
         local last_valid_ref = ref
+        local last_completion_level = 0
 
         for _, cmd in ipairs(splitcmd) do
             if not ref or not check_condition(ref.condition) then
@@ -299,7 +300,17 @@ module.private = {
 
             if ref then
                 last_valid_ref = ref
+                last_completion_level = last_completion_level + 1
             end
+        end
+
+        if not last_valid_ref.subcommands and last_valid_ref.complete then
+            return vim.endswith(command, " ") and (last_valid_ref.complete[#splitcmd - last_completion_level + 1] or {})
+                or (
+                    vim.tbl_filter(function(key)
+                        return key:find(splitcmd[#splitcmd])
+                    end, last_valid_ref.complete[#splitcmd - last_completion_level])
+                )
         end
 
         -- TODO: Fix `:Neorg m <tab>` giving invalid completions
