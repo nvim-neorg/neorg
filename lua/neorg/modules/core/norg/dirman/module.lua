@@ -243,22 +243,12 @@ module.public = {
         -- Get all the workspace names
         local workspace_names = module.public.get_workspace_names()
 
-        -- Construct a table to be used by core.neorgcmd for autocompletion
-        local workspace_autocomplete = (function()
-            local result = {}
-
-            for _, ws_name in ipairs(workspace_names) do
-                result[ws_name] = {}
-            end
-
-            return result
-        end)()
-
         -- Add the command to core.neorgcmd so it can be used by the user!
         module.required["core.neorgcmd"].add_commands_from_table({
             workspace = {
                 max_args = 1,
                 name = "dirman.workspace",
+                complete = { workspace_names },
             },
         })
     end,
