@@ -100,13 +100,14 @@ module.public = {
             min_args = 2,
             name = "core.keybinds.trigger",
 
-            subcommands = {},
+            complete = {
+                {},
+                {},
+            },
         },
     },
 
     version = "0.0.9",
-
-    keybinds = {},
 
     -- Adds a new keybind to the database of known keybinds
     -- @param module_name string #the name of the module that owns the keybind. Make sure it's an absolute path.
@@ -120,7 +121,7 @@ module.public = {
             module.events.defined[keybind_name] = neorg.events.define(module, keybind_name)
 
             -- Define autocompletion for core.neorgcmd
-            module.public.keybinds[keybind_name] = {}
+            table.insert(module.public.neorg_commands.keybind.complete[2], keybind_name)
         end
 
         -- Update core.neorgcmd's internal tables
@@ -141,7 +142,7 @@ module.public = {
                 module.events.defined[keybind_name] = neorg.events.define(module, keybind_name)
 
                 -- Define autocompletion for core.neorgcmd
-                module.public.keybinds[keybind_name] = {}
+                table.insert(module.public.neorg_commands.keybind.complete[2], keybind_name)
             end
         end
 
@@ -397,22 +398,13 @@ module.public = {
 
     --- Updates the list of known modes and keybinds for easy autocompletion. Invoked automatically during neorg_post_load().
     sync = function()
-        -- -- Reset all the autocompletions
-        -- module.public.neorg_commands.keybind.subcommands = {}
+        -- Update the first parameter with the new list of modes
+        -- NOTE(vhyrro): Is there a way to prevent copying? Can you "unbind" a reference to a table?
+        module.public.neorg_commands.keybind.complete[1] = vim.deepcopy(module.required["core.mode"].get_modes())
+        table.insert(module.public.neorg_commands.keybind.complete[1], "all")
 
-        -- -- Grab all the modes
-        -- local modes = module.required["core.mode"].get_modes()
-
-        -- -- Set autocompletion for the "all" mode
-        -- module.public.neorg_commands.keybind.all.subcommands = module.public.keybinds
-
-        -- -- Convert the list of modes into completion entries for core.neorgcmd
-        -- for _, mode in ipairs(modes) do
-        --     module.public.neorg_commands.keybind.subcommands[mode] = module.public.keybinds
-        -- end
-
-        -- -- Update core.neorgcmd's internal tables
-        -- module.required["core.neorgcmd"].add_commands_from_table(module.public.neorg_commands)
+        -- Update core.neorgcmd's internal tables
+        module.required["core.neorgcmd"].add_commands_from_table(module.public.neorg_commands)
     end,
 
     request_keys = function(module_name, callback)
