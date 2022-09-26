@@ -20,18 +20,31 @@ module.examples = {
 
         module.load = function()
             module.required["core.neorgcmd"].add_commands_from_table({
-                -- The name of our subcommand
+                -- The name of our command
                 my_command = {
                     min_args = 1, -- Tells neorgcmd that we want at least one argument for this command
                     max_args = 1, -- Tells neorgcmd we want no more than one argument
                     args = 1, -- Setting this variable instead would be the equivalent of min_args = 1 and max_args = 1
-                    condition = "norg", -- This command is only avaiable within `.norg` files
+                    -- This command is only avaiable within `.norg` files.
+                    -- This can also be a function(bufnr, is_in_an_norg_file)
+                    condition = "norg",
 
                     subcommands = { -- Defines subcommands
                         -- Repeat the definition cycle again
                         my_subcommand = {
-                            args = 0, -- We don't want any arguments
-                            name = "my.command", -- The identifying name of this command
+                            args = 2, -- Force two arguments to be supplied
+                            -- The identifying name of this command
+                            -- Every "endpoint" must have a name associated with it
+                            name = "my.command",
+
+                            -- If your command takes in arguments versus
+                            -- subcommands you can make a table of tables with
+                            -- completion for those arguments here.
+                            -- This table is optional.
+                            complete = {
+                                { "first_completion1", "first_completion2" },
+                                { "second_completion1", "second_completion2" },
+                            },
 
                             -- We do not define a subcommands table here because we don't have any more subcommands
                             -- Creating an empty subcommands table will cause errors so don't bother
