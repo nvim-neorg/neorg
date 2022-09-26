@@ -219,6 +219,8 @@ module.private = {
         if ref.args then
             ref.min_args = ref.args
             ref.max_args = ref.args
+        elseif ref.min_args and not ref.max_args then
+            ref.max_args = math.huge
         else
             ref.min_args = ref.min_args or 0
             ref.max_args = ref.max_args or 0
@@ -309,7 +311,7 @@ module.private = {
                 or (
                     vim.tbl_filter(function(key)
                         return key:find(splitcmd[#splitcmd])
-                    end, last_valid_ref.complete[#splitcmd - last_completion_level])
+                    end, last_valid_ref.complete[#splitcmd - last_completion_level] or {})
                 )
         end
 
