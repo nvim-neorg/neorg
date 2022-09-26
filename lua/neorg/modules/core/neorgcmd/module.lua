@@ -213,12 +213,17 @@ module.private = {
 
             ref = ref.subcommands[cmd]
 
-            -- TODO(vhyrro): Make error message more clear
-            -- The user should know if they executed a command that simply is disabled
-            if not ref or not check_condition(ref.condition) then
+            if not ref then
+                log.error(
+                    ("Error when executing `:Neorg %s` - such a command does not exist!"):format(
+                        table.concat(vim.list_slice(args, 1, i), " ")
+                    )
+                )
+                return
+            elseif not check_condition(ref.condition) then
                 log.error(
                     (
-                        "Error when executing `:Neorg %s` - such a command does not exist! Are you sure you're in the correct context?"
+                        "Error when executing `:Neorg %s` - the command is currently disabled. Some commands will only become available under certain conditions!"
                     ):format(table.concat(vim.list_slice(args, 1, i), " "))
                 )
                 return
@@ -244,12 +249,22 @@ module.private = {
             module.private.select_next_cmd_arg(data.args, completions)
             return
         elseif argument_count > ref.max_args then
-            log.error("Too many")
+            log.error(
+                ("Error when executing `:Neorg %s` - too many arguments supplied! The command expects %s argument%s."):format(
+                    data.args,
+                    ref.max_args == 0 and "no" or ref.max_args,
+                    ref.max_args == 1 and "" or "s"
+                )
+            )
             return
         end
 
         if not ref.name then
-            log.error("Unable to execute command - something something no name")
+            log.error(
+                (
+                    "Error when executing `:Neorg %s` - the ending command didn't have a `name` variable associated with it! This is an implementation error on the developer's side, so file a report to the author of the module."
+                ):format(data.args)
+            )
             return
         end
 
