@@ -7,12 +7,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version:
+        neovim-version:
           - v0.7.0
           - nightly
+        neorg-version:
+          - 0.0.12
+          - main
+        exclude:
+          - neovim-version: v0.7.0
+            neorg-version: main
+          - neovim-version: nightly
+            neorg-version: 0.0.12
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ matrix.neorg-version }}
       - name: Install Plenary
         uses: actions/checkout@v2
         with:
@@ -28,6 +38,6 @@ jobs:
         id: neovim
         with:
           neovim: true
-          version: ${{ matrix.version }}
+          version: ${{ matrix.neovim-version }}
       - name: Run tests
         run: make ci
