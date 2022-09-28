@@ -239,7 +239,7 @@ You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) whi
 
 ## ⚙ Usage
 
-A new and official specification is in the works, we recommend reading it [here](https://github.com/nvim-neorg/norg-specs/blob/main/0.1-specification.norg).
+A new and official specification is in the works, we recommend reading it [here](https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg).
 You can view a summary directly in your neovim instance by running `:h neorg` if you don't like reading a lot!
 
 Afterwards it's as simple as hopping into a `.norg` file and typing away.
