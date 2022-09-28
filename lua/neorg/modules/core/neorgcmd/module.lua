@@ -335,12 +335,29 @@ module.private = {
         end
 
         if not last_valid_ref.subcommands and last_valid_ref.complete then
-            return vim.endswith(command, " ") and (last_valid_ref.complete[#splitcmd - last_completion_level + 1] or {})
-                or (
-                    vim.tbl_filter(function(key)
-                        return key:find(splitcmd[#splitcmd])
-                    end, last_valid_ref.complete[#splitcmd - last_completion_level] or {})
-                )
+            if type(last_valid_ref.complete) == "function" then
+                last_valid_ref.complete = last_valid_ref.complete(current_buf, is_norg)
+            end
+
+            if vim.endswith(command, " ") then
+                local completions = last_valid_ref.complete[#splitcmd - last_completion_level + 1] or {}
+
+                if type(completions) == "function" then
+                    completions = completions(current_buf, is_norg) or {}
+                end
+
+                return completions
+            else
+                local completions = last_valid_ref.complete[#splitcmd - last_completion_level] or {}
+
+                if type(completions) == "function" then
+                    completions = completions(current_buf, is_norg) or {}
+                end
+
+                return vim.tbl_filter(function(key)
+                    return key:find(splitcmd[#splitcmd])
+                end, completions)
+            end
         end
 
         -- TODO: Fix `:Neorg m <tab>` giving invalid completions
