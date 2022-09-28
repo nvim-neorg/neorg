@@ -8,11 +8,9 @@ body:
     attributes:
       label: Prerequisites
       options:
-        - label: I have read [contribution guidelines](https://github.com/vhyrro/neorg/blob/main/docs/CONTRIBUTING.md)
+        - label: I am using either 0.7 stable with the `0.0.12` tag or the latest compiled Neovim version
           required: true
         - label: I am using the latest version of the plugin
-          required: true
-        - label: I am using either 0.6 stable or the latest compiled neovim version
           required: true
 
   - type: input
@@ -70,12 +68,9 @@ body:
         - "Yes"
         - "Yes, but I don't know how to start. I would need guidance (check question below)"
         - "No"
-    validations:
-      required: true
 
   - type: textarea
     attributes:
       label: "Implementation help"
       description: "If you selected yes in the last question please specify what you would need help with in order to implement this?"
-
 
