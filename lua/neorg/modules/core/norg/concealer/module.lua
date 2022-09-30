@@ -1869,6 +1869,7 @@ module.load = function()
             pattern = "conceallevel",
             callback = function()
                 local current_buffer = vim.api.nvim_get_current_buf()
+                if vim.bo[current_buffer].ft ~= "norg" then return end
                 local has_conceal = (tonumber(vim.v.option_new) > 0)
 
                 module.public.trigger_icons(
