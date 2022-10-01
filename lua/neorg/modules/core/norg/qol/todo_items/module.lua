@@ -12,6 +12,7 @@ Some available keybinds
     - `todo.task_recurring`
     - `todo.task_important`
     - `todo.task_cycle`
+    - `todo.task_cycle_reverse`
 --]]
 
 require("neorg.modules.base")
