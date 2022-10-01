@@ -276,17 +276,9 @@ module.on_event = function(event)
             module.public.make_all(todo_item_at_cursor, match, map_of_names_to_symbols[match] or "<unsupported>")
             module.public.update_parent(event.buffer, event.cursor_position[1] - 1, 0)
         elseif event.split_type[2] == todo_str .. "task_cycle" then
-            module.public.task_cycle(event, {
-                { "undone", " " },
-                { "done", "x" },
-                { "pending", "-" },
-            })
+            module.public.task_cycle(event, module.config.public.order)
         elseif event.split_type[2] == todo_str .. "task_cycle_reverse" then
-            module.public.task_cycle(event, {
-                { "pending", "-" },
-                { "done", "x" },
-                { "undone", " " },
-            })
+            module.public.task_cycle(event, vim.fn.reverse(module.config.public.order))
         end
     end
 end
