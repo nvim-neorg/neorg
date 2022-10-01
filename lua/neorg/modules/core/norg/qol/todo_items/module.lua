@@ -212,6 +212,41 @@ module.public = {
             end
         end
     end,
+    task_cycle = function(event, types)
+        local todo_item_at_cursor = module.public.get_list_item_from_cursor(event.buffer, event.cursor_position[1] - 1)
+        local todo_item_type = module.public.get_todo_item_type(todo_item_at_cursor)
+
+        --- Gets the next item of a flat list based on the first item
+        ---@param type_list list #A list of { "type", "char" } items
+        ---@param item_type string #The `type` field from the `type_list` array
+        ---@return number #An index into the next item of `type_list`
+        local function get_index(type_list, item_type)
+            for i, element in ipairs(type_list) do
+                if element[1] == item_type then
+                    if i >= #type_list then
+                        return 1
+                    else
+                        return i + 1
+                    end
+                end
+            end
+        end
+
+        local index = get_index(types, todo_item_type)
+
+        local next = types[index] or types[1]
+
+        if todo_item_at_cursor:named_child_count() > 3 then
+            if (index + 1) >= #types then
+                next = types[#types - index + 1]
+            else
+                next = types[index + 1]
+            end
+        end
+
+        module.public.make_all(todo_item_at_cursor, next[1], next[2])
+        module.public.update_parent(event.buffer, event.cursor_position[1] - 1, 0)
+    end,
 }
 
 module.on_event = function(event)
@@ -240,39 +275,17 @@ module.on_event = function(event)
             module.public.make_all(todo_item_at_cursor, match, map_of_names_to_symbols[match] or "<unsupported>")
             module.public.update_parent(event.buffer, event.cursor_position[1] - 1, 0)
         elseif event.split_type[2] == todo_str .. "task_cycle" then
-            local todo_item_type = module.public.get_todo_item_type(todo_item_at_cursor)
-            local types = module.config.public.order
-
-            --- Gets the next item of a flat list based on the first item
-            ---@param type_list list #A list of { "type", "char" } items
-            ---@param item_type string #The `type` field from the `type_list` array
-            ---@return number #An index into the next item of `type_list`
-            local function get_index(type_list, item_type)
-                for i, element in ipairs(type_list) do
-                    if element[1] == item_type then
-                        if i >= #type_list then
-                            return 1
-                        else
-                            return i + 1
-                        end
-                    end
-                end
-            end
-
-            local index = get_index(types, todo_item_type)
-
-            local next = types[index] or types[1]
-
-            if todo_item_at_cursor:named_child_count() > 3 then
-                if (index + 1) >= #types then
-                    next = types[#types - index + 1]
-                else
-                    next = types[index + 1]
-                end
-            end
-
-            module.public.make_all(todo_item_at_cursor, next[1], next[2])
-            module.public.update_parent(event.buffer, event.cursor_position[1] - 1, 0)
+            module.public.task_cycle(event, {
+                { "undone", " " },
+                { "done", "x" },
+                { "pending", "-" },
+            })
+        elseif event.split_type[2] == todo_str .. "task_cycle_reverse" then
+            module.public.task_cycle(event, {
+                { "pending", "-" },
+                { "done", "x" },
+                { "undone", " " },
+            })
         end
     end
 end
@@ -287,6 +300,7 @@ module.events.subscribed = {
         ["core.norg.qol.todo_items.todo.task_important"] = true,
         ["core.norg.qol.todo_items.todo.task_recurring"] = true,
         ["core.norg.qol.todo_items.todo.task_cycle"] = true,
+        ["core.norg.qol.todo_items.todo.task_cycle_reverse"] = true,
     },
 }
 
