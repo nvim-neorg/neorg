@@ -378,7 +378,7 @@ Our goals are fairly simple:
    notable one is the requirement for **complex parsers**.
    I really advise checking [some writeups](https://talk.commonmark.org/t/beyond-markdown/2787) out on how bad it can get at times.
    What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
-   Enter the `.norg` file format, whose [base spec](docs/NFF-0.1-spec.md) is practically complete.
+   Enter the `.norg` file format, whose [base spec](https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg) is practically complete.
    The cross between all the best things from org and the best things from markdown, revised and merged into one.
 
 2. Keybinds that _make sense_: vim's keybind philosophy is unlike any other, and we want to keep that vibe.
