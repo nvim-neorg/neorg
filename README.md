@@ -423,7 +423,7 @@ integrated workflow:
 
 And an extra thank you to:
 
-- [Binx](https://github.com/Binx-Codes/) - for making that gorgeous logo for free!
+- [Binx](https://github.com/binxd/) - for making that gorgeous logo for free!
 - [bandithedoge](https://github.com/bandithedoge) - for converting the PNG version of the logo into SVG form
 
 ## Support
