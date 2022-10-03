@@ -1,7 +1,7 @@
 --[[
---	NEORG MODULE MANAGER
---	This file is responsible for loading, calling and managing modules
---	Modules are internal mini-programs that execute on certain events, they build the foundation of Neorg itself.
+--    NEORG MODULE MANAGER
+--    This file is responsible for loading, calling and managing modules
+--    Modules are internal mini-programs that execute on certain events, they build the foundation of Neorg itself.
 --]]
 
 -- Include the global logger instance
@@ -10,8 +10,8 @@ local log = require("neorg.external.log")
 require("neorg.modules.base")
 
 --[[
---	The reason we do not just call this variable neorg.modules.loaded_modules.count is because
---	someone could make a module called "count" and override the variable, causing bugs.
+--    The reason we do not just call this variable neorg.modules.loaded_modules.count is because
+--    someone could make a module called "count" and override the variable, causing bugs.
 --]]
 neorg.modules.loaded_module_count = 0
 
@@ -64,10 +64,10 @@ function neorg.modules.load_module_from_table(module, parent)
     end
 
     --[[
-	--	This small snippet of code creates a copy of an already loaded module with the same name.
-	--	If the module wants to replace an already loaded module then we need to create a deepcopy of that old module
-	--	in order to stop it from getting overwritten.
-	--]]
+    --    This small snippet of code creates a copy of an already loaded module with the same name.
+    --    If the module wants to replace an already loaded module then we need to create a deepcopy of that old module
+    --    in order to stop it from getting overwritten.
+    --]]
     local module_to_replace
 
     -- If the return value of module.setup() tells us to hotswap with another module then cache the module we want to replace with

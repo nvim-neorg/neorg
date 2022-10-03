@@ -1,5 +1,5 @@
 --[[
-	File for creating text popups for the user.
+    File for creating text popups for the user.
 --]]
 
 local module = neorg.modules.extend("core.ui.text_popup")

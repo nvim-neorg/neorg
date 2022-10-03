@@ -1,6 +1,6 @@
 --[[
---	ROOT NEORG FILE
---	This file is the beginning of the entire plugin. It's here that everything fires up and starts pumping.
+--    ROOT NEORG FILE
+--    This file is the beginning of the entire plugin. It's here that everything fires up and starts pumping.
 --]]
 
 -- Require the most important modules
@@ -34,9 +34,9 @@ function neorg.setup(config)
     else
         -- Else listen for a BufRead event and fire up the Neorg environment
         vim.cmd([[
-			autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered(false)
-			command! -nargs=* NeorgStart delcommand NeorgStart | lua require('neorg').org_file_entered(true, <q-args>)
-		]])
+            autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered(false)
+            command! -nargs=* NeorgStart delcommand NeorgStart | lua require('neorg').org_file_entered(true, <q-args>)
+        ]])
 
         vim.api.nvim_create_autocmd("FileType", {
             pattern = "norg",

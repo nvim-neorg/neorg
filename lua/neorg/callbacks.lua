@@ -1,6 +1,6 @@
 --[[
-	Neorg User Callbacks File
-	User callbacks are ways for the user to directly interact with Neorg and respond on certain events.
+    Neorg User Callbacks File
+    User callbacks are ways for the user to directly interact with Neorg and respond on certain events.
 --]]
 
 neorg = {}

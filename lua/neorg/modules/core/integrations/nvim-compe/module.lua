@@ -108,17 +108,17 @@ module.public = {
         local last_whitespace = reversed:find("%s")
 
         --[[
-			This bit is a bit crazy, however here's the gist of it:
-			It checks the current cursor position and the last occurrence of whitespace in the string to provide completions
-			even if a part of that completion is already present. Say we have:
-			@
-			Compe would have no problem with this and would provide completions instantly, but say we have (| means the current cursor pos):
-			@t|ab
-			And i try pressing C to edit till the end of the line, I'm then left with:
-			@t
-			If I were to try typing here I wouldn't get any completions, because compe wouldn't understand that @t is part of the completion.
-			This below bit of code makes sure that it *does* understand and that it *does* detect properly.
-		--]]
+            This bit is a bit crazy, however here's the gist of it:
+            It checks the current cursor position and the last occurrence of whitespace in the string to provide completions
+            even if a part of that completion is already present. Say we have:
+            @
+            Compe would have no problem with this and would provide completions instantly, but say we have (| means the current cursor pos):
+            @t|ab
+            And i try pressing C to edit till the end of the line, I'm then left with:
+            @t
+            If I were to try typing here I wouldn't get any completions, because compe wouldn't understand that @t is part of the completion.
+            This below bit of code makes sure that it *does* understand and that it *does* detect properly.
+        --]]
         last_whitespace = last_whitespace and last_whitespace - 1
             or (function()
                 local found = module.private.completion_cache.options.completion_start
