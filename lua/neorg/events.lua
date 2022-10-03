@@ -129,7 +129,7 @@ end
 
 --- Sends an event to all subscribed modules. The event contains the filename, filehead, cursor position and line content as a bonus.
 ---@param event table #An event, usually created by neorg.events.create()
----@param callback function #A callback to be invoked after all events have been asynchronously broadcast
+---@param callback function? #A callback to be invoked after all events have been asynchronously broadcast
 function neorg.events.broadcast_event(event, callback)
     -- Broadcast the event to all modules
     if not event.split_type then
