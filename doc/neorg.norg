@@ -10,7 +10,7 @@
 = TOC
 
 * The `.norg` file-format
-  If you find the {https://github.com/vhyrro/neorg/blob/main/docs/NFF-0.1-spec.md}[spec]
+  If you find the {https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg}[spec]
   too long and want to jump-start your Neorg skills, you've come to the right place!
 
  ** Basic Markup
