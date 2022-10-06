@@ -36,6 +36,14 @@ module.private = {
             node = node:parent()
         end
     end,
+    find_ordered_list = function(node)
+        while node do
+            if node:type():match("^ordered_list%d$") then
+                return node
+            end
+            node = node:parent()
+        end
+    end,
 }
 
 module.public = {
@@ -44,19 +52,41 @@ module.public = {
         local cursor_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor(0, true)
         local heading_node = module.private.find_heading(cursor_node)
         if heading_node then
-            local start_row, start_column, end_row, end_column = heading_node:range()
+            local start_row, _, _, _ = heading_node:range()
             -- cursor is on heading title
             if cursor_pos[1] == start_row + 1 then
                 local level = tonumber(heading_node:type():match("^heading(%d)$"))
                 local title = vim.treesitter.get_node_text(heading_node, event.buffer, { concat = false })
                 -- remove prefix
                 local title_text = (title[1]):sub(level + 2)
+                -- TODO: do we want it like this?
+                local new_level = level < 6 and level + 1 or 6
                 vim.api.nvim_buf_set_lines(
                     event.buffer,
                     start_row,
                     start_row + 1,
                     false,
-                    { string.rep("*", level + 1) .. " " .. title_text }
+                    { string.rep("*", new_level) .. " " .. title_text }
+                )
+            end
+        end
+        local ordered_list_node = module.private.find_ordered_list(cursor_node)
+        if ordered_list_node then
+            local start_row, _, _, _ = ordered_list_node:range()
+            -- cursor is on ordered list item
+            if cursor_pos[1] == start_row + 1 then
+                local level = tonumber(ordered_list_node:type():match("^ordered_list(%d)$"))
+                local item = vim.treesitter.get_node_text(ordered_list_node, event.buffer, { concat = false })
+                -- remove prefix
+                local item_text = (item[1]):sub(level + 2)
+                -- TODO: do we want it like this?
+                local new_level = level < 6 and level + 1 or 6
+                vim.api.nvim_buf_set_lines(
+                    event.buffer,
+                    start_row,
+                    start_row + 1,
+                    false,
+                    { string.rep("~", new_level) .. " " .. item_text }
                 )
             end
         end
@@ -64,6 +94,44 @@ module.public = {
     demote = function(event)
         local cursor_pos = vim.api.nvim_win_get_cursor(event.window)
         local cursor_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor(0, true)
+        local heading_node = module.private.find_heading(cursor_node)
+        if heading_node then
+            local start_row, _, _, _ = heading_node:range()
+            -- cursor is on heading title
+            if cursor_pos[1] == start_row + 1 then
+                local level = tonumber(heading_node:type():match("^heading(%d)$"))
+                local title = vim.treesitter.get_node_text(heading_node, event.buffer, { concat = false })
+                -- remove prefix
+                local title_text = (title[1]):sub(level + 2)
+                local new_level = level > 1 and level - 1 or 1
+                vim.api.nvim_buf_set_lines(
+                    event.buffer,
+                    start_row,
+                    start_row + 1,
+                    false,
+                    { string.rep("*", new_level) .. " " .. title_text }
+                )
+            end
+        end
+        local ordered_list_node = module.private.find_ordered_list(cursor_node)
+        if ordered_list_node then
+            local start_row, _, _, _ = ordered_list_node:range()
+            -- cursor is on ordered list item
+            if cursor_pos[1] == start_row + 1 then
+                local level = tonumber(ordered_list_node:type():match("^ordered_list(%d)$"))
+                local item = vim.treesitter.get_node_text(ordered_list_node, event.buffer, { concat = false })
+                -- remove prefix
+                local item_text = (item[1]):sub(level + 2)
+                local new_level = level > 1 and level - 1 or 1
+                vim.api.nvim_buf_set_lines(
+                    event.buffer,
+                    start_row,
+                    start_row + 1,
+                    false,
+                    { string.rep("~", new_level) .. " " .. item_text }
+                )
+            end
+        end
     end,
 }
 
