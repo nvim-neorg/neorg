@@ -56,11 +56,12 @@ module.private = {
 
 module.public = {
     promote = function(event)
+        local start_row
         local cursor_pos = vim.api.nvim_win_get_cursor(event.window)
         local cursor_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor(0, true)
         local heading_node = module.private.find_heading(cursor_node)
         if heading_node then
-            local start_row, _, _, _ = heading_node:range()
+            start_row, _, _, _ = heading_node:range()
             -- cursor is on heading title
             if cursor_pos[1] == start_row + 1 then
                 local level = tonumber(heading_node:type():match("^heading(%d)$"))
@@ -80,7 +81,7 @@ module.public = {
         end
         local ordered_list_node = module.private.find_ordered_list(cursor_node)
         if ordered_list_node then
-            local start_row, _, _, _ = ordered_list_node:range()
+            start_row, _, _, _ = ordered_list_node:range()
             -- cursor is on ordered list item
             if cursor_pos[1] == start_row + 1 then
                 local level = tonumber(ordered_list_node:type():match("^ordered_list(%d)$"))
@@ -100,7 +101,7 @@ module.public = {
         end
         local unordered_list_node = module.private.find_unordered_list(cursor_node)
         if unordered_list_node then
-            local start_row, _, _, _ = unordered_list_node:range()
+            start_row, _, _, _ = unordered_list_node:range()
             -- cursor is on unordered list item
             if cursor_pos[1] == start_row + 1 then
                 local level = tonumber(unordered_list_node:type():match("^unordered_list(%d)$"))
@@ -118,13 +119,20 @@ module.public = {
                 )
             end
         end
+        local concealer_event = neorg.events.create(
+            module,
+            "core.norg.concealer.events.update_region",
+            { start = start_row, ["end"] = start_row + 2 }
+        )
+        neorg.events.broadcast_event(concealer_event, function() end)
     end,
     demote = function(event)
+        local start_row
         local cursor_pos = vim.api.nvim_win_get_cursor(event.window)
         local cursor_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor(0, true)
         local heading_node = module.private.find_heading(cursor_node)
         if heading_node then
-            local start_row, _, _, _ = heading_node:range()
+            start_row, _, _, _ = heading_node:range()
             -- cursor is on heading title
             if cursor_pos[1] == start_row + 1 then
                 local level = tonumber(heading_node:type():match("^heading(%d)$"))
@@ -143,7 +151,7 @@ module.public = {
         end
         local ordered_list_node = module.private.find_ordered_list(cursor_node)
         if ordered_list_node then
-            local start_row, _, _, _ = ordered_list_node:range()
+            start_row, _, _, _ = ordered_list_node:range()
             -- cursor is on ordered list item
             if cursor_pos[1] == start_row + 1 then
                 local level = tonumber(ordered_list_node:type():match("^ordered_list(%d)$"))
@@ -162,7 +170,7 @@ module.public = {
         end
         local unordered_list_node = module.private.find_unordered_list(cursor_node)
         if unordered_list_node then
-            local start_row, _, _, _ = unordered_list_node:range()
+            start_row, _, _, _ = unordered_list_node:range()
             -- cursor is on unordered list item
             if cursor_pos[1] == start_row + 1 then
                 local level = tonumber(unordered_list_node:type():match("^unordered_list(%d)$"))
@@ -179,6 +187,12 @@ module.public = {
                 )
             end
         end
+        local concealer_event = neorg.events.create(
+            module,
+            "core.norg.concealer.events.update_region",
+            { start = start_row, ["end"] = start_row + 2 }
+        )
+        neorg.events.broadcast_event(concealer_event, function() end)
     end,
 }
 
