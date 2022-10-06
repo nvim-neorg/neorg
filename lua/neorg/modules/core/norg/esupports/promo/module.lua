@@ -27,10 +27,39 @@ end
 
 module.config.public = {}
 
+module.private = {
+    find_heading = function(node)
+        while node do
+            if node:type():match("^heading%d$") then
+                return node
+            end
+            node = node:parent()
+        end
+    end,
+}
+
 module.public = {
     promote = function(event)
         local cursor_pos = vim.api.nvim_win_get_cursor(event.window)
         local cursor_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor(0, true)
+        local heading_node = module.private.find_heading(cursor_node)
+        if heading_node then
+            local start_row, start_column, end_row, end_column = heading_node:range()
+            -- cursor is on heading title
+            if cursor_pos[1] == start_row + 1 then
+                local level = tonumber(heading_node:type():match("^heading(%d)$"))
+                local title = vim.treesitter.get_node_text(heading_node, event.buffer, { concat = false })
+                -- remove prefix
+                local title_text = (title[1]):sub(level + 2)
+                vim.api.nvim_buf_set_lines(
+                    event.buffer,
+                    start_row,
+                    start_row + 1,
+                    false,
+                    { string.rep("*", level + 1) .. " " .. title_text }
+                )
+            end
+        end
     end,
     demote = function(event)
         local cursor_pos = vim.api.nvim_win_get_cursor(event.window)
