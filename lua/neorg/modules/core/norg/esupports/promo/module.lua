@@ -44,6 +44,14 @@ module.private = {
             node = node:parent()
         end
     end,
+    find_unordered_list = function(node)
+        while node do
+            if node:type():match("^unordered_list%d$") then
+                return node
+            end
+            node = node:parent()
+        end
+    end,
 }
 
 module.public = {
@@ -90,6 +98,26 @@ module.public = {
                 )
             end
         end
+        local unordered_list_node = module.private.find_unordered_list(cursor_node)
+        if unordered_list_node then
+            local start_row, _, _, _ = unordered_list_node:range()
+            -- cursor is on unordered list item
+            if cursor_pos[1] == start_row + 1 then
+                local level = tonumber(unordered_list_node:type():match("^unordered_list(%d)$"))
+                local item = vim.treesitter.get_node_text(unordered_list_node, event.buffer, { concat = false })
+                -- remove prefix
+                local item_text = (item[1]):sub(level + 2)
+                -- TODO: do we want it like this?
+                local new_level = level < 6 and level + 1 or 6
+                vim.api.nvim_buf_set_lines(
+                    event.buffer,
+                    start_row,
+                    start_row + 1,
+                    false,
+                    { string.rep("~", new_level) .. " " .. item_text }
+                )
+            end
+        end
     end,
     demote = function(event)
         local cursor_pos = vim.api.nvim_win_get_cursor(event.window)
@@ -120,6 +148,25 @@ module.public = {
             if cursor_pos[1] == start_row + 1 then
                 local level = tonumber(ordered_list_node:type():match("^ordered_list(%d)$"))
                 local item = vim.treesitter.get_node_text(ordered_list_node, event.buffer, { concat = false })
+                -- remove prefix
+                local item_text = (item[1]):sub(level + 2)
+                local new_level = level > 1 and level - 1 or 1
+                vim.api.nvim_buf_set_lines(
+                    event.buffer,
+                    start_row,
+                    start_row + 1,
+                    false,
+                    { string.rep("~", new_level) .. " " .. item_text }
+                )
+            end
+        end
+        local unordered_list_node = module.private.find_unordered_list(cursor_node)
+        if unordered_list_node then
+            local start_row, _, _, _ = unordered_list_node:range()
+            -- cursor is on unordered list item
+            if cursor_pos[1] == start_row + 1 then
+                local level = tonumber(unordered_list_node:type():match("^unordered_list(%d)$"))
+                local item = vim.treesitter.get_node_text(unordered_list_node, event.buffer, { concat = false })
                 -- remove prefix
                 local item_text = (item[1]):sub(level + 2)
                 local new_level = level > 1 and level - 1 or 1
