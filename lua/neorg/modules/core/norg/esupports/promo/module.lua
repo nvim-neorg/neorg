@@ -28,6 +28,20 @@ end
 module.config.public = {}
 
 module.private = {
+    types = {
+        heading = {
+            pattern = "^heading(%d)$",
+            prefix = "*",
+        },
+        unordered_list = {
+            pattern = "^unordered_list(%d)$",
+            prefix = "-",
+        },
+        ordered_list = {
+            pattern = "^ordered_list(%d)$",
+            prefix = "~",
+        },
+    },
     find_heading = function(node)
         while node do
             if node:type():match("^heading%d$") then
@@ -55,135 +69,42 @@ module.private = {
 }
 
 module.public = {
-    promote = function(event)
-        local start_row
-        local cursor_pos = vim.api.nvim_win_get_cursor(event.window)
-        local cursor_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor(0, true)
-        local heading_node = module.private.find_heading(cursor_node)
-        if heading_node then
-            start_row, _, _, _ = heading_node:range()
-            -- cursor is on heading title
-            if cursor_pos[1] == start_row + 1 then
-                local level = tonumber(heading_node:type():match("^heading(%d)$"))
-                local title = vim.treesitter.get_node_text(heading_node, event.buffer, { concat = false })
-                -- remove prefix
-                local title_text = (title[1]):sub(level + 2)
-                -- TODO: do we want it like this?
-                local new_level = level < 6 and level + 1 or 6
-                vim.api.nvim_buf_set_lines(
-                    event.buffer,
-                    start_row,
-                    start_row + 1,
-                    false,
-                    { string.rep("*", new_level) .. " " .. title_text }
-                )
+    find_node = function(node)
+        while node do
+            for _, type in pairs(module.private.types) do
+                if node:type():match(type.pattern) then
+                    local level = tonumber(node:type():match(type.pattern))
+                    return node, type.prefix, level
+                end
             end
+            node = node:parent()
         end
-        local ordered_list_node = module.private.find_ordered_list(cursor_node)
-        if ordered_list_node then
-            start_row, _, _, _ = ordered_list_node:range()
-            -- cursor is on ordered list item
-            if cursor_pos[1] == start_row + 1 then
-                local level = tonumber(ordered_list_node:type():match("^ordered_list(%d)$"))
-                local item = vim.treesitter.get_node_text(ordered_list_node, event.buffer, { concat = false })
-                -- remove prefix
-                local item_text = (item[1]):sub(level + 2)
-                -- TODO: do we want it like this?
-                local new_level = level < 6 and level + 1 or 6
-                vim.api.nvim_buf_set_lines(
-                    event.buffer,
-                    start_row,
-                    start_row + 1,
-                    false,
-                    { string.rep("~", new_level) .. " " .. item_text }
-                )
-            end
-        end
-        local unordered_list_node = module.private.find_unordered_list(cursor_node)
-        if unordered_list_node then
-            start_row, _, _, _ = unordered_list_node:range()
-            -- cursor is on unordered list item
-            if cursor_pos[1] == start_row + 1 then
-                local level = tonumber(unordered_list_node:type():match("^unordered_list(%d)$"))
-                local item = vim.treesitter.get_node_text(unordered_list_node, event.buffer, { concat = false })
-                -- remove prefix
-                local item_text = (item[1]):sub(level + 2)
-                -- TODO: do we want it like this?
-                local new_level = level < 6 and level + 1 or 6
-                vim.api.nvim_buf_set_lines(
-                    event.buffer,
-                    start_row,
-                    start_row + 1,
-                    false,
-                    { string.rep("-", new_level) .. " " .. item_text }
-                )
-            end
-        end
-        local concealer_event = neorg.events.create(
-            module,
-            "core.norg.concealer.events.update_region",
-            { start = start_row, ["end"] = start_row + 2 }
-        )
-        neorg.events.broadcast_event(concealer_event, function() end)
     end,
-    demote = function(event)
+    promote_or_demote = function(event, mode)
         local start_row
         local cursor_pos = vim.api.nvim_win_get_cursor(event.window)
         local cursor_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor(0, true)
-        local heading_node = module.private.find_heading(cursor_node)
-        if heading_node then
-            start_row, _, _, _ = heading_node:range()
+        local node, prefix, level = module.public.find_node(cursor_node)
+        if node then
+            start_row, _, _, _ = node:range()
             -- cursor is on heading title
             if cursor_pos[1] == start_row + 1 then
-                local level = tonumber(heading_node:type():match("^heading(%d)$"))
-                local title = vim.treesitter.get_node_text(heading_node, event.buffer, { concat = false })
+                local title = vim.treesitter.get_node_text(node, event.buffer, { concat = false })
                 -- remove prefix
                 local title_text = (title[1]):sub(level + 2)
-                local new_level = level > 1 and level - 1 or 1
+                local new_level
+                if mode == "promote" then
+                    -- TODO: do we want it like this?
+                    new_level = level < 6 and level + 1 or 6
+                elseif mode == "demote" then
+                    new_level = level > 1 and level - 1 or 1
+                end
                 vim.api.nvim_buf_set_lines(
                     event.buffer,
                     start_row,
                     start_row + 1,
                     false,
-                    { string.rep("*", new_level) .. " " .. title_text }
-                )
-            end
-        end
-        local ordered_list_node = module.private.find_ordered_list(cursor_node)
-        if ordered_list_node then
-            start_row, _, _, _ = ordered_list_node:range()
-            -- cursor is on ordered list item
-            if cursor_pos[1] == start_row + 1 then
-                local level = tonumber(ordered_list_node:type():match("^ordered_list(%d)$"))
-                local item = vim.treesitter.get_node_text(ordered_list_node, event.buffer, { concat = false })
-                -- remove prefix
-                local item_text = (item[1]):sub(level + 2)
-                local new_level = level > 1 and level - 1 or 1
-                vim.api.nvim_buf_set_lines(
-                    event.buffer,
-                    start_row,
-                    start_row + 1,
-                    false,
-                    { string.rep("~", new_level) .. " " .. item_text }
-                )
-            end
-        end
-        local unordered_list_node = module.private.find_unordered_list(cursor_node)
-        if unordered_list_node then
-            start_row, _, _, _ = unordered_list_node:range()
-            -- cursor is on unordered list item
-            if cursor_pos[1] == start_row + 1 then
-                local level = tonumber(unordered_list_node:type():match("^unordered_list(%d)$"))
-                local item = vim.treesitter.get_node_text(unordered_list_node, event.buffer, { concat = false })
-                -- remove prefix
-                local item_text = (item[1]):sub(level + 2)
-                local new_level = level > 1 and level - 1 or 1
-                vim.api.nvim_buf_set_lines(
-                    event.buffer,
-                    start_row,
-                    start_row + 1,
-                    false,
-                    { string.rep("-", new_level) .. " " .. item_text }
+                    { string.rep(prefix, new_level) .. " " .. title_text }
                 )
             end
         end
@@ -199,9 +120,9 @@ module.public = {
 module.on_event = function(event)
     if event.split_type[1] == "core.keybinds" then
         if event.split_type[2] == "core.norg.esupports.promo.promote" then
-            module.public.promote(event)
+            module.public.promote_or_demote(event, "promote")
         elseif event.split_type[2] == "core.norg.esupports.promo.demote" then
-            module.public.demote(event)
+            module.public.promote_or_demote(event, "demote")
         end
     end
 end
