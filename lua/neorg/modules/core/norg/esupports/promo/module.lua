@@ -46,29 +46,22 @@ module.private = {
             prefix = ">",
         },
     },
-    find_heading = function(node)
-        while node do
-            if node:type():match("^heading%d$") then
-                return node
-            end
-            node = node:parent()
+    get_node_on_line = function(row, event)
+        local parsers = require("nvim-treesitter.parsers")
+        local range = { row - 1, -1 }
+
+        local root_lang_tree = parsers.get_parser(event.buffer)
+        if not root_lang_tree then
+            return
         end
-    end,
-    find_ordered_list = function(node)
-        while node do
-            if node:type():match("^ordered_list%d$") then
-                return node
-            end
-            node = node:parent()
+
+        local root = require("nvim-treesitter.ts_utils").get_root_for_position(range[1], range[2], root_lang_tree)
+
+        if not root then
+            return
         end
-    end,
-    find_unordered_list = function(node)
-        while node do
-            if node:type():match("^unordered_list%d$") then
-                return node
-            end
-            node = node:parent()
-        end
+
+        return root:named_descendant_for_range(range[1], range[2], range[1], range[2])
     end,
 }
 
@@ -84,15 +77,16 @@ module.public = {
             node = node:parent()
         end
     end,
-    promote_or_demote = function(event, mode)
+    promote_or_demote = function(event, mode, row)
         local start_row
         local cursor_pos = vim.api.nvim_win_get_cursor(event.window)
-        local cursor_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor(0, true)
-        local node, prefix, level = module.public.find_node(cursor_node)
+        row = row or cursor_pos[1]
+        local start_node = module.private.get_node_on_line(row, event)
+        local node, prefix, level = module.public.find_node(start_node)
         if node then
             start_row, _, _, _ = node:range()
             -- cursor is on heading title
-            if cursor_pos[1] == start_row + 1 then
+            if row == start_row + 1 then
                 local title = vim.treesitter.get_node_text(node, event.buffer, { concat = false })
                 -- remove prefix
                 local title_text = (title[1]):sub(level + 2)
@@ -127,6 +121,30 @@ module.on_event = function(event)
             module.public.promote_or_demote(event, "promote")
         elseif event.split_type[2] == "core.norg.esupports.promo.demote" then
             module.public.promote_or_demote(event, "demote")
+        elseif event.split_type[2] == "core.norg.esupports.promo.promote_range" then
+            local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
+            local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
+            for i = 0, end_pos[1] - start_pos[1] do
+                module.public.promote_or_demote(event, "promote", start_pos[1] + i)
+            end
+            local concealer_event = neorg.events.create(
+                module,
+                "core.norg.concealer.events.update_region",
+                { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
+            )
+            neorg.events.broadcast_event(concealer_event, function() end)
+        elseif event.split_type[2] == "core.norg.esupports.promo.demote_range" then
+            local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
+            local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
+            for i = 0, end_pos[1] - start_pos[1] do
+                module.public.promote_or_demote(event, "demote", start_pos[1] + i)
+            end
+            local concealer_event = neorg.events.create(
+                module,
+                "core.norg.concealer.events.update_region",
+                { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
+            )
+            neorg.events.broadcast_event(concealer_event, function() end)
         end
     end
 end
@@ -135,6 +153,8 @@ module.events.subscribed = {
     ["core.keybinds"] = {
         ["core.norg.esupports.promo.promote"] = true,
         ["core.norg.esupports.promo.demote"] = true,
+        ["core.norg.esupports.promo.promote_range"] = true,
+        ["core.norg.esupports.promo.demote_range"] = true,
     },
 }
 
