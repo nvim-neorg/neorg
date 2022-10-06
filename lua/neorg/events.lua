@@ -92,6 +92,7 @@ end
 ---@param module table #A reference to the module invoking the function
 ---@param type string #A full path to a valid event type (e.g. 'core.module.events.some_event')
 ---@param content any #The content of the event, can be anything from a string to a table to whatever you please
+---@return table #New event
 function neorg.events.create(module, type, content)
     -- Get the module that contains the event
     local module_name = neorg.events.split_event_type(type)[1]
