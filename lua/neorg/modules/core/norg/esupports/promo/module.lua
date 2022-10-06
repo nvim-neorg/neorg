@@ -41,6 +41,10 @@ module.private = {
             pattern = "^ordered_list(%d)$",
             prefix = "~",
         },
+        quote = {
+            pattern = "^quote(%d)$",
+            prefix = ">",
+        },
     },
     find_heading = function(node)
         while node do
