@@ -78,6 +78,7 @@ module.public = {
         end
     end,
     promote_or_demote = function(event, mode, row)
+        local cursor = not row
         local start_row
         local cursor_pos = vim.api.nvim_win_get_cursor(event.window)
         row = row or cursor_pos[1]
@@ -104,6 +105,22 @@ module.public = {
                     false,
                     { string.rep(prefix, new_level) .. " " .. title_text }
                 )
+            else
+                if not cursor then
+                    return
+                end
+                local lines = vim.api.nvim_buf_get_lines(event.buffer, row - 1, row, false)
+                if mode == "promote" then
+                    lines[1] = string.rep(" ", vim.bo.shiftwidth) .. lines[1]
+                    vim.api.nvim_buf_set_lines(event.buffer, row - 1, row, false, lines)
+                elseif mode == "demote" then
+                    local spaces = #lines[1]:match("^(%s*)")
+                    lines[1] = string.rep(
+                        " ",
+                        spaces > vim.bo[event.buffer].shiftwidth and spaces - vim.bo[event.buffer].shiftwidth or 0
+                    ) .. lines[1]:gsub("^%s*", "")
+                    vim.api.nvim_buf_set_lines(event.buffer, row - 1, row, false, lines)
+                end
             end
         end
         local concealer_event = neorg.events.create(
