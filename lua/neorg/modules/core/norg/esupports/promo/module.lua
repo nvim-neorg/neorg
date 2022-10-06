@@ -115,7 +115,7 @@ module.public = {
                     start_row,
                     start_row + 1,
                     false,
-                    { string.rep("~", new_level) .. " " .. item_text }
+                    { string.rep("-", new_level) .. " " .. item_text }
                 )
             end
         end
@@ -183,7 +183,7 @@ module.public = {
                     start_row,
                     start_row + 1,
                     false,
-                    { string.rep("~", new_level) .. " " .. item_text }
+                    { string.rep("-", new_level) .. " " .. item_text }
                 )
             end
         end
