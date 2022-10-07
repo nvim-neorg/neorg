@@ -132,7 +132,8 @@ module.public = {
     --- Jumps to the next match of a query in the current buffer
     ---@param query_string string Query with `@next-segment` captures
     goto_next_query_match = function(query_string)
-        local line_number = vim.api.nvim_win_get_cursor(0)[1]
+        local cursor = vim.api.nvim_win_get_cursor(0)
+        local line_number, col_number = cursor[1], cursor[2]
 
         local document_root = module.public.get_document_root(0)
 
@@ -140,26 +141,33 @@ module.public = {
             return
         end
         local next_match_query = vim.treesitter.parse_query("norg", query_string)
-        for id, node in next_match_query:iter_captures(document_root, 0, line_number, -1) do
+        for id, node in next_match_query:iter_captures(document_root, 0, line_number - 1, -1) do
             if next_match_query.captures[id] == "next-segment" then
+                local start_line, start_col = node:range()
                 -- start_line is 0-based; increment by one so we can compare it to the 1-based line_number
-                local start_line = node:range() + 1
+                start_line = start_line + 1
 
-                if
-                    vim.tbl_contains({ -1, start_line }, vim.fn.foldclosed(start_line))
-                    and start_line >= line_number
-                then
+                -- Skip node if it's inside a closed fold
+                if not vim.tbl_contains({ -1, start_line }, vim.fn.foldclosed(start_line)) then
+                    goto continue
+                end
+
+                -- Find and go to the first matching node that starts after the current cursor position.
+                if (start_line == line_number and start_col > col_number) or start_line > line_number then
                     module.private.ts_utils.goto_node(node)
                     return
                 end
             end
+
+            ::continue::
         end
     end,
 
     --- Jumps to the previous match of a query in the current buffer
     ---@param query_string string Query with `@next-segment` captures
     goto_previous_query_match = function(query_string)
-        local line_number = vim.api.nvim_win_get_cursor(0)[1]
+        local cursor = vim.api.nvim_win_get_cursor(0)
+        local line_number, col_number = cursor[1], cursor[2]
 
         local document_root = module.public.get_document_root(0)
 
@@ -169,18 +177,24 @@ module.public = {
         local previous_match_query = vim.treesitter.parse_query("norg", query_string)
         local final_node = nil
 
-        for id, node in previous_match_query:iter_captures(document_root, 0, 0, line_number - 1) do
+        for id, node in previous_match_query:iter_captures(document_root, 0, 0, line_number) do
             if previous_match_query.captures[id] == "next-segment" then
+                local start_line, _, _, end_col = node:range()
                 -- start_line is 0-based; increment by one so we can compare it to the 1-based line_number
-                local start_line = node:range() + 1
+                start_line = start_line + 1
 
-                if
-                    vim.tbl_contains({ -1, start_line }, vim.fn.foldclosed(start_line))
-                    and start_line < line_number
-                then
+                -- Skip node if it's inside a closed fold
+                if not vim.tbl_contains({ -1, start_line }, vim.fn.foldclosed(start_line)) then
+                    goto continue
+                end
+
+                -- Find the last matching node that ends before the current cursor position.
+                if start_line < line_number or (start_line == line_number and end_col < col_number) then
                     final_node = node
                 end
             end
+
+            ::continue::
         end
         if final_node then
             module.private.ts_utils.goto_node(final_node)
