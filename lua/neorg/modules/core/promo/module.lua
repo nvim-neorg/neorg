@@ -1,4 +1,4 @@
-local module = neorg.modules.create("core.norg.esupports.promo")
+local module = neorg.modules.create("core.promo")
 
 module.setup = function()
     return {
@@ -106,20 +106,19 @@ module.public = {
                     { string.rep(prefix, new_level) .. " " .. title_text }
                 )
             else
-                if not cursor then
-                    return
-                end
-                local lines = vim.api.nvim_buf_get_lines(event.buffer, row - 1, row, false)
-                if mode == "promote" then
-                    lines[1] = string.rep(" ", vim.bo.shiftwidth) .. lines[1]
-                    vim.api.nvim_buf_set_lines(event.buffer, row - 1, row, false, lines)
-                elseif mode == "demote" then
-                    local spaces = #lines[1]:match("^(%s*)")
-                    lines[1] = string.rep(
-                        " ",
-                        spaces > vim.bo[event.buffer].shiftwidth and spaces - vim.bo[event.buffer].shiftwidth or 0
-                    ) .. lines[1]:gsub("^%s*", "")
-                    vim.api.nvim_buf_set_lines(event.buffer, row - 1, row, false, lines)
+                if cursor then
+                    local lines = vim.api.nvim_buf_get_lines(event.buffer, row - 1, row, false)
+                    if mode == "promote" then
+                        lines[1] = string.rep(" ", vim.bo[event.buffer].shiftwidth) .. lines[1]
+                        vim.api.nvim_buf_set_lines(event.buffer, row - 1, row, false, lines)
+                    elseif mode == "demote" then
+                        local spaces = #lines[1]:match("^(%s*)")
+                        lines[1] = string.rep(
+                            " ",
+                            spaces > vim.bo[event.buffer].shiftwidth and spaces - vim.bo[event.buffer].shiftwidth or 0
+                        ) .. lines[1]:gsub("^%s*", "")
+                        vim.api.nvim_buf_set_lines(event.buffer, row - 1, row, false, lines)
+                    end
                 end
             end
         end
@@ -134,11 +133,11 @@ module.public = {
 
 module.on_event = function(event)
     if event.split_type[1] == "core.keybinds" then
-        if event.split_type[2] == "core.norg.esupports.promo.promote" then
+        if event.split_type[2] == "core.promo.promote" then
             module.public.promote_or_demote(event, "promote")
-        elseif event.split_type[2] == "core.norg.esupports.promo.demote" then
+        elseif event.split_type[2] == "core.promo.demote" then
             module.public.promote_or_demote(event, "demote")
-        elseif event.split_type[2] == "core.norg.esupports.promo.promote_range" then
+        elseif event.split_type[2] == "core.promo.promote_range" then
             local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
             local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
             for i = 0, end_pos[1] - start_pos[1] do
@@ -150,7 +149,7 @@ module.on_event = function(event)
                 { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
             )
             neorg.events.broadcast_event(concealer_event, function() end)
-        elseif event.split_type[2] == "core.norg.esupports.promo.demote_range" then
+        elseif event.split_type[2] == "core.promo.demote_range" then
             local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
             local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
             for i = 0, end_pos[1] - start_pos[1] do
@@ -168,10 +167,10 @@ end
 
 module.events.subscribed = {
     ["core.keybinds"] = {
-        ["core.norg.esupports.promo.promote"] = true,
-        ["core.norg.esupports.promo.demote"] = true,
-        ["core.norg.esupports.promo.promote_range"] = true,
-        ["core.norg.esupports.promo.demote_range"] = true,
+        ["core.promo.promote"] = true,
+        ["core.promo.demote"] = true,
+        ["core.promo.promote_range"] = true,
+        ["core.promo.demote_range"] = true,
     },
 }
 

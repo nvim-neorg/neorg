@@ -64,7 +64,14 @@ module.config.public = {
 
                     -- Same as `<CR>`, except opens the destination in a vertical split
                     { "<M-CR>", "core.norg.esupports.hop.hop-link", "vsplit" },
+
+                    { ">>", "core.promo.promote" },
+                    { "<<", "core.promo.demote" },
                 },
+                -- v = {
+                --     { ">>", ":<cr><cmd>Neorg keybind all core.promo.promote_range<cr>" },
+                --     { "<<", ":<cr><cmd>Neorg keybind all core.promo.demote_range<cr>" },
+                -- },
             }, {
                 silent = true,
                 noremap = true,
