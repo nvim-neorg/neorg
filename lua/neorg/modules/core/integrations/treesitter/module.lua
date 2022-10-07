@@ -140,12 +140,13 @@ module.public = {
             return
         end
         local next_match_query = vim.treesitter.parse_query("norg", query_string)
-        for id, node in next_match_query:iter_captures(document_root, 0, line_number + 1, -1) do
+        for id, node in next_match_query:iter_captures(document_root, 0, line_number, -1) do
             if next_match_query.captures[id] == "next-segment" then
-                local start_line = node:range()
+                -- start_line is 0-based; increment by one so we can compare it to the 1-based line_number
+                local start_line = node:range() + 1
 
                 if
-                    vim.tbl_contains({ -1, start_line + 1 }, vim.fn.foldclosed(start_line + 1))
+                    vim.tbl_contains({ -1, start_line }, vim.fn.foldclosed(start_line))
                     and start_line >= line_number
                 then
                     module.private.ts_utils.goto_node(node)
@@ -170,11 +171,12 @@ module.public = {
 
         for id, node in previous_match_query:iter_captures(document_root, 0, 0, line_number - 1) do
             if previous_match_query.captures[id] == "next-segment" then
-                local start_line = node:range()
+                -- start_line is 0-based; increment by one so we can compare it to the 1-based line_number
+                local start_line = node:range() + 1
 
                 if
-                    vim.tbl_contains({ -1, start_line + 1 }, vim.fn.foldclosed(start_line + 1))
-                    and start_line < (line_number - 1)
+                    vim.tbl_contains({ -1, start_line }, vim.fn.foldclosed(start_line))
+                    and start_line < line_number
                 then
                     final_node = node
                 end
