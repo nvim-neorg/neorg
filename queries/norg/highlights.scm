@@ -384,3 +384,6 @@
     (escape_sequence_prefix) @conceal
     (#set! conceal "")
 )
+
+; Spell
+(paragraph_segment) @spell
