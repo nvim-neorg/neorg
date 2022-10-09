@@ -1100,7 +1100,7 @@ module.config.public = {
 
             done = {
                 enabled = true,
-                icon = "",
+                icon = "×",
                 query = "(todo_item_done) @icon",
                 extract = function()
                     return 1
@@ -1118,7 +1118,7 @@ module.config.public = {
 
             undone = {
                 enabled = true,
-                icon = "×",
+                icon = "",
                 query = "(todo_item_undone) @icon",
                 extract = function()
                     return 1
