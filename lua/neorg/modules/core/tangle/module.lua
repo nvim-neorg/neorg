@@ -306,7 +306,7 @@ module.on_event = function(event)
                 tangled_count = tangled_count + 1
                 if file_count == 0 then
                     vim.schedule(
-                        neorg.lib.wrap(vim.notify, string.format("Successfully tangled %d file!", tangled_count))
+                        neorg.lib.wrap(vim.notify, string.format("Successfully tangled %d file%s!", tangled_count, tangled_count == 1 and "" or "s"))
                     )
                 end
             end)
