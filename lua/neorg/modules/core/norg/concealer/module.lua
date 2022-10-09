@@ -331,7 +331,7 @@ module.public = {
                             )
                         end
 
-                        if module.config.public.dim_code_blocks.adaptive then
+                        if module.config.public.dim_code_blocks.conceal and module.config.public.dim_code_blocks.adaptive then
                             module.config.public.dim_code_blocks.content_only = has_conceal
                         end
 
@@ -1879,7 +1879,7 @@ module.load = function()
                     module.private.icon_namespace
                 )
 
-                if module.config.public.dim_code_blocks.adaptive then
+                if module.config.public.dim_code_blocks.conceal and module.config.public.dim_code_blocks.adaptive then
                     module.public.trigger_code_block_highlights(current_buffer, has_conceal)
                 end
             end,
