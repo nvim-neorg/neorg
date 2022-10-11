@@ -165,7 +165,7 @@ module.public = {
     end,
 
     --- Dynamically defines a new workspace if the name isn't already occupied and broadcasts the workspace_added event
-    ---@return boolean True if the workspace is added successfully, flase otherwise
+    ---@return boolean True if the workspace is added successfully, false otherwise
     ---@param workspace_name string #The unique name of the new workspace
     ---@param workspace_path string #A full path to the workspace root
     add_workspace = function(workspace_name, workspace_path)
