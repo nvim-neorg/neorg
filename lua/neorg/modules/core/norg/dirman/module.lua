@@ -77,6 +77,13 @@ module.load = function()
         end
     end
 
+    module.required["core.neorgcmd"].add_commands_from_table({
+        index = {
+            args = 0,
+            name = "dirman.index",
+        },
+    })
+
     -- Synchronize core.neorgcmd autocompletions
     module.public.sync()
 end
@@ -518,6 +525,20 @@ module.on_event = function(event)
         end
     end
 
+    -- If somebody has executed the :Neorg index command then
+    if event.type == "core.neorgcmd.events.dirman.index" then
+        local current_ws = module.public.get_current_workspace()
+        local index_path = table.concat({ current_ws[2], "/", module.config.public.index })
+
+        if vim.fn.filereadable(index_path) == 0 then
+            vim.notify(table.concat({ "No '", module.config.public.index, "' found in current workspace!" }))
+            return
+        end
+
+        vim.cmd.edit(index_path)
+        return
+    end
+
     -- If the user has executed a keybind to create a new note then create a prompt
     if event.type == "core.keybinds.events.core.norg.dirman.new.note" then
         module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
@@ -559,6 +580,7 @@ module.events.subscribed = {
 
     ["core.neorgcmd"] = {
         ["dirman.workspace"] = true,
+        ["dirman.index"] = true,
     },
 
     ["core.keybinds"] = {
