@@ -1,12 +1,14 @@
-(ranged_tag ("_prefix") @neorg.tags.ranged_verbatim.begin
-	name: (tag_name [(tag_name_element) @neorg.tags.ranged_verbatim.name.word ("_delimiter") @neorg.tags.ranged_verbatim.name.delimiter]) @neorg.tags.ranged_verbatim.name
-	(tag_parameters parameter: (tag_param) @neorg.tags.ranged_verbatim.parameters.word)? @neorg.tags.ranged_verbatim.parameters
-	content: (ranged_tag_content)?
-	(ranged_tag_end ("_prefix") @neorg.tags.ranged_verbatim.end ("_name") @neorg.tags.ranged_verbatim.name.word))
+(ranged_verbatim_tag ("_prefix") @neorg.tags.ranged_verbatim.begin
+	name: (tag_name
+            [(word) @neorg.tags.ranged_verbatim.name.word
+             ("_delimiter") @neorg.tags.ranged_verbatim.name.delimiter]) @neorg.tags.ranged_verbatim.name
+	(tag_parameters (tag_param) @neorg.tags.ranged_verbatim.parameters.word)? @neorg.tags.ranged_verbatim.parameters
+	content: (ranged_verbatim_tag_content)?
+	(ranged_verbatim_tag_end ("_prefix") @neorg.tags.ranged_verbatim.end ("_name") @neorg.tags.ranged_verbatim.name.word))
 
-(ranged_tag ("_prefix")
+(ranged_verbatim_tag ("_prefix")
 	name: (tag_name) @neorg.tags.ranged_verbatim.name (#eq? @neorg.tags.ranged_verbatim.name "comment")
-	content: (ranged_tag_content)? @neorg.tags.comment.content)
+	content: (ranged_verbatim_tag_content)? @neorg.tags.comment.content)
 
 (carryover_tag_set
   (carryover_tag
