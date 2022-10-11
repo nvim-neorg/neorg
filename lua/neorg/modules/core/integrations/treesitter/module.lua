@@ -1,7 +1,7 @@
 --[[
     File: Treesitter-Integration
     Title: TreeSitter integration in Neorg
-	Summary: A module designed to integrate TreeSitter into Neorg.
+    Summary: A module designed to integrate TreeSitter into Neorg.
     ---
 --]]
 

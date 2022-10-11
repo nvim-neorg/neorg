@@ -1,6 +1,6 @@
 --[[
---	BASE FILE FOR MODULES
---	This file contains the base module implementation
+--    BASE FILE FOR MODULES
+--    This file contains the base module implementation
 --]]
 
 neorg.modules = {}
@@ -44,20 +44,20 @@ neorg.modules.module_base = {
     config = {
         private = { -- Private module configuration, cannot be changed by other modules or by the user
             --[[
-				config_option = false,
-				["option_group"] = {
-					sub_option = true
-				}
-			--]]
+                config_option = false,
+                ["option_group"] = {
+                    sub_option = true
+                }
+            --]]
         },
 
         public = { -- Public config, can be changed by modules and the user
             --[[
-				config_option = false,
-				["option_group"] = {
-					sub_option = true
-				}
-			--]]
+                config_option = false,
+                ["option_group"] = {
+                    sub_option = true
+                }
+            --]]
         },
 
         -- This table houses all the changes the user made to the public table,
@@ -71,19 +71,19 @@ neorg.modules.module_base = {
         subscribed = { -- The events that the module is subscribed to
 
             --[[
-				EXAMPLE DEFINITION:
-				[ "core.test" ] = { -- The name of the module that has events bound to it
-					[ "test_event" ] = true, -- Subscribes to event core.test.events.test_event
-					[ "other_event" ] = true -- Subscribes to event core.test.events.other_event
-				}
-			--]]
+                EXAMPLE DEFINITION:
+                [ "core.test" ] = { -- The name of the module that has events bound to it
+                    [ "test_event" ] = true, -- Subscribes to event core.test.events.test_event
+                    [ "other_event" ] = true -- Subscribes to event core.test.events.other_event
+                }
+            --]]
         },
         defined = { -- The events that the module itself has defined
 
             --[[
-				EXAMPLE DEFINITION:
-				["my_event"] = { event_data } -- Creates an event of type category.module.events.my_event
-			--]]
+                EXAMPLE DEFINITION:
+                ["my_event"] = { event_data } -- Creates an event of type category.module.events.my_event
+            --]]
         },
     },
 
@@ -92,15 +92,15 @@ neorg.modules.module_base = {
     required = {
         --[[
 
-			["core.test"] = {
-				-- Their public API here...
-			},
+            ["core.test"] = {
+                -- Their public API here...
+            },
 
-			["core.some_other_plugin"] = {
-				-- Their public API here...
-			}
+            ["core.some_other_plugin"] = {
+                -- Their public API here...
+            }
 
-		--]]
+        --]]
     },
 
     -- Example bits of code that the user can look through

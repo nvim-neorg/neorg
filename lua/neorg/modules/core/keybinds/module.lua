@@ -1,7 +1,7 @@
 --[[
     File: User-Keybinds
     Title: The Keybinds Module
-	Summary: Module for managing keybindings with Neorg mode support.
+    Summary: Module for managing keybindings with Neorg mode support.
     ---
 
 ### Disabling Default Keybinds

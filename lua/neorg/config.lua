@@ -5,8 +5,8 @@ neorg.configuration = {
         lazy_loading = false,
         load = {
             --[[
-				["name"] = { config = { ... } }
-			--]]
+                ["name"] = { config = { ... } }
+            --]]
         },
     },
 

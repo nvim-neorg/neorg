@@ -1,7 +1,7 @@
 --[[
     File: Core-UI
     Title: Module for managing and displaying UIs to the user.
-	Summary: A set of public functions to help developers create and manage UI (selection popups, prompts...) in their modules.
+    Summary: A set of public functions to help developers create and manage UI (selection popups, prompts...) in their modules.
     Internal: true
     ---
 --]]

@@ -1,6 +1,6 @@
 --[[
---	ROOT NEORG FILE
---	This file is the beginning of the entire plugin. It's here that everything fires up and starts pumping.
+--    ROOT NEORG FILE
+--    This file is the beginning of the entire plugin. It's here that everything fires up and starts pumping.
 --]]
 
 -- Require the most important modules
@@ -34,9 +34,9 @@ function neorg.setup(config)
     else
         -- Else listen for a BufRead event and fire up the Neorg environment
         vim.cmd([[
-			autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered(false)
-			command! -nargs=* NeorgStart delcommand NeorgStart | lua require('neorg').org_file_entered(true, <q-args>)
-		]])
+            autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered(false)
+            command! -nargs=* NeorgStart delcommand NeorgStart | lua require('neorg').org_file_entered(true, <q-args>)
+        ]])
 
         vim.api.nvim_create_autocmd("FileType", {
             pattern = "norg",
@@ -49,7 +49,7 @@ end
 
 --- This function gets called upon entering a .norg file and loads all of the user-defined modules.
 ---@param manual boolean #If true then the environment was kickstarted manually by the user
----@param arguments string #A list of arguments in the format of "key=value other_key=other_value"
+---@param arguments string? #A list of arguments in the format of "key=value other_key=other_value"
 function neorg.org_file_entered(manual, arguments)
     -- Extract the module list from the user configuration
     local module_list = configuration.user_configuration and configuration.user_configuration.load or {}
@@ -59,8 +59,6 @@ function neorg.org_file_entered(manual, arguments)
         return
     end
 
-    -- Loop through all the modules and load them one by one
-    --
     -- If the user has defined a post-load hook then execute it
     if configuration.user_configuration.hook then
         configuration.user_configuration.hook(manual, arguments)
@@ -94,9 +92,10 @@ function neorg.org_file_entered(manual, arguments)
     end
 
     -- After all configurations are merged proceed to actually load the modules
+    local load_module = neorg.modules.load_module
     for name, _ in pairs(module_list) do
         -- If it could not be loaded then halt
-        if not neorg.modules.load_module(name) then
+        if not load_module(name) then
             log.warn("Recovering from error...")
             neorg.modules.loaded_modules[name] = nil
         end

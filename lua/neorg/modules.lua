@@ -1,7 +1,7 @@
 --[[
---	NEORG MODULE MANAGER
---	This file is responsible for loading, calling and managing modules
---	Modules are internal mini-programs that execute on certain events, they build the foundation of Neorg itself.
+--    NEORG MODULE MANAGER
+--    This file is responsible for loading, calling and managing modules
+--    Modules are internal mini-programs that execute on certain events, they build the foundation of Neorg itself.
 --]]
 
 -- Include the global logger instance
@@ -10,8 +10,8 @@ local log = require("neorg.external.log")
 require("neorg.modules.base")
 
 --[[
---	The reason we do not just call this variable neorg.modules.loaded_modules.count is because
---	someone could make a module called "count" and override the variable, causing bugs.
+--    The reason we do not just call this variable neorg.modules.loaded_modules.count is because
+--    someone could make a module called "count" and override the variable, causing bugs.
 --]]
 neorg.modules.loaded_module_count = 0
 
@@ -21,7 +21,7 @@ neorg.modules.loaded_modules = {}
 --- Loads and enables a module
 -- Loads a specified module. If the module subscribes to any events then they will be activated too.
 ---@param module table #The actual module to load
----@param parent string #The name of a potential parent of the module
+---@param parent string? #The name of a potential parent of the module
 ---@return boolean #Whether the module successfully loaded
 function neorg.modules.load_module_from_table(module, parent)
     log.info("Loading module with name", module.name)
@@ -64,10 +64,10 @@ function neorg.modules.load_module_from_table(module, parent)
     end
 
     --[[
-	--	This small snippet of code creates a copy of an already loaded module with the same name.
-	--	If the module wants to replace an already loaded module then we need to create a deepcopy of that old module
-	--	in order to stop it from getting overwritten.
-	--]]
+    --    This small snippet of code creates a copy of an already loaded module with the same name.
+    --    If the module wants to replace an already loaded module then we need to create a deepcopy of that old module
+    --    in order to stop it from getting overwritten.
+    --]]
     local module_to_replace
 
     -- If the return value of module.setup() tells us to hotswap with another module then cache the module we want to replace with
@@ -246,7 +246,8 @@ end
 -- If the module cannot not be found, attempt to load it off of github (unimplemented). This function also applies user-defined configurations and keymaps to the modules themselves.
 -- This is the recommended way of loading modules - `load_module_from_table()` should only really be used by neorg itself.
 ---@param module_name string #A path to a module on disk. A path seperator in neorg is '.', not '/'
----@param config table #A configuration that reflects the structure of `neorg.configuration.user_configuration.load["module.name"].config`
+---@param parent string? #The name of a potential parent of the module
+---@param config table? #A configuration that reflects the structure of `neorg.configuration.user_configuration.load["module.name"].config`
 ---@return boolean #Whether the module was successfully loaded
 function neorg.modules.load_module(module_name, parent, config)
     -- Don't bother loading the module from disk if it's already loaded
@@ -321,7 +322,7 @@ end
 ---@param parent_module string #The name of the parent module. This is the module which the dependency will be attached to.
 ---@param config table #A configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
 function neorg.modules.load_module_as_dependency(module_name, parent_module, config)
-    if neorg.modules.load_module(module_name, config) and neorg.modules.is_module_loaded(parent_module) then
+    if neorg.modules.load_module(module_name, nil, config) and neorg.modules.is_module_loaded(parent_module) then
         neorg.modules.loaded_modules[parent_module].required[module_name] = neorg.modules.get_module_config(module_name)
     end
 end
@@ -378,7 +379,7 @@ end
 
 --- Executes `callback` once `module` is a valid and loaded module, else the callback gets instantly executed.
 ---@param module_name string #The name of the module to listen for.
----@param callback #(function(public_module_table)) - the callback to execute.
+---@param callback fun(public_module_table) #The callback to execute.
 function neorg.modules.await(module_name, callback)
     if neorg.modules.is_module_loaded(module_name) then
         callback(neorg.modules.get_module(module_name))

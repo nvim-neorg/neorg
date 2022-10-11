@@ -54,7 +54,7 @@ module.public = {
 
     --- By default, all autocommands are disabled for performance reasons. To enable them, use this command. If an invalid autocmd is given nothing happens.
     ---@param autocmd string #The relative name of the autocommand to enable
-    ---@param dont_isolate #boolean) - defaults to false. Specifies whether the autocommand should run globally (* instead of in Neorg files (*.norg)
+    ---@param dont_isolate boolean #Defaults to false. Specifies whether the autocommand should run globally (* instead of in Neorg files (*.norg)
     enable_autocommand = function(autocmd, dont_isolate)
         dont_isolate = dont_isolate or false
 

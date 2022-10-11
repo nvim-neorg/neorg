@@ -1,6 +1,6 @@
 --[[
---	HELPER FUNCTIONS FOR NEORG
---	This file contains some simple helper functions to improve QOL
+--    HELPER FUNCTIONS FOR NEORG
+--    This file contains some simple helper functions to improve QOL
 --]]
 
 neorg.utils = {

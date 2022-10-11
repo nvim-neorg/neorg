@@ -1,7 +1,7 @@
 --[[
     File: Dirman
     Title: Directory manager for Neorg.
-	Summary: This module is be responsible for managing directories full of .norg files.
+    Summary: This module is be responsible for managing directories full of .norg files.
     ---
 It will provide other modules the ability to see which directories the user is in,
 automatically changing directories, and other API bits and bobs that will allow things like telescope.nvim integration.
@@ -129,7 +129,7 @@ module.public = {
     end,
 
     --- Sets the workspace to the one specified (if it exists) and broadcasts the workspace_changed event
-    --				Returns true if the workspace is set correctly, else returns false
+    ---@return boolean True if the workspace is set correctly, false otherwise
     ---@param ws_name name #The name of a valid namespace we want to switch to
     set_workspace = function(ws_name)
         -- Grab the workspace location
@@ -165,7 +165,7 @@ module.public = {
     end,
 
     --- Dynamically defines a new workspace if the name isn't already occupied and broadcasts the workspace_added event
-    --				Returns true if the workspace is added successfully, else returns false
+    ---@return boolean True if the workspace is added successfully, flase otherwise
     ---@param workspace_name string #The unique name of the new workspace
     ---@param workspace_path string #A full path to the workspace root
     add_workspace = function(workspace_name, workspace_path)

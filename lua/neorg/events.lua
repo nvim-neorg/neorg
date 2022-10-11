@@ -1,7 +1,7 @@
 --[[
---	NEORG EVENT FILE
---	This file is responsible for dealing with event handling and broadcasting.
---	All modules that subscribe to an event will receive it once it is triggered.
+--    NEORG EVENT FILE
+--    This file is responsible for dealing with event handling and broadcasting.
+--    All modules that subscribe to an event will receive it once it is triggered.
 --]]
 
 -- Include the global instance of the logger
@@ -32,7 +32,7 @@ neorg.events.base_event = {
 }
 
 --- The working of this function is best illustrated with an example:
---		If type == 'core.some_plugin.events.my_event', this function will return { 'core.some_plugin', 'my_event' }
+--        If type == 'core.some_plugin.events.my_event', this function will return { 'core.some_plugin', 'my_event' }
 ---@param type string #The full path of a module event
 function neorg.events.split_event_type(type)
     local start_str, end_str = type:find("%.events%.")
@@ -129,7 +129,7 @@ end
 
 --- Sends an event to all subscribed modules. The event contains the filename, filehead, cursor position and line content as a bonus.
 ---@param event table #An event, usually created by neorg.events.create()
----@param callback function #A callback to be invoked after all events have been asynchronously broadcast
+---@param callback function? #A callback to be invoked after all events have been asynchronously broadcast
 function neorg.events.broadcast_event(event, callback)
     -- Broadcast the event to all modules
     if not event.split_type then

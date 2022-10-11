@@ -1,8 +1,9 @@
 --[[
-	Neorg User Callbacks File
-	User callbacks are ways for the user to directly interact with Neorg and respond on certain events.
+    Neorg User Callbacks File
+    User callbacks are ways for the user to directly interact with Neorg and respond on certain events.
 --]]
 
+---@diagnostic disable-next-line: lowercase-global
 neorg = {}
 
 neorg.callbacks = {
@@ -11,8 +12,8 @@ neorg.callbacks = {
 
 --- Triggers a new callback to execute whenever an event of the requested type is executed
 ---@param event_name string #The full path to the event we want to listen on
----@param callback #(function(event, content)) - the function to call whenever our event gets triggered
----@param content_filter #(function(event)) - a filtering function to test if a certain event meets our expectations
+---@param callback fun(event, content) #The function to call whenever our event gets triggered
+---@param content_filter fun(event) #A filtering function to test if a certain event meets our expectations
 function neorg.callbacks.on_event(event_name, callback, content_filter)
     -- If the table doesn't exist then create it
     neorg.callbacks.callback_list[event_name] = neorg.callbacks.callback_list[event_name] or {}

@@ -13,10 +13,10 @@ local module = neorg.modules.create("core.highlights")
     Nested trees concatenate
     So:
         tag = { begin = "+@comment" }
-	matches the highlight group:
-		@neorg.tag.begin
-	and converts into the command:
-		highlight! link @neorg.tag.begin @comment
+    matches the highlight group:
+        @neorg.tag.begin
+    and converts into the command:
+        highlight! link @neorg.tag.begin @comment
 --]]
 module.config.public = {
     -- The TS highlights for each Neorg type
