@@ -116,7 +116,7 @@ module.config.public = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
             files = { "src/parser.c" },
             branch = "main",
-            revision = "4687b53e656b920cde6c0b9a7b9acf9a665cd838",
+            revision = "e93dcbc56a472649547cfc288f10ae4a93ef8795",
         },
     },
 }
