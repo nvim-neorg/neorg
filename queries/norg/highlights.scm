@@ -77,78 +77,49 @@
     ("_end") @neorg.links.description.delimiter)?)
 
 ; Anchors
-; (anchor_declaration
-;   (link_description
-;     ("_begin") @neorg.anchors.declaration.delimiter
-;     text: (paragraph_segment) @neorg.anchors.declaration
-;     ("_end") @neorg.anchors.declaration.delimiter))
+(anchor_declaration
+  (link_description
+    ("_begin") @neorg.anchors.declaration.delimiter
+    text: (paragraph) @neorg.anchors.declaration
+    ("_end") @neorg.anchors.declaration.delimiter))
 
-; (anchor_definition
-;     (link_description
-;         ("_begin") @neorg.anchors.definition.delimiter
-;         text: (paragraph_segment) @neorg.anchors.declaration
-;         ("_end") @neorg.anchors.definition.delimiter
-;     ) @neorg.anchors
-;     (link_location
-;         ("_begin") @neorg.links.location.delimiter
-;         [
-;             (
-;                 ("_begin") @neorg.links.file.delimiter
-;                 file: (link_file_text) @neorg.links.file
-;                 ("_end") @neorg.links.file.delimiter
-;             )
-;             (
-;                 (link_target_url) ; Doesn't require a highlight since it's a 0-width node
-;                 (paragraph_segment) @neorg.links.location.url
-;             )
-;             (
-;                 (link_target_generic) @neorg.links.location.generic.prefix
-;                 (paragraph_segment) @neorg.links.location.generic
-;             )
-;             (
-;                 (link_target_external_file) @neorg.links.location.external_file.prefix
-;                 (paragraph_segment) @neorg.links.location.external_file
-;             )
-;             (
-;                 (link_target_marker) @neorg.links.location.marker.prefix
-;                 (paragraph_segment) @neorg.links.location.marker
-;             )
-;             (
-;                 (link_target_definition) @neorg.links.location.definition.prefix
-;                 (paragraph_segment) @neorg.links.location.definition
-;             )
-;             (
-;                 (link_target_footnote) @neorg.links.location.footnote.prefix
-;                 (paragraph_segment) @neorg.links.location.footnote
-;             )
-;             (
-;                 (link_target_heading1) @neorg.links.location.heading.1.prefix
-;                 (paragraph_segment) @neorg.links.location.heading.1
-;             )
-;             (
-;                 (link_target_heading2) @neorg.links.location.heading.2.prefix
-;                 (paragraph_segment) @neorg.links.location.heading.2
-;             )
-;             (
-;                 (link_target_heading3) @neorg.links.location.heading.3.prefix
-;                 (paragraph_segment) @neorg.links.location.heading.3
-;             )
-;             (
-;                 (link_target_heading4) @neorg.links.location.heading.4.prefix
-;                 (paragraph_segment) @neorg.links.location.heading.4
-;             )
-;             (
-;                 (link_target_heading5) @neorg.links.location.heading.5.prefix
-;                 (paragraph_segment) @neorg.links.location.heading.5
-;             )
-;             (
-;                 (link_target_heading6) @neorg.links.location.heading.6.prefix
-;                 (paragraph_segment) @neorg.links.location.heading.6
-;             )
-;         ]
-;         ("_end") @neorg.links.location.delimiter
-;     )
-; )
+(anchor_definition
+    (link_description
+        ("_begin") @neorg.anchors.definition.delimiter
+        text: (paragraph) @neorg.anchors.declaration
+        ("_end") @neorg.anchors.definition.delimiter) @neorg.anchors
+    (link_location
+      ("_begin") @neorg.links.location.delimiter
+      [(("_begin") @neorg.links.file.delimiter
+          file: (link_file_text) @neorg.links.file
+          ("_end") @neorg.links.file.delimiter)
+       ((link_target_url) ; Doesn't require a highlight since it's a 0-width node
+          (paragraph) @neorg.links.location.url)
+       ((link_target_generic) @neorg.links.location.generic.prefix
+          (paragraph) @neorg.links.location.generic)
+       ((link_target_external_file) @neorg.links.location.external_file.prefix
+          (paragraph) @neorg.links.location.external_file)
+       ((link_target_definition) @neorg.links.location.definition.prefix
+          (paragraph) @neorg.links.location.definition)
+       ((link_target_footnote) @neorg.links.location.footnote.prefix
+          (paragraph) @neorg.links.location.footnote)
+       ((link_target_heading1) @neorg.links.location.heading.1.prefix
+          (paragraph) @neorg.links.location.heading.1)
+       ((link_target_heading2) @neorg.links.location.heading.2.prefix
+          (paragraph) @neorg.links.location.heading.2)
+       ((link_target_heading3) @neorg.links.location.heading.3.prefix
+          (paragraph) @neorg.links.location.heading.3)
+       ((link_target_heading4) @neorg.links.location.heading.4.prefix
+          (paragraph) @neorg.links.location.heading.4)
+       ((link_target_heading5) @neorg.links.location.heading.5.prefix
+          (paragraph) @neorg.links.location.heading.5)
+       ((link_target_heading6) @neorg.links.location.heading.6.prefix
+          (paragraph) @neorg.links.location.heading.6)
+       ((link_target_wiki) @neorg.links.location.wiki.prefix
+          (paragraph) @neorg.links.location.wiki)
+       ((link_target_timestamp) @neorg.links.location.timestamp.prefix
+          (paragraph) @neorg.links.location.timestamp)]
+      ("_end") @neorg.links.location.delimiter))
 ; 
 ; ; Headings
 ; (heading1 (heading1_prefix) @neorg.headings.1.prefix title: (paragraph_segment) @neorg.headings.1.title)
