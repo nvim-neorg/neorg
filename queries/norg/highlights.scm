@@ -1,8 +1,14 @@
-(ranged_verbatim_tag ("_prefix") @neorg.tags.ranged_verbatim.begin
-	name: (tag_name [(word) @neorg.tags.ranged_verbatim.name.word ("_delimiter") @neorg.tags.ranged_verbatim.name.delimiter]) @neorg.tags.ranged_verbatim.name
-	(tag_parameters (tag_param) @neorg.tags.ranged_verbatim.parameters.word)? @neorg.tags.ranged_verbatim.parameters
-	content: (ranged_verbatim_tag_content)?
-	(ranged_verbatim_tag_end ("_prefix") @neorg.tags.ranged_verbatim.end ("_name") @neorg.tags.ranged_verbatim.name.word))
+(ranged_verbatim_tag
+  ("_prefix") @neorg.tags.ranged_verbatim.begin
+  name: (tag_name
+          [(word) @neorg.tags.ranged_verbatim.name.word
+           ("_delimiter") @neorg.tags.ranged_verbatim.name.delimiter]) @neorg.tags.ranged_verbatim.name
+  (tag_parameters
+    (tag_param) @neorg.tags.ranged_verbatim.parameters.word)? @neorg.tags.ranged_verbatim.parameters
+  content: (ranged_verbatim_tag_content)?
+  (ranged_verbatim_tag_end
+    ("_prefix") @neorg.tags.ranged_verbatim.end
+    ("_name") @neorg.tags.ranged_verbatim.name.word))
 
 (ranged_verbatim_tag
   ("_prefix")
@@ -18,18 +24,12 @@
   (paragraph_segment) @neorg.tags.comment.content)
 
 (strong_attribute
-    ("_prefix" @neorg.tags.carryover.begin)
-    name:
-        (tag_name
-            [
-                (word) @neorg.tags.carryover.name.word
-                ("_delimiter") @neorg.tags.carryover.name.delimiter
-            ]
-        ) @neorg.tags.carryover.name
+  ("_prefix" @neorg.tags.carryover.begin)
+  name: (tag_name
+          [(word) @neorg.tags.carryover.name.word
+           ("_delimiter") @neorg.tags.carryover.name.delimiter]) @neorg.tags.carryover.name
     (tag_parameters
-        (tag_param) @neorg.tags.carryover.parameters.word
-    )? @neorg.tags.carryover.parameters
-) @neorg.tags.carryover
+      (tag_param) @neorg.tags.carryover.parameters.word)? @neorg.tags.carryover.parameters) @neorg.tags.carryover
 
 ; Trailing Modifier
 ("_trailing_modifier") @neorg.modifiers.trailing
@@ -39,85 +39,50 @@
 
 ; Links
 (link
-    (link_location
-        ("_begin") @neorg.links.location.delimiter
-        [
-            (
-                ("_begin") @neorg.links.file.delimiter
-                file: (link_file_text) @neorg.links.file
-                ("_end") @neorg.links.file.delimiter
-            )
-            (
-                (link_target_url) ; Doesn't require a highlight since it's a 0-width node
-                (paragraph) @neorg.links.location.url
-            )
-            (
-                (link_target_generic) @neorg.links.location.generic.prefix
-                (paragraph) @neorg.links.location.generic
-            )
-            (
-                (link_target_external_file) @neorg.links.location.external_file.prefix
-                (paragraph) @neorg.links.location.external_file
-            )
-            (
-                (link_target_definition) @neorg.links.location.definition.prefix
-                (paragraph) @neorg.links.location.definition
-            )
-            (
-                (link_target_footnote) @neorg.links.location.footnote.prefix
-                (paragraph) @neorg.links.location.footnote
-            )
-            (
-                (link_target_heading1) @neorg.links.location.heading.1.prefix
-                (paragraph) @neorg.links.location.heading.1
-            )
-            (
-                (link_target_heading2) @neorg.links.location.heading.2.prefix
-                (paragraph) @neorg.links.location.heading.2
-            )
-            (
-                (link_target_heading3) @neorg.links.location.heading.3.prefix
-                (paragraph) @neorg.links.location.heading.3
-            )
-            (
-                (link_target_heading4) @neorg.links.location.heading.4.prefix
-                (paragraph) @neorg.links.location.heading.4
-            )
-            (
-                (link_target_heading5) @neorg.links.location.heading.5.prefix
-                (paragraph) @neorg.links.location.heading.5
-            )
-            (
-                (link_target_heading6) @neorg.links.location.heading.6.prefix
-                (paragraph) @neorg.links.location.heading.6
-            )
-            (
-                (link_target_wiki) @neorg.links.location.wiki.prefix
-                (paragraph) @neorg.links.location.wiki
-            )
-            (
-                (link_target_timestamp) @neorg.links.location.timestamp.prefix
-                (paragraph) @neorg.links.location.timestamp
-            )
-        ]
-        ("_end") @neorg.links.location.delimiter
-    )
-    (link_description
-        ("_begin") @neorg.links.description.delimiter
-        text: (paragraph) @neorg.links.description
-        ("_end") @neorg.links.description.delimiter
-    )?
-)
+  (link_location
+    ("_begin") @neorg.links.location.delimiter
+    [(("_begin") @neorg.links.file.delimiter
+        file: (link_file_text) @neorg.links.file
+        ("_end") @neorg.links.file.delimiter)
+     ((link_target_url) ; Doesn't require a highlight since it's a 0-width node
+        (paragraph) @neorg.links.location.url)
+     ((link_target_generic) @neorg.links.location.generic.prefix
+        (paragraph) @neorg.links.location.generic)
+     ((link_target_external_file) @neorg.links.location.external_file.prefix
+        (paragraph) @neorg.links.location.external_file)
+     ((link_target_definition) @neorg.links.location.definition.prefix
+        (paragraph) @neorg.links.location.definition)
+     ((link_target_footnote) @neorg.links.location.footnote.prefix
+        (paragraph) @neorg.links.location.footnote)
+     ((link_target_heading1) @neorg.links.location.heading.1.prefix
+        (paragraph) @neorg.links.location.heading.1)
+     ((link_target_heading2) @neorg.links.location.heading.2.prefix
+        (paragraph) @neorg.links.location.heading.2)
+     ((link_target_heading3) @neorg.links.location.heading.3.prefix
+        (paragraph) @neorg.links.location.heading.3)
+     ((link_target_heading4) @neorg.links.location.heading.4.prefix
+        (paragraph) @neorg.links.location.heading.4)
+     ((link_target_heading5) @neorg.links.location.heading.5.prefix
+        (paragraph) @neorg.links.location.heading.5)
+     ((link_target_heading6) @neorg.links.location.heading.6.prefix
+        (paragraph) @neorg.links.location.heading.6)
+     ((link_target_wiki) @neorg.links.location.wiki.prefix
+        (paragraph) @neorg.links.location.wiki)
+     ((link_target_timestamp) @neorg.links.location.timestamp.prefix
+        (paragraph) @neorg.links.location.timestamp)]
+    ("_end") @neorg.links.location.delimiter)
+  (link_description
+    ("_begin") @neorg.links.description.delimiter
+    text: (paragraph) @neorg.links.description
+    ("_end") @neorg.links.description.delimiter)?)
 
-; ; Anchors
+; Anchors
 ; (anchor_declaration
-;     (link_description
-;         ("_begin") @neorg.anchors.declaration.delimiter
-;         text: (paragraph_segment) @neorg.anchors.declaration
-;         ("_end") @neorg.anchors.declaration.delimiter
-;     )
-; )
-; 
+;   (link_description
+;     ("_begin") @neorg.anchors.declaration.delimiter
+;     text: (paragraph_segment) @neorg.anchors.declaration
+;     ("_end") @neorg.anchors.declaration.delimiter))
+
 ; (anchor_definition
 ;     (link_description
 ;         ("_begin") @neorg.anchors.definition.delimiter
