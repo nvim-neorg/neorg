@@ -232,27 +232,28 @@
   (quote6_prefix) @neorg.quotes.6.prefix
   content: (paragraph) @neorg.quotes.6.content)
 
-; ; Insertion
-; (insertion (insertion_prefix) @neorg.insertions.prefix item: (lowercase_word) @neorg.insertions.variable.name parameters: (paragraph_segment)? @neorg.insertions.variable.value)
-; (insertion (insertion_prefix) @neorg.insertions.prefix item: (capitalized_word) @neorg.insertions.item parameters: (paragraph_segment)? @neorg.insertions.parameters)
-; 
-; ; Paragraph Delimiters
-; (strong_paragraph_delimiter) @neorg.delimiters.strong
-; (weak_paragraph_delimiter) @neorg.delimiters.weak
-; (horizontal_line) @neorg.delimiters.horizontal_line
-; 
-; ; Markup
-; (bold ["_open" "_close"] @neorg.markup.bold.delimiter) @neorg.markup.bold
-; (italic ["_open" "_close"] @neorg.markup.italic.delimiter) @neorg.markup.italic
-; (strikethrough ["_open" "_close"] @neorg.markup.strikethrough.delimiter) @neorg.markup.strikethrough
-; (underline ["_open" "_close"] @neorg.markup.underline.delimiter) @neorg.markup.underline
-; (spoiler ["_open" "_close"] @neorg.markup.spoiler.delimiter) @neorg.markup.spoiler
-; (verbatim ["_open" "_close"] @neorg.markup.verbatim.delimiter) @neorg.markup.verbatim
-; (superscript ["_open" "_close"] @neorg.markup.superscript.delimiter) @neorg.markup.superscript
-; (subscript ["_open" "_close"] @neorg.markup.subscript.delimiter) @neorg.markup.subscript
-; (inline_comment ["_open" "_close"] @neorg.markup.inline_comment.delimiter) @neorg.markup.inline_comment
-; (inline_math ["_open" "_close"] @neorg.markup.inline_math.delimiter) @neorg.markup.inline_math
-; (variable ["_open" "_close"] @neorg.markup.variable.delimiter) @neorg.markup.variable
+; Paragraph Delimiters
+(strong_paragraph_delimiter) @neorg.delimiters.strong
+(weak_paragraph_delimiter) @neorg.delimiters.weak
+(horizontal_line) @neorg.delimiters.horizontal_line
+
+; Markup
+(bold ["_open" "_close"] @neorg.markup.bold.delimiter) @neorg.markup.bold
+(italic ["_open" "_close"] @neorg.markup.italic.delimiter) @neorg.markup.italic
+(strikethrough ["_open" "_close"] @neorg.markup.strikethrough.delimiter) @neorg.markup.strikethrough
+(underline ["_open" "_close"] @neorg.markup.underline.delimiter) @neorg.markup.underline
+(spoiler ["_open" "_close"] @neorg.markup.spoiler.delimiter) @neorg.markup.spoiler
+(verbatim ["_open" "_close"] @neorg.markup.verbatim.delimiter) @neorg.markup.verbatim
+(superscript ["_open" "_close"] @neorg.markup.superscript.delimiter) @neorg.markup.superscript
+(subscript ["_open" "_close"] @neorg.markup.subscript.delimiter) @neorg.markup.subscript
+(inline_comment ["_open" "_close"] @neorg.markup.inline_comment.delimiter) @neorg.markup.inline_comment
+(inline_math ["_open" "_close"] @neorg.markup.inline_math.delimiter) @neorg.markup.inline_math
+(inline_macro ["_open" "_close"] @neorg.markup.variable.delimiter) @neorg.markup.inline_macro
+
+; Free-form Markup
+[(free_form_open)
+ (free_form_close)] @neorg.markup.free_form_delimiter
+
 ; 
 ; (superscript (subscript) @neorg.error (#set! priority 300))
 ; (subscript (superscript) @neorg.error (#set! priority 300))
