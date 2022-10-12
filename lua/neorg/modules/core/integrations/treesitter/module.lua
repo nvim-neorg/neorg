@@ -110,7 +110,7 @@ module.config.public = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg",
             files = { "src/parser.c", "src/scanner.cc" },
             branch = "dev",
-            revision = "5be7048e35f0dc97180f971a77c8acb12d81af2e",
+            revision = "b148c43d58e91f1ba4ddbfd8a80465b89099ff2b",
         },
         norg_meta = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
