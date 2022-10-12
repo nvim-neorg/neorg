@@ -172,31 +172,66 @@
 ; Detached Modifier extensions
 ; TODO
 
-; 
-; ; Unordered lists
-; (unordered_list1 (unordered_list1_prefix) @neorg.lists.unordered.1.prefix content: (paragraph) @neorg.lists.unordered.1.content)
-; (unordered_list2 (unordered_list2_prefix) @neorg.lists.unordered.2.prefix content: (paragraph) @neorg.lists.unordered.2.content)
-; (unordered_list3 (unordered_list3_prefix) @neorg.lists.unordered.3.prefix content: (paragraph) @neorg.lists.unordered.3.content)
-; (unordered_list4 (unordered_list4_prefix) @neorg.lists.unordered.4.prefix content: (paragraph) @neorg.lists.unordered.4.content)
-; (unordered_list5 (unordered_list5_prefix) @neorg.lists.unordered.5.prefix content: (paragraph) @neorg.lists.unordered.5.content)
-; (unordered_list6 (unordered_list6_prefix) @neorg.lists.unordered.6.prefix content: (paragraph) @neorg.lists.unordered.6.content)
-; 
-; ; Ordered lists
-; (ordered_list1 (ordered_list1_prefix) @neorg.lists.ordered.1.prefix content: (paragraph) @neorg.lists.ordered.1.content)
-; (ordered_list2 (ordered_list2_prefix) @neorg.lists.ordered.2.prefix content: (paragraph) @neorg.lists.ordered.2.content)
-; (ordered_list3 (ordered_list3_prefix) @neorg.lists.ordered.3.prefix content: (paragraph) @neorg.lists.ordered.3.content)
-; (ordered_list4 (ordered_list4_prefix) @neorg.lists.ordered.4.prefix content: (paragraph) @neorg.lists.ordered.4.content)
-; (ordered_list5 (ordered_list5_prefix) @neorg.lists.ordered.5.prefix content: (paragraph) @neorg.lists.ordered.5.content)
-; (ordered_list6 (ordered_list6_prefix) @neorg.lists.ordered.6.prefix content: (paragraph) @neorg.lists.ordered.6.content)
-; 
-; ; Quotes
-; (quote1 (quote1_prefix) @neorg.quotes.1.prefix content: (paragraph_segment) @neorg.quotes.1.content)
-; (quote2 (quote2_prefix) @neorg.quotes.2.prefix content: (paragraph_segment) @neorg.quotes.2.content)
-; (quote3 (quote3_prefix) @neorg.quotes.3.prefix content: (paragraph_segment) @neorg.quotes.3.content)
-; (quote4 (quote4_prefix) @neorg.quotes.4.prefix content: (paragraph_segment) @neorg.quotes.4.content)
-; (quote5 (quote5_prefix) @neorg.quotes.5.prefix content: (paragraph_segment) @neorg.quotes.5.content)
-; (quote6 (quote6_prefix) @neorg.quotes.6.prefix content: (paragraph_segment) @neorg.quotes.6.content)
-; 
+; Unordered lists
+(unordered_list1
+  (unordered_list1_prefix) @neorg.lists.unordered.1.prefix
+  content: (paragraph) @neorg.lists.unordered.1.content)
+(unordered_list2
+  (unordered_list2_prefix) @neorg.lists.unordered.2.prefix
+  content: (paragraph) @neorg.lists.unordered.2.content)
+(unordered_list3
+  (unordered_list3_prefix) @neorg.lists.unordered.3.prefix
+  content: (paragraph) @neorg.lists.unordered.3.content)
+(unordered_list4
+  (unordered_list4_prefix) @neorg.lists.unordered.4.prefix
+  content: (paragraph) @neorg.lists.unordered.4.content)
+(unordered_list5
+  (unordered_list5_prefix) @neorg.lists.unordered.5.prefix
+  content: (paragraph) @neorg.lists.unordered.5.content)
+(unordered_list6
+  (unordered_list6_prefix) @neorg.lists.unordered.6.prefix
+  content: (paragraph) @neorg.lists.unordered.6.content)
+
+; Ordered lists
+(ordered_list1
+  (ordered_list1_prefix) @neorg.lists.ordered.1.prefix
+  content: (paragraph) @neorg.lists.ordered.1.content)
+(ordered_list2
+  (ordered_list2_prefix) @neorg.lists.ordered.2.prefix
+  content: (paragraph) @neorg.lists.ordered.2.content)
+(ordered_list3
+  (ordered_list3_prefix) @neorg.lists.ordered.3.prefix
+  content: (paragraph) @neorg.lists.ordered.3.content)
+(ordered_list4
+  (ordered_list4_prefix) @neorg.lists.ordered.4.prefix
+  content: (paragraph) @neorg.lists.ordered.4.content)
+(ordered_list5
+  (ordered_list5_prefix) @neorg.lists.ordered.5.prefix
+  content: (paragraph) @neorg.lists.ordered.5.content)
+(ordered_list6
+  (ordered_list6_prefix) @neorg.lists.ordered.6.prefix
+  content: (paragraph) @neorg.lists.ordered.6.content)
+
+; Quotes
+(quote1
+  (quote1_prefix) @neorg.quotes.1.prefix
+  content: (paragraph) @neorg.quotes.1.content)
+(quote2
+  (quote2_prefix) @neorg.quotes.2.prefix
+  content: (paragraph) @neorg.quotes.2.content)
+(quote3
+  (quote3_prefix) @neorg.quotes.3.prefix
+  content: (paragraph) @neorg.quotes.3.content)
+(quote4
+  (quote4_prefix) @neorg.quotes.4.prefix
+  content: (paragraph) @neorg.quotes.4.content)
+(quote5
+  (quote5_prefix) @neorg.quotes.5.prefix
+  content: (paragraph) @neorg.quotes.5.content)
+(quote6
+  (quote6_prefix) @neorg.quotes.6.prefix
+  content: (paragraph) @neorg.quotes.6.content)
+
 ; ; Insertion
 ; (insertion (insertion_prefix) @neorg.insertions.prefix item: (lowercase_word) @neorg.insertions.variable.name parameters: (paragraph_segment)? @neorg.insertions.variable.value)
 ; (insertion (insertion_prefix) @neorg.insertions.prefix item: (capitalized_word) @neorg.insertions.item parameters: (paragraph_segment)? @neorg.insertions.parameters)
