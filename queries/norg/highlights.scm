@@ -254,10 +254,13 @@
 [(free_form_open)
  (free_form_close)] @neorg.markup.free_form_delimiter
 
-; 
-; (superscript (subscript) @neorg.error (#set! priority 300))
-; (subscript (superscript) @neorg.error (#set! priority 300))
-; 
+(superscript
+  (subscript) @neorg.error
+  (#set! priority 300))
+(subscript
+  (superscript) @neorg.error
+  (#set! priority 300))
+
 ; ; Conceals
 ; (
 ;     [
