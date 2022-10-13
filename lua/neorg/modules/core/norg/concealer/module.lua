@@ -268,7 +268,7 @@ module.public = {
                 vim.treesitter.parse_query,
                 "norg",
                 [[(
-                    (ranged_tag (tag_name) @_name) @tag
+                    (ranged_verbatim_tag (tag_name) @_name) @tag
                     (#any-of? @_name "code" "embed")
                 )]]
             )
@@ -282,7 +282,7 @@ module.public = {
             for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 local id_name = query.captures[id]
 
-                -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                -- If the capture name is "tag" then that means we're dealing with our ranged_verbatim_tag
                 if id_name == "tag" then
                     -- Get the range of the code block
                     local range = module.required["core.integrations.treesitter"].get_node_range(node)
@@ -1109,72 +1109,48 @@ module.config.public = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_done) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             pending = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_pending) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             undone = {
                 enabled = true,
                 icon = "×",
                 query = "(todo_item_undone) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             uncertain = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_uncertain) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             on_hold = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_on_hold) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             cancelled = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_cancelled) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             recurring = {
                 enabled = true,
                 icon = "↺",
                 query = "(todo_item_recurring) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             urgent = {
                 enabled = true,
                 icon = "⚠",
                 query = "(todo_item_urgent) @icon",
-                extract = function()
-                    return 1
-                end,
             },
         },
 
@@ -1215,40 +1191,6 @@ module.config.public = {
                 enabled = true,
                 icon = "     •",
                 query = "(unordered_list6_prefix) @icon",
-            },
-        },
-
-        link = {
-            enabled = true,
-            level_1 = {
-                enabled = true,
-                icon = " ",
-                query = "(unordered_link1_prefix) @icon",
-            },
-            level_2 = {
-                enabled = true,
-                icon = "  ",
-                query = "(unordered_link2_prefix) @icon",
-            },
-            level_3 = {
-                enabled = true,
-                icon = "   ",
-                query = "(unordered_link3_prefix) @icon",
-            },
-            level_4 = {
-                enabled = true,
-                icon = "    ",
-                query = "(unordered_link4_prefix) @icon",
-            },
-            level_5 = {
-                enabled = true,
-                icon = "     ",
-                query = "(unordered_link5_prefix) @icon",
-            },
-            level_6 = {
-                enabled = true,
-                icon = "      ",
-                query = "(unordered_link6_prefix) @icon",
             },
         },
 
@@ -1329,88 +1271,6 @@ module.config.public = {
                     local count = module.public.concealing.ordered.get_index(node, "ordered_list6")
                     return {
                         { "     " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-        },
-
-        ordered_link = {
-            enabled = true,
-            level_1 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.numeric
-                ),
-                query = "(ordered_link1_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link1")
-                    return {
-                        { " " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_2 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_uppercase
-                ),
-                query = "(ordered_link2_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link2")
-                    return {
-                        { "  " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_3 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_lowercase
-                ),
-                query = "(ordered_link3_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link3")
-                    return {
-                        { "   " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_4 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.numeric
-                ),
-                query = "(ordered_link4_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link4")
-                    return {
-                        { "    " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_5 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_uppercase
-                ),
-                query = "(ordered_link5_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link5")
-                    return {
-                        { "     " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_6 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_lowercase
-                ),
-                query = "(ordered_link6_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link6")
-                    return {
-                        { "      " .. self.icon(count), self.highlight },
                     }
                 end,
             },
@@ -1556,12 +1416,6 @@ module.config.public = {
             },
         },
 
-        marker = {
-            enabled = true,
-            icon = "",
-            query = "[ (marker_prefix) (link_target_marker) @no-conceal ] @icon",
-        },
-
         definition = {
             enabled = true,
 
@@ -1630,7 +1484,7 @@ module.config.public = {
             },
 
             horizontal_line = {
-                enabled = true,
+                enabled = false, -- TODO: fix this
                 icon = "─",
                 highlight = "@neorg.delimiters.horizontal_line",
                 query = "(horizontal_line) @icon",
