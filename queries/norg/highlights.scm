@@ -261,62 +261,57 @@
   (superscript) @neorg.error
   (#set! priority 300))
 
-; ; Conceals
-; (
-;     [
-;         "_open"
-;         "_close"
-;         "_trailing_modifier"
-;         (link_modifier)
-;     ] @conceal
-;     (#set! conceal "")
-; )
-; 
-; (
-;     [
-;         (link
-;             (link_location
-;                 type: (link_target_footnote)
-;             )
-;         ) @conceal
-;         (link
-;             (_
-;                 [
-;                     "_begin"
-;                     type: (_)
-;                     "_end"
-;                 ] @conceal
-;             )
-;         )
-;         (link
-;             (link_location) @conceal
-;             (link_description)
-;         )
-;     ]
-;     (#set! conceal "")
-; )
-; 
-; (
-;     [
-;         (_
-;             [
-;                 "_begin"
-;                 "_end"
-;             ] @conceal
-;             (#has-parent? "anchor_declaration" "anchor_definition")
-;         )
-;         (anchor_definition
-;             (link_description)
-;             (link_location) @conceal
-;         )
-;     ]
-;     (#set! conceal "")
-; )
-; 
-; (
-;     (escape_sequence_prefix) @conceal
-;     (#set! conceal "")
-; )
-; 
-; ; Spell
-; (paragraph_segment) @spell
+; Conceals
+(
+    [
+        "_open"
+        "_close"
+        "_trailing_modifier"
+        (link_modifier)
+    ] @conceal
+    (#set! conceal "")
+)
+
+(
+    [
+        (link
+            (_
+                [
+                    "_begin"
+                    type: (_)
+                    "_end"
+                ] @conceal
+            )
+        )
+        (link
+            (link_location) @conceal
+            (link_description)
+        )
+    ]
+    (#set! conceal "")
+)
+
+(
+    [
+        (_
+            [
+                "_begin"
+                "_end"
+            ] @conceal
+            (#has-parent? "anchor_declaration" "anchor_definition")
+        )
+        (anchor_definition
+            (link_description)
+            (link_location) @conceal
+        )
+    ]
+    (#set! conceal "")
+)
+
+(
+    (escape_sequence_prefix) @conceal
+    (#set! conceal "")
+)
+
+; Spell
+(paragraph_segment) @spell
