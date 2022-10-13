@@ -379,7 +379,7 @@ module.public = {
     --- Given a node this function will break down the AST elements and return the corresponding text for certain nodes
     -- @Param  tag_node (userdata/treesitter node) - a node of type tag/carryover_tag
     get_tag_info = function(tag_node, check_parent)
-        if not tag_node or (tag_node:type() ~= "ranged_tag" and tag_node:type() ~= "carryover_tag") then
+        if not tag_node or not vim.tbl_contains({ "ranged_tag", "ranged_verbatim_tag", "carryover_tag" }, tag_node:type()) then
             return nil
         end
 
@@ -420,7 +420,7 @@ module.public = {
                 table.insert(resulting_name, vim.split(module.public.get_node_text(child), "\n")[1])
             elseif child:type() == "tag_parameters" then
                 table.insert(params, vim.split(module.public.get_node_text(child), "\n")[1])
-            elseif child:type() == "ranged_tag_content" then
+            elseif child:type() == "ranged_verbatim_tag_content" then
                 -- If we're dealing with tag content then retrieve that content
                 content = vim.split(module.public.get_node_text(child), "\n")
                 _, content_start_column = child:range()
