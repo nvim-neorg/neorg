@@ -274,14 +274,12 @@
 
 (
     [
-        (link
-            (_
-                [
-                    "_begin"
-                    type: (_)
-                    "_end"
-                ] @conceal
-            )
+        (link_description
+            [
+                "_begin"
+                type: (_)
+                "_end"
+            ] @conceal
         )
         (link
             (link_location) @conceal
@@ -293,13 +291,6 @@
 
 (
     [
-        (_
-            [
-                "_begin"
-                "_end"
-            ] @conceal
-            (#has-parent? "anchor_declaration" "anchor_definition")
-        )
         (anchor_definition
             (link_description)
             (link_location) @conceal
