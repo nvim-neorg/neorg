@@ -1,4 +1,6 @@
+---@diagnostic disable: undefined-global
 -- TODO: better colors
+-- TODO: avoid code duplication.
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.execute")
@@ -14,7 +16,7 @@ module.load = function()
             args = 1,
             subcommands = {
                 view = { args=0, name="execute.view" },
-                -- bruh2 = { args=0, name="execute.bruh2" },
+                normal = { args=0, name="execute.normal" },
             }
         }
     })
@@ -79,13 +81,49 @@ module.private = {
             )
         end
     },
+    normal = {
+        line_set = 0,
+
+        init = function()
+            module.private.normal.line_set = module.private.code_block['end'].row + 1
+            table.insert(module.public.output, '')
+            table.insert(module.public.output, 'Result:')
+
+            vim.api.nvim_buf_set_lines(
+                module.private.buf,
+                module.private.normal.line_set,
+                module.private.normal.line_set,
+                true,
+                module.public.output
+            )
+            module.private.normal.line_set = module.private.normal.line_set + #module.public.output
+        end,
+
+        update = function(line)
+            vim.api.nvim_buf_set_lines(
+                module.private.buf,
+                module.private.normal.line_set,
+                module.private.normal.line_set,
+                true,
+                {line}
+            )
+            module.private.normal.line_set = module.private.normal.line_set + 1
+        end
+    },
 
     spawn = function(command)
         module.private.interrupted = false
-        local id = module.private.virtual.init()
+        local mode = module.public.mode
+        local id
+        if mode == "view" then
+            id = module.private.virtual.init()
+        else
+            module.private.normal.init()
+        end
 
         module.private.jobid = vim.fn.jobstart(command, {
-            stdout_buffered = false,
+            stdout_buffered = true,
+
             -- TODO: check exit code conditions and colors
             on_stdout = function(_, data)
                 if module.private.interrupted then
@@ -95,8 +133,13 @@ module.private = {
 
                 for _, line in ipairs(data) do
                     if line ~= "" then
-                        table.insert(module.public.output, {{line, 'Function'}})
-                        module.private.virtual.update(id)
+                        if mode == "view" then
+                            table.insert(module.public.output, {{line, 'Function'}})
+                            module.private.virtual.update(id)
+                        else
+                            table.insert(module.public.output, line)
+                            module.private.normal.update(line)
+                        end
                     end
                 end
             end,
@@ -109,10 +152,16 @@ module.private = {
 
                 for _, line in ipairs(data) do
                     if line ~= "" then
-                        table.insert(module.public.output, {{line, 'Error'}})
-                        module.private.virtual.update(id)
+                        if mode == "view" then
+                            table.insert(module.public.output, {{line, 'Error'}})
+                            module.private.virtual.update(id)
+                        else
+                            table.insert(module.public.output, line)
+                            module.private.normal.update(line)
+                        end
                     end
                 end
+
             end
 
         })
@@ -122,8 +171,9 @@ module.private = {
 module.public = {
     tmpdir = "/tmp/neorg-execute/",
     output = {},
+    mode = "normal",
 
-    view = function()
+    base = function()
         local node = ts.get_node_at_cursor(0, true)
         local p = module.required["core.integrations.treesitter"].find_parent(node, "^ranged_tag$")
 
@@ -150,26 +200,40 @@ module.public = {
             file:close()
 
             local command = module.config.public.lang_cmds[ft]
+            if not command then
+                vim.pretty_print("Language not supported currently!")
+                return
+            end
             command = {command, module.private.temp_filename}
 
             module.private.spawn(command)
         end
-
-        -- {attributes, content, ["end"], name, parameters, ["start"]}
     end,
-    -- bruh2 = function() end
+
+    view = function()
+        module.public.output = {}
+        module.public.mode = "view"
+        module.public.base()
+    end,
+    normal = function()
+        module.public.output = {}
+        module.public.mode = "normal"
+        module.public.base()
+    end,
 }
 
 module.on_event = function(event)
     if event.split_type[2] == "execute.view" then
         vim.schedule(module.public.view)
+    elseif event.split_type[2] == "execute.normal" then
+        vim.schedule(module.public.normal)
     end
 end
 
 module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["execute.view"] = true,
-        -- ["execute.bruh2"] = true
+        ["execute.normal"] = true
     }
 }
 
