@@ -104,15 +104,15 @@ module.public = {
     --- Parameters can be nil if no parameters to the insertion were given.
     find_toc = function()
         -- Extract any insertion that has a ToC value in it
+        -- TODO(vhyrro): implement infirm tag in parser
         local query = vim.treesitter.parse_query(
             "norg",
             [[
-            (insertion
-            (insertion_prefix)
-            item: (capitalized_word) @item
-            parameters: (paragraph_segment)? @parameters
-            (#match? @item "^T[oO][cC]$")
-            )
+                (infirm_tag
+                  (infirm_tag_prefix)
+                  (tag_name) @item
+                  (tag_parameters)? @parameters
+                  (#match? @item "^[tT][oO][cC]$"))
             ]]
         )
 
