@@ -9,7 +9,7 @@ local module = neorg.modules.create("core.norg.esupports.indent")
 
 module.setup = function()
     return {
-        wants = {
+        requires = {
             "core.integrations.treesitter",
             "core.autocommands",
         },
