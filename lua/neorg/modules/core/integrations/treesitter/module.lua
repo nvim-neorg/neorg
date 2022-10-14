@@ -75,7 +75,7 @@ module.load = function()
             callback = function()
                 -- HACK(vhyrro): Using internal Neovim APIs.
                 -- It be like that sometimes.
-                if not vim._ts_has_language("norg") then
+                if not neorg.lib.inline_pcall(vim.treesitter.get_parser, 0, "norg") then
                     if module.config.public.install_parsers then
                         require("nvim-treesitter.install").commands.TSInstallSync["run!"]("norg", "norg_meta")
                     else
