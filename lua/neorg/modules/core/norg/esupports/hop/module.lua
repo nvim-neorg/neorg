@@ -429,12 +429,12 @@ module.public = {
                     os_open_link(vim.uri_from_fname(vim.fn.expand(destination)))
                 end
 
-                neorg.lib.match(destination:match("%.(.+)$"))({
+                neorg.lib.match(vim.fn.fnamemodify(destination, ":e"))({
                     pdf = open_in_external_app,
                     png = open_in_external_app,
                     [{ "jpg", "jpeg" }] = open_in_external_app,
                     [module.config.public.external_filetypes] = open_in_external_app,
-                    _ = neorg.lib.wrap(vim.cmd, "e " .. destination),
+                    _ = neorg.lib.wrap(vim.api.nvim_exec, "e " .. vim.fn.fnamemodify(destination, ":p"), false),
                 })
 
                 return {}
