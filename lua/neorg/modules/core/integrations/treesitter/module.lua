@@ -378,8 +378,8 @@ module.public = {
 
     --- Given a node this function will break down the AST elements and return the corresponding text for certain nodes
     -- @Param  tag_node (userdata/treesitter node) - a node of type tag/carryover_tag
-    get_tag_info = function(tag_node, check_parent)
-        if not tag_node or not vim.tbl_contains({ "ranged_tag", "ranged_verbatim_tag", "carryover_tag" }, tag_node:type()) then
+    get_tag_info = function(tag_node)
+        if not tag_node or not vim.tbl_contains({ "ranged_tag", "ranged_verbatim_tag", "weak_attribute", "strong_attribute" }, tag_node:type()) then
             return nil
         end
 
@@ -389,13 +389,13 @@ module.public = {
         local resulting_name, params, content = {}, {}, {}
         local content_start_column = 0
 
-        if check_parent == true or check_parent == nil then
-            local parent = tag_node:parent()
-
-            if parent:type() == "carryover_tag_set" then
-                for child in parent:iter_children() do
-                    if child:type() == "carryover_tag" then
-                        local meta = module.public.get_tag_info(child, false)
+        -- Iterate over all children of the tag node
+        for child, _ in tag_node:iter_children() do
+            -- If we are dealing with a weak/strong attribute set then parse that set
+            if vim.endswith(child:type(), "_attribute_set")then
+                for subchild in child:iter_children() do
+                    if vim.endswith(subchild:type(), "_attribute") then
+                        local meta = module.public.get_tag_info(subchild)
 
                         if
                             vim.tbl_isempty(vim.tbl_filter(function(attribute)
@@ -410,13 +410,8 @@ module.public = {
                         end
                     end
                 end
-            end
-        end
-
-        -- Iterate over all children of the tag node
-        for child, _ in tag_node:iter_children() do
-            -- If we're dealing with the tag name then append the text of the tag_name node to this table
-            if child:type() == "tag_name" then
+            elseif child:type() == "tag_name" then
+                -- If we're dealing with the tag name then append the text of the tag_name node to this table
                 table.insert(resulting_name, vim.split(module.public.get_node_text(child), "\n")[1])
             elseif child:type() == "tag_parameters" then
                 table.insert(params, vim.split(module.public.get_node_text(child), "\n")[1])
