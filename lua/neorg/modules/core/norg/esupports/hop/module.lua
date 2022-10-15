@@ -434,7 +434,7 @@ module.public = {
                     png = open_in_external_app,
                     [{ "jpg", "jpeg" }] = open_in_external_app,
                     [module.config.public.external_filetypes] = open_in_external_app,
-                    _ = vim.cmd("e " .. vim.fn.fnamemodify(destination, ":p")),
+                    _ = neorg.lib.wrap(vim.api.nvim_exec, "e " .. vim.fn.fnamemodify(destination, ":p"), false),
                 })
 
                 return {}
