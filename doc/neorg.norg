@@ -48,8 +48,8 @@
 
   *** Ordered lists
       @code norg
-        ~ Unordered list level 1
-        ~~ Unordered list level 2
+        ~ Ordered list level 1
+        ~~ Ordered list level 2
       @end
       ~ Ordered list level 1
       ~~ Ordered list level 2
