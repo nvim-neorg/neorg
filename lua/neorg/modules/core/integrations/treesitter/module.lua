@@ -528,66 +528,29 @@ module.public = {
     --- Retrieves the first node at a specific line
     ---@param buf number #The buffer to search in (0 for current)
     ---@param line number #The line number (0-indexed) to get the node from
-    ---@param unnamed? boolean #If true will also target and return unnamed nodes
-    ---@param lenient? boolean #If true will not employ an extra check that ensures the target node begins on
     -- the same line as `line`.
     ---@return userdata|nil #The first node on `line`
-    get_first_node_on_line = function(buf, line, unnamed, lenient)
-        local query_str = [[
-            _ @node
-        ]]
-
+    get_first_node_on_line = function(buf, line)
         local document_root = module.public.get_document_root(buf)
 
         if not document_root then
             return
         end
 
-        if line == 0 and not lenient then
-            local first_node = document_root:named_child(0)
+        local first_char = (vim.api.nvim_buf_get_lines(buf, line, line + 1, true)[1] or ""):match("^(%s+)[^%s]")
+        first_char = first_char and first_char:len() or 0
 
-            if not first_node then
-                return
-            end
+        local descendant = document_root:descendant_for_range(line, first_char, line, first_char + 1)
 
-            if module.public.get_node_range(first_node).row_start == 0 then
-                return first_node
-            end
-
+        if not descendant then
             return
         end
 
-        local query = vim.treesitter.parse_query("norg", query_str)
-
-        local function find_closest_unnamed_node(node)
-            if unnamed or not node or node:named() then
-                return node
-            end
-
-            while node and not node:named() do
-                node = node:parent()
-            end
-
-            return node
+        while descendant:parent() and (descendant:parent():start()) == line do
+            descendant = descendant:parent()
         end
 
-        local result
-
-        for id, node in query:iter_captures(document_root, buf, lenient and line - 1 or line, line + 1) do
-            if query.captures[id] == "node" then
-                if lenient then
-                    result = node
-                else
-                    local range = module.public.get_node_range(node)
-
-                    if range.row_start == line then
-                        return find_closest_unnamed_node(node)
-                    end
-                end
-            end
-        end
-
-        return find_closest_unnamed_node(result)
+        return descendant
     end,
 
     get_document_metadata = function(buf, no_trim)
