@@ -20,8 +20,8 @@ module.private = {
     },
 
     namespaces = {
-        logical = vim.api.nvim_create_namespace("neorg/calendar/decorational"),
-        decorational = vim.api.nvim_create_namespace("neorg/calendar/logical"),
+        logical = vim.api.nvim_create_namespace("neorg/calendar/logical"),
+        decorational = vim.api.nvim_create_namespace("neorg/calendar/decorational"),
     },
 
     set_decorational_extmark = function(ui_info, row, col, virt_text, alignment)
