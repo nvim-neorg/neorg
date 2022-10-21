@@ -77,7 +77,7 @@ module.private = {
         )
 
         module.private.extmarks.decorational.month_headings[month_name] =
-            module.private.set_decorational_extmark(ui_info, 4, 0, { { month_name, "TSUnderline" } }, "center")
+            module.private.set_decorational_extmark(ui_info, 4, 0, { { month_name, "@text.underline" } }, "center")
 
         -- Render the days of the week
         -- To effectively do this, we grab all the weekdays from a constant time.
@@ -97,7 +97,7 @@ module.private = {
                         })
                     )
                     :sub(1, 2),
-                "TSTitle",
+                "@text.title",
             })
             table.insert(weekdays, { "  " })
             weekdays_string_length = weekdays_string_length + 4
@@ -124,6 +124,8 @@ module.private = {
             -- [day of month] = <day of week>,
         }
 
+        local day, month, year = date.day, date.month, date.year
+
         local days_in_current_month = ({
             31,
             (tonumber(year) % 4 == 0) and 29 or 28,
@@ -137,9 +139,7 @@ module.private = {
             31,
             30,
             31,
-        })[tonumber(
-            month
-        )]
+        })[tonumber(month)]
 
         for i = 1, days_in_current_month do
             days_of_month[i] = tonumber(os.date(
@@ -164,7 +164,7 @@ module.private = {
 
         for day_of_month, day_of_week in ipairs(days_of_month) do
             vim.api.nvim_buf_set_extmark(
-                buffer,
+                ui_info.buffer,
                 module.private.namespaces.logical,
                 beginning_of_weekday_extmark[1] + render_row,
                 beginning_of_weekday_extmark[2] + (4 * render_column),
@@ -172,7 +172,7 @@ module.private = {
                     virt_text = {
                         {
                             (day_of_month < 10 and "0" or "") .. tostring(day_of_month),
-                            (tostring(day_of_month) == day and "TSTodo" or nil),
+                            (tostring(day_of_month) == day and "@todo" or nil),
                         },
                     },
                     virt_text_pos = "overlay",
@@ -274,11 +274,17 @@ module.public = {
             "center"
         )
 
-        module.private.render_month_banner(ui_info, {
+        local month_banner = module.private.render_month_banner(ui_info, {
             year = year,
             month = month,
             day = day,
         })
+
+        module.private.render_month(ui_info, {
+            year = year,
+            month = month,
+            day = day,
+        }, month_banner)
     end,
 
     select_date = function(options)
