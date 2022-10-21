@@ -13,6 +13,8 @@ module.private = {
     ts_utils = nil,
     link_query = [[
                 (link) @next-segment
+                (anchor_declaration) @next-segment
+                (anchor_definition) @next-segment
              ]],
     heading_query = [[
                  [
