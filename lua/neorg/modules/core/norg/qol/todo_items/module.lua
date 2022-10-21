@@ -247,14 +247,18 @@ module.public = {
             )
         end
 
+        local type = node:type():match("^(.+)%d+$")
+
         -- If the type of the current todo item differs from the one we want to change to then
         -- We do this because we don't want to be unnecessarily modifying a line that doesn't need changing
         if module.public.get_todo_item_type(node) ~= todo_item_type then
             update(node)
 
             for child in node:iter_children() do
-                update(child)
-                module.public.make_all(buf, child, todo_item_type, char)
+                if type == child:type():match("^(.+)%d+$") then
+                    update(child)
+                    module.public.make_all(buf, child, todo_item_type, char)
+                end
             end
         end
     end,
