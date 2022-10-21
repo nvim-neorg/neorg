@@ -238,18 +238,18 @@ module.public = {
             -- CALENDAR text:
             module.private.extmarks.decorational = vim.tbl_deep_extend("force", module.private.extmarks.decorational, {
                 calendar_text = module.private.set_decorational_extmark(ui_info, 0, 0, {
-                    { "CALENDAR", "TSStrong" },
+                    { "CALENDAR", "@text.strong" },
                 }, "center"),
 
                 -- Help text at the bottom left of the screen
                 help_and_custom_input = module.private.set_decorational_extmark(ui_info, height - 1, 0, {
-                    { "?", "TSCharacter" },
+                    { "?", "@character" },
                     { " - " },
-                    { "help", "TSStrong" },
+                    { "help", "@text.strong" },
                     { "    " },
-                    { "i", "TSCharacter" },
+                    { "i", "@character" },
                     { " - " },
-                    { "custom input", "TSStrong" },
+                    { "custom input", "@text.strong" },
                 }),
 
                 -- The current view (bottom right of the screen)
@@ -257,7 +257,7 @@ module.public = {
                     ui_info,
                     height - 1,
                     0,
-                    { { "[", "Whitespace" }, { view, "TSLabel" }, { "]", "Whitespace" } },
+                    { { "[", "Whitespace" }, { view, "@label" }, { "]", "Whitespace" } },
                     "right"
                 ),
             })
@@ -270,7 +270,7 @@ module.public = {
             ui_info,
             2,
             0,
-            { { "< ", "Whitespace" }, { tostring(year), "TSNumber" }, { " >", "Whitespace" } },
+            { { "< ", "Whitespace" }, { tostring(year), "@number" }, { " >", "Whitespace" } },
             "center"
         )
 
