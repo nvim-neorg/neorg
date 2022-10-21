@@ -30,7 +30,7 @@ module.public = {
             return 0
         end
 
-        local initial_indent = module.required["core.integrations.treesitter"].get_node_range(node).column_start
+        local _, initial_indent = node:start()
 
         local indent = 0
 
@@ -44,7 +44,7 @@ module.public = {
             end
         end
 
-        local line_len = vim.fn.getline(vim.v.lnum):len()
+        local line_len = (vim.api.nvim_buf_get_lines(buf, vim.v.lnum - 1, vim.v.lnum, true)[1] or ""):len()
 
         -- Ensure that the cursor is within the `norg` language
         local current_lang = vim.treesitter.get_parser(buf, "norg"):language_for_range({
