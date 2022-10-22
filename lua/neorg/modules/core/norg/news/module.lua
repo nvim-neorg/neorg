@@ -179,7 +179,7 @@ module.public = {
         vim.api.nvim_buf_set_option(buf, "filetype", "norg")
         vim.api.nvim_buf_set_name(buf, "news.norg")
 
-        vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
+        vim.keymap.set("n", "q", vim.cmd.bdelete, { buffer = buf, silent = true })
 
         -- Taken from nvim-lsp-installer at https://github.com/williamboman/nvim-lsp-installer/blob/main/lua/nvim-lsp-installer/ui/display.lua#L143-L157
         -- Big shoutout! I couldn't figure this out myself.

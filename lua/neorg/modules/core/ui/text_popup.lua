@@ -59,10 +59,10 @@ module.public = {
         })
 
         -- Construct some custom mappings for the popup
-        vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":q<CR>", { silent = true, noremap = true })
-        vim.api.nvim_buf_set_keymap(buf, "n", "<Tab>", "<CR>", { silent = true, noremap = true })
-        vim.api.nvim_buf_set_keymap(buf, "i", "<Tab>", "<CR>", { silent = true, noremap = true })
-        vim.api.nvim_buf_set_keymap(buf, "i", "<C-c>", "<Esc>:q<CR>", { silent = true, noremap = true })
+        vim.keymap.set("n", "<Esc>", vim.cmd.quit, { silent = true, buffer = buf })
+        vim.keymap.set("n", "<Tab>", "<CR>", { silent = true, buffer = buf })
+        vim.keymap.set("i", "<Tab>", "<CR>", { silent = true, buffer = buf })
+        vim.keymap.set("i", "<C-c>", "<Esc>:q<CR>", { silent = true, buffer = buf })
 
         -- If the use has specified some input text then show that input text in the buffer
         if input_text then
