@@ -548,7 +548,11 @@ module.public = {
             return
         end
 
-        while descendant:parent() and (descendant:parent():start()) == line do
+        while
+            descendant:parent()
+            and (descendant:parent():start()) == line
+            and descendant:parent():symbol() ~= document_root:symbol()
+        do
             descendant = descendant:parent()
         end
 
