@@ -101,8 +101,9 @@ module.private = {
         )
     end,
 
-    render_weekday_banner = function(ui_info, offset)
+    render_weekday_banner = function(ui_info, offset, distance)
         offset = offset or 0
+        distance = distance or 4
 
         -- Render the days of the week
         -- To effectively do this, we grab all the weekdays from a constant time.
@@ -124,15 +125,20 @@ module.private = {
                     :sub(1, 2),
                 "@text.title",
             })
-            table.insert(weekdays, { "  " })
-            weekdays_string_length = weekdays_string_length + 4
+
+            if i ~= 7 then
+                table.insert(weekdays, { "  " })
+            end
+
+            weekdays_string_length = weekdays_string_length + (i ~= 7 and 4 or 2)
         end
 
         local weekday_banner_id = module.private.set_decorational_extmark(
             ui_info,
             6,
-            (weekdays_string_length * offset) + (offset < 0 and -2 or (offset > 0 and 2 or 0)),
-            weekdays_string_length - 2,
+            (weekdays_string_length * offset)
+                + (offset < 0 and -distance or (offset > 0 and distance or 0)) * math.abs(offset),
+            weekdays_string_length,
             weekdays,
             "center"
         )
@@ -228,6 +234,8 @@ module.private = {
 
 module.public = {
     create_calendar = function(buffer, window, options)
+        options.distance = options.distance or 4
+
         -- Variables
         local width = vim.api.nvim_win_get_width(window)
         local height = vim.api.nvim_win_get_height(window)
@@ -321,15 +329,15 @@ module.public = {
             day = day,
         }
 
-        local weekday_banner = module.private.render_weekday_banner(ui_info, 0)
+        local weekday_banner = module.private.render_weekday_banner(ui_info, 0, options.distance)
         module.private.render_month_banner(ui_info, current_date, weekday_banner)
         module.private.render_month(ui_info, current_date, current_date, weekday_banner)
 
         do
             local blockid = 1
 
-            while math.floor(width / 28) > blockid * 2 do
-                weekday_banner = module.private.render_weekday_banner(ui_info, blockid)
+            while math.floor(width / (26 + options.distance)) > blockid * 2 do
+                weekday_banner = module.private.render_weekday_banner(ui_info, blockid, options.distance)
 
                 local positive_target_date = reformat_time({
                     year = year,
@@ -348,7 +356,7 @@ module.public = {
                     day = day,
                 })
 
-                module.private.render_month_banner(ui_info, negative_target_date, weekday_banner)
+                module.private.render_month_banner(ui_info, negative_target_date, weekday_banner, options.distance)
                 module.private.render_month(ui_info, negative_target_date, current_date, weekday_banner)
 
                 blockid = blockid + 1
