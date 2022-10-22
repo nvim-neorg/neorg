@@ -101,36 +101,44 @@ module.public = {
 module.on_event = function(event)
     local row = event.cursor_position[1] - 1
 
-    if event.split_type[1] == "core.keybinds" then
-        if event.split_type[2] == "core.promo.promote" then
-            module.public.promote_or_demote(event.buffer, "promote", row)
-        elseif event.split_type[2] == "core.promo.demote" then
-            module.public.promote_or_demote(event.buffer, "demote", row)
-        elseif event.split_type[2] == "core.promo.promote_range" then
-            local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
-            local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
-            for i = 0, end_pos[1] - start_pos[1] do
-                module.public.promote_or_demote(event.buffer, "promote", start_pos[1] + i)
-            end
-            local concealer_event = neorg.events.create(
-                module,
-                "core.norg.concealer.events.update_region",
-                { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
-            )
-            neorg.events.broadcast_event(concealer_event, function() end)
-        elseif event.split_type[2] == "core.promo.demote_range" then
-            local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
-            local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
-            for i = 0, end_pos[1] - start_pos[1] do
-                module.public.promote_or_demote(event.buffer, "demote", start_pos[1] + i)
-            end
-            local concealer_event = neorg.events.create(
-                module,
-                "core.norg.concealer.events.update_region",
-                { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
-            )
-            neorg.events.broadcast_event(concealer_event, function() end)
+    if event.split_type[1] ~= "core.keybinds" then
+        return
+    end
+
+    if event.split_type[2] == "core.promo.promote" then
+        module.public.promote_or_demote(event.buffer, "promote", row)
+    elseif event.split_type[2] == "core.promo.demote" then
+        module.public.promote_or_demote(event.buffer, "demote", row)
+    elseif event.split_type[2] == "core.promo.promote_range" then
+        local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
+        local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
+
+        for i = 0, end_pos[1] - start_pos[1] do
+            module.public.promote_or_demote(event.buffer, "promote", start_pos[1] + i)
         end
+
+        neorg.events.broadcast_event(
+            neorg.events.create(
+                module,
+                "core.norg.concealer.events.update_region",
+                { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
+            )
+        )
+    elseif event.split_type[2] == "core.promo.demote_range" then
+        local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
+        local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
+
+        for i = 0, end_pos[1] - start_pos[1] do
+            module.public.promote_or_demote(event.buffer, "demote", start_pos[1] + i)
+        end
+
+        neorg.events.broadcast_event(
+            neorg.events.create(
+                module,
+                "core.norg.concealer.events.update_region",
+                { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
+            )
+        )
     end
 end
 
