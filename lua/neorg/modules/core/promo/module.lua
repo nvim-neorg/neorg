@@ -46,23 +46,6 @@ module.private = {
             prefix = ">",
         },
     },
-    get_node_on_line = function(row, event)
-        local parsers = require("nvim-treesitter.parsers")
-        local range = { row - 1, -1 }
-
-        local root_lang_tree = parsers.get_parser(event.buffer)
-        if not root_lang_tree then
-            return
-        end
-
-        local root = require("nvim-treesitter.ts_utils").get_root_for_position(range[1], range[2], root_lang_tree)
-
-        if not root then
-            return
-        end
-
-        return root:named_descendant_for_range(range[1], range[2], range[1], range[2])
-    end,
 }
 
 module.public = {
@@ -77,12 +60,13 @@ module.public = {
             node = node:parent()
         end
     end,
+
     promote_or_demote = function(event, mode, row)
         local cursor = not row
         local start_row
         local cursor_pos = vim.api.nvim_win_get_cursor(event.window)
         row = row or cursor_pos[1]
-        local start_node = module.private.get_node_on_line(row, event)
+        local start_node = module.required["core.integrations.treesitter"].get_first_node_on_line(event.buffer, row)
         local node, prefix, level = module.public.find_node(start_node)
         if node then
             start_row, _, _, _ = node:range()
