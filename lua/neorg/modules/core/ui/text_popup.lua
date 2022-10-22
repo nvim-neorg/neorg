@@ -50,11 +50,13 @@ module.public = {
         end)
 
         -- Make sure to clean up the window if the user leaves the popup at any time
-        vim.cmd(
-            (
-                "autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once lua require('neorg.modules.core.ui.module').public.delete_window(%s)"
-            ):format(buf, buf)
-        )
+        vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave", "BufDelete" }, {
+            buffer = buf,
+            once = true,
+            callback = function()
+                module.public.delete_window(buf)
+            end,
+        })
 
         -- Construct some custom mappings for the popup
         vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":q<CR>", { silent = true, noremap = true })

@@ -198,9 +198,12 @@ module.public = {
         window_opts.col = math.floor((win_width - window_opts.width) / 2)
         ---
 
-        vim.cmd(
-            string.format("autocmd WinClosed <buffer=%s> lua vim.api.nvim_buf_delete(%s, { force = true })", buf, buf)
-        )
+        vim.api.nvim_create_autocmd("WinClosed", {
+            buffer = buf,
+            callback = function()
+                vim.api.nvim_buf_delete(buf, { force = true })
+            end,
+        })
 
         return vim.api.nvim_open_win(buf, true, window_opts)
     end,
