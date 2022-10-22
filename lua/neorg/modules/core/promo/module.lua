@@ -57,7 +57,7 @@ module.public = {
         end
     end,
 
-    promote_or_demote = function(buffer, mode, row)
+    promote_or_demote = function(buffer, mode, row, reindent_children, affect_children)
         local node = module.required["core.integrations.treesitter"].get_first_node_on_line(buffer, row)
 
         local prefix = module.public.get_promotable_node_prefix(node)
@@ -92,8 +92,56 @@ module.public = {
             )
         end
 
+        local start_region, end_region = row, row + 1
+
+        -- After the promotion/demotion reindent all children
+        if reindent_children then
+            local indent_module = neorg.modules.get_module("core.norg.esupports.indent")
+
+            if not indent_module then
+                goto finish
+            end
+
+            if not affect_children then
+                node = module.required["core.integrations.treesitter"].get_first_node_on_line(buffer, row)
+            end
+
+            local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+            start_region = node_range.row_start
+            end_region = node_range.row_end
+
+            for i = node_range.row_start, node_range.row_end - 1 do
+                local node_on_line = module.required["core.integrations.treesitter"].get_first_node_on_line(buffer, i)
+
+                if not module.public.get_promotable_node_prefix(node_on_line) then
+                    local whitespace = (vim.api.nvim_buf_get_lines(buffer, i, i + 1, true)[1] or ""):match("^%s*"):len()
+                    vim.api.nvim_buf_set_text(
+                        buffer,
+                        i,
+                        0,
+                        i,
+                        whitespace,
+                        { string.rep(" ", indent_module.indentexpr(buffer, i)) }
+                    )
+                elseif affect_children and i ~= node_range.row_start then
+                    module.public.promote_or_demote(buffer, mode, i, reindent_children, affect_children)
+
+                    -- luacheck: push ignore
+                    i = module.required["core.integrations.treesitter"].get_node_range(node_on_line).row_end
+                    -- luacheck: pop
+                end
+            end
+
+            ::finish::
+        end
+
         neorg.events.broadcast_event(
-            neorg.events.create(module, "core.norg.concealer.events.update_region", { start = row, ["end"] = row + 1 })
+            neorg.events.create(
+                module,
+                "core.norg.concealer.events.update_region",
+                { start = start_region, ["end"] = end_region }
+            )
         )
     end,
 }
@@ -106,9 +154,9 @@ module.on_event = function(event)
     end
 
     if event.split_type[2] == "core.promo.promote" then
-        module.public.promote_or_demote(event.buffer, "promote", row)
+        module.public.promote_or_demote(event.buffer, "promote", row, true, false)
     elseif event.split_type[2] == "core.promo.demote" then
-        module.public.promote_or_demote(event.buffer, "demote", row)
+        module.public.promote_or_demote(event.buffer, "demote", row, true, false)
     elseif event.split_type[2] == "core.promo.promote_range" then
         local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
         local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
