@@ -1,5 +1,9 @@
 local module = neorg.modules.extend("core.ui.calendar", "core.ui")
 
+local function reformat_time(date)
+    return os.date("*t", os.time(date))
+end
+
 module.private = {
     extmarks = {
         decorational = {
@@ -138,7 +142,7 @@ module.private = {
         return weekday_banner_id
     end,
 
-    render_month = function(ui_info, date, weekday_banner_extmark_id)
+    render_month = function(ui_info, target_date, current_date, weekday_banner_extmark_id)
         --> Month rendering routine
         -- We render the first month at the very center of the screen. Each
         -- month takes up a static amount of characters.
@@ -149,7 +153,7 @@ module.private = {
             -- [day of month] = <day of week>,
         }
 
-        local day, month, year = date.day, date.month, date.year
+        local day, month, year = target_date.day, target_date.month, target_date.year
 
         local days_in_current_month = ({
             31,
@@ -199,8 +203,13 @@ module.private = {
                     virt_text = {
                         {
                             (day_of_month < 10 and "0" or "") .. tostring(day_of_month),
-                            -- FIXME(vhyrro): This displays on every month of the year
-                            (tostring(day_of_month) == day and "@todo" or nil),
+                            (
+                                current_date.year == target_date.year
+                                    and current_date.month == target_date.month
+                                    and tostring(day_of_month) == day
+                                    and "@todo"
+                                or nil
+                            ),
                         },
                     },
                     virt_text_pos = "overlay",
@@ -303,19 +312,48 @@ module.public = {
             "center"
         )
 
+        -- TODO: implement monthly/yearly/daily/weekly logic
+
+        -- Render the first weekday banner in the middle
+        local current_date = {
+            year = year,
+            month = month,
+            day = day,
+        }
+
         local weekday_banner = module.private.render_weekday_banner(ui_info, 0)
+        module.private.render_month_banner(ui_info, current_date, weekday_banner)
+        module.private.render_month(ui_info, current_date, current_date, weekday_banner)
 
-        module.private.render_month_banner(ui_info, {
-            year = year,
-            month = month,
-            day = day,
-        }, weekday_banner)
+        do
+            local blockid = 1
 
-        module.private.render_month(ui_info, {
-            year = year,
-            month = month,
-            day = day,
-        }, weekday_banner)
+            while math.floor(width / 28) > blockid * 2 do
+                weekday_banner = module.private.render_weekday_banner(ui_info, blockid)
+
+                local positive_target_date = reformat_time({
+                    year = year,
+                    month = month + blockid,
+                    day = day,
+                })
+
+                module.private.render_month_banner(ui_info, positive_target_date, weekday_banner)
+                module.private.render_month(ui_info, positive_target_date, current_date, weekday_banner)
+
+                weekday_banner = module.private.render_weekday_banner(ui_info, blockid * -1)
+
+                local negative_target_date = reformat_time({
+                    year = year,
+                    month = month - blockid,
+                    day = day,
+                })
+
+                module.private.render_month_banner(ui_info, negative_target_date, weekday_banner)
+                module.private.render_month(ui_info, negative_target_date, current_date, weekday_banner)
+
+                blockid = blockid + 1
+            end
+        end
     end,
 
     select_date = function(options)
