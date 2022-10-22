@@ -111,7 +111,11 @@ module.public = {
             start_region = node_range.row_start
             end_region = node_range.row_end
 
-            for i = node_range.row_start, node_range.row_end - 1 do
+            if node_range.column_end == 0 then
+                node_range.row_end = node_range.row_end - 1
+            end
+
+            for i = node_range.row_start, node_range.row_end do
                 local node_on_line = module.required["core.integrations.treesitter"].get_first_node_on_line(buffer, i)
 
                 if not module.public.get_promotable_node_prefix(node_on_line) then
