@@ -24,6 +24,7 @@ return neorg.modules.create_meta(
     "core.norg.news",
     "core.norg.qol.toc",
     "core.norg.qol.todo_items",
+    "core.promo",
     "core.storage",
     "core.syntax",
     "core.tangle"
