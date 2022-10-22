@@ -24,7 +24,7 @@ module.private = {
         decorational = vim.api.nvim_create_namespace("neorg/calendar/decorational"),
     },
 
-    set_decorational_extmark = function(ui_info, row, col, virt_text, alignment)
+    set_decorational_extmark = function(ui_info, row, col, length, virt_text, alignment)
         if alignment then
             local text_length = 0
 
@@ -42,6 +42,7 @@ module.private = {
         return vim.api.nvim_buf_set_extmark(ui_info.buffer, module.private.namespaces.decorational, row, col, {
             virt_text = virt_text,
             virt_text_pos = "overlay",
+            end_col = col + length,
         })
     end,
 
@@ -66,7 +67,7 @@ module.private = {
         })
     end,
 
-    render_month_banner = function(ui_info, date)
+    render_month_banner = function(ui_info, date, weekday_banner_extmark_id)
         local month_name = os.date(
             "%B",
             os.time({
@@ -76,8 +77,28 @@ module.private = {
             })
         )
 
-        module.private.extmarks.decorational.month_headings[month_name] =
-            module.private.set_decorational_extmark(ui_info, 4, 0, { { month_name, "@text.underline" } }, "center")
+        local weekday_banner_id = vim.api.nvim_buf_get_extmark_by_id(
+            ui_info.buffer,
+            module.private.namespaces.decorational,
+            weekday_banner_extmark_id,
+            {
+                details = true,
+            }
+        )
+
+        module.private.extmarks.decorational.month_headings[month_name] = module.private.set_decorational_extmark(
+            ui_info,
+            4,
+            weekday_banner_id[2]
+                + math.ceil((weekday_banner_id[3].end_col - weekday_banner_id[2]) / 2)
+                - math.floor(month_name:len() / 2),
+            month_name:len(),
+            { { month_name, "@text.underline" } }
+        )
+    end,
+
+    render_weekday_banner = function(ui_info, offset)
+        offset = offset or 0
 
         -- Render the days of the week
         -- To effectively do this, we grab all the weekdays from a constant time.
@@ -103,17 +124,21 @@ module.private = {
             weekdays_string_length = weekdays_string_length + 4
         end
 
-        local month_banner_id = module.private.set_decorational_extmark(ui_info, 6, 0, weekdays, "center")
-
-        table.insert(
-            module.private.extmarks.decorational.weekday_displays,
-            month_banner_id
+        local weekday_banner_id = module.private.set_decorational_extmark(
+            ui_info,
+            6,
+            (weekdays_string_length * offset) + (offset < 0 and -2 or (offset > 0 and 2 or 0)),
+            weekdays_string_length - 2,
+            weekdays,
+            "center"
         )
 
-        return month_banner_id
+        table.insert(module.private.extmarks.decorational.weekday_displays, weekday_banner_id)
+
+        return weekday_banner_id
     end,
 
-    render_month = function(ui_info, date, month_banner_extmark_id)
+    render_month = function(ui_info, date, weekday_banner_extmark_id)
         --> Month rendering routine
         -- We render the first month at the very center of the screen. Each
         -- month takes up a static amount of characters.
@@ -139,7 +164,9 @@ module.private = {
             31,
             30,
             31,
-        })[tonumber(month)]
+        })[tonumber(
+            month
+        )]
 
         for i = 1, days_in_current_month do
             days_of_month[i] = tonumber(os.date(
@@ -155,7 +182,7 @@ module.private = {
         local beginning_of_weekday_extmark = vim.api.nvim_buf_get_extmark_by_id(
             ui_info.buffer,
             module.private.namespaces.decorational,
-            month_banner_extmark_id,
+            weekday_banner_extmark_id,
             {}
         )
 
@@ -172,6 +199,7 @@ module.private = {
                     virt_text = {
                         {
                             (day_of_month < 10 and "0" or "") .. tostring(day_of_month),
+                            -- FIXME(vhyrro): This displays on every month of the year
                             (tostring(day_of_month) == day and "@todo" or nil),
                         },
                     },
@@ -237,12 +265,12 @@ module.public = {
             --> Decorational section
             -- CALENDAR text:
             module.private.extmarks.decorational = vim.tbl_deep_extend("force", module.private.extmarks.decorational, {
-                calendar_text = module.private.set_decorational_extmark(ui_info, 0, 0, {
+                calendar_text = module.private.set_decorational_extmark(ui_info, 0, 0, 0, {
                     { "CALENDAR", "@text.strong" },
                 }, "center"),
 
                 -- Help text at the bottom left of the screen
-                help_and_custom_input = module.private.set_decorational_extmark(ui_info, height - 1, 0, {
+                help_and_custom_input = module.private.set_decorational_extmark(ui_info, height - 1, 0, 0, {
                     { "?", "@character" },
                     { " - " },
                     { "help", "@text.strong" },
@@ -256,6 +284,7 @@ module.public = {
                 current_view = module.private.set_decorational_extmark(
                     ui_info,
                     height - 1,
+                    0,
                     0,
                     { { "[", "Whitespace" }, { view, "@label" }, { "]", "Whitespace" } },
                     "right"
@@ -274,17 +303,19 @@ module.public = {
             "center"
         )
 
-        local month_banner = module.private.render_month_banner(ui_info, {
+        local weekday_banner = module.private.render_weekday_banner(ui_info, 0)
+
+        module.private.render_month_banner(ui_info, {
             year = year,
             month = month,
             day = day,
-        })
+        }, weekday_banner)
 
         module.private.render_month(ui_info, {
             year = year,
             month = month,
             day = day,
-        }, month_banner)
+        }, weekday_banner)
     end,
 
     select_date = function(options)
