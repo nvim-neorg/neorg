@@ -45,6 +45,10 @@ module.private = {
             pattern = "^quote(%d)$",
             prefix = ">",
         },
+        todo_item = {
+            pattern = "^todo_item(%d)$",
+            prefix = "-",
+        },
     },
 }
 
