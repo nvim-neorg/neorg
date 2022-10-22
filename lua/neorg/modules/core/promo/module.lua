@@ -154,9 +154,9 @@ module.on_event = function(event)
     end
 
     if event.split_type[2] == "core.promo.promote" then
-        module.public.promote_or_demote(event.buffer, "promote", row, true, false)
+        module.public.promote_or_demote(event.buffer, "promote", row, true, event.content[1] == "nested")
     elseif event.split_type[2] == "core.promo.demote" then
-        module.public.promote_or_demote(event.buffer, "demote", row, true, false)
+        module.public.promote_or_demote(event.buffer, "demote", row, true, event.content[1] == "nested")
     elseif event.split_type[2] == "core.promo.promote_range" then
         local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
         local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
