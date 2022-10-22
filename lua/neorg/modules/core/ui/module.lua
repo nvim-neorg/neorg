@@ -152,11 +152,13 @@ module.public = {
         module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
 
         -- Make sure to clean up the window if the user leaves the popup at any time
-        vim.cmd(
-            (
-                "autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once lua require('neorg.modules.core.ui.module').public.delete_window(%s)"
-            ):format(buf, buf)
-        )
+        vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave", "BufDelete" }, {
+            buffer = buf,
+            once = true,
+            callback = function()
+                module.public.delete_window(buf)
+            end,
+        })
 
         return buf, vim.api.nvim_get_current_win()
     end,
