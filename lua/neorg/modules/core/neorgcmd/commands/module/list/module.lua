@@ -45,7 +45,7 @@ module.on_event = function(event)
 
         local buf = module.required["core.ui"].create_norg_buffer("module_list", "nosplit")
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-        vim.api.nvim_buf_set_keymap(buf, "n", "q", "<cmd>q<CR>", { noremap = true, silent = true, nowait = true })
+        vim.keymap.set("n", "q", vim.cmd.quit, { buffer = buf, silent = true, nowait = true })
 
         local width = vim.api.nvim_win_get_width(0)
         local height = vim.api.nvim_win_get_height(0)

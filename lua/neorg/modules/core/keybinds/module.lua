@@ -164,9 +164,9 @@ module.public = {
             --- Maps a key to a specific Neorg mode
             ---@param neorg_mode string #The Neorg mode to bind to
             ---@param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
-            ---@param key string #The lhs value from `:h nvim_buf_set_keymap`
-            ---@param command string|function #The rhs value from `:h nvim_buf_set_keymap`
-            ---@param opts table #The table value from `:h nvim_buf_set_keymap`
+            ---@param key string #The lhs value from `:h vim.keymap.set`
+            ---@param command string|function #The rhs value from `:h vim.keymap.set`
+            ---@param opts table #The table value from `:h vim.keymap.set`
             map = function(neorg_mode, mode, key, command, opts)
                 if neorg_mode ~= "all" and current_mode ~= neorg_mode then
                     return
@@ -187,9 +187,9 @@ module.public = {
             --  for <cmd>Neorg keybind `neorg_mode` `expr`<CR>
             ---@param neorg_mode string #The Neorg mode to bind to
             ---@param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
-            ---@param key string #The lhs value from `:h nvim_buf_set_keymap`
+            ---@param key string #The lhs value from `:h vim.keymap.set`
             ---@param expr string #The Neorg event to bind to (e.g. `core.norg.dirman.new.note`)
-            ---@param opts table #The table value from `:h nvim_buf_set_keymap`
+            ---@param opts table #The table value from `:h vim.keymap.set`
             map_event = function(neorg_mode, mode, key, expr, opts)
                 payload.map(neorg_mode, mode, key, "<cmd>Neorg keybind " .. neorg_mode .. " " .. expr .. "<CR>", opts)
             end,
@@ -264,7 +264,7 @@ module.public = {
             --- An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
             ---@param mode string #The neorg mode to bind the keys on
             ---@param keys #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds
-            ---@param opts #table) - the same parameters that should be passed into vim.api.nvim_set_keymap('s opts parameter
+            ---@param opts #table) - the same parameters that should be passed into vim.keymap.set('s opts parameter
             map_to_mode = function(mode, keys, opts)
                 -- If the keys table is empty then don't bother doing any parsing
                 if vim.tbl_isempty(keys) then
@@ -287,7 +287,7 @@ module.public = {
             --- An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
             ---@param mode string #The neorg mode to bind the keys on
             ---@param keys #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds
-            ---@param opts #table) - the same parameters that should be passed into vim.api.nvim_set_keymap('s opts parameter
+            ---@param opts #table) - the same parameters that should be passed into vim.keymap.set('s opts parameter
             map_event_to_mode = function(mode, keys, opts)
                 -- If the keys table is empty then don't bother doing any parsing
                 if vim.tbl_isempty(keys) then
@@ -361,19 +361,10 @@ module.public = {
                                     if action then
                                         action(buf, mode, key, data.command, data.opts or {})
                                     else
-                                        if type(data.command) == "string" then
-                                            vim.api.nvim_buf_set_keymap(buf, mode, key, data.command, data.opts or {})
-                                        elseif neorg.utils.is_minimum_version(0, 7, 0) then
-                                            vim.api.nvim_buf_set_keymap(
-                                                buf,
-                                                mode,
-                                                key,
-                                                "",
-                                                vim.tbl_extend("force", data.opts or {}, {
-                                                    callback = data.command,
-                                                })
-                                            )
-                                        end
+                                        local opts = data.opts or {}
+                                        opts.buffer = buf
+
+                                        vim.keymap.set(mode, key, data.command, opts)
                                     end
                                 end)
 

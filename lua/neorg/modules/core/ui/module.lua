@@ -269,8 +269,8 @@ module.public = {
             end
         end
 
-        vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
-        vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
+        vim.keymap.set("n", "<Esc>", vim.cmd.bdelete, { buffer = buf, silent = true })
+        vim.keymap.set("n", "q", vim.cmb.bdelete, { buffer = buf, silent = true })
 
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
 
@@ -332,8 +332,8 @@ module.public = {
         vim.api.nvim_win_set_buf(0, buf)
 
         if opts.keybinds == true then
-            vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
-            vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
+            vim.keymap.set("n", "<Esc>", vim.cmd.bdelete, { buffer = buf, silent = true })
+            vim.keymap.set("n", "q", vim.cmd.bdelete, { buffer = buf, silent = true })
         end
 
         module.public.apply_buffer_options(buf, config or {})
