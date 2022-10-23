@@ -1758,7 +1758,7 @@ module.config.public = {
                     result["heading" .. i] = {
                         text = {
                             "(",
-                            { "<done>", "TSField" },
+                            { "<done>", "@field" },
                             " of ",
                             { "<total>", "@neorg.todo_items.done.1" },
                             ") [<percentage>% complete]",

@@ -103,10 +103,10 @@ module.public = {
             end)
             :apply({
                 warning = function(self, text)
-                    return self:text("WARNING: " .. text, "TSWarning")
+                    return self:text("WARNING: " .. text, "@text.warning")
                 end,
                 desc = function(self, text)
-                    return self:text(text, "TSComment")
+                    return self:text(text, "@comment")
                 end,
             })
 

@@ -365,7 +365,7 @@ module.examples = {
             :apply({
                 -- A title will simply be text with a custom highlight
                 title = function(self, text)
-                    return self:text(text, "TSTitle")
+                    return self:text(text, "@text.title")
                 end,
             })
             :listener("destroy", { "<Esc>" }, function(self)
@@ -378,7 +378,7 @@ module.examples = {
         selection
             :options({
                 text = {
-                    highlight = "TSUnderline",
+                    highlight = "@text.underline",
                 },
             })
             :title("Hello World!")

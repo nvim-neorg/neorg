@@ -261,7 +261,7 @@ module.public = {
             ---@param text string #The text to display
             ---@return core.ui.selection
             title = function(self, text)
-                return self:text(text, "TSTitle")
+                return self:text(text, "@text.title")
             end,
 
             --- Simply enters a blank line

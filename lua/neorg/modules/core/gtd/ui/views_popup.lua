@@ -98,7 +98,7 @@ module.private = {
             end
 
             for _, file in pairs(files) do
-                selection:text("- " .. file, "TSComment")
+                selection:text("- " .. file, "@comment")
             end
             return selection
         end
