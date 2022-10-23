@@ -342,11 +342,6 @@
 (
     [
         (link
-            (link_location
-                type: (link_target_footnote)
-            )
-        ) @conceal
-        (link
             (_
                 [
                     "_begin"
