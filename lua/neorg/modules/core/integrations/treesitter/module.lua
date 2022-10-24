@@ -379,7 +379,13 @@ module.public = {
     --- Given a node this function will break down the AST elements and return the corresponding text for certain nodes
     -- @Param  tag_node (userdata/treesitter node) - a node of type tag/carryover_tag
     get_tag_info = function(tag_node)
-        if not tag_node or not vim.tbl_contains({ "ranged_tag", "ranged_verbatim_tag", "weak_attribute", "strong_attribute" }, tag_node:type()) then
+        if
+            not tag_node
+            or not vim.tbl_contains(
+                { "ranged_tag", "ranged_verbatim_tag", "weak_attribute", "strong_attribute" },
+                tag_node:type()
+            )
+        then
             return nil
         end
 
@@ -392,7 +398,7 @@ module.public = {
         -- Iterate over all children of the tag node
         for child, _ in tag_node:iter_children() do
             -- If we are dealing with a weak/strong attribute set then parse that set
-            if vim.endswith(child:type(), "_attribute_set")then
+            if vim.endswith(child:type(), "_attribute_set") then
                 for subchild in child:iter_children() do
                     if vim.endswith(subchild:type(), "_attribute") then
                         local meta = module.public.get_tag_info(subchild)

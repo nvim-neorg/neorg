@@ -684,7 +684,9 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
 
                 if not vim.tbl_isempty(api) then
                     -- sort api in order to not shuffle each time we want to commit
-                    table.sort(api --[[@as table]])
+                    table.sort(
+                        api --[[@as table]]
+                    )
                     for function_name, item in pairs(api) do
                         if type(item) == "function" then
                             table.insert(results, "- `" .. function_name .. "`")
@@ -976,7 +978,10 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 table.insert(output, item)
             end
         elseif type(item) == "table" then
-            local query = docgen.get_module_queries(buf, --[[@as number]] item.query)
+            local query = docgen.get_module_queries(
+                buf, --[[@as number]]
+                item.query
+            )
 
             if query then
                 local ret = item.callback(query)
