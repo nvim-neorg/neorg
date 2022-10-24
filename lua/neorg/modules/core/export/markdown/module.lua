@@ -58,7 +58,11 @@ local function ordered_list_prefix(level)
 end
 
 local function todo_item_extended(replace_text)
-    return function(_, _, state)
+    return function(_, node, state)
+        if not node:parent():type():match("_list%d$") then
+            return
+        end
+
         return {
             output = module.config.public.extensions["todo-items-extended"] and replace_text or nil,
             state = {
@@ -72,7 +76,7 @@ end
 
 local function todo_item_recollector()
     return function(output)
-        return output[2] ~= "[_] " and output
+        return output[2] ~= "(_) " and output
     end
 end
 
@@ -382,7 +386,7 @@ module.public = {
                 }
             end,
 
-            ["ranged_tag_content"] = function(text, node, state)
+            ["ranged_verbatim_tag_content"] = function(text, node, state)
                 if state.is_meta then
                     state.is_meta = false
                     return {
@@ -406,7 +410,7 @@ module.public = {
                 return state.tag_close and (table.concat(split_text, "\n") .. "\n")
             end,
 
-            ["ranged_tag_end"] = function(_, _, state)
+            ["ranged_verbatim_tag_end"] = function(_, _, state)
                 local tag_close = state.tag_close
                 state.tag_close = nil
                 return tag_close
@@ -419,7 +423,11 @@ module.public = {
             ["quote5_prefix"] = true,
             ["quote6_prefix"] = true,
 
-            ["todo_item_done"] = function(_, _, state)
+            ["todo_item_done"] = function(_, node, state)
+                if not node:parent():type():match("_list%d$") then
+                    return
+                end
+
                 return {
                     output = module.config.public.extensions["todo-items-basic"] and "[x] ",
                     state = {
@@ -428,7 +436,11 @@ module.public = {
                 }
             end,
 
-            ["todo_item_undone"] = function(_, _, state)
+            ["todo_item_undone"] = function(_, node, state)
+                if not node:parent():type():match("_list%d$") then
+                    return
+                end
+
                 return {
                     output = module.config.public.extensions["todo-items-basic"] and "[ ] ",
                     state = {
@@ -437,7 +449,11 @@ module.public = {
                 }
             end,
 
-            ["todo_item_pending"] = function(_, _, state)
+            ["todo_item_pending"] = function(_, node, state)
+                if not node:parent():type():match("_list%d$") then
+                    return
+                end
+
                 return {
                     output = module.config.public.extensions["todo-items-pending"] and "[*] ",
                     state = {
@@ -497,7 +513,8 @@ module.public = {
                 end
             end,
 
-            ["carryover_tag"] = "",
+            ["strong_attribute"] = "",
+            ["weak_attribute"] = "",
 
             ["key"] = true,
 
@@ -550,7 +567,7 @@ module.public = {
                 }
             end,
 
-            ["ranged_tag"] = function(output)
+            ["ranged_verbatim_tag"] = function(output)
                 if #output == 2 or (output[2] and output[2]:sub(-1, -1) == "\n") then
                     table.insert(output, 2, "\n")
                 else
@@ -560,12 +577,12 @@ module.public = {
                 return output
             end,
 
-            ["todo_item1"] = todo_item_recollector(),
-            ["todo_item2"] = todo_item_recollector(),
-            ["todo_item3"] = todo_item_recollector(),
-            ["todo_item4"] = todo_item_recollector(),
-            ["todo_item5"] = todo_item_recollector(),
-            ["todo_item6"] = todo_item_recollector(),
+            ["unordered_list1"] = todo_item_recollector(),
+            ["unordered_list2"] = todo_item_recollector(),
+            ["unordered_list3"] = todo_item_recollector(),
+            ["unordered_list4"] = todo_item_recollector(),
+            ["unordered_list5"] = todo_item_recollector(),
+            ["unordered_list6"] = todo_item_recollector(),
 
             ["single_definition"] = function(output)
                 return {
@@ -583,6 +600,7 @@ module.public = {
                 return output
             end,
 
+            -- TODO
             ["insertion"] = function(output)
                 if output[1] == "![" then
                     table.insert(output, 1, "\n")
