@@ -328,6 +328,9 @@
 (superscript (subscript) @neorg.error (#set! priority 300))
 (subscript (superscript) @neorg.error (#set! priority 300))
 
+; Comments
+(inline_comment) @comment
+
 ; Conceals
 (
     [
