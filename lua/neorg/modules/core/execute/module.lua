@@ -7,6 +7,9 @@ local module = neorg.modules.create("core.execute")
 local ts = require("nvim-treesitter.ts_utils")
 
 module.setup = function()
+    if vim.fn.isdirectory(module.public.tmpdir) == 0 then
+        vim.fn.mkdir(module.public.tmpdir, "p")
+    end
     return { success = true, requires = { "core.neorgcmd", "core.integrations.treesitter" } }
 end
 
@@ -24,9 +27,11 @@ end
 
 module.config.public = {
     lang_cmds = {
-        python = 'python3',
-        lua = 'lua',
-        javascript = 'node',
+        python = {cmd='python3 ${0}', type = 'interpreted'},
+        lua = {cmd='lua ${0}', type='interpreted'},
+        javascript = {cmd='node ${0}', type='interpreted'},
+        bash = {cmd='bash ${0}', type='interpreted'},
+        php = {cmd='php ${0}', type='interpreted'}
     },
 }
 module.config.private = {}
@@ -40,14 +45,9 @@ module.private = {
     temp_filename = '',
 
 
-    create_dir_if_doesnt_exist = function()
-        if vim.fn.isdirectory(module.public.tmpdir) == 0 then
-            vim.fn.mkdir(module.public.tmpdir, "p")
-        end
-    end,
-
     virtual = {
         init = function()
+            module.public.output = {}
             table.insert(module.public.output, {{"", 'Keyword'}})
             table.insert(module.public.output, {{"Result:", 'Keyword'}})
 
@@ -59,15 +59,15 @@ module.private = {
                 { virt_lines = module.public.output }
             )
 
-            vim.api.nvim_create_autocmd('CursorMoved', {
-                once = true,
-                callback = function()
-                    vim.api.nvim_buf_del_extmark(module.private.buf, module.private.ns, id)
-                    module.private.interrupted = true
-                    module.public.output = {}
-                    vim.fn.delete(module.private.temp_filename)
-                end
-            })
+            -- vim.api.nvim_create_autocmd('CursorMoved', {
+                -- once = true,
+                -- callback = function()
+                    -- vim.api.nvim_buf_del_extmark(module.private.buf, module.private.ns, id)
+                    -- module.private.interrupted = true
+                    -- -- module.public.output = {}
+                    -- vim.fn.delete(module.private.temp_filename)
+                -- end
+            -- })
             return id
         end,
 
@@ -122,7 +122,7 @@ module.private = {
         end
 
         module.private.jobid = vim.fn.jobstart(command, {
-            stdout_buffered = true,
+            stdout_buffered = false,
 
             -- TODO: check exit code conditions and colors
             on_stdout = function(_, data)
@@ -162,8 +162,11 @@ module.private = {
                     end
                 end
 
-            end
+            end,
 
+            on_exit = function()
+                vim.fn.delete(module.private.temp_filename)
+            end
         })
     end
 }
@@ -188,7 +191,6 @@ module.public = {
             module.private.code_block = code_block
             local ft = code_block.parameters[1]
 
-            module.private.create_dir_if_doesnt_exist()
             module.private.temp_filename = module.public.tmpdir
                 .. code_block.start.row .. "_"
                 .. code_block['end'].row
@@ -201,10 +203,10 @@ module.public = {
 
             local command = module.config.public.lang_cmds[ft]
             if not command then
-                vim.pretty_print("Language not supported currently!")
+                vim.notify("Language not supported currently!")
                 return
             end
-            command = {command, module.private.temp_filename}
+            command = command.cmd:gsub("${0}", module.private.temp_filename)
 
             module.private.spawn(command)
         end
