@@ -2,6 +2,7 @@
 -- TODO: better colors
 -- TODO: avoid code duplication.
 require("neorg.modules.base")
+local spinner = require("neorg.modules.core.execute.spinner")
 
 local module = neorg.modules.create("core.execute")
 local ts = require("nvim-treesitter.ts_utils")
@@ -67,9 +68,10 @@ module.private = {
     jobid = 0,
     temp_filename = '',
 
-
     virtual = {
         init = function()
+            spinner:start(module.private)
+
             module.public.output = {}
             table.insert(module.public.output, {{"", 'Keyword'}})
             table.insert(module.public.output, {{"Result:", 'Keyword'}})
@@ -188,6 +190,7 @@ module.private = {
             end,
 
             on_exit = function()
+                spinner:shut()
                 vim.fn.delete(module.private.temp_filename)
             end
         })
