@@ -27,11 +27,34 @@ end
 
 module.config.public = {
     lang_cmds = {
-        python = {cmd='python3 ${0}', type = 'interpreted'},
-        lua = {cmd='lua ${0}', type='interpreted'},
-        javascript = {cmd='node ${0}', type='interpreted'},
-        bash = {cmd='bash ${0}', type='interpreted'},
-        php = {cmd='php ${0}', type='interpreted'}
+        python = {
+            cmd='python3 ${0}', type = 'interpreted'
+        },
+        lua = {
+            cmd='lua ${0}', type='interpreted'
+        },
+        javascript = {
+            cmd='node ${0}',
+            type='interpreted'
+        },
+        bash = {
+            cmd='bash ${0}', type='interpreted'
+        },
+        php = {
+            cmd='php ${0}', type='interpreted'
+        },
+        cpp = {
+            cmd='g++ ${0} && ./a.out && rm ./a.out',
+            type='compiled'
+        },
+        c = {
+            cmd='gcc ${0} && ./a.out && rm ./a.out',
+            type='compiled'
+        },
+        rust = {
+            cmd='rustc ${0} -o ./a.out && ./a.out && rm ./a.out',
+            type = 'compiled'
+        }
     },
 }
 module.config.private = {}
