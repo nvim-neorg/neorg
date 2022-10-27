@@ -26,38 +26,7 @@ module.load = function()
     })
 end
 
-module.config.public = {
-    lang_cmds = {
-        python = {
-            cmd='python3 ${0}', type = 'interpreted'
-        },
-        lua = {
-            cmd='lua ${0}', type='interpreted'
-        },
-        javascript = {
-            cmd='node ${0}',
-            type='interpreted'
-        },
-        bash = {
-            cmd='bash ${0}', type='interpreted'
-        },
-        php = {
-            cmd='php ${0}', type='interpreted'
-        },
-        cpp = {
-            cmd='g++ ${0} && ./a.out && rm ./a.out',
-            type='compiled'
-        },
-        c = {
-            cmd='gcc ${0} && ./a.out && rm ./a.out',
-            type='compiled'
-        },
-        rust = {
-            cmd='rustc ${0} -o ./a.out && ./a.out && rm ./a.out',
-            type = 'compiled'
-        }
-    },
-}
+module.config.public = require("neorg.modules.core.execute.config")
 module.config.private = {}
 
 module.private = {
@@ -110,6 +79,7 @@ module.private = {
         line_set = 0,
 
         init = function()
+            spinner:start(module.private)
             module.private.normal.line_set = module.private.code_block['end'].row + 1
             table.insert(module.public.output, '')
             table.insert(module.public.output, 'Result:')
@@ -209,12 +179,14 @@ module.public = {
         -- TODO: Add checks here
         local code_block = module.required["core.integrations.treesitter"].get_tag_info(p, true)
         if not code_block then
-            vim.pretty_print("Not inside a code block!")
+            vim.notify("Not inside a code block!")
             return
         end
 
         if code_block.name == "code" then
             module.private.code_block = code_block
+            -- FIX: temp fix remove this!
+            module.private.code_block['parameters'] = vim.split(module.private.code_block['parameters'][1], ' ')
             local ft = code_block.parameters[1]
 
             module.private.temp_filename = module.public.tmpdir
@@ -222,18 +194,25 @@ module.public = {
                 .. code_block['end'].row
                 .. "." .. ft
 
-            local file = io.open(module.private.temp_filename, "w")
-            if file == nil then return end
-            file:write(table.concat(code_block.content, '\n'))
-            file:close()
-
-            local command = module.config.public.lang_cmds[ft]
-            if not command then
+            local lang_cfg = module.config.public.lang_cmds[ft]
+            if not lang_cfg then
                 vim.notify("Language not supported currently!")
                 return
             end
-            command = command.cmd:gsub("${0}", module.private.temp_filename)
 
+            local file = io.open(module.private.temp_filename, "w")
+            -- TODO: better error.
+            if file == nil then return end
+
+            local file_content = table.concat(code_block.content, '\n')
+            if not vim.tbl_contains(code_block.parameters, ":main") and lang_cfg.type == "compiled" then
+                local c = lang_cfg.main_wrap
+                file_content = c:gsub("${1}", file_content)
+            end
+            file:write(file_content)
+            file:close()
+
+            local command = lang_cfg.cmd:gsub("${0}", module.private.temp_filename)
             module.private.spawn(command)
         end
     end,
