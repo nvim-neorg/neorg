@@ -17,6 +17,9 @@ return {
         php = {
             cmd='php ${0}', type='interpreted'
         },
+        ruby = {
+            cmd='ruby ${0}', type='interpreted'
+        },
 
         --> Compiled
         cpp = {

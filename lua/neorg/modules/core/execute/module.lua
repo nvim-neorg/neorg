@@ -30,129 +30,143 @@ module.config.public = require("neorg.modules.core.execute.config")
 module.config.private = {}
 
 module.private = {
-    buf = vim.api.nvim_get_current_buf(),
+    tasks = {},
+
     ns = vim.api.nvim_create_namespace("execute"),
-    code_block = {},
-    interrupted = false,
-    jobid = 0,
-    temp_filename = '',
 
     virtual = {
-        init = function()
-            spinner:start(module.private)
+        init = function(id)
+            local curr_task = module.private.tasks[id]
+            curr_task.spinner = spinner.start(curr_task, module.private.ns)
 
-            module.public.output = {}
-            table.insert(module.public.output, {{"", 'Keyword'}})
-            table.insert(module.public.output, {{"Result:", 'Keyword'}})
+            --> NICE: nice
 
-            local id = vim.api.nvim_buf_set_extmark(
-                module.private.buf,
+            table.insert(curr_task.output, {{"", 'Keyword'}})
+            table.insert(curr_task.output, {{"Result:", 'Keyword'}})
+
+            -- module.private.tasks[id]
+            vim.api.nvim_buf_set_extmark(
+                curr_task.buf,
                 module.private.ns,
-                module.private.code_block['end'].row,
-                module.private.code_block['end'].column,
-                { virt_lines = module.public.output }
+                curr_task.code_block['end'].row,
+                0,
+                { id=id, virt_lines = curr_task.output }
             )
-
-            -- vim.api.nvim_create_autocmd('CursorMoved', {
-                -- once = true,
-                -- callback = function()
-                    -- vim.api.nvim_buf_del_extmark(module.private.buf, module.private.ns, id)
-                    -- module.private.interrupted = true
-                    -- -- module.public.output = {}
-                    -- vim.fn.delete(module.private.temp_filename)
-                -- end
-            -- })
             return id
         end,
 
         update = function(id)
+            local curr_task = module.private.tasks[id]
+
             vim.api.nvim_buf_set_extmark(
-                module.private.buf,
+                curr_task.buf,
                 module.private.ns,
-                module.private.code_block['end'].row,
+                curr_task.code_block['end'].row,
                 0,
-                { id=id, virt_lines = module.public.output }
+                { id=id, virt_lines = curr_task.output }
             )
         end
     },
+
     normal = {
-        line_set = 0,
+        init = function(id)
+            local curr_task = module.private.tasks[id]
+            curr_task.spinner = spinner.start(curr_task, module.private.ns)
 
-        init = function()
-            spinner:start(module.private)
-            module.private.normal.line_set = module.private.code_block['end'].row + 1
-            table.insert(module.public.output, '')
-            table.insert(module.public.output, 'Result:')
+            table.insert(curr_task.output, '')
+            table.insert(curr_task.output, 'Result:')
 
-            vim.api.nvim_buf_set_lines(
-                module.private.buf,
-                module.private.normal.line_set,
-                module.private.normal.line_set,
-                true,
-                module.public.output
-            )
-            module.private.normal.line_set = module.private.normal.line_set + #module.public.output
+            for i, line in ipairs(curr_task.output) do
+                vim.pretty_print(line)
+                vim.api.nvim_buf_set_lines(
+                    curr_task.buf,
+                    curr_task.code_block['end'].row + i,
+                    curr_task.code_block['end'].row + i,
+                    true,
+                    {line}
+                )
+            end
         end,
 
-        update = function(line)
+        update = function(id, line)
+            local curr_task = module.private.tasks[id]
             vim.api.nvim_buf_set_lines(
-                module.private.buf,
-                module.private.normal.line_set,
-                module.private.normal.line_set,
+                curr_task.buf,
+                curr_task.code_block['end'].row + #curr_task.output,
+                curr_task.code_block['end'].row + #curr_task.output,
                 true,
                 {line}
             )
-            module.private.normal.line_set = module.private.normal.line_set + 1
         end
     },
 
-    spawn = function(command)
-        module.private.interrupted = false
+    init = function()
+        local id = vim.api.nvim_buf_set_extmark(
+            0, -- NICE: check if errors
+            module.private.ns,
+            0, 0, {}
+        )
+
+        module.private.tasks[id] = {
+            buf = vim.api.nvim_get_current_buf(),
+            output = {},
+            interrupted = false,
+            jobid = nil,
+            temp_filename = nil,
+            code_block = {},
+            spinner = nil
+        }
+
+        return id
+    end,
+
+    spawn = function(id, command)
+        -- module.private.interrupted = false
         local mode = module.public.mode
-        local id
+
         if mode == "view" then
-            id = module.private.virtual.init()
+            module.private.virtual.init(id)
         else
-            module.private.normal.init()
+            module.private.normal.init(id)
         end
 
-        module.private.jobid = vim.fn.jobstart(command, {
+        module.private.tasks[id].jobid = vim.fn.jobstart(command, {
             stdout_buffered = false,
 
             -- TODO: check exit code conditions and colors
             on_stdout = function(_, data)
-                if module.private.interrupted then
-                    vim.fn.jobstop(module.private.jobid)
+                if module.private.tasks[id].interrupted then
+                    vim.fn.jobstop(module.private.tasks[id].jobid)
                     return
                 end
 
                 for _, line in ipairs(data) do
                     if line ~= "" then
                         if mode == "view" then
-                            table.insert(module.public.output, {{line, 'Function'}})
+                            table.insert(module.private.tasks[id].output, {{line, 'Function'}})
                             module.private.virtual.update(id)
                         else
-                            table.insert(module.public.output, line)
-                            module.private.normal.update(line)
+                            table.insert(module.private.tasks[id].output, line)
+                            module.private.normal.update(id, line)
                         end
                     end
                 end
             end,
 
             on_stderr = function(_, data)
-                if module.private.interrupted then
-                    vim.fn.jobstop(module.private.jobid)
+                if module.private.tasks[id].interrupted then
+                    vim.fn.jobstop(module.private.tasks[id].jobid)
                     return
                 end
 
                 for _, line in ipairs(data) do
                     if line ~= "" then
                         if mode == "view" then
-                            table.insert(module.public.output, {{line, 'Error'}})
+                            table.insert(module.public.tasks[id].output, {{line, 'Error'}})
                             module.private.virtual.update(id)
                         else
-                            table.insert(module.public.output, line)
-                            module.private.normal.update(line)
+                            table.insert(module.public.tasks[id].output, line)
+                            module.private.normal.update(id, line)
                         end
                     end
                 end
@@ -160,8 +174,8 @@ module.private = {
             end,
 
             on_exit = function()
-                spinner:shut()
-                vim.fn.delete(module.private.temp_filename)
+                spinner.shut(module.private.tasks[id].spinner, module.private.ns)
+                vim.fn.delete(module.private.tasks[id].temp_filename)
             end
         })
     end
@@ -169,10 +183,9 @@ module.private = {
 
 module.public = {
     tmpdir = "/tmp/neorg-execute/",
-    output = {},
     mode = "normal",
 
-    base = function()
+    base = function(id)
         local node = ts.get_node_at_cursor(0, true)
         local p = module.required["core.integrations.treesitter"].find_parent(node, "^ranged_tag$")
 
@@ -184,14 +197,15 @@ module.public = {
         end
 
         if code_block.name == "code" then
-            module.private.code_block = code_block
+            module.private.tasks[id]['code_block'] = code_block
             -- FIX: temp fix remove this!
-            module.private.code_block['parameters'] = vim.split(module.private.code_block['parameters'][1], ' ')
+            code_block['parameters'] = vim.split(code_block['parameters'][1], ' ')
             local ft = code_block.parameters[1]
 
-            module.private.temp_filename = module.public.tmpdir
-                .. code_block.start.row .. "_"
-                .. code_block['end'].row
+            module.private.tasks[id].temp_filename = module.public.tmpdir
+                .. id
+                -- .. code_block.start.row .. "_"
+                -- .. code_block['end'].row
                 .. "." .. ft
 
             local lang_cfg = module.config.public.lang_cmds[ft]
@@ -200,7 +214,7 @@ module.public = {
                 return
             end
 
-            local file = io.open(module.private.temp_filename, "w")
+            local file = io.open(module.private.tasks[id].temp_filename, "w")
             -- TODO: better error.
             if file == nil then return end
 
@@ -212,20 +226,20 @@ module.public = {
             file:write(file_content)
             file:close()
 
-            local command = lang_cfg.cmd:gsub("${0}", module.private.temp_filename)
-            module.private.spawn(command)
+            local command = lang_cfg.cmd:gsub("${0}", module.private.tasks[id].temp_filename)
+            module.private.spawn(id, command)
         end
     end,
 
     view = function()
-        module.public.output = {}
         module.public.mode = "view"
-        module.public.base()
+        local id = module.private.init()
+        module.public.base(id)
     end,
     normal = function()
-        module.public.output = {}
         module.public.mode = "normal"
-        module.public.base()
+        local id = module.private.init()
+        module.public.base(id)
     end,
 }
 
