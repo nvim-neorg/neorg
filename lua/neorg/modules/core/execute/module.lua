@@ -1,6 +1,4 @@
 ---@diagnostic disable: undefined-global
--- TODO: better colors
--- TODO: avoid code duplication.
 require("neorg.modules.base")
 local spinner = require("neorg.modules.core.execute.spinner")
 
@@ -39,12 +37,14 @@ module.private = {
             local curr_task = module.private.tasks[id]
             curr_task.spinner = spinner.start(curr_task, module.private.ns)
 
-            --> NICE: nice
+            -- Fix for re-execution
+            if not vim.tbl_isempty(curr_task.output) then
+                curr_task.output = {}
+            end
 
             table.insert(curr_task.output, {{"", 'Keyword'}})
             table.insert(curr_task.output, {{"Result:", 'Keyword'}})
 
-            -- module.private.tasks[id]
             vim.api.nvim_buf_set_extmark(
                 curr_task.buf,
                 module.private.ns,
@@ -73,11 +73,20 @@ module.private = {
             local curr_task = module.private.tasks[id]
             curr_task.spinner = spinner.start(curr_task, module.private.ns)
 
+            if not vim.tbl_isempty(curr_task.output) then
+                vim.api.nvim_buf_set_lines(
+                    curr_task.buf,
+                    curr_task.code_block['end'].row + 1,
+                    curr_task.code_block['end'].row + #curr_task.output + 1,
+                    true, {}
+                )
+                curr_task.output = {}
+            end
+
             table.insert(curr_task.output, '')
             table.insert(curr_task.output, 'Result:')
 
             for i, line in ipairs(curr_task.output) do
-                vim.pretty_print(line)
                 vim.api.nvim_buf_set_lines(
                     curr_task.buf,
                     curr_task.code_block['end'].row + i,
@@ -101,11 +110,19 @@ module.private = {
     },
 
     init = function()
-        local id = vim.api.nvim_buf_set_extmark(
-            0, -- NICE: check if errors
-            module.private.ns,
-            0, 0, {}
-        )
+        -- IMP: check for existng marks and return if it exists.
+        local cr, _ = unpack(vim.api.nvim_win_get_cursor(0))
+
+        for id_idx,id_cfg in pairs(module.private.tasks) do
+            local code_start, code_end = id_cfg.code_block['start'].row + 1, id_cfg.code_block['end'].row + 1
+
+            if code_start <= cr and code_end >= cr then
+                return id_idx
+            end
+        end
+
+
+        local id = vim.api.nvim_buf_set_extmark(0, module.private.ns, 0, 0, {})
 
         module.private.tasks[id] = {
             buf = vim.api.nvim_get_current_buf(),
@@ -114,22 +131,19 @@ module.private = {
             jobid = nil,
             temp_filename = nil,
             code_block = {},
-            spinner = nil
+            spinner = nil,
+            running = false
         }
 
         return id
     end,
 
     spawn = function(id, command)
-        -- module.private.interrupted = false
         local mode = module.public.mode
 
-        if mode == "view" then
-            module.private.virtual.init(id)
-        else
-            module.private.normal.init(id)
-        end
+        module.private[mode == 'view' and 'virtual' or 'normal'].init(id)
 
+        module.private.tasks[id].running = true
         module.private.tasks[id].jobid = vim.fn.jobstart(command, {
             stdout_buffered = false,
 
@@ -162,10 +176,10 @@ module.private = {
                 for _, line in ipairs(data) do
                     if line ~= "" then
                         if mode == "view" then
-                            table.insert(module.public.tasks[id].output, {{line, 'Error'}})
+                            table.insert(module.private.tasks[id].output, {{line, 'Error'}})
                             module.private.virtual.update(id)
                         else
-                            table.insert(module.public.tasks[id].output, line)
+                            table.insert(module.private.tasks[id].output, line)
                             module.private.normal.update(id, line)
                         end
                     end
@@ -176,6 +190,7 @@ module.private = {
             on_exit = function()
                 spinner.shut(module.private.tasks[id].spinner, module.private.ns)
                 vim.fn.delete(module.private.tasks[id].temp_filename)
+                module.private.tasks[id].running = false
             end
         })
     end
@@ -204,8 +219,6 @@ module.public = {
 
             module.private.tasks[id].temp_filename = module.public.tmpdir
                 .. id
-                -- .. code_block.start.row .. "_"
-                -- .. code_block['end'].row
                 .. "." .. ft
 
             local lang_cfg = module.config.public.lang_cmds[ft]
