@@ -354,12 +354,14 @@ module.public = {
                             tag_close = module.config.public.mathematics.block["end"],
                         },
                     }
-                elseif text == "document.meta" and module.config.public.extensions["metadata"] then
+                elseif text == "document.meta" then
+                    local allows_metadata = module.config.public.extensions["metadata"]
+
                     return {
-                        output = module.config.public.metadata["start"],
+                        output = allows_metadata and module.config.public.metadata["start"] or nil,
                         state = {
                             tag_indent = tag_start_column - 1,
-                            tag_close = module.config.public.metadata["end"],
+                            tag_close = allows_metadata and module.config.public.metadata["end"] or nil,
                             is_meta = true,
                         },
                     }
@@ -389,12 +391,16 @@ module.public = {
             ["ranged_verbatim_tag_content"] = function(text, node, state)
                 if state.is_meta then
                     state.is_meta = false
-                    return {
-                        keep_descending = true,
-                        state = {
-                            parse_as = "norg_meta",
-                        },
-                    }
+                    if module.config.public.extensions["metadata"] then
+                        return {
+                            keep_descending = true,
+                            state = {
+                                parse_as = "norg_meta",
+                            },
+                        }
+                    else
+                        return
+                    end
                 end
 
                 local _, ranged_tag_content_column_start = node:range()
