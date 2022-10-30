@@ -1645,7 +1645,7 @@ module.config.public = {
 
                         if prev_sibling then
                             -- Get the text of the previous sibling and store its longest line width-wise
-                            local text = ts.get_node_text(prev_sibling)
+                            local text = vim.split(module.required["core.integrations.treesitter"].get_node_text(prev_sibling), "\n", { plain = true, trimempty = true })
                             local longest = 3
 
                             if
