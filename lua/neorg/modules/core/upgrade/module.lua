@@ -30,7 +30,29 @@ end
 
 module.on_event = function(event)
     if event.split_type[2] == "core.upgrade.current-file" then
+        if module.config.public.ask_for_backup then
+            local halt = false
 
+            vim.ui.select({ ("Create backup (%s.old)"):format(buffer_name), "Don't create backup" }, {
+                prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?",
+            }, function(_, idx)
+                if idx == 1 then
+                    local current_path = vim.fn.expand("%:p")
+                    local ok, err = vim.loop.fs_copyfile(current_path, current_path .. ".old")
+
+                    if not ok then
+                        halt = true
+                        log.error(("Failed to create backup (%s) - upgrading aborted."):format(err))
+                        return
+                    end
+                else
+                end
+            end)
+
+            if halt then
+                return
+            end
+        end
     end
 end
 
