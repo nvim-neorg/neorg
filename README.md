@@ -205,6 +205,7 @@ will also be updated to the correct revision.
 
 ### Troubleshooting Treesitter
 - Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
+- If you don't use the latest Neovim nightly, you might want to use an older Neorg version by doing `tag = '0.0.12'`. Version `0.0.13` adapts to a breaking change in Treesitter highlighting.
 - If on MacOS, ensure that the `CC` environment variable points to a compiler that has C++14 support.
   You can run Neovim like so: `CC=/path/to/newer/compiler nvim -c
   "TSInstallSync norg"` in your shell of choice
