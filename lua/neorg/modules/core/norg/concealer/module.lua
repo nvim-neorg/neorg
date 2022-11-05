@@ -331,7 +331,10 @@ module.public = {
                             )
                         end
 
-                        if module.config.public.dim_code_blocks.conceal and module.config.public.dim_code_blocks.adaptive then
+                        if
+                            module.config.public.dim_code_blocks.conceal
+                            and module.config.public.dim_code_blocks.adaptive
+                        then
                             module.config.public.dim_code_blocks.content_only = has_conceal
                         end
 
@@ -425,27 +428,23 @@ module.public = {
                                                 )
                                             ),
                                         },
-                                        (
-                                            width == "content"
-                                                and {
-                                                    string.rep(
-                                                        " ",
-                                                        math.max(
-                                                            (longest_len - range.column_start)
-                                                                + module.config.public.dim_code_blocks.padding.left
-                                                                + module.config.public.dim_code_blocks.padding.right
-                                                                - math.max(
-                                                                    module.config.public.dim_code_blocks.padding.left
-                                                                        - range.column_start,
-                                                                    0
-                                                                ),
+                                        (width == "content" and {
+                                            string.rep(
+                                                " ",
+                                                math.max(
+                                                    (longest_len - range.column_start)
+                                                        + module.config.public.dim_code_blocks.padding.left
+                                                        + module.config.public.dim_code_blocks.padding.right
+                                                        - math.max(
+                                                            module.config.public.dim_code_blocks.padding.left
+                                                                - range.column_start,
                                                             0
-                                                        )
-                                                    ),
-                                                    "@neorg.tags.ranged_verbatim.code_block",
-                                                }
-                                            or nil
-                                        ),
+                                                        ),
+                                                    0
+                                                )
+                                            ),
+                                            "@neorg.tags.ranged_verbatim.code_block",
+                                        } or nil),
                                     },
                                     "@neorg.tags.ranged_verbatim.code_block",
                                     module.private.code_block_namespace,
@@ -1641,11 +1640,14 @@ module.config.public = {
                         -- determine how much space it occupies in the buffer vertically
                         local prev_sibling = node:prev_sibling()
                         local double_prev_sibling = prev_sibling:prev_sibling()
-                        local ts = module.required["core.integrations.treesitter"].get_ts_utils()
 
                         if prev_sibling then
                             -- Get the text of the previous sibling and store its longest line width-wise
-                            local text = vim.split(module.required["core.integrations.treesitter"].get_node_text(prev_sibling), "\n", { plain = true, trimempty = true })
+                            local text = vim.split(
+                                module.required["core.integrations.treesitter"].get_node_text(prev_sibling),
+                                "\n",
+                                { plain = true, trimempty = true }
+                            )
                             local longest = 3
 
                             if
