@@ -28,7 +28,7 @@ module.config.public = {
             heading = "+@annotation",
             arrow = "+@none",
             key = "+@namespace",
-            keyname = "+@text.math",
+            keyname = "+@constant",
             nestedkeyname = "+@string",
         },
 
@@ -96,8 +96,8 @@ module.config.public = {
                 prefix = "+@label",
             },
             ["3"] = {
-                title = "+@text.math",
-                prefix = "+@text.math",
+                title = "+@constant",
+                prefix = "+@constant",
             },
             ["4"] = {
                 title = "+@string",
@@ -108,8 +108,8 @@ module.config.public = {
                 prefix = "+@label",
             },
             ["6"] = {
-                title = "+@text.math",
-                prefix = "+@text.math",
+                title = "+@constructor",
+                prefix = "+@constructor",
             },
         },
 
