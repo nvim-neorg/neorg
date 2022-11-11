@@ -13,6 +13,7 @@ return neorg.modules.create_meta(
     "core.defaults",
     "core.autocommands",
     "core.integrations.treesitter",
+    "core.itero",
     "core.keybinds",
     "core.looking-glass",
     "core.mode",
