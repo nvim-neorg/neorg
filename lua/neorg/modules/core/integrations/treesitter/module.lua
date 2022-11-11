@@ -75,9 +75,7 @@ module.load = function()
             pattern = "*.norg",
             once = true,
             callback = function()
-                -- HACK(vhyrro): Using internal Neovim APIs.
-                -- It be like that sometimes.
-                if not neorg.lib.inline_pcall(vim.treesitter.get_parser, 0, "norg") then
+                if vim.tbl_isempty(vim.api.nvim_get_runtime_file("parser/norg.so", false) or {}) then
                     if module.config.public.install_parsers then
                         require("nvim-treesitter.install").commands.TSInstallSync["run!"]("norg", "norg_meta")
                     else
