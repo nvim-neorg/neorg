@@ -72,6 +72,12 @@ module.config.public = {
                     { "<<", "core.promo.demote", "nested" },
                 },
 
+                i = {
+                    { "<CR>", "core.itero.next-iteration", },
+                    { "<C-j>", "core.itero.next-iteration", },
+                    { "<M-CR>", "core.itero.stop-iteration", },
+                },
+
                 -- v = {
                 --     { ">>", ":<cr><cmd>Neorg keybind all core.promo.promote_range<cr>" },
                 --     { "<<", ":<cr><cmd>Neorg keybind all core.promo.demote_range<cr>" },

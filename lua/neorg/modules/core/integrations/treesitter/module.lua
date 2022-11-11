@@ -529,8 +529,13 @@ module.public = {
     ---@param buf number #The buffer to search in (0 for current)
     ---@param line number #The line number (0-indexed) to get the node from
     -- the same line as `line`.
+    ---@param string|table? #Don't recurse to the provided type(s)
     ---@return userdata|nil #The first node on `line`
-    get_first_node_on_line = function(buf, line)
+    get_first_node_on_line = function(buf, line, stop_type)
+        if type(stop_type) == "string" then
+            stop_type = { stop_type }
+        end
+
         local document_root = module.public.get_document_root(buf)
 
         if not document_root then
@@ -551,7 +556,13 @@ module.public = {
             and (descendant:parent():start()) == line
             and descendant:parent():symbol() ~= document_root:symbol()
         do
-            descendant = descendant:parent()
+            local parent = descendant:parent()
+
+            if parent and stop_type and vim.tbl_contains(stop_type, parent:type()) then
+                break
+            end
+
+            descendant = parent
         end
 
         return descendant
