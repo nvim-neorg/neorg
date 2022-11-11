@@ -1914,19 +1914,22 @@ module.on_event = function(event)
 
     local has_conceal = (
         vim.api.nvim_win_is_valid(event.window) and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
-            or false
-        )
+        or false
+    )
 
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
             local opts = {
                 scope = "local",
-                win = event.window
+                win = event.window,
             }
             vim.api.nvim_set_option_value("foldmethod", "expr", opts)
             vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
-            vim.api.nvim_set_option_value("foldtext",
-                "v:lua.neorg.modules.get_module('core.norg.concealer').foldtext()", opts)
+            vim.api.nvim_set_option_value(
+                "foldtext",
+                "v:lua.neorg.modules.get_module('core.norg.concealer').foldtext()",
+                opts
+            )
         end
 
         local buf = event.buffer
