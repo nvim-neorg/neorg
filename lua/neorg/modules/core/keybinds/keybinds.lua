@@ -73,9 +73,7 @@ module.config.public = {
                 },
 
                 i = {
-                    { "<CR>", "core.itero.next-iteration", },
-                    { "<C-j>", "core.itero.next-iteration", },
-                    { "<M-CR>", "core.itero.stop-iteration", },
+                    { "<M-CR>", "core.itero.next-iteration" },
                 },
 
                 -- v = {
