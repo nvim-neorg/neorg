@@ -14,21 +14,18 @@ module.setup = function()
 end
 
 module.config.public = {
-    -- If true, will automatically continue list items and the like when `<CR>`
-    -- is pressed, and will stop when `<M-CR>` is pressed or `<CR>` is pressed
-    -- twice.
-    --
-    -- When false, will do the opposite - list items will not be continued unless
-    -- `<M-CR>` is pressed.
-    trigger_by_default = true,
-
+    -- A list of strings detailing what nodes can be "iterated".
+    -- Usually doesn't need to be changed, unless you want to disable some
+    -- items from being iterable.
     iterables = {
         "unordered_list%d",
         "ordered_list%d",
         "heading%d",
         "quote%d",
     },
+}
 
+module.config.private = {
     stop_types = {
         "generic_list",
         "quote",
@@ -44,7 +41,7 @@ module.on_event = function(event)
         local ts = module.required["core.integrations.treesitter"]
         local cursor_pos = event.cursor_position[1] - 1
 
-        local current = ts.get_first_node_on_line(event.buffer, cursor_pos, module.config.public.stop_types)
+        local current = ts.get_first_node_on_line(event.buffer, cursor_pos, module.config.private.stop_types)
 
         if not current then
             log.error(
