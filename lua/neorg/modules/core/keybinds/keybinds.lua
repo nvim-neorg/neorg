@@ -73,6 +73,8 @@ module.config.public = {
                 },
 
                 i = {
+                    { "<C-t>", "core.promo.promote" },
+                    { "<C-d>", "core.promo.demote" },
                     { "<M-CR>", "core.itero.next-iteration" },
                 },
 

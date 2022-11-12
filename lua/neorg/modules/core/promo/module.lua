@@ -50,6 +50,11 @@ module.private = {
             prefix = "-",
         },
     },
+
+    ignore_types = {
+        "generic_list",
+        "quote",
+    },
 }
 
 module.public = {
@@ -62,7 +67,15 @@ module.public = {
     end,
 
     promote_or_demote = function(buffer, mode, row, reindent_children, affect_children)
-        local node = module.required["core.integrations.treesitter"].get_first_node_on_line(buffer, row)
+        local node = module.required["core.integrations.treesitter"].get_first_node_on_line(
+            buffer,
+            row,
+            module.private.ignore_types
+        )
+
+        if not node or node:has_error() then
+            return
+        end
 
         local prefix = module.public.get_promotable_node_prefix(node)
 
