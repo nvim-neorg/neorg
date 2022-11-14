@@ -2,6 +2,14 @@
 
 local module = neorg.modules.create("core.upgrade")
 
+module.setup = function()
+    return {
+        requires = {
+            "core.integrations.treesitter",
+        },
+    }
+end
+
 module.config.public = {
     -- Whether to prompt the user to back up their file
     -- every time they want to upgrade a `.norg` document.
@@ -28,10 +36,46 @@ module.load = function()
     end)
 end
 
+module.public = {
+    upgrade = function(buffer)
+        local tree = vim.treesitter.get_parser(buffer, "norg"):parse()[1]
+        local ts = module.required["core.integrations.treesitter"]
+
+        local final_file = {}
+
+        ts.tree_map_rec(function(node)
+            local output = neorg.lib.match(node:type())({
+                [{ "_open", "_close" }] = function()
+                    if node:parent():type() == "spoiler" then
+                        return { text = "!", stop = true }
+                    elseif node:parent():type() == "variable" then
+                        return { text = "&", stop = true }
+                    end
+                end,
+
+                _ = function()
+                    if node:child_count() == 0 then
+                        return { text = ts.get_node_text(node), stop = true }
+                    end
+                end,
+            })
+
+            if output and output.text then
+                table.insert(final_file, output.text)
+                return output.stop
+            end
+        end, tree)
+
+        log.warn(final_file)
+    end,
+}
+
 module.on_event = function(event)
     if event.split_type[2] == "core.upgrade.current-file" then
         if module.config.public.ask_for_backup then
             local halt = false
+
+            local buffer_name = vim.api.nvim_buf_get_name(event.buffer)
 
             vim.ui.select({ ("Create backup (%s.old)"):format(buffer_name), "Don't create backup" }, {
                 prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?",
@@ -45,7 +89,8 @@ module.on_event = function(event)
                         log.error(("Failed to create backup (%s) - upgrading aborted."):format(err))
                         return
                     end
-                else
+
+                    vim.notify("Backup successfully created!")
                 end
             end)
 
@@ -53,6 +98,8 @@ module.on_event = function(event)
                 return
             end
         end
+
+        -- local output = module.public.upgrade(buffer)
     end
 end
 
