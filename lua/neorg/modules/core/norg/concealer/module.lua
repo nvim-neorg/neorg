@@ -331,7 +331,10 @@ module.public = {
                             )
                         end
 
-                        if module.config.public.dim_code_blocks.conceal and module.config.public.dim_code_blocks.adaptive then
+                        if
+                            module.config.public.dim_code_blocks.conceal
+                            and module.config.public.dim_code_blocks.adaptive
+                        then
                             module.config.public.dim_code_blocks.content_only = has_conceal
                         end
 
@@ -425,27 +428,23 @@ module.public = {
                                                 )
                                             ),
                                         },
-                                        (
-                                            width == "content"
-                                                and {
-                                                    string.rep(
-                                                        " ",
-                                                        math.max(
-                                                            (longest_len - range.column_start)
-                                                                + module.config.public.dim_code_blocks.padding.left
-                                                                + module.config.public.dim_code_blocks.padding.right
-                                                                - math.max(
-                                                                    module.config.public.dim_code_blocks.padding.left
-                                                                        - range.column_start,
-                                                                    0
-                                                                ),
+                                        (width == "content" and {
+                                            string.rep(
+                                                " ",
+                                                math.max(
+                                                    (longest_len - range.column_start)
+                                                        + module.config.public.dim_code_blocks.padding.left
+                                                        + module.config.public.dim_code_blocks.padding.right
+                                                        - math.max(
+                                                            module.config.public.dim_code_blocks.padding.left
+                                                                - range.column_start,
                                                             0
-                                                        )
-                                                    ),
-                                                    "@neorg.tags.ranged_verbatim.code_block",
-                                                }
-                                            or nil
-                                        ),
+                                                        ),
+                                                    0
+                                                )
+                                            ),
+                                            "@neorg.tags.ranged_verbatim.code_block",
+                                        } or nil),
                                     },
                                     "@neorg.tags.ranged_verbatim.code_block",
                                     module.private.code_block_namespace,
