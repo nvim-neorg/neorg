@@ -1,5 +1,8 @@
 -- rev: 5d9c76b5c9927955f7c5d5d946397584e307f69f
 
+-- TODO: Set old version of parser before reverting to "normal" one
+-- TODO: Support directory export
+
 local module = neorg.modules.create("core.upgrade")
 
 module.setup = function()
@@ -122,31 +125,30 @@ module.public = {
             end
         end, tree)
 
-        log.warn(final_file)
+        return final_file
     end,
 }
 
 module.on_event = function(event)
     if event.split_type[2] == "core.upgrade.current-file" then
+        local path = vim.api.nvim_buf_call(event.buffer, function()
+            return vim.fn.expand("%")
+        end)
+
         if module.config.public.ask_for_backup then
             local halt = false
 
-            local buffer_name = vim.api.nvim_buf_get_name(event.buffer)
-
-            vim.ui.select({ ("Create backup (%s.old)"):format(buffer_name), "Don't create backup" }, {
+            vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
                 prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?",
             }, function(_, idx)
                 if idx == 1 then
-                    local current_path = vim.fn.expand("%:p")
-                    local ok, err = vim.loop.fs_copyfile(current_path, current_path .. ".old")
+                    local ok, err = vim.loop.fs_copyfile(path, path .. ".old")
 
                     if not ok then
                         halt = true
                         log.error(("Failed to create backup (%s) - upgrading aborted."):format(err))
                         return
                     end
-
-                    vim.notify("Backup successfully created!")
                 end
             end)
 
@@ -155,7 +157,22 @@ module.on_event = function(event)
             end
         end
 
-        module.public.upgrade(event.buffer)
+        vim.notify("Begin upgrade...")
+
+        local output = table.concat(module.public.upgrade(event.buffer))
+
+        vim.loop.fs_open(path, "w", 438, function(err, fd)
+            assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", path, "' for export: ", err))
+
+            vim.loop.fs_write(fd, output, 0, function(werr)
+                assert(
+                    not werr,
+                    neorg.lib.lazy_string_concat("Failed to write to file '", path, "' for export: ", werr)
+                )
+            end)
+
+            vim.schedule(neorg.lib.wrap(vim.notify, "Successfully upgraded 1 file!"))
+        end)
     end
 end
 
