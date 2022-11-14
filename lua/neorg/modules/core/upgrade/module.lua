@@ -92,6 +92,7 @@ module.public = {
                 ["ordered_link6_prefix"] = { text = "~ ", stop = true },
 
                 ["marker_prefix"] = { text = "* ", stop = true },
+                ["link_target_marker"] = { text = "* ", stop = true },
 
                 ["insertion"] = function()
                     local name = node:named_child(1)
