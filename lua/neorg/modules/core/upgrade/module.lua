@@ -89,6 +89,18 @@ module.public = {
                 ["ordered_link5_prefix"] = { text = "~ ", stop = true },
                 ["ordered_link6_prefix"] = { text = "~ ", stop = true },
 
+                ["marker_prefix"] = { text = "* ", stop = true },
+
+                ["insertion"] = function()
+                    local name = node:named_child(1)
+                    local parameters = node:named_child(2)
+
+                    return {
+                        text = table.concat({ ".", ts.get_node_text(name), parameters and (" " .. ts.get_node_text(parameters)) or "", "\n" }),
+                        stop = true,
+                    }
+                end,
+
                 _ = function()
                     if node:child_count() == 0 then
                         return { text = ts.get_node_text(node), stop = true }
