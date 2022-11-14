@@ -76,7 +76,6 @@ module.private = {
 module.public = {
     version = "0.0.8",
     present = function()
-
         if module.private.buf then
             log.warn("Presentation already started")
             return
