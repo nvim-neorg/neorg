@@ -50,6 +50,8 @@ module.public = {
                         return { text = "!", stop = true }
                     elseif node:parent():type() == "variable" then
                         return { text = "&", stop = true }
+                    elseif node:parent():type() == "inline_comment" then
+                        return { text = "%", stop = true }
                     end
                 end,
 
