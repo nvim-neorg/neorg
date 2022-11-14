@@ -27,5 +27,6 @@ return neorg.modules.create_meta(
     "core.promo",
     "core.storage",
     "core.syntax",
-    "core.tangle"
+    "core.tangle",
+    "core.upgrade"
 )
