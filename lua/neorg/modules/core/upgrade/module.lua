@@ -53,6 +53,42 @@ module.public = {
                     end
                 end,
 
+                ["tag_name"] = function()
+                    local next = node:next_named_sibling()
+                    local text = ts.get_node_text(node)
+
+                    if next and next:type() == "tag_parameters" then
+                        return { text = table.concat({ text, " " }), stop = true }
+                    end
+
+                    -- HACK: This is a workaround for the TS parser
+                    -- not having a _line_break node after the tag declaration
+                    return { text = table.concat({ text, "\n" }), stop = true }
+                end,
+
+                ["todo_item_undone"] = { text = "( ) ", stop = true },
+                ["todo_item_pending"] = { text = "(-) ", stop = true },
+                ["todo_item_done"] = { text = "(x) ", stop = true },
+                ["todo_item_on_hold"] = { text = "(=) ", stop = true },
+                ["todo_item_cancelled"] = { text = "(_) ", stop = true },
+                ["todo_item_urgent"] = { text = "(!) ", stop = true },
+                ["todo_item_uncertain"] = { text = "(?) ", stop = true },
+                ["todo_item_recurring"] = { text = "(+) ", stop = true },
+
+                ["unordered_link1_prefix"] = { text = "- ", stop = true },
+                ["unordered_link2_prefix"] = { text = "- ", stop = true },
+                ["unordered_link3_prefix"] = { text = "- ", stop = true },
+                ["unordered_link4_prefix"] = { text = "- ", stop = true },
+                ["unordered_link5_prefix"] = { text = "- ", stop = true },
+                ["unordered_link6_prefix"] = { text = "- ", stop = true },
+
+                ["ordered_link1_prefix"] = { text = "~ ", stop = true },
+                ["ordered_link2_prefix"] = { text = "~ ", stop = true },
+                ["ordered_link3_prefix"] = { text = "~ ", stop = true },
+                ["ordered_link4_prefix"] = { text = "~ ", stop = true },
+                ["ordered_link5_prefix"] = { text = "~ ", stop = true },
+                ["ordered_link6_prefix"] = { text = "~ ", stop = true },
+
                 _ = function()
                     if node:child_count() == 0 then
                         return { text = ts.get_node_text(node), stop = true }
@@ -99,7 +135,7 @@ module.on_event = function(event)
             end
         end
 
-        -- local output = module.public.upgrade(buffer)
+        module.public.upgrade(event.buffer)
     end
 end
 
