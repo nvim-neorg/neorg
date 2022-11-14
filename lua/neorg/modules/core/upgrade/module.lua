@@ -99,7 +99,12 @@ module.public = {
                     local parameters = node:named_child(2)
 
                     return {
-                        text = table.concat({ ".", ts.get_node_text(name), parameters and (" " .. ts.get_node_text(parameters)) or "", "\n" }),
+                        text = table.concat({
+                            ".",
+                            ts.get_node_text(name),
+                            parameters and (" " .. ts.get_node_text(parameters)) or "",
+                            "\n",
+                        }),
                         stop = true,
                     }
                 end,
