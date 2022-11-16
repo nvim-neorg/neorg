@@ -1,7 +1,6 @@
 -- rev: 5d9c76b5c9927955f7c5d5d946397584e307f69f
 
 -- TODO: Set old version of parser before reverting to "normal" one
--- TODO: Support directory export
 
 local module = neorg.modules.create("core.upgrade")
 
@@ -60,7 +59,7 @@ module.public = {
 
                 ["tag_name"] = function()
                     local next = node:next_named_sibling()
-                    local text = ts.get_node_text(node)
+                    local text = ts.get_node_text(node, buffer)
 
                     if next and next:type() == "tag_parameters" then
                         return { text = table.concat({ text, " " }), stop = true }
@@ -104,8 +103,8 @@ module.public = {
                     return {
                         text = table.concat({
                             ".",
-                            ts.get_node_text(name),
-                            parameters and (" " .. ts.get_node_text(parameters)) or "",
+                            ts.get_node_text(name, buffer),
+                            parameters and (" " .. ts.get_node_text(parameters, buffer)) or "",
                             "\n",
                         }),
                         stop = true,
@@ -114,7 +113,7 @@ module.public = {
 
                 _ = function()
                     if node:child_count() == 0 then
-                        return { text = ts.get_node_text(node), stop = true }
+                        return { text = ts.get_node_text(node, buffer), stop = true }
                     end
                 end,
             })
@@ -162,16 +161,109 @@ module.on_event = function(event)
         local output = table.concat(module.public.upgrade(event.buffer))
 
         vim.loop.fs_open(path, "w", 438, function(err, fd)
-            assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", path, "' for export: ", err))
+            assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", path, "' for upgrade: ", err))
 
             vim.loop.fs_write(fd, output, 0, function(werr)
                 assert(
                     not werr,
-                    neorg.lib.lazy_string_concat("Failed to write to file '", path, "' for export: ", werr)
+                    neorg.lib.lazy_string_concat("Failed to write to file '", path, "' for upgrade: ", werr)
                 )
             end)
 
             vim.schedule(neorg.lib.wrap(vim.notify, "Successfully upgraded 1 file!"))
+        end)
+    elseif event.split_type[2] == "core.upgrade.current-directory" then
+        local path = vim.fn.getcwd(event.window)
+
+        local halt = false
+
+        vim.ui.select({ "This is the right directory", "I'd like to change it" }, {
+            prompt = (
+                "Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!\n"
+            ):format(path),
+        }, function(_, idx)
+            halt = (idx ~= 1)
+        end)
+
+        if halt then
+            return
+        end
+
+        -- The old value of `eventignore` is stored here. This is done because the eventignore
+        -- value is set to ignore BufEnter events before loading all the Neorg buffers, as they can mistakenly
+        -- activate the concealer, which not only slows down performance notably but also causes errors.
+        local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
+
+        vim.loop.fs_scandir(path, function(err, handle)
+            assert(not err, neorg.lib.lazy_string_concat("Failed to scan directory '", path, "': ", err))
+
+            local file_counter, parsed_counter = 0, 0
+
+            while true do
+                local name, type = vim.loop.fs_scandir_next(handle)
+
+                if not name then
+                    break
+                end
+
+                if type == "file" and vim.endswith(name, ".norg") then
+                    file_counter = file_counter + 1
+
+                    local function check_counters()
+                        parsed_counter = parsed_counter + 1
+
+                        if parsed_counter >= file_counter then
+                            vim.schedule(
+                                neorg.lib.wrap(
+                                    vim.notify,
+                                    string.format("Successfully upgraded %d files!", file_counter)
+                                )
+                            )
+                        end
+                    end
+
+                    vim.schedule(function()
+                        local filepath = table.concat({ vim.fn.expand(path), "/", name })
+
+                        vim.opt.eventignore = "BufEnter"
+
+                        local buffer = vim.fn.bufadd(filepath)
+                        vim.fn.bufload(buffer)
+
+                        vim.opt.eventignore = old_event_ignore
+
+                        local output = table.concat(module.public.upgrade(buffer))
+
+                        vim.api.nvim_buf_delete(buffer, { force = true })
+
+                        vim.loop.fs_open(filepath, "w+", 438, function(fs_err, fd)
+                            assert(
+                                not fs_err,
+                                neorg.lib.lazy_string_concat(
+                                    "Failed to open file '",
+                                    filepath,
+                                    "' for upgrade: ",
+                                    fs_err
+                                )
+                            )
+
+                            vim.loop.fs_write(fd, output, 0, function(werr)
+                                assert(
+                                    not werr,
+                                    neorg.lib.lazy_string_concat(
+                                        "Failed to write to file '",
+                                        filepath,
+                                        "' for upgrade: ",
+                                        werr
+                                    )
+                                )
+
+                                check_counters()
+                            end)
+                        end)
+                    end)
+                end
+            end
         end)
     end
 end
