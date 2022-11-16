@@ -5,6 +5,10 @@ local function reformat_time(date)
 end
 
 module.private = {
+    -- TODO(vhyrro): Localize this to the functions themselves
+    -- and return extmarks data within the functions.
+    -- Right now only a single calendar can be open at once
+    -- which is a little cringe.
     extmarks = {
         decorational = {
             calendar_text = -1,
@@ -16,9 +20,7 @@ module.private = {
         logical = {
             year = -1,
             months = {
-                {
-                    dates = {},
-                },
+                -- [3] = { [31] = <id> }
             },
         },
     },
@@ -200,27 +202,32 @@ module.private = {
         local render_row = 1
 
         for day_of_month, day_of_week in ipairs(days_of_month) do
-            vim.api.nvim_buf_set_extmark(
-                ui_info.buffer,
-                module.private.namespaces.logical,
-                beginning_of_weekday_extmark[1] + render_row,
-                beginning_of_weekday_extmark[2] + (4 * render_column),
-                {
+            module.private.extmarks.logical.months[month] = module.private.extmarks.logical.months[month] or {}
+
+            local is_current_day = current_date.year == target_date.year
+                and current_date.month == target_date.month
+                and tostring(day_of_month) == day
+
+            local start_row = beginning_of_weekday_extmark[1] + render_row
+            local start_col = beginning_of_weekday_extmark[2] + (4 * render_column)
+
+            if is_current_day then
+                -- TODO: Make this configurable. The user might want the cursor to start
+                -- on a specific date in a specific month.
+                -- Just look up the extmark and place the cursor there.
+                vim.api.nvim_win_set_cursor(ui_info.window, { start_row + 1, start_col })
+            end
+
+            module.private.extmarks.logical.months[month][day_of_month] =
+                vim.api.nvim_buf_set_extmark(ui_info.buffer, module.private.namespaces.logical, start_row, start_col, {
                     virt_text = {
                         {
                             (day_of_month < 10 and "0" or "") .. tostring(day_of_month),
-                            (
-                                current_date.year == target_date.year
-                                    and current_date.month == target_date.month
-                                    and tostring(day_of_month) == day
-                                    and "@todo"
-                                or nil
-                            ),
+                            (is_current_day and "@todo" or nil),
                         },
                     },
                     virt_text_pos = "overlay",
-                }
-            )
+                })
 
             if day_of_week == 7 then
                 render_column = 0
