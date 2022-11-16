@@ -1,3 +1,6 @@
+-- NOTICE: Consider this whole module a demo for now
+-- A lot of stuff is hardcoded in order to prove that it can work
+
 local module = neorg.modules.extend("core.ui.calendar", "core.ui")
 
 local function reformat_time(date)
@@ -202,7 +205,9 @@ module.private = {
         local render_row = 1
 
         for day_of_month, day_of_week in ipairs(days_of_month) do
-            module.private.extmarks.logical.months[month] = module.private.extmarks.logical.months[month] or {}
+            local month_as_number = tonumber(month)
+            module.private.extmarks.logical.months[month_as_number] = module.private.extmarks.logical.months[month_as_number]
+                or {}
 
             local is_current_day = current_date.year == target_date.year
                 and current_date.month == target_date.month
@@ -218,7 +223,7 @@ module.private = {
                 vim.api.nvim_win_set_cursor(ui_info.window, { start_row + 1, start_col })
             end
 
-            module.private.extmarks.logical.months[month][day_of_month] =
+            module.private.extmarks.logical.months[month_as_number][day_of_month] =
                 vim.api.nvim_buf_set_extmark(ui_info.buffer, module.private.namespaces.logical, start_row, start_col, {
                     virt_text = {
                         {
@@ -316,6 +321,9 @@ module.public = {
             })
         end
 
+        -- TODO: These are strings, even though they shouldn't be
+        -- Refactor to autoconvert these into real numbers.
+        -- Maybe just os.date("*t")?
         local year, month, day = os.date("%Y-%m-%d"):match("(%d+)%-(%d+)%-(%d+)")
 
         -- Display the current year (i.e. `< 2022 >`)
@@ -368,6 +376,67 @@ module.public = {
 
                 blockid = blockid + 1
             end
+        end
+
+        do
+            local current_day, current_month = tonumber(day), tonumber(month)
+
+            -- TODO: Make cursor wrapping behaviour configurable
+            vim.api.nvim_buf_set_keymap(buffer, "n", "l", "", {
+                callback = function()
+                    local next_extmark_id = module.private.extmarks.logical.months[current_month][current_day + 1]
+
+                    if not next_extmark_id then
+                        local next_month = module.private.extmarks.logical.months[current_month + 1]
+
+                        if not next_month then
+                            return
+                        end
+
+                        current_day = 1
+                        current_month = current_month + 1
+                        next_extmark_id = next_month[current_day]
+                    else
+                        current_day = current_day + 1
+                    end
+
+                    local next = vim.api.nvim_buf_get_extmark_by_id(
+                        buffer,
+                        module.private.namespaces.logical,
+                        next_extmark_id,
+                        {}
+                    )
+                    vim.api.nvim_win_set_cursor(window, { next[1] + 1, next[2] })
+                end,
+            })
+
+            vim.api.nvim_buf_set_keymap(buffer, "n", "h", "", {
+                callback = function()
+                    local prev_extmark_id = module.private.extmarks.logical.months[current_month][current_day - 1]
+
+                    if not prev_extmark_id then
+                        local prev_month = module.private.extmarks.logical.months[current_month - 1]
+
+                        if not prev_month then
+                            return
+                        end
+
+                        current_day = #prev_month
+                        current_month = current_month - 1
+                        prev_extmark_id = prev_month[current_day]
+                    else
+                        current_day = current_day - 1
+                    end
+
+                    local prev = vim.api.nvim_buf_get_extmark_by_id(
+                        buffer,
+                        module.private.namespaces.logical,
+                        prev_extmark_id,
+                        {}
+                    )
+                    vim.api.nvim_win_set_cursor(window, { prev[1] + 1, prev[2] })
+                end,
+            })
         end
     end,
 
