@@ -32,6 +32,11 @@ module.load = function()
                         name = "core.upgrade.current-directory",
                         args = 0,
                     },
+
+                    ["all-workspaces"] = {
+                        name = "core.upgrade.all-workspaces",
+                        args = 0,
+                    },
                 },
             },
         })
@@ -138,7 +143,7 @@ module.on_event = function(event)
             local halt = false
 
             vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
-                prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?",
+                prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?\n",
             }, function(_, idx)
                 if idx == 1 then
                     local ok, err = vim.loop.fs_copyfile(path, path .. ".old")
@@ -175,19 +180,44 @@ module.on_event = function(event)
     elseif event.split_type[2] == "core.upgrade.current-directory" then
         local path = vim.fn.getcwd(event.window)
 
-        local halt = false
+        do
+            local halt = false
 
-        vim.ui.select({ "This is the right directory", "I'd like to change it" }, {
-            prompt = (
-                "Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!\n"
-            ):format(path),
-        }, function(_, idx)
-            halt = (idx ~= 1)
-        end)
+            vim.ui.select({ "This is the right directory", "I'd like to change it" }, {
+                prompt = (
+                    "Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!\n"
+                ):format(path),
+            }, function(_, idx)
+                halt = (idx ~= 1)
+            end)
 
-        if halt then
-            return
+            if halt then
+                return
+            end
         end
+
+        -- TODO
+        -- if module.config.public.ask_for_backup then
+        --     local halt = false
+
+        --     vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
+        --         prompt = "\nUpgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this directory?\n",
+        --     }, function(_, idx)
+        --         if idx == 1 then
+        --             local ok, err = vim.loop.fs_copyfile(path, path .. ".old")
+
+        --             if not ok then
+        --                 halt = true
+        --                 log.error(("Failed to create backup (%s) - upgrading aborted."):format(err))
+        --                 return
+        --             end
+        --         end
+        --     end)
+
+        --     if halt then
+        --         return
+        --     end
+        -- end
 
         -- The old value of `eventignore` is stored here. This is done because the eventignore
         -- value is set to ignore BufEnter events before loading all the Neorg buffers, as they can mistakenly
@@ -265,6 +295,15 @@ module.on_event = function(event)
                 end
             end
         end)
+    elseif event.split_type[2] == "core.upgrade.all-workspaces" then
+        local dirman = neorg.modules.get_module("core.norg.dirman")
+
+        if not dirman then
+            vim.notify("ERROR: `core.norg.dirman` is not loaded!")
+            return
+        end
+
+        vim.notify("This behaviour isn't implemented yet!")
     end
 end
 
@@ -272,6 +311,7 @@ module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["core.upgrade.current-file"] = true,
         ["core.upgrade.current-directory"] = true,
+        ["core.upgrade.all-workspaces"] = true,
     },
 }
 
