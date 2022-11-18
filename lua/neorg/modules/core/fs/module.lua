@@ -18,21 +18,26 @@ module.public = {
         local ok, err = vim.loop.fs_mkdir(new_path, file_permissions)
 
         if not ok then
-            log.error(("Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty? Formal error: %s"):format(new_path, err))
-            return false
+            return ok, err
         end
-
-        local success = true
 
         for name, type in vim.fs.dir(old_path) do
             if type == "file" then
-                success = (vim.loop.fs_copyfile(table.concat({ old_path, "/", name }), table.concat({ new_path, "/", name })) ~= nil)
+                ok, err = vim.loop.fs_copyfile(table.concat({ old_path, "/", name }), table.concat({ new_path, "/", name }))
+
+                if not ok then
+                    return ok, err
+                end
             elseif type == "directory" and not vim.endswith(new_path, name) then
-                success = module.public.copy_directory(table.concat({ old_path, "/", name }), table.concat({ new_path, "/", name }))
+                ok, err = module.public.copy_directory(table.concat({ old_path, "/", name }), table.concat({ new_path, "/", name }))
+
+                if not ok then
+                    return ok, err
+                end
             end
         end
 
-        return success
+        return true, nil
     end,
 }
 
