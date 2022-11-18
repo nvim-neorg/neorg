@@ -33,13 +33,17 @@ module.public = {
 
         for name, type in vim.fs.dir(old_path) do
             if type == "file" then
-                ok, err = vim.loop.fs_copyfile(table.concat({ old_path, "/", name }), table.concat({ new_path, "/", name }))
+                ok, err =
+                    vim.loop.fs_copyfile(table.concat({ old_path, "/", name }), table.concat({ new_path, "/", name }))
 
                 if not ok then
                     return ok, err
                 end
             elseif type == "directory" and not vim.endswith(new_path, name) then
-                ok, err = module.public.copy_directory(table.concat({ old_path, "/", name }), table.concat({ new_path, "/", name }))
+                ok, err = module.public.copy_directory(
+                    table.concat({ old_path, "/", name }),
+                    table.concat({ new_path, "/", name })
+                )
 
                 if not ok then
                     return ok, err
