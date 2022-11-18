@@ -8,16 +8,6 @@
 local module = neorg.modules.create("core.fs")
 
 module.public = {
-    directory_map = function(path, callback)
-        for name, type in vim.fs.dir(path) do
-            if type == "directory" then
-                module.public.directory_map(table.concat({ path, "/", name }), callback)
-            else
-                callback(name, type, path)
-            end
-        end
-    end,
-
     --- Recursively copies a directory from one path to another
     ---@param old_path string #The path to copy
     ---@param new_path string #The new location. This function will not
@@ -25,33 +15,24 @@ module.public = {
     ---@return boolean #If true, the directory copying succeeded
     copy_directory = function(old_path, new_path)
         local file_permissions = tonumber("744", 8)
-        local ok, err = vim.loop.fs_mkdir(new_path, file_permissions)
+        local ok = vim.loop.fs_mkdir(new_path, file_permissions)
 
         if not ok then
-            return ok, err
+            log.error(("Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty?"):format(new_path))
+            return false
         end
+
+        local success = true
 
         for name, type in vim.fs.dir(old_path) do
             if type == "file" then
-                ok, err =
-                    vim.loop.fs_copyfile(table.concat({ old_path, "/", name }), table.concat({ new_path, "/", name }))
-
-                if not ok then
-                    return ok, err
-                end
+                success = (vim.loop.fs_copyfile(table.concat({ old_path, "/", name }), table.concat({ new_path, "/", name })) ~= nil)
             elseif type == "directory" and not vim.endswith(new_path, name) then
-                ok, err = module.public.copy_directory(
-                    table.concat({ old_path, "/", name }),
-                    table.concat({ new_path, "/", name })
-                )
-
-                if not ok then
-                    return ok, err
-                end
+                success = module.public.copy_directory(table.concat({ old_path, "/", name }), table.concat({ new_path, "/", name }))
             end
         end
 
-        return true, nil
+        return success
     end,
 }
 
