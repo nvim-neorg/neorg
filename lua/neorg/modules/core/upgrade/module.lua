@@ -230,7 +230,6 @@ module.on_event = function(event)
 
         local file_counter, parsed_counter = 0, 0
 
-        -- TODO(vhyrro): Check if this works properly for nested subdirectories
         module.required["core.fs"].directory_map(path, function(name, _, nested_path)
             if not vim.endswith(name, ".norg") then
                 return
