@@ -231,7 +231,7 @@ module.on_event = function(event)
         local file_counter, parsed_counter = 0, 0
 
         -- TODO(vhyrro): Check if this works properly for nested subdirectories
-        module.required["core.fs"].directory_map(path, function(name, _)
+        module.required["core.fs"].directory_map(path, function(name, _, nested_path)
             if not vim.endswith(name, ".norg") then
                 return
             end
@@ -249,7 +249,7 @@ module.on_event = function(event)
             end
 
             vim.schedule(function()
-                local filepath = table.concat({ path, "/", name })
+                local filepath = table.concat({ nested_path, "/", name })
 
                 vim.opt.eventignore = "BufEnter"
 
