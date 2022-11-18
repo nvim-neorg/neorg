@@ -8,6 +8,7 @@ module.setup = function()
     return {
         requires = {
             "core.integrations.treesitter",
+            "core.fs",
         },
     }
 end
