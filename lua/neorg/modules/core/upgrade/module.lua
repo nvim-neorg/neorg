@@ -197,34 +197,34 @@ module.on_event = function(event)
             end
         end
 
-        -- TODO
-        -- if module.config.public.ask_for_backup then
-        --     local halt = false
+        if module.config.public.ask_for_backup then
+            local halt = false
 
-        --     vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
-        --         prompt = "\nUpgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this directory?\n",
-        --     }, function(_, idx)
-        --         if idx == 1 then
-        --             local ok, err = vim.loop.fs_copyfile(path, path .. ".old")
+            vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
+                prompt = "\nUpgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this directory?\n",
+            }, function(_, idx)
+                if idx == 1 then
+                    local ok, err = module.required["core.fs"].copy_directory(path, path .. ".old")
 
-        --             if not ok then
-        --                 halt = true
-        --                 log.error(("Failed to create backup (%s) - upgrading aborted."):format(err))
-        --                 return
-        --             end
-        --         end
-        --     end)
+                    if not ok then
+                        halt = true
+                        log.error(("Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty? Formal error: %s"):format(new_path, err))
+                        return
+                    end
+                end
+            end)
 
-        --     if halt then
-        --         return
-        --     end
-        -- end
+            if halt then
+                return
+            end
+        end
 
         -- The old value of `eventignore` is stored here. This is done because the eventignore
         -- value is set to ignore BufEnter events before loading all the Neorg buffers, as they can mistakenly
         -- activate the concealer, which not only slows down performance notably but also causes errors.
         local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
 
+        -- TODO(vhyrro): Move this recursive map call to `core.fs`
         vim.loop.fs_scandir(path, function(err, handle)
             assert(not err, neorg.lib.lazy_string_concat("Failed to scan directory '", path, "': ", err))
 
