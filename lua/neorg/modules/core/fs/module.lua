@@ -8,6 +8,16 @@
 local module = neorg.modules.create("core.fs")
 
 module.public = {
+    directory_map = function(path, callback)
+        for name, type in vim.fs.dir(path) do
+            if type == "directory" then
+                module.public.directory_map(table.concat({ path, "/", name }), callback)
+            else
+                callback(name, type, path)
+            end
+        end
+    end,
+
     --- Recursively copies a directory from one path to another
     ---@param old_path string #The path to copy
     ---@param new_path string #The new location. This function will not
