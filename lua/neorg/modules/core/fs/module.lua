@@ -15,10 +15,10 @@ module.public = {
     ---@return boolean #If true, the directory copying succeeded
     copy_directory = function(old_path, new_path)
         local file_permissions = tonumber("744", 8)
-        local ok = vim.loop.fs_mkdir(new_path, file_permissions)
+        local ok, err = vim.loop.fs_mkdir(new_path, file_permissions)
 
         if not ok then
-            log.error(("Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty?"):format(new_path))
+            log.error(("Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty? Formal error: %s"):format(new_path, err))
             return false
         end
 
