@@ -208,7 +208,11 @@ module.on_event = function(event)
 
                     if not ok then
                         halt = true
-                        log.error(("Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty? Formal error: %s"):format(new_path, err))
+                        log.error(
+                            (
+                                "Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty? Formal error: %s"
+                            ):format(path .. ".old", err)
+                        )
                         return
                     end
                 end
@@ -224,77 +228,63 @@ module.on_event = function(event)
         -- activate the concealer, which not only slows down performance notably but also causes errors.
         local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
 
-        -- TODO(vhyrro): Move this recursive map call to `core.fs`
-        vim.loop.fs_scandir(path, function(err, handle)
-            assert(not err, neorg.lib.lazy_string_concat("Failed to scan directory '", path, "': ", err))
+        local file_counter, parsed_counter = 0, 0
 
-            local file_counter, parsed_counter = 0, 0
+        -- TODO(vhyrro): Check if this works properly for nested subdirectories
+        module.required["core.fs"].directory_map(path, function(name, _)
+            if not vim.endswith(name, ".norg") then
+                return
+            end
 
-            while true do
-                local name, type = vim.loop.fs_scandir_next(handle)
+            file_counter = file_counter + 1
 
-                if not name then
-                    break
-                end
+            local function check_counters()
+                parsed_counter = parsed_counter + 1
 
-                if type == "file" and vim.endswith(name, ".norg") then
-                    file_counter = file_counter + 1
-
-                    local function check_counters()
-                        parsed_counter = parsed_counter + 1
-
-                        if parsed_counter >= file_counter then
-                            vim.schedule(
-                                neorg.lib.wrap(
-                                    vim.notify,
-                                    string.format("Successfully upgraded %d files!", file_counter)
-                                )
-                            )
-                        end
-                    end
-
-                    vim.schedule(function()
-                        local filepath = table.concat({ vim.fn.expand(path), "/", name })
-
-                        vim.opt.eventignore = "BufEnter"
-
-                        local buffer = vim.fn.bufadd(filepath)
-                        vim.fn.bufload(buffer)
-
-                        vim.opt.eventignore = old_event_ignore
-
-                        local output = table.concat(module.public.upgrade(buffer))
-
-                        vim.api.nvim_buf_delete(buffer, { force = true })
-
-                        vim.loop.fs_open(filepath, "w+", 438, function(fs_err, fd)
-                            assert(
-                                not fs_err,
-                                neorg.lib.lazy_string_concat(
-                                    "Failed to open file '",
-                                    filepath,
-                                    "' for upgrade: ",
-                                    fs_err
-                                )
-                            )
-
-                            vim.loop.fs_write(fd, output, 0, function(werr)
-                                assert(
-                                    not werr,
-                                    neorg.lib.lazy_string_concat(
-                                        "Failed to write to file '",
-                                        filepath,
-                                        "' for upgrade: ",
-                                        werr
-                                    )
-                                )
-
-                                check_counters()
-                            end)
-                        end)
-                    end)
+                if parsed_counter >= file_counter then
+                    vim.schedule(
+                        neorg.lib.wrap(vim.notify, string.format("Successfully upgraded %d files!", file_counter))
+                    )
                 end
             end
+
+            vim.schedule(function()
+                local filepath = table.concat({ path, "/", name })
+
+                vim.opt.eventignore = "BufEnter"
+
+                local output
+
+                local buffer = vim.fn.bufadd(filepath)
+
+                if not vim.api.nvim_buf_is_loaded(buffer) then
+                    vim.fn.bufload(buffer)
+
+                    vim.opt.eventignore = old_event_ignore
+
+                    output = table.concat(module.public.upgrade(buffer))
+
+                    vim.api.nvim_buf_delete(buffer, { force = true })
+                else
+                    output = table.concat(module.public.upgrade(buffer))
+                end
+
+                vim.loop.fs_open(filepath, "w+", 438, function(fs_err, fd)
+                    assert(
+                        not fs_err,
+                        neorg.lib.lazy_string_concat("Failed to open file '", filepath, "' for upgrade: ", fs_err)
+                    )
+
+                    vim.loop.fs_write(fd, output, 0, function(werr)
+                        assert(
+                            not werr,
+                            neorg.lib.lazy_string_concat("Failed to write to file '", filepath, "' for upgrade: ", werr)
+                        )
+
+                        check_counters()
+                    end)
+                end)
+            end)
         end)
     elseif event.split_type[2] == "core.upgrade.all-workspaces" then
         local dirman = neorg.modules.get_module("core.norg.dirman")
