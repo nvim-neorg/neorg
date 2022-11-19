@@ -52,7 +52,6 @@ module.public = {
         local final_file = {}
         local line = 0
 
-        -- TODO(vhyrro): Fix tag parameters being squashed together
         ts.tree_map_rec(function(node)
             do
                 local start_row, start_col = node:start()
@@ -89,6 +88,10 @@ module.public = {
                     -- HACK: This is a workaround for the TS parser
                     -- not having a _line_break node after the tag declaration
                     return { text = table.concat({ text, "\n" }), stop = true }
+                end,
+
+                ["tag_parameters"] = function()
+                    return { text = ts.get_node_text(node, buffer), stop = true }
                 end,
 
                 ["todo_item_undone"] = { text = "( ) ", stop = true },
