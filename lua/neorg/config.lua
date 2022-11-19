@@ -14,7 +14,7 @@ neorg.configuration = {
     manual = nil,
     arguments = {},
 
-    version = "0.0.16",
+    version = "0.0.17",
     neovim_version = (function()
         require("neorg.external.helpers")
 

@@ -1,0 +1,26 @@
+* `0.0.17`
+** The Upgrade Tool is in!
+   /It's happening./
+
+   This is the first step of the incremental merge to new, shiny `1.0` syntax.
+   The first step is to create a tool that can convert from the old syntax to
+   the new one, introducing `core.upgrade`!
+
+   If you could, please try out the upgrade tool on some less important files:
+   - `:Neorg upgrade current-file` - upgrades the current file in-place (with the
+     option to create a backup)
+   - `:Neorg upgrade current-directory` - recursively upgrades all files in the
+     current directory (also asks to create a backup)
+
+   We'll give a slight grace period to users who want to test out the tool, submit
+   bug reports, missing features etc. After we feel the tool is capable enough we will
+   merge the {https://github.com/nvim-neorg/neorg/pull/621}[new syntax branch], after
+   which using the new syntax will be mandatory on the `main` branch.
+
+** GTD will be removed soon
+   Be warned! GTD is going to receive a /complete/ rewrite after the new syntax is merged,
+   that is, the whole of GTD will be removed. After the new syntax is merged, the `1.0`
+   version of Neorg will be released *without GTD*.
+
+   After this, GTD will become more performant, more integrated, and will use the latest
+   syntax niceties of `Norg 1.0`.
