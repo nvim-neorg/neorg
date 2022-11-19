@@ -65,9 +65,6 @@ module.load = function()
         for version, filepath in pairs(paths) do
             if is_version_greater_than(version, cached_neorg_version) then
                 log.trace("Version", version, "is greater than", cached_neorg_version)
-                if is_version_greater_than(version, module.private.latest_version) then
-                    module.private.latest_version = version
-                end
 
                 module.private.new_news[version] = filepath
             else
@@ -217,7 +214,6 @@ module.public = {
 module.private = {
     old_news = {},
     new_news = {},
-    latest_version = neorg.configuration.version,
 }
 
 module.on_event = function(event)
@@ -228,7 +224,7 @@ module.on_event = function(event)
             )
 
             module.required["core.storage"].store(module.name, {
-                news_state = module.private.latest_version,
+                news_state = neorg.configuration.version,
             })
         end,
 
@@ -240,7 +236,7 @@ module.on_event = function(event)
             module.public.create_display(module.public.get_content(module.private.new_news))
 
             module.required["core.storage"].store(module.name, {
-                news_state = module.private.latest_version,
+                news_state = neorg.configuration.version,
             })
         end,
 
