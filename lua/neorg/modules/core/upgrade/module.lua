@@ -52,11 +52,13 @@ module.public = {
         local final_file = {}
         local line = 0
 
+        -- TODO(vhyrro): Fix tag parameters being squashed together
         ts.tree_map_rec(function(node)
             do
                 local start_row, start_col = node:start()
 
                 if line < start_row then
+                    -- TODO(vhyrro): Maybe account for tabs as well?
                     table.insert(final_file, string.rep(" ", start_col))
                 end
 
@@ -71,6 +73,8 @@ module.public = {
                         return { text = "&", stop = true }
                     elseif node:parent():type() == "inline_comment" then
                         return { text = "%", stop = true }
+                    else
+                        return { text = ts.get_node_text(node), stop = true }
                     end
                 end,
 
