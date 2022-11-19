@@ -69,6 +69,9 @@ module.load = function()
         for version, filepath in pairs(paths) do
             if is_version_greater_than(version, cached_neorg_version) then
                 log.trace("Version", version, "is greater than", cached_neorg_version)
+                if is_version_greater_than(version, module.private.latest_version) then
+                    module.private.latest_version = version
+                end
 
                 module.private.new_news[version] = filepath
             else
