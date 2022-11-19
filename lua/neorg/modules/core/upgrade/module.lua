@@ -50,12 +50,17 @@ module.public = {
         local ts = module.required["core.integrations.treesitter"]
 
         local final_file = {}
+        local line = 0
 
         ts.tree_map_rec(function(node)
-            local sibling = ts.get_ts_utils().get_previous_node(node, true, true)
+            do
+                local start_row, start_col = node:start()
 
-            if sibling and (sibling:start()) < (node:start()) then
-                table.insert(final_file, string.rep(" ", node:start()))
+                if line < start_row then
+                    table.insert(final_file, string.rep(" ", start_col))
+                end
+
+                line = start_row
             end
 
             local output = neorg.lib.match(node:type())({
