@@ -52,6 +52,12 @@ module.public = {
         local final_file = {}
 
         ts.tree_map_rec(function(node)
+            local sibling = ts.get_ts_utils().get_previous_node(node, true, true)
+
+            if sibling and (sibling:start()) < (node:start()) then
+                table.insert(final_file, string.rep(" ", node:start()))
+            end
+
             local output = neorg.lib.match(node:type())({
                 [{ "_open", "_close" }] = function()
                     if node:parent():type() == "spoiler" then
