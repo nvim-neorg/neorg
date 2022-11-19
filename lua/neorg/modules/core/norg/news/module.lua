@@ -32,8 +32,10 @@ module.config.public = {
 module.load = function()
     -- Get the cached Neorg version
     local cached_neorg_version = module.required["core.storage"].retrieve(module.name).news_state
+    log.trace("Retrieved cached version from storage:", cached_neorg_version)
 
     if not cached_neorg_version then
+        log.trace("Cached version not found, storing current one:", neorg.configuration.version)
         module.required["core.storage"].store(module.name, {
             news_state = neorg.configuration.version,
         })
@@ -58,8 +60,11 @@ module.load = function()
             entry = vim.loop.fs_scandir_next(data)
         end
 
+        log.trace("Collected news entries:", paths)
+
         for version, filepath in pairs(paths) do
             if is_version_greater_than(version, cached_neorg_version) then
+                log.trace("Version", version, "is greater than", cached_neorg_version)
                 if is_version_greater_than(version, module.private.latest_version) then
                     module.private.latest_version = version
                 end
