@@ -129,7 +129,7 @@ module.public = {
                             ".",
                             ts.get_node_text(name, buffer),
                             parameters and (" " .. ts.get_node_text(parameters, buffer)) or "",
-                            "\n",
+                            parameters and "" or "\n",
                         }),
                         stop = true,
                     }
