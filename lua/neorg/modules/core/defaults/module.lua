@@ -12,6 +12,7 @@ require("neorg.modules.base")
 return neorg.modules.create_meta(
     "core.defaults",
     "core.autocommands",
+    "core.clipboard",
     "core.integrations.treesitter",
     "core.itero",
     "core.keybinds",
