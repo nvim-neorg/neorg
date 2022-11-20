@@ -4,14 +4,41 @@ module.setup = function()
     return {
         requires = {
             "core.integrations.treesitter",
-        }
+        },
     }
 end
 
 module.load = function()
-    neorg.modules.await("core.keybinds", function(keybinds)
-        keybinds.register_keybinds(module.name, { "yank" })
-    end)
+    vim.api.nvim_create_autocmd("TextYankPost", {
+        callback = function(data)
+            if vim.api.nvim_buf_get_option(data.buf, "filetype") ~= "norg" then
+                return
+            end
+
+            local range = { vim.api.nvim_buf_get_mark(data.buf, "["), vim.api.nvim_buf_get_mark(data.buf, "]") }
+
+            for i = range[1][1], range[2][1] do
+                local node = module.required["core.integrations.treesitter"].get_first_node_on_line(data.buf, i)
+
+                while node:parent() do
+                    if module.private.callbacks[node:type()] then
+                        local register = vim.fn.getreg(vim.v.event.regname)
+
+                        vim.fn.setreg(
+                            vim.v.event.regname,
+                            neorg.lib.filter(module.private.callbacks[node:type()], function(_, cb)
+                                return cb(node, register, { i, range[2] })
+                            end)
+                        )
+
+                        return
+                    end
+
+                    node = node:parent()
+                end
+            end
+        end,
+    })
 end
 
 module.private = {
@@ -19,33 +46,10 @@ module.private = {
 }
 
 module.public = {
-    set_callback = function(node_type, func)
-        module.private.callbacks[node_type] = func
+    add_callback = function(node_type, func)
+        module.private.callbacks[node_type] = module.private.callbacks[node_type] or {}
+        table.insert(module.private.callbacks[node_type], func)
     end,
-}
-
-module.on_event = function(event)
-    if event.split_type[2] == "core.clipboard.yank" then
-        vim.api.nvim_feedkeys("y", "n", true)
-
-        local node = module.required["core.integrations.treesitter"].get_first_node_on_line(event.buffer, event.cursor_position[1] - 1)
-
-        while node:parent() do
-            if module.private.callbacks[node:type()] then
-                local register = vim.fn.getreg("\"")
-                vim.fn.setreg("\"", module.private.callbacks[node:type()](node, register) or register)
-                return
-            end
-
-            node = node:parent()
-        end
-    end
-end
-
-module.events.subscribed = {
-    ["core.keybinds"] = {
-        ["core.clipboard.yank"] = true,
-    },
 }
 
 return module

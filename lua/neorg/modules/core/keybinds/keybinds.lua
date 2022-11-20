@@ -70,8 +70,6 @@ module.config.public = {
 
                     { ">>", "core.promo.promote", "nested" },
                     { "<<", "core.promo.demote", "nested" },
-
-                    { "y", "core.clipboard.yank" },
                 },
 
                 i = {
@@ -80,6 +78,7 @@ module.config.public = {
                     { "<M-CR>", "core.itero.next-iteration" },
                 },
 
+                -- TODO: Readd these
                 -- v = {
                 --     { ">>", ":<cr><cmd>Neorg keybind all core.promo.promote_range<cr>" },
                 --     { "<<", ":<cr><cmd>Neorg keybind all core.promo.demote_range<cr>" },
