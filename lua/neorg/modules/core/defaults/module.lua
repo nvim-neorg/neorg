@@ -13,7 +13,6 @@ return neorg.modules.create_meta(
     "core.defaults",
     "core.autocommands",
     "core.clipboard",
-    "core.clipboard.code-blocks",
     "core.integrations.treesitter",
     "core.itero",
     "core.keybinds",

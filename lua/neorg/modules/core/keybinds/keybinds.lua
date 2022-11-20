@@ -70,6 +70,8 @@ module.config.public = {
 
                     { ">>", "core.promo.promote", "nested" },
                     { "<<", "core.promo.demote", "nested" },
+
+                    { "y", "core.clipboard.yank" },
                 },
 
                 i = {
