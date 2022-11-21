@@ -164,8 +164,9 @@ module.on_event = function(event)
             -- Here we make sure that this is not the case
             local executed = false
 
+            vim.notify("Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?")
             vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
-                prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?\n",
+                prompt = "Create backup?",
             }, function(_, idx)
                 executed = true
 
