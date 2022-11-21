@@ -160,10 +160,15 @@ module.on_event = function(event)
 
         if module.config.public.ask_for_backup then
             local halt = false
+            -- HACK: Some `vim.ui.select` overrides make the function async.
+            -- Here we make sure that this is not the case
+            local executed = false
 
             vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
                 prompt = "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?\n",
             }, function(_, idx)
+                executed = true
+
                 if idx == 1 then
                     local ok, err = vim.loop.fs_copyfile(path, path .. ".old")
 
@@ -174,6 +179,9 @@ module.on_event = function(event)
                     end
                 end
             end)
+
+            while not executed do
+            end
 
             if halt then
                 return
