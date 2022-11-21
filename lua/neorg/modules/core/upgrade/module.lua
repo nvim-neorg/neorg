@@ -233,6 +233,8 @@ module.on_event = function(event)
             vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
                 prompt = "Create backup?",
             }, function(_, idx)
+                executed = true
+
                 if idx == 1 then
                     local ok, err = module.required["core.fs"].copy_directory(path, path .. ".old")
 
