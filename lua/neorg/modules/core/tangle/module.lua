@@ -221,12 +221,12 @@ module.public = {
             ]],
             tagged = [[
                 (ranged_verbatim_tag
-                    [(strong_attribute_set
-                        (strong_attribute
+                    [(strong_carryover_set
+                        (strong_carryover
                           name: (tag_name) @_strong_carryover_tag_name
                           (#eq? @_strong_carryover_tag_name "tangle")))
-                     (weak_attribute_set
-                        (weak_attribute
+                     (weak_carryover_set
+                        (weak_carryover
                           name: (tag_name) @_weak_carryover_tag_name
                           (#eq? @_weak_carryover_tag_name "tangle")))]
                   name: (tag_name) @_name

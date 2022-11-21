@@ -519,8 +519,8 @@ module.public = {
                 end
             end,
 
-            ["strong_attribute"] = "",
-            ["weak_attribute"] = "",
+            ["strong_carryover"] = "",
+            ["weak_carryover"] = "",
 
             ["key"] = true,
 

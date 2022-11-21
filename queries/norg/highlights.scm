@@ -17,13 +17,13 @@
   content: (ranged_verbatim_tag_content)? @neorg.tags.comment.content)
 
 (paragraph
-  (strong_attribute_set
-    (strong_attribute
+  (strong_carryover_set
+    (strong_carryover
       name: (tag_name) @_name
       (#eq? @_name "comment")))
   (paragraph_segment) @neorg.tags.comment.content)
 
-(strong_attribute
+(strong_carryover
   ("_prefix" @neorg.tags.carryover.begin)
   name: (tag_name
           [(word) @neorg.tags.carryover.name.word

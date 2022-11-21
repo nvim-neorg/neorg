@@ -382,7 +382,7 @@ module.public = {
         if
             not tag_node
             or not vim.tbl_contains(
-                { "ranged_tag", "ranged_verbatim_tag", "weak_attribute", "strong_attribute" },
+                { "ranged_tag", "ranged_verbatim_tag", "weak_carryover", "strong_carryover" },
                 tag_node:type()
             )
         then
@@ -398,9 +398,9 @@ module.public = {
         -- Iterate over all children of the tag node
         for child, _ in tag_node:iter_children() do
             -- If we are dealing with a weak/strong attribute set then parse that set
-            if vim.endswith(child:type(), "_attribute_set") then
+            if vim.endswith(child:type(), "_carryover_set") then
                 for subchild in child:iter_children() do
-                    if vim.endswith(subchild:type(), "_attribute") then
+                    if vim.endswith(subchild:type(), "_carryover") then
                         local meta = module.public.get_tag_info(subchild)
 
                         if

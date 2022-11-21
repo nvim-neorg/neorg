@@ -442,13 +442,13 @@ module.public = {
                 local query_str = neorg.lib.match(parsed_link_information.link_type)({
                     generic = [[
                         (_
-                          [(strong_attribute_set
-                             (strong_attribute
+                          [(strong_carryover_set
+                             (strong_carryover
                                name: (tag_name) @tag_name
                                (tag_parameters) @title
                                (#eq? @tag_name "name")))
-                           (weak_attribute_set
-                             (weak_attribute
+                           (weak_carryover_set
+                             (weak_carryover
                                name: (tag_name) @tag_name
                                (tag_parameters) @title
                                (#eq? @tag_name "name")))]?
@@ -458,26 +458,26 @@ module.public = {
                     [{ "definition", "footnote" }] = string.format(
                         [[
                             [(single_%s
-                               [(strong_attribute_set
-                                  (strong_attribute
+                               [(strong_carryover_set
+                                  (strong_carryover
                                     name: (tag_name) @tag_name
                                     (tag_parameters) @title
                                     (#eq? @tag_name "name")))
-                                (weak_attribute_set
-                                  (weak_attribute
+                                (weak_carryover_set
+                                  (weak_carryover
                                     name: (tag_name) @tag_name
                                     (tag_parameters) @title
                                     (#eq? @tag_name "name")))]?
                                (single_%s_prefix)
                                title: (paragraph_segment) @title)
                              (multi_%s
-                               [(strong_attribute_set
-                                  (strong_attribute
+                               [(strong_carryover_set
+                                  (strong_carryover
                                    name: (tag_name) @tag_name
                                    (tag_parameters) @title
                                    (#eq? @tag_name "name")))
-                                (weak_attribute_set
-                                  (weak_attribute
+                                (weak_carryover_set
+                                  (weak_carryover
                                     name: (tag_name) @tag_name
                                     (tag_parameters) @title
                                     (#eq? @tag_name "name")))]?
@@ -489,13 +489,13 @@ module.public = {
                     _ = string.format(
                         [[
                             (%s
-                              [(strong_attribute_set
-                                 (strong_attribute
+                              [(strong_carryover_set
+                                 (strong_carryover
                                    name: (tag_name) @tag_name
                                    (tag_parameters) @title
                                    (#eq? @tag_name "name")))
-                               (weak_attribute_set
-                                 (weak_attribute
+                               (weak_carryover_set
+                                 (weak_carryover
                                    name: (tag_name) @tag_name
                                    (tag_parameters) @title
                                    (#eq? @tag_name "name")))]?
@@ -604,13 +604,13 @@ module.private = {
     fix_link_loose = function(parsed_link_information)
         local generic_query = [[
             (_
-              [(strong_attribute_set
-                 (strong_attribute
+              [(strong_carryover_set
+                 (strong_carryover
                    name: (tag_name) @tag_name
                    (tag_parameters) @title
                    (#eq? @tag_name "name")))
-               (weak_attribute_set
-                 (weak_attribute
+               (weak_carryover_set
+                 (weak_carryover
                    name: (tag_name) @tag_name
                    (tag_parameters) @title
                    (#eq? @tag_name "name")))]?
@@ -627,13 +627,13 @@ module.private = {
         local query = neorg.lib.match(parsed_link_information.link_type)({
             generic = [[
                 (_
-                  [(strong_attribute_set
-                     (strong_attribute
+                  [(strong_carryover_set
+                     (strong_carryover
                        name: (tag_name) @tag_name
                        (tag_parameters) @title
                        (#eq? @tag_name "name")))
-                   (weak_attribute_set
-                     (weak_attribute
+                   (weak_carryover_set
+                     (weak_carryover
                        name: (tag_name) @tag_name
                        (tag_parameters) @title
                        (#eq? @tag_name "name")))]?
@@ -642,26 +642,26 @@ module.private = {
             [{ "definition", "footnote" }] = string.format(
                 [[
                 [(single_%s
-                   [(strong_attribute_set
-                      (strong_attribute
+                   [(strong_carryover_set
+                      (strong_carryover
                         name: (tag_name) @tag_name
                         (tag_parameters) @title
                         (#eq? @tag_name "name")))
-                    (weak_attribute_set
-                      (weak_attribute
+                    (weak_carryover_set
+                      (weak_carryover
                         name: (tag_name) @tag_name
                         (tag_parameters) @title
                         (#eq? @tag_name "name")))]?
                    (single_%s_prefix)
                    title: (paragraph_segment) @title)
                  (multi_%s
-                   [(strong_attribute_set
-                      (strong_attribute
+                   [(strong_carryover_set
+                      (strong_carryover
                        name: (tag_name) @tag_name
                        (tag_parameters) @title
                        (#eq? @tag_name "name")))
-                    (weak_attribute_set
-                      (weak_attribute
+                    (weak_carryover_set
+                      (weak_carryover
                         name: (tag_name) @tag_name
                         (tag_parameters) @title
                         (#eq? @tag_name "name")))]?
@@ -673,13 +673,13 @@ module.private = {
             _ = string.format(
                 [[
                     (%s
-                       [(strong_attribute_set
-                          (strong_attribute
+                       [(strong_carryover_set
+                          (strong_carryover
                             name: (tag_name) @tag_name
                             (tag_parameters) @title
                             (#eq? @tag_name "name")))
-                        (weak_attribute_set
-                          (weak_attribute
+                        (weak_carryover_set
+                          (weak_carryover
                             name: (tag_name) @tag_name
                             (tag_parameters) @title
                             (#eq? @tag_name "name")))]?
