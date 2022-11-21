@@ -7,7 +7,6 @@
 
 require("neorg.modules.base")
 
-
 local module = neorg.modules.create("core.presenter")
 local api = vim.api
 

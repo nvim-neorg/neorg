@@ -300,7 +300,7 @@ module.public = {
         })
 
         if config == nil then
-            config = {ft = "norg"}
+            config = { ft = "norg" }
         else
             config.ft = "norg"
         end
