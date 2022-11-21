@@ -211,10 +211,9 @@ module.on_event = function(event)
         do
             local halt = false
 
+            vim.notify(("Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!"):format(path))
             vim.ui.select({ "This is the right directory", "I'd like to change it" }, {
-                prompt = (
-                    "Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!\n"
-                ):format(path),
+                prompt = "Change directory?",
             }, function(_, idx)
                 halt = (idx ~= 1)
             end)
@@ -226,9 +225,13 @@ module.on_event = function(event)
 
         if module.config.public.ask_for_backup then
             local halt = false
+            -- HACK: Some `vim.ui.select` overrides make the function async.
+            -- Here we make sure that this is not the case
+            local executed = false
 
+            vim.notify("\nUpgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this directory?")
             vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
-                prompt = "\nUpgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this directory?\n",
+                prompt = "Create backup?",
             }, function(_, idx)
                 if idx == 1 then
                     local ok, err = module.required["core.fs"].copy_directory(path, path .. ".old")
@@ -244,6 +247,9 @@ module.on_event = function(event)
                     end
                 end
             end)
+
+            while not executed do
+            end
 
             if halt then
                 return
