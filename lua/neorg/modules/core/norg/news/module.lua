@@ -30,6 +30,10 @@ module.config.public = {
 }
 
 module.load = function()
+    if not module.config.public.check_news then
+        return
+    end
+
     -- Get the cached Neorg version
     local cached_neorg_version = module.required["core.storage"].retrieve(module.name).news_state
     log.trace("Retrieved cached version from storage:", cached_neorg_version)
