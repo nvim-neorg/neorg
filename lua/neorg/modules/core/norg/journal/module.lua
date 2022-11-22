@@ -129,10 +129,16 @@ module.private = {
             time
         )
 
+        local workspace = workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
         local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
 
         local journal_file_exists = module.required["core.norg.dirman"].file_exists(
             workspace_path .. "/" .. folder_name .. neorg.configuration.pathsep .. path
+        )
+
+        module.required["core.norg.dirman"].create_file(
+            folder_name .. neorg.configuration.pathsep .. path,
+            workspace
         )
 
         module.required["core.norg.dirman"].create_file(folder_name .. neorg.configuration.pathsep .. path, workspace)
