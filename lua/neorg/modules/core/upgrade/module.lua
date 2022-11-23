@@ -161,7 +161,9 @@ module.on_event = function(event)
         if module.config.public.ask_for_backup then
             local halt = false
 
-            vim.notify("Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?")
+            vim.notify(
+                "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?"
+            )
             vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
                 prompt = "Create backup?",
             }, function(_, idx)
@@ -203,7 +205,11 @@ module.on_event = function(event)
         do
             local halt = false
 
-            vim.notify(("Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!"):format(path))
+            vim.notify(
+                ("Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!"):format(
+                    path
+                )
+            )
             vim.ui.select({ "This is the right directory", "I'd like to change it" }, {
                 prompt = "Change directory?",
             }, function(_, idx)
@@ -218,7 +224,9 @@ module.on_event = function(event)
         if module.config.public.ask_for_backup then
             local halt = false
 
-            vim.notify("\nUpgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this directory?")
+            vim.notify(
+                "\nUpgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this directory?"
+            )
             vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
                 prompt = "Create backup?",
             }, function(_, idx)

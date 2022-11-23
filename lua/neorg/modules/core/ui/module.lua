@@ -299,11 +299,8 @@ module.public = {
             opts = { opts, "table", true },
         })
 
-        if config == nil then
-            config = { ft = "norg" }
-        else
-            config.ft = "norg"
-        end
+        config = config or {}
+        config.ft = "norg"
 
         opts = vim.tbl_deep_extend(
             "force",
