@@ -268,6 +268,8 @@ module.on_event = function(event)
             end
         end,
     })
+
+    module.required["core.storage"].flush()
 end
 
 return module
