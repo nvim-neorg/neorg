@@ -137,7 +137,7 @@ module.public = {
 
                 _ = function()
                     if node:child_count() == 0 then
-                        return { text = ts.get_node_text(node, buffer), stop = true }
+                        return { text = ts.get_node_text(node, buffer) or "", stop = true }
                     end
                 end,
             })
