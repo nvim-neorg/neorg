@@ -284,6 +284,11 @@ module.public = {
 
         local eof_row = vim.api.nvim_buf_line_count(source)
 
+        if end_row >= eof_row then
+            end_row = eof_row - 1
+            end_col = -1
+        end
+
         if start_row >= eof_row then
             return nil
         end
