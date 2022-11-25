@@ -102,9 +102,9 @@ end
 module.private = {
     --- Opens a diary entry at the given time
     ---@param time number #The time to open the journal entry at as returned by `os.time()`
-    ---@param custom_date string #A YYYY-mm-dd string that specifies a date to open the diary at instead
+    ---@param custom_date? string #A YYYY-mm-dd string that specifies a date to open the diary at instead
     open_diary = function(time, custom_date)
-        local workspace = module.config.public.workspace
+        local workspace = module.config.public.workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
         local folder_name = module.config.public.journal_folder
         local template_name = module.config.public.template_name
 
@@ -129,7 +129,6 @@ module.private = {
             time
         )
 
-        local workspace = workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
         local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
 
         local journal_file_exists = module.required["core.norg.dirman"].file_exists(

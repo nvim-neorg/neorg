@@ -298,6 +298,11 @@ module.public = {
             config = { config, "table", true },
             opts = { opts, "table", true },
         })
+
+        config = vim.tbl_deep_extend("keep", config or {}, {
+            ft = "norg",
+        })
+
         opts = vim.tbl_deep_extend(
             "force",
             { keybinds = true, del_on_autocommands = { "BufLeave", "BufDelete", "BufUnload" } },
