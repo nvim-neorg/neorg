@@ -299,8 +299,9 @@ module.public = {
             opts = { opts, "table", true },
         })
 
-        config = config or {}
-        config.ft = "norg"
+        config = vim.tbl_deep_extend("keep", config or {}, {
+            ft = "norg",
+        })
 
         opts = vim.tbl_deep_extend(
             "force",
