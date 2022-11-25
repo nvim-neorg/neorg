@@ -73,7 +73,7 @@ module.public = {
                     elseif node:parent():type() == "inline_comment" then
                         return { text = "%", stop = true }
                     else
-                        return { text = ts.get_node_text(node), stop = true }
+                        return { text = ts.get_node_text(node, buffer), stop = true }
                     end
                 end,
 
@@ -137,7 +137,7 @@ module.public = {
 
                 _ = function()
                     if node:child_count() == 0 then
-                        return { text = ts.get_node_text(node, buffer), stop = true }
+                        return { text = ts.get_node_text(node, buffer) or "", stop = true }
                     end
                 end,
             })

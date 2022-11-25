@@ -284,6 +284,11 @@ module.public = {
 
         local eof_row = vim.api.nvim_buf_line_count(source)
 
+        if end_row >= eof_row then
+            end_row = eof_row - 1
+            end_col = -1
+        end
+
         if start_row >= eof_row then
             return nil
         end
@@ -679,7 +684,13 @@ module.on_event = function(event)
             module.public.goto_previous_query_match(module.private.link_query)
         end
     elseif event.split_type[2] == "sync-parsers" then
-        pcall(vim.cmd, "TSInstall! norg")
+        local ok = pcall(vim.cmd, "TSInstall! norg")
+
+        if not ok then
+            vim.notify([[Unable to install norg parser.
+]])
+        end
+
         pcall(vim.cmd, "TSInstall! norg_meta")
     end
 end

@@ -108,6 +108,11 @@ module.load = function()
                         name = "news.all",
                         args = 0,
                     },
+
+                    dismiss = {
+                        name = "news.dismiss",
+                        args = 0,
+                    },
                 },
             },
         }
@@ -128,6 +133,8 @@ New news for versions: %s
 
 Run `:Neorg news new <version>` to see the latest news for that specific version.
 To view news for all new versions run `:Neorg news new` without arguments.
+
+To ignore the news for this version run `:Neorg news dismiss`.
                 ]],
                     table.concat(new_keys, ", ")
                 ))
@@ -244,6 +251,14 @@ module.on_event = function(event)
             })
         end,
 
+        ["news.dismiss"] = function()
+            module.required["core.storage"].store(module.name, {
+                news_state = neorg.configuration.version,
+            })
+
+            vim.notify("Dismissed all news!")
+        end,
+
         _ = function()
             if vim.startswith(event.split_type[2], "news.new.") then
                 local version = event.split_type[2]:sub(string.len("news.new.") + 1)
@@ -268,6 +283,8 @@ module.on_event = function(event)
             end
         end,
     })
+
+    module.required["core.storage"].flush()
 end
 
 return module
