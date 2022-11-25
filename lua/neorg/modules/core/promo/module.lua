@@ -80,7 +80,12 @@ module.public = {
         local prefix = module.public.get_promotable_node_prefix(node)
 
         if not prefix then
-            vim.api.nvim_feedkeys(mode == "promote" and table.concat({ tostring(vim.v.count), ">>" }) or table.concat({ vim.v.count, "<<" }), "n", false)
+            vim.api.nvim_feedkeys(
+                mode == "promote" and table.concat({ tostring(vim.v.count), ">>" })
+                    or table.concat({ vim.v.count, "<<" }),
+                "n",
+                false
+            )
             return
         end
 

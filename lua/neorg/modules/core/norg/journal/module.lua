@@ -136,10 +136,7 @@ module.private = {
             workspace_path .. "/" .. folder_name .. neorg.configuration.pathsep .. path
         )
 
-        module.required["core.norg.dirman"].create_file(
-            folder_name .. neorg.configuration.pathsep .. path,
-            workspace
-        )
+        module.required["core.norg.dirman"].create_file(folder_name .. neorg.configuration.pathsep .. path, workspace)
 
         if
             not journal_file_exists
