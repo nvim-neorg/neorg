@@ -206,9 +206,9 @@ module.on_event = function(event)
             local halt = false
 
             vim.notify(
-                (
-                    "Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!"
-                ):format(path)
+                ("Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!"):format(
+                    path
+                )
             )
             vim.ui.select({ "This is the right directory", "I'd like to change it" }, {
                 prompt = "Change directory?",
@@ -236,9 +236,10 @@ module.on_event = function(event)
                     if not ok then
                         halt = true
                         log.error(
-                            (
-                                "Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty? Formal error: %s"
-                            ):format(path .. ".old", err)
+                            ("Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty? Formal error: %s"):format(
+                                path .. ".old",
+                                err
+                            )
                         )
                         return
                     end
