@@ -137,7 +137,7 @@ module.public = {
 
     --- Sets the workspace to the one specified (if it exists) and broadcasts the workspace_changed event
     ---@return boolean True if the workspace is set correctly, false otherwise
-    ---@param ws_name name #The name of a valid namespace we want to switch to
+    ---@param ws_name string #The name of a valid namespace we want to switch to
     set_workspace = function(ws_name)
         -- Grab the workspace location
         local workspace = module.config.public.workspaces[ws_name]
