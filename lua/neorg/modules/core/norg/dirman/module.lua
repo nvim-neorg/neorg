@@ -18,7 +18,6 @@ require('neorg').setup {
                     my_ws = "~/neorg", -- Format: <name_of_workspace> = <path_to_workspace_root>
                     my_other_notes = "~/work/notes",
                 },
-                autochdir = true, -- Automatically change the directory to the current workspace's root every time
                 index = "index.norg", -- The name of the main (root) .norg file
             }
         }
@@ -27,6 +26,10 @@ require('neorg').setup {
 ```
 
 To query the current workspace, run `:Neorg workspace`. To set the workspace, run `:Neorg workspace <workspace_name>`.
+
+### Changing the current working directory
+After a recent update dirman will no longer change the current working directory after switching workspace.
+To get the best experience it's recommended to set the `autochdir` Neovim option.
 --]]
 
 require("neorg.modules.base")
@@ -52,9 +55,6 @@ module.load = function()
 
     -- Used to detect when we've entered a buffer with a potentially different cwd
     module.required["core.autocommands"].enable_autocommand("BufEnter", true)
-
-    -- Enable the DirChanged autocmd to detect changes to the cwd
-    module.required["core.autocommands"].enable_autocommand("DirChanged", true)
 
     -- Enable the VimLeavePre autocommand to write the last workspace to disk
     module.required["core.autocommands"].enable_autocommand("VimLeavePre", true)
@@ -93,9 +93,6 @@ module.config.public = {
     workspaces = {
         default = vim.fn.getcwd(),
     },
-
-    -- Automatically change the directory to the root of the workspace every time
-    autochdir = false,
 
     -- The name for the index file
     index = "index.norg",
@@ -462,34 +459,6 @@ module.public = {
 }
 
 module.on_event = function(event)
-    -- If the workspace has changed then
-    if event.type == "core.norg.dirman.events.workspace_changed" then
-        -- Grab the current working directory and the current workspace
-        local new_cwd = vim.fn.getcwd()
-        local current_workspace = module.public.get_current_workspace()
-
-        -- If the current working directory is not the same as the workspace root then set it
-        if current_workspace[2] ~= new_cwd then
-            vim.cmd("lcd! " .. current_workspace[2])
-        end
-    end
-
-    -- If the user has changed directories and the autochdir flag is set then
-    if event.type == "core.autocommands.events.dirchanged" then
-        -- Grab the current working directory and the current workspace
-        local new_cwd = vim.fn.getcwd()
-        local current_workspace = module.public.get_current_workspace()
-
-        -- If the current workspace is not the default and if the cwd is not the same as the workspace root then set it
-        if module.config.public.autochdir and current_workspace[1] ~= "default" and current_workspace[2] ~= new_cwd then
-            vim.cmd("lcd! " .. current_workspace[2])
-            return
-        end
-
-        -- Upon changing a directory attempt to perform a match
-        module.public.update_cwd()
-    end
-
     -- Just before we leave Neovim make sure to cache the last workspace we were in (as long as that workspace wasn't "default")
     if
         event.type == "core.autocommands.events.vimleavepre"
