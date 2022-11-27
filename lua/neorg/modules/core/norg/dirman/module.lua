@@ -56,27 +56,6 @@ module.load = function()
     -- Used to detect when we've entered a buffer with a potentially different cwd
     module.required["core.autocommands"].enable_autocommand("BufEnter", true)
 
-    -- Enable the VimLeavePre autocommand to write the last workspace to disk
-    module.required["core.autocommands"].enable_autocommand("VimLeavePre", true)
-
-    -- If the user has supplied a custom workspace to start in (i.e. :NeorgStart workspace=<name>)
-    -- then load that custom workspace here
-    if not neorg.configuration.arguments.silent then
-        if neorg.configuration.arguments.workspace then
-            module.public.open_workspace(neorg.configuration.arguments.workspace)
-            vim.notify("Start in custom workspace -> " .. neorg.configuration.arguments.workspace)
-        elseif neorg.configuration.manual then
-            if module.config.public.open_last_workspace then
-                -- If we have loaded this module by invoking :NeorgStart then try jumping
-                -- to the last cached workspace
-                module.public.set_last_workspace()
-            elseif module.config.public.default_workspace then
-                -- If we don't want to open the last workspace then we can load the default workspace instead.
-                module.public.set_workspace(module.config.public.default_workspace)
-            end
-        end
-    end
-
     module.required["core.neorgcmd"].add_commands_from_table({
         index = {
             args = 0,
@@ -86,6 +65,24 @@ module.load = function()
 
     -- Synchronize core.neorgcmd autocompletions
     module.public.sync()
+
+    if module.config.public.open_last_workspace and vim.fn.argc(-1) == 0 then
+        if module.config.public.open_last_workspace == "default" then
+            if not module.config.public.default_workspace then
+                log.warn(
+                    'Configuration error in `core.norg.dirman`: the `open_last_workspace` option is set to "default", but no default workspace is provided in the `default_workspace` configuration variable. Defaulting to opening the last known workspace.'
+                )
+                module.public.set_last_workspace()
+                return
+            end
+
+            module.public.open_workspace(module.config.public.default_workspace)
+        else
+            module.public.set_last_workspace()
+        end
+    elseif module.config.public.default_workspace then
+        module.public.set_workspace(module.config.public.default_workspace)
+    end
 end
 
 module.config.public = {
@@ -97,13 +94,14 @@ module.config.public = {
     -- The name for the index file
     index = "index.norg",
 
-    -- The default workspace to load into when running `:NeorgStart`
-    -- This is only used whenever Neorg does not remember your previous
-    -- workspace
+    -- The default workspace to set whenever Neovim starts.
     default_workspace = nil,
 
-    -- Whether to open the last workspace when running `:NeorgStart`
-    open_last_workspace = true,
+    -- Whether to open the last workspace's index file when `nvim` is executed
+    -- without arguments.
+    -- May also be set to the string `"default"`, due to which Neorg will always
+    -- open up the index file for the workspace defined in `default_workspace`.
+    open_last_workspace = false,
 }
 
 module.private = {
@@ -112,7 +110,6 @@ module.private = {
 
 ---@class core.norg.dirman
 module.public = {
-
     get_workspaces = function()
         return module.config.public.workspaces
     end,
@@ -155,6 +152,10 @@ module.public = {
 
         -- Set the current workspace to the new workspace object we constructed
         module.private.current_workspace = new_workspace
+
+        if ws_name ~= "default" then
+            module.required["core.storage"].store("last_workspace", ws_name)
+        end
 
         -- Broadcast the workspace_changed event with all the necessary information
         neorg.events.broadcast_event(
@@ -228,8 +229,9 @@ module.public = {
         return result:len() ~= 0 and result or "default"
     end,
 
-    --- Uses the get_workspace_match() function to determine the root of the workspace, then changes into that directory
-    update_cwd = function()
+    --- Uses the `get_workspace_match()` function to determine the root of the workspace based on the
+    --- current working directory, then changes into that workspace
+    set_closest_workspace_match = function()
         -- Get the closest workspace match
         local ws_match = module.public.get_workspace_match()
 
@@ -459,19 +461,6 @@ module.public = {
 }
 
 module.on_event = function(event)
-    -- Just before we leave Neovim make sure to cache the last workspace we were in (as long as that workspace wasn't "default")
-    if
-        event.type == "core.autocommands.events.vimleavepre"
-        and module.public.get_current_workspace()[1] ~= "default"
-    then
-        -- Attempt to write the last workspace to the cache file
-        local storage = neorg.modules.get_module("core.storage")
-
-        if storage then
-            storage.store("last_workspace", module.public.get_current_workspace()[1])
-        end
-    end
-
     -- If somebody has executed the :Neorg workspace command then
     if event.type == "core.neorgcmd.events.dirman.workspace" then
         -- Have we supplied an argument?
@@ -479,9 +468,13 @@ module.on_event = function(event)
             module.public.open_workspace(event.content[1])
 
             vim.schedule(function()
-                vim.notify(
-                    "New Workspace: " .. event.content[1] .. " -> " .. module.public.get_workspace(event.content[1])
-                )
+                local new_workspace = module.public.get_workspace(event.content[1])
+
+                if not new_workspace then
+                    return
+                end
+
+                vim.notify("New Workspace: " .. event.content[1] .. " -> " .. new_workspace)
             end)
         else -- No argument supplied, simply print the current workspace
             -- Query the current workspace
@@ -523,11 +516,6 @@ module.on_event = function(event)
             col = 0,
         })
     end
-
-    -- If we've entered a different buffer then update the cwd for that buffer's window
-    if event.type == "core.autocommands.events.bufenter" and not event.content.norg then
-        module.public.update_cwd()
-    end
 end
 
 module.events.defined = {
@@ -538,8 +526,6 @@ module.events.defined = {
 
 module.events.subscribed = {
     ["core.autocommands"] = {
-        dirchanged = true,
-        vimleavepre = true,
         bufenter = true,
     },
 
