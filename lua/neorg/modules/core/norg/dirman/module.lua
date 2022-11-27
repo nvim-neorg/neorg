@@ -56,6 +56,27 @@ module.load = function()
     -- Used to detect when we've entered a buffer with a potentially different cwd
     module.required["core.autocommands"].enable_autocommand("BufEnter", true)
 
+    -- Enable the VimLeavePre autocommand to write the last workspace to disk
+    module.required["core.autocommands"].enable_autocommand("VimLeavePre", true)
+
+    -- If the user has supplied a custom workspace to start in (i.e. :NeorgStart workspace=<name>)
+    -- then load that custom workspace here
+    if not neorg.configuration.arguments.silent then
+        if neorg.configuration.arguments.workspace then
+            module.public.open_workspace(neorg.configuration.arguments.workspace)
+            vim.notify("Start in custom workspace -> " .. neorg.configuration.arguments.workspace)
+        elseif neorg.configuration.manual then
+            if module.config.public.open_last_workspace then
+                -- If we have loaded this module by invoking :NeorgStart then try jumping
+                -- to the last cached workspace
+                module.public.set_last_workspace()
+            elseif module.config.public.default_workspace then
+                -- If we don't want to open the last workspace then we can load the default workspace instead.
+                module.public.set_workspace(module.config.public.default_workspace)
+            end
+        end
+    end
+
     module.required["core.neorgcmd"].add_commands_from_table({
         index = {
             args = 0,
@@ -461,6 +482,19 @@ module.public = {
 }
 
 module.on_event = function(event)
+    -- Just before we leave Neovim make sure to cache the last workspace we were in (as long as that workspace wasn't "default")
+    if
+        event.type == "core.autocommands.events.vimleavepre"
+        and module.public.get_current_workspace()[1] ~= "default"
+    then
+        -- Attempt to write the last workspace to the cache file
+        local storage = neorg.modules.get_module("core.storage")
+
+        if storage then
+            storage.store("last_workspace", module.public.get_current_workspace()[1])
+        end
+    end
+
     -- If somebody has executed the :Neorg workspace command then
     if event.type == "core.neorgcmd.events.dirman.workspace" then
         -- Have we supplied an argument?
