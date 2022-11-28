@@ -39,17 +39,19 @@ Your New Life Organization Tool - All in Lua
 
 </div>
 
-Neorg (_Neo_ - new, _org_ - organization) is a tool designed to reimagine organization as you know it.
+Neorg (_Neo_ - new, _org_ - organization) is a Neovim plugin designed to reimagine organization as you know it.
 Grab some coffee, start writing some notes, let your editor handle the rest.
 
-### Why do we need Neorg?
+### What is Neorg?
 
-There are currently projects designed to [clone org-mode from emacs](https://github.com/kristijanhusak/orgmode.nvim),
-then what is the goal of this project?
+Neorg is an all-encompassing tool based around structured note taking, project and task management, time
+tracking, slideshows, writing typeset documents and much more. The premise is that all of these features are
+built on top of a single base file format (`.norg`), which the user only has to learn once to gain access to
+all of Neorg's functionality.
 
-Whilst those projects are amazing, it's simply not enough for us. We need our _own, **better**_ solution -
-one that will surpass _every_ other text editor. It's through our frustration of no native solution for Neovim
-and inconsistencies in the most popular markup formats that Neorg was born.
+Not only does this yield a low barrier for entry for new users it also ensures that all features are integrated with each
+other and speak the same underlying language. The file format is built to be expressive and easy to parse,
+which also makes `.norg` files easily usable anywhere outside of Neorg itself.
 
 To learn more about the philosophy of the project check the [philosophy](#-philosophy) section.
 
@@ -82,25 +84,6 @@ To learn more about the philosophy of the project check the [philosophy](#-philo
 </details>
 
 <details>
-<summary>Manage your tasks and projects with the GTD module:</summary>
-
-- See your current projects
-
-![See your current projects](https://user-images.githubusercontent.com/76052559/151700321-e6912aff-2e87-409b-986e-dff37904b51b.gif)
-
-- Create a new task
-
-![Create a new task](https://user-images.githubusercontent.com/76052559/151699879-3a04518b-16e6-4eb4-b765-678a15b90fb4.gif)
-
-- Edit tasks in an efficient manner through the UI
-
-![Edit tasks in an efficient manner through the UI](https://user-images.githubusercontent.com/76052559/151700653-89c30e99-68e0-4873-8e1a-ecd25dd271c2.gif)
-
-And much more...
-
-</details>
-
-<details>
   <summary>Powerpoint-like presentations in Neovim with the presenter module:</summary>
 
 ![Powerpoint-like presentations in Neovim with the presenter module](https://user-images.githubusercontent.com/76052559/151674065-ed397716-9d26-4efc-9c2d-2dfdb5539edf.gif)
@@ -122,7 +105,9 @@ Plus fancy completion powered by `nvim-cmp`.
 
 You can install it through your favorite plugin manager:
 
-- [Packer](https://github.com/wbthomason/packer.nvim):
+- 
+  <details>
+  <summary><a href="https://github.com/wbthomason/packer.nvim">Packer</a></summary>
 
   ```lua
   use {
@@ -140,8 +125,8 @@ You can install it through your favorite plugin manager:
   That means that adding `tag = "*"` in Packer will update to latest stable release.
   
   You can also pin Neorg to one specific version through e.g. `tag = "0.0.9"`.
-  
-- [Packer (with lazyloading)](https://github.com/wbthomason/packer.nvim):
+
+  ---
 
   Want to lazy load? You can use the `ft` key to load Neorg only upon entering a `.norg` file:
 
@@ -163,7 +148,10 @@ You can install it through your favorite plugin manager:
   additional steps depending on how your lazyloading system and/or Neovim
   config is set up.
 
-- [vim-plug](https://github.com/junegunn/vim-plug):
+  </details>
+  
+- <details>
+  <summary><a href="https://github.com/junegunn/vim-plug">vim-plug</a></summary>
 
   ```vim
   Plug 'nvim-neorg/neorg' | Plug 'nvim-lua/plenary.nvim'
@@ -178,6 +166,8 @@ You can install it through your favorite plugin manager:
   }
   EOF
   ```
+
+  </details>
 
 ### Treesitter
 
@@ -375,10 +365,9 @@ If you ever end up making a module for Neorg feel free to make a pull request an
 Our goals are fairly simple:
 
 1. Revise the org format: simple, extensible, unambiguous. Will make you feel right at home. Alternate markup formats have several flaws, but the most
-   notable one is the requirement for **complex parsers**.
-   I really advise checking [some writeups](https://talk.commonmark.org/t/beyond-markdown/2787) out on how bad it can get at times.
+   notable one is the requirement for **complex and slow parsers**.
    What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
-   Enter the `.norg` file format, whose [base spec](https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg) is practically complete.
+   Enter the `.norg` file format, whose specification can be found [here](https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg).
    The cross between all the best things from org and the best things from markdown, revised and merged into one.
 
 2. Keybinds that _make sense_: vim's keybind philosophy is unlike any other, and we want to keep that vibe.
@@ -391,11 +380,6 @@ Our goals are fairly simple:
 4. Logic: everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
    two people asked for it.
    If something has a more niche use case, it should be documented.
-
-## 🗺 Roadmap
-
-We track a high-level roadmap, so that you can know what to expect. Just do `:h neorg-roadmap`.
-To know exactly what's being worked on, just check out the [repo's PRs](https://github.com/nvim-neorg/neorg/pulls).
 
 ## 📚 FAQ
 
