@@ -140,9 +140,9 @@ module.private = {
         if
             not journal_file_exists
             and module.config.public.use_template
-            and module.required["core.norg.dirman"].file_exists(folder_name .. "/" .. template_name)
+            and module.required["core.norg.dirman"].file_exists(workspace_path .. "/" .. folder_name .. "/" .. template_name)
         then
-            vim.cmd("0read " .. folder_name .. "/" .. template_name .. "| w")
+            vim.cmd("0read " .. workspace_path .. "/" .. folder_name .. "/" .. template_name .. "| w")
         end
     end,
 
