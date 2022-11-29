@@ -74,7 +74,7 @@ do
     local comments = {}
     local modes = {}
     local parameters = {}
-    local mnemonics = {}
+    -- local mnemonics = {}
     local line_positions = {}
     local last_comment_start
     local last_parameter_start
@@ -114,9 +114,8 @@ do
 
                     local stripped_subnode_text = subnode_text:gsub("^%s*%-%-%s*", "")
 
-                    if stripped_subnode_text:sub(1, 1) == "^" then
-                        -- TODO: Perform extra parsing on this string later on
-                        insert(mnemonics, stripped_subnode_text:sub(2))
+                    if stripped_subnode_text:sub(1, 1) == "^" and not had_mnemonic then
+                        -- TODO: Implement mnemonics
                     else
                         insert(current_comments, stripped_subnode_text)
                     end
@@ -144,7 +143,7 @@ do
         keybind_info[parameters[i][2]] = vim.tbl_extend("force", keybind_info[parameters[i][2]] or {}, {
             [parameters[i][3] or ""] = {
                 keybind = parameters[i][1],
-                mnemonic = mnemonics[i],
+                -- mnemonic = mnemonics[i],
                 mode = modes[i],
                 comments = comments[i],
                 linenr = line_positions[i],
@@ -527,9 +526,9 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                     if parsed_config_option:type() ~= "table_constructor" then
                                         if parsed_config_option:type() == "function_definition" then
                                             values = {
-                                                "  Default value: `function" .. ts.get_node_text(
-                                                    parsed_config_option:named_child(0)
-                                                ) .. "`",
+                                                "  Default value: `function"
+                                                    .. ts.get_node_text(parsed_config_option:named_child(0))
+                                                    .. "`",
                                             }
                                         else
                                             values = {
@@ -616,9 +615,8 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 metadata.keybind:gsub("^leader%s+%.%.%s+", "<NeorgLeader> + "):gsub('"', ""),
                                 "https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/keybinds.lua#L"
                                     .. tostring(metadata.linenr or 0),
-                                --[[metadata.mnemonic:len() > 0
-                                        and (" | _" .. metadata.mnemonic:gsub("%u", "**%0**") .. "_")
-                                    or]]
+                                -- metadata.mnemonic and metadata.mnemonic:len() > 0
+                                --         and (" | _" .. metadata.mnemonic:gsub("%u", "**%0**") .. "_"),
                                 "",
                                 keybind_param:len() > 0 and ('(with "' .. keybind_param .. '") ') or "",
                                 metadata.comments and metadata.comments[1] or "*No description*"
@@ -686,9 +684,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
 
                 if not vim.tbl_isempty(api) then
                     -- sort api in order to not shuffle each time we want to commit
-                    table.sort(
-                        api --[[@as table]]
-                    )
+                    table.sort(api --[[@as table]])
                     for function_name, item in pairs(api) do
                         if type(item) == "function" then
                             table.insert(results, "- `" .. function_name .. "`")
@@ -980,10 +976,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 table.insert(output, item)
             end
         elseif type(item) == "table" then
-            local query = docgen.get_module_queries(
-                buf, --[[@as number]]
-                item.query
-            )
+            local query = docgen.get_module_queries(buf, --[[@as number]] item.query)
 
             if query then
                 local ret = item.callback(query)
