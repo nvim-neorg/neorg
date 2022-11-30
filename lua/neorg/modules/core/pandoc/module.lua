@@ -1,9 +1,19 @@
 require("neorg.modules.base")
 
-local module = neorg.modules.create("pandoc")
+local module = neorg.modules.create("core.pandoc")
 local log = require("neorg.external.log")
 
 module.setup = function()
+    if vim.fn.executable("pandoc") == 0 then
+        log.error(
+            "Unable to load `core.pandoc`: no `pandoc` executable found on the system! Be sure to install it through your favourite package manager."
+        )
+
+        return {
+            success = false,
+        }
+    end
+
     return {
         success = true,
         requires = {
@@ -39,6 +49,18 @@ module.load = function()
             },
         })
     end)
+
+    -- Get all possible output formats
+    vim.fn.jobstart({ "pandoc", "--list-output-formats" }, {
+        on_stdout = function(_, data)
+            if data[#data] == "" then
+                table.remove(data)
+            end
+
+            vim.list_extend(module.config.public.formats, data)
+        end,
+        stdout_buffered = true,
+    })
 end
 
 module.public = {
@@ -58,22 +80,6 @@ module.public = {
         end
 
         return res:read("*a")
-    end,
-
-    ---Get a list of supported output formats from installed pandoc binary. Returns nil if pandoc command failed.
-    ---@return string[]|nil formats
-    get_output_formats = function()
-        local output = module.public.pandoc_cmd("--list-output-formats")
-
-        if not output then
-            return nil
-        end
-
-        local formats = {}
-        for s in output:gmatch("[^\r\n]+") do
-            table.insert(formats, s)
-        end
-        return formats
     end,
 
     convert = function(buffer)
@@ -164,7 +170,7 @@ module.public = {
 }
 
 module.config.public = {
-    formats = module.public.get_output_formats(),
+    formats = {},
 }
 
 module.on_event = function(event)
@@ -176,13 +182,7 @@ module.on_event = function(event)
             vim.notify(table.concat(module.config.public.formats, "\n"))
         end,
         ["core.neorgcmd.events.pandoc.json"] = function()
-            local file = io.open("json.json", "w")
-            if not file then
-                log.error("Failed to write file")
-            else
-                file:write(vim.json.encode(module.public.convert(event.buffer)))
-                file:close()
-            end
+            vim.pretty_print(module.public.convert(event.buffer))
         end,
     })
 end
