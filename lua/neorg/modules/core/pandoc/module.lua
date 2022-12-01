@@ -82,74 +82,70 @@ module.public = {
         return res:read("*a")
     end,
 
+    --- Converts all nodes in the current buffer into an intermediary flat representation
+    ---@param buffer number #The buffer number to convert
+    ---@return table #A flat representation of the nodes in the buffer
     convert = function(buffer)
         local tree = vim.treesitter.get_parser(buffer, "norg"):parse()[1]
         local ts = module.required["core.integrations.treesitter"]
 
-        local function inlines(node)
-            local final = {}
+        local flat_table = {}
 
-            local inline_table = {
-                ["_word"] = function(n)
-                    return { t = "Str", c = ts.get_node_text(n) }
-                end,
-                ["bold"] = function(n)
-                    return { t = "Strong", c = inlines(n) }
-                end,
-                ["italic"] = function(n)
-                    return { t = "Emph", c = inlines(n) }
-                end,
+        local function create_identifier(prefix, title)
+            return table.concat({ prefix, "-", title:gsub("%s", ""):lower() })
+        end
+
+        local function word(node)
+            return {
+                t = "Str",
+                c = ts.get_node_text(node),
             }
-
-            for n in node:iter_children() do
-                local func = inline_table[n:type()]
-                    or function(_)
-                        log.error(n:type())
-                        return nil
-                    end
-                table.insert(final, func(n))
-            end
-
-            return final
         end
 
         ---@param level number
         local function heading(node, level)
-            return function()
-                return {
-                    {
-                        t = "Header",
-                        c = {
-                            level,
-                            { "", {}, {} },
-                            inlines(node:named_child(1)),
-                        },
-                    },
-                }
-            end
+            local title = node:named_child(1) and ts.get_node_text(node:named_child(1)) or ""
+
+            return {
+                t = "Header",
+                c = {
+                    level,
+                    { create_identifier(table.concat({ "heading", tostring(level) }), title), {}, {} },
+                },
+            }
         end
 
-        ---
-
-        local final = {}
+        -------------------------------
 
         local function match_func(node)
+            local wrap = neorg.lib.wrap
+
             local output = neorg.lib.match(node:type())({
-                ["heading1"] = heading(node, 1),
-                ["heading2"] = heading(node, 2),
-                ["heading3"] = heading(node, 3),
-                ["heading4"] = heading(node, 4),
-                ["heading5"] = heading(node, 5),
-                ["heading6"] = heading(node, 6),
+                ["heading1"] = wrap(heading, node, 1),
+                ["heading2"] = wrap(heading, node, 2),
+                ["heading3"] = wrap(heading, node, 3),
+                ["heading4"] = wrap(heading, node, 4),
+                ["heading5"] = wrap(heading, node, 5),
+                ["heading6"] = wrap(heading, node, 6),
+
+                ["_space"] = {
+                    t = "Space",
+                },
+                ["_word"] = wrap(word, node),
+
+                ["_line_break"] = "line_break",
+                ["_paragraph_break"] = "paragraph_break",
             })
 
-            if output and output[1] then
-                table.insert(final, output[1])
-                return output[2]
+            if output then
+                table.insert(flat_table, output)
+                return false
             end
         end
 
         ts.tree_map_rec(match_func, tree)
+
+        table.insert(flat_table, "eof")
 
         local norg_meta = ts.get_document_metadata(buffer)
         local meta = {}
@@ -164,7 +160,7 @@ module.public = {
         return {
             ["pandoc-api-version"] = { 1, 22, 2, 1 },
             meta = meta,
-            blocks = final,
+            blocks = flat_table,
         }
     end,
 }
