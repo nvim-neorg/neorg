@@ -149,7 +149,7 @@ consective new lines.
 
  ** Links
     For more info on links check the
-    {https://github.com/nvim-neorg/neorg/blob/main/docs/NFF-0.1-spec.md#links}[spec].
+    {https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg#L1327}[spec].
 
   *** Link Targets
       The following things can be used as link /targets/:
