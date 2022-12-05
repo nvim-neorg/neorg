@@ -140,7 +140,9 @@ version: 0.1
     back to root level
     |end
 
-    And using 2 or more `=` signs will drop you right back to the root level!
+ ** Links
+    For more info on links check the
+    {https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg#L1327}[spec].
 
     You can also place horizontal lines using two or more underscores like so:
     |example
