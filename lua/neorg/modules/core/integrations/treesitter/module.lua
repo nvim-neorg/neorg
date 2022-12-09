@@ -75,12 +75,20 @@ module.load = function()
             pattern = "*.norg",
             once = true,
             callback = function()
-                if vim.tbl_isempty(vim.api.nvim_get_runtime_file("parser/norg.so", false) or {}) then
-                    if module.config.public.install_parsers then
-                        require("nvim-treesitter.install").commands.TSInstallSync["run!"]("norg", "norg_meta")
-                    else
-                        assert(false, "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it.")
-                    end
+                module.public.parser_path = vim.api.nvim_get_runtime_file("parser/norg.so", false)[1]
+
+                if module.public.parser_path then
+                    return
+                end
+
+                if module.config.public.install_parsers then
+                    require("nvim-treesitter.install").commands.TSInstallSync["run!"]("norg", "norg_meta")
+                    module.public.parser_path = vim.api.nvim_get_runtime_file("parser/norg.so", false)[1]
+                else
+                    assert(
+                        false,
+                        "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it, then restart Neovim."
+                    )
                 end
             end,
         })
@@ -123,6 +131,8 @@ module.config.public = {
 
 ---@class core.integrations.treesitter
 module.public = {
+    parser_path = nil,
+
     --- Gives back an instance of `nvim-treesitter.ts_utils`
     ---@return table #`nvim-treesitter.ts_utils`
     get_ts_utils = function()
