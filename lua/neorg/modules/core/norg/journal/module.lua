@@ -104,7 +104,8 @@ module.private = {
     ---@param time number #The time to open the journal entry at as returned by `os.time()`
     ---@param custom_date? string #A YYYY-mm-dd string that specifies a date to open the diary at instead
     open_diary = function(time, custom_date)
-        local workspace = module.config.public.workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
+        local workspace = module.config.public.workspace
+            or module.required["core.norg.dirman"].get_current_workspace()[1]
         local folder_name = module.config.public.journal_folder
         local template_name = module.config.public.template_name
 
@@ -142,7 +143,9 @@ module.private = {
         if
             not journal_file_exists
             and module.config.public.use_template
-            and module.required["core.norg.dirman"].file_exists(workspace_path .. "/" .. folder_name .. "/" .. template_name)
+            and module.required["core.norg.dirman"].file_exists(
+                workspace_path .. "/" .. folder_name .. "/" .. template_name
+            )
         then
             vim.cmd("0read " .. workspace_path .. "/" .. folder_name .. "/" .. template_name .. "| w")
         end
