@@ -10,15 +10,15 @@ It's also directly responsible for displaying completion levels
 in situations like this:
 ```norg
 * Do Some Things
-- [ ] Thing A
-- [ ] Thing B
+- ( ) Thing A
+- ( ) Thing B
 ```
 
 Where it will display this instead:
 ```norg
 * Do Some Things (0 of 2) [0% complete]
-- [ ] Thing A
-- [ ] Thing B
+- ( ) Thing A
+- ( ) Thing B
 ```
 
 Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
@@ -1514,8 +1514,9 @@ module.config.public = {
         },
     },
 
-    -- If you want to dim code blocks
+    -- Options related to dimming code block backgrounds
     dim_code_blocks = {
+        -- Whether you want to dim code blocks
         enabled = true,
 
         -- If true will only dim the content of the code block,
@@ -1549,6 +1550,11 @@ module.config.public = {
         conceal = true,
     },
 
+    -- If true, Neorg will enable folding by default for `.norg` documents.
+    -- You may use the inbuilt Neovim folding options like `foldnestmax`,
+    -- `foldlevelstart` and others to then tune the behaviour to your liking.
+    --
+    -- Set to `false` if you do not want Neorg setting anything.
     folds = true,
 
     completion_level = {
@@ -1591,6 +1597,9 @@ module.config.public = {
         ),
     },
 
+    -- Options related to concealer performance.
+    -- These options are put into effect when the concealer
+    -- has to deal with very large files.
     performance = {
         increment = 1250,
         timeout = 0,
@@ -1619,8 +1628,8 @@ module.load = function()
 
     --- Queries all icons that have their `enable = true` flags set
     ---@param tbl table #The table to parse
-    ---@param parent_icon string #Is used to pass icons from parents down to their table children to handle inheritance.
-    ---@param rec_name string #Should not be set manually. Is used for Neorg to have information about all other previous recursions
+    ---@param parent_icon? string #Is used to pass icons from parents down to their table children to handle inheritance.
+    ---@param rec_name? string #Should not be set manually. Is used for Neorg to have information about all other previous recursions
     local function get_enabled_icons(tbl, parent_icon, rec_name)
         rec_name = rec_name or ""
 
