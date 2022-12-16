@@ -140,23 +140,16 @@ module.public = {
                 -- Go through all keys that the user has bound a listener to and bind them!
                 for _, key in ipairs(keys) do
                     -- TODO: Docs
-                    vim.api.nvim_buf_set_keymap(
-                        buffer,
-                        mode or "n",
-                        key,
-                        string.format(
-                            '<cmd>lua neorg.modules.get_module("%s").invoke_key_in_selection("%s", "%s", "%s")<CR>',
-                            module.name,
-                            name,
-                            ({ key:gsub("<(.+)>", "|%1|") })[1],
-                            type
-                        ),
-                        {
-                            silent = true,
-                            noremap = true,
-                            nowait = true,
-                        }
-                    )
+                    local callback = function()
+                        neorg.modules
+                            .get_module(module.name)
+                            .invoke_key_in_selection(name, ({ key:gsub("<(.+)>", "|%1|") })[1], type)
+                    end
+                    vim.keymap.set(mode or "n", key, callback, {
+                        buffer = buffer,
+                        silent = true,
+                        nowait = true,
+                    })
                 end
 
                 return self
@@ -183,23 +176,16 @@ module.public = {
                 -- Go through all keys that the user has bound a listener to and bind them!
                 for _, key in pairs(keys) do
                     -- TODO: Docs
-                    vim.api.nvim_buf_set_keymap(
-                        buffer,
-                        mode or "n",
-                        key,
-                        string.format(
-                            '<cmd>lua neorg.modules.get_module("%s").invoke_key_in_selection("%s", "%s", "%s")<CR>',
-                            module.name,
-                            name,
-                            ({ key:gsub("<(.+)>", "|%1|") })[1],
-                            type
-                        ),
-                        {
-                            silent = true,
-                            noremap = true,
-                            nowait = true,
-                        }
-                    )
+                    local callback = function()
+                        neorg.modules
+                            .get_module(module.name)
+                            .invoke_key_in_selection(name, ({ key:gsub("<(.+)>", "|%1|") })[1], type)
+                    end
+                    vim.keymap.set(mode or "n", key, callback, {
+                        buffer = buffer,
+                        silent = true,
+                        nowait = true,
+                    })
                 end
 
                 return self
@@ -275,7 +261,7 @@ module.public = {
             ---@param text string #The text to display
             ---@return core.ui.selection
             title = function(self, text)
-                return self:text(text, "TSTitle")
+                return self:text(text, "@text.title")
             end,
 
             --- Simply enters a blank line

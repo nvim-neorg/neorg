@@ -1,5 +1,5 @@
 --[[
-	File for creating text popups for the user.
+    File for creating text popups for the user.
 --]]
 
 local module = neorg.modules.extend("core.ui.text_popup")
@@ -50,17 +50,19 @@ module.public = {
         end)
 
         -- Make sure to clean up the window if the user leaves the popup at any time
-        vim.cmd(
-            (
-                "autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once lua require('neorg.modules.core.ui.module').public.delete_window(%s)"
-            ):format(buf, buf)
-        )
+        vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave", "BufDelete" }, {
+            buffer = buf,
+            once = true,
+            callback = function()
+                module.public.delete_window(buf)
+            end,
+        })
 
         -- Construct some custom mappings for the popup
-        vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":q<CR>", { silent = true, noremap = true })
-        vim.api.nvim_buf_set_keymap(buf, "n", "<Tab>", "<CR>", { silent = true, noremap = true })
-        vim.api.nvim_buf_set_keymap(buf, "i", "<Tab>", "<CR>", { silent = true, noremap = true })
-        vim.api.nvim_buf_set_keymap(buf, "i", "<C-c>", "<Esc>:q<CR>", { silent = true, noremap = true })
+        vim.keymap.set("n", "<Esc>", vim.cmd.quit, { silent = true, buffer = buf })
+        vim.keymap.set("n", "<Tab>", "<CR>", { silent = true, buffer = buf })
+        vim.keymap.set("i", "<Tab>", "<CR>", { silent = true, buffer = buf })
+        vim.keymap.set("i", "<C-c>", "<Esc>:q<CR>", { silent = true, buffer = buf })
 
         -- If the use has specified some input text then show that input text in the buffer
         if input_text then

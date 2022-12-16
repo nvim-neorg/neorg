@@ -1,7 +1,7 @@
 --[[
---	NEORG EVENT FILE
---	This file is responsible for dealing with event handling and broadcasting.
---	All modules that subscribe to an event will receive it once it is triggered.
+--    NEORG EVENT FILE
+--    This file is responsible for dealing with event handling and broadcasting.
+--    All modules that subscribe to an event will receive it once it is triggered.
 --]]
 
 -- Include the global instance of the logger
@@ -32,7 +32,7 @@ neorg.events.base_event = {
 }
 
 --- The working of this function is best illustrated with an example:
---		If type == 'core.some_plugin.events.my_event', this function will return { 'core.some_plugin', 'my_event' }
+--        If type == 'core.some_plugin.events.my_event', this function will return { 'core.some_plugin', 'my_event' }
 ---@param type string #The full path of a module event
 function neorg.events.split_event_type(type)
     local start_str, end_str = type:find("%.events%.")
@@ -92,6 +92,7 @@ end
 ---@param module table #A reference to the module invoking the function
 ---@param type string #A full path to a valid event type (e.g. 'core.module.events.some_event')
 ---@param content any #The content of the event, can be anything from a string to a table to whatever you please
+---@return table #New event
 function neorg.events.create(module, type, content)
     -- Get the module that contains the event
     local module_name = neorg.events.split_event_type(type)[1]
@@ -129,7 +130,7 @@ end
 
 --- Sends an event to all subscribed modules. The event contains the filename, filehead, cursor position and line content as a bonus.
 ---@param event table #An event, usually created by neorg.events.create()
----@param callback function #A callback to be invoked after all events have been asynchronously broadcast
+---@param callback function? #A callback to be invoked after all events have been asynchronously broadcast
 function neorg.events.broadcast_event(event, callback)
     -- Broadcast the event to all modules
     if not event.split_type then
@@ -137,29 +138,28 @@ function neorg.events.broadcast_event(event, callback)
         return
     end
 
-    vim.schedule(function()
-        -- Let the callback handler know of the event
-        neorg.callbacks.handle_callbacks(event)
+    -- Let the callback handler know of the event
+    neorg.callbacks.handle_callbacks(event)
 
-        -- Loop through all the modules
-        for _, current_module in pairs(neorg.modules.loaded_modules) do
-            -- If the current module has any subscribed events and if it has a subscription bound to the event's module name then
-            if current_module.events.subscribed and current_module.events.subscribed[event.split_type[1]] then
-                -- Check whether we are subscribed to the event type
-                local evt = current_module.events.subscribed[event.split_type[1]][event.split_type[2]]
+    -- Loop through all the modules
+    for _, current_module in pairs(neorg.modules.loaded_modules) do
+        -- If the current module has any subscribed events and if it has a subscription bound to the event's module name then
+        if current_module.events.subscribed and current_module.events.subscribed[event.split_type[1]] then
+            -- Check whether we are subscribed to the event type
+            local evt = current_module.events.subscribed[event.split_type[1]][event.split_type[2]]
 
-                if evt ~= nil and evt == true then
-                    -- Run the on_event() for that module
-                    current_module.on_event(event)
-                end
+            if evt ~= nil and evt == true then
+                -- Run the on_event() for that module
+                current_module.on_event(event)
             end
         end
+    end
 
-        -- Because the broadcasting of events is async we allow the event broadcaster to provide a callback
-        if callback then
-            callback()
-        end
-    end)
+    -- Because the broadcasting of events is async we allow the event broadcaster to provide a callback
+    -- TODO: deprecate
+    if callback then
+        callback()
+    end
 end
 
 --- Instead of broadcasting to all loaded modules, send_event() only sends to one module

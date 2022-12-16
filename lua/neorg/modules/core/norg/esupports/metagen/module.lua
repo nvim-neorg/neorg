@@ -133,7 +133,7 @@ module.public = {
 
     --- Inject the metadata into a buffer
     ---@param buf number #The number of the buffer to inject the metadata into
-    ---@param force boolean #Whether to forcefully override existing metadata
+    ---@param force? boolean #Whether to forcefully override existing metadata
     inject_metadata = function(buf, force)
         local present, range = module.public.is_metadata_present(buf)
         if force or not present then

@@ -27,6 +27,7 @@ neorg.org_file_entered(false)
 
 -- Extract treesitter utility functions provided by Neorg and nvim-treesitter.ts_utils
 local ts = neorg.modules.get_module("core.integrations.treesitter")
+
 local ts_utils = ts.get_ts_utils()
 
 -- Store all parsed modules in this variable
@@ -73,7 +74,7 @@ do
     local comments = {}
     local modes = {}
     local parameters = {}
-    local mnemonics = {}
+    -- local mnemonics = {}
     local line_positions = {}
     local last_comment_start
     local last_parameter_start
@@ -113,9 +114,8 @@ do
 
                     local stripped_subnode_text = subnode_text:gsub("^%s*%-%-%s*", "")
 
-                    if stripped_subnode_text:sub(1, 1) == "^" then
-                        -- TODO: Perform extra parsing on this string later on
-                        insert(mnemonics, stripped_subnode_text:sub(2))
+                    if stripped_subnode_text:sub(1, 1) == "^" and not had_mnemonic then
+                        -- TODO: Implement mnemonics
                     else
                         insert(current_comments, stripped_subnode_text)
                     end
@@ -143,7 +143,7 @@ do
         keybind_info[parameters[i][2]] = vim.tbl_extend("force", keybind_info[parameters[i][2]] or {}, {
             [parameters[i][3] or ""] = {
                 keybind = parameters[i][1],
-                mnemonic = mnemonics[i],
+                -- mnemonic = mnemonics[i],
                 mode = modes[i],
                 comments = comments[i],
                 linenr = line_positions[i],
@@ -175,7 +175,7 @@ end
 
 --- Get the first comment (at line 0) from a module and get it's content
 --- @param path string
---- @return number, table #Returns the buffer and the table of comment
+--- @return { buf: number, comment: table }? #Returns the buffer and the table of comment
 docgen.get_module_top_comment = function(path)
     local buf = docgen.get_buf_from_file(path)
     local node = ts.get_first_node_recursive("comment", { buf = buf, ft = "lua" })
@@ -201,7 +201,10 @@ docgen.get_module_top_comment = function(path)
     table.remove(comment, 1)
     table.remove(comment, #comment)
 
-    return buf, comment
+    return {
+        buf = buf,
+        comment = comment,
+    }
 end
 
 --- Parses the query from a buffer
@@ -215,9 +218,10 @@ docgen.get_module_queries = function(buf, query)
 end
 
 --- The actual code that generates a md file from a template
---- @param buf number
---- @param path string
---- @param comment table
+--- @param buf? number
+--- @param path? string
+--- @param comment? table
+--- @param main_page? string
 docgen.generate_md_file = function(buf, path, comment, main_page)
     local module = {}
     if not main_page then
@@ -290,7 +294,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 end
 
                 local res = {}
-                for module, config in pairs(modules) do
+                for mod, config in pairs(modules) do
                     if vim.tbl_contains(core_defaults.config.public.enable, config.name) and config.show_module then
                         local insert
                         if config.filename then
@@ -300,7 +304,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 .. config.filename
                                 .. ")"
                         else
-                            insert = "- `" .. module .. "`"
+                            insert = "- `" .. mod .. "`"
                         end
                         if config.summary then
                             insert = insert .. " - " .. config.summary
@@ -326,7 +330,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     return
                 end
 
-                for module, config in pairs(modules) do
+                for mod, config in pairs(modules) do
                     if
                         not config.is_extension
                         and not vim.tbl_contains(core_defaults.config.public.enable, config.name)
@@ -340,7 +344,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 .. config.filename
                                 .. ")"
                         else
-                            insert = "- `" .. module .. "`"
+                            insert = "- `" .. mod .. "`"
                         end
                         if config.summary then
                             insert = insert .. " - " .. config.summary
@@ -366,7 +370,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     return
                 end
 
-                for module, config in pairs(modules) do
+                for mod, config in pairs(modules) do
                     if
                         not config.is_extension
                         and not vim.tbl_contains(core_defaults.config.public.enable, config.name)
@@ -380,7 +384,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 .. config.filename
                                 .. ")"
                         else
-                            insert = "- `" .. module .. "`"
+                            insert = "- `" .. mod .. "`"
                         end
                         if config.summary then
                             insert = insert .. " - " .. config.summary
@@ -506,8 +510,8 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                             local identifier = nil
                             local values = {}
 
-                            for id, parsed_config_option in query:iter_captures(public_config, buf) do
-                                local capture = query.captures[id]
+                            for capture_id, parsed_config_option in query:iter_captures(public_config, buf) do
+                                local capture = query.captures[capture_id]
 
                                 if capture == "field" then
                                     indent_level = ts.get_node_range(parsed_config_option).column_start + 1
@@ -522,9 +526,9 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                     if parsed_config_option:type() ~= "table_constructor" then
                                         if parsed_config_option:type() == "function_definition" then
                                             values = {
-                                                "  Default value: `function" .. ts.get_node_text(
-                                                    parsed_config_option:named_child(0)
-                                                ) .. "`",
+                                                "  Default value: `function"
+                                                    .. ts.get_node_text(parsed_config_option:named_child(0))
+                                                    .. "`",
                                             }
                                         else
                                             values = {
@@ -602,7 +606,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                     }
                 end
 
-                for keybind, parameter_types in pairs(cur_keybinds) do
+                for _, parameter_types in pairs(cur_keybinds) do
                     for keybind_param, metadata in pairs(parameter_types) do
                         table.insert(
                             results,
@@ -611,9 +615,8 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                                 metadata.keybind:gsub("^leader%s+%.%.%s+", "<NeorgLeader> + "):gsub('"', ""),
                                 "https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/keybinds.lua#L"
                                     .. tostring(metadata.linenr or 0),
-                                --[[metadata.mnemonic:len() > 0
-                                        and (" | _" .. metadata.mnemonic:gsub("%u", "**%0**") .. "_")
-                                    or]]
+                                -- metadata.mnemonic and metadata.mnemonic:len() > 0
+                                --         and (" | _" .. metadata.mnemonic:gsub("%u", "**%0**") .. "_"),
                                 "",
                                 keybind_param:len() > 0 and ('(with "' .. keybind_param .. '") ') or "",
                                 metadata.comments and metadata.comments[1] or "*No description*"
@@ -677,13 +680,11 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
             "",
             function()
                 local api = neorg.modules.get_module(module.name)
-
-                -- sort api in order to not shuffle each time we want to commit
-                table.sort(api)
-
                 local results = {}
 
                 if not vim.tbl_isempty(api) then
+                    -- sort api in order to not shuffle each time we want to commit
+                    table.sort(api --[[@as table]])
                     for function_name, item in pairs(api) do
                         if type(item) == "function" then
                             table.insert(results, "- `" .. function_name .. "`")
@@ -975,7 +976,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 table.insert(output, item)
             end
         elseif type(item) == "table" then
-            local query = docgen.get_module_queries(buf, item.query)
+            local query = docgen.get_module_queries(buf, --[[@as number]] item.query)
 
             if query then
                 local ret = item.callback(query)
@@ -1009,10 +1010,10 @@ local files = docgen.find_modules()
 
 for _ = 1, 2 do
     for _, file in ipairs(files) do
-        local buf, comment = docgen.get_module_top_comment(file)
+        local top_comment = docgen.get_module_top_comment(file)
 
-        if comment then
-            docgen.generate_md_file(buf, file, comment)
+        if top_comment then
+            docgen.generate_md_file(top_comment.buf, file, top_comment.comment)
         end
     end
 end

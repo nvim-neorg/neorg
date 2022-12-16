@@ -225,7 +225,7 @@ module.public = {
         local result = {
             {
                 text = title,
-                highlight = "TSAnnotation",
+                highlight = "@text.title",
                 level = 1,
             },
             {

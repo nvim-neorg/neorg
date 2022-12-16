@@ -2,6 +2,8 @@
     "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
     "Lua.diagnostics.globals": [
         "_neorgcmd_generate_completions",
-        "_neorg_module_autocommand_triggered"
+        "_neorg_module_autocommand_triggered",
+        "neorg",
+        "vim",
     ]
 }

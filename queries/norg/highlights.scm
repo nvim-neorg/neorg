@@ -328,6 +328,9 @@
 (superscript (subscript) @neorg.error (#set! priority 300))
 (subscript (superscript) @neorg.error (#set! priority 300))
 
+; Comments
+(inline_comment) @comment
+
 ; Conceals
 (
     [
@@ -341,11 +344,6 @@
 
 (
     [
-        (link
-            (link_location
-                type: (link_target_footnote)
-            )
-        ) @conceal
         (link
             (_
                 [

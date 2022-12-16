@@ -5,8 +5,8 @@ neorg.configuration = {
         lazy_loading = false,
         load = {
             --[[
-				["name"] = { config = { ... } }
-			--]]
+                ["name"] = { config = { ... } }
+            --]]
         },
     },
 
@@ -14,7 +14,7 @@ neorg.configuration = {
     manual = nil,
     arguments = {},
 
-    version = "0.0.15",
+    version = "0.0.18",
     neovim_version = (function()
         require("neorg.external.helpers")
 

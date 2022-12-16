@@ -30,10 +30,16 @@ module.config.public = {
 }
 
 module.load = function()
+    if not module.config.public.check_news then
+        return
+    end
+
     -- Get the cached Neorg version
     local cached_neorg_version = module.required["core.storage"].retrieve(module.name).news_state
+    log.trace("Retrieved cached version from storage:", cached_neorg_version)
 
     if not cached_neorg_version then
+        log.trace("Cached version not found, storing current one:", neorg.configuration.version)
         module.required["core.storage"].store(module.name, {
             news_state = neorg.configuration.version,
         })
@@ -58,11 +64,11 @@ module.load = function()
             entry = vim.loop.fs_scandir_next(data)
         end
 
+        log.trace("Collected news entries:", paths)
+
         for version, filepath in pairs(paths) do
             if is_version_greater_than(version, cached_neorg_version) then
-                if is_version_greater_than(version, module.private.latest_version) then
-                    module.private.latest_version = version
-                end
+                log.trace("Version", version, "is greater than", cached_neorg_version)
 
                 module.private.new_news[version] = filepath
             else
@@ -102,6 +108,11 @@ module.load = function()
                         name = "news.all",
                         args = 0,
                     },
+
+                    dismiss = {
+                        name = "news.dismiss",
+                        args = 0,
+                    },
                 },
             },
         }
@@ -122,6 +133,8 @@ New news for versions: %s
 
 Run `:Neorg news new <version>` to see the latest news for that specific version.
 To view news for all new versions run `:Neorg news new` without arguments.
+
+To ignore the news for this version run `:Neorg news dismiss`.
                 ]],
                     table.concat(new_keys, ", ")
                 ))
@@ -179,7 +192,7 @@ module.public = {
         vim.api.nvim_buf_set_option(buf, "filetype", "norg")
         vim.api.nvim_buf_set_name(buf, "news.norg")
 
-        vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
+        vim.keymap.set("n", "q", vim.cmd.bdelete, { buffer = buf, silent = true })
 
         -- Taken from nvim-lsp-installer at https://github.com/williamboman/nvim-lsp-installer/blob/main/lua/nvim-lsp-installer/ui/display.lua#L143-L157
         -- Big shoutout! I couldn't figure this out myself.
@@ -198,9 +211,12 @@ module.public = {
         window_opts.col = math.floor((win_width - window_opts.width) / 2)
         ---
 
-        vim.cmd(
-            string.format("autocmd WinClosed <buffer=%s> lua vim.api.nvim_buf_delete(%s, { force = true })", buf, buf)
-        )
+        vim.api.nvim_create_autocmd("WinClosed", {
+            buffer = buf,
+            callback = function()
+                vim.api.nvim_buf_delete(buf, { force = true })
+            end,
+        })
 
         return vim.api.nvim_open_win(buf, true, window_opts)
     end,
@@ -209,7 +225,6 @@ module.public = {
 module.private = {
     old_news = {},
     new_news = {},
-    latest_version = neorg.configuration.version,
 }
 
 module.on_event = function(event)
@@ -220,7 +235,7 @@ module.on_event = function(event)
             )
 
             module.required["core.storage"].store(module.name, {
-                news_state = module.private.latest_version,
+                news_state = neorg.configuration.version,
             })
         end,
 
@@ -232,8 +247,16 @@ module.on_event = function(event)
             module.public.create_display(module.public.get_content(module.private.new_news))
 
             module.required["core.storage"].store(module.name, {
-                news_state = module.private.latest_version,
+                news_state = neorg.configuration.version,
             })
+        end,
+
+        ["news.dismiss"] = function()
+            module.required["core.storage"].store(module.name, {
+                news_state = neorg.configuration.version,
+            })
+
+            vim.notify("Dismissed all news!")
         end,
 
         _ = function()
@@ -260,6 +283,8 @@ module.on_event = function(event)
             end
         end,
     })
+
+    module.required["core.storage"].flush()
 end
 
 return module

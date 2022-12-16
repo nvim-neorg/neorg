@@ -331,7 +331,10 @@ module.public = {
                             )
                         end
 
-                        if module.config.public.dim_code_blocks.conceal and module.config.public.dim_code_blocks.adaptive then
+                        if
+                            module.config.public.dim_code_blocks.conceal
+                            and module.config.public.dim_code_blocks.adaptive
+                        then
                             module.config.public.dim_code_blocks.content_only = has_conceal
                         end
 
@@ -425,23 +428,27 @@ module.public = {
                                                 )
                                             ),
                                         },
-                                        (width == "content" and {
-                                            string.rep(
-                                                " ",
-                                                math.max(
-                                                    (longest_len - range.column_start)
-                                                        + module.config.public.dim_code_blocks.padding.left
-                                                        + module.config.public.dim_code_blocks.padding.right
-                                                        - math.max(
-                                                            module.config.public.dim_code_blocks.padding.left
-                                                                - range.column_start,
+                                        (
+                                            width == "content"
+                                                and {
+                                                    string.rep(
+                                                        " ",
+                                                        math.max(
+                                                            (longest_len - range.column_start)
+                                                                + module.config.public.dim_code_blocks.padding.left
+                                                                + module.config.public.dim_code_blocks.padding.right
+                                                                - math.max(
+                                                                    module.config.public.dim_code_blocks.padding.left
+                                                                        - range.column_start,
+                                                                    0
+                                                                ),
                                                             0
-                                                        ),
-                                                    0
-                                                )
-                                            ),
-                                            "@neorg.tags.ranged_verbatim.code_block",
-                                        } or nil),
+                                                        )
+                                                    ),
+                                                    "@neorg.tags.ranged_verbatim.code_block",
+                                                }
+                                            or nil
+                                        ),
                                     },
                                     "@neorg.tags.ranged_verbatim.code_block",
                                     module.private.code_block_namespace,
@@ -1637,11 +1644,14 @@ module.config.public = {
                         -- determine how much space it occupies in the buffer vertically
                         local prev_sibling = node:prev_sibling()
                         local double_prev_sibling = prev_sibling:prev_sibling()
-                        local ts = module.required["core.integrations.treesitter"].get_ts_utils()
 
                         if prev_sibling then
                             -- Get the text of the previous sibling and store its longest line width-wise
-                            local text = ts.get_node_text(prev_sibling)
+                            local text = vim.split(
+                                module.required["core.integrations.treesitter"].get_node_text(prev_sibling),
+                                "\n",
+                                { plain = true, trimempty = true }
+                            )
                             local longest = 3
 
                             if
@@ -1754,7 +1764,7 @@ module.config.public = {
                     result["heading" .. i] = {
                         text = {
                             "(",
-                            { "<done>", "TSField" },
+                            { "<done>", "@field" },
                             " of ",
                             { "<total>", "@neorg.todo_items.done.1" },
                             ") [<percentage>% complete]",
@@ -1869,7 +1879,9 @@ module.load = function()
             pattern = "conceallevel",
             callback = function()
                 local current_buffer = vim.api.nvim_get_current_buf()
-                if vim.bo[current_buffer].ft ~= "norg" then return end
+                if vim.bo[current_buffer].ft ~= "norg" then
+                    return
+                end
                 local has_conceal = (tonumber(vim.v.option_new) > 0)
 
                 module.public.trigger_icons(
@@ -1911,12 +1923,16 @@ module.on_event = function(event)
 
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
         if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
-            vim.api.nvim_win_set_option(event.window, "foldmethod", "expr")
-            vim.api.nvim_win_set_option(event.window, "foldexpr", "nvim_treesitter#foldexpr()")
-            vim.api.nvim_win_set_option(
-                event.window,
+            local opts = {
+                scope = "local",
+                win = event.window,
+            }
+            vim.api.nvim_set_option_value("foldmethod", "expr", opts)
+            vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
+            vim.api.nvim_set_option_value(
                 "foldtext",
-                "v:lua.neorg.modules.get_module('core.norg.concealer').foldtext()"
+                "v:lua.neorg.modules.get_module('core.norg.concealer').foldtext()",
+                opts
             )
         end
 
@@ -2136,8 +2152,42 @@ module.on_event = function(event)
         end)
     elseif event.type == "core.autocommands.events.vimleavepre" then
         module.private.disable_deferred_updates = true
+    elseif event.type == "core.norg.concealer.events.update_region" then
+        schedule(function()
+            vim.api.nvim_buf_clear_namespace(
+                event.buffer,
+                module.private.icon_namespace,
+                event.content.start,
+                event.content["end"]
+            )
+            vim.api.nvim_buf_clear_namespace(
+                event.buffer,
+                module.private.completion_level_namespace,
+                event.content.start,
+                event.content["end"]
+            )
+
+            module.public.trigger_icons(
+                event.buffer,
+                module.private.has_conceal,
+                module.private.icons,
+                module.private.icon_namespace,
+                event.content.start,
+                event.content["end"]
+            )
+
+            module.public.completion_levels.trigger_completion_levels(
+                event.buffer,
+                event.content.start,
+                event.content["end"]
+            )
+        end)
     end
 end
+
+module.events.defined = {
+    update_region = neorg.events.define(module, "update_region"),
+}
 
 module.events.subscribed = {
     ["core.autocommands"] = {
@@ -2149,6 +2199,10 @@ module.events.subscribed = {
 
     ["core.neorgcmd"] = {
         ["core.norg.concealer.toggle"] = true,
+    },
+
+    ["core.norg.concealer"] = {
+        update_region = true,
     },
 }
 

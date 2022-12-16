@@ -102,9 +102,9 @@ end
 module.private = {
     --- Opens a diary entry at the given time
     ---@param time number #The time to open the journal entry at as returned by `os.time()`
-    ---@param custom_date string #A YYYY-mm-dd string that specifies a date to open the diary at instead
+    ---@param custom_date? string #A YYYY-mm-dd string that specifies a date to open the diary at instead
     open_diary = function(time, custom_date)
-        local workspace = module.config.public.workspace
+        local workspace = module.config.public.workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
         local folder_name = module.config.public.journal_folder
         local template_name = module.config.public.template_name
 
@@ -129,22 +129,20 @@ module.private = {
             time
         )
 
-        local journal_file_exists = false
-        if module.required["core.norg.dirman"].file_exists(folder_name .. neorg.configuration.pathsep .. path) then
-            journal_file_exists = true
-        end
+        local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
 
-        module.required["core.norg.dirman"].create_file(
-            folder_name .. neorg.configuration.pathsep .. path,
-            workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
+        local journal_file_exists = module.required["core.norg.dirman"].file_exists(
+            workspace_path .. "/" .. folder_name .. neorg.configuration.pathsep .. path
         )
+
+        module.required["core.norg.dirman"].create_file(folder_name .. neorg.configuration.pathsep .. path, workspace)
 
         if
             not journal_file_exists
             and module.config.public.use_template
-            and module.required["core.norg.dirman"].file_exists(folder_name .. "/" .. template_name)
+            and module.required["core.norg.dirman"].file_exists(workspace_path .. "/" .. folder_name .. "/" .. template_name)
         then
-            vim.cmd("0read " .. folder_name .. "/" .. template_name .. "| w")
+            vim.cmd("0read " .. workspace_path .. "/" .. folder_name .. "/" .. template_name .. "| w")
         end
     end,
 

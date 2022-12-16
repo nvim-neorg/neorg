@@ -1,7 +1,7 @@
 --[[
     File: Core-UI
     Title: Module for managing and displaying UIs to the user.
-	Summary: A set of public functions to help developers create and manage UI (selection popups, prompts...) in their modules.
+    Summary: A set of public functions to help developers create and manage UI (selection popups, prompts...) in their modules.
     Internal: true
     ---
 --]]
@@ -152,11 +152,13 @@ module.public = {
         module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
 
         -- Make sure to clean up the window if the user leaves the popup at any time
-        vim.cmd(
-            (
-                "autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once lua require('neorg.modules.core.ui.module').public.delete_window(%s)"
-            ):format(buf, buf)
-        )
+        vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave", "BufDelete" }, {
+            buffer = buf,
+            once = true,
+            callback = function()
+                module.public.delete_window(buf)
+            end,
+        })
 
         return buf, vim.api.nvim_get_current_win()
     end,
@@ -267,8 +269,8 @@ module.public = {
             end
         end
 
-        vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
-        vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
+        vim.keymap.set("n", "<Esc>", vim.cmd.bdelete, { buffer = buf, silent = true })
+        vim.keymap.set("n", "q", vim.cmb.bdelete, { buffer = buf, silent = true })
 
         vim.api.nvim_buf_set_option(buf, "modifiable", false)
 
@@ -296,6 +298,11 @@ module.public = {
             config = { config, "table", true },
             opts = { opts, "table", true },
         })
+
+        config = vim.tbl_deep_extend("keep", config or {}, {
+            ft = "norg",
+        })
+
         opts = vim.tbl_deep_extend(
             "force",
             { keybinds = true, del_on_autocommands = { "BufLeave", "BufDelete", "BufUnload" } },
@@ -330,8 +337,8 @@ module.public = {
         vim.api.nvim_win_set_buf(0, buf)
 
         if opts.keybinds == true then
-            vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", ":bd<CR>", { noremap = true, silent = true })
-            vim.api.nvim_buf_set_keymap(buf, "n", "q", ":bd<CR>", { noremap = true, silent = true })
+            vim.keymap.set("n", "<Esc>", vim.cmd.bdelete, { buffer = buf, silent = true })
+            vim.keymap.set("n", "q", vim.cmd.bdelete, { buffer = buf, silent = true })
         end
 
         module.public.apply_buffer_options(buf, config or {})
@@ -363,7 +370,7 @@ module.examples = {
             :apply({
                 -- A title will simply be text with a custom highlight
                 title = function(self, text)
-                    return self:text(text, "TSTitle")
+                    return self:text(text, "@text.title")
                 end,
             })
             :listener("destroy", { "<Esc>" }, function(self)
@@ -376,7 +383,7 @@ module.examples = {
         selection
             :options({
                 text = {
-                    highlight = "TSUnderline",
+                    highlight = "@text.underline",
                 },
             })
             :title("Hello World!")

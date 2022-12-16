@@ -1,7 +1,7 @@
 --[[
-	File: Neorgcmd-Module
+    File: Neorgcmd-Module
     Title: Neorgcmd module for Neorg.
-	Summary: This module deals with handling everything related to the `:Neorg` command.
+    Summary: This module deals with handling everything related to the `:Neorg` command.
     ---
 --]]
 
@@ -222,9 +222,9 @@ module.private = {
                 return
             elseif not check_condition(ref.condition) then
                 log.error(
-                    (
-                        "Error when executing `:Neorg %s` - the command is currently disabled. Some commands will only become available under certain conditions!"
-                    ):format(table.concat(vim.list_slice(args, 1, i), " "))
+                    ("Error when executing `:Neorg %s` - the command is currently disabled. Some commands will only become available under certain conditions!"):format(
+                        table.concat(vim.list_slice(args, 1, i), " ")
+                    )
                 )
                 return
             end
@@ -261,9 +261,9 @@ module.private = {
 
         if not ref.name then
             log.error(
-                (
-                    "Error when executing `:Neorg %s` - the ending command didn't have a `name` variable associated with it! This is an implementation error on the developer's side, so file a report to the author of the module."
-                ):format(data.args)
+                ("Error when executing `:Neorg %s` - the ending command didn't have a `name` variable associated with it! This is an implementation error on the developer's side, so file a report to the author of the module."):format(
+                    data.args
+                )
             )
             return
         end

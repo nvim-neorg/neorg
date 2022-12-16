@@ -1,7 +1,7 @@
 --[[
     File: Treesitter-Integration
     Title: TreeSitter integration in Neorg
-	Summary: A module designed to integrate TreeSitter into Neorg.
+    Summary: A module designed to integrate TreeSitter into Neorg.
     ---
 --]]
 
@@ -13,6 +13,8 @@ module.private = {
     ts_utils = nil,
     link_query = [[
                 (link) @next-segment
+                (anchor_declaration) @next-segment
+                (anchor_definition) @next-segment
              ]],
     heading_query = [[
                  [
@@ -73,9 +75,7 @@ module.load = function()
             pattern = "*.norg",
             once = true,
             callback = function()
-                -- HACK(vhyrro): Using internal Neovim APIs.
-                -- It be like that sometimes.
-                if not vim._ts_has_language("norg") then
+                if vim.tbl_isempty(vim.api.nvim_get_runtime_file("parser/norg.so", false) or {}) then
                     if module.config.public.install_parsers then
                         require("nvim-treesitter.install").commands.TSInstallSync["run!"]("norg", "norg_meta")
                     else
@@ -116,7 +116,7 @@ module.config.public = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
             files = { "src/parser.c" },
             branch = "main",
-            revision = "4687b53e656b920cde6c0b9a7b9acf9a665cd838",
+            revision = "e93dcbc56a472649547cfc288f10ae4a93ef8795",
         },
     },
 }
@@ -283,6 +283,11 @@ module.public = {
         local end_row, end_col = node:end_()
 
         local eof_row = vim.api.nvim_buf_line_count(source)
+
+        if end_row >= eof_row then
+            end_row = eof_row - 1
+            end_col = -1
+        end
 
         if start_row >= eof_row then
             return nil
@@ -528,14 +533,13 @@ module.public = {
     --- Retrieves the first node at a specific line
     ---@param buf number #The buffer to search in (0 for current)
     ---@param line number #The line number (0-indexed) to get the node from
-    ---@param unnamed? boolean #If true will also target and return unnamed nodes
-    ---@param lenient? boolean #If true will not employ an extra check that ensures the target node begins on
     -- the same line as `line`.
+    ---@param string|table? #Don't recurse to the provided type(s)
     ---@return userdata|nil #The first node on `line`
-    get_first_node_on_line = function(buf, line, unnamed, lenient)
-        local query_str = [[
-            _ @node
-        ]]
+    get_first_node_on_line = function(buf, line, stop_type)
+        if type(stop_type) == "string" then
+            stop_type = { stop_type }
+        end
 
         local document_root = module.public.get_document_root(buf)
 
@@ -543,51 +547,30 @@ module.public = {
             return
         end
 
-        if line == 0 and not lenient then
-            local first_node = document_root:named_child(0)
+        local first_char = (vim.api.nvim_buf_get_lines(buf, line, line + 1, true)[1] or ""):match("^(%s+)[^%s]")
+        first_char = first_char and first_char:len() or 0
 
-            if not first_node then
-                return
-            end
+        local descendant = document_root:descendant_for_range(line, first_char, line, first_char + 1)
 
-            if module.public.get_node_range(first_node).row_start == 0 then
-                return first_node
-            end
-
+        if not descendant then
             return
         end
 
-        local query = vim.treesitter.parse_query("norg", query_str)
+        while
+            descendant:parent()
+            and (descendant:parent():start()) == line
+            and descendant:parent():symbol() ~= document_root:symbol()
+        do
+            local parent = descendant:parent()
 
-        local function find_closest_unnamed_node(node)
-            if unnamed or not node or node:named() then
-                return node
+            if parent and stop_type and vim.tbl_contains(stop_type, parent:type()) then
+                break
             end
 
-            while node and not node:named() do
-                node = node:parent()
-            end
-
-            return node
+            descendant = parent
         end
 
-        local result
-
-        for id, node in query:iter_captures(document_root, buf, lenient and line - 1 or line, line + 1) do
-            if query.captures[id] == "node" then
-                if lenient then
-                    result = node
-                else
-                    local range = module.public.get_node_range(node)
-
-                    if range.row_start == line then
-                        return find_closest_unnamed_node(node)
-                    end
-                end
-            end
-        end
-
-        return find_closest_unnamed_node(result)
+        return descendant
     end,
 
     get_document_metadata = function(buf, no_trim)
@@ -701,7 +684,13 @@ module.on_event = function(event)
             module.public.goto_previous_query_match(module.private.link_query)
         end
     elseif event.split_type[2] == "sync-parsers" then
-        pcall(vim.cmd, "TSInstall! norg")
+        local ok = pcall(vim.cmd, "TSInstall! norg")
+
+        if not ok then
+            vim.notify([[Unable to install norg parser.
+]])
+        end
+
         pcall(vim.cmd, "TSInstall! norg_meta")
     end
 end

@@ -13,10 +13,10 @@ local module = neorg.modules.create("core.highlights")
     Nested trees concatenate
     So:
         tag = { begin = "+@comment" }
-	matches the highlight group:
-		@neorg.tag.begin
-	and converts into the command:
-		highlight! link @neorg.tag.begin @comment
+    matches the highlight group:
+        @neorg.tag.begin
+    and converts into the command:
+        highlight! link @neorg.tag.begin @comment
 --]]
 module.config.public = {
     -- The TS highlights for each Neorg type
@@ -28,7 +28,7 @@ module.config.public = {
             heading = "+@annotation",
             arrow = "+@none",
             key = "+@namespace",
-            keyname = "+@text.math",
+            keyname = "+@constant",
             nestedkeyname = "+@string",
         },
 
@@ -96,8 +96,8 @@ module.config.public = {
                 prefix = "+@label",
             },
             ["3"] = {
-                title = "+@text.math",
-                prefix = "+@text.math",
+                title = "+@constant",
+                prefix = "+@constant",
             },
             ["4"] = {
                 title = "+@string",
@@ -108,8 +108,8 @@ module.config.public = {
                 prefix = "+@label",
             },
             ["6"] = {
-                title = "+@text.math",
-                prefix = "+@text.math",
+                title = "+@constructor",
+                prefix = "+@constructor",
             },
         },
 

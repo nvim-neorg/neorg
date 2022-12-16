@@ -1,7 +1,7 @@
 --[[
     File: Dirman
     Title: Directory manager for Neorg.
-	Summary: This module is be responsible for managing directories full of .norg files.
+    Summary: This module is be responsible for managing directories full of .norg files.
     ---
 It will provide other modules the ability to see which directories the user is in,
 automatically changing directories, and other API bits and bobs that will allow things like telescope.nvim integration.
@@ -18,7 +18,6 @@ require('neorg').setup {
                     my_ws = "~/neorg", -- Format: <name_of_workspace> = <path_to_workspace_root>
                     my_other_notes = "~/work/notes",
                 },
-                autochdir = true, -- Automatically change the directory to the current workspace's root every time
                 index = "index.norg", -- The name of the main (root) .norg file
             }
         }
@@ -27,6 +26,10 @@ require('neorg').setup {
 ```
 
 To query the current workspace, run `:Neorg workspace`. To set the workspace, run `:Neorg workspace <workspace_name>`.
+
+### Changing the current working directory
+After a recent update dirman will no longer change the current working directory after switching workspace.
+To get the best experience it's recommended to set the `autochdir` Neovim option.
 --]]
 
 require("neorg.modules.base")
@@ -53,32 +56,33 @@ module.load = function()
     -- Used to detect when we've entered a buffer with a potentially different cwd
     module.required["core.autocommands"].enable_autocommand("BufEnter", true)
 
-    -- Enable the DirChanged autocmd to detect changes to the cwd
-    module.required["core.autocommands"].enable_autocommand("DirChanged", true)
-
-    -- Enable the VimLeavePre autocommand to write the last workspace to disk
-    module.required["core.autocommands"].enable_autocommand("VimLeavePre", true)
-
-    -- If the user has supplied a custom workspace to start in (i.e. :NeorgStart workspace=<name>)
-    -- then load that custom workspace here
-    if not neorg.configuration.arguments.silent then
-        if neorg.configuration.arguments.workspace then
-            module.public.open_workspace(neorg.configuration.arguments.workspace)
-            vim.notify("Start in custom workspace -> " .. neorg.configuration.arguments.workspace)
-        elseif neorg.configuration.manual then
-            if module.config.public.open_last_workspace then
-                -- If we have loaded this module by invoking :NeorgStart then try jumping
-                -- to the last cached workspace
-                module.public.set_last_workspace()
-            elseif module.config.public.default_workspace then
-                -- If we don't want to open the last workspace then we can load the default workspace instead.
-                module.public.set_workspace(module.config.public.default_workspace)
-            end
-        end
-    end
+    module.required["core.neorgcmd"].add_commands_from_table({
+        index = {
+            args = 0,
+            name = "dirman.index",
+        },
+    })
 
     -- Synchronize core.neorgcmd autocompletions
     module.public.sync()
+
+    if module.config.public.open_last_workspace and vim.fn.argc(-1) == 0 then
+        if module.config.public.open_last_workspace == "default" then
+            if not module.config.public.default_workspace then
+                log.warn(
+                    'Configuration error in `core.norg.dirman`: the `open_last_workspace` option is set to "default", but no default workspace is provided in the `default_workspace` configuration variable. Defaulting to opening the last known workspace.'
+                )
+                module.public.set_last_workspace()
+                return
+            end
+
+            module.public.open_workspace(module.config.public.default_workspace)
+        else
+            module.public.set_last_workspace()
+        end
+    elseif module.config.public.default_workspace then
+        module.public.set_workspace(module.config.public.default_workspace)
+    end
 end
 
 module.config.public = {
@@ -87,19 +91,17 @@ module.config.public = {
         default = vim.fn.getcwd(),
     },
 
-    -- Automatically change the directory to the root of the workspace every time
-    autochdir = false,
-
     -- The name for the index file
     index = "index.norg",
 
-    -- The default workspace to load into when running `:NeorgStart`
-    -- This is only used whenever Neorg does not remember your previous
-    -- workspace
+    -- The default workspace to set whenever Neovim starts.
     default_workspace = nil,
 
-    -- Whether to open the last workspace when running `:NeorgStart`
-    open_last_workspace = true,
+    -- Whether to open the last workspace's index file when `nvim` is executed
+    -- without arguments.
+    -- May also be set to the string `"default"`, due to which Neorg will always
+    -- open up the index file for the workspace defined in `default_workspace`.
+    open_last_workspace = false,
 }
 
 module.private = {
@@ -108,7 +110,6 @@ module.private = {
 
 ---@class core.norg.dirman
 module.public = {
-
     get_workspaces = function()
         return module.config.public.workspaces
     end,
@@ -129,8 +130,8 @@ module.public = {
     end,
 
     --- Sets the workspace to the one specified (if it exists) and broadcasts the workspace_changed event
-    --				Returns true if the workspace is set correctly, else returns false
-    ---@param ws_name name #The name of a valid namespace we want to switch to
+    ---@return boolean True if the workspace is set correctly, false otherwise
+    ---@param ws_name string #The name of a valid namespace we want to switch to
     set_workspace = function(ws_name)
         -- Grab the workspace location
         local workspace = module.config.public.workspaces[ws_name]
@@ -152,6 +153,10 @@ module.public = {
         -- Set the current workspace to the new workspace object we constructed
         module.private.current_workspace = new_workspace
 
+        if ws_name ~= "default" then
+            module.required["core.storage"].store("last_workspace", ws_name)
+        end
+
         -- Broadcast the workspace_changed event with all the necessary information
         neorg.events.broadcast_event(
             neorg.events.create(
@@ -165,7 +170,7 @@ module.public = {
     end,
 
     --- Dynamically defines a new workspace if the name isn't already occupied and broadcasts the workspace_added event
-    --				Returns true if the workspace is added successfully, else returns false
+    ---@return boolean True if the workspace is added successfully, false otherwise
     ---@param workspace_name string #The unique name of the new workspace
     ---@param workspace_path string #A full path to the workspace root
     add_workspace = function(workspace_name, workspace_path)
@@ -224,8 +229,9 @@ module.public = {
         return result:len() ~= 0 and result or "default"
     end,
 
-    --- Uses the get_workspace_match() function to determine the root of the workspace, then changes into that directory
-    update_cwd = function()
+    --- Uses the `get_workspace_match()` function to determine the root of the workspace based on the
+    --- current working directory, then changes into that workspace
+    set_closest_workspace_match = function()
         -- Get the closest workspace match
         local ws_match = module.public.get_workspace_match()
 
@@ -455,47 +461,6 @@ module.public = {
 }
 
 module.on_event = function(event)
-    -- If the workspace has changed then
-    if event.type == "core.norg.dirman.events.workspace_changed" then
-        -- Grab the current working directory and the current workspace
-        local new_cwd = vim.fn.getcwd()
-        local current_workspace = module.public.get_current_workspace()
-
-        -- If the current working directory is not the same as the workspace root then set it
-        if current_workspace[2] ~= new_cwd then
-            vim.cmd("lcd! " .. current_workspace[2])
-        end
-    end
-
-    -- If the user has changed directories and the autochdir flag is set then
-    if event.type == "core.autocommands.events.dirchanged" then
-        -- Grab the current working directory and the current workspace
-        local new_cwd = vim.fn.getcwd()
-        local current_workspace = module.public.get_current_workspace()
-
-        -- If the current workspace is not the default and if the cwd is not the same as the workspace root then set it
-        if module.config.public.autochdir and current_workspace[1] ~= "default" and current_workspace[2] ~= new_cwd then
-            vim.cmd("lcd! " .. current_workspace[2])
-            return
-        end
-
-        -- Upon changing a directory attempt to perform a match
-        module.public.update_cwd()
-    end
-
-    -- Just before we leave Neovim make sure to cache the last workspace we were in (as long as that workspace wasn't "default")
-    if
-        event.type == "core.autocommands.events.vimleavepre"
-        and module.public.get_current_workspace()[1] ~= "default"
-    then
-        -- Attempt to write the last workspace to the cache file
-        local storage = neorg.modules.get_module("core.storage")
-
-        if storage then
-            storage.store("last_workspace", module.public.get_current_workspace()[1])
-        end
-    end
-
     -- If somebody has executed the :Neorg workspace command then
     if event.type == "core.neorgcmd.events.dirman.workspace" then
         -- Have we supplied an argument?
@@ -503,9 +468,13 @@ module.on_event = function(event)
             module.public.open_workspace(event.content[1])
 
             vim.schedule(function()
-                vim.notify(
-                    "New Workspace: " .. event.content[1] .. " -> " .. module.public.get_workspace(event.content[1])
-                )
+                local new_workspace = module.public.get_workspace(event.content[1])
+
+                if not new_workspace then
+                    return
+                end
+
+                vim.notify("New Workspace: " .. event.content[1] .. " -> " .. new_workspace)
             end)
         else -- No argument supplied, simply print the current workspace
             -- Query the current workspace
@@ -516,6 +485,20 @@ module.on_event = function(event)
                 vim.notify("Current Workspace: " .. current_ws[1] .. " -> " .. current_ws[2])
             end)
         end
+    end
+
+    -- If somebody has executed the :Neorg index command then
+    if event.type == "core.neorgcmd.events.dirman.index" then
+        local current_ws = module.public.get_current_workspace()
+        local index_path = table.concat({ current_ws[2], "/", module.config.public.index })
+
+        if vim.fn.filereadable(index_path) == 0 then
+            vim.notify(table.concat({ "No '", module.config.public.index, "' found in current workspace!" }))
+            return
+        end
+
+        vim.cmd.edit(index_path)
+        return
     end
 
     -- If the user has executed a keybind to create a new note then create a prompt
@@ -533,11 +516,6 @@ module.on_event = function(event)
             col = 0,
         })
     end
-
-    -- If we've entered a different buffer then update the cwd for that buffer's window
-    if event.type == "core.autocommands.events.bufenter" and not event.content.norg then
-        module.public.update_cwd()
-    end
 end
 
 module.events.defined = {
@@ -548,8 +526,6 @@ module.events.defined = {
 
 module.events.subscribed = {
     ["core.autocommands"] = {
-        dirchanged = true,
-        vimleavepre = true,
         bufenter = true,
     },
 
@@ -559,6 +535,7 @@ module.events.subscribed = {
 
     ["core.neorgcmd"] = {
         ["dirman.workspace"] = true,
+        ["dirman.index"] = true,
     },
 
     ["core.keybinds"] = {

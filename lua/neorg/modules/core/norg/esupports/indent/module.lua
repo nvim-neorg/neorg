@@ -9,7 +9,7 @@ local module = neorg.modules.create("core.norg.esupports.indent")
 
 module.setup = function()
     return {
-        wants = {
+        requires = {
             "core.integrations.treesitter",
             "core.autocommands",
         },
@@ -17,10 +17,9 @@ module.setup = function()
 end
 
 module.public = {
-    indentexpr = function(buf)
-        local node = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, vim.v.lnum - 1)
-            or module.required["core.integrations.treesitter"].get_first_node_on_line(buf, vim.v.lnum - 1, true)
-            or module.required["core.integrations.treesitter"].get_first_node_on_line(buf, vim.v.lnum - 1, true, true)
+    indentexpr = function(buf, line, node)
+        line = line or (vim.v.lnum - 1)
+        node = node or module.required["core.integrations.treesitter"].get_first_node_on_line(buf, line)
 
         if not node then
             return 0
@@ -32,13 +31,13 @@ module.public = {
             return 0
         end
 
-        local initial_indent = module.required["core.integrations.treesitter"].get_node_range(node).column_start
+        local _, initial_indent = node:start()
 
         local indent = 0
 
         for _, modifier in ipairs(indent_data.modifiers or {}) do
             if module.config.public.modifiers[modifier] then
-                local ret = module.config.public.modifiers[modifier](buf, node, initial_indent)
+                local ret = module.config.public.modifiers[modifier](buf, node, line, initial_indent)
 
                 if ret ~= 0 then
                     indent = ret
@@ -46,13 +45,13 @@ module.public = {
             end
         end
 
-        local line_len = vim.fn.getline(vim.v.lnum):len()
+        local line_len = (vim.api.nvim_buf_get_lines(buf, line, line + 1, true)[1] or ""):len()
 
         -- Ensure that the cursor is within the `norg` language
         local current_lang = vim.treesitter.get_parser(buf, "norg"):language_for_range({
-            vim.v.lnum - 1,
+            line,
             line_len,
-            vim.v.lnum - 1,
+            line,
             line_len,
         })
 
@@ -61,7 +60,7 @@ module.public = {
             -- If we're in a ranged tag then apart from providing nvim-treesitter indents also make sure
             -- to account for the indentation level of the tag itself.
             if node:type() == "ranged_tag_content" then
-                local lnum = vim.v.lnum - 1
+                local lnum = line
                 local start = node:range()
 
                 while lnum > start do
@@ -89,7 +88,7 @@ module.public = {
             return indent + indent_data.indent + (module.config.public.tweaks[node:type()] or 0)
         end
 
-        local calculated_indent = indent_data.indent(buf, node, indent, initial_indent) or 0
+        local calculated_indent = indent_data.indent(buf, node, line, indent, initial_indent) or 0
 
         if calculated_indent == -1 then
             return -1
@@ -112,10 +111,10 @@ module.config.public = {
         },
 
         ["strong_paragraph_delimiter"] = {
-            indent = function(buf)
+            indent = function(buf, _, line)
                 local node = module.required["core.integrations.treesitter"].get_first_node_on_line(
                     buf,
-                    vim.fn.prevnonblank(vim.v.lnum - 1) - 1
+                    vim.fn.prevnonblank(line) - 1
                 )
 
                 if not node then
