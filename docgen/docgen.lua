@@ -95,6 +95,10 @@ docgen.parse_top_comment = function(comment)
         else
             local option_name, value = line:match("^%s*(%w+):%s*(.+)")
 
+            if vim.tbl_contains({ "true", "false" }, value) then
+                value = (value == "true")
+            end
+
             if option_name and can_have_options then
                 result[option_name:lower()] = value
             else
@@ -127,6 +131,64 @@ docgen.check_top_comment_integrity = function(top_comment)
     return top_comment
 end
 
+--- TODO
+---@param buffer number #Buffer ID
+---@param root userdata #The root node
+---@return userdata? #Root node
+docgen.get_module_config_node = function(buffer, root)
+    local query = vim.treesitter.parse_query("lua", [[
+        (assignment_statement
+          (variable_list) @_name
+          (#eq? @_name "module.config.public")) @declaration
+    ]])
 
+    local _, declaration_node = query:iter_captures(root, buffer)()
+
+    return declaration_node and declaration_node:named_child(1):named_child(0) or nil
+end
+
+--- TODO
+---@param start_node userdata #Node
+---@param callback function
+docgen.map_config = function(buffer, start_node, callback)
+    local comments = {}
+
+    local query = vim.treesitter.parse_query("lua", [[
+        ((comment)+ @comment
+        .
+        (field) @field)
+    ]])
+
+    for capture_id, node in query:iter_captures(start_node, buffer) do
+        local capture = query.captures[capture_id]
+
+        if capture == "comment" then
+            table.insert(comments, ts.get_node_text(node, buffer))
+        elseif capture == "field" and node:parent():id() == start_node:id() then
+            local name = ts.get_node_text(node:named_child(0), buffer)
+            local value = node:named_child(1)
+
+            if value:type() == "table_constructor" then
+                callback({
+                    node = node,
+                    name = name,
+                    value = value,
+                }, comments)
+
+                docgen.map_config(buffer, node, callback)
+            else
+                callback({
+                    node = node,
+                    name = name,
+                    value = value,
+                }, comments)
+            end
+
+            comments = {}
+        else
+            comments = {}
+        end
+    end
+end
 
 return docgen
