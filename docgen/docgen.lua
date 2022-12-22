@@ -28,7 +28,7 @@ local ts_utils = ts.get_ts_utils()
 ---@return table #A list of paths to every module's `module.lua` file
 docgen.aggregate_module_files = function()
     return vim.fs.find("module.lua", {
-        path = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h"),
+        path = "..",
         type = "file",
         limit = math.huge,
     })
@@ -104,6 +104,27 @@ docgen.parse_top_comment = function(comment)
     end
 
     return result
+end
+
+--- TODO
+---@param top_comment TopComment #The comment to check for errors
+---@return string|TopComment #An error string or the comment itself
+docgen.check_top_comment_integrity = function(top_comment)
+    local tc = vim.tbl_deep_extend("keep", top_comment, {
+        title = "",
+        summary = "",
+        markdown = {},
+    })
+
+    if not tc.file then
+        return "no `File:` field provided."
+    elseif tc.summary:sub(tc.summary:len()) ~= "." then
+        return "summary does not end with a full stop."
+    elseif tc.title:find("neorg") then
+        return "`neorg` written with lowercase letter. Use uppercase instead."
+    end
+
+    return top_comment
 end
 
 

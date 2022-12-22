@@ -1,5 +1,6 @@
 --[[
---
+    File: Itero
+    Summary: Module designed to continue lists, headings and other iterables.
 --]]
 
 local module = neorg.modules.create("core.itero")
