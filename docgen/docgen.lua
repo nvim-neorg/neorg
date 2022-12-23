@@ -362,6 +362,68 @@ docgen.generators = {
 
         return docgen.evaluate_functions(structure)
     end,
+
+    --- Generates the _Sidebar.md file
+    ---@param modules Modules #The list of loaded modules
+    sidebar = function(modules)
+        local structure = {
+            "<div align='center'>",
+            "",
+            "# :star2: Neorg",
+            "</div>",
+            "",
+            "### Setting Up",
+            "- [How do I configure modules?](https://github.com/nvim-neorg/neorg/wiki/Configuring-Modules)",
+            "- [User Keybinds](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds)",
+            "- [User Callbacks](https://github.com/nvim-neorg/neorg/wiki/User-Callbacks)",
+            "- [Customizing Icons](https://github.com/nvim-neorg/neorg/wiki/Concealer)",
+            "### For the programmer",
+            "- [Writing my own module](https://github.com/nvim-neorg/neorg/wiki/Creating-Modules)",
+            "- [Hotswapping modules](https://github.com/nvim-neorg/neorg/wiki/Hotswapping-Modules)",
+            "- [Difference between module.public and module.config.public](https://github.com/nvim-neorg/neorg/wiki/Public-vs-Public-Config)",
+            "- [Metamodules](https://github.com/nvim-neorg/neorg/wiki/Metamodules)",
+            "",
+            "<details>",
+            "<summary>Inbuilt modules:</summary>",
+            "",
+            function()
+                local res = {}
+                local names = {}
+
+                for n, data in pairs(modules) do
+                    if data.parsed.config ~= true then
+                        table.insert(names, n)
+                    end
+                end
+
+                table.sort(names)
+
+                for _, name in ipairs(names) do
+                    local data = modules[name]
+                    if not data.parsed.internal then
+                        local insert = ""
+                        if data.top_comment_data.file then
+                            insert = insert
+                                .. "- [`"
+                                .. data.parsed.name
+                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                                .. data.top_comment_data.file
+                                .. ")"
+                        else
+                            insert = insert .. "- `" .. name .. "`"
+                        end
+
+                        table.insert(res, insert)
+                    end
+                end
+                return res
+            end,
+            "",
+            "</details>",
+        }
+
+        return docgen.evaluate_functions(structure)
+    end,
 }
 
 return docgen
