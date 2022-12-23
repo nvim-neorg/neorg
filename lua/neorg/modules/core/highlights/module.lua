@@ -294,17 +294,6 @@ module.config.public = {
             },
         },
 
-        insertions = {
-            [""] = "cterm=bold gui=bold",
-            prefix = "+@punctuation.delimiter",
-            variable = {
-                name = "+@string",
-                value = "+@punctuation.delimiter",
-            },
-            item = "+@namespace",
-            parameters = "+@comment",
-        },
-
         links = {
             description = {
                 [""] = "+@text.uri",
@@ -409,8 +398,8 @@ module.config.public = {
                 [""] = "+@number",
                 delimiter = "+NonText",
             },
-            variable = {
-                [""] = "+@neorg.insertions.variable.name",
+            inline_macro = {
+                [""] = "+@neorg.insertions.inline_macro.name",
                 delimiter = "+NonText",
             },
             verbatim = {
@@ -423,6 +412,8 @@ module.config.public = {
                 [""] = "+@text.math",
                 delimiter = "+NonText",
             },
+
+            free_form_delimiter = "+NonText",
         },
 
         delimiters = {

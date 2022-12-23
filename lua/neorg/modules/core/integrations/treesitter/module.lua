@@ -75,12 +75,20 @@ module.load = function()
             pattern = "*.norg",
             once = true,
             callback = function()
-                if vim.tbl_isempty(vim.api.nvim_get_runtime_file("parser/norg.so", false) or {}) then
-                    if module.config.public.install_parsers then
-                        require("nvim-treesitter.install").commands.TSInstallSync["run!"]("norg", "norg_meta")
-                    else
-                        assert(false, "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it.")
-                    end
+                module.public.parser_path = vim.api.nvim_get_runtime_file("parser/norg.so", false)[1]
+
+                if module.public.parser_path then
+                    return
+                end
+
+                if module.config.public.install_parsers then
+                    require("nvim-treesitter.install").commands.TSInstallSync["run!"]("norg", "norg_meta")
+                    module.public.parser_path = vim.api.nvim_get_runtime_file("parser/norg.so", false)[1]
+                else
+                    assert(
+                        false,
+                        "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it, then restart Neovim."
+                    )
                 end
             end,
         })
@@ -109,8 +117,8 @@ module.config.public = {
         norg = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg",
             files = { "src/parser.c", "src/scanner.cc" },
-            branch = "main",
-            revision = "5d9c76b5c9927955f7c5d5d946397584e307f69f",
+            branch = "dev",
+            revision = "6348056b999f06c2c7f43bb0a5aa7cfde5302712",
         },
         norg_meta = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
@@ -123,6 +131,8 @@ module.config.public = {
 
 ---@class core.integrations.treesitter
 module.public = {
+    parser_path = nil,
+
     --- Gives back an instance of `nvim-treesitter.ts_utils`
     ---@return table #`nvim-treesitter.ts_utils`
     get_ts_utils = function()
@@ -378,8 +388,14 @@ module.public = {
 
     --- Given a node this function will break down the AST elements and return the corresponding text for certain nodes
     -- @Param  tag_node (userdata/treesitter node) - a node of type tag/carryover_tag
-    get_tag_info = function(tag_node, check_parent)
-        if not tag_node or (tag_node:type() ~= "ranged_tag" and tag_node:type() ~= "carryover_tag") then
+    get_tag_info = function(tag_node)
+        if
+            not tag_node
+            or not vim.tbl_contains(
+                { "ranged_tag", "ranged_verbatim_tag", "weak_carryover", "strong_carryover" },
+                tag_node:type()
+            )
+        then
             return nil
         end
 
@@ -389,13 +405,13 @@ module.public = {
         local resulting_name, params, content = {}, {}, {}
         local content_start_column = 0
 
-        if check_parent == true or check_parent == nil then
-            local parent = tag_node:parent()
-
-            if parent:type() == "carryover_tag_set" then
-                for child in parent:iter_children() do
-                    if child:type() == "carryover_tag" then
-                        local meta = module.public.get_tag_info(child, false)
+        -- Iterate over all children of the tag node
+        for child, _ in tag_node:iter_children() do
+            -- If we are dealing with a weak/strong attribute set then parse that set
+            if vim.endswith(child:type(), "_carryover_set") then
+                for subchild in child:iter_children() do
+                    if vim.endswith(subchild:type(), "_carryover") then
+                        local meta = module.public.get_tag_info(subchild)
 
                         if
                             vim.tbl_isempty(vim.tbl_filter(function(attribute)
@@ -410,17 +426,12 @@ module.public = {
                         end
                     end
                 end
-            end
-        end
-
-        -- Iterate over all children of the tag node
-        for child, _ in tag_node:iter_children() do
-            -- If we're dealing with the tag name then append the text of the tag_name node to this table
-            if child:type() == "tag_name" then
+            elseif child:type() == "tag_name" then
+                -- If we're dealing with the tag name then append the text of the tag_name node to this table
                 table.insert(resulting_name, vim.split(module.public.get_node_text(child), "\n")[1])
             elseif child:type() == "tag_parameters" then
                 table.insert(params, vim.split(module.public.get_node_text(child), "\n")[1])
-            elseif child:type() == "ranged_tag_content" then
+            elseif child:type() == "ranged_verbatim_tag_content" then
                 -- If we're dealing with tag content then retrieve that content
                 content = vim.split(module.public.get_node_text(child), "\n")
                 _, content_start_column = child:range()

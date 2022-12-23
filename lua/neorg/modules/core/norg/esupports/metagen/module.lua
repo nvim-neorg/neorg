@@ -70,7 +70,7 @@ module.public = {
         local query = vim.treesitter.parse_query(
             "norg",
             [[
-                 (ranged_tag
+                 (ranged_verbatim_tag
                      (tag_name) @name
                      (#eq? @name "document.meta")
                  ) @meta
@@ -80,25 +80,37 @@ module.public = {
         local root = module.required["core.integrations.treesitter"].get_document_root(buf)
 
         if not root then
-            return false, { 0, 0 }
+            return false, {
+                range = { 0, 0 },
+                node = nil,
+            }
         end
 
         local _, found = query:iter_matches(root, buf)()
         local range = { 0, 0 }
 
         if not found then
-            return false, range
+            return false, {
+                range = range,
+                node = nil,
+            }
         end
+
+        local metadata_node = nil
 
         for id, node in pairs(found) do
             local name = query.captures[id]
             if name == "meta" then
+                metadata_node = node
                 range[1], _, range[2], _ = node:range()
                 range[2] = range[2] + 2
             end
         end
 
-        return true, range
+        return true, {
+            range = range,
+            node = metadata_node,
+        }
     end,
 
     --- Creates the metadata contents from the configuration's template.
@@ -135,26 +147,79 @@ module.public = {
     ---@param buf number #The number of the buffer to inject the metadata into
     ---@param force? boolean #Whether to forcefully override existing metadata
     inject_metadata = function(buf, force)
-        local present, range = module.public.is_metadata_present(buf)
+        local present, data = module.public.is_metadata_present(buf)
+
         if force or not present then
             local constructed_metadata = module.public.construct_metadata(buf)
-            vim.api.nvim_buf_set_lines(buf, range[1], range[2], false, constructed_metadata)
+            vim.api.nvim_buf_set_lines(buf, data.range[1], data.range[2], false, constructed_metadata)
         end
     end,
 
     update_metadata = function(buf)
-        local present, range = module.public.is_metadata_present(buf)
-        if present then
-            local current_date = os.date("%Y-%m-%d")
-            local meta = vim.api.nvim_buf_get_lines(buf, range[1], range[2], false)
-            for idx, field in ipairs(meta) do
-                local updated_field = field:match("updated: %d+%-%d+%-%d+")
-                if updated_field then
-                    local updated_date = updated_field:match("%d+%-%d+-%d+")
-                    if updated_date ~= current_date then
-                        local new_date = updated_field:gsub("%d+%-%d+-%d+", current_date)
-                        vim.api.nvim_buf_set_lines(buf, idx - 1, idx, false, { new_date })
-                    end
+        local present = module.public.is_metadata_present(buf)
+
+        if not present then
+            return
+        end
+
+        -- Extract the root node of the norg_meta language
+        -- This process should be abstracted into a core.integrations.treesitter
+        -- function.
+        local languagetree = vim.treesitter.get_parser(buf, "norg")
+
+        if not languagetree then
+            return
+        end
+
+        local meta_root = nil
+
+        languagetree:for_each_child(function(tree)
+            if tree:lang() ~= "norg_meta" or meta_root then
+                return
+            end
+
+            local meta_tree = tree:parse()[1]
+
+            if not meta_tree then
+                return
+            end
+
+            meta_root = meta_tree:root()
+        end)
+
+        if not meta_root then
+            return
+        end
+
+        local current_date = os.date("%Y-%m-%d")
+
+        local query = vim.treesitter.parse_query(
+            "norg_meta",
+            [[
+            (pair
+                (key) @_key
+                (#eq? @_key "updated")
+                (value) @updated)
+        ]]
+        )
+
+        for id, node in query:iter_captures(meta_root, buf) do
+            local capture = query.captures[id]
+
+            if capture == "updated" then
+                local date = module.required["core.integrations.treesitter"].get_node_text(node)
+
+                if date ~= current_date then
+                    local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+                    vim.api.nvim_buf_set_text(
+                        buf,
+                        range.row_start,
+                        range.column_start,
+                        range.row_end,
+                        range.column_end,
+                        { current_date }
+                    )
                 end
             end
         end

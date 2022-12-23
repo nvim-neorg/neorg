@@ -4,9 +4,9 @@
     Summary: Handles interaction for syntax files for code blocks.
     ---
     Author's note:
-    This module will appear as spaghetti code at first glance. This is intenional.
-    If one needs to edit this module, it is best to talk to me at katawful on GitHub.
-    Any edit is assumed to break this module
+    This module will appear as spaghetti code at first glance. This is intentional.
+    If one needs to edit this module, it is best to talk to me at `katawful` on GitHub.
+    Any edit is assumed to break this module.
 --]]
 
 require("neorg.modules.base")
@@ -109,7 +109,7 @@ module.public = {
             local code_lang = vim.treesitter.parse_query(
                 "norg",
                 [[(
-                    (ranged_tag (tag_name) @_tagname (tag_parameters) @language)
+                    (ranged_verbatim_tag (tag_name) @_tagname (tag_parameters) @language)
                     (#any-of? @_tagname "code" "embed")
                 )]]
             )

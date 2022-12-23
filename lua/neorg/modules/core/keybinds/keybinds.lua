@@ -40,18 +40,6 @@ module.config.public = {
                     -- Switches the task under the cursor between a select few states
                     { "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" },
 
-                    -- Captures a task
-                    -- ^Task Capture
-                    { leader .. "tc", "core.gtd.base.capture" },
-
-                    -- Short for "task views", show a view selection menu
-                    -- ^Task View
-                    { leader .. "tv", "core.gtd.base.views" },
-
-                    -- Short for "task edit", lets you edit a task
-                    -- ^Task Edit
-                    { leader .. "te", "core.gtd.base.edit" },
-
                     -- Creates a new .norg file to take notes in
                     -- ^New Note
                     { leader .. "nn", "core.norg.dirman.new.note" },
@@ -114,24 +102,6 @@ module.config.public = {
                     -- Closes the TOC split
                     -- ^escape
                     { "<Esc>", "core.norg.qol.toc.close" },
-                },
-            }, {
-                silent = true,
-                noremap = true,
-                nowait = true,
-            })
-
-            -- Map the below keys on gtd displays
-            keybinds.map_event_to_mode("gtd-displays", {
-                n = {
-                    { "<CR>", "core.gtd.ui.goto_task" },
-
-                    -- Keys for closing the current display
-                    { "q", "core.gtd.ui.close" },
-                    { "<Esc>", "core.gtd.ui.close" },
-
-                    { "e", "core.gtd.ui.edit_task" },
-                    { "<Tab>", "core.gtd.ui.details" },
                 },
             }, {
                 silent = true,

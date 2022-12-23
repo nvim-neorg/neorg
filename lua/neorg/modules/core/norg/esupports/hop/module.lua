@@ -278,7 +278,6 @@ module.public = {
                             (link_target_url)
                             (link_target_generic)
                             (link_target_external_file)
-                            (link_target_marker)
                             (link_target_definition)
                             (link_target_footnote)
                             (link_target_heading1)
@@ -288,15 +287,15 @@ module.public = {
                             (link_target_heading5)
                             (link_target_heading6)
                         ]? @link_type
-                        text: (paragraph_segment)? @link_location_text
+                        text: (paragraph)? @link_location_text
                     )
                     (link_description
-                        text: (paragraph_segment) @link_description
+                        text: (paragraph) @link_description
                     )?
                 )
                 (anchor_definition
                     (link_description
-                        text: (paragraph_segment) @link_description
+                        text: (paragraph) @link_description
                     )
                     (link_location
                         file: (
@@ -306,7 +305,6 @@ module.public = {
                             (link_target_url)
                             (link_target_generic)
                             (link_target_external_file)
-                            (link_target_marker)
                             (link_target_definition)
                             (link_target_footnote)
                             (link_target_heading1)
@@ -316,7 +314,7 @@ module.public = {
                             (link_target_heading5)
                             (link_target_heading6)
                         ] @link_type
-                        text: (paragraph_segment) @link_location_text
+                        text: (paragraph) @link_location_text
                     )
                 )
             ]
@@ -443,77 +441,66 @@ module.public = {
             _ = function()
                 local query_str = neorg.lib.match(parsed_link_information.link_type)({
                     generic = [[
-                        (carryover_tag_set
-                            (carryover_tag
-                                name: (tag_name) @tag_name
-                                (tag_parameters) @title
-                                (#eq? @tag_name "name")
-                            )
-                        )?
                         (_
-                            title: (paragraph_segment) @title
-                        )?
+                          [(strong_carryover_set
+                             (strong_carryover
+                               name: (tag_name) @tag_name
+                               (tag_parameters) @title
+                               (#eq? @tag_name "name")))
+                           (weak_carryover_set
+                             (weak_carryover
+                               name: (tag_name) @tag_name
+                               (tag_parameters) @title
+                               (#eq? @tag_name "name")))]?
+                          title: (paragraph_segment) @title)
                     ]],
 
-                    definition = string.format(
+                    [{ "definition", "footnote" }] = string.format(
                         [[
-                            (carryover_tag_set
-                                (carryover_tag
+                            [(single_%s
+                               [(strong_carryover_set
+                                  (strong_carryover
                                     name: (tag_name) @tag_name
                                     (tag_parameters) @title
-                                    (#eq? @tag_name "name")
-                                )
-                            )?
-                            [
-                                (single_%s
-                                    (single_%s_prefix)
-                                    title: (paragraph_segment) @title
-                                )
-                                (multi_%s
-                                    (multi_%s_prefix)
-                                    title: (paragraph_segment) @title
-                                )
-                            ]?
+                                    (#eq? @tag_name "name")))
+                                (weak_carryover_set
+                                  (weak_carryover
+                                    name: (tag_name) @tag_name
+                                    (tag_parameters) @title
+                                    (#eq? @tag_name "name")))]?
+                               (single_%s_prefix)
+                               title: (paragraph_segment) @title)
+                             (multi_%s
+                               [(strong_carryover_set
+                                  (strong_carryover
+                                   name: (tag_name) @tag_name
+                                   (tag_parameters) @title
+                                   (#eq? @tag_name "name")))
+                                (weak_carryover_set
+                                  (weak_carryover
+                                    name: (tag_name) @tag_name
+                                    (tag_parameters) @title
+                                    (#eq? @tag_name "name")))]?
+                                (multi_%s_prefix)
+                                  title: (paragraph_segment) @title)]
                         ]],
                         neorg.lib.reparg(parsed_link_information.link_type, 4)
                     ),
-
-                    footnote = string.format(
-                        [[
-                            (carryover_tag_set
-                                (carryover_tag
-                                    name: (tag_name) @tag_name
-                                    (tag_parameters) @title
-                                    (#eq? @tag_name "name")
-                                )
-                            )?
-                            [
-                                (single_%s
-                                    (single_%s_prefix)
-                                    title: (paragraph_segment) @title
-                                )
-                                (multi_%s
-                                    (multi_%s_prefix)
-                                    title: (paragraph_segment) @title
-                                )
-                            ]?
-                        ]],
-                        neorg.lib.reparg(parsed_link_information.link_type, 4)
-                    ),
-
                     _ = string.format(
                         [[
-                            (carryover_tag_set
-                                (carryover_tag
-                                    name: (tag_name) @tag_name
-                                    (tag_parameters) @title
-                                    (#eq? @tag_name "name")
-                                )
-                            )?
                             (%s
-                                (%s_prefix)
-                                title: (paragraph_segment) @title
-                            )?
+                              [(strong_carryover_set
+                                 (strong_carryover
+                                   name: (tag_name) @tag_name
+                                   (tag_parameters) @title
+                                   (#eq? @tag_name "name")))
+                               (weak_carryover_set
+                                 (weak_carryover
+                                   name: (tag_name) @tag_name
+                                   (tag_parameters) @title
+                                   (#eq? @tag_name "name")))]?
+                              (%s_prefix)
+                              title: (paragraph_segment) @title)
                         ]],
                         neorg.lib.reparg(parsed_link_information.link_type, 2)
                     ),
@@ -616,16 +603,18 @@ module.private = {
     ---@return table #A table of similarities (fuzzed items)
     fix_link_loose = function(parsed_link_information)
         local generic_query = [[
-            (carryover_tag_set
-                (carryover_tag
-                    name: (tag_name) @tag_name
-                    (tag_parameters) @title
-                    (#eq? @tag_name "name")
-                )
-            )?
             (_
-                title: (paragraph_segment) @title
-            )?
+              [(strong_carryover_set
+                 (strong_carryover
+                   name: (tag_name) @tag_name
+                   (tag_parameters) @title
+                   (#eq? @tag_name "name")))
+               (weak_carryover_set
+                 (weak_carryover
+                   name: (tag_name) @tag_name
+                   (tag_parameters) @title
+                   (#eq? @tag_name "name")))]?
+                title: (paragraph_segment) @title)
         ]]
 
         return module.private.fix_link(parsed_link_information, generic_query)
@@ -635,39 +624,71 @@ module.private = {
     ---@param parsed_link_information table #A table as returned by `parse_link()`
     ---@return table #A table of similarities (fuzzed items)
     fix_link_strict = function(parsed_link_information)
-        local query = neorg.lib.when(
-            parsed_link_information.link_type == "generic",
-            [[
-                (carryover_tag_set
-                    (carryover_tag
+        local query = neorg.lib.match(parsed_link_information.link_type)({
+            generic = [[
+                (_
+                  [(strong_carryover_set
+                     (strong_carryover
+                       name: (tag_name) @tag_name
+                       (tag_parameters) @title
+                       (#eq? @tag_name "name")))
+                   (weak_carryover_set
+                     (weak_carryover
+                       name: (tag_name) @tag_name
+                       (tag_parameters) @title
+                       (#eq? @tag_name "name")))]?
+                        title: (paragraph_segment) @title)
+            ]],
+            [{ "definition", "footnote" }] = string.format(
+                [[
+                [(single_%s
+                   [(strong_carryover_set
+                      (strong_carryover
                         name: (tag_name) @tag_name
                         (tag_parameters) @title
-                        (#eq? @tag_name "name")
-                        (#set! "type" "generic")
-                    )
-                )?
-                (_
-                    title: (paragraph_segment) @title
-                )?
+                        (#eq? @tag_name "name")))
+                    (weak_carryover_set
+                      (weak_carryover
+                        name: (tag_name) @tag_name
+                        (tag_parameters) @title
+                        (#eq? @tag_name "name")))]?
+                   (single_%s_prefix)
+                   title: (paragraph_segment) @title)
+                 (multi_%s
+                   [(strong_carryover_set
+                      (strong_carryover
+                       name: (tag_name) @tag_name
+                       (tag_parameters) @title
+                       (#eq? @tag_name "name")))
+                    (weak_carryover_set
+                      (weak_carryover
+                        name: (tag_name) @tag_name
+                        (tag_parameters) @title
+                        (#eq? @tag_name "name")))]?
+                    (multi_%s_prefix)
+                      title: (paragraph_segment) @title)]
             ]],
-            string.format(
+                neorg.lib.reparg(parsed_link_information.link_type, 4)
+            ),
+            _ = string.format(
                 [[
-                    (carryover_tag_set
-                        (carryover_tag
+                    (%s
+                       [(strong_carryover_set
+                          (strong_carryover
                             name: (tag_name) @tag_name
                             (tag_parameters) @title
-                            (#eq? @tag_name "name")
-                            (#set! "type" "generic")
-                        )
-                    )?
-                    (%s
+                            (#eq? @tag_name "name")))
+                        (weak_carryover_set
+                          (weak_carryover
+                            name: (tag_name) @tag_name
+                            (tag_parameters) @title
+                            (#eq? @tag_name "name")))]?
                         (%s_prefix)
-                        title: (paragraph_segment) @title
-                    )?
+                        title: (paragraph_segment) @title)
                 ]],
                 neorg.lib.reparg(parsed_link_information.link_type, 2)
-            )
-        )
+            ),
+        })
 
         return module.private.fix_link(parsed_link_information, query)
     end,
@@ -750,9 +771,10 @@ module.private = {
                 heading4 = "****",
                 heading5 = "*****",
                 heading6 = "******",
-                marker = "|",
-                -- single_definition = "$",
-                -- multi_definition = "$",
+                single_definition = "$",
+                multi_definition = "$",
+                single_footnote = "^",
+                multi_footnote = "^",
                 _ = "#",
             })
         ) .. " "

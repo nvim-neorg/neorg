@@ -13,7 +13,6 @@ local scan = require("plenary.scandir")
 require("neorg").setup({
     load = {
         ["core.defaults"] = {},
-        ["core.gtd.base"] = {},
         ["core.integrations.treesitter"] = {
             config = {
                 configure_parsers = false,

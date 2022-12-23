@@ -1,7 +1,3 @@
--- rev: 5d9c76b5c9927955f7c5d5d946397584e307f69f
-
--- TODO: Set old version of parser before reverting to "normal" one
-
 local module = neorg.modules.create("core.upgrade")
 
 module.setup = function()
@@ -46,7 +42,8 @@ end
 
 module.public = {
     upgrade = function(buffer)
-        local tree = vim.treesitter.get_parser(buffer, "norg"):parse()[1]
+        vim.treesitter.require_language("norg_old", nil, true, "norg")
+        local tree = vim.treesitter.get_parser(buffer, "norg_old"):parse()[1]
         local ts = module.required["core.integrations.treesitter"]
 
         local final_file = {}
@@ -152,163 +149,201 @@ module.public = {
     end,
 }
 
+module.private = {
+    neorg_parser_call = function(name, callback)
+        local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
+
+        parser_configs.norg_old = vim.tbl_deep_extend("force", parser_configs[name], {
+            install_info = {
+                branch = "main",
+                revision = "8ad20059c6f128861c4506fff866150ffee1d6f4",
+            },
+        })
+
+        vim.treesitter.require_language("norg_old", nil, true, "norg")
+        if
+            not vim._ts_has_language("norg_old") and not vim.deep_equal(parser_configs.norg_old, parser_configs[name])
+        then
+            local ok, install = pcall(require, "nvim-treesitter.install")
+
+            if not ok then
+                log.error("Unable to upgrade document! The old parser version failed to install, perhaps try again?")
+                log.error("Upgrading aborted.")
+                return
+            end
+
+            install.commands.TSInstallSync["run!"]("norg_old")
+        end
+
+        callback()
+    end,
+}
+
 module.on_event = function(event)
     if event.split_type[2] == "core.upgrade.current-file" then
-        local path = vim.api.nvim_buf_call(event.buffer, function()
-            return vim.fn.expand("%")
-        end)
-
-        if module.config.public.ask_for_backup then
-            local halt = false
-
-            vim.notify(
-                "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?"
-            )
-            vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
-                prompt = "Create backup?",
-            }, function(_, idx)
-                if idx == 1 then
-                    local ok, err = vim.loop.fs_copyfile(path, path .. ".old")
-
-                    if not ok then
-                        halt = true
-                        log.error(("Failed to create backup (%s) - upgrading aborted."):format(err))
-                        return
-                    end
-                end
+        module.private.neorg_parser_call("norg", function()
+            local path = vim.api.nvim_buf_call(event.buffer, function()
+                return vim.fn.expand("%")
             end)
 
-            if halt then
-                return
-            end
-        end
+            if module.config.public.ask_for_backup then
+                local halt = false
 
-        vim.notify("Begin upgrade...")
-
-        local output = table.concat(module.public.upgrade(event.buffer))
-
-        vim.loop.fs_open(path, "w", 438, function(err, fd)
-            assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", path, "' for upgrade: ", err))
-
-            vim.loop.fs_write(fd, output, 0, function(werr)
-                assert(
-                    not werr,
-                    neorg.lib.lazy_string_concat("Failed to write to file '", path, "' for upgrade: ", werr)
+                vim.notify(
+                    "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?"
                 )
-            end)
+                vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
+                    prompt = "Create backup?",
+                }, function(_, idx)
+                    if idx == 1 then
+                        local ok, err = vim.loop.fs_copyfile(path, path .. ".old")
 
-            vim.schedule(neorg.lib.wrap(vim.notify, "Successfully upgraded 1 file!"))
+                        if not ok then
+                            halt = true
+                            log.error(("Failed to create backup (%s) - upgrading aborted."):format(err))
+                            return
+                        end
+                    end
+                end)
+
+                if halt then
+                    return
+                end
+            end
+
+            vim.notify("Begin upgrade...")
+
+            local output = table.concat(module.public.upgrade(event.buffer))
+
+            vim.loop.fs_open(path, "w", 438, function(err, fd)
+                assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", path, "' for upgrade: ", err))
+
+                vim.loop.fs_write(fd, output, 0, function(werr)
+                    assert(
+                        not werr,
+                        neorg.lib.lazy_string_concat("Failed to write to file '", path, "' for upgrade: ", werr)
+                    )
+                end)
+
+                vim.schedule(neorg.lib.wrap(vim.notify, "Successfully upgraded 1 file!"))
+            end)
         end)
     elseif event.split_type[2] == "core.upgrade.current-directory" then
-        local path = vim.fn.getcwd(event.window)
+        module.private.neorg_parser_call("norg", function()
+            local path = vim.fn.getcwd(event.window)
 
-        do
-            local halt = false
+            do
+                local halt = false
 
-            vim.notify(
-                ("Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!"):format(
-                    path
+                vim.notify(
+                    ("Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!"):format(
+                        path
+                    )
                 )
-            )
-            vim.ui.select({ "This is the right directory", "I'd like to change it" }, {
-                prompt = "Change directory?",
-            }, function(_, idx)
-                halt = (idx ~= 1)
-            end)
+                vim.ui.select({ "This is the right directory", "I'd like to change it" }, {
+                    prompt = "Change directory?",
+                }, function(_, idx)
+                    halt = (idx ~= 1)
+                end)
 
-            if halt then
-                return
+                if halt then
+                    return
+                end
             end
-        end
 
-        if module.config.public.ask_for_backup then
-            local halt = false
+            if module.config.public.ask_for_backup then
+                local halt = false
 
-            vim.notify(
-                "\nUpgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this directory?"
-            )
-            vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
-                prompt = "Create backup?",
-            }, function(_, idx)
-                if idx == 1 then
-                    local ok, err = module.required["core.fs"].copy_directory(path, path .. ".old")
+                vim.notify(
+                    "\nUpgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this directory?"
+                )
+                vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
+                    prompt = "Create backup?",
+                }, function(_, idx)
+                    if idx == 1 then
+                        local ok, err = module.required["core.fs"].copy_directory(path, path .. ".old")
 
-                    if not ok then
-                        halt = true
-                        log.error(
-                            ("Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty? Formal error: %s"):format(
-                                path .. ".old",
-                                err
+                        if not ok then
+                            halt = true
+                            log.error(
+                                ("Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty? Formal error: %s"):format(
+                                    path .. ".old",
+                                    err
+                                )
                             )
+                            return
+                        end
+                    end
+                end)
+
+                if halt then
+                    return
+                end
+            end
+
+            -- The old value of `eventignore` is stored here. This is done because the eventignore
+            -- value is set to ignore BufEnter events before loading all the Neorg buffers, as they can mistakenly
+            -- activate the concealer, which not only slows down performance notably but also causes errors.
+            local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
+            local file_counter, parsed_counter = 0, 0
+
+            module.required["core.fs"].directory_map(path, function(name, _, nested_path)
+                if not vim.endswith(name, ".norg") then
+                    return
+                end
+
+                file_counter = file_counter + 1
+
+                local function check_counters()
+                    parsed_counter = parsed_counter + 1
+
+                    if parsed_counter >= file_counter then
+                        vim.schedule(
+                            neorg.lib.wrap(vim.notify, string.format("Successfully upgraded %d files!", file_counter))
                         )
-                        return
                     end
                 end
-            end)
 
-            if halt then
-                return
-            end
-        end
+                vim.schedule(function()
+                    local filepath = table.concat({ nested_path, "/", name })
 
-        -- The old value of `eventignore` is stored here. This is done because the eventignore
-        -- value is set to ignore BufEnter events before loading all the Neorg buffers, as they can mistakenly
-        -- activate the concealer, which not only slows down performance notably but also causes errors.
-        local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
+                    vim.opt.eventignore = "BufEnter"
 
-        local file_counter, parsed_counter = 0, 0
+                    local output
 
-        module.required["core.fs"].directory_map(path, function(name, _, nested_path)
-            if not vim.endswith(name, ".norg") then
-                return
-            end
+                    local buffer = vim.fn.bufadd(filepath)
 
-            file_counter = file_counter + 1
+                    if not vim.api.nvim_buf_is_loaded(buffer) then
+                        vim.fn.bufload(buffer)
 
-            local function check_counters()
-                parsed_counter = parsed_counter + 1
+                        vim.opt.eventignore = old_event_ignore
 
-                if parsed_counter >= file_counter then
-                    vim.schedule(
-                        neorg.lib.wrap(vim.notify, string.format("Successfully upgraded %d files!", file_counter))
-                    )
-                end
-            end
+                        output = table.concat(module.public.upgrade(buffer))
 
-            vim.schedule(function()
-                local filepath = table.concat({ nested_path, "/", name })
+                        vim.api.nvim_buf_delete(buffer, { force = true })
+                    else
+                        output = table.concat(module.public.upgrade(buffer))
+                    end
 
-                vim.opt.eventignore = "BufEnter"
-
-                local output
-
-                local buffer = vim.fn.bufadd(filepath)
-
-                if not vim.api.nvim_buf_is_loaded(buffer) then
-                    vim.fn.bufload(buffer)
-
-                    vim.opt.eventignore = old_event_ignore
-
-                    output = table.concat(module.public.upgrade(buffer))
-
-                    vim.api.nvim_buf_delete(buffer, { force = true })
-                else
-                    output = table.concat(module.public.upgrade(buffer))
-                end
-
-                vim.loop.fs_open(filepath, "w+", 438, function(fs_err, fd)
-                    assert(
-                        not fs_err,
-                        neorg.lib.lazy_string_concat("Failed to open file '", filepath, "' for upgrade: ", fs_err)
-                    )
-
-                    vim.loop.fs_write(fd, output, 0, function(werr)
+                    vim.loop.fs_open(filepath, "w+", 438, function(fs_err, fd)
                         assert(
-                            not werr,
-                            neorg.lib.lazy_string_concat("Failed to write to file '", filepath, "' for upgrade: ", werr)
+                            not fs_err,
+                            neorg.lib.lazy_string_concat("Failed to open file '", filepath, "' for upgrade: ", fs_err)
                         )
 
-                        check_counters()
+                        vim.loop.fs_write(fd, output, 0, function(werr)
+                            assert(
+                                not werr,
+                                neorg.lib.lazy_string_concat(
+                                    "Failed to write to file '",
+                                    filepath,
+                                    "' for upgrade: ",
+                                    werr
+                                )
+                            )
+
+                            check_counters()
+                        end)
                     end)
                 end)
             end)

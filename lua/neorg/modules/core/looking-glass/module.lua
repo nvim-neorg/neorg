@@ -74,7 +74,7 @@ module.public = {
 
                         -- If we are within bounds of the code block but the current node type is not part of a ranged
                         -- tag then it means the user malformed the code block in some way and we should bail
-                        if not current_node or not current_node:type():match("^ranged_tag.*") then
+                        if not current_node or not current_node:type():match("^ranged_verbatim_tag.*") then
                             vim.api.nvim_buf_delete(target, { force = true })
                             vim.api.nvim_buf_clear_namespace(source, namespace, 0, -1)
                             return true
@@ -156,7 +156,7 @@ module.on_event = function(event)
         local query = vim.treesitter.parse_query(
             "norg",
             [[
-            (ranged_tag
+            (ranged_verbatim_tag
                 name: (tag_name) @_name
                 (#any-of? @_name "code" "embed")) @tag
         ]]

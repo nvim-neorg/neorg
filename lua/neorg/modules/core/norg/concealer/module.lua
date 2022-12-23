@@ -10,15 +10,15 @@ It's also directly responsible for displaying completion levels
 in situations like this:
 ```norg
 * Do Some Things
-- [ ] Thing A
-- [ ] Thing B
+- ( ) Thing A
+- ( ) Thing B
 ```
 
 Where it will display this instead:
 ```norg
 * Do Some Things (0 of 2) [0% complete]
-- [ ] Thing A
-- [ ] Thing B
+- ( ) Thing A
+- ( ) Thing B
 ```
 
 Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
@@ -268,7 +268,7 @@ module.public = {
                 vim.treesitter.parse_query,
                 "norg",
                 [[(
-                    (ranged_tag (tag_name) @_name) @tag
+                    (ranged_verbatim_tag (tag_name) @_name) @tag
                     (#any-of? @_name "code" "embed")
                 )]]
             )
@@ -282,7 +282,7 @@ module.public = {
             for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 local id_name = query.captures[id]
 
-                -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                -- If the capture name is "tag" then that means we're dealing with our ranged_verbatim_tag
                 if id_name == "tag" then
                     -- Get the range of the code block
                     local range = module.required["core.integrations.treesitter"].get_node_range(node)
@@ -1109,72 +1109,48 @@ module.config.public = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_done) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             pending = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_pending) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             undone = {
                 enabled = true,
                 icon = "×",
                 query = "(todo_item_undone) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             uncertain = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_uncertain) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             on_hold = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_on_hold) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             cancelled = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_cancelled) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             recurring = {
                 enabled = true,
                 icon = "↺",
                 query = "(todo_item_recurring) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             urgent = {
                 enabled = true,
                 icon = "⚠",
                 query = "(todo_item_urgent) @icon",
-                extract = function()
-                    return 1
-                end,
             },
         },
 
@@ -1215,40 +1191,6 @@ module.config.public = {
                 enabled = true,
                 icon = "     •",
                 query = "(unordered_list6_prefix) @icon",
-            },
-        },
-
-        link = {
-            enabled = true,
-            level_1 = {
-                enabled = true,
-                icon = " ",
-                query = "(unordered_link1_prefix) @icon",
-            },
-            level_2 = {
-                enabled = true,
-                icon = "  ",
-                query = "(unordered_link2_prefix) @icon",
-            },
-            level_3 = {
-                enabled = true,
-                icon = "   ",
-                query = "(unordered_link3_prefix) @icon",
-            },
-            level_4 = {
-                enabled = true,
-                icon = "    ",
-                query = "(unordered_link4_prefix) @icon",
-            },
-            level_5 = {
-                enabled = true,
-                icon = "     ",
-                query = "(unordered_link5_prefix) @icon",
-            },
-            level_6 = {
-                enabled = true,
-                icon = "      ",
-                query = "(unordered_link6_prefix) @icon",
             },
         },
 
@@ -1329,88 +1271,6 @@ module.config.public = {
                     local count = module.public.concealing.ordered.get_index(node, "ordered_list6")
                     return {
                         { "     " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-        },
-
-        ordered_link = {
-            enabled = true,
-            level_1 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.numeric
-                ),
-                query = "(ordered_link1_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link1")
-                    return {
-                        { " " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_2 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_uppercase
-                ),
-                query = "(ordered_link2_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link2")
-                    return {
-                        { "  " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_3 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_lowercase
-                ),
-                query = "(ordered_link3_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link3")
-                    return {
-                        { "   " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_4 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.numeric
-                ),
-                query = "(ordered_link4_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link4")
-                    return {
-                        { "    " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_5 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_uppercase
-                ),
-                query = "(ordered_link5_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link5")
-                    return {
-                        { "     " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_6 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_lowercase
-                ),
-                query = "(ordered_link6_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link6")
-                    return {
-                        { "      " .. self.icon(count), self.highlight },
                     }
                 end,
             },
@@ -1556,12 +1416,6 @@ module.config.public = {
             },
         },
 
-        marker = {
-            enabled = true,
-            icon = "",
-            query = "[ (marker_prefix) (link_target_marker) @no-conceal ] @icon",
-        },
-
         definition = {
             enabled = true,
 
@@ -1612,7 +1466,7 @@ module.config.public = {
                 query = "(weak_paragraph_delimiter) @icon",
                 render = function(self, text)
                     return {
-                        { string.rep(self.icon, text:len()), self.highlight },
+                        { string.rep(self.icon, text:len() - 1), self.highlight },
                     }
                 end,
             },
@@ -1624,7 +1478,7 @@ module.config.public = {
                 query = "(strong_paragraph_delimiter) @icon",
                 render = function(self, text)
                     return {
-                        { string.rep(self.icon, text:len()), self.highlight },
+                        { string.rep(self.icon, text:len() - 1), self.highlight },
                     }
                 end,
             },
@@ -1635,63 +1489,9 @@ module.config.public = {
                 highlight = "@neorg.delimiters.horizontal_line",
                 query = "(horizontal_line) @icon",
                 render = function(self, _, node)
-                    -- Get the length of the Neovim window (used to render to the edge of the screen)
-                    local resulting_length = vim.api.nvim_win_get_width(0)
-
-                    -- If we are running at least 0.6 (which has the prev_sibling() function) then
-                    if require("neorg.external.helpers").is_minimum_version(0, 6, 0) then
-                        -- Grab the sibling before our current node in order to later
-                        -- determine how much space it occupies in the buffer vertically
-                        local prev_sibling = node:prev_sibling()
-                        local double_prev_sibling = prev_sibling:prev_sibling()
-
-                        if prev_sibling then
-                            -- Get the text of the previous sibling and store its longest line width-wise
-                            local text = vim.split(
-                                module.required["core.integrations.treesitter"].get_node_text(prev_sibling),
-                                "\n",
-                                { plain = true, trimempty = true }
-                            )
-                            local longest = 3
-
-                            if
-                                prev_sibling:parent()
-                                and double_prev_sibling
-                                and double_prev_sibling:type() == "marker_prefix"
-                            then
-                                local range_of_prefix =
-                                    module.required["core.integrations.treesitter"].get_node_range(double_prev_sibling)
-                                local range_of_title =
-                                    module.required["core.integrations.treesitter"].get_node_range(prev_sibling)
-                                resulting_length = (range_of_prefix.column_end - range_of_prefix.column_start)
-                                    + (range_of_title.column_end - range_of_title.column_start)
-                            else
-                                -- Go through each line and remove its surrounding whitespace,
-                                -- we do this because some inconsistencies tend to occur with
-                                -- the way whitespace is handled.
-                                for _, line in ipairs(text) do
-                                    line = vim.trim(line)
-
-                                    -- If the line even has any "normal" characters
-                                    -- and its length is a new record then update the
-                                    -- `longest` variable
-                                    if line:match("%w") and line:len() > longest then
-                                        longest = line:len()
-                                    end
-                                end
-                            end
-
-                            -- If we've set a longest value then override the resulting length
-                            -- with that longest value (to make it render only up until that point)
-                            if longest > 0 then
-                                resulting_length = longest
-                            end
-                        end
-                    end
-
                     return {
                         {
-                            string.rep(self.icon, resulting_length),
+                            string.rep(self.icon, vim.api.nvim_win_get_width(0) - ({ node:range() })[2]),
                             self.highlight,
                         },
                     }
@@ -1714,8 +1514,9 @@ module.config.public = {
         },
     },
 
-    -- If you want to dim code blocks
+    -- Options related to dimming code block backgrounds
     dim_code_blocks = {
+        -- Whether you want to dim code blocks
         enabled = true,
 
         -- If true will only dim the content of the code block,
@@ -1749,6 +1550,11 @@ module.config.public = {
         conceal = true,
     },
 
+    -- If true, Neorg will enable folding by default for `.norg` documents.
+    -- You may use the inbuilt Neovim folding options like `foldnestmax`,
+    -- `foldlevelstart` and others to then tune the behaviour to your liking.
+    --
+    -- Set to `false` if you do not want Neorg setting anything.
     folds = true,
 
     completion_level = {
@@ -1791,6 +1597,9 @@ module.config.public = {
         ),
     },
 
+    -- Options related to concealer performance.
+    -- These options are put into effect when the concealer
+    -- has to deal with very large files.
     performance = {
         increment = 1250,
         timeout = 0,
@@ -1819,8 +1628,8 @@ module.load = function()
 
     --- Queries all icons that have their `enable = true` flags set
     ---@param tbl table #The table to parse
-    ---@param parent_icon string #Is used to pass icons from parents down to their table children to handle inheritance.
-    ---@param rec_name string #Should not be set manually. Is used for Neorg to have information about all other previous recursions
+    ---@param parent_icon? string #Is used to pass icons from parents down to their table children to handle inheritance.
+    ---@param rec_name? string #Should not be set manually. Is used for Neorg to have information about all other previous recursions
     local function get_enabled_icons(tbl, parent_icon, rec_name)
         rec_name = rec_name or ""
 
