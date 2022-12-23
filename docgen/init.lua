@@ -52,8 +52,8 @@ for _, file in ipairs(docgen.aggregate_module_files()) do
     ::continue::
 end
 
-local homepage_content = docgen.generators.homepage(modules)
-fileio.write_to_wiki("Home", homepage_content)
+fileio.write_to_wiki("Home", docgen.generators.homepage(modules))
+fileio.write_to_wiki("_Sidebar", docgen.generators.sidebar(modules))
 
 for module_name, module in pairs(modules) do
     local buffer = module.buffer
