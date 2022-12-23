@@ -1,7 +1,7 @@
 local docgen = {}
 
 -- Create the directory if it does not exist
-docgen.output_dir = "wiki"
+docgen.output_dir = "../wiki"
 pcall(vim.fn.mkdir, docgen.output_dir)
 
 require("neorg").setup({
@@ -74,7 +74,7 @@ docgen.get_module_top_comment = function(buf)
     return comment
 end
 
----@alias TopComment { file: string, title: string, summary: string, markdown: string[] }
+---@alias TopComment { file: string, title: string, summary: string, markdown: string[], internal: boolean }
 
 --- Parses the top comment
 ---@param comment string[] #The comment
@@ -190,5 +190,178 @@ docgen.map_config = function(buffer, start_node, callback)
         end
     end
 end
+
+docgen.evaluate_functions = function(tbl)
+    local new = {}
+
+    neorg.lib.map(tbl, function(_, value)
+        if type(value) == "function" then
+             vim.list_extend(new, value())
+        else
+            table.insert(new, value)
+        end
+    end)
+
+    return new
+end
+
+---@alias Modules { [string]: { top_comment_data: TopComment, buffer: number, parsed: table } }
+
+docgen.generators = {
+    --- Generates the Home.md file
+    ---@param modules Modules #A table of modules
+    homepage = function(modules)
+        local core_defaults = modules["core.defaults"]
+        assert(core_defaults, "core.defaults module not loaded!")
+
+        local structure = {
+            '<div align="center">',
+            "",
+            "# Welcome to the Neorg wiki!",
+            "Want to know how to properly use Neorg? Your answers are contained here.",
+            "",
+            "</div>",
+            "",
+            "# Using Neorg",
+            "",
+            "At first configuring Neorg might be rather scary. I have to define what modules I want to use in the `require('neorg').setup()` function?",
+            "I don't even know what the default available values are!",
+            "Don't worry, an installation guide is present [here](https://github.com/nvim-neorg/neorg#-installation), so go ahead and read it!",
+            "",
+            "# Contributing to Neorg",
+            "",
+            "Neorg is a very big and powerful tool behind the scenes - way bigger than it may initially seem.",
+            "Modules are its core foundation, and building modules is like building lego bricks to form a massive structure!",
+            "There's a whole tutorial dedicated to making modules [right here](https://github.com/nvim-neorg/neorg/wiki/Creating-Modules).",
+            "There everything you need will be explained - think of it as a walkthrough.",
+            "# Module naming convention",
+            "Neorg provides default modules, and users can extend Neorg by creating community modules.",
+            "We agreed on a module naming convention, and it should be used as is.",
+            "This convention should help users know at a glance what function the module serves in the grand scheme of things.",
+            "- Core modules: `core.*`",
+            "- Integrations with 3rd party software that are emdebbed in neorg: `core.integrations.*`",
+            "- External modules: `external.*`",
+            "- Integrations with 3rd party software that aren't emdebbed in neorg: `external.integrations.*`",
+            "",
+            "# Default Modules",
+            "",
+            function()
+                local link = "[`core.defaults`](https://github.com/nvim-neorg/neorg/wiki/"
+                    .. core_defaults.top_comment_data.file
+                    .. ")"
+                    return {
+                    "Neorg comes with some default modules that will be automatically loaded if you require the "
+                    .. link
+                    .. " module:" }
+            end,
+            "",
+            function() -- TODO: move out into generic function
+                local res = {}
+
+                for mod, data in pairs(modules) do
+                    if vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name) and not data.top_comment_data.internal then
+                        local insert
+
+                        if data.top_comment_data.file then
+                            insert = "- [`"
+                                .. data.parsed.name
+                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                                .. data.top_comment_data.file
+                                .. ")"
+                        else
+                            insert = "- `" .. mod .. "`"
+                        end
+
+                        if data.top_comment_data.summary then
+                            insert = insert .. " - " .. data.top_comment_data.summary
+                        else
+                            insert = insert .. " - undocumented module"
+                        end
+
+                        table.insert(res, insert)
+                    end
+                end
+
+                return res
+            end,
+            "",
+            "# Other Modules",
+            "",
+            "Some modules are not included by default as they require some manual configuration or are merely extra bells and whistles",
+            "and are not critical to editing `.norg` files. Below is a list of all modules that are not required by default:",
+            "",
+            function()
+                local res = {}
+
+                for mod, data in pairs(modules) do
+                    if
+                        not data.parsed.extension
+                        and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
+                        and not data.top_comment_data.internal
+                    then
+                        local insert
+                        if data.top_comment_data.file then
+                            insert = "- [`"
+                                .. data.parsed.name
+                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                                .. data.top_comment_data.file
+                                .. ")"
+                        else
+                            insert = "- `" .. mod .. "`"
+                        end
+
+                        if data.top_comment_data.summary then
+                            insert = insert .. " - " .. data.top_comment_data.summary
+                        else
+                            insert = insert .. " - undocumented module"
+                        end
+
+                        table.insert(res, insert)
+                    end
+                end
+                return res
+            end,
+            "",
+            "# Developer modules",
+            "",
+            "These are modules that are only meant for developers. They are generally required in other modules:",
+            "",
+            function()
+                local res = {}
+
+                for mod, data in pairs(modules) do
+                    if
+                        not data.parsed.extension
+                        and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
+                        and data.top_comment_data.internal
+                    then
+                        local insert
+
+                        if data.top_comment_data.file then
+                            insert = "- [`"
+                                .. data.parsed.name
+                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                                .. data.top_comment_data.file
+                                .. ")"
+                        else
+                            insert = "- `" .. mod .. "`"
+                        end
+
+                        if data.top_comment_data.summary then
+                            insert = insert .. " - " .. data.top_comment_data.summary
+                        else
+                            insert = insert .. " - undocumented module"
+                        end
+
+                        table.insert(res, insert)
+                    end
+                end
+                return res
+            end,
+        }
+
+        return docgen.evaluate_functions(structure)
+    end,
+}
 
 return docgen
