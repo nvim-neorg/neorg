@@ -1,3 +1,8 @@
+--[[
+    file: Clipboard-Code-Blocks
+    summary: Removes beginning whitespace from text copied from code blocks.
+--]]
+
 local module = neorg.modules.create("core.clipboard.code-blocks")
 
 module.load = function()

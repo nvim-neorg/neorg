@@ -55,7 +55,7 @@ docgen.get_module_top_comment = function(buf)
     end
 
     -- Verify if it's the first line
-    local start_row = ts_utils.get_node_range(node)
+    local start_row = node:range()
     if start_row ~= 0 then
         return
     end
@@ -122,10 +122,14 @@ docgen.check_top_comment_integrity = function(top_comment)
 
     if not tc.file then
         return "no `File:` field provided."
+    elseif tc.summary:sub(1, 1):upper() ~= tc.summary:sub(1, 1) then
+        return "summary does not begin with a capital letter."
     elseif tc.summary:sub(tc.summary:len()) ~= "." then
         return "summary does not end with a full stop."
     elseif tc.title:find("neorg") then
         return "`neorg` written with lowercase letter. Use uppercase instead."
+    -- elseif vim.tbl_isempty(tc.markdown) then
+    --     return "no overview provided."
     end
 
     return top_comment
@@ -191,6 +195,10 @@ docgen.map_config = function(buffer, start_node, callback)
     end
 end
 
+--- Goes through a table and evaluates all functions in that table, merging the
+--  return values back into the original table.
+---@param tbl table #Input table
+---@return table #The new table
 docgen.evaluate_functions = function(tbl)
     local new = {}
 
@@ -213,6 +221,38 @@ docgen.generators = {
     homepage = function(modules)
         local core_defaults = modules["core.defaults"]
         assert(core_defaults, "core.defaults module not loaded!")
+
+        local function list_modules_with_predicate(predicate)
+            return function()
+                local res = {}
+
+                for mod, data in pairs(modules) do
+                    if predicate(data) then
+                        local insert
+
+                        if data.top_comment_data.file then
+                            insert = "- [`"
+                            .. data.parsed.name
+                            .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                            .. data.top_comment_data.file
+                            .. ")"
+                        else
+                            insert = "- `" .. mod .. "`"
+                        end
+
+                        if data.top_comment_data.summary then
+                            insert = insert .. " - " .. data.top_comment_data.summary
+                        else
+                            insert = insert .. " - undocumented module"
+                        end
+
+                        table.insert(res, insert)
+                    end
+                end
+
+                return res
+            end
+        end
 
         local structure = {
             '<div align="center">',
@@ -255,116 +295,35 @@ docgen.generators = {
                     .. " module:" }
             end,
             "",
-            function() -- TODO: move out into generic function
-                local res = {}
-
-                for mod, data in pairs(modules) do
-                    if vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name) and not data.top_comment_data.internal then
-                        local insert
-
-                        if data.top_comment_data.file then
-                            insert = "- [`"
-                                .. data.parsed.name
-                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                                .. data.top_comment_data.file
-                                .. ")"
-                        else
-                            insert = "- `" .. mod .. "`"
-                        end
-
-                        if data.top_comment_data.summary then
-                            insert = insert .. " - " .. data.top_comment_data.summary
-                        else
-                            insert = insert .. " - undocumented module"
-                        end
-
-                        table.insert(res, insert)
-                    end
-                end
-
-                return res
-            end,
+            list_modules_with_predicate(function(data) return vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name) and not data.top_comment_data.internal end),
             "",
             "# Other Modules",
             "",
             "Some modules are not included by default as they require some manual configuration or are merely extra bells and whistles",
             "and are not critical to editing `.norg` files. Below is a list of all modules that are not required by default:",
             "",
-            function()
-                local res = {}
-
-                for mod, data in pairs(modules) do
-                    if
-                        not data.parsed.extension
-                        and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
-                        and not data.top_comment_data.internal
-                    then
-                        local insert
-                        if data.top_comment_data.file then
-                            insert = "- [`"
-                                .. data.parsed.name
-                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                                .. data.top_comment_data.file
-                                .. ")"
-                        else
-                            insert = "- `" .. mod .. "`"
-                        end
-
-                        if data.top_comment_data.summary then
-                            insert = insert .. " - " .. data.top_comment_data.summary
-                        else
-                            insert = insert .. " - undocumented module"
-                        end
-
-                        table.insert(res, insert)
-                    end
-                end
-                return res
-            end,
+            list_modules_with_predicate(function(data)
+                return not data.parsed.extension
+                and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
+                and not data.top_comment_data.internal
+            end),
             "",
             "# Developer modules",
             "",
             "These are modules that are only meant for developers. They are generally required in other modules:",
             "",
-            function()
-                local res = {}
-
-                for mod, data in pairs(modules) do
-                    if
-                        not data.parsed.extension
-                        and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
-                        and data.top_comment_data.internal
-                    then
-                        local insert
-
-                        if data.top_comment_data.file then
-                            insert = "- [`"
-                                .. data.parsed.name
-                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                                .. data.top_comment_data.file
-                                .. ")"
-                        else
-                            insert = "- `" .. mod .. "`"
-                        end
-
-                        if data.top_comment_data.summary then
-                            insert = insert .. " - " .. data.top_comment_data.summary
-                        else
-                            insert = insert .. " - undocumented module"
-                        end
-
-                        table.insert(res, insert)
-                    end
-                end
-                return res
-            end,
+            list_modules_with_predicate(function(data)
+                return not data.parsed.extension
+                and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
+                and data.top_comment_data.internal
+            end),
         }
 
         return docgen.evaluate_functions(structure)
     end,
 
     --- Generates the _Sidebar.md file
-    ---@param modules Modules #The list of loaded modules
+    ---@param modules Modules #A table of modules
     sidebar = function(modules)
         local structure = {
             "<div align='center'>",
@@ -391,7 +350,7 @@ docgen.generators = {
                 local names = {}
 
                 for n, data in pairs(modules) do
-                    if data.parsed.config ~= true then
+                    if data.parsed.extension ~= true then
                         table.insert(names, n)
                     end
                 end
@@ -416,6 +375,7 @@ docgen.generators = {
                         table.insert(res, insert)
                     end
                 end
+
                 return res
             end,
             "",

@@ -19,13 +19,14 @@ for _, file in ipairs(docgen.aggregate_module_files()) do
     local top_comment = docgen.get_module_top_comment(buffer)
 
     if not top_comment then
+        vim.notify("no top comment found for module " .. file)
         goto continue
     end
 
     local top_comment_data = docgen.check_top_comment_integrity(docgen.parse_top_comment(top_comment))
 
     if type(top_comment_data) == "string" then
-        log.error("Error when parsing module '" .. file .. "': " .. top_comment_data)
+        vim.notify("Error when parsing module '" .. file .. "': " .. top_comment_data)
         goto continue
     end
 
@@ -33,8 +34,8 @@ for _, file in ipairs(docgen.aggregate_module_files()) do
     local ok, parsed_module = pcall(dofile, fullpath)
 
     if not ok then
-        log.error("Error when sourcing module '" .. file .. ": " .. parsed_module)
-        return
+        vim.notify("Error when sourcing module '" .. file .. ": " .. parsed_module)
+        goto continue
     end
 
     -- Make Neorg load the module, which also evaluates dependencies and imports

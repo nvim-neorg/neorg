@@ -1,3 +1,8 @@
+--[[
+    file: Looking-Glass
+    summary: Allows for editing of code blocks within a separate buffer.
+--]]
+
 local module = neorg.modules.create("core.looking-glass")
 
 module.setup = function()
