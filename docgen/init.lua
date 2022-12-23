@@ -1,8 +1,10 @@
 local docgen = require("docgen")
+local fileio = require("fileio")
+---@type Modules
 local modules = {
     --[[
     [name] = {
-        docgen_data...
+        top_comment_data...
         buffer = id,
         parsed = `ret value from sourcing the file`,
     }
@@ -20,13 +22,14 @@ for _, file in ipairs(docgen.aggregate_module_files()) do
         goto continue
     end
 
-    local docgen_data = docgen.check_top_comment_integrity(docgen.parse_top_comment(top_comment))
+    local top_comment_data = docgen.check_top_comment_integrity(docgen.parse_top_comment(top_comment))
 
-    if type(docgen_data) == "string" then
-        log.error("Error when parsing module '" .. file .. "': " .. docgen_data)
+    if type(top_comment_data) == "string" then
+        log.error("Error when parsing module '" .. file .. "': " .. top_comment_data)
         goto continue
     end
 
+    -- Source the module file to retrieve some basic information like its name
     local ok, parsed_module = pcall(dofile, fullpath)
 
     if not ok then
@@ -34,14 +37,23 @@ for _, file in ipairs(docgen.aggregate_module_files()) do
         return
     end
 
+    -- Make Neorg load the module, which also evaluates dependencies and imports
+    neorg.modules.load_module(parsed_module.name)
+
+    -- Retrieve the module from the `loaded_modules` table.
+    parsed_module = neorg.modules.loaded_modules[parsed_module.name].real()
+
     modules[parsed_module.name] = {
-        data = docgen_data,
+        top_comment_data = top_comment_data,
         buffer = buffer,
         parsed = parsed_module,
     }
 
     ::continue::
 end
+
+local homepage_content = docgen.generators.homepage(modules)
+fileio.write_to_wiki("Home", homepage_content)
 
 for module_name, module in pairs(modules) do
     local buffer = module.buffer
@@ -51,6 +63,7 @@ for module_name, module in pairs(modules) do
 
     if config_node then
         docgen.map_config(buffer, config_node, function(child, comment)
+
         end)
     end
 end

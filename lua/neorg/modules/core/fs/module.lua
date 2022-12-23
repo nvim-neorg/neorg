@@ -1,7 +1,8 @@
 --[[
-    File: Filesystem
-    Title: Module for Filesystem Operations
-    Summary: A cross-platform set of utilities to traverse filesystems.
+    file: Filesystem
+    title: Module for Filesystem Operations
+    summary: A cross-platform set of utilities to traverse filesystems.
+    internal: true
     ---
 --]]
 
