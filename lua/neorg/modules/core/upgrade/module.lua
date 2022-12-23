@@ -1,3 +1,9 @@
+--[[
+    file: Upgrade
+    title: Upgrade tool for Neorg
+    summary: Converts old versions of the Norg syntax to newer ones.
+--]]
+
 local module = neorg.modules.create("core.upgrade")
 
 module.setup = function()
