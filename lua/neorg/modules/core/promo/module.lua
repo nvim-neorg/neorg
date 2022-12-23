@@ -1,3 +1,8 @@
+--[[
+    file: Promo
+    summary: Promotes or demotes nestable items within Neorg files.
+--]]
+
 local module = neorg.modules.create("core.promo")
 
 module.setup = function()

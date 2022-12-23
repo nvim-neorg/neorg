@@ -1,3 +1,11 @@
+--[[
+    File: Clipboard
+    Title: Clipboard Module
+    Summary: A module to manipulate and interact with the user's clipboard.
+    ---
+TODO
+--]]
+
 local module = neorg.modules.create("core.clipboard")
 
 module.setup = function()

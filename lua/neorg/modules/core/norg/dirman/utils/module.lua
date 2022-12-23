@@ -1,3 +1,8 @@
+--[[
+    file: Dirman-Utils
+    summary: A set of utilities for the @core.norg.dirman module.
+--]]
+
 local module = neorg.modules.create("core.norg.dirman.utils")
 
 module.public = {

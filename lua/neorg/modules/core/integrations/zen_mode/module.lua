@@ -1,3 +1,9 @@
+--[[
+    file: ZenMode-Integration
+    title: An integration for `zen-mode`
+    summary: Integrates and exposes the functionality of `zen-mode` in Neorg.
+--]]
+
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.integrations.zen_mode")
@@ -5,20 +11,15 @@ local module = neorg.modules.create("core.integrations.zen_mode")
 module.load = function()
     local success, zen_mode = pcall(require, "zen_mode")
 
-    assert(success, "Unable to load zen_mode...")
-
-    zen_mode.setup(module.config.public)
+    if not success then
+        return { success = false }
+    end
 
     module.private.zen_mode = zen_mode
 end
 
 module.private = {
     zen_mode = nil,
-}
-
-module.config.public = {
-    -- zen_mode setup configs: https://github.com/folke/zen-mode.nvim
-    setup = {},
 }
 
 ---@class core.integrations.zen_mode
