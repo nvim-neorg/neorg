@@ -23,6 +23,12 @@ module.config.public = {
         "heading%d",
         "quote%d",
     },
+
+    -- Which items to retain extensions for
+    retain_extensions = {
+        ["unordered_list%d"] = true,
+        ["ordered_list%d"] = true,
+    },
 }
 
 module.config.private = {
@@ -67,10 +73,26 @@ module.on_event = function(event)
             return
         end
 
+        local should_append_extension = neorg.lib.filter(
+            module.config.public.retain_extensions,
+            function(match, should_append)
+                return current:type():match(match) and should_append or nil
+            end
+        ) and current:named_child(1) and current:named_child(1):type() == "detached_modifier_extension"
+
         local text_to_repeat = ts.get_node_text(current:named_child(0), event.buffer)
 
-        vim.api.nvim_buf_set_lines(event.buffer, cursor_pos + 1, cursor_pos + 1, true, { text_to_repeat })
-        vim.api.nvim_win_set_cursor(event.window, { cursor_pos + 2, text_to_repeat:len() })
+        vim.api.nvim_buf_set_lines(
+            event.buffer,
+            cursor_pos + 1,
+            cursor_pos + 1,
+            true,
+            { text_to_repeat .. (should_append_extension and "( ) " or "") }
+        )
+        vim.api.nvim_win_set_cursor(
+            event.window,
+            { cursor_pos + 2, text_to_repeat:len() + (should_append_extension and ("( ) "):len() or 0) }
+        )
     end
 end
 
