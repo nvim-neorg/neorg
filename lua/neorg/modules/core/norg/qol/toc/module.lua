@@ -60,6 +60,8 @@ module.public = {
     end,
 
     update_toc = function(namespace, toc_title, original_buffer, original_window, ui_buffer, ui_window)
+        vim.api.nvim_buf_clear_namespace(original_buffer, namespace, 0, -1)
+
         vim.api.nvim_buf_set_lines(ui_buffer, 0, -1, true, toc_title)
         local offset = vim.api.nvim_buf_line_count(ui_buffer)
 
@@ -167,18 +169,43 @@ module.on_event = function(event)
             end,
         })
 
-        vim.api.nvim_create_autocmd("BufWritePost", {
-            buffer = event.buffer,
-            callback = function()
-                if not vim.api.nvim_buf_is_valid(buffer) or not vim.api.nvim_buf_is_loaded(buffer) then
-                    return true
-                end
+        do
+            local previous_buffer, previous_window = event.buffer, event.window
 
-                toc = module.public.parse_toc_macro(event.buffer)
-                toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
-                module.public.update_toc(namespace, toc_title, event.buffer, event.window, buffer, window)
-            end,
-        })
+            vim.api.nvim_create_autocmd("BufWritePost", {
+                pattern = "*.norg",
+                callback = function()
+                    if not vim.api.nvim_buf_is_valid(buffer) or not vim.api.nvim_buf_is_loaded(buffer) then
+                        return true
+                    end
+
+                    toc = module.public.parse_toc_macro(previous_buffer)
+                    toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
+                    module.public.update_toc(namespace, toc_title, previous_buffer, previous_window, buffer, window)
+                end,
+            })
+
+            vim.api.nvim_create_autocmd("BufEnter", {
+                pattern = "*.norg",
+                callback = function()
+                    if not vim.api.nvim_buf_is_valid(buffer) or not vim.api.nvim_buf_is_loaded(buffer) then
+                        return true
+                    end
+
+                    local buf = vim.api.nvim_get_current_buf()
+
+                    if buf == buffer or previous_buffer == buf then
+                        return
+                    end
+
+                    previous_buffer, previous_window = buf, vim.api.nvim_get_current_win()
+
+                    toc = module.public.parse_toc_macro(buf)
+                    toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
+                    module.public.update_toc(namespace, toc_title, buf, previous_window, buffer, window)
+                end,
+            })
+        end
     end
 end
 
