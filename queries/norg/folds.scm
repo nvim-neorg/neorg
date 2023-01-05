@@ -1,4 +1,4 @@
-(ranged_tag
+(ranged_verbatim_tag
     name: (tag_name) @_name
     (#eq? @_name "document.meta")
 ) @fold
