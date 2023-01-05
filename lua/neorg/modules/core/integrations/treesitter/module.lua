@@ -499,7 +499,7 @@ module.public = {
 
     --- Extracts the document root from the current document or from the string
     ---@param src number|string The number of the buffer to extract or string with code (can be nil)
-    ---@param filetype The filetype of the buffer or the string with code
+    ---@param filetype string? #The filetype of the buffer or the string with code
     ---@return userdata #The root node of the document
     get_document_root = function(src, filetype)
         filetype = filetype or "norg"
@@ -680,6 +680,27 @@ module.public = {
         end)
 
         return result
+    end,
+
+    --- Parses a query and automatically executes it for Norg
+    ---@param query_string string #The query string
+    ---@param callback function #The callback to execute with all the value returned by iter_captures
+    ---@param buffer number #The buffer ID for the query
+    ---@param start number? #The start line for the query
+    ---@param finish number? #The end line for the query
+    execute_query = function(query_string, callback, buffer, start, finish)
+        local query = vim.treesitter.parse_query("norg", query_string)
+        local root = module.public.get_document_root(buffer)
+
+        if not root then
+            return false
+        end
+
+        for id, node, metadata in query:iter_captures(root, buffer, start, finish) do
+            callback(query, id, node, metadata)
+        end
+
+        return true
     end,
 }
 
