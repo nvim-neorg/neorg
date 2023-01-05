@@ -574,7 +574,10 @@ module.public = {
             end,
 
             ["ranged_verbatim_tag"] = function(output)
-                table.remove(output, 2)
+                if output[2]:match("^[ \t]+$") then
+                    table.remove(output, 2)
+                end
+
                 return output
             end,
 
