@@ -574,12 +574,7 @@ module.public = {
             end,
 
             ["ranged_verbatim_tag"] = function(output)
-                if #output == 2 or (output[2] and output[2]:sub(-1, -1) == "\n") then
-                    table.insert(output, 2, "\n")
-                else
-                    table.insert(output, 3, "\n")
-                end
-
+                table.remove(output, 2)
                 return output
             end,
 
