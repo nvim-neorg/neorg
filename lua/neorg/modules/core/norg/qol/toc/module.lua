@@ -29,7 +29,7 @@ end
 
 module.public = {
     parse_toc_macro = function(buffer)
-        local name, toc_name
+        local toc, toc_name = false, nil
 
         local success = module.required["core.integrations.treesitter"].execute_query(
             [[
@@ -40,10 +40,14 @@ module.public = {
             function(query, id, node)
                 local capture_name = query.captures[id]
 
-                if capture_name == "name" then
-                    name = module.required["core.integrations.treesitter"].get_node_text(node, buffer)
-                elseif capture_name == "parameters" then
+                if
+                    capture_name == "name"
+                    and module.required["core.integrations.treesitter"].get_node_text(node, buffer):lower() == "toc"
+                then
+                    toc = true
+                elseif capture_name == "parameters" and toc then
                     toc_name = module.required["core.integrations.treesitter"].get_node_text(node, buffer)
+                    toc = false
                 end
             end,
             buffer
@@ -53,10 +57,7 @@ module.public = {
             return
         end
 
-        return {
-            name = name,
-            parameters = toc_name,
-        }
+        return toc_name
     end,
 
     generate_qflist = function(original_buffer)
@@ -201,9 +202,7 @@ module.on_event = function(event)
         return
     end
 
-    local toc = module.public.parse_toc_macro(event.buffer)
-
-    local toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
+    local toc_title = vim.split(module.public.parse_toc_macro(event.buffer) or "Table of Contents", "\n")
 
     if event.content and event.content[1] == "qflist" then
         local qflist = module.public.generate_qflist(event.buffer)
@@ -251,8 +250,7 @@ module.on_event = function(event)
                     return true
                 end
 
-                toc = module.public.parse_toc_macro(previous_buffer)
-                toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
+                toc_title = vim.split(module.public.parse_toc_macro(previous_buffer) or "Table of Contents", "\n")
                 module.public.update_toc(namespace, toc_title, previous_buffer, previous_window, buffer, window)
             end,
         })
@@ -272,8 +270,7 @@ module.on_event = function(event)
 
                 previous_buffer, previous_window = buf, vim.api.nvim_get_current_win()
 
-                toc = module.public.parse_toc_macro(buf)
-                toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
+                toc_title = vim.split(module.public.parse_toc_macro(buf) or "Table of Contents", "\n")
                 module.public.update_toc(namespace, toc_title, buf, previous_window, buffer, window)
             end,
         })
