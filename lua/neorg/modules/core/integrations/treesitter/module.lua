@@ -697,7 +697,9 @@ module.public = {
         end
 
         for id, node, metadata in query:iter_captures(root, buffer, start, finish) do
-            callback(query, id, node, metadata)
+            if callback(query, id, node, metadata) == true then
+                return true
+            end
         end
 
         return true
