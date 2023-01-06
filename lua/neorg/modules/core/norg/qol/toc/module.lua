@@ -20,7 +20,7 @@ module.load = function()
                 max_args = 1,
                 condition = "norg",
                 complete = {
-                    { "left", "right" },
+                    { "left", "right", "qflist" },
                 },
             },
         })
@@ -57,6 +57,60 @@ module.public = {
             name = name,
             parameters = toc_name,
         }
+    end,
+
+    generate_qflist = function(original_buffer)
+        local prefix, title
+        local qflist_data = {}
+
+        local success = module.required["core.integrations.treesitter"].execute_query(
+            [[
+            (_
+              .
+              (_) @prefix
+              .
+              title: (paragraph_segment) @title)
+            ]],
+            function(query, id, node)
+                local capture = query.captures[id]
+
+                if capture == "prefix" then
+                    if node:type():match("_prefix$") then
+                        prefix = node
+                    else
+                        prefix = nil
+                    end
+                elseif capture == "title" then
+                    title = node
+                end
+
+                if prefix and title then
+                    local prefix_text =
+                        module.required["core.integrations.treesitter"].get_node_text(prefix, original_buffer)
+                    local title_text =
+                        module.required["core.integrations.treesitter"].get_node_text(title, original_buffer)
+
+                    if prefix_text:sub(1, 1) ~= "*" and prefix_text:match("^%W%W") then
+                        prefix_text = table.concat({ prefix_text:sub(1, 1), " " })
+                    end
+
+                    table.insert(qflist_data, {
+                        bufnr = original_buffer,
+                        lnum = (prefix:start()) + 1,
+                        text = table.concat({ prefix_text, title_text }),
+                    })
+
+                    prefix, title = nil, nil
+                end
+            end,
+            original_buffer
+        )
+
+        if not success then
+            return
+        end
+
+        return qflist_data
     end,
 
     update_toc = function(namespace, toc_title, original_buffer, original_window, ui_buffer, ui_window)
@@ -110,7 +164,7 @@ module.public = {
                         -1,
                         -1,
                         true,
-                        { table.concat({ "{", prefix_text, title_text, "}" }) }
+                        { table.concat({ "• {", prefix_text, title_text, "}" }) }
                     )
 
                     prefix, title = nil, nil
@@ -143,69 +197,86 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.split_type[2] == module.name then
-        local toc = module.public.parse_toc_macro(event.buffer)
+    if event.split_type[2] ~= module.name then
+        return
+    end
 
-        local toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
+    local toc = module.public.parse_toc_macro(event.buffer)
 
-        local namespace = vim.api.nvim_create_namespace("neorg/toc")
-        local buffer, window =
-            module.required["core.ui"].create_vsplit("toc", { ft = "norg" }, (event.content[1] or "left") == "left")
+    local toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
 
-        vim.api.nvim_win_set_option(window, "scrolloff", 999)
-        module.public.update_toc(namespace, toc_title, event.buffer, event.window, buffer, window)
+    if event.content and event.content[1] == "qflist" then
+        local qflist = module.public.generate_qflist(event.buffer)
 
-        vim.api.nvim_buf_set_keymap(buffer, "n", "q", "", {
-            callback = function()
-                vim.api.nvim_buf_delete(buffer, { force = true })
-            end,
-        })
-
-        vim.api.nvim_create_autocmd("WinClosed", {
-            buffer = buffer,
-            once = true,
-            callback = function()
-                vim.api.nvim_buf_delete(buffer, { force = true })
-            end,
-        })
-
-        do
-            local previous_buffer, previous_window = event.buffer, event.window
-
-            vim.api.nvim_create_autocmd("BufWritePost", {
-                pattern = "*.norg",
-                callback = function()
-                    if not vim.api.nvim_buf_is_valid(buffer) or not vim.api.nvim_buf_is_loaded(buffer) then
-                        return true
-                    end
-
-                    toc = module.public.parse_toc_macro(previous_buffer)
-                    toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
-                    module.public.update_toc(namespace, toc_title, previous_buffer, previous_window, buffer, window)
-                end,
-            })
-
-            vim.api.nvim_create_autocmd("BufEnter", {
-                pattern = "*.norg",
-                callback = function()
-                    if not vim.api.nvim_buf_is_valid(buffer) or not vim.api.nvim_buf_is_loaded(buffer) then
-                        return true
-                    end
-
-                    local buf = vim.api.nvim_get_current_buf()
-
-                    if buf == buffer or previous_buffer == buf then
-                        return
-                    end
-
-                    previous_buffer, previous_window = buf, vim.api.nvim_get_current_win()
-
-                    toc = module.public.parse_toc_macro(buf)
-                    toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
-                    module.public.update_toc(namespace, toc_title, buf, previous_window, buffer, window)
-                end,
-            })
+        if not qflist then
+            vim.notify("An error occurred and the qflist could not be generated")
+            return
         end
+
+        vim.fn.setqflist(qflist, "r")
+        vim.fn.setqflist({}, "a", { title = toc_title[1] })
+        vim.cmd.copen()
+
+        return
+    end
+
+    local namespace = vim.api.nvim_create_namespace("neorg/toc")
+    local buffer, window =
+        module.required["core.ui"].create_vsplit("toc", { ft = "norg" }, (event.content[1] or "left") == "left")
+
+    vim.api.nvim_win_set_option(window, "scrolloff", 999)
+    module.public.update_toc(namespace, toc_title, event.buffer, event.window, buffer, window)
+
+    vim.api.nvim_buf_set_keymap(buffer, "n", "q", "", {
+        callback = function()
+            vim.api.nvim_buf_delete(buffer, { force = true })
+        end,
+    })
+
+    vim.api.nvim_create_autocmd("WinClosed", {
+        buffer = buffer,
+        once = true,
+        callback = function()
+            vim.api.nvim_buf_delete(buffer, { force = true })
+        end,
+    })
+
+    do
+        local previous_buffer, previous_window = event.buffer, event.window
+
+        vim.api.nvim_create_autocmd("BufWritePost", {
+            pattern = "*.norg",
+            callback = function()
+                if not vim.api.nvim_buf_is_valid(buffer) or not vim.api.nvim_buf_is_loaded(buffer) then
+                    return true
+                end
+
+                toc = module.public.parse_toc_macro(previous_buffer)
+                toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
+                module.public.update_toc(namespace, toc_title, previous_buffer, previous_window, buffer, window)
+            end,
+        })
+
+        vim.api.nvim_create_autocmd("BufEnter", {
+            pattern = "*.norg",
+            callback = function()
+                if not vim.api.nvim_buf_is_valid(buffer) or not vim.api.nvim_buf_is_loaded(buffer) then
+                    return true
+                end
+
+                local buf = vim.api.nvim_get_current_buf()
+
+                if buf == buffer or previous_buffer == buf then
+                    return
+                end
+
+                previous_buffer, previous_window = buf, vim.api.nvim_get_current_win()
+
+                toc = module.public.parse_toc_macro(buf)
+                toc_title = toc and toc.parameters and vim.split(toc.parameters, "\n") or { "Table of Contents" }
+                module.public.update_toc(namespace, toc_title, buf, previous_window, buffer, window)
+            end,
+        })
     end
 end
 
