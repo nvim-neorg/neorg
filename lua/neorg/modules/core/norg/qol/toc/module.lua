@@ -47,7 +47,7 @@ module.public = {
                     toc = true
                 elseif capture_name == "parameters" and toc then
                     toc_name = module.required["core.integrations.treesitter"].get_node_text(node, buffer)
-                    toc = false
+                    return true
                 end
             end,
             buffer
