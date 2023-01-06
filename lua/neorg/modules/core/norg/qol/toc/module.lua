@@ -2,6 +2,8 @@
     file: TOC
     title: Table of Contents within Neorg
     summary: Generates a table of contents for a given Neorg buffer.
+    ---
+<!-- TODO: make nested objects also appear nested within the TOC view (i.e. headings in headings) --!>
 --]]
 
 local module = neorg.modules.create("core.norg.qol.toc")
