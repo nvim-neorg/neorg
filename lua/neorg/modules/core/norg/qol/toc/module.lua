@@ -130,7 +130,7 @@ module.public = {
               .
               title: (paragraph_segment) @title)
             ]],
-            vim.schedule_wrap(function(query, id, node)
+            function(query, id, node)
                 local capture = query.captures[id]
 
                 if capture == "prefix" then
@@ -169,7 +169,7 @@ module.public = {
 
                     prefix, title = nil, nil
                 end
-            end),
+            end,
             original_buffer
         )
 
