@@ -55,7 +55,7 @@ module.private = {
         })
     end,
 
-    set_logical_extmark = function(ui_info, row, col, virt_text, alignment)
+    set_logical_extmark = function(ui_info, row, col, virt_text, alignment, extra)
         if alignment then
             local text_length = 0
 
@@ -70,10 +70,16 @@ module.private = {
             end
         end
 
-        return vim.api.nvim_buf_set_extmark(ui_info.buffer, module.private.namespaces.logical, row, col, {
-            virt_text = virt_text,
-            virt_text_pos = "overlay",
-        })
+        return vim.api.nvim_buf_set_extmark(
+            ui_info.buffer,
+            module.private.namespaces.logical,
+            row,
+            col,
+            vim.tbl_deep_extend("force", {
+                virt_text = virt_text,
+                virt_text_pos = "overlay",
+            }, extra or {})
+        )
     end,
 
     render_month_banner = function(ui_info, date, weekday_banner_extmark_id)
@@ -118,16 +124,14 @@ module.private = {
 
         for i = 1, 7 do
             table.insert(weekdays, {
-                os
-                    .date(
-                        "%a",
-                        os.time({
-                            year = 2000,
-                            month = 5,
-                            day = i,
-                        })
-                    )
-                    :sub(1, 2),
+                os.date(
+                    "%a",
+                    os.time({
+                        year = 2000,
+                        month = 5,
+                        day = i,
+                    })
+                ):sub(1, 2),
                 "@text.title",
             })
 
@@ -179,9 +183,7 @@ module.private = {
             31,
             30,
             31,
-        })[tonumber(
-            month
-        )]
+        })[tonumber(month)]
 
         for i = 1, days_in_current_month do
             days_of_month[i] = tonumber(os.date(
@@ -228,7 +230,7 @@ module.private = {
                     virt_text = {
                         {
                             (day_of_month < 10 and "0" or "") .. tostring(day_of_month),
-                            (is_current_day and "@todo" or nil),
+                            (is_current_day and "@text.todo" or nil),
                         },
                     },
                     virt_text_pos = "overlay",
@@ -379,14 +381,35 @@ module.public = {
         end
 
         do
-            local current_day, current_month = tonumber(day), tonumber(month)
+            local current_day, current_month, current_year = tonumber(day), tonumber(month), tonumber(year)
+
+            local function update_year(new_year)
+                module.private.set_logical_extmark(
+                    ui_info,
+                    2,
+                    0,
+                    { { "< ", "Whitespace" }, { tostring(new_year), "@number" }, { " >", "Whitespace" } },
+                    "center",
+                    {
+                        id = module.private.extmarks.logical.year,
+                    }
+                )
+            end
 
             -- TODO: Make cursor wrapping behaviour configurable
             vim.api.nvim_buf_set_keymap(buffer, "n", "l", "", {
                 callback = function()
-                    local next_extmark_id = module.private.extmarks.logical.months[current_month][current_day + 1]
+                    local next_extmark_id = module.private.extmarks.logical.months[current_month]
+                            and module.private.extmarks.logical.months[current_month][current_day + 1]
+                        or nil
 
                     if not next_extmark_id then
+                        if current_month + 1 == 13 then
+                            current_month = 0
+                            current_year = current_year + 1
+                            update_year(current_year)
+                        end
+
                         local next_month = module.private.extmarks.logical.months[current_month + 1]
 
                         if not next_month then
@@ -415,6 +438,12 @@ module.public = {
                     local prev_extmark_id = module.private.extmarks.logical.months[current_month][current_day - 1]
 
                     if not prev_extmark_id then
+                        if current_month - 1 == 0 then
+                            current_month = 13
+                            current_year = current_year - 1
+                            update_year(current_year)
+                        end
+
                         local prev_month = module.private.extmarks.logical.months[current_month - 1]
 
                         if not prev_month then
