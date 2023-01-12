@@ -86,7 +86,7 @@ module.public = {
         end
 
         function module.private.source:get_trigger_characters()
-            return { "@", "-", "[", " ", "." }
+            return { "@", "-", "[", "(", " ", "." }
         end
 
         module.private.cmp.register_source("neorg", module.private.source)
