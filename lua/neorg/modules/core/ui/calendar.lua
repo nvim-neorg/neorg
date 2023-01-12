@@ -14,14 +14,14 @@ module.private = {
     -- which is a little cringe.
     extmarks = {
         decorational = {
-            calendar_text = -1,
-            help_and_custom_input = -1,
-            current_view = -1,
+            calendar_text = nil,
+            help_and_custom_input = nil,
+            current_view = nil,
             month_headings = {},
             weekday_displays = {},
         },
         logical = {
-            year = -1,
+            year = nil,
             months = {
                 -- [3] = { [31] = <id> }
             },
@@ -172,7 +172,7 @@ module.private = {
 
         local days_in_current_month = ({
             31,
-            (tonumber(year) % 4 == 0) and 29 or 28,
+            (year % 4 == 0) and 29 or 28,
             31,
             30,
             31,
@@ -183,7 +183,7 @@ module.private = {
             31,
             30,
             31,
-        })[tonumber(month)]
+        })[month]
 
         for i = 1, days_in_current_month do
             days_of_month[i] = tonumber(os.date(
@@ -207,13 +207,12 @@ module.private = {
         local render_row = 1
 
         for day_of_month, day_of_week in ipairs(days_of_month) do
-            local month_as_number = tonumber(month)
-            module.private.extmarks.logical.months[month_as_number] = module.private.extmarks.logical.months[month_as_number]
+            module.private.extmarks.logical.months[month] = module.private.extmarks.logical.months[month]
                 or {}
 
             local is_current_day = current_date.year == target_date.year
                 and current_date.month == target_date.month
-                and tostring(day_of_month) == day
+                and day_of_month == day
 
             local start_row = beginning_of_weekday_extmark[1] + render_row
             local start_col = beginning_of_weekday_extmark[2] + (4 * render_column)
@@ -225,7 +224,7 @@ module.private = {
                 vim.api.nvim_win_set_cursor(ui_info.window, { start_row + 1, start_col })
             end
 
-            module.private.extmarks.logical.months[month_as_number][day_of_month] =
+            module.private.extmarks.logical.months[month][day_of_month] =
                 vim.api.nvim_buf_set_extmark(ui_info.buffer, module.private.namespaces.logical, start_row, start_col, {
                     virt_text = {
                         {
@@ -323,29 +322,20 @@ module.public = {
             })
         end
 
-        -- TODO: These are strings, even though they shouldn't be
-        -- Refactor to autoconvert these into real numbers.
-        -- Maybe just os.date("*t")?
-        local year, month, day = os.date("%Y-%m-%d"):match("(%d+)%-(%d+)%-(%d+)")
+        local current_date = os.date("*t")
 
         -- Display the current year (i.e. `< 2022 >`)
         module.private.extmarks.logical.year = module.private.set_logical_extmark(
             ui_info,
             2,
             0,
-            { { "< ", "Whitespace" }, { tostring(year), "@number" }, { " >", "Whitespace" } },
+            { { "< ", "Whitespace" }, { tostring(current_date.year), "@number" }, { " >", "Whitespace" } },
             "center"
         )
 
         -- TODO: implement monthly/yearly/daily/weekly logic
 
         -- Render the first weekday banner in the middle
-        local current_date = {
-            year = year,
-            month = month,
-            day = day,
-        }
-
         local weekday_banner = module.private.render_weekday_banner(ui_info, 0, options.distance)
         module.private.render_month_banner(ui_info, current_date, weekday_banner)
         module.private.render_month(ui_info, current_date, current_date, weekday_banner)
@@ -357,9 +347,9 @@ module.public = {
                 weekday_banner = module.private.render_weekday_banner(ui_info, blockid, options.distance)
 
                 local positive_target_date = reformat_time({
-                    year = year,
-                    month = month + blockid,
-                    day = day,
+                    year = current_date.year,
+                    month = current_date.month + blockid,
+                    day = current_date.day,
                 })
 
                 module.private.render_month_banner(ui_info, positive_target_date, weekday_banner)
@@ -368,9 +358,9 @@ module.public = {
                 weekday_banner = module.private.render_weekday_banner(ui_info, blockid * -1)
 
                 local negative_target_date = reformat_time({
-                    year = year,
-                    month = month - blockid,
-                    day = day,
+                    year = current_date.year,
+                    month = current_date.month - blockid,
+                    day = current_date.day,
                 })
 
                 module.private.render_month_banner(ui_info, negative_target_date, weekday_banner, options.distance)
@@ -381,7 +371,7 @@ module.public = {
         end
 
         do
-            local current_day, current_month, current_year = tonumber(day), tonumber(month), tonumber(year)
+            local current_day, current_month, current_year = current_date.day, current_date.month, current_date.year
 
             local function update_year(new_year)
                 module.private.set_logical_extmark(
