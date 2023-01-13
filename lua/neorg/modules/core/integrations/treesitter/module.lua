@@ -545,7 +545,7 @@ module.public = {
     ---@param buf number #The buffer to search in (0 for current)
     ---@param line number #The line number (0-indexed) to get the node from
     -- the same line as `line`.
-    ---@param string|table? #Don't recurse to the provided type(s)
+    ---@param stop_type string|table? #Don't recurse to the provided type(s)
     ---@return userdata|nil #The first node on `line`
     get_first_node_on_line = function(buf, line, stop_type)
         if type(stop_type) == "string" then
