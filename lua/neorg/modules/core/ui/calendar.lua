@@ -33,7 +33,7 @@ module.private = {
         decorational = vim.api.nvim_create_namespace("neorg/calendar/decorational"),
     },
 
-    set_decorational_extmark = function(ui_info, row, col, length, virt_text, alignment)
+    set_decorational_extmark = function(ui_info, row, col, length, virt_text, alignment, extra)
         if alignment then
             local text_length = 0
 
@@ -48,11 +48,11 @@ module.private = {
             end
         end
 
-        return vim.api.nvim_buf_set_extmark(ui_info.buffer, module.private.namespaces.decorational, row, col, {
+        return vim.api.nvim_buf_set_extmark(ui_info.buffer, module.private.namespaces.decorational, row, col, vim.tbl_deep_extend("force", {
             virt_text = virt_text,
             virt_text_pos = "overlay",
             end_col = col + length,
-        })
+        }, extra or {}))
     end,
 
     set_logical_extmark = function(ui_info, row, col, virt_text, alignment, extra)
@@ -108,13 +108,19 @@ module.private = {
                 + math.ceil((weekday_banner_id[3].end_col - weekday_banner_id[2]) / 2)
                 - math.floor(month_name:len() / 2),
             month_name:len(),
-            { { month_name, "@text.underline" } }
+            { { month_name, "@text.underline" } },
+            nil,
+            {
+                id = module.private.extmarks.decorational.month_headings[month_name],
+            }
         )
     end,
 
     render_weekday_banner = function(ui_info, offset, distance)
         offset = offset or 0
         distance = distance or 4
+
+        module.private.extmarks.decorational.weekday_displays = {}
 
         -- Render the days of the week
         -- To effectively do this, we grab all the weekdays from a constant time.
@@ -233,6 +239,7 @@ module.private = {
                         },
                     },
                     virt_text_pos = "overlay",
+                    id = module.private.extmarks.logical.months[month][day_of_month],
                 })
 
             if day_of_week == 7 then
@@ -335,40 +342,42 @@ module.public = {
 
         -- TODO: implement monthly/yearly/daily/weekly logic
 
-        -- Render the first weekday banner in the middle
-        local weekday_banner = module.private.render_weekday_banner(ui_info, 0, options.distance)
-        module.private.render_month_banner(ui_info, current_date, weekday_banner)
-        module.private.render_month(ui_info, current_date, current_date, weekday_banner)
+        local function render_month_array(date)
+            -- Render the first weekday banner in the middle
+            local weekday_banner = module.private.render_weekday_banner(ui_info, 0, options.distance)
+            module.private.render_month_banner(ui_info, date, weekday_banner)
+            module.private.render_month(ui_info, date, date, weekday_banner)
 
-        do
             local blockid = 1
 
             while math.floor(width / (26 + options.distance)) > blockid * 2 do
                 weekday_banner = module.private.render_weekday_banner(ui_info, blockid, options.distance)
 
                 local positive_target_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month + blockid,
-                    day = current_date.day,
+                    year = date.year,
+                    month = date.month + blockid,
+                    day = date.day,
                 })
 
                 module.private.render_month_banner(ui_info, positive_target_date, weekday_banner)
-                module.private.render_month(ui_info, positive_target_date, current_date, weekday_banner)
+                module.private.render_month(ui_info, positive_target_date, date, weekday_banner)
 
                 weekday_banner = module.private.render_weekday_banner(ui_info, blockid * -1)
 
                 local negative_target_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month - blockid,
-                    day = current_date.day,
+                    year = date.year,
+                    month = date.month - blockid,
+                    day = date.day,
                 })
 
                 module.private.render_month_banner(ui_info, negative_target_date, weekday_banner, options.distance)
-                module.private.render_month(ui_info, negative_target_date, current_date, weekday_banner)
+                module.private.render_month(ui_info, negative_target_date, date, weekday_banner)
 
                 blockid = blockid + 1
             end
         end
+
+        render_month_array(current_date)
 
         do
             local current_day, current_month, current_year = current_date.day, current_date.month, current_date.year
@@ -408,6 +417,7 @@ module.public = {
 
                         current_day = 1
                         current_month = current_month + 1
+                        render_month_array(reformat_time({ day = current_day, month = current_month, year = current_year }))
                         next_extmark_id = next_month[current_day]
                     else
                         current_day = current_day + 1
@@ -442,6 +452,7 @@ module.public = {
 
                         current_day = #prev_month
                         current_month = current_month - 1
+                        render_month_array(reformat_time({ day = current_day, month = current_month, year = current_year }))
                         prev_extmark_id = prev_month[current_day]
                     else
                         current_day = current_day - 1
