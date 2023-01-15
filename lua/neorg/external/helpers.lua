@@ -488,7 +488,7 @@ neorg.lib = {
     end,
     --- If `val` is a function, executes it with the desired arguments, else just returns `val`
     ---@param val any|function #Either a function or any other value
-    ---@vararg any #Potential arguments to give `val` if it is a function
+    ---@param ...any #Potential arguments to give `val` if it is a function
     ---@return any #The returned evaluation of `val`
     eval = function(val, ...)
         if type(val) == "function" then
