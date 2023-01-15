@@ -16,6 +16,8 @@ module.load = function()
     vim.api.nvim_create_autocmd("BufEnter", {
         pattern = "*.norg",
         callback = function()
+            vim.api.nvim_buf_clear_namespace(0, module.private.namespace, 0, -1)
+
             for match, provider in pairs(module.config.public.providers) do
                 module.required["core.integrations.treesitter"].execute_query(provider.query, function(query, id, node)
                     local capture_name = query.captures[id]
