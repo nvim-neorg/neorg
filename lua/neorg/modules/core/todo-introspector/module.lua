@@ -17,23 +17,15 @@ module.load = function()
         pattern = "*.norg",
         callback = function()
             for _, provider in pairs(module.config.public.providers) do
-                local capture_map = {
-                    -- capture_name = node,
-                }
-
                 module.required["core.integrations.treesitter"].execute_query(provider.query, function(query, id, node)
                     local capture_name = query.captures[id]
 
-                    capture_map[capture_name] = node
-
                     if capture_name == "target" then
-                        local aggregates = provider.aggregate(capture_map)
+                        local aggregates = provider.aggregate({ target = node })
 
                         if aggregates and provider.display then
                             provider.display(aggregates)
                         end
-
-                        capture_map = {}
                     end
                 end)
             end
@@ -69,77 +61,89 @@ module.public = {
                 end
             end
 
-            return not vim.tbl_isempty(aggregates) and { [parent_node:type()] = aggregates } or nil
+            return not vim.tbl_isempty(aggregates) and aggregates or nil
         end
     end,
 
     aggregate_functions = {
-        generic_list = function(node)
-            local info = {
-                -- undone = 0,
-                -- done = 0,
-                -- pending = 0,
-                -- urgent = 0,
-                -- cancelled = 0,
-                -- on_hold = 0,
-                -- recurring = 0,
-            }
+        list_item = function(node)
+            local detached_modifier_extension = node:field("state")[1]
 
-            for child in node:iter_children() do
-                local detached_modifier_extension = child:field("state")[1]
-
-                if not detached_modifier_extension then
-                    goto continue
-                end
-
-                local todo_node = nil
-
-                do
-                    for task in detached_modifier_extension:iter_children() do
-                        if vim.startswith(task:type(), "todo_item_") then
-                            todo_node = task
-                            break
-                        end
-                    end
-                end
-
-                if not todo_node then
-                    goto continue
-                end
-
-                local todo_item_type = todo_node:type():match("^todo_item_(.+)$")
-                info[todo_item_type] = (info[todo_item_type] or 0) + 1
-
-                ::continue::
+            if not detached_modifier_extension then
+                return {}
             end
 
-            return {
-                task_info = info,
-            }
+            local todo_node = nil
+
+            do
+                for task in detached_modifier_extension:iter_children() do
+                    if vim.startswith(task:type(), "todo_item_") then
+                        todo_node = task
+                        break
+                    end
+                end
+            end
+
+            if not todo_node then
+                return {}
+            end
+
+            return { todo_node:type():match("^todo_item_(.+)$") }
         end,
     },
+
+    display_heading_completion = function(aggregates)
+        do
+            log.warn(aggregates)
+        end
+    end,
 }
 
 module.config.public = {
     providers = {
         ["heading%d"] = {
             query = [=[
-            [
-                (heading1)
-                (heading2)
-                (heading3)
-                (heading4)
-                (heading5)
-                (heading6)
-            ] @target
+                [
+                    (heading1)
+                    (heading2)
+                    (heading3)
+                    (heading4)
+                    (heading5)
+                    (heading6)
+                ] @target
             ]=],
             aggregate = module.public.aggregate_recursively(),
-            display = module.public.display_heading_completion(),
+            display = module.public.display_heading_completion,
         },
         ["generic_list"] = {
             query = [[(generic_list) @target]],
-            aggregate = module.public.aggregate_recursively(module.public.aggregate_functions.generic_list),
+            aggregate = module.public.aggregate_recursively(),
         },
+        ["unordered_list%d"] = {
+            query = [=[
+                [
+                    (unordered_list1)
+                    (unordered_list2)
+                    (unordered_list3)
+                    (unordered_list4)
+                    (unordered_list5)
+                    (unordered_list6)
+                    (ordered_list1)
+                    (ordered_list2)
+                    (ordered_list3)
+                    (ordered_list4)
+                    (ordered_list5)
+                    (ordered_list6)
+                ] @target
+            ]=],
+            aggregate = module.public.aggregate_recursively(module.public.aggregate_functions.list_item),
+        },
+    },
+
+    detail = {
+        ["heading%d"] = "high",
+        -- TODO: Implement high detail level for unordered lists
+        ["unordered_list%d"] = "low",
     },
 }
 
