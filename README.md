@@ -312,7 +312,6 @@ Feel free to try by adding them to your Neorg setup.
 
 | Module name                                                                     | Description                                                                 |
 | :------------------------------------------------------------------------------ | :-------------------------------------------------------------------------- |
-| [`core.gtd.base`](https://github.com/nvim-neorg/neorg/wiki/Getting-Things-Done) | Manages your tasks with Neorg using the Getting Things Done methodology.    |
 | [`core.norg.completion`](https://github.com/nvim-neorg/neorg/wiki/Completion)   | A wrapper to interface with several different completion engines.           |
 | [`core.norg.concealer`](https://github.com/nvim-neorg/neorg/wiki/Concealer)     | Enhances the basic Neorg experience by using icons instead of text.         |
 | [`core.norg.dirman`](https://github.com/nvim-neorg/neorg/wiki/Dirman)           | This module is be responsible for managing directories full of .norg files. |
@@ -350,10 +349,6 @@ require('neorg').setup {
 | Module name                                                                       | Description                                                                          |
 | :-------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
 | [`core.integrations.telescope`](https://github.com/nvim-neorg/neorg-telescope)    | Neorg integration with [Telescope](https://github.com/nvim-telescope/telescope.nvim) |
-| [`external.gtd-project-tags`](https://github.com/esquires/neorg-gtd-project-tags) | Provides a view of tasks grouped with a project tag. Requires `core.gtd.base`        |
-| [`external.integrations.gtd-things`](https://github.com/danymat/neorg-gtd-things) | Use Things3 database to fetch and update tasks instead. Requires `core.gtd.base`     |
-| [`external.context`](https://github.com/max397574/neorg-contexts) | Display headings in which you are at the top of the window in a float popup. |
-| [`external.kanban`](https://github.com/max397574/neorg-kanban) | Display your gtd todos in a kanban-like board in floating windows. Requires `core.gtd.base` |
 
 </details>
 <br>
@@ -402,8 +397,7 @@ integrated workflow:
 
 - [mrossinek](https://github.com/mrossinek) - for basically being my second brain when it comes to developing new features
   and adding new syntax elements
-- [danymat](https://github.com/danymat) - for creating the excellent GTD workflow in Neorg that we literally use internally
-  to plan new features
+- [danymat](https://github.com/danymat) - for creating the excellent foundations for the up and coming GTD system
 
 And an extra thank you to:
 

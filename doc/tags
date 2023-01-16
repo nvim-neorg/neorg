@@ -10,18 +10,6 @@ neorg-continuation	neorg.norg	/  *** Object continuation
 neorg-data-tags	neorg.norg	/ ** Data Tags
 neorg-definitions	neorg.norg	/ ** Definitions
 neorg-footnotes	neorg.norg	/ ** Footnotes
-neorg-gtd	gtd.norg	/* GTD in Neorg
-neorg-gtd-aof	gtd.norg	/  *** Area Of Focus
-neorg-gtd-capture	gtd.norg	/  *** Capture
-neorg-gtd-clarify	gtd.norg	/  *** Clarify
-neorg-gtd-engage	gtd.norg	/  *** Engage
-neorg-gtd-format	gtd.norg	/ ** Format
-neorg-gtd-format-tasks	gtd.norg	/  *** Task format
-neorg-gtd-organisation	gtd.norg	/  *** Top-level organization
-neorg-gtd-organize	gtd.norg	/  *** Organize
-neorg-gtd-projects	gtd.norg	/  *** Projects management
-neorg-gtd-reflect	gtd.norg	/  *** Reflect
-neorg-gtd-structure	gtd.norg	/ ** GTD structure for neorg
 neorg-headings	neorg.norg	/  *** Headings
 neorg-indentation-reversal	neorg.norg	/    ***** Indentation reversion
 neorg-insertions	neorg.norg	/  *** Insertions

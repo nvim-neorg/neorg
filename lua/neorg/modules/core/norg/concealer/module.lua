@@ -6,21 +6,6 @@
 This module handles the iconification and concealing of several different
 syntax elements in your document.
 
-It's also directly responsible for displaying completion levels
-in situations like this:
-```norg
-* Do Some Things
-- [ ] Thing A
-- [ ] Thing B
-```
-
-Where it will display this instead:
-```norg
-* Do Some Things (0 of 2) [0% complete]
-- [ ] Thing A
-- [ ] Thing B
-```
-
 Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
 a thing, punctuation can be added (without removing the whitespace
 between the icon and actual text) like so:
@@ -68,27 +53,6 @@ local function schedule(func)
     end)
 end
 
-local function add_to_counters_if_todo_node(node, results)
-    if vim.startswith(node:type(), "todo_item") then
-        local type_node = node:named_child(1)
-
-        if type_node then
-            local todo_item_type = type_node:type():sub(string.len("todo_item_") + 1)
-            local resulting_todo_item = results[todo_item_type] or 0
-
-            results[todo_item_type] = resulting_todo_item + 1
-            results.total = results.total + (todo_item_type == "cancelled" and 0 or 1)
-        end
-    end
-end
-
-local function count_todo_nodes_under_node(root_node, results)
-    add_to_counters_if_todo_node(root_node, results)
-    for child_node in root_node:iter_children() do
-        count_todo_nodes_under_node(child_node, results)
-    end
-end
-
 module.setup = function()
     return {
         success = true,
@@ -107,7 +71,6 @@ end
 module.private = {
     icon_namespace = vim.api.nvim_create_namespace("neorg-conceals"),
     code_block_namespace = vim.api.nvim_create_namespace("neorg-code-blocks"),
-    completion_level_namespace = vim.api.nvim_create_namespace("neorg-completion-level"),
     icons = {},
 
     largest_change_start = -1,
@@ -268,7 +231,7 @@ module.public = {
                 vim.treesitter.parse_query,
                 "norg",
                 [[(
-                    (ranged_tag (tag_name) @_name) @tag
+                    (ranged_verbatim_tag (tag_name) @_name) @tag
                     (#any-of? @_name "code" "embed")
                 )]]
             )
@@ -282,7 +245,7 @@ module.public = {
             for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
                 local id_name = query.captures[id]
 
-                -- If the capture name is "tag" then that means we're dealing with our ranged_tag;
+                -- If the capture name is "tag" then that means we're dealing with our ranged_verbatim_tag
                 if id_name == "tag" then
                     -- Get the range of the code block
                     local range = module.required["core.integrations.treesitter"].get_node_range(node)
@@ -547,208 +510,6 @@ module.public = {
             end
         )
     end,
-
-    completion_levels = {
-        --- Displays the completion level with incremental updates
-        ---@param buf number #The number of the buffer to parse
-        ---@param line number #The line number the user is at
-        trigger_completion_levels_incremental = function(buf, line)
-            -- Get the root node of the document (required to iterate over query captures)
-            local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
-
-            if not document_root then
-                return
-            end
-
-            local current_node = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, line)
-
-            if not current_node or current_node:type() == "document" then
-                current_node = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
-
-                if not current_node then
-                    return
-                end
-            end
-
-            local parent = module.required["core.integrations.treesitter"].find_parent(
-                current_node,
-                vim.tbl_keys(module.config.public.completion_level.queries)
-            )
-
-            if not parent then
-                return
-            end
-
-            local query = module.config.public.completion_level.queries[parent:type()]
-
-            if not query then
-                return
-            end
-
-            local parent_range = module.required["core.integrations.treesitter"].get_node_range(parent)
-
-            schedule(function()
-                module.public.completion_levels.clear_completion_levels(
-                    buf,
-                    parent_range.row_start,
-                    parent_range.row_start + 1
-                )
-
-                local todo_item_counts = module.public.completion_levels.get_todo_item_counts(parent)
-
-                if todo_item_counts.total ~= 0 then
-                    module.public._set_extmark(
-                        buf,
-                        module.public.completion_levels.convert_query_syntax_to_extmark_syntax(
-                            query.text,
-                            todo_item_counts
-                        ),
-                        query.highlight,
-                        module.private.completion_level_namespace,
-                        parent_range.row_start,
-                        nil,
-                        parent_range.column_start,
-                        nil,
-                        nil,
-                        nil,
-                        "eol"
-                    )
-                end
-            end)
-        end,
-
-        --- Triggers the completion level check for a range of lines
-        ---@param buf number #The number of the buffer to trigger completion levels in
-        ---@param from? number #The start line
-        ---@param to? number #The end line
-        trigger_completion_levels = function(buf, from, to)
-            module.public.completion_levels.clear_completion_levels(buf, from, to)
-
-            local root = module.required["core.integrations.treesitter"].get_document_root(buf)
-
-            if not root then
-                return
-            end
-
-            for node_name, data in pairs(module.config.public.completion_level.queries) do
-                local ok, query = pcall(
-                    vim.treesitter.parse_query,
-                    "norg",
-                    string.format(
-                        [[
-                        (%s) @parent
-                    ]],
-                        node_name
-                    )
-                )
-
-                if not ok then
-                    log.error(
-                        "Failed to parse completion level for node type '"
-                            .. node_name
-                            .. "' - ensure that you're providing a valid node name. Full error: "
-                            .. query
-                    )
-                    return
-                end
-
-                for id, node in query:iter_captures(root, buf, from, to) do
-                    local capture = query.captures[id]
-
-                    if capture == "parent" then
-                        local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-                        schedule(function()
-                            module.public.completion_levels.clear_completion_levels(
-                                buf,
-                                node_range.row_start,
-                                node_range.row_start + 1
-                            )
-
-                            local todo_item_counts = module.public.completion_levels.get_todo_item_counts(node)
-
-                            if todo_item_counts.total ~= 0 then
-                                module.public._set_extmark(
-                                    buf,
-                                    module.public.completion_levels.convert_query_syntax_to_extmark_syntax(
-                                        data.text,
-                                        todo_item_counts
-                                    ),
-                                    data.highlight,
-                                    module.private.completion_level_namespace,
-                                    node_range.row_start,
-                                    nil,
-                                    node_range.column_start,
-                                    nil,
-                                    nil,
-                                    nil,
-                                    "eol"
-                                )
-                            end
-                        end)
-                    end
-                end
-            end
-        end,
-
-        --- Counts the number of todo items under a node
-        ---@param start_node userdata #The treesitter node to start at
-        ---@return table #A table of data regarding all todo item counts
-        get_todo_item_counts = function(start_node)
-            local results = { total = 0 }
-            count_todo_nodes_under_node(start_node, results)
-            return results
-        end,
-
-        --- Converts a formatted string to a raw string
-        ---@param str string #The formatted string
-        ---@param item_counts table #A table of data regarding all todo item counts
-        ---@see get_todo_item_counts
-        ---@return string #The string with all valid formatting replaced
-        substitute_item_counts_in_str = function(str, item_counts)
-            local types = {
-                "undone",
-                "pending",
-                "done",
-                "on_hold",
-                "urgent",
-                "cancelled",
-                "recurring",
-                "uncertain",
-            }
-
-            for _, type in ipairs(types) do
-                str = str:gsub("<" .. type .. ">", item_counts[type] or 0)
-            end
-
-            str = str:gsub("<total>", item_counts.total)
-            str = str:gsub("<percentage>", math.floor((item_counts.done or 0) / item_counts.total * 100))
-
-            return str
-        end,
-
-        convert_query_syntax_to_extmark_syntax = function(tbl, item_counts)
-            local result = vim.deepcopy(tbl)
-
-            for i, item in ipairs(result) do
-                if type(item) == "string" then
-                    result[i] = { item }
-                end
-
-                result[i][1] = module.public.completion_levels.substitute_item_counts_in_str(result[i][1], item_counts)
-            end
-
-            return result
-        end,
-
-        --- Clears the completion level namespace
-        ---@param buf number #The buffer to clear the extmarks in
-        ---@param from? number #The start line
-        ---@param to? number #The end line
-        clear_completion_levels = function(buf, from, to)
-            vim.api.nvim_buf_clear_namespace(buf, module.private.completion_level_namespace, from or 0, to or -1)
-        end,
-    },
 
     -- VARIABLES
     concealing = {
@@ -1047,26 +808,6 @@ module.public = {
                     end
                 end
 
-                local completion_extmarks = vim.api.nvim_buf_get_extmarks(
-                    0,
-                    module.private.completion_level_namespace,
-                    { foldstart - 1, 0 },
-                    { foldstart - 1, vim.api.nvim_strwidth(line) },
-                    {
-                        details = true,
-                    }
-                )
-
-                if not vim.tbl_isempty(completion_extmarks) then
-                    line = line .. " "
-
-                    for _, extmark in ipairs(completion_extmarks) do
-                        for _, virt_text in ipairs(extmark[4].virt_text or {}) do
-                            line = line .. virt_text[1]
-                        end
-                    end
-                end
-
                 return line
             end,
         })
@@ -1086,7 +827,6 @@ module.public = {
             for _, namespace in ipairs({
                 "icon_namespace",
                 "code_block_namespace",
-                "completion_level_namespace",
             }) do
                 vim.api.nvim_buf_clear_namespace(0, module.private[namespace], 0, -1)
             end
@@ -1109,72 +849,48 @@ module.config.public = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_done) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             pending = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_pending) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             undone = {
                 enabled = true,
                 icon = "×",
                 query = "(todo_item_undone) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             uncertain = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_uncertain) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             on_hold = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_on_hold) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             cancelled = {
                 enabled = true,
                 icon = "",
                 query = "(todo_item_cancelled) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             recurring = {
                 enabled = true,
                 icon = "↺",
                 query = "(todo_item_recurring) @icon",
-                extract = function()
-                    return 1
-                end,
             },
 
             urgent = {
                 enabled = true,
                 icon = "⚠",
                 query = "(todo_item_urgent) @icon",
-                extract = function()
-                    return 1
-                end,
             },
         },
 
@@ -1215,40 +931,6 @@ module.config.public = {
                 enabled = true,
                 icon = "     •",
                 query = "(unordered_list6_prefix) @icon",
-            },
-        },
-
-        link = {
-            enabled = true,
-            level_1 = {
-                enabled = true,
-                icon = " ",
-                query = "(unordered_link1_prefix) @icon",
-            },
-            level_2 = {
-                enabled = true,
-                icon = "  ",
-                query = "(unordered_link2_prefix) @icon",
-            },
-            level_3 = {
-                enabled = true,
-                icon = "   ",
-                query = "(unordered_link3_prefix) @icon",
-            },
-            level_4 = {
-                enabled = true,
-                icon = "    ",
-                query = "(unordered_link4_prefix) @icon",
-            },
-            level_5 = {
-                enabled = true,
-                icon = "     ",
-                query = "(unordered_link5_prefix) @icon",
-            },
-            level_6 = {
-                enabled = true,
-                icon = "      ",
-                query = "(unordered_link6_prefix) @icon",
             },
         },
 
@@ -1329,88 +1011,6 @@ module.config.public = {
                     local count = module.public.concealing.ordered.get_index(node, "ordered_list6")
                     return {
                         { "     " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-        },
-
-        ordered_link = {
-            enabled = true,
-            level_1 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.numeric
-                ),
-                query = "(ordered_link1_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link1")
-                    return {
-                        { " " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_2 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_uppercase
-                ),
-                query = "(ordered_link2_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link2")
-                    return {
-                        { "  " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_3 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_lowercase
-                ),
-                query = "(ordered_link3_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link3")
-                    return {
-                        { "   " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_4 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.numeric
-                ),
-                query = "(ordered_link4_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link4")
-                    return {
-                        { "    " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_5 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_uppercase
-                ),
-                query = "(ordered_link5_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link5")
-                    return {
-                        { "     " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-            level_6 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_circle(
-                    module.public.concealing.ordered.enumerator.latin_lowercase
-                ),
-                query = "(ordered_link6_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_link6")
-                    return {
-                        { "      " .. self.icon(count), self.highlight },
                     }
                 end,
             },
@@ -1556,12 +1156,6 @@ module.config.public = {
             },
         },
 
-        marker = {
-            enabled = true,
-            icon = "",
-            query = "[ (marker_prefix) (link_target_marker) @no-conceal ] @icon",
-        },
-
         definition = {
             enabled = true,
 
@@ -1612,7 +1206,7 @@ module.config.public = {
                 query = "(weak_paragraph_delimiter) @icon",
                 render = function(self, text)
                     return {
-                        { string.rep(self.icon, text:len()), self.highlight },
+                        { string.rep(self.icon, text:len() - 1), self.highlight },
                     }
                 end,
             },
@@ -1624,7 +1218,7 @@ module.config.public = {
                 query = "(strong_paragraph_delimiter) @icon",
                 render = function(self, text)
                     return {
-                        { string.rep(self.icon, text:len()), self.highlight },
+                        { string.rep(self.icon, text:len() - 1), self.highlight },
                     }
                 end,
             },
@@ -1635,63 +1229,9 @@ module.config.public = {
                 highlight = "@neorg.delimiters.horizontal_line",
                 query = "(horizontal_line) @icon",
                 render = function(self, _, node)
-                    -- Get the length of the Neovim window (used to render to the edge of the screen)
-                    local resulting_length = vim.api.nvim_win_get_width(0)
-
-                    -- If we are running at least 0.6 (which has the prev_sibling() function) then
-                    if require("neorg.external.helpers").is_minimum_version(0, 6, 0) then
-                        -- Grab the sibling before our current node in order to later
-                        -- determine how much space it occupies in the buffer vertically
-                        local prev_sibling = node:prev_sibling()
-                        local double_prev_sibling = prev_sibling:prev_sibling()
-
-                        if prev_sibling then
-                            -- Get the text of the previous sibling and store its longest line width-wise
-                            local text = vim.split(
-                                module.required["core.integrations.treesitter"].get_node_text(prev_sibling),
-                                "\n",
-                                { plain = true, trimempty = true }
-                            )
-                            local longest = 3
-
-                            if
-                                prev_sibling:parent()
-                                and double_prev_sibling
-                                and double_prev_sibling:type() == "marker_prefix"
-                            then
-                                local range_of_prefix =
-                                    module.required["core.integrations.treesitter"].get_node_range(double_prev_sibling)
-                                local range_of_title =
-                                    module.required["core.integrations.treesitter"].get_node_range(prev_sibling)
-                                resulting_length = (range_of_prefix.column_end - range_of_prefix.column_start)
-                                    + (range_of_title.column_end - range_of_title.column_start)
-                            else
-                                -- Go through each line and remove its surrounding whitespace,
-                                -- we do this because some inconsistencies tend to occur with
-                                -- the way whitespace is handled.
-                                for _, line in ipairs(text) do
-                                    line = vim.trim(line)
-
-                                    -- If the line even has any "normal" characters
-                                    -- and its length is a new record then update the
-                                    -- `longest` variable
-                                    if line:match("%w") and line:len() > longest then
-                                        longest = line:len()
-                                    end
-                                end
-                            end
-
-                            -- If we've set a longest value then override the resulting length
-                            -- with that longest value (to make it render only up until that point)
-                            if longest > 0 then
-                                resulting_length = longest
-                            end
-                        end
-                    end
-
                     return {
                         {
-                            string.rep(self.icon, resulting_length),
+                            string.rep(self.icon, vim.api.nvim_win_get_width(0) - ({ node:range() })[2]),
                             self.highlight,
                         },
                     }
@@ -1714,8 +1254,9 @@ module.config.public = {
         },
     },
 
-    -- If you want to dim code blocks
+    -- Options related to dimming code block backgrounds
     dim_code_blocks = {
+        -- Whether you want to dim code blocks
         enabled = true,
 
         -- If true will only dim the content of the code block,
@@ -1749,48 +1290,16 @@ module.config.public = {
         conceal = true,
     },
 
+    -- If true, Neorg will enable folding by default for `.norg` documents.
+    -- You may use the inbuilt Neovim folding options like `foldnestmax`,
+    -- `foldlevelstart` and others to then tune the behaviour to your liking.
+    --
+    -- Set to `false` if you do not want Neorg setting anything.
     folds = true,
 
-    completion_level = {
-        enabled = true,
-
-        queries = vim.tbl_deep_extend(
-            "keep",
-            {},
-            (function()
-                local result = {}
-
-                for i = 1, 6 do
-                    result["heading" .. i] = {
-                        text = {
-                            "(",
-                            { "<done>", "@field" },
-                            " of ",
-                            { "<total>", "@neorg.todo_items.done.1" },
-                            ") [<percentage>% complete]",
-                        },
-
-                        highlight = "DiagnosticVirtualTextHint",
-                    }
-                end
-
-                return result
-            end)()
-            --[[ (function()
-                local result = {}
-
-                for i = 1, 6 do
-                    result["todo_item" .. i] = {
-                        text = "[<done>/<total>]",
-                        highlight = "DiagnosticVirtualTextHint",
-                    }
-                end
-
-                return result
-            end)() ]]
-        ),
-    },
-
+    -- Options related to concealer performance.
+    -- These options are put into effect when the concealer
+    -- has to deal with very large files.
     performance = {
         increment = 1250,
         timeout = 0,
@@ -1819,8 +1328,8 @@ module.load = function()
 
     --- Queries all icons that have their `enable = true` flags set
     ---@param tbl table #The table to parse
-    ---@param parent_icon string #Is used to pass icons from parents down to their table children to handle inheritance.
-    ---@param rec_name string #Should not be set manually. Is used for Neorg to have information about all other previous recursions
+    ---@param parent_icon? string #Is used to pass icons from parents down to their table children to handle inheritance.
+    ---@param rec_name? string #Should not be set manually. Is used for Neorg to have information about all other previous recursions
     local function get_enabled_icons(tbl, parent_icon, rec_name)
         rec_name = rec_name or ""
 
@@ -1941,12 +1450,10 @@ module.on_event = function(event)
 
         vim.api.nvim_buf_clear_namespace(buf, module.private.icon_namespace, 0, -1)
         vim.api.nvim_buf_clear_namespace(buf, module.private.code_block_namespace, 0, -1)
-        vim.api.nvim_buf_clear_namespace(buf, module.private.completion_level_namespace, 0, -1)
 
         if line_count < module.config.public.performance.increment then
             module.public.trigger_icons(buf, has_conceal, module.private.icons, module.private.icon_namespace)
             module.public.trigger_code_block_highlights(buf, has_conceal)
-            module.public.completion_levels.trigger_completion_levels(buf)
         else
             -- This bit of code gets triggered if the line count of the file is bigger than one increment level
             -- provided by the user.
@@ -1974,7 +1481,6 @@ module.on_event = function(event)
                 )
 
                 module.public.trigger_code_block_highlights(buf, has_conceal, line_begin, line_end)
-                module.public.completion_levels.trigger_completion_levels(buf, line_begin, line_end)
             end
 
             trigger_conceals_for_block(block_current)
@@ -2066,8 +1572,6 @@ module.on_event = function(event)
                         -- It's still incredibly fast despite this fact though.
                         module.public.trigger_code_block_highlights(buf, has_conceal)
 
-                        module.public.completion_levels.trigger_completion_levels(buf, start, _end)
-
                         vim.schedule(function()
                             module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
                                 - 1
@@ -2104,13 +1608,6 @@ module.on_event = function(event)
                 event.cursor_position[1] - 1,
                 event.cursor_position[1]
             )
-
-            vim.api.nvim_buf_clear_namespace(
-                event.buffer,
-                module.private.completion_level_namespace,
-                event.cursor_position[1] - 1,
-                event.cursor_position[1]
-            )
         end)
     elseif event.type == "core.autocommands.events.insertleave" then
         if should_debounce() then
@@ -2127,11 +1624,6 @@ module.on_event = function(event)
                     module.private.last_change.line,
                     module.private.last_change.line + 1
                 )
-
-                module.public.completion_levels.trigger_completion_levels_incremental(
-                    event.buffer,
-                    event.cursor_position[1] - 1
-                )
             else
                 module.public.trigger_icons(
                     event.buffer,
@@ -2140,11 +1632,6 @@ module.on_event = function(event)
                     module.private.icon_namespace,
                     module.private.largest_change_start,
                     module.private.largest_change_end
-                )
-
-                module.public.completion_levels.trigger_completion_levels_incremental(
-                    event.buffer,
-                    event.cursor_position[1] - 1
                 )
             end
 
@@ -2160,24 +1647,12 @@ module.on_event = function(event)
                 event.content.start,
                 event.content["end"]
             )
-            vim.api.nvim_buf_clear_namespace(
-                event.buffer,
-                module.private.completion_level_namespace,
-                event.content.start,
-                event.content["end"]
-            )
 
             module.public.trigger_icons(
                 event.buffer,
                 module.private.has_conceal,
                 module.private.icons,
                 module.private.icon_namespace,
-                event.content.start,
-                event.content["end"]
-            )
-
-            module.public.completion_levels.trigger_completion_levels(
-                event.buffer,
                 event.content.start,
                 event.content["end"]
             )

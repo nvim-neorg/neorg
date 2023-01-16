@@ -59,7 +59,7 @@ module.public = {
         if current_lang:lang() ~= "norg" then
             -- If we're in a ranged tag then apart from providing nvim-treesitter indents also make sure
             -- to account for the indentation level of the tag itself.
-            if node:type() == "ranged_tag_content" then
+            if node:type() == "ranged_verbatim_tag_content" then
                 local lnum = line
                 local start = node:range()
 

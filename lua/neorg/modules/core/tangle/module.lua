@@ -212,24 +212,28 @@ module.public = {
 
         local query_str = neorg.lib.match(options.scope)({
             _ = [[
-                (ranged_tag
+                (ranged_verbatim_tag
                     name: (tag_name) @_name
                     (#eq? @_name "code")
                     (tag_parameters
-                        .
-                        parameter: (tag_param) @_language)) @tag
+                       .
+                       (tag_param) @_language)) @tag
             ]],
             tagged = [[
-                (carryover_tag_set
-                    (carryover_tag
-                        name: (tag_name) @_carryover_tag_name
-                        (#eq? @_carryover_tag_name "tangle"))
-                    (ranged_tag
-                        name: (tag_name) @_name
-                        (#eq? @_name "code")
-                        (tag_parameters
-                            .
-                            parameter: (tag_param) @_language)) @tag)
+                (ranged_verbatim_tag
+                    [(strong_carryover_set
+                        (strong_carryover
+                          name: (tag_name) @_strong_carryover_tag_name
+                          (#eq? @_strong_carryover_tag_name "tangle")))
+                     (weak_carryover_set
+                        (weak_carryover
+                          name: (tag_name) @_weak_carryover_tag_name
+                          (#eq? @_weak_carryover_tag_name "tangle")))]
+                  name: (tag_name) @_name
+                  (#eq? @_name "code")
+                  (tag_parameters
+                    .
+                    (tag_param) @_language)) @tag
             ]],
         })
 

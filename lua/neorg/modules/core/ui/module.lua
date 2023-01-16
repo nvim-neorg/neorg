@@ -82,10 +82,6 @@ module.public = {
         -- Get the name of the buffer with the specified ID
         local name = vim.api.nvim_buf_get_name(buf)
 
-        if module.private.user_scrolloff then
-            vim.o.scrolloff = module.private.user_scrolloff
-        end
-
         if module.private.windows[name] ~= nil then
             -- Attempt to force close both the window and the buffer
             vim.api.nvim_win_close(module.private.windows[name], true)
@@ -137,14 +133,6 @@ module.public = {
         vim.api.nvim_buf_set_name(buf, bufname)
         vim.api.nvim_win_set_buf(0, buf)
 
-        -- Keep user scrolloff for when the ui is closed
-        -- We can't use vim.o.scrolloff here because it seems to get a weird value...
-        module.private.user_scrolloff = vim.api.nvim_get_option("scrolloff")
-
-        vim.api.nvim_buf_call(buf, function()
-            vim.cmd("set scrolloff=999")
-        end)
-
         vim.api.nvim_win_set_option(0, "number", false)
         vim.api.nvim_win_set_option(0, "relativenumber", false)
 
@@ -167,7 +155,7 @@ module.public = {
     ---@param name string the name of the buffer
     ---@param config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
     ---@param left boolean if true will spawn the vertical split on the left (default is right)
-    ---@return buffer the buffer of the vertical split
+    ---@return number #The buffer of the vertical split
     create_vsplit = function(name, config, left)
         vim.validate({
             name = { name, "string" },
@@ -353,10 +341,6 @@ module.public = {
 
         return buf
     end,
-}
-
-module.private = {
-    user_scrolloff = nil,
 }
 
 module.examples = {

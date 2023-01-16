@@ -219,23 +219,23 @@ module.public = {
             },
         },
         {
-            regex = "^%s*%-+%s+%[([x%*%s]?)",
+            regex = "^%s*%-+%s+%(([x%*%s]?)",
 
             complete = {
-                { "[ ] ", label = "[ ] (undone)" },
-                { "[-] ", label = "[-] (pending)" },
-                { "[x] ", label = "[x] (done)" },
-                { "[_] ", label = "[_] (cancelled)" },
-                { "[!] ", label = "[!] (important)" },
-                { "[+] ", label = "[+] (recurring)" },
-                { "[=] ", label = "[=] (on hold)" },
-                { "[?] ", label = "[?] (uncertain)" },
+                { "( ) ", label = "( ) (undone)" },
+                { "(-) ", label = "(-) (pending)" },
+                { "(x) ", label = "(x) (done)" },
+                { "(_) ", label = "(_) (cancelled)" },
+                { "(!) ", label = "(!) (important)" },
+                { "(+) ", label = "(+) (recurring)" },
+                { "(=) ", label = "(=) (on hold)" },
+                { "(?) ", label = "(?) (uncertain)" },
             },
 
             options = {
                 type = "TODO",
                 pre = function()
-                    local sub = vim.api.nvim_get_current_line():gsub("^(%s*%-+%s+%[%s*)%]", "%1")
+                    local sub = vim.api.nvim_get_current_line():gsub("^(%s*%-+%s+%(%s*)%)", "%1")
 
                     if sub then
                         vim.api.nvim_set_current_line(sub)

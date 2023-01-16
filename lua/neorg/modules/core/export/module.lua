@@ -321,6 +321,10 @@ module.on_event = function(event)
             end
         end)
     end
+
+    vim.api.nvim_exec_autocmds("User", {
+        pattern = "NeorgExportComplete",
+    })
 end
 
 module.events.subscribed = {
