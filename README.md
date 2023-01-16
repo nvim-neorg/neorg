@@ -15,7 +15,7 @@ Your New Life Organization Tool - All in Lua
 •
 [Showcase](#-showcase)
 •
-[Installation](#-installation)
+[Installation](#-installation--quickstart)
 •
 [Setup](#-setup)
 •
@@ -99,7 +99,7 @@ Plus fancy completion powered by `nvim-cmp`.
 
 </details>
 
-## 🔧 Installation
+## 🔧 Installation/Quickstart
 
 **Neorg requires at least Neovim 0.8+ to operate.**
 
@@ -114,17 +114,28 @@ You can install it through your favorite plugin manager:
       "nvim-neorg/neorg",
       config = function()
           require('neorg').setup {
-              ... -- check out setup part...
+              load = {
+                  ["core.defaults"] = {}, -- Loads default behaviour
+                  ["core.norg.concealer"] = {}, -- Adds pretty icons to your documents
+                  ["core.norg.dirman"] = { -- Manages Neorg workspaces
+                      config = {
+                          workspaces = {
+                              notes = "~/notes",
+                          },
+                      },
+                  },
+              },
           }
       end,
-      requires = "nvim-lua/plenary.nvim"
+      run = ":Neorg sync-parsers",
+      requires = "nvim-lua/plenary.nvim",
   }
   ```
 
   Every time Neorg hits a new release, a new tag is created by us, so you don't have to worry about all the updates inbetween.
   That means that adding `tag = "*"` in Packer will update to latest stable release.
   
-  You can also pin Neorg to one specific version through e.g. `tag = "0.0.9"`.
+  You can also pin Neorg to one specific version through e.g. `tag = "2.0.0"`.
 
   ---
 
@@ -138,7 +149,17 @@ You can install it through your favorite plugin manager:
       after = "nvim-treesitter", -- You may want to specify Telescope here as well
       config = function()
           require('neorg').setup {
-              ...
+              load = {
+                  ["core.defaults"] = {}, -- Loads default behaviour
+                  ["core.norg.concealer"] = {}, -- Adds pretty icons to your documents
+                  ["core.norg.dirman"] = { -- Manages Neorg workspaces
+                      config = {
+                          workspaces = {
+                              notes = "~/notes",
+                          },
+                      },
+                  },
+              },
           }
       end
   }
@@ -162,9 +183,46 @@ You can install it through your favorite plugin manager:
   ```vim
   lua << EOF
   require('neorg').setup {
-      ...
+      load = {
+          ["core.defaults"] = {}, -- Loads default behaviour
+          ["core.norg.concealer"] = {}, -- Adds pretty icons to your documents
+          ["core.norg.dirman"] = { -- Manages Neorg workspaces
+              config = {
+                  workspaces = {
+                      notes = "~/notes",
+                  },
+              },
+          },
+      },
   }
   EOF
+  ```
+
+  </details>
+- <details>
+  <summary><a href="https://github.com/folke/lazy.nvim">lazy.nvim</a></summary>
+
+  ```lua
+  require("lazy").setup({
+      {
+          "nvim-neorg/neorg",
+          build = ":Neorg sync-parsers",
+          opts = {
+              load = {
+                  ["core.defaults"] = {}, -- Loads default behaviour
+                  ["core.norg.concealer"] = {}, -- Adds pretty icons to your documents
+                  ["core.norg.dirman"] = { -- Manages Neorg workspaces
+                      config = {
+                          workspaces = {
+                              notes = "~/notes",
+                          },
+                      },
+                  },
+              },
+          },
+          dependencies = { { "nvim-lua/plenary.nvim" } },
+      }
+  })
   ```
 
   </details>
