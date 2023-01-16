@@ -18,8 +18,9 @@ module.load = function()
             args = 1,
             subcommands = {
                 view = { args=0, name="execute.view" },
-                hide = { args=0, name="execute.hide" },
                 normal = { args=0, name="execute.normal" },
+                hide = { args=0, name="execute.hide" },
+                materialize = { args=0, name="execute.materialize" },
             }
         }
     })
@@ -187,7 +188,8 @@ module.private = {
 
 module.public = {
     tmpdir = "/tmp/neorg-execute/",
-    mode = "normal",
+    -- mode = "normal",
+    mode = nil,
 
     current_node_info = function()
         local node = ts.get_node_at_cursor(0, true)
@@ -269,24 +271,60 @@ module.public = {
                 return
             end
         end
+    end,
+    materialize = function()
+        local cr, _ = unpack(vim.api.nvim_win_get_cursor(0))
+
+        -- FIX: DUPLICATION AGAIN!!!
+        for id_idx, id_cfg in pairs(module.private.tasks) do
+            local code_start = id_cfg.code_block['start'].row + 1
+            local code_end = id_cfg.code_block['end'].row + 1
+
+            if code_start <= cr and code_end >= cr then
+                local curr_task = module.private.tasks[id_idx]
+                vim.api.nvim_buf_set_extmark(
+                    curr_task.buf,
+                    module.private.ns,
+                    curr_task.code_block['end'].row,
+                    0,
+                    { id=id_idx, virt_lines = nil }
+                )
+
+                local t = vim.tbl_map(function(line) return line[1][1] end, curr_task.output)
+
+                for i, line in ipairs(t) do
+                    vim.api.nvim_buf_set_lines(
+                        curr_task.buf,
+                        curr_task.code_block['end'].row + i,
+                        curr_task.code_block['end'].row + i,
+                        true,
+                        {line}
+                    )
+                end
+
+            end
+        end
     end
 }
 
 module.on_event = function(event)
     if event.split_type[2] == "execute.view" then
         vim.schedule(module.public.view)
-    elseif event.split_type[2] == "execute.hide" then
-        vim.schedule(module.public.hide)
     elseif event.split_type[2] == "execute.normal" then
         vim.schedule(module.public.normal)
+    elseif event.split_type[2] == "execute.hide" then
+        vim.schedule(module.public.hide)
+    elseif event.split_type[2] == "execute.materialize" then
+        vim.schedule(module.public.materialize)
     end
 end
 
 module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["execute.view"] = true,
+        ["execute.normal"] = true,
         ["execute.hide"] = true,
-        ["execute.normal"] = true
+        ["execute.materialize"] = true,
     }
 }
 
