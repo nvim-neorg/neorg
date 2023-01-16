@@ -114,7 +114,7 @@ module.private = {
         -- IMP: check for existng marks and return if it exists.
         local cr, _ = unpack(vim.api.nvim_win_get_cursor(0))
 
-        for id_idx,id_cfg in pairs(module.private.tasks) do
+        for id_idx, id_cfg in pairs(module.private.tasks) do
             local code_start, code_end = id_cfg.code_block['start'].row + 1, id_cfg.code_block['end'].row + 1
 
             if code_start <= cr and code_end >= cr then
@@ -194,13 +194,13 @@ module.public = {
         local p = module.required["core.integrations.treesitter"].find_parent(node, "^ranged_verbatim_tag$")
 
         -- TODO: Add checks here
-        local code_block = module.required["core.integrations.treesitter"].get_tag_info(p, true)
-        if not code_block then
+        local cb = module.required["core.integrations.treesitter"].get_tag_info(p, true)
+        if not cb then
             vim.notify("Not inside a code block!")
             return
         end
 
-        return code_block
+        return cb
     end,
 
     base = function(id)
@@ -252,7 +252,23 @@ module.public = {
         module.public.base(id)
     end,
     hide = function()
-        vim.pretty_print("Hide, quick!")
+        -- HACK: Duplication
+        local cr, _ = unpack(vim.api.nvim_win_get_cursor(0))
+
+        for id_idx, id_cfg in pairs(module.private.tasks) do
+            local code_start, code_end = id_cfg.code_block['start'].row + 1, id_cfg.code_block['end'].row + 1
+
+            if code_start <= cr and code_end >= cr then
+                if module.public.mode == "view" then
+                    vim.api.nvim_buf_del_extmark(0, module.private.ns, id_idx)
+                else
+                    vim.api.nvim_buf_set_lines(0, code_end, code_end+#id_cfg["output"], false, {})
+                end
+
+                module.private.tasks[id_idx] = nil
+                return
+            end
+        end
     end
 }
 
