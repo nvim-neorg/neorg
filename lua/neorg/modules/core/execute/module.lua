@@ -302,6 +302,8 @@ module.public = {
                     )
                 end
 
+                module.public.mode = "normal"
+
             end
         end
     end
