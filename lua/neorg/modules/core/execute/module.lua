@@ -18,6 +18,7 @@ module.load = function()
             args = 1,
             subcommands = {
                 view = { args=0, name="execute.view" },
+                hide = { args=0, name="execute.hide" },
                 normal = { args=0, name="execute.normal" },
             }
         }
@@ -138,6 +139,25 @@ module.private = {
         return id
     end,
 
+    handle_lines = function(id, data, hl)
+        if module.private.tasks[id].interrupted then
+            vim.fn.jobstop(module.private.tasks[id].jobid)
+            return
+        end
+
+        for _, line in ipairs(data) do
+            if line ~= "" then
+                if module.public.mode == "view" then
+                    table.insert(module.private.tasks[id].output, {{line, hl}})
+                    module.private.virtual.update(id)
+                else
+                    table.insert(module.private.tasks[id].output, line)
+                    module.private.normal.update(id, line)
+                end
+            end
+        end
+    end,
+
     spawn = function(id, command)
         local mode = module.public.mode
 
@@ -149,42 +169,11 @@ module.private = {
 
             -- TODO: check exit code conditions and colors
             on_stdout = function(_, data)
-                if module.private.tasks[id].interrupted then
-                    vim.fn.jobstop(module.private.tasks[id].jobid)
-                    return
-                end
-
-                for _, line in ipairs(data) do
-                    if line ~= "" then
-                        if mode == "view" then
-                            table.insert(module.private.tasks[id].output, {{line, 'Function'}})
-                            module.private.virtual.update(id)
-                        else
-                            table.insert(module.private.tasks[id].output, line)
-                            module.private.normal.update(id, line)
-                        end
-                    end
-                end
+                module.private.handle_lines(id, data, "Function")
             end,
 
             on_stderr = function(_, data)
-                if module.private.tasks[id].interrupted then
-                    vim.fn.jobstop(module.private.tasks[id].jobid)
-                    return
-                end
-
-                for _, line in ipairs(data) do
-                    if line ~= "" then
-                        if mode == "view" then
-                            table.insert(module.private.tasks[id].output, {{line, 'Error'}})
-                            module.private.virtual.update(id)
-                        else
-                            table.insert(module.private.tasks[id].output, line)
-                            module.private.normal.update(id, line)
-                        end
-                    end
-                end
-
+                module.private.handle_lines(id, data, "Error")
             end,
 
             on_exit = function()
@@ -200,9 +189,9 @@ module.public = {
     tmpdir = "/tmp/neorg-execute/",
     mode = "normal",
 
-    base = function(id)
+    current_node_info = function()
         local node = ts.get_node_at_cursor(0, true)
-        local p = module.required["core.integrations.treesitter"].find_parent(node, "^ranged_tag$")
+        local p = module.required["core.integrations.treesitter"].find_parent(node, "^ranged_verbatim_tag$")
 
         -- TODO: Add checks here
         local code_block = module.required["core.integrations.treesitter"].get_tag_info(p, true)
@@ -211,8 +200,16 @@ module.public = {
             return
         end
 
+        return code_block
+    end,
+
+    base = function(id)
+        local code_block = module.public.current_node_info()
+        if not code_block then return end
+
         if code_block.name == "code" then
             module.private.tasks[id]['code_block'] = code_block
+
             -- FIX: temp fix remove this!
             code_block['parameters'] = vim.split(code_block['parameters'][1], ' ')
             local ft = code_block.parameters[1]
@@ -254,11 +251,16 @@ module.public = {
         local id = module.private.init()
         module.public.base(id)
     end,
+    hide = function()
+        vim.pretty_print("Hide, quick!")
+    end
 }
 
 module.on_event = function(event)
     if event.split_type[2] == "execute.view" then
         vim.schedule(module.public.view)
+    elseif event.split_type[2] == "execute.hide" then
+        vim.schedule(module.public.hide)
     elseif event.split_type[2] == "execute.normal" then
         vim.schedule(module.public.normal)
     end
@@ -267,6 +269,7 @@ end
 module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["execute.view"] = true,
+        ["execute.hide"] = true,
         ["execute.normal"] = true
     }
 }
