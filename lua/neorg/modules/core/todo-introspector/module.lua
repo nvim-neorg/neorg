@@ -57,11 +57,13 @@ module.public = {
                                 range = module.required["core.integrations.treesitter"].get_node_range(child),
                             }
 
+                        local child_aggregates = data.aggregate({
+                            target = child,
+                        }) or {}
+
                         table.insert(
                             aggregates[child:type()],
-                            vim.tbl_deep_extend("force", data.aggregate({
-                                target = child,
-                            }) or {}, neorg.lib.eval(callback, child) or {})
+                            vim.tbl_deep_extend("force", child_aggregates, neorg.lib.eval(callback, child, child_aggregates) or {})
                         )
                     end
                 end
@@ -73,6 +75,16 @@ module.public = {
 
     aggregate_functions = {
         list_item = function(node)
+            local counts = {
+                undone = 0,
+                done = 0,
+                pending = 0,
+                on_hold = 0,
+                cancelled = 0,
+                urgent = 0,
+                recurring = 0,
+            }
+
             local detached_modifier_extension = node:field("state")[1]
 
             if not detached_modifier_extension then
@@ -84,6 +96,9 @@ module.public = {
             do
                 for task in detached_modifier_extension:iter_children() do
                     if vim.startswith(task:type(), "todo_item_") then
+                        local type = task:type():match("^todo_item_(.+)$")
+                        counts[type] = (counts[type] or 0) + 1
+
                         todo_node = task
                         break
                     end
@@ -96,7 +111,53 @@ module.public = {
 
             return { todo_node:type():match("^todo_item_(.+)$") }
         end,
+
+        generic_list = function(node, child_aggregates)
+            local counts = {
+                self = {
+                    undone = 0,
+                    done = 0,
+                    pending = 0,
+                    on_hold = 0,
+                    cancelled = 0,
+                    urgent = 0,
+                    recurring = 0,
+                },
+            }
+
+            for name, data in pairs(child_aggregates or {}) do
+                if name == "self" then
+
+                end
+            end
+
+            return {}
+        end,
     },
+
+    count_todo_item_completion = function(generic_list_leaf)
+        local counts = {
+            undone = 0,
+            done = 0,
+            pending = 0,
+            on_hold = 0,
+            cancelled = 0,
+            urgent = 0,
+            recurring = 0,
+        }
+
+        for _, list in ipairs(generic_list_leaf) do
+            for _, items in pairs(list) do
+                for _, item in ipairs(items) do
+                    if item.self[1] then
+                        counts[item.self[1]] = (counts[item.self[1]] or 0) + 1
+                    end
+                end
+            end
+        end
+
+        return counts
+    end,
 
     display_heading_completion = function(aggregates, detail)
         if not detail or detail == "high" then
@@ -108,7 +169,7 @@ module.public = {
 
     heading_completion = {
         basic_heading_completion = function(aggregates)
-            if not aggregates.generic_list then
+            if vim.tbl_isempty(aggregates) then
                 return
             end
 
@@ -122,16 +183,6 @@ module.public = {
                 recurring = 0,
             }
 
-            for _, list in ipairs(aggregates.generic_list) do
-                for _, items in pairs(list) do
-                    for _, item in ipairs(items) do
-                        if item.self[1] then
-                            counts[item.self[1]] = (counts[item.self[1]] or 0) + 1
-                        end
-                    end
-                end
-            end
-
             local all = counts.undone + counts.pending + counts.done
             local percentage = math.floor((counts.done / all) * 100)
 
@@ -142,8 +193,7 @@ module.public = {
                     { " of ", "NonText" },
                     { tostring(all), (counts.urgent > 1 and "@text.danger" or "@number") },
                     { ") [", "NonText" },
-                    { tostring(percentage), "@number" },
-                    { "%", "@operator" },
+                    { table.concat({ tostring(percentage), "%" }), "@operator" },
                     { " complete]", "NonText" },
                 },
             })
@@ -171,7 +221,7 @@ module.config.public = {
         },
         ["generic_list"] = {
             query = [[(generic_list) @target]],
-            aggregate = module.public.aggregate_recursively(),
+            aggregate = module.public.aggregate_recursively(module.public.aggregate_functions.generic_list),
         },
         ["unordered_list%d"] = {
             query = [=[
