@@ -435,7 +435,7 @@ module.public = {
 }
 
 module.config.public = {
-    -- note that these come from core.norg.concealer as well
+    -- Same behaviour as @core.norg.concealer
     performance = {
         increment = 1250,
         timeout = 0,
