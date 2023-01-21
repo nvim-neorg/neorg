@@ -386,4 +386,17 @@ docgen.generators = {
     end,
 }
 
+--- Check the integrity of the description comments found in configuration blocks
+---@param comment string #The comment to check the integrity of
+---@return nil|string #`nil` for success, `string` if there was an error
+docgen.check_comment_integrity = function(comment)
+    if comment:match("^%s*%-%-+%s*") then
+        return "found leading `--` comment text."
+    elseif comment:sub(1, 1):upper() ~= comment:sub(1, 1) then
+        return "comment does not begin with a capital letter."
+    elseif comment:find(" neorg ") then
+        return "`neorg` written with lowercase letter. Use uppercase instead."
+    end
+end
+
 return docgen
