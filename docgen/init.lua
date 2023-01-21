@@ -70,7 +70,16 @@ for module_name, module in pairs(modules) do
             end
 
             comments = table.concat(comments, "\n")
-            log.warn(comments)
+
+            local error = docgen.check_comment_integrity(comments)
+
+            if type(error) == "string" then
+                -- Get the exact location of the error with data.node and the file it was contained in
+                local start_row, start_col = data.node:start()
+
+                vim.notify(("Error when parsing annotation in module '%s' on line (%d, %d): %s"):format(module_name, start_row, start_col, error))
+                return
+            end
         end)
     end
 end
