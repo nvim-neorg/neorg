@@ -63,8 +63,14 @@ for module_name, module in pairs(modules) do
     local config_node = docgen.get_module_config_node(buffer, root)
 
     if config_node then
-        docgen.map_config(buffer, config_node, function(child, comment)
+        docgen.map_config(buffer, config_node, function(data, comments)
+            for i, comment in ipairs(comments) do
+                -- TODO: Also perform @something lookups
+                comments[i] = comment:gsub("^%s*%-%-+%s*", "")
+            end
 
+            comments = table.concat(comments, "\n")
+            log.warn(comments)
         end)
     end
 end
