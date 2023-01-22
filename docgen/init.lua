@@ -1,5 +1,6 @@
 local docgen = require("docgen")
 local fileio = require("fileio")
+
 ---@type Modules
 local modules = {
     --[[
@@ -56,30 +57,54 @@ end
 fileio.write_to_wiki("Home", docgen.generators.homepage(modules))
 fileio.write_to_wiki("_Sidebar", docgen.generators.sidebar(modules))
 
+-- Loop through all modules and generate their respective wiki files
 for module_name, module in pairs(modules) do
     local buffer = module.buffer
 
+    -- Query the root node and try to find a `module.config.public` table
     local root = vim.treesitter.get_parser(buffer, "lua"):parse()[1]:root()
     local config_node = docgen.get_module_config_node(buffer, root)
+
+    -- A table of markdown lines corresponding to every configuration option
+    local configuration_options = {}
 
     if config_node then
         docgen.map_config(buffer, config_node, function(data, comments)
             for i, comment in ipairs(comments) do
-                -- TODO: Also perform @something lookups
-                comments[i] = comment:gsub("^%s*%-%-+%s*", "")
+                comments[i] = docgen.lookup_modules(modules, comment:gsub("^%s*%-%-+%s*", ""))
             end
 
             comments = table.concat(comments, "\n")
 
-            local error = docgen.check_comment_integrity(comments)
+            do
+                local error = docgen.check_comment_integrity(comments)
 
-            if type(error) == "string" then
-                -- Get the exact location of the error with data.node and the file it was contained in
-                local start_row, start_col = data.node:start()
+                if type(error) == "string" then
+                    -- Get the exact location of the error with data.node and the file it was contained in
+                    local start_row, start_col = data.node:start()
 
-                vim.notify(("Error when parsing annotation in module '%s' on line (%d, %d): %s"):format(module_name, start_row, start_col, error))
-                return
+                    vim.notify(
+                        ("Error when parsing annotation in module '%s' on line (%d, %d): %s"):format(
+                            module_name,
+                            start_row,
+                            start_col,
+                            error
+                        )
+                    )
+                    return
+                end
+            end
+
+            if data.value then
+                log.warn(docgen.to_lua_object(module.parsed, buffer, data.value, module_name))
             end
         end)
+    end
+
+    -- Perform module lookups in the module's top comment markdown data.
+    -- This cannot be done earlier because then there would be no guarantee
+    -- that all the modules have been properly indexed and parsed.
+    for i, line in ipairs(module.top_comment_data.markdown) do
+        module.top_comment_data.markdown[i] = docgen.lookup_modules(modules, line)
     end
 end
