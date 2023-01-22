@@ -128,8 +128,8 @@ docgen.check_top_comment_integrity = function(top_comment)
         return "summary does not end with a full stop."
     elseif tc.title:find("neorg") then
         return "`neorg` written with lowercase letter. Use uppercase instead."
-    -- elseif vim.tbl_isempty(tc.markdown) then
-    --     return "no overview provided."
+        -- elseif vim.tbl_isempty(tc.markdown) then
+        --     return "no overview provided."
     end
 
     return top_comment
@@ -140,11 +140,14 @@ end
 ---@param root userdata #The root node
 ---@return userdata? #Root node
 docgen.get_module_config_node = function(buffer, root)
-    local query = vim.treesitter.parse_query("lua", [[
+    local query = vim.treesitter.parse_query(
+        "lua",
+        [[
         (assignment_statement
           (variable_list) @_name
           (#eq? @_name "module.config.public")) @declaration
-    ]])
+    ]]
+    )
 
     local _, declaration_node = query:iter_captures(root, buffer)()
 
@@ -154,14 +157,18 @@ end
 --- TODO
 ---@param start_node userdata #Node
 ---@param callback function
-docgen.map_config = function(buffer, start_node, callback)
+---@param parents string[]? #Used internally to track nesting levels
+docgen.map_config = function(buffer, start_node, callback, parents)
     local comments = {}
 
-    local query = vim.treesitter.parse_query("lua", [[
+    local query = vim.treesitter.parse_query(
+        "lua",
+        [[
         ((comment)+ @comment
         .
         (field) @field)
-    ]])
+    ]]
+    )
 
     for capture_id, node in query:iter_captures(start_node, buffer) do
         local capture = query.captures[capture_id]
@@ -177,6 +184,7 @@ docgen.map_config = function(buffer, start_node, callback)
                     node = node,
                     name = name,
                     value = value,
+                    parent = parents or {},
                 }, comments)
 
                 docgen.map_config(buffer, node, callback)
@@ -185,6 +193,7 @@ docgen.map_config = function(buffer, start_node, callback)
                     node = node,
                     name = name,
                     value = value,
+                    parents = parents or {},
                 }, comments)
             end
 
@@ -204,7 +213,7 @@ docgen.evaluate_functions = function(tbl)
 
     neorg.lib.map(tbl, function(_, value)
         if type(value) == "function" then
-             vim.list_extend(new, value())
+            vim.list_extend(new, value())
         else
             table.insert(new, value)
         end
@@ -232,10 +241,10 @@ docgen.generators = {
 
                         if data.top_comment_data.file then
                             insert = "- [`"
-                            .. data.parsed.name
-                            .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                            .. data.top_comment_data.file
-                            .. ")"
+                                .. data.parsed.name
+                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                                .. data.top_comment_data.file
+                                .. ")"
                         else
                             insert = "- `" .. mod .. "`"
                         end
@@ -289,13 +298,17 @@ docgen.generators = {
                 local link = "[`core.defaults`](https://github.com/nvim-neorg/neorg/wiki/"
                     .. core_defaults.top_comment_data.file
                     .. ")"
-                    return {
+                return {
                     "Neorg comes with some default modules that will be automatically loaded if you require the "
-                    .. link
-                    .. " module:" }
+                        .. link
+                        .. " module:",
+                }
             end,
             "",
-            list_modules_with_predicate(function(data) return vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name) and not data.top_comment_data.internal end),
+            list_modules_with_predicate(function(data)
+                return vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
+                    and not data.top_comment_data.internal
+            end),
             "",
             "# Other Modules",
             "",
@@ -304,8 +317,8 @@ docgen.generators = {
             "",
             list_modules_with_predicate(function(data)
                 return not data.parsed.extension
-                and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
-                and not data.top_comment_data.internal
+                    and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
+                    and not data.top_comment_data.internal
             end),
             "",
             "# Developer modules",
@@ -314,8 +327,8 @@ docgen.generators = {
             "",
             list_modules_with_predicate(function(data)
                 return not data.parsed.extension
-                and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
-                and data.top_comment_data.internal
+                    and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
+                    and data.top_comment_data.internal
             end),
         }
 
@@ -396,6 +409,37 @@ docgen.check_comment_integrity = function(comment)
         return "comment does not begin with a capital letter."
     elseif comment:find(" neorg ") then
         return "`neorg` written with lowercase letter. Use uppercase instead."
+    end
+end
+
+--- Replaces all instances of a module reference (e.g. `@core.norg.concealer`) with a link in the wiki
+---@param modules Modules #The list of loaded modules
+---@param str string #The string to perform the lookup in
+---@return string #The original `str` parameter with all `@` references replaced with links
+docgen.lookup_modules = function(modules, str)
+    return (
+        str:gsub("@([%-%.%w]+)", function(target_module_name)
+            if not modules[target_module_name] then
+                return table.concat({ "@", target_module_name })
+            else
+                return table.concat({
+                    "https://github.com/nvim-neorg/neorg/wiki/",
+                    modules[target_module_name].top_comment_data.file,
+                })
+            end
+        end)
+    )
+end
+
+--- Renders a treesitter node to a lua object
+---@param node userdata #The node to render
+---@param chunkname string? #The custom name to give to the chunk
+---@return any #The converted object
+docgen.to_lua_object = function(module, buffer, node, chunkname)
+    local loaded = loadstring(table.concat({ "return ", ts.get_node_text(node, buffer) }), chunkname)
+
+    if loaded then
+        return setfenv(loaded, vim.tbl_extend("force", getfenv(0), { module = module }))()
     end
 end
 
