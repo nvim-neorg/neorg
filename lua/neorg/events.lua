@@ -10,7 +10,6 @@ local log = require("neorg.external.log")
 
 require("neorg.modules")
 require("neorg.external.helpers")
-require("neorg.callbacks")
 
 neorg.events = {}
 

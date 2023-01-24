@@ -532,7 +532,7 @@ module.examples = {
 
         -- (Somewhere in your config)
         -- Require the user callbacks module, which allows us to tap into the core of Neorg
-        local neorg_callbacks = require("neorg.callbacks")
+        local neorg_callbacks = neorg.callbacks
 
         -- Listen for the enable_keybinds event, which signals a "ready" state meaning we can bind keys.
         -- This hook will be called several times, e.g. whenever the Neorg Mode changes or an event that

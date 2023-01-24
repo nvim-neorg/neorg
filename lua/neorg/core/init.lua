@@ -1,3 +1,5 @@
-local neorg = {}
+local neorg = {
+    callbacks = require("neorg.core.callbacks"),
+}
 
 return neorg

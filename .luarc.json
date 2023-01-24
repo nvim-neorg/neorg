@@ -5,5 +5,6 @@
         "_neorg_module_autocommand_triggered",
         "neorg",
         "vim",
-    ]
+    ],
+    "workspace.checkThirdParty": false
 }

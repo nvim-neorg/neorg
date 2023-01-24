@@ -5,7 +5,6 @@
 
 -- Require the most important modules
 local neorg = require("neorg.core")
-require("neorg.callbacks")
 require("neorg.events")
 require("neorg.modules")
 

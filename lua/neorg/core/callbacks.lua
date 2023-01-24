@@ -3,9 +3,7 @@
     User callbacks are ways for the user to directly interact with Neorg and respond on certain events.
 --]]
 
-local neorg = require("neorg.core")
-
-neorg.callbacks = {
+local callbacks = {
     callback_list = {},
 }
 
@@ -13,18 +11,18 @@ neorg.callbacks = {
 ---@param event_name string #The full path to the event we want to listen on
 ---@param callback fun(event, content) #The function to call whenever our event gets triggered
 ---@param content_filter fun(event) #A filtering function to test if a certain event meets our expectations
-function neorg.callbacks.on_event(event_name, callback, content_filter)
+function callbacks.on_event(event_name, callback, content_filter)
     -- If the table doesn't exist then create it
-    neorg.callbacks.callback_list[event_name] = neorg.callbacks.callback_list[event_name] or {}
+    callbacks.callback_list[event_name] = callbacks.callback_list[event_name] or {}
     -- Insert the callback and content filter
-    table.insert(neorg.callbacks.callback_list[event_name], { callback, content_filter })
+    table.insert(callbacks.callback_list[event_name], { callback, content_filter })
 end
 
 --- Used internally by Neorg to call all callbacks with an event
 ---@param event table #An event as returned by neorg.events.create()
-function neorg.callbacks.handle_callbacks(event)
+function callbacks.handle_callbacks(event)
     -- Query the list of registered callbacks
-    local callback_entry = neorg.callbacks.callback_list[event.type]
+    local callback_entry = callbacks.callback_list[event.type]
 
     -- If the callbacks exist then
     if callback_entry then
@@ -39,4 +37,4 @@ function neorg.callbacks.handle_callbacks(event)
     end
 end
 
-return neorg.callbacks
+return callbacks
