@@ -1,6 +1,7 @@
+local lib = require("neorg.core.lib")
+
 -- Configuration template
-local neorg = require("neorg.core")
-neorg.configuration = {
+local configuration = {
 
     user_configuration = {
         lazy_loading = false,
@@ -34,14 +35,14 @@ neorg.configuration = {
             if key then
                 key = key:lower():gsub("%p", ""):gsub("%s", "-")
 
-                value = neorg.lib.match(key)({
+                value = lib.match(key)({
                     compilation = function()
                         local split = vim.split(value, "%s+")
 
                         split.compiler = table.remove(split, 1)
                         return split
                     end,
-                    features = neorg.lib.wrap(vim.split, value, "%s*%+", {
+                    features = lib.wrap(vim.split, value, "%s*%+", {
                         trimempty = true,
                     }),
                     nvim = tonumber(value),
@@ -57,7 +58,7 @@ neorg.configuration = {
 }
 
 -- Grab OS info on startup
-neorg.configuration.os_info = (function()
+configuration.os_info = (function()
     local os = vim.loop.os_uname().sysname:lower()
 
     if os:find("windows_nt") then
@@ -69,6 +70,6 @@ neorg.configuration.os_info = (function()
     end
 end)()
 
-neorg.configuration.pathsep = neorg.configuration.os_info == "windows" and "\\" or "/"
+configuration.pathsep = configuration.os_info == "windows" and "\\" or "/"
 
-return neorg.configuration
+return configuration

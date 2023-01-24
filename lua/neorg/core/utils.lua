@@ -7,7 +7,7 @@ local utils = {
 
     --- An OS agnostic way of querying the current user
     get_username = function()
-        local current_os = require("neorg.config").os_info
+        local current_os = neorg.configuration.os_info
 
         if not current_os then
             return ""

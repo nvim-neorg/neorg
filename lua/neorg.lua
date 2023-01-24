@@ -8,7 +8,7 @@ local neorg = require("neorg.core")
 require("neorg.events")
 require("neorg.modules")
 
-local configuration = require("neorg.config")
+local configuration = neorg.configuration
 
 --- This function takes in a user configuration, parses it, initializes everything and launches neorg if inside a .norg or .org file
 ---@param config table #A table that reflects the structure of configuration.user_configuration

@@ -53,7 +53,7 @@ module.config.public = {
                 return os.date("%Y-%m-%d")
             end,
         },
-        { "version", require("neorg.config").version },
+        { "version", neorg.configuration.version },
     },
 }
 

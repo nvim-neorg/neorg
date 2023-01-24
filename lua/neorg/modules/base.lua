@@ -38,7 +38,7 @@ neorg.modules.module_base = {
         -- Current neorg version. Your module will use this version if not specified, but you can override it.
         -- Overriding it will mean that your module is only compatible with the overriden neorg version
         -- E.g: setting version = "1.3.0" will mean that your module requires norg 1.3.0+ to operate
-        version = require("neorg.config").version,
+        version = neorg.configuration.version,
     },
 
     -- Configuration for the module
