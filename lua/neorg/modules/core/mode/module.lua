@@ -19,7 +19,7 @@ require("neorg.events")
 
 local module = neorg.modules.create("core.mode")
 
-local log = require("neorg.external.log")
+local log = neorg.log
 
 module.config.public = {
     -- Stores the current mode

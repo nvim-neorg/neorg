@@ -37,7 +37,7 @@ module.private = {
 module.load = function()
     -- If we have not defined an engine then bail
     if not module.config.public.engine then
-        log.error("No engine specified, aborting...")
+        neorg.log.error("No engine specified, aborting...")
         return
     end
 
@@ -47,7 +47,7 @@ module.load = function()
     elseif module.config.public.engine == "nvim-cmp" and neorg.modules.load_module("core.integrations.nvim-cmp") then
         module.private.engine = neorg.modules.get_module("core.integrations.nvim-cmp")
     else
-        log.error("Unable to load completion module -", module.config.public.engine, "is not a recognized engine.")
+        neorg.log.error("Unable to load completion module -", module.config.public.engine, "is not a recognized engine.")
         return
     end
 

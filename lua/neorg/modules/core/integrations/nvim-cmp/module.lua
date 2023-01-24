@@ -34,7 +34,7 @@ module.load = function()
     local success, cmp = pcall(require, "cmp")
 
     if not success then
-        log.fatal("nvim-cmp not found, aborting...")
+        neorg.log.fatal("nvim-cmp not found, aborting...")
         return
     end
 

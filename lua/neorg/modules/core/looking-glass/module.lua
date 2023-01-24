@@ -3,7 +3,7 @@ local module = neorg.modules.create("core.looking-glass")
 
 module.setup = function()
     if not neorg.utils.is_minimum_version(0, 7, 0) then
-        log.error("The `looking-glass` module requires Neovim 0.7+! Please upgrade your Neovim installation.")
+        neorg.log.error("The `looking-glass` module requires Neovim 0.7+! Please upgrade your Neovim installation.")
         return {
             success = false,
         }

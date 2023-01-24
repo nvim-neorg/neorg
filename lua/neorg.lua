@@ -16,7 +16,7 @@ function neorg.setup(config)
     configuration.user_configuration = vim.tbl_deep_extend("force", configuration.user_configuration, config or {})
 
     -- Create a new global instance of the neorg logger
-    require("neorg.external.log").new(configuration.user_configuration.logger or log.get_default_config(), true)
+    neorg.log.new(configuration.user_configuration.logger or neorg.log.get_default_config(), true)
 
     -- Make the Neorg filetype detectable through `vim.filetype`.
     -- TODO: Make a PR to Neovim to natively support the org and norg
@@ -79,7 +79,7 @@ function neorg.org_file_entered(manual, arguments)
     for name, module in pairs(module_list) do
         -- If the module's data is not empty and we have not defined a config table then it probably means there's junk in there
         if not vim.tbl_isempty(module) and not module.config then
-            log.warn(
+            neorg.log.warn(
                 "Potential bug detected in",
                 name,
                 "- nonstandard tables found in the module definition. Did you perhaps mean to put these tables inside of the config = {} table?"
@@ -96,7 +96,7 @@ function neorg.org_file_entered(manual, arguments)
     for name, _ in pairs(module_list) do
         -- If it could not be loaded then halt
         if not load_module(name) then
-            log.warn("Recovering from error...")
+            neorg.log.warn("Recovering from error...")
             neorg.modules.loaded_modules[name] = nil
         end
     end

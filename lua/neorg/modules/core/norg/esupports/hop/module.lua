@@ -57,7 +57,7 @@ module.public = {
         end
 
         if not parsed_link then
-            log.warn("Please parse your link before calling this function")
+            neorg.log.warn("Please parse your link before calling this function")
             return
         end
 
@@ -355,7 +355,7 @@ module.public = {
                         link_description = extract_node_text,
 
                         _ = function()
-                            log.error("Unknown capture type encountered when parsing link:", capture)
+                            neorg.log.error("Unknown capture type encountered when parsing link:", capture)
                         end,
                     })
             end
@@ -817,7 +817,7 @@ module.on_event = function(event)
         local link_node_at_cursor = module.public.extract_link_node()
 
         if not link_node_at_cursor then
-            log.trace("No link under cursor.")
+            neorg.log.trace("No link under cursor.")
             return
         end
 

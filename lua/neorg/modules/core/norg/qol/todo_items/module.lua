@@ -190,7 +190,7 @@ module.public = {
 
         while true do
             if not node_at_cursor then
-                log.trace("Could not find TODO item under cursor, aborting...")
+                neorg.log.trace("Could not find TODO item under cursor, aborting...")
                 return
             end
 

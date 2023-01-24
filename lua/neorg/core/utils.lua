@@ -112,7 +112,7 @@ local utils = {
 
         -- If the sliced version string has more than 3 elements error out
         if #split_version > 3 then
-            log.warn(
+            neorg.log.warn(
                 "Attempt to parse version:",
                 version_string,
                 "failed - too many version numbers provided. Version should follow this layout: <major>.<minor>.<patch>"
@@ -126,7 +126,7 @@ local utils = {
                 local num = tonumber(split_version[i])
 
                 if not num then
-                    log.warn("Invalid version provided, string cannot be converted to integral type.")
+                    neorg.log.warn("Invalid version provided, string cannot be converted to integral type.")
                     return
                 end
 

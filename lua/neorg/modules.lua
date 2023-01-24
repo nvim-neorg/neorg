@@ -6,7 +6,7 @@
 
 -- Include the global logger instance
 local neorg = require("neorg.core")
-local log = require("neorg.external.log")
+local log = neorg.log
 
 require("neorg.modules.base")
 

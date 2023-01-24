@@ -421,7 +421,7 @@ module.public = {
                         then
                             table.insert(attributes, meta)
                         else
-                            log.warn(
+                            neorg.log.warn(
                                 "Two carryover tags with the same name detected, the top level tag will take precedence"
                             )
                         end
@@ -442,7 +442,7 @@ module.public = {
         for i, line in ipairs(content) do
             if i == 1 then
                 if content_start_column < start_column then
-                    log.error(
+                    neorg.log.error(
                         string.format(
                             "Unable to query information about tag on line %d: content is indented less than tag start!",
                             start_row + 1
@@ -515,7 +515,7 @@ module.public = {
         local tree = parser:parse()[1]
 
         if not tree or not tree:root() or tree:root():type() == "ERROR" then
-            log.warn("Unable to parse the current document's syntax tree :(")
+            neorg.log.warn("Unable to parse the current document's syntax tree :(")
             return
         end
 

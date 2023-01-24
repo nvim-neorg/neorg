@@ -168,8 +168,8 @@ module.private = {
             local ok, install = pcall(require, "nvim-treesitter.install")
 
             if not ok then
-                log.error("Unable to upgrade document! The old parser version failed to install, perhaps try again?")
-                log.error("Upgrading aborted.")
+                neorg.log.error("Unable to upgrade document! The old parser version failed to install, perhaps try again?")
+                neorg.log.error("Upgrading aborted.")
                 return
             end
 
@@ -201,7 +201,7 @@ module.on_event = function(event)
 
                         if not ok then
                             halt = true
-                            log.error(("Failed to create backup (%s) - upgrading aborted."):format(err))
+                            neorg.log.error(("Failed to create backup (%s) - upgrading aborted."):format(err))
                             return
                         end
                     end
@@ -266,7 +266,7 @@ module.on_event = function(event)
 
                         if not ok then
                             halt = true
-                            log.error(
+                            neorg.log.error(
                                 ("Unable to create backup directory '%s'! Perhaps the directory already exists and/or isn't empty? Formal error: %s"):format(
                                     path .. ".old",
                                     err

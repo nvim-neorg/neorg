@@ -477,7 +477,7 @@ module.load = function()
         if
             not vim.tbl_contains({ "all", "except_undone", "cancelled" }, module.config.public.todo_items_match_color)
         then
-            log.error(
+            neorg.log.error(
                 "Error when parsing `todo_items_match_color` for `core.highlights`, the key only accepts the following values: all, except_undone and cancelled."
             )
             return
@@ -652,7 +652,7 @@ module.public = {
         if success and hl[attribute] then
             return bit.tohex(hl[attribute], 6)
         else -- Else log the message in a regular info() call, it's not an insanely important error
-            log.info("Unable to grab highlight for attribute", attribute, " - full error:", hl)
+            neorg.log.info("Unable to grab highlight for attribute", attribute, " - full error:", hl)
         end
 
         return "NONE"

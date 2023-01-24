@@ -10,7 +10,7 @@ module.public = {
             local dirman = neorg.modules.get_module("core.norg.dirman")
 
             if not dirman then
-                log.error(
+                neorg.log.error(
                     "Unable to jump to link with custom workspace: `core.norg.dirman` is not loaded. Please load the module in order to get workspace support."
                 )
                 return
@@ -23,7 +23,7 @@ module.public = {
                 local workspace_path = dirman.get_workspace(custom_workspace_path)
 
                 if not workspace_path then
-                    log.warn("Unable to expand path: workspace does not exist")
+                    neorg.log.warn("Unable to expand path: workspace does not exist")
                     return
                 end
 

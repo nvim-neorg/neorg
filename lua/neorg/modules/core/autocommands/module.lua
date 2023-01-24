@@ -349,7 +349,7 @@ module.examples = {
         mymodule.on_event = function(event)
             -- If it's the event we're looking for then do something!
             if event.type == "core.autocommands.events.insertleave" then
-                log.warn("We left insert mode!")
+                neorg.log.warn("We left insert mode!")
             end
         end
 

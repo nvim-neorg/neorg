@@ -87,14 +87,14 @@ module.public = {
         local converter, converter_config = module.public.get_converter(filetype)
 
         if not converter then
-            log.error("Unable to export file - did not find exporter for filetype '" .. filetype .. "'.")
+            neorg.log.error("Unable to export file - did not find exporter for filetype '" .. filetype .. "'.")
             return
         end
 
         -- Each converter must have a `extension` field in its public config
         -- This is done to do a backwards lookup, e.g. `markdown` uses the `.md` file extension.
         if not converter_config.extension then
-            log.error(
+            neorg.log.error(
                 "Unable to export file - exporter for filetype '"
                     .. filetype
                     .. "' did not return a preferred extension. The exporter is unable to infer extensions."

@@ -15,7 +15,7 @@ local module = neorg.modules.create("core.norg.manoeuvre")
 
 module.setup = function()
     if not neorg.utils.is_minimum_version(0, 7, 0) then
-        log.error("This module requires at least Neovim 0.7 to run!")
+        neorg.log.error("This module requires at least Neovim 0.7 to run!")
 
         return {
             success = false,
@@ -66,7 +66,7 @@ module.public = {
         local node_at_cursor = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
 
         if not node_at_cursor:parent():type():match(node_pattern) then
-            log.trace(string.format("Could not find element of pattern '%s' under the cursor", node_pattern))
+            neorg.log.trace(string.format("Could not find element of pattern '%s' under the cursor", node_pattern))
             return
         end
 

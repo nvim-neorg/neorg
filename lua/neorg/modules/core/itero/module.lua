@@ -51,7 +51,7 @@ module.on_event = function(event)
         local current = ts.get_first_node_on_line(event.buffer, cursor_pos, module.config.private.stop_types)
 
         if not current then
-            log.error(
+            neorg.log.error(
                 "Treesitter seems to be high and can't properly grab the node under the cursor. Perhaps try again?"
             )
             return

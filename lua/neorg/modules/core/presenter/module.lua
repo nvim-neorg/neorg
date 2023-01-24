@@ -37,7 +37,7 @@ module.load = function()
     elseif module.config.public.zen_mode == "zen-mode" then
         neorg.modules.load_module("core.integrations.zen_mode", module.name)
     else
-        log.error("Unrecognized mode for 'zen_mode' option. Please check your presenter config")
+        neorg.log.error("Unrecognized mode for 'zen_mode' option. Please check your presenter config")
         error_loading = true
     end
 
@@ -79,7 +79,7 @@ module.public = {
     version = "0.0.8",
     present = function()
         if module.private.buf then
-            log.warn("Presentation already started")
+            neorg.log.warn("Presentation already started")
             return
         end
         ---@type core.queries.native
@@ -90,7 +90,7 @@ module.public = {
         local fname = vim.uri_to_fname(uri)
 
         if string.sub(fname, -5, -1) ~= ".norg" then
-            log.error("Not on a norg file")
+            neorg.log.error("Not on a norg file")
             return
         end
 
@@ -106,7 +106,7 @@ module.public = {
         local results = queries.query_nodes_from_buf(tree, 0)
 
         if vim.tbl_isempty(results) then
-            log.warn("Could not generate the presenter mode (no heading1 present on this file)")
+            neorg.log.warn("Could not generate the presenter mode (no heading1 present on this file)")
             return
         end
 

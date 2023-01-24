@@ -3,12 +3,14 @@
 -- Inspired by rxi/log.lua
 -- Modified by tjdevries and can be found at github.com/tjdevries/vlog.nvim
 -- Modified again by Vhyrro for use with neorg :)
+-- Modified once again by Groctel for a neorg refactor 8)
 --
 -- This library is free software; you can redistribute it and/or modify it
 -- under the terms of the MIT license. See LICENSE for details.
 
+local lib = require("neorg.core.lib")
+
 -- User configuration section
-local neorg = require("neorg.core")
 local default_config = {
     -- Name of the plugin. Prepended to log messages
     plugin = "neorg",
@@ -40,12 +42,13 @@ local default_config = {
 }
 
 -- {{{ NO NEED TO CHANGE
-log = {}
+local log = {}
 
 log.get_default_config = function()
     return default_config
 end
 
+---@diagnostic disable-next-line: deprecated
 local unpack = unpack or table.unpack
 
 log.new = function(config, standalone)
@@ -54,7 +57,7 @@ log.new = function(config, standalone)
 
     local outfile = string.format("%s/%s.log", vim.api.nvim_call_function("stdpath", { "data" }), config.plugin)
 
-    local obj = neorg.lib.match(standalone ~= nil)({
+    local obj = lib.match(standalone ~= nil)({
         ["true"] = log,
         ["false"] = {},
     })

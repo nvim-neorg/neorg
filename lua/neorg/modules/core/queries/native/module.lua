@@ -72,14 +72,14 @@ module.public = {
             local matched, how_to_fix = module.private.matching_nodes(parent, subtree, bufnr)
 
             if type(matched) == "string" then
-                log.error(
+                neorg.log.error(
                     "Oh no! There's been an error in the query. It seems that we've received some malformed input at one of the subtrees present in parent node of type",
                     parent:type()
                 )
-                log.error("Here's the error message:", matched)
+                neorg.log.error("Here's the error message:", matched)
 
                 if how_to_fix then
-                    log.warn("To fix the issue:", vim.trim(how_to_fix))
+                    neorg.log.warn("To fix the issue:", vim.trim(how_to_fix))
                 end
 
                 return
@@ -191,9 +191,9 @@ module.public = {
             local f, err = io.open(fname, "r")
             local lines
             if not f then
-                log.warn("Can't read file " .. fname)
+                neorg.log.warn("Can't read file " .. fname)
                 if opts.no_force_read then
-                    log.error(err)
+                    neorg.log.error(err)
                     return
                 end
                 lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)

@@ -24,7 +24,7 @@ local neorg = require("neorg.core")
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.journal")
-local log = require("neorg.external.log")
+local log = neorg.log
 
 module.examples = {
     ["Changing TOC format to divide year in quarters"] = function()

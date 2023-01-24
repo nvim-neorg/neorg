@@ -1311,7 +1311,7 @@ module.config.public = {
 
 module.load = function()
     if not module.config.private["icon_preset_" .. module.config.public.icon_preset] then
-        log.error(
+        neorg.log.error(
             string.format(
                 "Unable to load icon preset '%s' - such a preset does not exist",
                 module.config.public.icon_preset

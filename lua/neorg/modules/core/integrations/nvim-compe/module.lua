@@ -26,7 +26,7 @@ module.load = function()
     local success, compe = pcall(require, "compe")
 
     if not success then
-        log.fatal("nvim-compe not found, aborting...")
+        neorg.log.fatal("nvim-compe not found, aborting...")
         return
     end
 

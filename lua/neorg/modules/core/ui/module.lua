@@ -115,7 +115,7 @@ module.public = {
         local bufname = "neorg://" .. name
 
         if vim.fn.bufexists(bufname) == 1 then
-            log.error("Buffer '" .. name .. "' already exists")
+            neorg.log.error("Buffer '" .. name .. "' already exists")
             return
         end
 
@@ -202,7 +202,7 @@ module.public = {
     ---@param content table #A table of content for the display
     create_display = function(name, split_type, content)
         if not vim.tbl_contains({ "nosplit", "vsplitl", "vsplitr", "split" }, split_type) then
-            log.error(
+            neorg.log.error(
                 "Unable to create display. Expected one of 'vsplitl', 'vsplitr', 'split' or 'nosplit', got",
                 split_type,
                 "instead."
@@ -299,7 +299,7 @@ module.public = {
         )
 
         if not vim.tbl_contains({ "nosplit", "vsplitl", "vsplitr", "split" }, split_type) then
-            log.error(
+            neorg.log.error(
                 "Unable to create display. Expected one of 'vsplitl', 'vsplitr', 'split' or 'nosplit', got",
                 split_type,
                 "instead."
@@ -376,7 +376,7 @@ module.examples = {
             :text("Flags:")
             :flag("<CR>", "finish")
             :flag("t", "test flag", function()
-                log.warn("The test flag has been pressed!")
+                neorg.log.warn("The test flag has been pressed!")
             end)
             :blank()
             :text("Other flags:")
@@ -400,7 +400,7 @@ module.examples = {
                             :blank()
                             :flag("a", "does nothing too")
                             :listener("print-message", { "g" }, function()
-                                log.warn("You are awesome :)")
+                                neorg.log.warn("You are awesome :)")
                             end)
                     end)
             end)

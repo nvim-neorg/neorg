@@ -70,7 +70,7 @@ module.load = function()
     if module.config.public.open_last_workspace and vim.fn.argc(-1) == 0 then
         if module.config.public.open_last_workspace == "default" then
             if not module.config.public.default_workspace then
-                log.warn(
+                neorg.log.warn(
                     'Configuration error in `core.norg.dirman`: the `open_last_workspace` option is set to "default", but no default workspace is provided in the `default_workspace` configuration variable. Defaulting to opening the last known workspace.'
                 )
                 module.public.set_last_workspace()
@@ -141,7 +141,7 @@ module.public = {
 
         -- If the workspace does not exist then error out
         if not workspace then
-            log.warn("Unable to set workspace to", workspace, "- that workspace does not exist")
+            neorg.log.warn("Unable to set workspace to", workspace, "- that workspace does not exist")
             return false
         end
 
@@ -279,7 +279,7 @@ module.public = {
         end
 
         if fullpath == nil then
-            log.error("Error in fetching workspace path")
+            neorg.log.error("Error in fetching workspace path")
             return
         end
 
@@ -337,7 +337,7 @@ module.public = {
         local storage = neorg.modules.get_module("core.storage")
 
         if not storage then
-            log.trace("Module `core.storage` not loaded, refusing to load last user's workspace.")
+            neorg.log.trace("Module `core.storage` not loaded, refusing to load last user's workspace.")
             return
         end
 
@@ -349,7 +349,7 @@ module.public = {
         local workspace_path = module.public.get_workspace(last_workspace)
 
         if not workspace_path then
-            log.trace("Unable to switch to workspace '" .. last_workspace .. "'. The workspace does not exist.")
+            neorg.log.trace("Unable to switch to workspace '" .. last_workspace .. "'. The workspace does not exist.")
             return
         end
 
@@ -390,7 +390,7 @@ module.public = {
         local res = {}
         local workspace = module.public.get_workspace(workspace_name)
         if workspace == nil then
-            log.error("Workspace " .. workspace_name .. "does not exist")
+            neorg.log.error("Workspace " .. workspace_name .. "does not exist")
             return
         end
 
@@ -420,7 +420,7 @@ module.public = {
 
         -- If the workspace does not exist then give the user a nice error and bail
         if not ws_match then
-            log.error('Unable to switch to workspace - "' .. workspace .. '" does not exist')
+            neorg.log.error('Unable to switch to workspace - "' .. workspace .. '" does not exist')
             return
         end
 
