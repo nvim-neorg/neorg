@@ -39,7 +39,7 @@ module.config.public = {
             end,
         },
         { "description", "" },
-        { "authors", require("neorg.external.helpers").get_username },
+        { "authors", neorg.utils.get_username },
         { "categories", "" },
         {
             "created",

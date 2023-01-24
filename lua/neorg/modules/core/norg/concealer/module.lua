@@ -936,7 +936,7 @@ module.config.public = {
         },
 
         ordered = {
-            enabled = require("neorg.external.helpers").is_minimum_version(0, 6, 0),
+            enabled = neorg.utils.is_minimum_version(0, 6, 0),
 
             level_1 = {
                 enabled = true,

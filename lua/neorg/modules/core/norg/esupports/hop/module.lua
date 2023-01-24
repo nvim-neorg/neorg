@@ -7,7 +7,6 @@
 
 local neorg = require("neorg.core")
 require("neorg.modules.base")
-require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.norg.esupports.hop")
 local job = require("plenary.job")

@@ -459,7 +459,7 @@ module.load = function()
 
     -- Load available regex languages
     -- get the available regex files for the current session
-    module.private.available_languages = require("neorg.external.helpers").get_language_list(false)
+    module.private.available_languages = neorg.utils.get_language_list(false)
 end
 
 module.on_event = function(event)

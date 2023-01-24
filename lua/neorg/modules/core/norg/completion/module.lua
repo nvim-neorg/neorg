@@ -121,7 +121,7 @@ module.public = {
                     regex = "code%s+%w*",
                     -- No node variable, we don't need that sort of check here
 
-                    complete = require("neorg.external.helpers").get_language_list(true),
+                    complete = neorg.utils.get_language_list(true),
 
                     -- Extra options
                     options = {
@@ -134,7 +134,7 @@ module.public = {
                 {
                     regex = "export%s+%w*",
 
-                    complete = require("neorg.external.helpers").get_language_list(true),
+                    complete = neorg.utils.get_language_list(true),
 
                     options = {
                         type = "Language",

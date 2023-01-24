@@ -17,8 +17,6 @@ neorg.configuration = {
 
     version = "1.0.0",
     neovim_version = (function()
-        require("neorg.external.helpers")
-
         local data = {}
         local parsed_output = vim.api.nvim_exec("version", true)
 

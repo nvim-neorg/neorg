@@ -14,7 +14,7 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.norg.manoeuvre")
 
 module.setup = function()
-    if not require("neorg.external.helpers").is_minimum_version(0, 7, 0) then
+    if not neorg.utils.is_minimum_version(0, 7, 0) then
         log.error("This module requires at least Neovim 0.7 to run!")
 
         return {
