@@ -1,5 +1,7 @@
 local docgen = {}
 
+require("neorg.external.helpers")
+
 -- Create the directory if it does not exist
 docgen.output_dir = "../wiki"
 pcall(vim.fn.mkdir, docgen.output_dir)
@@ -441,6 +443,45 @@ docgen.to_lua_object = function(module, buffer, node, chunkname)
     if loaded then
         return setfenv(loaded, vim.tbl_extend("force", getfenv(0), { module = module }))()
     end
+end
+
+---@alias ConfigOptionData { node: userdata, name: string, value: userdata, parents: string[] }
+
+--- Converts a lua object to a html node in the resulting HTML document
+---@param data ConfigOptionData #The data as returned by `map_config`
+---@param comments string[] #The comments attached to the object
+---@param object any #The lua object to render
+docgen.render = function(data, comments, object)
+    local basis = {
+        "<details>",
+        "",
+        table.concat({ "<summary><code>", data.parents[#data.parents] or data.name, "</code></summary>" }),
+        "",
+        "<h6>",
+    }
+
+    vim.list_extend(basis, comments)
+    vim.list_extend(basis, {
+        "</h6>",
+        "",
+        table.concat({ "Default Value:", type(object) == "number" and table.concat({ " `", tostring(object), "1" }) or nil }),
+    })
+    vim.list_extend(basis, docgen.htmlify(data,object))
+    vim.list_extend(basis, {
+        "",
+        "</details>",
+    })
+
+    return basis
+end
+
+--- Converts a lua object into HTML
+---@param data ConfigOptionData
+---@param object any
+docgen.htmlify = function(data, object)
+    local result = {}
+
+    -- TODO: Continue
 end
 
 return docgen
