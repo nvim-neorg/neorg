@@ -532,6 +532,19 @@ neorg.lib = {
         local found_from_back = str:reverse():find(char)
         return found_from_back and length - found_from_back
     end,
+
+    --- Ensure that a nested set of variables exists.
+    --  Useful when you want to initialise a chain of nested values before writing to them.
+    ---@param tbl table #The table you want to modify
+    ---@vararg string #A list of indices to recursively nest into.
+    ensure_nested = function(tbl, ...)
+        local ref = tbl or {}
+
+        for _, key in ipairs({...}) do
+            ref[key] = ref[key] or {}
+            ref = ref[key]
+        end
+    end,
 }
 
 return neorg.utils
