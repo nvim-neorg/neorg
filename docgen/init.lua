@@ -95,6 +95,9 @@ for module_name, module in pairs(modules) do
                 end
             end
 
+            -- TODO: Create a whitelist for e.g. binary operations, function()s, function calls etc
+            -- TODO: Allow modules to attach gifs about what they do and how they work
+
             if data.value then
                 log.warn(docgen.to_lua_object(module.parsed, buffer, data.value, module_name))
             end
