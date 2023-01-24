@@ -20,6 +20,7 @@ This command creates or updates a TOC file containing all the entries located in
 This command opens the TOC file without updating it.
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.journal")

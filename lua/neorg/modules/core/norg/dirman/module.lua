@@ -32,6 +32,7 @@ After a recent update dirman will no longer change the current working directory
 To get the best experience it's recommended to set the `autochdir` Neovim option.
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 require("neorg.modules")
 

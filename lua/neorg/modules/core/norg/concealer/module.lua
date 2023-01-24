@@ -31,6 +31,7 @@ icon = module.private.ordered_concealing.punctuation.parenthesis(
 Note: this will produce icons like `1.)`, `2.)`, etc.
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.concealer")

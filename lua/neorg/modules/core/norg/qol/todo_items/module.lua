@@ -15,6 +15,7 @@ Some available keybinds
     - `todo.task_cycle_reverse`
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.qol.todo_items")

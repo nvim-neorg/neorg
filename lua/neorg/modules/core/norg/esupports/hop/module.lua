@@ -5,6 +5,7 @@
     ---
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 require("neorg.external.helpers")
 

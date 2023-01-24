@@ -1,3 +1,4 @@
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.norg.dirman.utils")
 
 module.public = {

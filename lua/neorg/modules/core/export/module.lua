@@ -22,6 +22,7 @@ It takes 3 arguments:
   (see [configuration](#configuration)).
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.export")
 
 module.setup = function()

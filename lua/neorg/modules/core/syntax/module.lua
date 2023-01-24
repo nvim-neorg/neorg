@@ -9,6 +9,7 @@
     Any edit is assumed to break this module.
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.syntax")

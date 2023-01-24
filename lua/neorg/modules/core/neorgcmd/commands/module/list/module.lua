@@ -7,6 +7,7 @@
 After module is loaded execute `:Neorg module list` to see a primitive list of currently loaded modules.
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.neorgcmd.commands.module.list")

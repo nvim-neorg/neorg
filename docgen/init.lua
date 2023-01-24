@@ -1,3 +1,4 @@
+local neorg = require("neorg.core")
 local docgen = {}
 
 local function get_node_text(node, buf)

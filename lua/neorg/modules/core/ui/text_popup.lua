@@ -2,6 +2,7 @@
     File for creating text popups for the user.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.extend("core.ui.text_popup")
 
 ---@class core.ui

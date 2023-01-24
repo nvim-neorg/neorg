@@ -48,6 +48,7 @@ every keybind bit by bit.
 ```
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 require("neorg.modules")
 

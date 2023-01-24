@@ -3,6 +3,7 @@
 --    This file contains the base module implementation
 --]]
 
+local neorg = require("neorg.core")
 neorg.modules = {}
 
 neorg.modules.module_base = {

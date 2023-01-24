@@ -8,6 +8,7 @@
 -- NOTE(vhyrro): This module is obsolete! There is no successor module to this yet, although
 -- we hope to implement one with the module rewrite of 0.2.
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.norg.manoeuvre")

@@ -6,6 +6,7 @@
 <!-- TODO: make nested objects also appear nested within the TOC view (i.e. headings in headings) --!>
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.norg.qol.toc")
 
 module.setup = function()

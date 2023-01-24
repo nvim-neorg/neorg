@@ -7,6 +7,7 @@
 After loading the module run `:Neorg module load <module_path>` to dynamically load in a new module.
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.neorgcmd.commands.module.load")

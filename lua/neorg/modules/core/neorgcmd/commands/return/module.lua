@@ -7,6 +7,7 @@
 Command module for core.neorgcmd designed to return to the last location the user was in before they entered Neorg
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 require("neorg.modules")
 

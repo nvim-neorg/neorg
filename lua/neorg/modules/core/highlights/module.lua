@@ -5,6 +5,7 @@
     Internal: true
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.highlights")

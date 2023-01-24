@@ -10,6 +10,7 @@ page for the engine you selected ([`nvim-cmp`](@core.integrations.nvim-cmp) or
 [`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 require("neorg.modules")
 

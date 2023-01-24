@@ -3,8 +3,7 @@
     User callbacks are ways for the user to directly interact with Neorg and respond on certain events.
 --]]
 
----@diagnostic disable-next-line: lowercase-global
-neorg = {}
+local neorg = require("neorg.core")
 
 neorg.callbacks = {
     callback_list = {},

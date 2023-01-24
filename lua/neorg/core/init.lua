@@ -1,0 +1,3 @@
+local neorg = {}
+
+return neorg

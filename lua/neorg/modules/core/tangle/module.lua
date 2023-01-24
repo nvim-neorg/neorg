@@ -143,6 +143,7 @@ print("Ayo")
 The first code block will be tangled to `./output.lua`, the second code block will also be tangled to `./output.lua` and the third code block will be ignored.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.tangle")
 
 module.setup = function()

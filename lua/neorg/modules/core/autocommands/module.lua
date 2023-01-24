@@ -32,6 +32,7 @@ Upon receiving an event, it will come in this format:
 ```
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 require("neorg.events")
 

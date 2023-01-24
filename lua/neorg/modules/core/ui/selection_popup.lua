@@ -1,6 +1,7 @@
 --[[
     A UI module to allow the user to press different keys to select different actions
 --]]
+local neorg = require("neorg.core")
 local module = neorg.modules.extend("core.ui.selection_popup")
 
 module.private = {

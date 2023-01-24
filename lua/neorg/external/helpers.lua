@@ -3,6 +3,7 @@
 --    This file contains some simple helper functions to improve QOL
 --]]
 
+local neorg = require("neorg.core")
 neorg.utils = {
 
     --- An OS agnostic way of querying the current user

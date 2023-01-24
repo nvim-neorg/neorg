@@ -7,6 +7,7 @@
 This module uses tree-like tables in order to fetch useful informations from a TS tree.
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 
 ---@class core.queries.native.tree_node

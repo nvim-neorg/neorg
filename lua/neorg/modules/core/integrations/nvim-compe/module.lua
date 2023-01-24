@@ -8,6 +8,7 @@ A module for integrating nvim-compe with Neorg.
 Works with core.norg.completion to provide intelligent completions.
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.integrations.nvim-compe")

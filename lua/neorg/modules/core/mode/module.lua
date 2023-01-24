@@ -13,6 +13,7 @@ If `core.neorgcmd` is loaded, `core.mode.public.add_mode()` also updates the aut
 which can be used by the user to switch modes.
 --]]
 
+local neorg = require("neorg.core")
 require("neorg.modules.base")
 require("neorg.events")
 

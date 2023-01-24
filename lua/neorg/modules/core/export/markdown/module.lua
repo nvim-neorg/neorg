@@ -13,6 +13,7 @@ like your markdown to be exported (i.e. do you want to support certain extension
 -- from another person's perspective. Some cleanup and rethinking of certain implementation
 -- details will be necessary.
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.export.markdown")
 
 module.setup = function()

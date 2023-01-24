@@ -5,6 +5,7 @@
     ---
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.norg.news")
 
 local function is_version_greater_than(ver1, ver2)
