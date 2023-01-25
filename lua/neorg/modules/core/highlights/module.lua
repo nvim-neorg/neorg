@@ -22,7 +22,7 @@ module.config.public = {
     -- The TS highlights for each Neorg type
     highlights = {
         selection_window = {
-            -- The + tells neorg to link to an existing hl
+            -- The + tells Neorg to link to an existing hl
             -- You may also supply any arguments you would to :highlight here
             -- Example: ["heading"] = "gui=underline",
             heading = "+@annotation",
