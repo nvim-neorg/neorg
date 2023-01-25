@@ -161,12 +161,14 @@ end
 ---@param callback function
 ---@param parents string[]? #Used internally to track nesting levels
 docgen.map_config = function(buffer, start_node, callback, parents)
+    parents = parents or {}
+
     local comments = {}
 
     local query = vim.treesitter.parse_query(
         "lua",
         [[
-        ((comment)+ @comment
+        ((comment)* @comment
         .
         (field) @field)
     ]]
@@ -177,25 +179,35 @@ docgen.map_config = function(buffer, start_node, callback, parents)
 
         if capture == "comment" then
             table.insert(comments, ts.get_node_text(node, buffer))
-        elseif capture == "field" and node:parent():id() == start_node:id() then
-            local name = ts.get_node_text(node:named_child(0), buffer)
-            local value = node:named_child(1)
+        elseif capture == "field" then
+            local name_node = node:field("name")[1]
+            local name = name_node and ts.get_node_text(name_node, buffer) or nil
+            local value = node:field("value")[1]
+
+            -- TODO: REVISIST
+            if node:parent():id() ~= start_node:id() then
+                return
+            end
 
             if value:type() == "table_constructor" then
                 callback({
                     node = node,
                     name = name,
                     value = value,
-                    parent = parents or {},
+                    parents = parents,
                 }, comments)
 
-                docgen.map_config(buffer, node, callback)
+                if name then
+                    local copy = vim.deepcopy(parents)
+                    table.insert(copy, name)
+                    docgen.map_config(buffer, value, callback, copy)
+                end
             else
                 callback({
                     node = node,
                     name = name,
                     value = value,
-                    parents = parents or {},
+                    parents = parents,
                 }, comments)
             end
 
@@ -448,25 +460,28 @@ end
 ---@alias ConfigOptionData { node: userdata, name: string, value: userdata, parents: string[] }
 
 --- Converts a lua object to a html node in the resulting HTML document
+---@param buffer number
 ---@param data ConfigOptionData #The data as returned by `map_config`
 ---@param comments string[] #The comments attached to the object
 ---@param object any #The lua object to render
-docgen.render = function(data, comments, object)
+docgen.render = function(buffer, data, comments, object)
     local basis = {
         "<details>",
         "",
-        table.concat({ "<summary><code>", data.parents[#data.parents] or data.name, "</code></summary>" }),
+        table.concat({ "<summary><code>", data.name, "</code></summary>" }),
         "",
         "<h6>",
+        "",
     }
 
     vim.list_extend(basis, comments)
     vim.list_extend(basis, {
+        "",
         "</h6>",
         "",
-        table.concat({ "Default Value:", type(object) == "number" and table.concat({ " `", tostring(object), "1" }) or nil }),
+        table.concat({ "Default Value:", (type(object) == "number" or type(object) == "nil") and table.concat({ " `", tostring(object), "1" }) or nil }),
     })
-    vim.list_extend(basis, docgen.htmlify(data,object))
+    vim.list_extend(basis, docgen.htmlify(buffer, data, object))
     vim.list_extend(basis, {
         "",
         "</details>",
@@ -476,12 +491,42 @@ docgen.render = function(data, comments, object)
 end
 
 --- Converts a lua object into HTML
+---@param buffer number
 ---@param data ConfigOptionData
 ---@param object any
-docgen.htmlify = function(data, object)
+docgen.htmlify = function(buffer, data, object)
     local result = {}
+    local code_block = true
 
-    -- TODO: Continue
+    neorg.lib.match(type(object)) {
+        string = function()
+            table.insert(result, table.concat({ '"', object, '"' }))
+        end,
+        table = function()
+            result = {
+                "",
+                "<details>",
+                "",
+                "<summary>table (click to expand)</summary>",
+                "",
+                "</details>",
+                "",
+            }
+
+            code_block = false
+        end,
+        ["function"] = {},
+        _ = function()
+            table.insert(result, ts.get_node_text(data.value, buffer))
+        end,
+    }
+
+    if code_block then
+        table.insert(result, 1, "```lua")
+        table.insert(result, "```")
+    end
+
+    return result
 end
 
 return docgen
