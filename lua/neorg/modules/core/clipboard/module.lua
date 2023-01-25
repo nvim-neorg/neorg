@@ -1,5 +1,6 @@
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.clipboard")
+local modules = require("neorg.modules")
+local module = modules.create("core.clipboard")
 
 module.setup = function()
     return {

@@ -6,9 +6,8 @@
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.highlights")
+local modules = require("neorg.modules")
+local module = modules.create("core.highlights")
 
 --[[
     Nested trees concatenate

@@ -6,8 +6,8 @@
 <!-- TODO: make nested objects also appear nested within the TOC view (i.e. headings in headings) --!>
 --]]
 
-local neorg = require("neorg.core")
-local module = neorg.modules.create("core.norg.qol.toc")
+local modules = require("neorg.modules")
+local module = modules.create("core.norg.qol.toc")
 
 module.setup = function()
     return {
@@ -16,7 +16,7 @@ module.setup = function()
 end
 
 module.load = function()
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             toc = {
                 name = "core.norg.qol.toc",

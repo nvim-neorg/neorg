@@ -7,10 +7,8 @@
 After loading the module run `:Neorg module load <module_path>` to dynamically load in a new module.
 --]]
 
-local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.neorgcmd.commands.module.load")
+local modules = require("neorg.modules")
+local module = modules.create("core.neorgcmd.commands.module.load")
 
 module.setup = function()
     return { success = true, requires = { "core.neorgcmd" } }
@@ -34,7 +32,7 @@ module.public = {
 
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.module.load" then
-        neorg.modules.load_module(event.content[1])
+        modules.load_module(event.content[1])
     end
 end
 

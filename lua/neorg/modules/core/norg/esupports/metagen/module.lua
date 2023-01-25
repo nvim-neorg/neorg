@@ -6,9 +6,8 @@
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.norg.esupports.metagen")
+local modules = require("neorg.modules")
+local module = modules.create("core.norg.esupports.metagen")
 
 module.setup = function()
     return { requires = { "core.autocommands", "core.keybinds", "core.integrations.treesitter" } }
@@ -228,7 +227,7 @@ module.public = {
 }
 
 module.load = function()
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             ["inject-metadata"] = {
                 args = 0,

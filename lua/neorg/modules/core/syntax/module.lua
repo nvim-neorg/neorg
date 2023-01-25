@@ -10,9 +10,8 @@
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.syntax")
+local modules = require("neorg.modules")
+local module = modules.create("core.syntax")
 
 local function schedule(func)
     vim.schedule(function()

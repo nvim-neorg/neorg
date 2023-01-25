@@ -7,11 +7,8 @@
 Command module for core.neorgcmd designed to return to the last location the user was in before they entered Neorg
 --]]
 
-local neorg = require("neorg.core")
-require("neorg.modules.base")
-require("neorg.modules")
-
-local module = neorg.modules.create("core.neorgcmd.commands.return")
+local modules = require("neorg.modules")
+local module = modules.create("core.neorgcmd.commands.return")
 
 module.setup = function()
     return { success = true, requires = { "core.neorgcmd" } }
@@ -41,7 +38,7 @@ module.on_event = function(event)
         end
 
         -- Set the dirman workspace to the one we had before we started the Neorg environment
-        neorg.modules.get_module("core.norg.dirman").set_workspace("default")
+        modules.get_module("core.norg.dirman").set_workspace("default")
     end
 end
 

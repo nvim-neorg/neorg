@@ -49,11 +49,8 @@ every keybind bit by bit.
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-require("neorg.modules")
-
-local module = neorg.modules.create("core.keybinds")
-
+local modules = require("neorg.modules")
+local module = modules.create("core.keybinds")
 local log = neorg.log
 
 module.setup = function()
@@ -119,7 +116,7 @@ module.public = {
 
         -- If that keybind is not defined yet then define it
         if not module.events.defined[keybind_name] then
-            module.events.defined[keybind_name] = neorg.events.define(module, keybind_name)
+            module.events.defined[keybind_name] = modules.events.define(module, keybind_name)
 
             -- Define autocompletion for core.neorgcmd
             table.insert(module.public.neorg_commands.keybind.complete[2], keybind_name)
@@ -140,7 +137,7 @@ module.public = {
 
             -- If that keybind is not defined yet then define it
             if not module.events.defined[keybind_name] then
-                module.events.defined[keybind_name] = neorg.events.define(module, keybind_name)
+                module.events.defined[keybind_name] = modules.events.define(module, keybind_name)
 
                 -- Define autocompletion for core.neorgcmd
                 table.insert(module.public.neorg_commands.keybind.complete[2], keybind_name)
@@ -351,8 +348,8 @@ module.public = {
         end
 
         -- Broadcast our event with the desired payload!
-        neorg.events.broadcast_event(
-            neorg.events.create(module, "core.keybinds.events.enable_keybinds", payload),
+        modules.events.broadcast_event(
+            modules.events.create(module, "core.keybinds.events.enable_keybinds", payload),
             function()
                 for neorg_mode, neovim_modes in pairs(bound_keys) do
                     if neorg_mode == "all" or neorg_mode == current_mode then
@@ -427,8 +424,8 @@ module.on_event = function(event)
 
             -- If it is defined then broadcast the event
             if module.events.defined[keybind_event_path] then
-                neorg.events.broadcast_event(
-                    neorg.events.create(
+                modules.events.broadcast_event(
+                    modules.events.create(
                         module,
                         "core.keybinds.events." .. keybind_event_path,
                         vim.list_slice(event.content, 3)
@@ -461,7 +458,7 @@ module.on_event = function(event)
 end
 
 module.events.defined = {
-    enable_keybinds = neorg.events.define(module, "enable_keybinds"),
+    enable_keybinds = modules.events.define(module, "enable_keybinds"),
 }
 
 module.events.subscribed = {
@@ -484,9 +481,7 @@ module.examples = {
     ["Create keybinds in your module"] = function()
         -- The process of defining a keybind is only a tiny bit more involved than defining e.g. an autocommand. Let's see what differs in creating a keybind rather than creating an autocommand:
 
-        require("neorg.modules.base")
-
-        local test = neorg.modules.create("test.module")
+        local test = modules.create("test.module")
 
         test.setup = function()
             return { success = true, requires = { "core.keybinds" } } -- Require the keybinds module

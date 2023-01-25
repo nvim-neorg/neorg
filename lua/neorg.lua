@@ -5,8 +5,7 @@
 
 -- Require the most important modules
 local neorg = require("neorg.core")
-require("neorg.events")
-require("neorg.modules")
+local modules = require("neorg.modules")
 
 local configuration = neorg.configuration
 
@@ -92,17 +91,17 @@ function neorg.org_file_entered(manual, arguments)
     end
 
     -- After all configurations are merged proceed to actually load the modules
-    local load_module = neorg.modules.load_module
+    local load_module = modules.load_module
     for name, _ in pairs(module_list) do
         -- If it could not be loaded then halt
         if not load_module(name) then
             neorg.log.warn("Recovering from error...")
-            neorg.modules.loaded_modules[name] = nil
+            modules.loaded_modules[name] = nil
         end
     end
 
     -- Goes through each loaded module and invokes neorg_post_load()
-    for _, module in pairs(neorg.modules.loaded_modules) do
+    for _, module in pairs(modules.loaded_modules) do
         module.neorg_post_load()
     end
 
@@ -110,7 +109,7 @@ function neorg.org_file_entered(manual, arguments)
     configuration.started = true
 
     -- Lets the entire Neorg environment know that Neorg has started!
-    neorg.events.broadcast_event({
+    modules.events.broadcast_event({
         type = "core.started",
         split_type = { "core", "started" },
         filename = "",

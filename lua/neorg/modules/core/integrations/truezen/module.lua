@@ -1,7 +1,5 @@
-local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.integrations.truezen")
+local modules = require("neorg.modules")
+local module = modules.create("core.integrations.truezen")
 
 module.load = function()
     local success, truezen = pcall(require, "true-zen.main")

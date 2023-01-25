@@ -19,7 +19,7 @@ function callbacks.on_event(event_name, callback, content_filter)
 end
 
 --- Used internally by Neorg to call all callbacks with an event
----@param event table #An event as returned by neorg.events.create()
+---@param event table #An event as returned by modules.events.create()
 function callbacks.handle_callbacks(event)
     -- Query the list of registered callbacks
     local callback_entry = callbacks.callback_list[event.type]

@@ -9,9 +9,8 @@
 -- we hope to implement one with the module rewrite of 0.2.
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.norg.manoeuvre")
+local modules = require("neorg.modules")
+local module = modules.create("core.norg.manoeuvre")
 
 module.setup = function()
     if not neorg.utils.is_minimum_version(0, 7, 0) then

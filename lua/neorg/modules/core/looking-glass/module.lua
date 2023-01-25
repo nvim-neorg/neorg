@@ -1,5 +1,6 @@
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.looking-glass")
+local modules = require("neorg.modules")
+local module = modules.create("core.looking-glass")
 
 module.setup = function()
     if not neorg.utils.is_minimum_version(0, 7, 0) then

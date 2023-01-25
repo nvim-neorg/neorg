@@ -20,9 +20,8 @@ sources = {
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.integrations.nvim-cmp")
+local modules = require("neorg.modules")
+local module = modules.create("core.integrations.nvim-cmp")
 
 module.private = {
     source = {},

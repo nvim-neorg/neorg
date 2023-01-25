@@ -1,5 +1,6 @@
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.norg.dirman.utils")
+local modules = require("neorg.modules")
+local module = modules.create("core.norg.dirman.utils")
 
 module.public = {
     expand_path = function(path)
@@ -7,7 +8,7 @@ module.public = {
         local custom_workspace_path = path:match("^%$([^/]*)/")
 
         if custom_workspace_path then
-            local dirman = neorg.modules.get_module("core.norg.dirman")
+            local dirman = modules.get_module("core.norg.dirman")
 
             if not dirman then
                 neorg.log.error(

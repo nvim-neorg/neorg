@@ -11,10 +11,8 @@ page for the engine you selected ([`nvim-cmp`](@core.integrations.nvim-cmp) or
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-require("neorg.modules")
-
-local module = neorg.modules.create("core.norg.completion")
+local modules = require("neorg.modules")
+local module = modules.create("core.norg.completion")
 
 module.config.public = {
     -- The engine to use for completion.
@@ -42,10 +40,10 @@ module.load = function()
     end
 
     -- If our engine is compe then attempt to load the integration module for nvim-compe
-    if module.config.public.engine == "nvim-compe" and neorg.modules.load_module("core.integrations.nvim-compe") then
-        module.private.engine = neorg.modules.get_module("core.integrations.nvim-compe")
-    elseif module.config.public.engine == "nvim-cmp" and neorg.modules.load_module("core.integrations.nvim-cmp") then
-        module.private.engine = neorg.modules.get_module("core.integrations.nvim-cmp")
+    if module.config.public.engine == "nvim-compe" and modules.load_module("core.integrations.nvim-compe") then
+        module.private.engine = modules.get_module("core.integrations.nvim-compe")
+    elseif module.config.public.engine == "nvim-cmp" and modules.load_module("core.integrations.nvim-cmp") then
+        module.private.engine = modules.get_module("core.integrations.nvim-cmp")
     else
         neorg.log.error("Unable to load completion module -", module.config.public.engine, "is not a recognized engine.")
         return

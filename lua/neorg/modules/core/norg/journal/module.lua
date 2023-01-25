@@ -21,9 +21,8 @@ This command opens the TOC file without updating it.
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.norg.journal")
+local modules = require("neorg.modules")
+local module = modules.create("core.norg.journal")
 local log = neorg.log
 
 module.examples = {
@@ -183,7 +182,7 @@ module.private = {
     open_toc = function()
         local workspace = module.config.public.workspace
             or module.required["core.norg.dirman"].get_current_workspace()[1]
-        local index = neorg.modules.get_module_config("core.norg.dirman").index
+        local index = modules.get_module_config("core.norg.dirman").index
         local folder_name = module.config.public.journal_folder
 
         -- If the toc exists, open it, if not, create it
@@ -201,7 +200,7 @@ module.private = {
     create_toc = function()
         local workspace = module.config.public.workspace
             or module.required["core.norg.dirman"].get_current_workspace()[1]
-        local index = neorg.modules.get_module_config("core.norg.dirman").index
+        local index = modules.get_module_config("core.norg.dirman").index
         local folder_name = module.config.public.journal_folder
 
         -- Each entry is a table that contains tables like { yy, mm, dd, link, title }

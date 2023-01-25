@@ -3,7 +3,8 @@
 --]]
 
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.itero")
+local modules = require("neorg.modules")
+local module = modules.create("core.itero")
 
 module.setup = function()
     return {

@@ -6,13 +6,9 @@
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-require("neorg.modules")
-require("neorg.events")
-
 local log = neorg.log
-
-local module = neorg.modules.create("core.neorgcmd")
+local modules = require("neorg.modules")
+local module = modules.create("core.neorgcmd")
 
 module.examples = {
     ["Adding a Neorg command"] = function()
@@ -125,7 +121,7 @@ module.public = {
     --- Recursively merges the contents of the module's config.public.funtions table with core.neorgcmd's module.config.public.neorg_commands table.
     ---@param module_name string #An absolute path to a loaded module with a module.config.public.neorg_commands table following a valid structure
     add_commands = function(module_name)
-        local module_config = neorg.modules.get_module(module_name)
+        local module_config = modules.get_module(module_name)
 
         if not module_config or not module_config.neorg_commands then
             return
@@ -145,6 +141,7 @@ module.public = {
     ---@param name string #The relative path of the module we want to load
     add_commands_from_file = function(name)
         -- Attempt to require the file
+        -- FIXME: Not a global anymore!
         local err, ret = pcall(require, "neorg.modules.core.neorgcmd.commands." .. name .. ".module")
 
         -- If we've failed bail out
@@ -158,13 +155,13 @@ module.public = {
         end
 
         -- Load the module from table
-        neorg.modules.load_module_from_table(ret)
+        modules.load_module_from_table(ret)
     end,
 
     --- Rereads data from all modules and rebuild the list of available autocompletions and commands
     sync = function()
         -- Loop through every loaded module and set up all their commands
-        for _, mod in pairs(neorg.modules.loaded_modules) do
+        for _, mod in pairs(modules.loaded_modules) do
             if mod.public.neorg_commands then
                 module.public.add_commands_from_table(mod.public.neorg_commands)
             end
@@ -270,11 +267,11 @@ module.private = {
         end
 
         if not module.events.defined[ref.name] then
-            module.events.defined[ref.name] = neorg.events.define(module, ref.name)
+            module.events.defined[ref.name] = modules.events.define(module, ref.name)
         end
 
-        neorg.events.broadcast_event(
-            neorg.events.create(
+        modules.events.broadcast_event(
+            modules.events.create(
                 module,
                 table.concat({ "core.neorgcmd.events.", ref.name }),
                 vim.list_slice(args, argument_index + 1)

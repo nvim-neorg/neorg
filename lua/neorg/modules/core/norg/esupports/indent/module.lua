@@ -6,7 +6,8 @@
 --]]
 
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.norg.esupports.indent")
+local modules = require("neorg.modules")
+local module = modules.create("core.norg.esupports.indent")
 
 module.setup = function()
     return {
@@ -219,6 +220,7 @@ module.on_event = function(event)
         vim.api.nvim_buf_set_option(
             event.buffer,
             "indentexpr",
+            -- FIXME: Not a global anymore!
             ("v:lua.neorg.modules.get_module('core.norg.esupports.indent').indentexpr(%d)"):format(event.buffer)
         )
 

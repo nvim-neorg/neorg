@@ -6,10 +6,8 @@
     ---
 --]]
 
-local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.scanner")
+local modules = require("neorg.modules")
+local module = modules.create("core.scanner")
 
 -- NOTE: This module is very small and very simple, therefore I don't believe it requires any documentation
 

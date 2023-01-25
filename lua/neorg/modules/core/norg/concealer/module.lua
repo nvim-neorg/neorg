@@ -32,9 +32,8 @@ Note: this will produce icons like `1.)`, `2.)`, etc.
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.norg.concealer")
+local modules = require("neorg.modules")
+local module = modules.create("core.norg.concealer")
 
 --- Schedule a function if there is no debounce active or if deferred updates have been disabled
 ---@param func function #Any function to execute
@@ -818,9 +817,9 @@ module.public = {
         module.private.enabled = not module.private.enabled
 
         if module.private.enabled then
-            neorg.events.send_event(
+            modules.events.send_event(
                 "core.norg.concealer",
-                neorg.events.create(module, "core.autocommands.events.bufenter", {
+                modules.events.create(module, "core.autocommands.events.bufenter", {
                     norg = true,
                 })
             )
@@ -1374,7 +1373,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
     module.required["core.autocommands"].enable_autocommand("VimLeavePre")
 
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             ["toggle-concealer"] = {
                 name = "core.norg.concealer.toggle",
@@ -1441,6 +1440,7 @@ module.on_event = function(event)
             vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
             vim.api.nvim_set_option_value(
                 "foldtext",
+                -- FIXME: Not a global anymore!
                 "v:lua.neorg.modules.get_module('core.norg.concealer').foldtext()",
                 opts
             )
@@ -1662,7 +1662,7 @@ module.on_event = function(event)
 end
 
 module.events.defined = {
-    update_region = neorg.events.define(module, "update_region"),
+    update_region = modules.events.define(module, "update_region"),
 }
 
 module.events.subscribed = {

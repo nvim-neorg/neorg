@@ -3,7 +3,8 @@
 --]]
 
 local neorg = require("neorg.core")
-local module = neorg.modules.extend("core.ui.text_popup")
+local modules = require("neorg.modules")
+local module = modules.extend("core.ui.text_popup")
 
 ---@class core.ui
 module.public = {

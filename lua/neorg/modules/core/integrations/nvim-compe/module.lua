@@ -9,9 +9,8 @@ Works with core.norg.completion to provide intelligent completions.
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.integrations.nvim-compe")
+local modules = require("neorg.modules")
+local module = modules.create("core.integrations.nvim-compe")
 
 -- Define some private data that's not supposed to be seen
 module.private = {

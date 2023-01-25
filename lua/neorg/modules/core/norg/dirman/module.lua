@@ -33,10 +33,8 @@ To get the best experience it's recommended to set the `autochdir` Neovim option
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-require("neorg.modules")
-
-local module = neorg.modules.create("core.norg.dirman")
+local modules = require("neorg.modules")
+local module = modules.create("core.norg.dirman")
 local scan = require("plenary.scandir")
 
 module.setup = function()
@@ -159,8 +157,8 @@ module.public = {
         end
 
         -- Broadcast the workspace_changed event with all the necessary information
-        neorg.events.broadcast_event(
-            neorg.events.create(
+        modules.events.broadcast_event(
+            modules.events.create(
                 module,
                 "core.norg.dirman.events.workspace_changed",
                 { old = current_ws, new = new_workspace }
@@ -183,8 +181,8 @@ module.public = {
         -- Set the new workspace and its path accordingly
         module.config.public.workspaces[workspace_name] = workspace_path
         -- Broadcast the workspace_added event with the newly added workspace as the content
-        neorg.events.broadcast_event(
-            neorg.events.create(module, "core.norg.dirman.events.workspace_added", { workspace_name, workspace_path })
+        modules.events.broadcast_event(
+            modules.events.create(module, "core.norg.dirman.events.workspace_added", { workspace_name, workspace_path })
         )
 
         -- Sync autocompletions so the user can see the new workspace
@@ -334,7 +332,7 @@ module.public = {
     --- Reads the neorg_last_workspace.txt file and loads the cached workspace from there
     set_last_workspace = function()
         -- Attempt to open the last workspace cache file in read-only mode
-        local storage = neorg.modules.get_module("core.storage")
+        local storage = modules.get_module("core.storage")
 
         if not storage then
             neorg.log.trace("Module `core.storage` not loaded, refusing to load last user's workspace.")
@@ -520,9 +518,9 @@ module.on_event = function(event)
 end
 
 module.events.defined = {
-    workspace_changed = neorg.events.define(module, "workspace_changed"),
-    workspace_added = neorg.events.define(module, "workspace_added"),
-    workspace_cache_empty = neorg.events.define(module, "workspace_cache_empty"),
+    workspace_changed = modules.events.define(module, "workspace_changed"),
+    workspace_added = modules.events.define(module, "workspace_added"),
+    workspace_cache_empty = modules.events.define(module, "workspace_cache_empty"),
 }
 
 module.events.subscribed = {

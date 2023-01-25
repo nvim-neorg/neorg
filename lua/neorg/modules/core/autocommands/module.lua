@@ -33,21 +33,19 @@ Upon receiving an event, it will come in this format:
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-require("neorg.events")
-
-local module = neorg.modules.create("core.autocommands")
+local modules = require("neorg.modules")
+local module = modules.create("core.autocommands")
 
 --- This function gets invoked whenever a core.autocommands enabled autocommand is triggered. Note that this function should be only used internally
 ---@param name string #The name of the autocommand that was just triggered
 ---@param triggered_from_norg boolean #If true, that means we have received this event as part of a *.norg autocommand
 function _neorg_module_autocommand_triggered(name, triggered_from_norg)
-    neorg.events.broadcast_event(neorg.events.create(module, name, { norg = triggered_from_norg }))
+    modules.events.broadcast_event(modules.events.create(module, name, { norg = triggered_from_norg }))
 end
 
--- A convenience wrapper around neorg.events.define_event
+-- A convenience wrapper around modules.events.define_event
 module.autocmd_base = function(name)
-    return neorg.events.define(module, name)
+    return modules.events.define(module, name)
 end
 
 ---@class core.autocommands
@@ -329,7 +327,7 @@ module.events.defined = {
 
 module.examples = {
     ["Binding to an Autocommand"] = function()
-        local mymodule = neorg.modules.create("my.module")
+        local mymodule = modules.create("my.module")
 
         mymodule.setup = function()
             return {

@@ -7,10 +7,8 @@ This file contains all of the most important
 modules that any user would want to have a "just works" experience.
 --]]
 
-local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-return neorg.modules.create_meta(
+local modules = require("neorg.modules")
+return modules.create_meta(
     "core.defaults",
     "core.autocommands",
     "core.clipboard",

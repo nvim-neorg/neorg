@@ -1,4 +1,5 @@
 local neorg = require("neorg.core")
+local modules = require("neorg.modules")
 local docgen = {}
 
 local function get_node_text(node, buf)
@@ -26,7 +27,7 @@ require("neorg").setup({
 neorg.org_file_entered(false)
 
 -- Extract treesitter utility functions provided by Neorg and nvim-treesitter.ts_utils
-local ts = neorg.modules.get_module("core.integrations.treesitter")
+local ts = modules.get_module("core.integrations.treesitter")
 
 local ts_utils = ts.get_ts_utils()
 
@@ -226,8 +227,8 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
     local module = {}
     if not main_page then
         module = dofile(path)
-        neorg.modules.load_module(module.name)
-        module = neorg.modules.loaded_modules[module.name].real()
+        modules.load_module(module.name)
+        module = modules.loaded_modules[module.name].real()
 
         for _, import in ipairs(module.setup().imports or {}) do
             local import_path = vim.fn.fnamemodify(path, ":p:h") .. "/" .. import .. ".lua"
@@ -679,7 +680,7 @@ docgen.generate_md_file = function(buf, path, comment, main_page)
                 .. "` exposes. All of these functions reside in the `public` table.",
             "",
             function()
-                local api = neorg.modules.get_module(module.name)
+                local api = modules.get_module(module.name)
                 local results = {}
 
                 if not vim.tbl_isempty(api) then

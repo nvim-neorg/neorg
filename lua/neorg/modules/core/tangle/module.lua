@@ -144,7 +144,8 @@ The first code block will be tangled to `./output.lua`, the second code block wi
 --]]
 
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.tangle")
+local modules = require("neorg.modules")
+local module = modules.create("core.tangle")
 
 module.setup = function()
     return {

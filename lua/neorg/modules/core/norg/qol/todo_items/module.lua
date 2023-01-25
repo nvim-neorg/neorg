@@ -16,9 +16,8 @@ Some available keybinds
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.norg.qol.todo_items")
+local modules = require("neorg.modules")
+local module = modules.create("core.norg.qol.todo_items")
 
 module.setup = function()
     return { success = true, requires = { "core.keybinds", "core.integrations.treesitter" } }

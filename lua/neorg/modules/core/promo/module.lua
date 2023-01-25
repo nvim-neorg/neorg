@@ -1,5 +1,6 @@
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.promo")
+local modules = require("neorg.modules")
+local module = modules.create("core.promo")
 
 module.setup = function()
     return {
@@ -119,7 +120,7 @@ module.public = {
 
         -- After the promotion/demotion reindent all children
         if reindent_children then
-            local indent_module = neorg.modules.get_module("core.norg.esupports.indent")
+            local indent_module = modules.get_module("core.norg.esupports.indent")
 
             if not indent_module then
                 goto finish
@@ -163,8 +164,8 @@ module.public = {
             ::finish::
         end
 
-        neorg.events.broadcast_event(
-            neorg.events.create(
+        modules.events.broadcast_event(
+            modules.events.create(
                 module,
                 "core.norg.concealer.events.update_region",
                 { start = start_region, ["end"] = end_region }
@@ -192,8 +193,8 @@ module.on_event = function(event)
             module.public.promote_or_demote(event.buffer, "promote", start_pos[1] + i)
         end
 
-        neorg.events.broadcast_event(
-            neorg.events.create(
+        modules.events.broadcast_event(
+            modules.events.create(
                 module,
                 "core.norg.concealer.events.update_region",
                 { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
@@ -207,8 +208,8 @@ module.on_event = function(event)
             module.public.promote_or_demote(event.buffer, "demote", start_pos[1] + i)
         end
 
-        neorg.events.broadcast_event(
-            neorg.events.create(
+        modules.events.broadcast_event(
+            modules.events.create(
                 module,
                 "core.norg.concealer.events.update_region",
                 { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }

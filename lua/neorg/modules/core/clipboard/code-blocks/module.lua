@@ -1,8 +1,8 @@
-local neorg = require("neorg.core")
-local module = neorg.modules.create("core.clipboard.code-blocks")
+local modules = require("neorg.modules")
+local module = modules.create("core.clipboard.code-blocks")
 
 module.load = function()
-    neorg.modules.await("core.clipboard", function(clipboard)
+    modules.await("core.clipboard", function(clipboard)
         clipboard.add_callback("ranged_tag_content", function(node, content, position)
             -- TODO: Handle visual/visual line/visual block modes
 

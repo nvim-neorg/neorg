@@ -1,5 +1,6 @@
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.upgrade")
+local modules = require("neorg.modules")
+local module = modules.create("core.upgrade")
 
 module.setup = function()
     return {
@@ -17,7 +18,7 @@ module.config.public = {
 }
 
 module.load = function()
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             upgrade = {
                 subcommands = {
@@ -350,7 +351,7 @@ module.on_event = function(event)
             end)
         end)
     elseif event.split_type[2] == "core.upgrade.all-workspaces" then
-        local dirman = neorg.modules.get_module("core.norg.dirman")
+        local dirman = modules.get_module("core.norg.dirman")
 
         if not dirman then
             vim.notify("ERROR: `core.norg.dirman` is not loaded!")

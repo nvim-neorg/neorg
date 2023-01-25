@@ -6,9 +6,8 @@
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
-
-local module = neorg.modules.create("core.integrations.treesitter")
+local modules = require("neorg.modules")
+local module = modules.create("core.integrations.treesitter")
 
 module.private = {
     ts_utils = nil,

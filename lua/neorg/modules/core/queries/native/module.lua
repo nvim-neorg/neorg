@@ -8,14 +8,14 @@ This module uses tree-like tables in order to fetch useful informations from a T
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base")
 
 ---@class core.queries.native.tree_node
 ---@field query string[]
 ---@field subtree core.queries.native.tree_node[]|nil
 ---@field recursive boolean|nil
 
-local module = neorg.modules.create("core.queries.native")
+local modules = require("neorg.modules")
+local module = modules.create("core.queries.native")
 
 module.setup = function()
     return {
