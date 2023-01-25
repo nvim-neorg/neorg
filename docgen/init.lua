@@ -96,11 +96,28 @@ for module_name, module in pairs(modules) do
             -- TODO: Create a whitelist for e.g. binary operations, function()s, function calls etc
             -- TODO: Allow modules to attach gifs about what they do and how they work
 
-            if data.value then
-                log.warn(docgen.to_lua_object(module.parsed, buffer, data.value, module_name))
+            if not data.value then
+                return
             end
+
+            local object = docgen.to_lua_object(module.parsed, buffer, data.value, module_name)
+
+            do
+                log.warn(module_name, data.parents, data.name)
+                neorg.lib.ensure_nested(configuration_options, unpack(data.parents))
+                local ref = vim.tbl_get(configuration_options, unpack(data.parents)) or {}
+
+                if data.name then
+                    ref[data.name] = docgen.render(buffer, data, comments, object)
+                else
+                    table.insert(ref, docgen.render(buffer, data, comments, object))
+                end
+            end
+
         end)
     end
+
+    -- log.warn(module_name, configuration_options)
 
     -- Perform module lookups in the module's top comment markdown data.
     -- This cannot be done earlier because then there would be no guarantee
@@ -108,4 +125,6 @@ for module_name, module in pairs(modules) do
     for i, line in ipairs(module.top_comment_data.markdown) do
         module.top_comment_data.markdown[i] = docgen.lookup_modules(modules, line)
     end
+
+    -- fileio.write_to_wiki(module.top_comment_data.file, configuration_options)
 end
