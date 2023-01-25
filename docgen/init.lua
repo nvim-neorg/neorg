@@ -74,10 +74,8 @@ for module_name, module in pairs(modules) do
                 comments[i] = docgen.lookup_modules(modules, comment:gsub("^%s*%-%-+%s*", ""))
             end
 
-            comments = table.concat(comments, "\n")
-
             do
-                local error = docgen.check_comment_integrity(comments)
+                local error = docgen.check_comment_integrity(table.concat(comments, "\n"))
 
                 if type(error) == "string" then
                     -- Get the exact location of the error with data.node and the file it was contained in
