@@ -246,18 +246,12 @@ function modules.load_module(module_name, parent, config)
     end
 
     -- Attempt to require the module, does not throw an error if the module doesn't exist
-    local exists, module = pcall(require, "neorg.modules." .. module_name .. ".module")
+    local exists, module = pcall(require, "neorg.modules." .. module_name)
 
     -- If the module doesn't exist then return false
     if not exists then
-        local fallback_exists, fallback_module = pcall(require, "neorg.modules." .. module_name)
-
-        if not fallback_exists then
-            log.error("Unable to load module", module_name, "-", module)
-            return false
-        end
-
-        module = fallback_module
+        log.error("Unable to load module", module_name, "-", module)
+        return false
     end
 
     -- If the module is nil for some reason return false

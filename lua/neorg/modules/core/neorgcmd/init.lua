@@ -142,7 +142,7 @@ module.public = {
     add_commands_from_file = function(name)
         -- Attempt to require the file
         -- FIXME: Not a global anymore!
-        local err, ret = pcall(require, "neorg.modules.core.neorgcmd.commands." .. name .. ".module")
+        local err, ret = pcall(require, "neorg.modules.core.neorgcmd.commands." .. name)
 
         -- If we've failed bail out
         if not err then
