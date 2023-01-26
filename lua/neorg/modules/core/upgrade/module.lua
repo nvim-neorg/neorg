@@ -182,7 +182,7 @@ module.private = {
 }
 
 module.on_event = function(event)
-    if event.split_type[2] == "core.upgrade.current-file" then
+    if event.name == "core.upgrade.current-file" then
         module.private.neorg_parser_call("norg", function()
             local path = vim.api.nvim_buf_call(event.buffer, function()
                 return vim.fn.expand("%")
@@ -230,7 +230,7 @@ module.on_event = function(event)
                 vim.schedule(neorg.lib.wrap(vim.notify, "Successfully upgraded 1 file!"))
             end)
         end)
-    elseif event.split_type[2] == "core.upgrade.current-directory" then
+    elseif event.name == "core.upgrade.current-directory" then
         module.private.neorg_parser_call("norg", function()
             local path = vim.fn.getcwd(event.window)
 
@@ -350,7 +350,7 @@ module.on_event = function(event)
                 end)
             end)
         end)
-    elseif event.split_type[2] == "core.upgrade.all-workspaces" then
+    elseif event.name == "core.upgrade.all-workspaces" then
         local dirman = modules.get_module("core.norg.dirman")
 
         if not dirman then

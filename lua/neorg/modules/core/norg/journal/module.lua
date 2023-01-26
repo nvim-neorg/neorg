@@ -450,20 +450,20 @@ module.load = function()
 end
 
 module.on_event = function(event)
-    if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.split_type[1]) then
-        if event.split_type[2] == "journal.tomorrow" then
+    if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.referrer.name) then
+        if event.name == "journal.tomorrow" then
             module.private.diary_tomorrow()
-        elseif event.split_type[2] == "journal.yesterday" then
+        elseif event.name == "journal.yesterday" then
             module.private.diary_yesterday()
-        elseif event.split_type[2] == "journal.custom" then
-            module.private.open_diary(nil, event.content[1])
-        elseif event.split_type[2] == "journal.today" then
+        elseif event.name == "journal.custom" then
+            module.private.open_diary(nil, event.payload[1])
+        elseif event.name == "journal.today" then
             module.private.diary_today()
-        elseif event.split_type[2] == "journal.template" then
+        elseif event.name == "journal.template" then
             module.private.create_template()
-        elseif event.split_type[2] == "journal.toc.open" then
+        elseif event.name == "journal.toc.open" then
             module.private.open_toc()
-        elseif event.split_type[2] == "journal.toc.update" then
+        elseif event.name == "journal.toc.update" then
             module.private.create_toc()
         end
     end

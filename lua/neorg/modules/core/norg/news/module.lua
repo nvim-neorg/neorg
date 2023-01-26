@@ -230,7 +230,7 @@ module.private = {
 }
 
 module.on_event = function(event)
-    neorg.lib.match(event.split_type[2])({
+    neorg.lib.match(event.name)({
         ["news.all"] = function()
             module.public.create_display(
                 module.public.get_content(vim.tbl_extend("error", module.private.old_news, module.private.new_news))
@@ -262,8 +262,8 @@ module.on_event = function(event)
         end,
 
         _ = function()
-            if vim.startswith(event.split_type[2], "news.new.") then
-                local version = event.split_type[2]:sub(string.len("news.new.") + 1)
+            if vim.startswith(event.name, "news.new.") then
+                local version = event.name:sub(string.len("news.new.") + 1)
 
                 module.public.create_display(
                     module.public.get_content({ [version] = module.private.new_news[version] })
@@ -277,7 +277,7 @@ module.on_event = function(event)
                     })
                 end
             else
-                local version = event.split_type[2]:sub(string.len("news.old.") + 1)
+                local version = event.name:sub(string.len("news.old.") + 1)
 
                 module.public.create_display(
                     module.public.get_content({ [version] = module.private.old_news[version] })

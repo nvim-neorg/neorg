@@ -201,13 +201,13 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.split_type[2] ~= module.name then
+    if event.name ~= module.name then
         return
     end
 
     local toc_title = vim.split(module.public.parse_toc_macro(event.buffer) or "Table of Contents", "\n")
 
-    if event.content and event.content[1] == "qflist" then
+    if event.payload and event.payload[1] == "qflist" then
         local qflist = module.public.generate_qflist(event.buffer)
 
         if not qflist then
@@ -224,7 +224,7 @@ module.on_event = function(event)
 
     local namespace = vim.api.nvim_create_namespace("neorg/toc")
     local buffer, window =
-        module.required["core.ui"].create_vsplit("toc", { ft = "norg" }, (event.content[1] or "left") == "left")
+        module.required["core.ui"].create_vsplit("toc", { ft = "norg" }, (event.payload[1] or "left") == "left")
 
     vim.api.nvim_win_set_option(window, "scrolloff", 999)
     module.public.update_toc(namespace, toc_title, event.buffer, event.window, buffer, window)

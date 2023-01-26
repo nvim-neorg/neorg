@@ -163,7 +163,7 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.split_type[2] == "core.looking-glass.magnify-code-block" then
+    if event.name == "core.looking-glass.magnify-code-block" then
         -- First we must check if the user has their cursor under a code block
         local query = vim.treesitter.parse_query(
             "norg",

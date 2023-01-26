@@ -59,13 +59,11 @@ module.public = {
         table.insert(module.private.modes, mode_name)
 
         -- Broadcast the mode_created event
-        modules.events.broadcast_event(
-            modules.events.create(
-                module,
-                "core.mode.events.mode_created",
-                { current = module.config.public.current_mode, new = mode_name }
-            )
-        )
+        neorg.events.new(
+            module,
+            "mode_created",
+            { current = module.config.public.current_mode, new = mode_name }
+        ):broadcast(modules.loaded_modules)
 
         -- Define the autocompletion tables and make them include the current mode
         table.insert(module.public.neorg_commands["mode"].complete[1], mode_name)
@@ -97,13 +95,11 @@ module.public = {
         module.config.public.current_mode = mode_name
 
         -- Broadcast the mode_set event to all subscribed modules
-        modules.events.broadcast_event(
-            modules.events.create(
-                module,
-                "core.mode.events.mode_set",
-                { current = module.config.public.previous_mode, new = mode_name }
-            )
-        )
+        neorg.events.new(
+            module,
+            "mode_set",
+            { current = module.config.public.previous_mode, new = mode_name }
+        ):broadcast(modules.loaded_modules)
     end,
 
     --- Set mode to previous one
@@ -130,19 +126,19 @@ module.public = {
 
 module.on_event = function(event)
     -- Retrieve the :Neorg mode command and set the mode accordingly
-    if event.type == "core.neorgcmd.events.mode" then
+    if event.name == "mode" then
         -- If no parameters were given then just print the current mode
-        if not event.content[1] then
+        if not event.payload[1] then
             vim.notify("Active Mode: " .. module.public.get_mode())
         else -- Else actually set the mode to the one we specified
-            module.public.set_mode(event.content[1])
+            module.public.set_mode(event.payload[1])
         end
     end
 end
 
 module.events.defined = {
-    mode_created = modules.events.define(module, "mode_created"), -- Broadcast when a mode is created
-    mode_set = modules.events.define(module, "mode_set"), -- Broadcast when a mode changes
+    mode_created = "mode_created", -- Broadcast when a mode is created
+    mode_set = "mode_set", -- Broadcast when a mode changes
 }
 
 module.events.subscribed = {

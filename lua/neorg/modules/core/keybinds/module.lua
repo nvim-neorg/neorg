@@ -66,7 +66,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufLeave")
 
     if module.config.public.hook then
-        neorg.callbacks.on_event("core.keybinds.events.enable_keybinds", function(_, keybinds)
+        neorg.callbacks.on_event("enable_keybinds", function(_, keybinds)
             module.config.public.hook(keybinds)
         end)
     end
@@ -116,7 +116,7 @@ module.public = {
 
         -- If that keybind is not defined yet then define it
         if not module.events.defined[keybind_name] then
-            module.events.defined[keybind_name] = modules.events.define(module, keybind_name)
+            module.events.defined[keybind_name] = keybind_name
 
             -- Define autocompletion for core.neorgcmd
             table.insert(module.public.neorg_commands.keybind.complete[2], keybind_name)
@@ -137,7 +137,7 @@ module.public = {
 
             -- If that keybind is not defined yet then define it
             if not module.events.defined[keybind_name] then
-                module.events.defined[keybind_name] = modules.events.define(module, keybind_name)
+                module.events.defined[keybind_name] = keybind_name
 
                 -- Define autocompletion for core.neorgcmd
                 table.insert(module.public.neorg_commands.keybind.complete[2], keybind_name)
@@ -335,6 +335,7 @@ module.public = {
                 func("norg", ...)
             end
         end, "map", "map_event", "unmap", "remap", "remap_key", "remap_event")
+                print(mode, vim.inspect(keys), vim.inspect(opts))
 
         if
             module.config.public.default_keybinds
@@ -348,8 +349,8 @@ module.public = {
         end
 
         -- Broadcast our event with the desired payload!
-        modules.events.broadcast_event(
-            modules.events.create(module, "core.keybinds.events.enable_keybinds", payload),
+        neorg.events.new(module, "enable_keybinds", payload):broadcast(
+            modules.loaded_modules,
             function()
                 for neorg_mode, neovim_modes in pairs(bound_keys) do
                     if neorg_mode == "all" or neorg_mode == current_mode then
@@ -408,10 +409,10 @@ module.private = {
 module.neorg_post_load = module.public.sync
 
 module.on_event = function(event)
-    neorg.lib.match(event.type)({
-        ["core.neorgcmd.events.core.keybinds.trigger"] = function()
+    neorg.lib.match(event.name)({
+        ["core.keybinds.trigger"] = function()
             -- Query the current mode and the expected mode (the one passed in by the user)
-            local expected_mode = event.content[1]
+            local expected_mode = event.payload[1]
             local current_mode = module.required["core.mode"].get_mode()
 
             -- If the modes don't match then don't execute the keybind
@@ -420,31 +421,29 @@ module.on_event = function(event)
             end
 
             -- Get the event path to the keybind
-            local keybind_event_path = event.content[2]
+            local keybind_event_path = event.payload[2]
 
             -- If it is defined then broadcast the event
             if module.events.defined[keybind_event_path] then
-                modules.events.broadcast_event(
-                    modules.events.create(
-                        module,
-                        "core.keybinds.events." .. keybind_event_path,
-                        vim.list_slice(event.content, 3)
-                    )
-                )
+                neorg.events.new(
+                    module,
+                    keybind_event_path,
+                    vim.list_slice(event.payload, 3)
+                ):broadcast(modules.loaded_modules)
             else -- Otherwise throw an error
                 log.error("Unable to trigger keybind", keybind_event_path, "- the keybind does not exist")
             end
         end,
-        ["core.mode.events.mode_created"] = neorg.lib.wrap(module.public.sync),
-        ["core.mode.events.mode_set"] = function()
+        ["mode_created"] = neorg.lib.wrap(module.public.sync),
+        ["mode_set"] = function()
             -- If a new mode has been set then reset all of our keybinds
             module.public.bind_all(event.buffer, function(buf, mode, key)
                 vim.api.nvim_buf_del_keymap(buf, mode, key)
-            end, event.content.current)
+            end, event.payload.current)
             module.public.bind_all(event.buffer)
         end,
-        ["core.autocommands.events.bufenter"] = function()
-            if not event.content.norg then
+        ["bufenter"] = function()
+            if not event.payload.norg then
                 return
             end
 
@@ -458,7 +457,7 @@ module.on_event = function(event)
 end
 
 module.events.defined = {
-    enable_keybinds = modules.events.define(module, "enable_keybinds"),
+    enable_keybinds = "enable_keybinds",
 }
 
 module.events.subscribed = {
@@ -497,8 +496,8 @@ module.examples = {
 
         test.on_event = function(event)
             -- The event.split_type field is the type field except split into two.
-            -- The split point is .events., meaning if the event type is e.g. "core.keybinds.events.test.module.my_keybind" the value of split_type will be { "core.keybinds", "test.module.my_keybind" }.
-            if event.split_type[2] == "test.module.my_keybind" then
+            -- The split point is .events., meaning if the event type is e.g. "test.module.my_keybind" the value of split_type will be { "core.keybinds", "test.module.my_keybind" }.
+            if event.name == "test.module.my_keybind" then
                 log.info("Keybind my_keybind has been pressed!")
             end
         end
@@ -532,7 +531,7 @@ module.examples = {
         -- Listen for the enable_keybinds event, which signals a "ready" state meaning we can bind keys.
         -- This hook will be called several times, e.g. whenever the Neorg Mode changes or an event that
         -- needs to reevaluate all the bound keys is invoked
-        neorg_callbacks.on_event("core.keybinds.events.enable_keybinds", function(_, keybinds)
+        neorg_callbacks.on_event("enable_keybinds", function(_, keybinds)
             -- All your other keybinds
 
             -- Map all the below keybinds only when the "norg" mode is active

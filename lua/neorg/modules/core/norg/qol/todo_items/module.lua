@@ -306,7 +306,7 @@ module.public = {
 module.on_event = function(event)
     local todo_str = "core.norg.qol.todo_items.todo."
 
-    if event.split_type[1] == "core.keybinds" then
+    if event.referrer.name == "core.keybinds" then
         local todo_item_at_cursor = module.public.get_list_item_from_cursor(event.buffer, event.cursor_position[1] - 1)
 
         if not todo_item_at_cursor then
@@ -323,7 +323,7 @@ module.on_event = function(event)
             recurring = "+",
         }
 
-        local match = event.split_type[2]:match(todo_str .. "task_(.+)")
+        local match = event.name:match(todo_str .. "task_(.+)")
 
         if match and match ~= "cycle" and match ~= "cycle_reverse" then
             module.public.make_all(
@@ -333,9 +333,9 @@ module.on_event = function(event)
                 map_of_names_to_symbols[match] or "<unsupported>"
             )
             module.public.update_parent(event.buffer, event.cursor_position[1] - 1, 0)
-        elseif event.split_type[2] == todo_str .. "task_cycle" then
+        elseif event.name == todo_str .. "task_cycle" then
             module.public.task_cycle(event.buffer, event.cursor_position[1], module.config.public.order)
-        elseif event.split_type[2] == todo_str .. "task_cycle_reverse" then
+        elseif event.name == todo_str .. "task_cycle_reverse" then
             module.public.task_cycle(event.buffer, event.cursor_position[1], vim.fn.reverse(module.config.public.order))
         end
     end

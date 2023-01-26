@@ -30,7 +30,7 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.module.list" then
+    if event.name == "module.list" then
         local lines = {
             -- modules.get_module_config("core.norg.concealer").icons.heading.level_1.icon
             "*"

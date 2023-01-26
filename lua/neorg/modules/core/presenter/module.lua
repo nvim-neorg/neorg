@@ -238,14 +238,14 @@ module.private = {
 }
 
 module.on_event = function(event)
-    if vim.tbl_contains({ "core.neorgcmd", "core.keybinds" }, event.split_type[1]) then
-        if vim.tbl_contains({ "presenter.start" }, event.split_type[2]) then
+    if vim.tbl_contains({ "core.neorgcmd", "core.keybinds" }, event.referrer.name) then
+        if vim.tbl_contains({ "presenter.start" }, event.name) then
             module.public.present()
-        elseif vim.tbl_contains({ "presenter.close", "core.presenter.close" }, event.split_type[2]) then
+        elseif vim.tbl_contains({ "presenter.close", "core.presenter.close" }, event.name) then
             module.public.close()
-        elseif vim.tbl_contains({ "core.presenter.previous_page" }, event.split_type[2]) then
+        elseif vim.tbl_contains({ "core.presenter.previous_page" }, event.name) then
             module.public.previous_page()
-        elseif vim.tbl_contains({ "core.presenter.next_page" }, event.split_type[2]) then
+        elseif vim.tbl_contains({ "core.presenter.next_page" }, event.name) then
             module.public.next_page()
         end
     end

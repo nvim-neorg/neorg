@@ -188,19 +188,19 @@ module.config.private = {
 module.on_event = function(event)
     local config = module.config.public.moveables
 
-    if event.split_type[2] == "core.norg.manoeuvre.item_down" then
+    if event.name == "core.norg.manoeuvre.item_down" then
         for _, data in pairs(config) do
             module.public.move_item_down(data[1], data[2])
         end
-    elseif event.split_type[2] == "core.norg.manoeuvre.item_up" then
+    elseif event.name == "core.norg.manoeuvre.item_up" then
         for _, data in pairs(config) do
             module.public.move_item_up(data[1], data[2])
         end
     else
-        local textobj = event.split_type[2]:find("textobject")
+        local textobj = event.name:find("textobject")
 
         if textobj then
-            local textobject_type = event.split_type[2]:sub(textobj + string.len("textobject") + 1)
+            local textobject_type = event.name:sub(textobj + string.len("textobject") + 1)
             local textobj_lookup = module.config.private.textobjects[textobject_type]
 
             if textobj_lookup then

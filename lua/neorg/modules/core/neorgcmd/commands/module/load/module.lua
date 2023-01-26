@@ -31,8 +31,8 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.module.load" then
-        modules.load_module(event.content[1])
+    if event.name == "module.load" then
+        modules.load_module(event.payload[1])
     end
 end
 

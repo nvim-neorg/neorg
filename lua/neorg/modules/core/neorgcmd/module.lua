@@ -267,16 +267,14 @@ module.private = {
         end
 
         if not module.events.defined[ref.name] then
-            module.events.defined[ref.name] = modules.events.define(module, ref.name)
+            module.events.defined[ref.name] = ref.name
         end
 
-        modules.events.broadcast_event(
-            modules.events.create(
-                module,
-                table.concat({ "core.neorgcmd.events.", ref.name }),
-                vim.list_slice(args, argument_index + 1)
-            )
-        )
+        neorg.events.new(
+            module,
+            ref.name,
+            vim.list_slice(args, argument_index + 1)
+        ):broadcast(modules.loaded_modules)
     end,
 
     --- This function returns all available commands to be used for the :Neorg command

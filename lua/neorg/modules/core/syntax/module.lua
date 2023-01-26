@@ -470,7 +470,7 @@ module.on_event = function(event)
             >= module.config.public.performance.max_debounce
     end
 
-    if event.type == "core.autocommands.events.bufenter" and event.content.norg then
+    if event.name == "bufenter" and event.payload.norg then
         local buf = event.buffer
 
         local line_count = vim.api.nvim_buf_line_count(buf)
@@ -584,7 +584,7 @@ module.on_event = function(event)
                 end
             end,
         })
-    elseif event.type == "core.autocommands.events.insertleave" then
+    elseif event.name == "core.autocommands.events.insertleave" then
         if should_debounce() then
             return
         end
@@ -622,15 +622,15 @@ module.on_event = function(event)
 
             module.private.largest_change_start, module.private.largest_change_end = -1, -1
         end)
-    elseif event.type == "core.autocommands.events.vimleavepre" then
+    elseif event.name == "core.autocommands.events.vimleavepre" then
         module.private.disable_deferred_updates = true
         -- this autocmd is used to fix hi link syntax languages
         -- TEMP(vhyrro): Temporarily removed for testing - executes code twice when it should not.
-        -- elseif event.type == "core.autocommands.events.textchanged" then
+        -- elseif event.name == "core.autocommands.events.textchanged" then
         -- module.private.trigger_highlight_regex_code_block(event.buffer, false, true)
-        -- elseif event.type == "core.autocommands.events.textchangedi" then
+        -- elseif event.name == "core.autocommands.events.textchangedi" then
         --     module.private.trigger_highlight_regex_code_block(event.buffer, false, true)
-    elseif event.type == "core.autocommands.events.colorscheme" then
+    elseif event.name == "core.autocommands.events.colorscheme" then
         module.public.trigger_highlight_regex_code_block(event.buffer, true, false)
     end
 end

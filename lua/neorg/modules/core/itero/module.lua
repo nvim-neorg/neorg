@@ -45,7 +45,7 @@ module.load = function()
 end
 
 module.on_event = function(event)
-    if event.split_type[2] == (module.name .. ".next-iteration") then
+    if event.name == (module.name .. ".next-iteration") then
         local ts = module.required["core.integrations.treesitter"]
         local cursor_pos = event.cursor_position[1] - 1
 

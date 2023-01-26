@@ -707,17 +707,17 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.split_type[1] == "core.keybinds" then
-        if event.split_type[2] == "core.integrations.treesitter.next.heading" then
+    if event.referrer.name == "core.keybinds" then
+        if event.name == "core.integrations.treesitter.next.heading" then
             module.public.goto_next_query_match(module.private.heading_query)
-        elseif event.split_type[2] == "core.integrations.treesitter.previous.heading" then
+        elseif event.name == "core.integrations.treesitter.previous.heading" then
             module.public.goto_previous_query_match(module.private.heading_query)
-        elseif event.split_type[2] == "core.integrations.treesitter.next.link" then
+        elseif event.name == "core.integrations.treesitter.next.link" then
             module.public.goto_next_query_match(module.private.link_query)
-        elseif event.split_type[2] == "core.integrations.treesitter.previous.link" then
+        elseif event.name == "core.integrations.treesitter.previous.link" then
             module.public.goto_previous_query_match(module.private.link_query)
         end
-    elseif event.split_type[2] == "sync-parsers" then
+    elseif event.name == "sync-parsers" then
         local ok = pcall(vim.cmd, "TSInstall! norg")
 
         if not ok then

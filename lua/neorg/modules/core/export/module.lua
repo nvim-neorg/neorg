@@ -212,12 +212,12 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.export.to-file" then
+    if event.name == "export.to-file" then
         -- Syntax: Neorg export to-file file.extension forced-filetype?
         -- Example: Neorg export to-file my-custom-file markdown
 
-        local filepath = vim.fn.expand(event.content[1])
-        local filetype = neorg.utils.get_filetype(filepath, event.content[2])
+        local filepath = vim.fn.expand(event.payload[1])
+        local filetype = neorg.utils.get_filetype(filepath, event.payload[2])
         local exported = module.public.export(event.buffer, filetype)
 
         vim.loop.fs_open(filepath, "w", 438, function(err, fd)
@@ -232,11 +232,11 @@ module.on_event = function(event)
 
             vim.schedule(neorg.lib.wrap(vim.notify, "Successfully exported 1 file!"))
         end)
-    elseif event.type == "core.neorgcmd.events.export.directory" then
-        local path = event.content[3] and vim.fn.expand(event.content[3])
+    elseif event.name == "export.directory" then
+        local path = event.payload[3] and vim.fn.expand(event.payload[3])
             or module.config.public.export_dir
-                :gsub("<language>", event.content[2])
-                :gsub("<export%-dir>", event.content[1])
+                :gsub("<language>", event.payload[2])
+                :gsub("<export%-dir>", event.payload[1])
         vim.fn.mkdir(path, "p")
 
         -- The old value of `eventignore` is stored here. This is done because the eventignore
@@ -244,8 +244,8 @@ module.on_event = function(event)
         -- activate the concealer, which not only slows down performance notably but also causes errors.
         local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
 
-        vim.loop.fs_scandir(event.content[1], function(err, handle)
-            assert(not err, neorg.lib.lazy_string_concat("Failed to scan directory '", event.content[1], "': ", err))
+        vim.loop.fs_scandir(event.payload[1], function(err, handle)
+            assert(not err, neorg.lib.lazy_string_concat("Failed to scan directory '", event.payload[1], "': ", err))
 
             local file_counter, parsed_counter = 0, 0
 
@@ -273,7 +273,7 @@ module.on_event = function(event)
                     end
 
                     vim.schedule(function()
-                        local filepath = vim.fn.expand(event.content[1]) .. "/" .. name
+                        local filepath = vim.fn.expand(event.payload[1]) .. "/" .. name
 
                         vim.opt.eventignore = "BufEnter"
 
@@ -282,7 +282,7 @@ module.on_event = function(event)
 
                         vim.opt.eventignore = old_event_ignore
 
-                        local exported, extension = module.public.export(buffer, event.content[2])
+                        local exported, extension = module.public.export(buffer, event.payload[2])
 
                         vim.api.nvim_buf_delete(buffer, { force = true })
 

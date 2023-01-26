@@ -216,7 +216,7 @@ module.load = function()
 end
 
 module.on_event = function(event)
-    if event.type == "core.autocommands.events.bufenter" and event.content.norg then
+    if event.name == "bufenter" and event.payload.norg then
         vim.api.nvim_buf_set_option(
             event.buffer,
             "indentexpr",

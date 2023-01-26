@@ -263,8 +263,8 @@ end
 
 module.on_event = function(event)
     if
-        event.type == ("core.autocommands.events." .. module.private.listen_event)
-        and event.content.norg
+        event.name == (module.private.listen_event)
+        and event.payload.norg
         and vim.api.nvim_buf_is_loaded(event.buffer)
         and vim.api.nvim_buf_get_option(event.buffer, "modifiable")
         and not module.private.buffers[event.buffer]
@@ -272,10 +272,10 @@ module.on_event = function(event)
     then
         module.public.inject_metadata(event.buffer)
         module.private.buffers[event.buffer] = true
-    elseif event.type == "core.neorgcmd.events.inject-metadata" then
+    elseif event.name == "inject-metadata" then
         module.public.inject_metadata(event.buffer, true)
         module.private.buffers[event.buffer] = true
-    elseif event.type == "core.neorgcmd.events.update-metadata" then
+    elseif event.name == "update-metadata" then
         module.public.update_metadata(event.buffer)
         module.private.buffers[event.buffer] = true
     end

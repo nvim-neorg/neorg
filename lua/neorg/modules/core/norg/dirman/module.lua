@@ -157,13 +157,11 @@ module.public = {
         end
 
         -- Broadcast the workspace_changed event with all the necessary information
-        modules.events.broadcast_event(
-            modules.events.create(
-                module,
-                "core.norg.dirman.events.workspace_changed",
-                { old = current_ws, new = new_workspace }
-            )
-        )
+        neorg.events.new(
+            module,
+            "workspace_changed",
+            { old = current_ws, new = new_workspace }
+        ):broadcast(modules.loaded_modules)
 
         return true
     end,
@@ -180,10 +178,12 @@ module.public = {
 
         -- Set the new workspace and its path accordingly
         module.config.public.workspaces[workspace_name] = workspace_path
-        -- Broadcast the workspace_added event with the newly added workspace as the content
-        modules.events.broadcast_event(
-            modules.events.create(module, "core.norg.dirman.events.workspace_added", { workspace_name, workspace_path })
-        )
+        -- Broadcast the workspace_added event with the newly added workspace as the payload
+        neorg.events.new(
+            module,
+            "workspace_added",
+            { workspace_name, workspace_path }
+        ):broadcast(modules.loaded_modules)
 
         -- Sync autocompletions so the user can see the new workspace
         module.public.sync()
@@ -461,19 +461,19 @@ module.public = {
 
 module.on_event = function(event)
     -- If somebody has executed the :Neorg workspace command then
-    if event.type == "core.neorgcmd.events.dirman.workspace" then
+    if event.name == "dirman.workspace" then
         -- Have we supplied an argument?
-        if event.content[1] then
-            module.public.open_workspace(event.content[1])
+        if event.payload[1] then
+            module.public.open_workspace(event.payload[1])
 
             vim.schedule(function()
-                local new_workspace = module.public.get_workspace(event.content[1])
+                local new_workspace = module.public.get_workspace(event.payload[1])
 
                 if not new_workspace then
                     return
                 end
 
-                vim.notify("New Workspace: " .. event.content[1] .. " -> " .. new_workspace)
+                vim.notify("New Workspace: " .. event.payload[1] .. " -> " .. new_workspace)
             end)
         else -- No argument supplied, simply print the current workspace
             -- Query the current workspace
@@ -487,7 +487,7 @@ module.on_event = function(event)
     end
 
     -- If somebody has executed the :Neorg index command then
-    if event.type == "core.neorgcmd.events.dirman.index" then
+    if event.name == "dirman.index" then
         local current_ws = module.public.get_current_workspace()
         local index_path = table.concat({ current_ws[2], "/", module.config.public.index })
 
@@ -501,7 +501,7 @@ module.on_event = function(event)
     end
 
     -- If the user has executed a keybind to create a new note then create a prompt
-    if event.type == "core.keybinds.events.core.norg.dirman.new.note" then
+    if event.name == "core.norg.dirman.new.note" then
         module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
             -- Create the file that the user has entered
             module.public.create_file(text)
@@ -518,9 +518,9 @@ module.on_event = function(event)
 end
 
 module.events.defined = {
-    workspace_changed = modules.events.define(module, "workspace_changed"),
-    workspace_added = modules.events.define(module, "workspace_added"),
-    workspace_cache_empty = modules.events.define(module, "workspace_cache_empty"),
+    workspace_changed = "workspace_changed",
+    workspace_added = "workspace_added",
+    workspace_cache_empty = "workspace_cache_empty",
 }
 
 module.events.subscribed = {

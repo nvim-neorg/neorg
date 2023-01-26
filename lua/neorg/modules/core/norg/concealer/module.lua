@@ -817,12 +817,14 @@ module.public = {
         module.private.enabled = not module.private.enabled
 
         if module.private.enabled then
-            modules.events.send_event(
-                "core.norg.concealer",
-                modules.events.create(module, "core.autocommands.events.bufenter", {
-                    norg = true,
-                })
-            )
+            local concealer = modules.loaded_modules["core.norg.concealer"]
+            if concealer then
+                neorg.events.new(
+                    module,
+                    "bufenter",
+                    { norg = true }
+                ):send_to(concealer)
+            end
         else
             for _, namespace in ipairs({
                 "icon_namespace",
@@ -1409,7 +1411,7 @@ module.load = function()
 end
 
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.core.norg.concealer.toggle" then
+    if event.name == "core.norg.concealer.toggle" then
         module.public.toggle_concealer()
     end
 
@@ -1430,7 +1432,7 @@ module.on_event = function(event)
         or false
     )
 
-    if event.type == "core.autocommands.events.bufenter" and event.content.norg then
+    if event.name == "bufenter" and event.payload.norg then
         if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
             local opts = {
                 scope = "local",
@@ -1596,7 +1598,7 @@ module.on_event = function(event)
                 end
             end,
         })
-    elseif event.type == "core.autocommands.events.insertenter" then
+    elseif event.name == "insertenter" then
         schedule(function()
             module.private.last_change = {
                 active = false,
@@ -1610,7 +1612,7 @@ module.on_event = function(event)
                 event.cursor_position[1]
             )
         end)
-    elseif event.type == "core.autocommands.events.insertleave" then
+    elseif event.name == "insertleave" then
         if should_debounce() then
             return
         end
@@ -1638,15 +1640,15 @@ module.on_event = function(event)
 
             module.private.largest_change_start, module.private.largest_change_end = -1, -1
         end)
-    elseif event.type == "core.autocommands.events.vimleavepre" then
+    elseif event.name == "vimleavepre" then
         module.private.disable_deferred_updates = true
-    elseif event.type == "core.norg.concealer.events.update_region" then
+    elseif event.name == "update_region" then
         schedule(function()
             vim.api.nvim_buf_clear_namespace(
                 event.buffer,
                 module.private.icon_namespace,
-                event.content.start,
-                event.content["end"]
+                event.payload.start,
+                event.payload["end"]
             )
 
             module.public.trigger_icons(
@@ -1654,15 +1656,15 @@ module.on_event = function(event)
                 module.private.has_conceal,
                 module.private.icons,
                 module.private.icon_namespace,
-                event.content.start,
-                event.content["end"]
+                event.payload.start,
+                event.payload["end"]
             )
         end)
     end
 end
 
 module.events.defined = {
-    update_region = modules.events.define(module, "update_region"),
+    update_region = "update_region",
 }
 
 module.events.subscribed = {

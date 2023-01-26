@@ -286,7 +286,7 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.core.tangle.current-file" then
+    if event.name == "core.tangle.current-file" then
         local tangles = module.public.tangle(event.buffer)
 
         if not tangles or vim.tbl_isempty(tangles) then

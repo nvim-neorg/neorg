@@ -79,7 +79,7 @@ module.public = {
 
 module.on_event = function(event)
     -- Synchronize the data in memory with the data on disk after we leave Neovim
-    if event.type == "core.autocommands.events.vimleavepre" then
+    if event.name == "vimleavepre" then
         module.public.flush()
     end
 end

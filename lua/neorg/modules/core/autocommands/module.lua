@@ -26,7 +26,7 @@ module.events.subscribed = {
 Upon receiving an event, it will come in this format:
 ```lua
 {
-    type = "core.autocommands.events.<name of autocommand, e.g. vimleavepre>",
+    type = "<name of autocommand, e.g. vimleavepre>",
     broadcast = true
 }
 ```
@@ -40,12 +40,11 @@ local module = modules.create("core.autocommands")
 ---@param name string #The name of the autocommand that was just triggered
 ---@param triggered_from_norg boolean #If true, that means we have received this event as part of a *.norg autocommand
 function _neorg_module_autocommand_triggered(name, triggered_from_norg)
-    modules.events.broadcast_event(modules.events.create(module, name, { norg = triggered_from_norg }))
-end
-
--- A convenience wrapper around modules.events.define_event
-module.autocmd_base = function(name)
-    return modules.events.define(module, name)
+    neorg.events.new(
+        module,
+        name,
+        { norg = triggered_from_norg }
+    ):broadcast(modules.loaded_modules)
 end
 
 ---@class core.autocommands
@@ -67,7 +66,7 @@ module.public = {
                 vim.cmd(
                     "autocmd "
                         .. autocmd
-                        .. ' * :lua _neorg_module_autocommand_triggered("core.autocommands.events.'
+                        .. ' * :lua _neorg_module_autocommand_triggered("'
                         .. autocmd
                         .. '", false)'
                 )
@@ -75,7 +74,7 @@ module.public = {
                 vim.cmd(
                     "autocmd "
                         .. autocmd
-                        .. ' *.norg :lua _neorg_module_autocommand_triggered("core.autocommands.events.'
+                        .. ' *.norg :lua _neorg_module_autocommand_triggered("'
                         .. autocmd
                         .. '", true)'
                 )
@@ -210,119 +209,118 @@ module.events.subscribed = {
 
 -- All the autocommand definitions
 module.events.defined = {
-
-    bufadd = module.autocmd_base("bufadd"),
-    bufdelete = module.autocmd_base("bufdelete"),
-    bufenter = module.autocmd_base("bufenter"),
-    buffilepost = module.autocmd_base("buffilepost"),
-    buffilepre = module.autocmd_base("buffilepre"),
-    bufhidden = module.autocmd_base("bufhidden"),
-    bufleave = module.autocmd_base("bufleave"),
-    bufmodifiedset = module.autocmd_base("bufmodifiedset"),
-    bufnew = module.autocmd_base("bufnew"),
-    bufnewfile = module.autocmd_base("bufnewfile"),
-    bufread = module.autocmd_base("bufread"),
-    bufreadcmd = module.autocmd_base("bufreadcmd"),
-    bufreadpre = module.autocmd_base("bufreadpre"),
-    bufunload = module.autocmd_base("bufunload"),
-    bufwinenter = module.autocmd_base("bufwinenter"),
-    bufwinleave = module.autocmd_base("bufwinleave"),
-    bufwipeout = module.autocmd_base("bufwipeout"),
-    bufwrite = module.autocmd_base("bufwrite"),
-    bufwritecmd = module.autocmd_base("bufwritecmd"),
-    bufwritepost = module.autocmd_base("bufwritepost"),
-    chaninfo = module.autocmd_base("chaninfo"),
-    chanopen = module.autocmd_base("chanopen"),
-    cmdundefined = module.autocmd_base("cmdundefined"),
-    cmdlinechanged = module.autocmd_base("cmdlinechanged"),
-    cmdlineenter = module.autocmd_base("cmdlineenter"),
-    cmdlineleave = module.autocmd_base("cmdlineleave"),
-    cmdwinenter = module.autocmd_base("cmdwinenter"),
-    cmdwinleave = module.autocmd_base("cmdwinleave"),
-    colorscheme = module.autocmd_base("colorscheme"),
-    colorschemepre = module.autocmd_base("colorschemepre"),
-    completechanged = module.autocmd_base("completechanged"),
-    completedonepre = module.autocmd_base("completedonepre"),
-    completedone = module.autocmd_base("completedone"),
-    cursorhold = module.autocmd_base("cursorhold"),
-    cursorholdi = module.autocmd_base("cursorholdi"),
-    cursormoved = module.autocmd_base("cursormoved"),
-    cursormovedi = module.autocmd_base("cursormovedi"),
-    diffupdated = module.autocmd_base("diffupdated"),
-    dirchanged = module.autocmd_base("dirchanged"),
-    fileappendcmd = module.autocmd_base("fileappendcmd"),
-    fileappendpost = module.autocmd_base("fileappendpost"),
-    fileappendpre = module.autocmd_base("fileappendpre"),
-    filechangedro = module.autocmd_base("filechangedro"),
-    exitpre = module.autocmd_base("exitpre"),
-    filechangedshell = module.autocmd_base("filechangedshell"),
-    filechangedshellpost = module.autocmd_base("filechangedshellpost"),
-    filereadcmd = module.autocmd_base("filereadcmd"),
-    filereadpost = module.autocmd_base("filereadpost"),
-    filereadpre = module.autocmd_base("filereadpre"),
-    filetype = module.autocmd_base("filetype"),
-    filewritecmd = module.autocmd_base("filewritecmd"),
-    filewritepost = module.autocmd_base("filewritepost"),
-    filewritepre = module.autocmd_base("filewritepre"),
-    filterreadpost = module.autocmd_base("filterreadpost"),
-    filterreadpre = module.autocmd_base("filterreadpre"),
-    filterwritepost = module.autocmd_base("filterwritepost"),
-    filterwritepre = module.autocmd_base("filterwritepre"),
-    focusgained = module.autocmd_base("focusgained"),
-    focuslost = module.autocmd_base("focuslost"),
-    funcundefined = module.autocmd_base("funcundefined"),
-    uienter = module.autocmd_base("uienter"),
-    uileave = module.autocmd_base("uileave"),
-    insertchange = module.autocmd_base("insertchange"),
-    insertcharpre = module.autocmd_base("insertcharpre"),
-    textyankpost = module.autocmd_base("textyankpost"),
-    insertenter = module.autocmd_base("insertenter"),
-    insertleavepre = module.autocmd_base("insertleavepre"),
-    insertleave = module.autocmd_base("insertleave"),
-    menupopup = module.autocmd_base("menupopup"),
-    optionset = module.autocmd_base("optionset"),
-    quickfixcmdpre = module.autocmd_base("quickfixcmdpre"),
-    quickfixcmdpost = module.autocmd_base("quickfixcmdpost"),
-    quitpre = module.autocmd_base("quitpre"),
-    remotereply = module.autocmd_base("remotereply"),
-    sessionloadpost = module.autocmd_base("sessionloadpost"),
-    shellcmdpost = module.autocmd_base("shellcmdpost"),
-    signal = module.autocmd_base("signal"),
-    shellfilterpost = module.autocmd_base("shellfilterpost"),
-    sourcepre = module.autocmd_base("sourcepre"),
-    sourcepost = module.autocmd_base("sourcepost"),
-    sourcecmd = module.autocmd_base("sourcecmd"),
-    spellfilemissing = module.autocmd_base("spellfilemissing"),
-    stdinreadpost = module.autocmd_base("stdinreadpost"),
-    stdinreadpre = module.autocmd_base("stdinreadpre"),
-    swapexists = module.autocmd_base("swapexists"),
-    syntax = module.autocmd_base("syntax"),
-    tabenter = module.autocmd_base("tabenter"),
-    tableave = module.autocmd_base("tableave"),
-    tabnew = module.autocmd_base("tabnew"),
-    tabnewentered = module.autocmd_base("tabnewentered"),
-    tabclosed = module.autocmd_base("tabclosed"),
-    termopen = module.autocmd_base("termopen"),
-    termenter = module.autocmd_base("termenter"),
-    termleave = module.autocmd_base("termleave"),
-    termclose = module.autocmd_base("termclose"),
-    termresponse = module.autocmd_base("termresponse"),
-    textchanged = module.autocmd_base("textchanged"),
-    textchangedi = module.autocmd_base("textchangedi"),
-    textchangedp = module.autocmd_base("textchangedp"),
-    user = module.autocmd_base("user"),
-    usergettingbored = module.autocmd_base("usergettingbored"),
-    vimenter = module.autocmd_base("vimenter"),
-    vimleave = module.autocmd_base("vimleave"),
-    vimleavepre = module.autocmd_base("vimleavepre"),
-    vimresized = module.autocmd_base("vimresized"),
-    vimresume = module.autocmd_base("vimresume"),
-    vimsuspend = module.autocmd_base("vimsuspend"),
-    winclosed = module.autocmd_base("winclosed"),
-    winenter = module.autocmd_base("winenter"),
-    winleave = module.autocmd_base("winleave"),
-    winnew = module.autocmd_base("winnew"),
-    winscrolled = module.autocmd_base("winscrolled"),
+    bufadd = "bufadd",
+    bufdelete = "bufdelete",
+    bufenter = "bufenter",
+    buffilepost = "buffilepost",
+    buffilepre = "buffilepre",
+    bufhidden = "bufhidden",
+    bufleave = "bufleave",
+    bufmodifiedset = "bufmodifiedset",
+    bufnew = "bufnew",
+    bufnewfile = "bufnewfile",
+    bufread = "bufread",
+    bufreadcmd = "bufreadcmd",
+    bufreadpre = "bufreadpre",
+    bufunload = "bufunload",
+    bufwinenter = "bufwinenter",
+    bufwinleave = "bufwinleave",
+    bufwipeout = "bufwipeout",
+    bufwrite = "bufwrite",
+    bufwritecmd = "bufwritecmd",
+    bufwritepost = "bufwritepost",
+    chaninfo = "chaninfo",
+    chanopen = "chanopen",
+    cmdundefined = "cmdundefined",
+    cmdlinechanged = "cmdlinechanged",
+    cmdlineenter = "cmdlineenter",
+    cmdlineleave = "cmdlineleave",
+    cmdwinenter = "cmdwinenter",
+    cmdwinleave = "cmdwinleave",
+    colorscheme = "colorscheme",
+    colorschemepre = "colorschemepre",
+    completechanged = "completechanged",
+    completedonepre = "completedonepre",
+    completedone = "completedone",
+    cursorhold = "cursorhold",
+    cursorholdi = "cursorholdi",
+    cursormoved = "cursormoved",
+    cursormovedi = "cursormovedi",
+    diffupdated = "diffupdated",
+    dirchanged = "dirchanged",
+    fileappendcmd = "fileappendcmd",
+    fileappendpost = "fileappendpost",
+    fileappendpre = "fileappendpre",
+    filechangedro = "filechangedro",
+    exitpre = "exitpre",
+    filechangedshell = "filechangedshell",
+    filechangedshellpost = "filechangedshellpost",
+    filereadcmd = "filereadcmd",
+    filereadpost = "filereadpost",
+    filereadpre = "filereadpre",
+    filetype = "filetype",
+    filewritecmd = "filewritecmd",
+    filewritepost = "filewritepost",
+    filewritepre = "filewritepre",
+    filterreadpost = "filterreadpost",
+    filterreadpre = "filterreadpre",
+    filterwritepost = "filterwritepost",
+    filterwritepre = "filterwritepre",
+    focusgained = "focusgained",
+    focuslost = "focuslost",
+    funcundefined = "funcundefined",
+    uienter = "uienter",
+    uileave = "uileave",
+    insertchange = "insertchange",
+    insertcharpre = "insertcharpre",
+    textyankpost = "textyankpost",
+    insertenter = "insertenter",
+    insertleavepre = "insertleavepre",
+    insertleave = "insertleave",
+    menupopup = "menupopup",
+    optionset = "optionset",
+    quickfixcmdpre = "quickfixcmdpre",
+    quickfixcmdpost = "quickfixcmdpost",
+    quitpre = "quitpre",
+    remotereply = "remotereply",
+    sessionloadpost = "sessionloadpost",
+    shellcmdpost = "shellcmdpost",
+    signal = "signal",
+    shellfilterpost = "shellfilterpost",
+    sourcepre = "sourcepre",
+    sourcepost = "sourcepost",
+    sourcecmd = "sourcecmd",
+    spellfilemissing = "spellfilemissing",
+    stdinreadpost = "stdinreadpost",
+    stdinreadpre = "stdinreadpre",
+    swapexists = "swapexists",
+    syntax = "syntax",
+    tabenter = "tabenter",
+    tableave = "tableave",
+    tabnew = "tabnew",
+    tabnewentered = "tabnewentered",
+    tabclosed = "tabclosed",
+    termopen = "termopen",
+    termenter = "termenter",
+    termleave = "termleave",
+    termclose = "termclose",
+    termresponse = "termresponse",
+    textchanged = "textchanged",
+    textchangedi = "textchangedi",
+    textchangedp = "textchangedp",
+    user = "user",
+    usergettingbored = "usergettingbored",
+    vimenter = "vimenter",
+    vimleave = "vimleave",
+    vimleavepre = "vimleavepre",
+    vimresized = "vimresized",
+    vimresume = "vimresume",
+    vimsuspend = "vimsuspend",
+    winclosed = "winclosed",
+    winenter = "winenter",
+    winleave = "winleave",
+    winnew = "winnew",
+    winscrolled = "winscrolled",
 }
 
 module.examples = {
@@ -346,7 +344,7 @@ module.examples = {
         -- Listen for any incoming events
         mymodule.on_event = function(event)
             -- If it's the event we're looking for then do something!
-            if event.type == "core.autocommands.events.insertleave" then
+            if event.name == "insertleave" then
                 neorg.log.warn("We left insert mode!")
             end
         end

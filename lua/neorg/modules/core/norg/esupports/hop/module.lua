@@ -809,8 +809,8 @@ module.private = {
 }
 
 module.on_event = function(event)
-    if event.split_type[2] == "core.norg.esupports.hop.hop-link" then
-        local split_mode = event.content[1]
+    if event.name == "core.norg.esupports.hop.hop-link" then
+        local split_mode = event.payload[1]
 
         -- Get link node at cursor
         local link_node_at_cursor = module.public.extract_link_node()

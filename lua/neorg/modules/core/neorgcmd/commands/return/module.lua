@@ -24,7 +24,7 @@ module.public = {
 }
 
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.return" then
+    if event.name == "return" then
         -- Get all the buffers
         local buffers = vim.api.nvim_list_bufs()
 

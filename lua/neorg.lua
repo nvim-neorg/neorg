@@ -109,16 +109,7 @@ function neorg.org_file_entered(manual, arguments)
     configuration.started = true
 
     -- Lets the entire Neorg environment know that Neorg has started!
-    modules.events.broadcast_event({
-        type = "core.started",
-        split_type = { "core", "started" },
-        filename = "",
-        filehead = "",
-        cursor_position = { 0, 0 },
-        referrer = "core",
-        line_content = "",
-        broadcast = true,
-    })
+    neorg.events.new_quick({}, "core.started", {}):broadcast(modules.loaded_modules)
 
     -- Sometimes external plugins prefer hooking in to an autocommand
     vim.api.nvim_exec_autocmds("User", {
