@@ -156,7 +156,6 @@ docgen.get_module_config_node = function(buffer, root)
     return declaration_node and declaration_node:named_child(1):named_child(0) or nil
 end
 
---- TODO
 ---@param start_node userdata #Node
 ---@param callback function
 ---@param parents string[]? #Used internally to track nesting levels
@@ -165,29 +164,13 @@ docgen.map_config = function(buffer, start_node, callback, parents)
 
     local comments = {}
 
-    local query = vim.treesitter.parse_query(
-        "lua",
-        [[
-        ((comment)* @comment
-        .
-        (field) @field)
-    ]]
-    )
-
-    for capture_id, node in query:iter_captures(start_node, buffer) do
-        local capture = query.captures[capture_id]
-
-        if capture == "comment" then
+    for node in start_node:iter_children() do
+        if node:type() == "comment" then
             table.insert(comments, ts.get_node_text(node, buffer))
-        elseif capture == "field" then
+        elseif node:type() == "field" then
             local name_node = node:field("name")[1]
             local name = name_node and ts.get_node_text(name_node, buffer) or nil
             local value = node:field("value")[1]
-
-            -- TODO: REVISIST
-            if node:parent():id() ~= start_node:id() then
-                return
-            end
 
             if value:type() == "table_constructor" then
                 callback({
@@ -236,7 +219,8 @@ docgen.evaluate_functions = function(tbl)
     return new
 end
 
----@alias Modules { [string]: { top_comment_data: TopComment, buffer: number, parsed: table } }
+---@alias Module { top_comment_data: TopComment, buffer: number, parsed: table }
+---@alias Modules { [string]: Module }
 
 docgen.generators = {
     --- Generates the Home.md file
@@ -460,28 +444,31 @@ end
 ---@alias ConfigOptionData { node: userdata, name: string, value: userdata, parents: string[] }
 
 --- Converts a lua object to a html node in the resulting HTML document
----@param buffer number
----@param data ConfigOptionData #The data as returned by `map_config`
----@param comments string[] #The comments attached to the object
----@param object any #The lua object to render
-docgen.render = function(buffer, data, comments, object)
+docgen.render = function(configuration_option)
+    local self = configuration_option.self
+
     local basis = {
         "<details>",
         "",
-        table.concat({ "<summary><code>", data.name, "</code></summary>" }),
+        table.concat({ "<summary><code>", self.data.name, "</code></summary>" }),
         "",
         "<h6>",
         "",
     }
 
-    vim.list_extend(basis, comments)
+    vim.list_extend(basis, self.comments)
     vim.list_extend(basis, {
         "",
         "</h6>",
         "",
-        table.concat({ "Default Value:", (type(object) == "number" or type(object) == "nil") and table.concat({ " `", tostring(object), "1" }) or nil }),
+        table.concat({
+            "Default Value:",
+            (type(self.object) == "number" or type(self.object) == "nil")
+                    and table.concat({ " `", tostring(self.object), "`" })
+                or nil,
+        }),
     })
-    vim.list_extend(basis, docgen.htmlify(buffer, data, object))
+    vim.list_extend(basis, docgen.htmlify(configuration_option))
     vim.list_extend(basis, {
         "",
         "</details>",
@@ -490,36 +477,52 @@ docgen.render = function(buffer, data, comments, object)
     return basis
 end
 
---- Converts a lua object into HTML
----@param buffer number
----@param data ConfigOptionData
----@param object any
-docgen.htmlify = function(buffer, data, object)
+docgen.htmlify = function(configuration_option)
+    local self = configuration_option.self
+
     local result = {}
     local code_block = true
 
-    neorg.lib.match(type(object)) {
+    neorg.lib.match(type(self.object))({
         string = function()
-            table.insert(result, table.concat({ '"', object, '"' }))
+            table.insert(result, table.concat({ '"', self.object, '"' }))
         end,
         table = function()
-            result = {
+            vim.list_extend(result, {
                 "",
                 "<details>",
                 "",
-                "<summary>table (click to expand)</summary>",
+                vim.tbl_islist(self.object) and "<summary>list (click to expand)</summary>"
+                    or "<summary>table (click to expand)</summary>",
+                "",
+            })
+            for name_or_index, _ in pairs(self.object) do
+                local subitem = configuration_option[name_or_index]
+                    or (
+                        type(name_or_index) == "number"
+                            and configuration_option._inline_elements
+                            and configuration_option._inline_elements[name_or_index]
+                        or nil
+                    )
+
+                if subitem then
+                    vim.list_extend(result, docgen.render(subitem))
+                end
+            end
+            vim.list_extend(result, {
                 "",
                 "</details>",
                 "",
-            }
+            })
 
             code_block = false
         end,
+        -- TODO: render functions
         ["function"] = {},
         _ = function()
-            table.insert(result, ts.get_node_text(data.value, buffer))
+            table.insert(result, ts.get_node_text(self.data.value, self.buffer))
         end,
-    }
+    })
 
     if code_block then
         table.insert(result, 1, "```lua")
