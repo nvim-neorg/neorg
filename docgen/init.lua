@@ -12,6 +12,17 @@ local modules = {
     --]]
 }
 
+local function concat_configuration_options(configuration_options)
+    local result = {}
+
+    for _, value in pairs(configuration_options) do
+        vim.list_extend(result, docgen.render(value))
+        table.insert(result, "")
+    end
+
+    return result
+end
+
 for _, file in ipairs(docgen.aggregate_module_files()) do
     local fullpath = vim.fn.fnamemodify(file, ":p")
 
@@ -103,21 +114,32 @@ for module_name, module in pairs(modules) do
             local object = docgen.to_lua_object(module.parsed, buffer, data.value, module_name)
 
             do
-                log.warn(module_name, data.parents, data.name)
                 neorg.lib.ensure_nested(configuration_options, unpack(data.parents))
-                local ref = vim.tbl_get(configuration_options, unpack(data.parents)) or {}
-
+                local ref = vim.tbl_get(configuration_options, unpack(data.parents)) or configuration_options
                 if data.name then
-                    ref[data.name] = docgen.render(buffer, data, comments, object)
+                    ref[data.name] = {
+                        self = {
+                            buffer = buffer,
+                            data = data,
+                            comments = comments,
+                            object = object,
+                        },
+                    }
                 else
-                    table.insert(ref, docgen.render(buffer, data, comments, object))
+                    ref._inline_elements = ref._inline_elements or {}
+
+                    table.insert(ref._inline_elements, {
+                        self = {
+                            buffer = buffer,
+                            data = data,
+                            comments = comments,
+                            object = object,
+                        },
+                    })
                 end
             end
-
         end)
     end
-
-    -- log.warn(module_name, configuration_options)
 
     -- Perform module lookups in the module's top comment markdown data.
     -- This cannot be done earlier because then there would be no guarantee
@@ -126,5 +148,6 @@ for module_name, module in pairs(modules) do
         module.top_comment_data.markdown[i] = docgen.lookup_modules(modules, line)
     end
 
-    -- fileio.write_to_wiki(module.top_comment_data.file, configuration_options)
+    -- log.warn(module_name, configuration_options)
+    fileio.write_to_wiki(module.top_comment_data.file, concat_configuration_options(configuration_options))
 end
