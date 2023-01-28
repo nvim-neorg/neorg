@@ -452,22 +452,26 @@ docgen.render = function(configuration_option)
         "",
         table.concat({ "<summary><code>", self.data.name, "</code></summary>" }),
         "",
-        "<h6>",
-        "",
     }
 
-    vim.list_extend(basis, self.comments)
-    vim.list_extend(basis, {
-        "",
-        "</h6>",
-        "",
-        table.concat({
+    if not vim.tbl_isempty(self.comments) then
+        vim.list_extend(basis, { 
+            "<h6>",
+            "",
+        })
+        vim.list_extend(basis, self.comments)
+        vim.list_extend(basis, { 
+            "</h6>",
+            "",
+        })
+    end
+
+    table.insert(basis, table.concat({
             "Default Value:",
             (type(self.object) == "number" or type(self.object) == "nil")
                     and table.concat({ " `", tostring(self.object), "`" })
                 or nil,
-        }),
-    })
+        }))
     vim.list_extend(basis, docgen.htmlify(configuration_option))
     vim.list_extend(basis, {
         "",
