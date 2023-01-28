@@ -500,8 +500,11 @@ docgen.render = function(configuration_option, indent)
     local basis = {
         "* <details" .. (indent == 0 and " open>" or ">"),
         "",
-        (self.data.name or ""):match("^%s*$") and "<summary>List item</summary>"
-            or table.concat({ "<summary><code>", self.data.name, "</code></summary>" }),
+        ((self.data.name or ""):match("^%s*$") and "<summary>List item" or table.concat({
+            "<summary><code>",
+            self.data.name,
+            "</code>",
+        })) .. " (" .. type(self.object) .. ")</summary>",
         "",
     }
 
@@ -549,14 +552,8 @@ docgen.htmlify = function(configuration_option, indent)
             table.insert(result, table.concat({ '"', self.object, '"' }))
         end,
         table = function()
-            vim.list_extend(result, {
-                "",
-                "<details>",
-                "",
-                vim.tbl_islist(self.object) and "<summary><i>list (click to expand)</i></summary>"
-                    or "<summary><i>table (click to expand)</i></summary>",
-                "",
-            })
+            table.insert(result, "")
+
             local unrolled = neorg.lib.unroll(self.object)
 
             table.sort(unrolled, function(x, y)
@@ -578,11 +575,8 @@ docgen.htmlify = function(configuration_option, indent)
                     vim.list_extend(result, docgen.render(subitem, indent + 1))
                 end
             end
-            vim.list_extend(result, {
-                "",
-                "</details>",
-                "",
-            })
+
+            table.insert(result, "")
 
             code_block = false
         end,
