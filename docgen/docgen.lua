@@ -523,6 +523,9 @@ docgen.htmlify = function(configuration_option)
         end,
         -- TODO: render functions
         ["function"] = {},
+        number = function()
+            code_block = false
+        end,
         _ = function()
             table.insert(result, ts.get_node_text(self.data.value, self.buffer))
         end,
