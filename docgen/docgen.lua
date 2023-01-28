@@ -76,7 +76,7 @@ docgen.get_module_top_comment = function(buf)
     return comment
 end
 
----@alias TopComment { file: string, title: string, summary: string, markdown: string[], internal: boolean }
+---@alias TopComment { file: string, title: string, summary: string, description: string, embed: string, markdown: string[], internal: boolean }
 
 --- Parses the top comment
 ---@param comment string[] #The comment
