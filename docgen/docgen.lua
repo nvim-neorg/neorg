@@ -516,7 +516,13 @@ docgen.render = function(configuration_option, indent)
             "</h6>",
             "",
         })
+    else
+        vim.list_extend(basis, {
+            "<br>",
+            "",
+        })
     end
+
     vim.list_extend(basis, docgen.htmlify(configuration_option, indent))
     vim.list_extend(basis, {
         "",
