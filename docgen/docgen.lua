@@ -468,13 +468,6 @@ docgen.render = function(configuration_option, indent)
             "",
         })
     end
-
-    table.insert(basis, table.concat({
-            "Default Value:",
-            (type(self.object) == "number" or type(self.object) == "nil")
-                    and table.concat({ " `", tostring(self.object), "`" })
-                or nil,
-        }))
     vim.list_extend(basis, docgen.htmlify(configuration_option, indent))
     vim.list_extend(basis, {
         "",
@@ -540,9 +533,6 @@ docgen.htmlify = function(configuration_option, indent)
         end,
         -- TODO: render functions
         ["function"] = {},
-        number = function()
-            code_block = false
-        end,
         _ = function()
             table.insert(result, ts.get_node_text(self.data.value, self.buffer))
         end,
