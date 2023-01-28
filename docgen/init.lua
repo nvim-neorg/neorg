@@ -154,6 +154,8 @@ for module_name, module in pairs(modules) do
         module.top_comment_data.markdown[i] = docgen.lookup_modules(modules, line)
     end
 
-    -- log.warn(module_name, configuration_options)
-    fileio.write_to_wiki(module.top_comment_data.file, concat_configuration_options(configuration_options))
+    fileio.write_to_wiki(
+        module.top_comment_data.file,
+        docgen.generators.module(modules, module, concat_configuration_options(configuration_options))
+    )
 end
