@@ -452,7 +452,7 @@ docgen.render = function(configuration_option, indent)
     local basis = {
         "* <details>",
         "",
-        table.concat({ "<summary><code>", self.data.name, "</code></summary>" }),
+        (self.data.name or ""):match("^%s*$") and "<summary>List item</summary>" or table.concat({ "<summary><code>", self.data.name, "</code></summary>" }),
         "",
     }
 
