@@ -509,7 +509,15 @@ docgen.htmlify = function(configuration_option, indent)
                     or "<summary>table (click to expand)</summary>",
                 "",
             })
-            for name_or_index, _ in pairs(self.object) do
+            local unrolled = neorg.lib.unroll(self.object)
+
+            table.sort(unrolled, function(x, y)
+                return x[1] < y[1]
+            end)
+
+            for _, data in ipairs(unrolled) do
+                local name_or_index = data[1]
+
                 local subitem = configuration_option[name_or_index]
                     or (
                         type(name_or_index) == "number"
