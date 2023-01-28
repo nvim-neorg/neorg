@@ -15,8 +15,14 @@ local modules = {
 local function concat_configuration_options(configuration_options)
     local result = {}
 
-    for _, value in pairs(configuration_options) do
-        vim.list_extend(result, docgen.render(value))
+    local unrolled = neorg.lib.unroll(configuration_options)
+
+    table.sort(unrolled, function(x, y)
+        return x[1] < y[1]
+    end)
+
+    for _, values in pairs(unrolled) do
+        vim.list_extend(result, docgen.render(values[2]))
         table.insert(result, "")
     end
 
