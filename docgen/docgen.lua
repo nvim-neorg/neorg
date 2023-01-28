@@ -444,23 +444,26 @@ end
 ---@alias ConfigOptionData { node: userdata, name: string, value: userdata, parents: string[] }
 
 --- Converts a lua object to a html node in the resulting HTML document
-docgen.render = function(configuration_option)
+docgen.render = function(configuration_option, indent)
+    indent = indent or 0
+
     local self = configuration_option.self
 
     local basis = {
-        "<details>",
+        "* <details>",
         "",
         table.concat({ "<summary><code>", self.data.name, "</code></summary>" }),
         "",
     }
 
     if not vim.tbl_isempty(self.comments) then
-        vim.list_extend(basis, { 
+        vim.list_extend(basis, {
             "<h6>",
             "",
         })
+
         vim.list_extend(basis, self.comments)
-        vim.list_extend(basis, { 
+        vim.list_extend(basis, {
             "</h6>",
             "",
         })
@@ -472,16 +475,22 @@ docgen.render = function(configuration_option)
                     and table.concat({ " `", tostring(self.object), "`" })
                 or nil,
         }))
-    vim.list_extend(basis, docgen.htmlify(configuration_option))
+    vim.list_extend(basis, docgen.htmlify(configuration_option, indent))
     vim.list_extend(basis, {
         "",
         "</details>",
     })
 
+    for i, str in ipairs(basis) do
+        basis[i] = string.rep(" ", indent + (i > 1 and 2 or 0)) .. str
+    end
+
     return basis
 end
 
-docgen.htmlify = function(configuration_option)
+docgen.htmlify = function(configuration_option, indent)
+    indent = indent or 0
+
     local self = configuration_option.self
 
     local result = {}
@@ -510,7 +519,7 @@ docgen.htmlify = function(configuration_option)
                     )
 
                 if subitem then
-                    vim.list_extend(result, docgen.render(subitem))
+                    vim.list_extend(result, docgen.render(subitem, indent + 1))
                 end
             end
             vim.list_extend(result, {
