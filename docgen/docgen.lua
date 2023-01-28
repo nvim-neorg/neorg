@@ -395,6 +395,54 @@ docgen.generators = {
 
         return docgen.evaluate_functions(structure)
     end,
+
+    --- Generates the page for any Neorg module
+    ---@param modules Modules #The list of currently loaded modules
+    ---@param module Module #The module we want to generate the page for
+    ---@param configuration string[] #An array of markdown strings detailing the configuration options for the module
+    ---@return string[] #A table of markdown strings representing the page
+    module = function(modules, module, configuration)
+        local structure = {
+            '<div align="center">',
+            "",
+            "# `" .. module.parsed.name .. "`",
+            "",
+            "### " .. (module.top_comment_data.title or ""),
+            "",
+            module.top_comment_data.description or "",
+            "",
+            module.top_comment_data.embed and ("![module-showcase](" .. module.top_comment_data.embed .. ")") or "",
+            "",
+            "</div>",
+            "",
+            function()
+                if module.top_comment_data.markdown and not vim.tbl_isempty(module.top_comment_data.markdown) then
+                    return vim.list_extend({
+                        "# Overview",
+                        "",
+                    }, module.top_comment_data.markdown)
+                end
+
+                return {}
+            end,
+            "",
+            "# Configuration",
+            "",
+            function()
+                if vim.tbl_isempty(configuration) then
+                    return {
+                        "# Configuration",
+                        "",
+                        "This module provides no configuration options!",
+                    }
+                else
+                    return configuration
+                end
+            end,
+        }
+
+        return docgen.evaluate_functions(structure)
+    end,
 }
 
 --- Check the integrity of the description comments found in configuration blocks
