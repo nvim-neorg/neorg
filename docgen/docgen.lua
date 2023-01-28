@@ -503,10 +503,10 @@ docgen.htmlify = function(configuration_option, indent)
         table = function()
             vim.list_extend(result, {
                 "",
-                "<details>",
+                "<details open>",
                 "",
-                vim.tbl_islist(self.object) and "<summary>list (click to expand)</summary>"
-                    or "<summary>table (click to expand)</summary>",
+                vim.tbl_islist(self.object) and "<summary>list (click to collapse)</summary>"
+                    or "<summary>table (click to collapse)</summary>",
                 "",
             })
             local unrolled = neorg.lib.unroll(self.object)
