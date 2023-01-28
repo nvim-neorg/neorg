@@ -498,7 +498,7 @@ docgen.render = function(configuration_option, indent)
     local self = configuration_option.self
 
     local basis = {
-        "* <details>",
+        "* <details" .. (indent == 0 and " open>" or ">"),
         "",
         (self.data.name or ""):match("^%s*$") and "<summary>List item</summary>"
             or table.concat({ "<summary><code>", self.data.name, "</code></summary>" }),
@@ -545,10 +545,10 @@ docgen.htmlify = function(configuration_option, indent)
         table = function()
             vim.list_extend(result, {
                 "",
-                "<details open>",
+                "<details>",
                 "",
-                vim.tbl_islist(self.object) and "<summary>list (click to collapse)</summary>"
-                    or "<summary>table (click to collapse)</summary>",
+                vim.tbl_islist(self.object) and "<summary><i>list (click to expand)</i></summary>"
+                    or "<summary><i>table (click to expand)</i></summary>",
                 "",
             })
             local unrolled = neorg.lib.unroll(self.object)
