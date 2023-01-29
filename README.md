@@ -107,7 +107,7 @@ You can install it through your favorite plugin manager:
 
 - 
   <details>
-  <summary><a href="https://github.com/wbthomason/packer.nvim">Packer</a></summary>
+  <summary><a href="https://github.com/wbthomason/packer.nvim">packer.nvim</a></summary>
 
   ```lua
   use {
