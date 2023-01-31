@@ -459,6 +459,30 @@ docgen.generators = {
                     end),
                 })
             end,
+            "",
+            function()
+                local required_by = {}
+
+                for mod, data in pairs(modules) do
+                    local required_modules = data.parsed.setup().requires or {}
+
+                    if vim.tbl_contains(required_modules, module.parsed.name) then
+                        required_by[mod] = data
+                    end
+                end
+
+                if vim.tbl_isempty(required_by) then
+                    return {}
+                end
+
+                return docgen.evaluate_functions({
+                    "# Required By",
+                    "",
+                    list_modules_with_predicate(required_by, function()
+                        return true
+                    end)
+                })
+            end,
         }
 
         return docgen.evaluate_functions(structure)
