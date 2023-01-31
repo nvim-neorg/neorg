@@ -222,44 +222,44 @@ end
 ---@alias Module { top_comment_data: TopComment, buffer: number, parsed: table }
 ---@alias Modules { [string]: Module }
 
+local function list_modules_with_predicate(modules, predicate)
+    return function()
+        local res = {}
+
+        for mod, data in pairs(modules) do
+            if predicate and predicate(data) then
+                local insert
+
+                if data.top_comment_data.file then
+                    insert = "- [`"
+                        .. data.parsed.name
+                        .. "`](https://github.com/nvim-neorg/neorg/wiki/"
+                        .. data.top_comment_data.file
+                        .. ")"
+                else
+                    insert = "- `" .. mod .. "`"
+                end
+
+                if data.top_comment_data.summary then
+                    insert = insert .. " - " .. data.top_comment_data.summary
+                else
+                    insert = insert .. " - undocumented module"
+                end
+
+                table.insert(res, insert)
+            end
+        end
+
+        return res
+    end
+end
+
 docgen.generators = {
     --- Generates the Home.md file
     ---@param modules Modules #A table of modules
     homepage = function(modules)
         local core_defaults = modules["core.defaults"]
         assert(core_defaults, "core.defaults module not loaded!")
-
-        local function list_modules_with_predicate(predicate)
-            return function()
-                local res = {}
-
-                for mod, data in pairs(modules) do
-                    if predicate(data) then
-                        local insert
-
-                        if data.top_comment_data.file then
-                            insert = "- [`"
-                                .. data.parsed.name
-                                .. "`](https://github.com/nvim-neorg/neorg/wiki/"
-                                .. data.top_comment_data.file
-                                .. ")"
-                        else
-                            insert = "- `" .. mod .. "`"
-                        end
-
-                        if data.top_comment_data.summary then
-                            insert = insert .. " - " .. data.top_comment_data.summary
-                        else
-                            insert = insert .. " - undocumented module"
-                        end
-
-                        table.insert(res, insert)
-                    end
-                end
-
-                return res
-            end
-        end
 
         local structure = {
             '<div align="center">',
@@ -303,7 +303,7 @@ docgen.generators = {
                 }
             end,
             "",
-            list_modules_with_predicate(function(data)
+            list_modules_with_predicate(modules, function(data)
                 return vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
                     and not data.top_comment_data.internal
             end),
@@ -313,7 +313,7 @@ docgen.generators = {
             "Some modules are not included by default as they require some manual configuration or are merely extra bells and whistles",
             "and are not critical to editing `.norg` files. Below is a list of all modules that are not required by default:",
             "",
-            list_modules_with_predicate(function(data)
+            list_modules_with_predicate(modules, function(data)
                 return not data.parsed.extension
                     and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
                     and not data.top_comment_data.internal
@@ -323,7 +323,7 @@ docgen.generators = {
             "",
             "These are modules that are only meant for developers. They are generally required in other modules:",
             "",
-            list_modules_with_predicate(function(data)
+            list_modules_with_predicate(modules, function(data)
                 return not data.parsed.extension
                     and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
                     and data.top_comment_data.internal
@@ -431,13 +431,34 @@ docgen.generators = {
             function()
                 if vim.tbl_isempty(configuration) then
                     return {
-                        "# Configuration",
-                        "",
                         "This module provides no configuration options!",
                     }
                 else
                     return configuration
                 end
+            end,
+            "",
+            function()
+                local required_modules = module.parsed.setup().requires or {}
+                log.warn(module.parsed.name, required_modules)
+
+                if vim.tbl_isempty(required_modules) then
+                    return {}
+                end
+
+                local module_list = {}
+
+                for _, module_name in ipairs(required_modules) do
+                    module_list[module_name] = modules[module_name]
+                end
+
+                return docgen.evaluate_functions({
+                    "# Required Modules",
+                    "",
+                    list_modules_with_predicate(module_list, function()
+                        return true
+                    end),
+                })
             end,
         }
 
