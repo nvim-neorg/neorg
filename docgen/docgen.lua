@@ -440,7 +440,6 @@ docgen.generators = {
             "",
             function()
                 local required_modules = module.parsed.setup().requires or {}
-                log.warn(module.parsed.name, required_modules)
 
                 if vim.tbl_isempty(required_modules) then
                     return {}
