@@ -541,14 +541,24 @@ docgen.render = function(configuration_option, indent)
 
     local self = configuration_option.self
 
+    local type_of_object = (function()
+        local t = type(self.object)
+
+        if t == "table" then
+            return vim.tbl_islist(self.object) and "list" or "table"
+        else
+            return t
+        end
+    end)()
+
     local basis = {
         "* <details" .. (indent == 0 and " open>" or ">"),
         "",
-        ((self.data.name or ""):match("^%s*$") and "<summary>List item" or table.concat({
+        ((self.data.name or ""):match("^%s*$") and "<summary>" or table.concat({
             "<summary><code>",
             self.data.name,
             "</code>",
-        })) .. " (" .. type(self.object) .. ")</summary>",
+        })) .. " (" .. type_of_object .. ")</summary>",
         "",
     }
 
