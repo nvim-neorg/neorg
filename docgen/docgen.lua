@@ -480,7 +480,7 @@ docgen.generators = {
                     "",
                     list_modules_with_predicate(required_by, function()
                         return true
-                    end)
+                    end),
                 })
             end,
         }
