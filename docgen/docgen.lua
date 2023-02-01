@@ -591,11 +591,11 @@ docgen.htmlify = function(configuration_option, indent)
     local result = {}
     local code_block = true
 
-    neorg.lib.match(type(self.object))({
+    neorg.lib.match(self.data.value:type())({
         string = function()
             table.insert(result, table.concat({ '"', self.object, '"' }))
         end,
-        table = function()
+        table_constructor = function()
             table.insert(result, "")
 
             local unrolled = neorg.lib.unroll(self.object)
@@ -624,8 +624,17 @@ docgen.htmlify = function(configuration_option, indent)
 
             code_block = false
         end,
-        -- TODO: render functions
-        ["function"] = {},
+        function_definition = function()
+            local text = ts.get_node_text(self.data.value, self.buffer):match("^function%s*(%b())")
+
+            if not text then
+                log.error(string.format("Unable to parse function, perhaps some wrong formatting?"))
+                table.insert(result, "<error: incorrect formatting>")
+                return
+            end
+
+            table.insert(result, "function" .. text)
+        end,
         _ = function()
             table.insert(result, ts.get_node_text(self.data.value, self.buffer))
         end,
