@@ -169,6 +169,11 @@ docgen.map_config = function(buffer, start_node, callback, parents)
             table.insert(comments, ts.get_node_text(node, buffer))
         elseif node:type() == "field" then
             local name_node = node:field("name")[1]
+
+            if name_node and name_node:type() == "string" then
+                name_node = name_node:field("content")[1]
+            end
+
             local name = name_node and ts.get_node_text(name_node, buffer) or nil
             local value = node:field("value")[1]
 
