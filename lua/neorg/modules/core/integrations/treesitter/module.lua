@@ -500,7 +500,7 @@ module.public = {
     --- Extracts the document root from the current document or from the string
     ---@param src number|string The number of the buffer to extract or string with code (can be nil)
     ---@param filetype string? #The filetype of the buffer or the string with code
-    ---@return userdata #The root node of the document
+    ---@return userdata? #The root node of the document
     get_document_root = function(src, filetype)
         filetype = filetype or "norg"
 
@@ -514,7 +514,6 @@ module.public = {
         local tree = parser:parse()[1]
 
         if not tree or not tree:root() or tree:root():type() == "ERROR" then
-            log.warn("Unable to parse the current document's syntax tree :(")
             return
         end
 
