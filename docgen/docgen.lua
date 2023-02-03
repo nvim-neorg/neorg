@@ -571,10 +571,14 @@ docgen.render = function(configuration_option, indent)
         vim.list_extend(basis, {
             "<h6>",
             "",
+            "<div>",
+            "",
         })
 
         vim.list_extend(basis, self.comments)
         vim.list_extend(basis, {
+            "",
+            "</div>",
             "",
             "</h6>",
             "",
