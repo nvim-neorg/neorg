@@ -1,7 +1,5 @@
 local docgen = {}
 
-require("neorg.external.helpers")
-
 -- Create the directory if it does not exist
 docgen.output_dir = "../wiki"
 pcall(vim.fn.mkdir, docgen.output_dir)
@@ -19,6 +17,8 @@ require("neorg").setup({
 
 -- Start neorg
 neorg.org_file_entered(false)
+
+require("neorg.external.helpers")
 
 -- Extract treesitter utility functions provided by Neorg and nvim-treesitter.ts_utils
 local ts = neorg.modules.get_module("core.integrations.treesitter")
