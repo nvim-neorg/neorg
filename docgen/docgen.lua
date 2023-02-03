@@ -163,6 +163,7 @@ docgen.map_config = function(buffer, start_node, callback, parents)
     parents = parents or {}
 
     local comments = {}
+    local index = 1
 
     for node in start_node:iter_children() do
         if node:type() == "comment" then
@@ -185,11 +186,9 @@ docgen.map_config = function(buffer, start_node, callback, parents)
                     parents = parents,
                 }, comments)
 
-                if name then
-                    local copy = vim.deepcopy(parents)
-                    table.insert(copy, name)
-                    docgen.map_config(buffer, value, callback, copy)
-                end
+                local copy = vim.deepcopy(parents)
+                table.insert(copy, name or index)
+                docgen.map_config(buffer, value, callback, copy)
             else
                 callback({
                     node = node,
@@ -200,6 +199,7 @@ docgen.map_config = function(buffer, start_node, callback, parents)
             end
 
             comments = {}
+            index = index + 1
         else
             comments = {}
         end
@@ -624,12 +624,6 @@ docgen.htmlify = function(configuration_option, indent)
                 local name_or_index = data[1]
 
                 local subitem = configuration_option[name_or_index]
-                    or (
-                        type(name_or_index) == "number"
-                            and configuration_option._inline_elements
-                            and configuration_option._inline_elements[name_or_index]
-                        or nil
-                    )
 
                 if subitem then
                     vim.list_extend(result, docgen.render(subitem, indent + 1))

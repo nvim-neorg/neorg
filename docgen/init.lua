@@ -110,9 +110,6 @@ for module_name, module in pairs(modules) do
                 end
             end
 
-            -- TODO: Create a whitelist for e.g. binary operations, function()s, function calls etc
-            -- TODO: Allow modules to attach gifs about what they do and how they work
-
             if not data.value then
                 return
             end
@@ -132,9 +129,7 @@ for module_name, module in pairs(modules) do
                         },
                     }
                 else
-                    ref._inline_elements = ref._inline_elements or {}
-
-                    table.insert(ref._inline_elements, {
+                    table.insert(ref, {
                         self = {
                             buffer = buffer,
                             data = data,
