@@ -13,7 +13,7 @@ testfile:
 	nvim --headless -u tests/custom_init.vim -c "PlenaryBustedFile $(FILE)"
 
 ci-doc:
-	nvim -u tests/custom_init.vim -c "TSUpdateSync lua" -c "qa!" && \
+	nvim -u docgen/minimal_init.vim -c "TSInstall! lua" -c "qa!" && \
 	mkdir -p /tmp/lua/parser && \
 	cp nvim-treesitter/parser/lua.so /tmp/lua/parser && \
 	make documentation
