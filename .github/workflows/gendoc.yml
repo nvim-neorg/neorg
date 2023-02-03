@@ -36,11 +36,6 @@ jobs:
           neovim: true
           version: ${{ matrix.version }}
 
-      - name: Checkout source code
-        uses: actions/checkout@v2
-        with:
-          path: .
-
       - name: Clone Wiki
         uses: actions/checkout@v2
         with:
@@ -49,6 +44,7 @@ jobs:
 
       - name: Run Documentation Generator
         run: |
+          ls .
           make documentation
 
       - name: Commit Wiki Changes
