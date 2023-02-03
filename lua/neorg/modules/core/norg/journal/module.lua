@@ -228,7 +228,10 @@ module.private = {
         end
 
         vim.loop.fs_scandir(folder_name .. neorg.configuration.pathsep, function(err, handle)
-            assert(not err, neorg.lib.lazy_string_concat("Unable to generate TOC for directory '", folder_name, "' - ", err))
+            assert(
+                not err,
+                neorg.lib.lazy_string_concat("Unable to generate TOC for directory '", folder_name, "' - ", err)
+            )
 
             while true do
                 -- Name corresponds to either a YYYY-mm-dd.norg file, or just the year ("nested" strategy)

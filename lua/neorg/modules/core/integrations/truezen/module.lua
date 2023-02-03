@@ -10,13 +10,13 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.integrations.truezen")
 
 module.load = function()
-   local success, truezen = pcall(require, "true-zen.main")
+    local success, truezen = pcall(require, "true-zen.main")
 
-   if not success then
-       return { success = false }
-   end
+    if not success then
+        return { success = false }
+    end
 
-   module.private.truezen = truezen
+    module.private.truezen = truezen
 end
 
 module.private = {

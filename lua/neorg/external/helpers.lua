@@ -540,7 +540,7 @@ neorg.lib = {
     ensure_nested = function(tbl, ...)
         local ref = tbl or {}
 
-        for _, key in ipairs({...}) do
+        for _, key in ipairs({ ... }) do
             ref[key] = ref[key] or {}
             ref = ref[key]
         end
