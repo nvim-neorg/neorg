@@ -228,10 +228,19 @@ end
 ---@alias Modules { [string]: Module }
 
 local function list_modules_with_predicate(modules, predicate)
+    local sorted = neorg.lib.unroll(modules)
+
+    table.sort(sorted, function(x, y)
+        return x[1] < y[1]
+    end)
+
     return function()
         local res = {}
 
-        for mod, data in pairs(modules) do
+        for _, kv_pair in ipairs(sorted) do
+            local mod = kv_pair[1]
+            local data = kv_pair[2]
+
             if predicate and predicate(data) then
                 local insert
 
