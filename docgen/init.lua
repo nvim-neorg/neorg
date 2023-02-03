@@ -12,6 +12,9 @@ local modules = {
     --]]
 }
 
+--- Fully renders a large set of configuration options
+---@param configuration_options ConfigOptionArray[] An array of ConfigOptionArrays
+---@return string[] #An array of markdown strings corresponding to all of the rendered configuration options
 local function concat_configuration_options(configuration_options)
     local result = {}
 
@@ -71,6 +74,7 @@ for _, file in ipairs(docgen.aggregate_module_files()) do
     ::continue::
 end
 
+-- Non-module pages have their own dedicated generators
 fileio.write_to_wiki("Home", docgen.generators.homepage(modules))
 fileio.write_to_wiki("_Sidebar", docgen.generators.sidebar(modules))
 
@@ -82,7 +86,8 @@ for module_name, module in pairs(modules) do
     local root = vim.treesitter.get_parser(buffer, "lua"):parse()[1]:root()
     local config_node = docgen.get_module_config_node(buffer, root)
 
-    -- A table of markdown lines corresponding to every configuration option
+    -- A collection of data about all the configuration options for the current module
+    ---@type ConfigOptionArray[]
     local configuration_options = {}
 
     if config_node then

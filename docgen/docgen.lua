@@ -18,6 +18,7 @@ require("neorg").setup({
 -- Start neorg
 neorg.org_file_entered(false)
 
+-- Pull in the `neorg.lib` table
 require("neorg.external.helpers")
 
 -- Extract treesitter utility functions provided by Neorg and nvim-treesitter.ts_utils
@@ -112,7 +113,7 @@ docgen.parse_top_comment = function(comment)
     return result
 end
 
---- TODO
+--- Ensures that the top comment of each Neorg module follows a certain set of rules.
 ---@param top_comment TopComment #The comment to check for errors
 ---@return string|TopComment #An error string or the comment itself
 docgen.check_top_comment_integrity = function(top_comment)
@@ -137,10 +138,10 @@ docgen.check_top_comment_integrity = function(top_comment)
     return top_comment
 end
 
---- TODO
+--- Retrieves the TS node corresponding to the `module.config.public` treesitter node
 ---@param buffer number #Buffer ID
 ---@param root userdata #The root node
----@return userdata? #Root node
+---@return userdata? #The `module.config.public` node
 docgen.get_module_config_node = function(buffer, root)
     local query = vim.treesitter.parse_query(
         "lua",
@@ -156,12 +157,18 @@ docgen.get_module_config_node = function(buffer, root)
     return declaration_node and declaration_node:named_child(1):named_child(0) or nil
 end
 
----@param start_node userdata #Node
----@param callback function
+---@alias ConfigOptionData { node: userdata, name: string, value: userdata, parents: string[] }
+
+--- Recursively maps over each item in the `module.config.public` table,
+--  invoking a callback on each run. Also descends down recursive tables.
+---@param buffer number #Buffer ID
+---@param start_node userdata #The node to start parsing
+---@param callback fun(ConfigOptionData, table) #Invoked on each node with the corresponding data
 ---@param parents string[]? #Used internally to track nesting levels
 docgen.map_config = function(buffer, start_node, callback, parents)
     parents = parents or {}
 
+    ---@type string[]
     local comments = {}
     local index = 1
 
@@ -171,6 +178,8 @@ docgen.map_config = function(buffer, start_node, callback, parents)
         elseif node:type() == "field" then
             local name_node = node:field("name")[1]
 
+            -- If a node does not have an associated name, then
+            -- it's part of a list
             if name_node and name_node:type() == "string" then
                 name_node = name_node:field("content")[1]
             end
@@ -178,6 +187,8 @@ docgen.map_config = function(buffer, start_node, callback, parents)
             local name = name_node and ts.get_node_text(name_node, buffer) or nil
             local value = node:field("value")[1]
 
+            -- If the right hand side of the expression is a table
+            -- then go down it recursively
             if value:type() == "table_constructor" then
                 callback({
                     node = node,
@@ -186,6 +197,8 @@ docgen.map_config = function(buffer, start_node, callback, parents)
                     parents = parents,
                 }, comments)
 
+                -- The deepcopy is necessary or else
+                -- the parents table would be overwritten in-place
                 local copy = vim.deepcopy(parents)
                 table.insert(copy, name or index)
                 docgen.map_config(buffer, value, callback, copy)
@@ -227,6 +240,12 @@ end
 ---@alias Module { top_comment_data: TopComment, buffer: number, parsed: table }
 ---@alias Modules { [string]: Module }
 
+--- Returns a function which itself returns a table of links to modules
+--  in a markdown-like unordered list.
+---@param modules Modules #A table of modules to enumerate
+---@param predicate fun(Module):boolean #A predicate that determines whether or not to render this object.
+--- If the predicate returns false, then the object is dismissed.
+---@return fun():string[] #An array of markdown strings with the enumerated modules
 local function list_modules_with_predicate(modules, predicate)
     local sorted = neorg.lib.unroll(modules)
 
@@ -537,9 +556,13 @@ docgen.to_lua_object = function(module, buffer, node, chunkname)
     end
 end
 
----@alias ConfigOptionData { node: userdata, name: string, value: userdata, parents: string[] }
+---@alias ConfigOptionArray { [string|number]: ConfigOptionArray, self: ConfigOption }
+---@alias ConfigOption { buffer: number, data: ConfigOptionData, comments: string[], object: any }
 
---- Converts a lua object to a html node in the resulting HTML document
+--- Converts a ConfigOptionData struct to a html node in the resulting HTML document
+---@param configuration_option ConfigOptionArray #The config option to render
+---@param indent number? #How far to indent the text by. Should not be set manually.
+---@return string[] #A list of markdown tables corresponding to the rendered element.
 docgen.render = function(configuration_option, indent)
     indent = indent or 0
 
@@ -603,6 +626,10 @@ docgen.render = function(configuration_option, indent)
     return basis
 end
 
+--- Converts an object directly into HTML, with no extra fluff.
+---@param configuration_option ConfigOptionArray
+---@param indent number? #How far to indent the text by. Should not be set manually
+---@return string[] #An array of markdown strings with the rendered HTML inside
 docgen.htmlify = function(configuration_option, indent)
     indent = indent or 0
 
@@ -625,6 +652,7 @@ docgen.htmlify = function(configuration_option, indent)
             end)
 
             for _, data in ipairs(unrolled) do
+                ---@type number|string
                 local name_or_index = data[1]
 
                 local subitem = configuration_option[name_or_index]
