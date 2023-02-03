@@ -185,7 +185,11 @@ function neorg.modules.extend(name, parent)
 
     if parent then
         local path = realmodule.path
-        realmodule = vim.tbl_deep_extend("force", realmodule, neorg.modules.loaded_modules[parent].real())
+
+        local parent_module = neorg.modules.loaded_modules[parent].real()
+        realmodule = vim.tbl_deep_extend("force", realmodule, parent_module)
+        parent_module.extension = parent_module.extension or false
+
         realmodule.name, realmodule.path = name, path
     end
 
