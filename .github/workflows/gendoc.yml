@@ -41,26 +41,19 @@ jobs:
         with:
           path: neorg
 
-      - name: Run Documentation Generator
-        run: |
-          make ci-doc
-
       - name: Clone Wiki
         uses: actions/checkout@v2
         with:
           repository: "nvim-neorg/neorg.wiki"
-          path: neorg-wiki
+          path: wiki/
 
-      - name: Copy Wiki Files
+      - name: Run Documentation Generator
         run: |
-          ls ../neorg/wiki ./neorg-wiki
-          # rm ./neorg-wiki/*.md
-          cp ../neorg/wiki/**.md ./neorg-wiki
-          ls ../neorg/wiki ./neorg-wiki
+          make ci-doc
 
       - name: Commit Wiki Changes
         run: |
-          cd neorg-wiki
+          cd wiki/
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           if [[ ! -z $(git status -s) ]]; then
@@ -75,4 +68,4 @@ jobs:
           repository: "nvim-neorg/neorg.wiki"
           branch: master
           force: true
-          directory: ./neorg-wiki
+          directory: ./wiki
