@@ -4,8 +4,8 @@
 set rtp+=..
 
 " For test suites
-set rtp+=../plenary.nvim
-set rtp+=../nvim-treesitter
+set rtp+=./plenary.nvim
+set rtp+=./nvim-treesitter
 
 set noswapfile
 
