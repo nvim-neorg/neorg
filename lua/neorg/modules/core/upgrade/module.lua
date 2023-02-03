@@ -46,12 +46,12 @@ module.load = function()
     end)
 end
 
-local function handle_quotes(level, node)
-    return function()
-        local end_ = node:end_()
-        -- if module.required["core.integrations.treesitter"].get_first_node_at_line()
-    end
-end
+-- local function handle_quotes(level, node)
+--     return function()
+--         local end_ = node:end_()
+--         -- if module.required["core.integrations.treesitter"].get_first_node_at_line()
+--     end
+-- end
 
 module.public = {
     upgrade = function(buffer)
@@ -145,7 +145,7 @@ module.public = {
                     }
                 end,
 
-                -- ["quote1"] = 
+                -- ["quote1"] =
 
                 _ = function()
                     if node:child_count() == 0 then
