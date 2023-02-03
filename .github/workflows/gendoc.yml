@@ -39,7 +39,7 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2
         with:
-          path: neorg
+          path: .
 
       - name: Clone Wiki
         uses: actions/checkout@v2
@@ -49,7 +49,7 @@ jobs:
 
       - name: Run Documentation Generator
         run: |
-          make ci-doc
+          make documentation
 
       - name: Commit Wiki Changes
         run: |

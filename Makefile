@@ -1,7 +1,3 @@
-ci-doc:
-	nvim -u docgen/minimal_init.vim -c "TSInstall! lua" -c "qa!" && \
-	make documentation
-
 documentation:
 	nvim --headless -u docgen/minimal_init.vim -c "cd ./docgen" -c "source init.lua" -c 'qa'
 
