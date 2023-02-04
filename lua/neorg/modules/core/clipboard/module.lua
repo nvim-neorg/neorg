@@ -2,6 +2,7 @@
     file: Clipboard
     title: Quality of Life Features for the Clipboard
     summary: A module to manipulate and interact with the user's clipboard.
+    internal: true
     ---
 The clipboard module is a minimal and generic module allowing to overwrite or add special behaviour to the
 `y` (yank) keybind in Neovim.

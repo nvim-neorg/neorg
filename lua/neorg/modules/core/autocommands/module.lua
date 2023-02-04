@@ -2,6 +2,7 @@
     file: Autocommands
     summary: Handles the creation and management of Neovim's autocommands.
     description: Handles the creation and management of Neovim's autocommands.
+    internal: true
     ---
 This internal module exposes functionality for subscribing to autocommands and performing actions based on those autocommands.
 

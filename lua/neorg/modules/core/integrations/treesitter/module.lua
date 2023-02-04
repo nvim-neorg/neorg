@@ -3,6 +3,7 @@
     title: Snazzy Treesitter Integration
     summary: A module designed to integrate Treesitter into Neorg.
     embed: https://user-images.githubusercontent.com/76052559/151668244-9805afc4-8c50-4925-85ec-1098aff5ede6.gif
+    internal: true
     ---
 --]]
 
