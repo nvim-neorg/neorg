@@ -1,8 +1,14 @@
 --[[
-    File: Esupports-Hop
-    Title: Jump from Neorg links
-    Summary: "Hop" between Neorg links, following them with a single keypress.
+    file: Esupports-Hop
+    title: Follow Various Link Locations
+    description: `esupport.hop` handles the process of dealing with links so you don't have to
+    summary: "Hop" between Neorg links, following them with a single keypress.
     ---
+The hop module serves to provide an easy way to follow and fix broken links with a single keypress.
+
+By default, pressing `<CR>` in normal mode under a link will attempt to follow said link.
+If the link location is found, you will be taken to the destination - if it is not, you will be
+prompted with a set of actions that you can perform on the broken link.
 --]]
 
 require("neorg.modules.base")
@@ -28,9 +34,18 @@ module.load = function()
 end
 
 module.config.public = {
+    -- If true, will attempt to find a link further than your cursor on the current line,
+    -- even if your cursor is not over the link itself.
     lookahead = true,
+
+    -- This value determines the strictness of fuzzy matching when trying to fix a link.
+    -- Zero means only exact matches will be found, and higher values mean more lenience.
+    --
+    -- `0.5` is the optimal default value, and it is recommended to keep this option as-is.
     fuzzing_threshold = 0.5,
-    -- List of strings specifying which filetypes to open in an external application
+
+    -- List of strings specifying which filetypes to open in an external application,
+    -- should the user want to open a link to such a file.
     external_filetypes = {},
 }
 
