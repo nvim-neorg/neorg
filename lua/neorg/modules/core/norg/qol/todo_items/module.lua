@@ -1,18 +1,25 @@
 --[[
-    File: Todo-Items
-    Title: Todo Items
-    Summary: Module for implementing todo lists.
+    file: Todo-Items
+    title: Todo Item Swiss Army Knife
+    summary: Module for implementing todo lists.
     ---
-Some available keybinds
-    - `todo.task_done`
-    - `todo.task_undone`
-    - `todo.task_pending`
-    - `todo.task_on_hold`
-    - `todo.task_cancelled`
-    - `todo.task_recurring`
-    - `todo.task_important`
-    - `todo.task_cycle`
-    - `todo.task_cycle_reverse`
+This module handles the whole concept of toggling TODO items, as well as updating
+parent and/or children items alongside the current item.
+
+The following keybinds are exposed:
+- `core.norg.qol.todo_items.todo.task_done` (`gtd`)
+- `core.norg.qol.todo_items.todo.task_undone` (`gtu`)
+- `core.norg.qol.todo_items.todo.task_pending` (`gtp`)
+- `core.norg.qol.todo_items.todo.task_on_hold` (`gth`)
+- `core.norg.qol.todo_items.todo.task_cancelled` (`gtc`)
+- `core.norg.qol.todo_items.todo.task_recurring` (`gtr`)
+- `core.norg.qol.todo_items.todo.task_important` (`gti`)
+- `core.norg.qol.todo_items.todo.task_cycle` (`<C-Space>`)
+- `core.norg.qol.todo_items.todo.task_cycle_reverse` (no default keybind)
+
+With your cursor on a line that contains an item with a TODO attribute, press
+any of the above keys to toggle the state of that particular item.
+Parent items of the same type and children items of the same type are update accordingly.
 --]]
 
 require("neorg.modules.base")
@@ -39,7 +46,7 @@ module.load = function()
 end
 
 module.config.public = {
-    -- The order of cycling between todo items
+    -- The order of cycling between todo items.
     order = {
         { "undone", " " },
         { "done", "x" },
