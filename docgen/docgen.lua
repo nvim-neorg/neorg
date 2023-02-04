@@ -358,7 +358,6 @@ docgen.generators = {
             "",
             list_modules_with_predicate(modules, function(data)
                 return not data.parsed.extension
-                    and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
                     and data.top_comment_data.internal
             end),
         }
