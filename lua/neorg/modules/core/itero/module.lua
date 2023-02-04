@@ -15,14 +15,13 @@ Begin by writing an initial item you'd like to iterate (in this instance, and un
 ```
 
 With your cursor in insert mode at the end of the line, pressing the keybind will continue the item at whatever
-nesting level it is current at:
+nesting level it is currently at (where `|` is the new cursor position):
 ```md
 - Hello World!
 - |
 ```
-(where `|` is the new cursor position).
 
-The same can be done for headings:
+The same can also be done for headings:
 ```md
 * Heading 1
 * |
