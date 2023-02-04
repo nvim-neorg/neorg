@@ -3,6 +3,7 @@
     title: Display Markup as Icons, not Text
     description: The concealer module converts verbose markup elements into beautified icons for your viewing pleasure.
     summary: Enhances the basic Neorg experience by using icons instead of text.
+    embed: https://user-images.githubusercontent.com/76052559/216767027-726b451d-6da1-4d09-8fa4-d08ec4f93f54.png
     ---
 "Concealing" is the process of hiding away from plain sight. When writing raw Norg, long strings like
 `***** Hello` or `$$ Definition` can be distracting and sometimes unpleasant when sifting through large notes.
