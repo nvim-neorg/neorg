@@ -1,34 +1,14 @@
 --[[
-    File: Concealer
-    Title: Concealer Module for Neorg
-    Summary: Enhances the basic Neorg experience by using icons instead of text.
+    file: Concealer
+    title: Display Markup as Icons, not Text
+    description: The concealer module converts verbose markup elements into beautified icons for your viewing pleasure.
+    summary: Enhances the basic Neorg experience by using icons instead of text.
     ---
-This module handles the iconification and concealing of several different
-syntax elements in your document.
+"Concealing" is the process of hiding away from plain sight. When writing raw Norg, long strings like
+`***** Hello` or `$$ Definition` can be distracting and sometimes unpleasant when sifting through large notes.
 
-Once anticonceal (https://github.com/neovim/neovim/pull/9496) is
-a thing, punctuation can be added (without removing the whitespace
-between the icon and actual text) like so:
-
-```lua
-icon = module.private.ordered_concealing.punctuation.dot(
-    module.private.ordered_concealing.icon_renderer.numeric
-)
-```
-
-Note: this will produce icons like `1.`, `2.`, etc.
-
-You can even chain multiple punctuation wrappers like so:
-
-```lua
-icon = module.private.ordered_concealing.punctuation.parenthesis(
-    module.private.ordered_concealing.punctuation.dot(
-        module.private.ordered_concealing.icon_renderer.numeric
-    )
-)
-```
-
-Note: this will produce icons like `1.)`, `2.)`, etc.
+To reduce the amount of cognitive load required to "parse" Norg documents with your own eyes, this module
+masks, or sometimes completely hides many categories of markup.
 --]]
 
 require("neorg.modules.base")
@@ -835,12 +815,22 @@ module.public = {
 }
 
 module.config.public = {
-    -- Which icon preset to use
-    -- Go to [imports](#imports) to see which ones are currently defined
-    -- E.g `core.norg.concealer.preset_diamond` will be `preset = "diamond"`
+    -- Which icon preset to use.
+    --
+    -- The currently available icon presets are:
+    -- - "basic" - use a mixture of icons (includes cute flower icons!)
+    -- - "diamond" - use diamond shapes for headings
+    -- - "varied" - use a mix of round and diamond shapes for headings; no cute flower icons though :(
     icon_preset = "basic",
 
-    -- Configuration for icons: their looks and behaviours are contained here
+    -- Configuration for icons.
+    --
+    -- This table contains the full configuration set for each icon, including
+    -- its query (where to be placed), render functions (how to be placed) and
+    -- characters to use.
+    --
+    -- For most use cases, the only values that you should be changing are the `enabled` and
+    -- `icon` fields.
     icons = {
         todo = {
             enabled = true,
@@ -1254,16 +1244,17 @@ module.config.public = {
         },
     },
 
-    -- Options related to dimming code block backgrounds
+    -- Options that control the behaviour of code block dimming
+    -- (placing a darker background behind `@code` tags).
     dim_code_blocks = {
-        -- Whether you want to dim code blocks
+        -- Whether to enable code block dimming
         enabled = true,
 
-        -- If true will only dim the content of the code block,
-        -- not the code block itself.
+        -- If true will only dim the content of the code block (without the
+        -- `@code` and `@end` lines), not the entirety of the code block itself.
         content_only = true,
 
-        -- Will adapt based on the `conceallevel` option.
+        -- Will adapt the behaviour of based on the `conceallevel` option.
         -- If `conceallevel` > 0, then only the content will be dimmed,
         -- else the whole code block will be dimmed.
         adaptive = true,
@@ -1277,15 +1268,15 @@ module.config.public = {
         -- within the code block.
         width = "fullwidth",
 
-        -- Additional padding to apply to either the left or the right.
-        -- Making these values negative is undefined behaviour (it may work, but
-        -- it's not officially supported).
+        -- Additional padding to apply to either the left or the right. Making
+        -- these values negative is considered undefined behaviour (it is
+        -- likely to work, but it's not officially supported).
         padding = {
             left = 0,
             right = 0,
         },
 
-        -- If `true` will conceal the `@code` and `@end` portion of the code
+        -- If `true` will conceal (hide) the `@code` and `@end` portion of the code
         -- block.
         conceal = true,
     },
@@ -1301,9 +1292,26 @@ module.config.public = {
     -- These options are put into effect when the concealer
     -- has to deal with very large files.
     performance = {
+        -- How many lines each "chunk" of a file should take up.
+        --
+        -- When the size of the buffer is greater than this value,
+        -- the buffer is then broken up into equal chunks and operations
+        -- are done individually on those chunks.
         increment = 1250,
+
+        -- How long the concealer should wait before starting to conceal
+        -- the buffer.
         timeout = 0,
+
+        -- How long the concealer should wait before starting to conceal
+        -- a new chunk.
         interval = 500,
+
+        -- The maximum amount of recalculations that take place at a single time.
+        -- More operations than this count will be dropped.
+        --
+        -- Especially useful when e.g. holding down `x` in a buffer, forcing
+        -- hundreds of recalculations at a time.
         max_debounce = 5,
     },
 }
