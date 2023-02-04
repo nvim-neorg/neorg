@@ -1,6 +1,16 @@
 --[[
     file: Clipboard-Code-Blocks
+    title: Comfortable Code Copying in Neorg
     summary: Removes beginning whitespace from text copied from code blocks.
+    ---
+The `code-blocks` module removes leading whitespace when copying from an `@code` tag, allowing
+for easy pasting into external applications.
+
+To use it, simply highlight some code within an `@code` block and paste it elsewhere!
+This functionality will **only** work if the selection is inside the `@code` section,
+excluding the `@code` and `@end` portion itself.
+
+If the conditions are not met, the content is copied normally, preserving all indentation.
 --]]
 
 local module = neorg.modules.create("core.clipboard.code-blocks")
