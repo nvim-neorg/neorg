@@ -1,6 +1,35 @@
 --[[
-    File: Itero
-    Summary: Module designed to continue lists, headings and other iterables.
+    file: Itero
+    title: Fast List/Heading Continuation
+    description: Fluidness is key, after all.
+    summary: Module designed to continue lists, headings and other iterables.
+    ---
+`core.itero` is a rather small and simple module designed to assist in the creation of many lists,
+headings and other repeatable (iterable) items.
+
+By default, the key that is used to iterate on an item is `<M-CR>` (Alt + Enter).
+
+Begin by writing an initial item you'd like to iterate (in this instance, and unordered list item):
+```md
+- Hello World!
+```
+
+With your cursor in insert mode at the end of the line, pressing the keybind will continue the item at whatever
+nesting level it is current at:
+```md
+- Hello World!
+- |
+```
+(where `|` is the new cursor position).
+
+The same can be done for headings:
+```md
+* Heading 1
+* |
+```
+
+This functionality is commonly paired with the [`core.promo`](@core.promo) module to then indent/dedent
+the item under the cursor with the `<C-t>` and `<C-d>` bindings.
 --]]
 
 local module = neorg.modules.create("core.itero")
@@ -15,7 +44,7 @@ module.setup = function()
 end
 
 module.config.public = {
-    -- A list of strings detailing what nodes can be "iterated".
+    -- A list of lua patterns detailing what treesitter nodes can be "iterated".
     -- Usually doesn't need to be changed, unless you want to disable some
     -- items from being iterable.
     iterables = {
@@ -25,7 +54,11 @@ module.config.public = {
         "quote%d",
     },
 
-    -- Which items to retain extensions for
+    -- Which item types to retain extensions for.
+    --
+    -- If the item you are currently iterating has an extension (e.g. `( )`, `(x)` etc.),
+    -- then the following items will also have an extension (by default `( )`) attached
+    -- to them automatically.
     retain_extensions = {
         ["unordered_list%d"] = true,
         ["ordered_list%d"] = true,
