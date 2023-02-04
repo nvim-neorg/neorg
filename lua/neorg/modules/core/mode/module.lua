@@ -1,15 +1,23 @@
 --[[
-    File: Mode-Manager
-    Title: Mode manager for Neorg
-    Summary: Modes are a way of isolating different parts of Neorg based on the current mode.
+    file: Mode-Manager
+    title: Mode manager for Neorg
+    summary: Modes are a way of isolating different parts of Neorg based on the current mode.
+    internal: true
     ---
+This is an internal module designed to manage Neorg modes.
+
+Neorg modes are a way to set certain keybindings based on the current mode.
+For example, you may remap some native vim keys like `j` or `k` in a special
+Neorg mode that makes your cursor move between the previous and next heading.
+This way you don't have to think of a new mnemonic for each key.
+
 - To add a mode to core.mode, use the public `add_mode("my-mode-name")`.
 - To set the current mode, use the public `set_mode("my-mode-name")`.
 - To retrieve the *current* mode name, use `get_mode()`.
 - To retrieve the *previous* mode name, use `get_previous_mode()`.
 - To retrieve *all* modes, use `get_modes()`.
 
-If `core.neorgcmd` is loaded, `core.mode.public.add_mode()` also updates the autocompletion for the :Neorg mode command,
+If `core.neorgcmd` is loaded, `core.mode.public.add_mode()` also updates the autocompletion for the `:Neorg mode` command,
 which can be used by the user to switch modes.
 --]]
 
