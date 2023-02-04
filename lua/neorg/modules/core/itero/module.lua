@@ -3,6 +3,7 @@
     title: Fast List/Heading Continuation
     description: Fluidness is key, after all.
     summary: Module designed to continue lists, headings and other iterables.
+    embed: https://user-images.githubusercontent.com/76052559/216777858-14e2036e-acc5-4276-aa7d-9a8a8ba549ba.gif
     ---
 `core.itero` is a rather small and simple module designed to assist in the creation of many lists,
 headings and other repeatable (iterable) items.
