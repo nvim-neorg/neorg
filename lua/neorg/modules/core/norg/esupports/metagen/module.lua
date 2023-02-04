@@ -1,8 +1,14 @@
 --[[
-    File: Metagen
-    Title: Generate Neorg metadata
-    Summary: A Neorg module for generating document metadata automatically.
+    file: Metagen
+    title: Manually Writing Metadata? No Thanks
+    description: The metagen module automatically places relevant metadata at the top of your `.norg` files.
+    summary: A Neorg module for generating document metadata automatically.
     ---
+The metagen module exposes two commands - `:Neorg inject-metadata` and `:Neorg update-metadata`.
+
+- The `inject-metadata` command will remove any existing metadata and overwrite it with fresh information.
+- The `update-metadata` preserves existing info, updating things like the `updated` fields (when the file
+  was last edited) as well as a few other non-destructive fields.
 --]]
 
 require("neorg.modules.base")
@@ -15,9 +21,9 @@ end
 
 module.config.public = {
     -- One of "none", "auto" or "empty"
-    -- - None generates no metadata
-    -- - Auto generates metadata if it is not present
-    -- - Empty generates metadata only for new files/buffers.
+    -- - "none" generates no metadata
+    -- - "auto" generates metadata if it is not present
+    -- - "empty" generates metadata only for new files/buffers.
     type = "none",
 
     -- Whether updated date field should be automatically updated on save if required
@@ -31,27 +37,42 @@ module.config.public = {
 
     -- Custom template to use for generating content inside `@document.meta` tag
     template = {
+        -- The title field generates a title for the file based on the filename.
         {
             "title",
             function()
                 return vim.fn.expand("%:p:t:r")
             end,
         },
+
+        -- The description field is always kept empty for the user to fill in.
         { "description", "" },
+
+        -- The authors field is autopopulated by querying the current user's system username.
         { "authors", require("neorg.external.helpers").get_username },
+
+        -- The categories field is always kept empty for the user to fill in.
         { "categories", "" },
+
+        -- The created field is populated with the current date as returned by `os.date`.
         {
             "created",
             function()
                 return os.date("%Y-%m-%d")
             end,
         },
+
+        -- When creating fresh, new metadata, the updated field is populated the same way
+        -- as the `created` date.
         {
             "updated",
             function()
                 return os.date("%Y-%m-%d")
             end,
         },
+
+        -- The version field determines which Norg version was used when
+        -- the file was created.
         { "version", require("neorg.config").version },
     },
 }
