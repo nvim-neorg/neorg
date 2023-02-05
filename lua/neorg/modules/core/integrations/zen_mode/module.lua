@@ -2,6 +2,9 @@
     file: ZenMode-Integration
     title: An integration for `zen-mode`
     summary: Integrates and exposes the functionality of `zen-mode` in Neorg.
+    internal: true
+    ---
+This is a basic wrapper around `zen_mode` that allows one to toggle the zen mode programatically.
 --]]
 
 require("neorg.modules.base")
