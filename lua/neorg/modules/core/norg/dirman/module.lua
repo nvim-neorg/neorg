@@ -1,12 +1,16 @@
 --[[
-    File: Dirman
-    Title: Directory manager for Neorg.
-    Summary: This module is be responsible for managing directories full of .norg files.
+    file: Dirman
+    title: The Most Critical Component of any Organized Workflow
+    description: The `dirman` module handles different collections of notes in separate directories.
+    summary: This module is be responsible for managing directories full of .norg files.
     ---
-It will provide other modules the ability to see which directories the user is in,
-automatically changing directories, and other API bits and bobs that will allow things like telescope.nvim integration.
+`core.norg.dirman` provides other modules the ability to see which directories the user is in, where
+each note collection is stored and how to interact with it.
 
-To use core.norg.dirman, simply load up the module in your configuration and specify the directories you want to be managed for you:
+When writing notes, it is often crucial to have notes on a certain topic be isolated from notes on another topic.
+Dirman achieves this with a concept of "workspaces", which are named directories full of `.norg` notes.
+
+To use `core.norg.dirman`, simply load up the module in your configuration and specify the directories you would like to be managed for you:
 
 ```lua
 require('neorg').setup {
@@ -27,9 +31,9 @@ require('neorg').setup {
 
 To query the current workspace, run `:Neorg workspace`. To set the workspace, run `:Neorg workspace <workspace_name>`.
 
-### Changing the current working directory
-After a recent update dirman will no longer change the current working directory after switching workspace.
-To get the best experience it's recommended to set the `autochdir` Neovim option.
+### Changing the Current Working Directory
+After a recent update `core.norg.dirman` will no longer change the current working directory after switching
+workspace. To get the best experience it's recommended to set the `autochdir` Neovim option.
 --]]
 
 require("neorg.modules.base")
@@ -86,12 +90,17 @@ module.load = function()
 end
 
 module.config.public = {
-    -- The list of active workspaces
+    -- The list of active Neorg workspaces.
+    --
+    -- There is always an inbuilt workspace called `default`, whose location is
+    -- set to the Neovim current working directory on boot.
     workspaces = {
         default = vim.fn.getcwd(),
     },
 
-    -- The name for the index file
+    -- The name for the index file.
+    --
+    -- The index file is the "entry point" for all of your notes.
     index = "index.norg",
 
     -- The default workspace to set whenever Neovim starts.
@@ -99,6 +108,7 @@ module.config.public = {
 
     -- Whether to open the last workspace's index file when `nvim` is executed
     -- without arguments.
+    --
     -- May also be set to the string `"default"`, due to which Neorg will always
     -- open up the index file for the workspace defined in `default_workspace`.
     open_last_workspace = false,
