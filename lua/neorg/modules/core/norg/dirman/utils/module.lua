@@ -1,6 +1,11 @@
 --[[
     file: Dirman-Utils
-    summary: A set of utilities for the @core.norg.dirman module.
+    summary: A set of utilities for the `core.norg.dirman` module.
+    internal: true
+    ---
+This internal submodule implements some basic utility functions for [`core.norg.dirman`](@core.norg.dirman).
+Currently the only exposed API function is `expand_path`, which takes a path like `$name/my/location` and
+converts `$name` into the full path of the workspace called `name`.
 --]]
 
 local module = neorg.modules.create("core.norg.dirman.utils")
