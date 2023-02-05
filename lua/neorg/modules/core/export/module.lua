@@ -1,8 +1,12 @@
 --[[
-    File: Exporting-Files
-    Title: Converting Neorg Files to other Filetypes with `core.export`
-    Summary: Exports Neorg documents into any other supported filetype.
+    file: Exporting-Files
+    title: Convert Neorg Files to other Filetypes with `core.export`
+    summary: Exports Neorg documents into any other supported filetype.
     ---
+When sending files to people not invested in Neorg it's nice to be able to use a format
+that *they* use. The `core.export` module is a backend module providing functionality
+to write your own exporter for any given filetype.
+
 All export functionality is provided by the `:Neorg export` command.
 
 To export the currently opened buffer to another file format, you should use the `:Neorg export to-file` command.
@@ -58,7 +62,7 @@ module.load = function()
 end
 
 module.config.public = {
-    --- The directory to export to when running `:Neorg export directory`.
+    -- The directory to export to when running `:Neorg export directory`.
     -- The string can be formatted with the special keys: `<export-dir>` and `<language>`.
     export_dir = "<export-dir>/<language>-export",
 }
@@ -66,7 +70,7 @@ module.config.public = {
 module.public = {
     --- Returns a module that can handle conversion from `.norg` to the target filetype
     ---@param ftype string #The filetype to export to (as returned by e.g. `get_filetype()`)
-    ---@return table,table #The export module and its configuration, else nil
+    ---@return table?,table? #The export module and its configuration, else nil
     get_converter = function(ftype)
         if not neorg.modules.is_module_loaded("core.export." .. ftype) then
             if not neorg.modules.load_module("core.export." .. ftype) then
@@ -81,11 +85,11 @@ module.public = {
     --- Takes a buffer and exports it to a specific file
     ---@param buffer number #The buffer ID to read the contents from
     ---@param filetype string #A Neovim filetype to specify which language to export to
-    ---@return string #The entire buffer parsed, converted and returned as a string.
+    ---@return string?, string? #The entire buffer parsed, converted and returned as a string, as well as the extension used for the export.
     export = function(buffer, filetype)
         local converter, converter_config = module.public.get_converter(filetype)
 
-        if not converter then
+        if not converter or not converter_config then
             log.error("Unable to export file - did not find exporter for filetype '" .. filetype .. "'.")
             return
         end
