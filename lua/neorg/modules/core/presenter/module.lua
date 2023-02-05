@@ -1,8 +1,18 @@
 --[[
-    File: Core-Presenter
-    Title: Powerpoint-like for Neorg
-    Summary: Neorg module to create gorgeous presentation slides.
+    file: Core-Presenter
+    title: Powerpoint in Neorg
+    description: The presenter module creates slideshows out of notes or documents.
+    summary: Neorg module to create gorgeous presentation slides.
     ---
+The presenter module provides a special Neorg display that resembles an active slideshow
+presentation.
+
+To set it up, first be sure to set the `zen_mode` variable in the [configuration](#configuration).
+Afterwards, run `:Neorg presenter start` on any Norg file. The presenter will split up your file
+at each level 1 heading, and display each in a different slide.
+
+NOTE: This module is due for a rewrite. All of its behaviour is not fully documented here as it will be
+overwritten soon anyway.
 --]]
 
 require("neorg.modules.base")
