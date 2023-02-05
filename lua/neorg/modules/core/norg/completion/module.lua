@@ -1,13 +1,13 @@
 --[[
-    File: Completion
-    Title: Get completions in Neorg files
-    Summary: A wrapper to interface with several different completion engines.
+    file: Completion
+    title: Get completions in Neorg files
+    summary: A wrapper to interface with several different completion engines.
     ---
 
-This module is an intermediary between Neorg and the completion engine of your
-choice. After setting up this module, please read the corresponding neorg wiki
-page for the engine you selected ([`nvim-cmp`](@core.integrations.nvim-cmp) or
-[`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
+This module is an intermediary between Neorg and the completion engine of your choice. After setting up this
+module (this usually just involves setting the `engine` field in the [configuration](#configuration) section),
+please read the corresponding wiki page for the engine you selected ([`nvim-cmp`](@core.integrations.nvim-cmp)
+or [`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
 --]]
 
 require("neorg.modules.base")
@@ -19,9 +19,11 @@ module.config.public = {
     -- The engine to use for completion.
     --
     -- Possible values:
-    -- - [`nvim-cmp`](@core.integrations.nvim-cmp)
-    -- - [`nvim-compe`](@core.integrations.nvim-compe)
+    -- - [`"nvim-cmp"`](@core.integrations.nvim-cmp)
+    -- - [`"nvim-compe"`](@core.integrations.nvim-compe)
     engine = nil,
+
+    -- The identifier for the Neorg source.
     name = "[Neorg]",
 }
 
