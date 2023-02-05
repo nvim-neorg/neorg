@@ -2,7 +2,9 @@
     file: Truezen-Integration
     title: A TrueZen integration for Neorg
     summary: Integrates the TrueZen module for use within Neorg.
+    internal: true
     ---
+This is a basic wrapper around truezen that allows one to toggle the atraxis mode programatically.
 --]]
 
 require("neorg.modules.base")
