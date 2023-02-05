@@ -1,11 +1,14 @@
 --[[
-    File: Nvim-Compe
-    Title: Integrating Neorg with `nvim-compe`
-    Summary: A module for integrating nvim-compe with Neorg.
-    Internal: true
+    file: Nvim-Compe
+    title: Integrating Neorg with `nvim-compe`
+    summary: A module for integrating nvim-compe with Neorg.
+    internal: true
     ---
+WARNING: This module is **deprecated**, and no further support for the module will be provided.
+That does not mean it will not work, however any bugs will not be dealt with by the main Neorg team.
+
 A module for integrating nvim-compe with Neorg.
-Works with core.norg.completion to provide intelligent completions.
+Works with [`core.norg.completion`](@core.norg.completion) to provide intelligent completions.
 --]]
 
 require("neorg.modules.base")
