@@ -1,11 +1,12 @@
 --[[
-    File: Markdown-Export
-    Title: Neorg's Markdown Exporter
-    Summary: Interface for `core.export` to allow exporting to markdown.
+    file: Markdown-Export
+    title: Neorg's Markdown Exporter
+    summary: Interface for `core.export` to allow exporting to markdown.
     ---
-This module exists as an interface for `core.export` to export `.norg` files to MD.
+This module exists as an interface for `core.export` to export `.norg` files to Markdown.
 As a user the only reason you would ever have to touch this module is to configure *how* you'd
 like your markdown to be exported (i.e. do you want to support certain extensions during the export).
+To learn more about configuration, consult the [relevant section](#configuration).
 --]]
 
 -- TODO: One day this module will need to be restructured or maybe even rewritten.
@@ -129,10 +130,18 @@ module.config.public = {
     -- The default is recommended as it is the most common, although certain flavours
     -- of markdown use different syntax.
     mathematics = {
+        -- Inline mathematics are represented `$like this$`.
         inline = {
             start = "$",
             ["end"] = "$",
         },
+        -- Block-level mathematics are represented as such:
+        --
+        -- ```md
+        -- $$
+        -- \frac{3, 2}
+        -- $$
+        -- ```
         block = {
             start = "$$",
             ["end"] = "$$",
