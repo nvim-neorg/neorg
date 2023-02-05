@@ -1,8 +1,11 @@
 --[[
-    File: Norg-Manoeuvre
-    Title: Move around elements easily
-    Summary: A Neorg module for moving around different elements up and down.
+    file: Norg-Manoeuvre
+    title: Move around elements easily
+    summary: A Neorg module for moving around different elements up and down.
     ---
+### WARNING: This module is deprecated!
+
+There is no available successor to this module yet.
 --]]
 
 -- NOTE(vhyrro): This module is obsolete! There is no successor module to this yet, although
