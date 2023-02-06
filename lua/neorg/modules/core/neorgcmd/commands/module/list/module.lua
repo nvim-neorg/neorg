@@ -1,10 +1,11 @@
 --[[
-    File: Neorgcmd-List
-    Title: Provides `:Neorg list` command
-    Summary: List loaded modules.
-    Internal: true
+    file: Neorgcmd-List
+    title: Provides the `:Neorg list` command
+    summary: List loaded modules.
+    internal: true
     ---
-After module is loaded execute `:Neorg module list` to see a primitive list of currently loaded modules.
+Upon execution (`:Neorg module list`) an info popup is created with a list of currently loaded
+modules.
 --]]
 
 require("neorg.modules.base")
