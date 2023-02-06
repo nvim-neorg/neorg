@@ -1,10 +1,11 @@
 --[[
-    File: Queries-Module
-    Title: Queries Module
-    Summary: TS wrapper in order to fetch nodes using a custom table.
-    Internal: true
+    file: Queries-Module
+    title: Queries Made Easy
+    summary: TS wrapper in order to fetch nodes using a custom table.
+    internal: true
     ---
-This module uses tree-like tables in order to fetch useful informations from a TS tree.
+The `core.queries.native` module provides useful Treesitter wrappers
+to query information from Norg documents.
 --]]
 
 require("neorg.modules.base")
