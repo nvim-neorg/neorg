@@ -1,6 +1,6 @@
 --[[
     file: Neorgcmd-List
-    title: Provides the `:Neorg load ...` command
+    title: Provides the `:Neorg load ...` Command
     summary: Load a new module dynamically.
     internal: true
     ---
