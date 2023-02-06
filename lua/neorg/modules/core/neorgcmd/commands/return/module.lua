@@ -1,10 +1,11 @@
 --[[
-    File: Neorgcmd-return
-    Title: Provides `:Neorg return` command
-    Summary: Return to last location before entering Neorg.
-    Internal: true
+    file: Neorgcmd-return
+    title: Provides the `:Neorg return` Command
+    summary: Return to last location before entering Neorg.
+    internal: true
     ---
-Command module for core.neorgcmd designed to return to the last location the user was in before they entered Neorg
+When executed (`:Neorg return`), all currently open `.norg` files are deleted from
+the buffer list, and the current workspace is set to "default".
 --]]
 
 require("neorg.modules.base")
