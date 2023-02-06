@@ -1,6 +1,6 @@
 --[[
     file: Neorgcmd-List
-    title: Provides the `:Neorg list` command
+    title: Provides the `:Neorg list` Command
     summary: List loaded modules.
     internal: true
     ---
