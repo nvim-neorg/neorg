@@ -103,7 +103,7 @@ module.on_event = function(event)
         end
 
         if not current or current:type() == "document" then
-            vim.notify("No object to continue! Make sure you're under a list item.")
+            vim.notify("No object to continue! Make sure you're under an iterable item like a list or heading.")
             return
         end
 
@@ -116,16 +116,18 @@ module.on_event = function(event)
 
         local text_to_repeat = ts.get_node_text(current:named_child(0), event.buffer)
 
+        local _, column = current:start()
+
         vim.api.nvim_buf_set_lines(
             event.buffer,
             cursor_pos + 1,
             cursor_pos + 1,
             true,
-            { text_to_repeat .. (should_append_extension and "( ) " or "") }
+            { string.rep(" ", column) .. text_to_repeat .. (should_append_extension and "( ) " or "") }
         )
         vim.api.nvim_win_set_cursor(
             event.window,
-            { cursor_pos + 2, text_to_repeat:len() + (should_append_extension and ("( ) "):len() or 0) }
+            { cursor_pos + 2, column + text_to_repeat:len() + (should_append_extension and ("( ) "):len() or 0) }
         )
     end
 end
