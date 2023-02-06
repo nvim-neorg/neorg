@@ -1,10 +1,25 @@
 --[[
-    File: Defaults
-    Summary: Metamodule for storing the most necessary modules.
-    Internal: true
+    file: Defaults
+    summary: Metamodule for storing the most necessary modules.
+    internal: true
     ---
-This file contains all of the most important
-modules that any user would want to have a "just works" experience.
+This file contains all of the most important modules that any user would want
+to have a "just works" experience.
+
+Individual entries can be disabled via the "disable" flag:
+```lua
+load = {
+    ["core.defaults"] = {
+        config = {
+            disable = {
+                -- module list goes here
+                "core.autocommands",
+                "core.itero",
+            },
+        },
+    },
+}
+```
 --]]
 
 require("neorg.modules.base")
