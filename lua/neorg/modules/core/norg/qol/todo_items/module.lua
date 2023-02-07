@@ -87,25 +87,33 @@ module.public = {
             return
         end
 
-        local done_item_count, pending_item_count = 0, 0
+        local counts = {
+            undone = 0,
+            pending = 0,
+            done = 0,
+            cancelled = 0,
+            recurring = 0,
+            on_hold = 0,
+            urgent = 0,
+            uncertain = 0,
+        }
         local counter = 0
 
         -- Go through all the children of the current todo item node and count the amount of "done" children
         for node in item_at_cursor:iter_children() do
             if node:named_child(1) and node:named_child(1):type() == "detached_modifier_extension" then
                 for status in node:named_child(1):iter_children() do
-                    if status:type() == "todo_item_done" then
-                        done_item_count = done_item_count + 1
-                        break
-                    elseif status:type() == "todo_item_pending" then
-                        pending_item_count = pending_item_count + 1
-                        break
-                    elseif status:type() == "todo_item_cancelled" then
-                        counter = counter - 1
-                        break
-                    end
+                    if status:type():match("^todo_item_") then
+                        local type = status:type():match("^todo_item_(.+)$")
 
-                    counter = counter + 1
+                        counts[type] = counts[type] + 1
+
+                        if type == "cancelled" then
+                            break
+                        end
+
+                        counter = counter + 1
+                    end
                 end
             end
         end
@@ -124,13 +132,13 @@ module.public = {
 
         local resulting_char = ""
 
-        if pending_item_count > 0 then
+        if counts.pending > 0 then
             resulting_char = "-"
-        elseif counter == done_item_count then
+        elseif counter == counts.done then
             resulting_char = "x"
-        elseif done_item_count == 0 then
+        elseif counts.done == 0 then
             resulting_char = " "
-        elseif done_item_count < counter then
+        elseif counts.done < counter then
             resulting_char = "-"
         end
 
