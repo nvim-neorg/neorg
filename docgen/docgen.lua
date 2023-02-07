@@ -357,8 +357,7 @@ docgen.generators = {
             "These are modules that are only meant for developers. They are generally required in other modules:",
             "",
             list_modules_with_predicate(modules, function(data)
-                return not data.parsed.extension
-                    and data.top_comment_data.internal
+                return not data.parsed.extension and data.top_comment_data.internal
             end),
         }
 
