@@ -46,11 +46,26 @@ module.load = function()
 end
 
 module.config.public = {
-    -- The order of cycling between todo items.
+    -- The default order of TODO item cycling when cycling via
+    -- `<C-Space>`.
+    --
+    -- Defaults to the following order: `undone`, `done`, `pending`.
     order = {
         { "undone", " " },
         { "done", "x" },
         { "pending", "-" },
+    },
+
+    -- The default order of TODO item cycling when the item
+    -- has nested children with TODO items.
+    --
+    -- When cycling through TODO items with children it's not
+    -- always sensible to follow the same schema as the `order` table.
+    --
+    -- Defaults to the following order: `undone`, `done`.
+    order_with_children = {
+        { "undone", " " },
+        { "done", "x" },
     },
 
     -- When set to `true`, will automatically convert parent
@@ -330,7 +345,7 @@ module.public = {
         end
     end,
 
-    task_cycle = function(buf, linenr, types)
+    task_cycle = function(buf, linenr, types, alternative_types)
         local todo_item_at_cursor = module.public.get_todo_item_from_cursor(buf, linenr - 1)
 
         if not todo_item_at_cursor then
@@ -370,12 +385,8 @@ module.public = {
         local next = types[index] or types[1]
 
         for child in todo_item_at_cursor:iter_children() do
-            if module.public.get_todo_item_type(child) ~= "" then
-                if (index + 1) >= #types then
-                    next = types[#types - index + 1]
-                else
-                    next = types[index + 1]
-                end
+            if module.public.get_todo_item_type(child) then
+                next = alternative_types[get_index(alternative_types, todo_item_type)]
                 break
             end
         end
@@ -416,9 +427,19 @@ module.on_event = function(event)
             )
             module.public.update_parent(event.buffer, event.cursor_position[1] - 1, 0)
         elseif event.split_type[2] == todo_str .. "task_cycle" then
-            module.public.task_cycle(event.buffer, event.cursor_position[1], module.config.public.order)
+            module.public.task_cycle(
+                event.buffer,
+                event.cursor_position[1],
+                module.config.public.order,
+                module.config.public.order_with_children
+            )
         elseif event.split_type[2] == todo_str .. "task_cycle_reverse" then
-            module.public.task_cycle(event.buffer, event.cursor_position[1], vim.fn.reverse(module.config.public.order))
+            module.public.task_cycle(
+                event.buffer,
+                event.cursor_position[1],
+                vim.fn.reverse(module.config.public.order),
+                vim.fn.reverse(module.config.public.order_with_children)
+            )
         end
     end
 end
