@@ -356,6 +356,10 @@ module.public = {
         end
 
         if not todo_item_type then
+            if not module.config.public.create_todo_items then
+                return
+            end
+
             module.public.make_all(buf, todo_item_at_cursor, types[1][1], types[1][2])
             module.public.update_parent(buf, linenr - 1, 0)
             return
