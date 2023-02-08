@@ -52,6 +52,23 @@ module.config.public = {
         { "done", "x" },
         { "pending", "-" },
     },
+
+    -- When set to `true`, will automatically convert parent
+    -- items to TODOs whenever a child item's TODO state is updated.
+    --
+    -- For instance, given the following example:
+    -- ```norg
+    -- - Text
+    -- -- ( ) Child text
+    -- ```
+    --
+    -- When this option is `true` and the child's state is updated to e.g.
+    -- `(x)` via the `gtd` keybind, the new output becomes:
+    -- ```norg
+    -- - (x) Text
+    -- -- (x) Child text
+    -- ```
+    create_todo_parents = false,
 }
 
 ---@class core.norg.qol.todo_items
@@ -62,10 +79,9 @@ module.public = {
         -- Force a reparse (this is required because otherwise some cached nodes will be incorrect)
         vim.treesitter.get_parser(buf, "norg"):parse()
 
-        -- If present grab the list item that is under the cursor
-        local item_at_cursor = module.public.get_list_item_from_cursor(buf, line)
+        -- If present grab the item that is under the cursor
+        local item_at_cursor = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, line)
 
-        -- If we didn't manage to grab any valid item then return
         if not item_at_cursor then
             return
         end
@@ -75,14 +91,12 @@ module.public = {
             item_at_cursor = item_at_cursor:parent()
         end
 
-        -- If the list node isn't present or if the list element's type isn't a todo_item then return
-        if not item_at_cursor then
-            return
-        end
-
+        -- If the final item does not exist or the target item is not a detached modifier
+        -- (i.e. it does not have a "prefix" node) then it is not a node worth updating.
         if
-            not item_at_cursor:named_child(1)
-            or item_at_cursor:named_child(1):type() ~= "detached_modifier_extension"
+            not item_at_cursor
+            or not item_at_cursor:named_child(0)
+            or not item_at_cursor:named_child(0):type():match("prefix")
         then
             return
         end
@@ -97,6 +111,7 @@ module.public = {
             urgent = 0,
             uncertain = 0,
         }
+
         local counter = 0
 
         -- Go through all the children of the current todo item node and count the amount of "done" children
@@ -154,6 +169,15 @@ module.public = {
         --     * (x|@ Mon 5th Feb) Test
         --     ** (x) Test
         if not first_status_extension then
+            if not module.config.public.create_todo_parents then
+                return
+            end
+
+            local row, _, _, column = item_at_cursor:named_child(0):range()
+
+            vim.api.nvim_buf_set_text(buf, row, column, row, column, { "(" .. resulting_char .. ") " })
+
+            module.public.update_parent(buf, line, recursion_level + 1)
             return
         end
 
