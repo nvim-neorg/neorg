@@ -310,19 +310,18 @@ module.public = {
             local row, _, _, column = node:named_child(0):range()
 
             vim.api.nvim_buf_set_text(buf, row, column, row, column, { "(" .. char .. ") " })
-            return
+        else
+            local range = module.required["core.integrations.treesitter"].get_node_range(first_status_extension)
+
+            vim.api.nvim_buf_set_text(
+                buf,
+                range.row_start,
+                range.column_start,
+                range.row_end,
+                range.column_end,
+                { char }
+            )
         end
-
-        local range = module.required["core.integrations.treesitter"].get_node_range(first_status_extension)
-
-        vim.api.nvim_buf_set_text(
-            buf,
-            range.row_start,
-            range.column_start,
-            range.row_end,
-            range.column_end,
-            { char }
-        )
 
         for child in node:iter_children() do
             if type == child:type():match("^(.+)%d+$") then
