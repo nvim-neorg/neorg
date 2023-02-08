@@ -339,10 +339,6 @@ module.public = {
 
         local todo_item_type = module.public.get_todo_item_type(todo_item_at_cursor)
 
-        if not todo_item_type then
-            return
-        end
-
         --- Gets the next item of a flat list based on the first item
         ---@param type_list table[] #A list of { "type", "char" } items
         ---@param item_type string #The `type` field from the `type_list` array
@@ -357,6 +353,12 @@ module.public = {
                     end
                 end
             end
+        end
+
+        if not todo_item_type then
+            module.public.make_all(buf, todo_item_at_cursor, types[1][1], types[1][2])
+            module.public.update_parent(buf, linenr - 1, 0)
+            return
         end
 
         local index = get_index(types, todo_item_type)
