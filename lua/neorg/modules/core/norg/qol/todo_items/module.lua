@@ -69,6 +69,20 @@ module.config.public = {
     -- -- (x) Child text
     -- ```
     create_todo_parents = false,
+
+    -- When `true`, will automatically create a TODO extension for an item
+    -- if it does not exist and an operation is performed on that item.
+    --
+    -- Given the following example:
+    -- ```norg
+    -- - Test Item
+    -- ```
+    -- With this option set to true, performing an operation (like pressing `<C-space>`
+    -- or `gtu` or what have you) will convert the non-todo item into one:
+    -- ```norg
+    -- - ( ) Test Item
+    -- ```
+    create_todo_items = true,
 }
 
 ---@alias TodoItemType "undone"
@@ -89,7 +103,7 @@ module.public = {
         vim.treesitter.get_parser(buf, "norg"):parse()
 
         -- If present grab the item that is under the cursor
-        local item_at_cursor = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, line)
+        local item_at_cursor = module.public.get_todo_item_from_cursor(buf, line)
 
         if not item_at_cursor then
             return
@@ -278,49 +292,62 @@ module.public = {
             return
         end
 
-        local function update(child)
-            local first_status_extension = module.public.find_first_status_extension(child:named_child(1))
-
-            if not first_status_extension then
-                return
-            end
-
-            local range = module.required["core.integrations.treesitter"].get_node_range(first_status_extension)
-
-            vim.api.nvim_buf_set_text(
-                buf,
-                range.row_start,
-                range.column_start,
-                range.row_end,
-                range.column_end,
-                { char }
-            )
-        end
-
         local type = node:type():match("^(.+)%d+$")
 
         -- If the type of the current todo item differs from the one we want to change to then
         -- We do this because we don't want to be unnecessarily modifying a line that doesn't need changing
-        if module.public.get_todo_item_type(node) ~= todo_item_type then
-            update(node)
+        if module.public.get_todo_item_type(node) == todo_item_type then
+            return
+        end
 
-            for child in node:iter_children() do
-                if type == child:type():match("^(.+)%d+$") then
-                    update(child)
-                    module.public.make_all(buf, child, todo_item_type, char)
-                end
+        local first_status_extension = module.public.find_first_status_extension(node:named_child(1))
+
+        if not first_status_extension then
+            if not module.config.public.create_todo_items then
+                return
+            end
+
+            local row, _, _, column = node:named_child(0):range()
+
+            vim.api.nvim_buf_set_text(buf, row, column, row, column, { "(" .. char .. ") " })
+            return
+        end
+
+        local range = module.required["core.integrations.treesitter"].get_node_range(first_status_extension)
+
+        vim.api.nvim_buf_set_text(
+            buf,
+            range.row_start,
+            range.column_start,
+            range.row_end,
+            range.column_end,
+            { char }
+        )
+
+        for child in node:iter_children() do
+            if type == child:type():match("^(.+)%d+$") then
+                module.public.make_all(buf, child, todo_item_type, char)
             end
         end
     end,
 
     task_cycle = function(buf, linenr, types)
-        local todo_item_at_cursor = module.public.get_list_item_from_cursor(buf, linenr - 1)
+        local todo_item_at_cursor = module.public.get_todo_item_from_cursor(buf, linenr - 1)
+
+        if not todo_item_at_cursor then
+            return
+        end
+
         local todo_item_type = module.public.get_todo_item_type(todo_item_at_cursor)
 
+        if not todo_item_type then
+            return
+        end
+
         --- Gets the next item of a flat list based on the first item
-        ---@param type_list list #A list of { "type", "char" } items
+        ---@param type_list table[] #A list of { "type", "char" } items
         ---@param item_type string #The `type` field from the `type_list` array
-        ---@return number #An index into the next item of `type_list`
+        ---@return number? #An index into the next item of `type_list`
         local function get_index(type_list, item_type)
             for i, element in ipairs(type_list) do
                 if element[1] == item_type then
@@ -357,7 +384,7 @@ module.on_event = function(event)
     local todo_str = "core.norg.qol.todo_items.todo."
 
     if event.split_type[1] == "core.keybinds" then
-        local todo_item_at_cursor = module.public.get_list_item_from_cursor(event.buffer, event.cursor_position[1] - 1)
+        local todo_item_at_cursor = module.public.get_todo_item_from_cursor(event.buffer, event.cursor_position[1] - 1)
 
         if not todo_item_at_cursor then
             return
