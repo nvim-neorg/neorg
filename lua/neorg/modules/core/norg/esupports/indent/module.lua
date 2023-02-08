@@ -3,7 +3,7 @@
     title: Formatting on the Fly
     summary: A set of instructions for Neovim to indent Neorg documents.
     ---
-`core.norg.esupport.indent` uses Norg's format to unambiguously determine
+`core.norg.esupports.indent` uses Norg's format to unambiguously determine
 the indentation level for the current line.
 
 The indent calculation is aided by [treesitter](@core.integrations.treesitter), which
