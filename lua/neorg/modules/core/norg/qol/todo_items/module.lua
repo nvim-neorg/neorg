@@ -71,6 +71,15 @@ module.config.public = {
     create_todo_parents = false,
 }
 
+---@alias TodoItemType "undone"
+---|"pending"
+---|"done"
+---|"cancelled"
+---|"recurring"
+---|"on_hold"
+---|"urgent"
+---|"uncertain"
+
 ---@class core.norg.qol.todo_items
 module.public = {
     --- Updates the parent todo item for the current todo item if it exists
@@ -212,7 +221,7 @@ module.public = {
     end,
 
     --- Tries to locate a todo_item node under the cursor
-    ---@return userdata nil if no such node could be found else returns the todo_item node
+    ---@return userdata? #The node if it was located, else nil
     get_list_item_from_cursor = function(buf, line)
         local node_at_cursor = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, line)
 
@@ -247,22 +256,22 @@ module.public = {
     end,
 
     --- Returns the type of a todo item (either "done", "pending" or "undone")
-    ---@param todo_node userdata the todo node to extract the data from
-    ---@return string one of "done", "pending" or "undone" or an empty string if an error occurred
+    ---@param todo_node userdata #The todo node to extract the data from
+    ---@return TodoItemType? #A todo item type as a string, else nil
     get_todo_item_type = function(todo_node)
         if not todo_node or not todo_node:named_child(1) then
-            return ""
+            return
         end
 
         local todo_type = module.public.find_first_status_extension(todo_node:named_child(1))
 
-        return todo_type and todo_type:type():sub(string.len("todo_item_") + 1) or ""
+        return todo_type and todo_type:type():sub(string.len("todo_item_") + 1) or nil
     end,
 
     --- Converts the current node and all its children to a certain type
     ---@param buf number the current buffer number
     ---@param node userdata the node to modify
-    ---@param todo_item_type string one of "done", "pending" or "undone"
+    ---@param todo_item_type TodoItemType #The todo item type as a string
     ---@param char string the character to place within the square brackets of the todo item (one of "x", "*" or " ")
     make_all = function(buf, node, todo_item_type, char)
         if not node then
