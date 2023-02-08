@@ -222,7 +222,7 @@ module.public = {
 
     --- Tries to locate a todo_item node under the cursor
     ---@return userdata? #The node if it was located, else nil
-    get_list_item_from_cursor = function(buf, line)
+    get_todo_item_from_cursor = function(buf, line)
         local node_at_cursor = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, line)
 
         if not node_at_cursor then
@@ -243,9 +243,9 @@ module.public = {
                 return
             end
 
-            local second_named_child = node_at_cursor:named_child(1)
+            local first_named_child = node_at_cursor:named_child(0)
 
-            if second_named_child and second_named_child:type() == "detached_modifier_extension" then
+            if first_named_child and first_named_child:type():match("prefix") then
                 break
             else
                 node_at_cursor = node_at_cursor:parent()
