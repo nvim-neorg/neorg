@@ -200,6 +200,8 @@ module.private = {
         local workspace = module.config.public.workspace
             or module.required["core.norg.dirman"].get_current_workspace()[1]
         local index = neorg.modules.get_module_config("core.norg.dirman").index
+        local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
+        local workspace_name_for_links = module.config.public.workspace or ""
         local folder_name = module.config.public.journal_folder
 
         -- Each entry is a table that contains tables like { yy, mm, dd, link, title }
@@ -209,7 +211,8 @@ module.private = {
         -- path is for each subfolder
         local get_fs_handle = function(path)
             path = path or ""
-            local handle = vim.loop.fs_scandir(folder_name .. neorg.configuration.pathsep .. path)
+            local handle = vim.loop.fs_scandir(workspace_path .. neorg.configuration.pathsep
+              .. folder_name .. neorg.configuration.pathsep .. path)
 
             if type(handle) ~= "userdata" then
                 error(neorg.lib.lazy_string_concat("Failed to scan directory '", workspace, path, "': ", handle))
@@ -226,7 +229,9 @@ module.private = {
             return title
         end
 
-        vim.loop.fs_scandir(folder_name .. neorg.configuration.pathsep, function(err, handle)
+        vim.loop.fs_scandir( workspace_path .. neorg.configuration.pathsep
+          .. folder_name .. neorg.configuration.pathsep,
+          function(err, handle)
             assert(
                 not err,
                 neorg.lib.lazy_string_concat("Unable to generate TOC for directory '", folder_name, "' - ", err)
@@ -282,6 +287,7 @@ module.private = {
                                             tonumber(mname),
                                             tonumber(file[1]),
                                             "{:$"
+                                                .. workspace_name_for_links
                                                 .. neorg.configuration.pathsep
                                                 .. module.config.public.journal_folder
                                                 .. neorg.configuration.pathsep
@@ -324,6 +330,7 @@ module.private = {
                             parts[2],
                             parts[3],
                             "{:$"
+                                .. workspace_name_for_links
                                 .. neorg.configuration.pathsep
                                 .. module.config.public.journal_folder
                                 .. neorg.configuration.pathsep
