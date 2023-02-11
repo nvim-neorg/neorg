@@ -517,8 +517,7 @@ module.on_event = function(event)
 
     -- If the user has executed a keybind to create a new note then create a prompt
     if event.type == "core.keybinds.events.core.norg.dirman.new.note" then
-        local use_popup = module.config.public.use_popup
-        if use_popup then
+        if module.config.public.use_popup then
             module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
                 -- Create the file that the user has entered
                 module.public.create_file(text)
