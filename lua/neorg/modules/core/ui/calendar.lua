@@ -101,7 +101,7 @@ module.private = {
             }
         )
 
-        module.private.extmarks.decorational.month_headings[month_name] = module.private.set_decorational_extmark(
+        module.private.extmarks.decorational.month_headings[weekday_banner_extmark_id] = module.private.set_decorational_extmark(
             ui_info,
             4,
             weekday_banner_id[2]
@@ -111,7 +111,7 @@ module.private = {
             { { month_name, "@text.underline" } },
             nil,
             {
-                id = module.private.extmarks.decorational.month_headings[month_name],
+                id = module.private.extmarks.decorational.month_headings[weekday_banner_extmark_id],
             }
         )
     end,
@@ -119,8 +119,6 @@ module.private = {
     render_weekday_banner = function(ui_info, offset, distance)
         offset = offset or 0
         distance = distance or 4
-
-        module.private.extmarks.decorational.weekday_displays = {}
 
         -- Render the days of the week
         -- To effectively do this, we grab all the weekdays from a constant time.
@@ -148,6 +146,8 @@ module.private = {
             weekdays_string_length = weekdays_string_length + (i ~= 7 and 4 or 2)
         end
 
+        local absolute_offset = offset + (offset < 0 and (-offset * 100) or 0)
+
         local weekday_banner_id = module.private.set_decorational_extmark(
             ui_info,
             6,
@@ -155,10 +155,13 @@ module.private = {
                 + (offset < 0 and -distance or (offset > 0 and distance or 0)) * math.abs(offset),
             weekdays_string_length,
             weekdays,
-            "center"
+            "center",
+            {
+                id = module.private.extmarks.decorational.weekday_displays[absolute_offset],
+            }
         )
 
-        table.insert(module.private.extmarks.decorational.weekday_displays, weekday_banner_id)
+        module.private.extmarks.decorational.weekday_displays[absolute_offset] = weekday_banner_id
 
         return weekday_banner_id
     end,
