@@ -112,6 +112,10 @@ module.config.public = {
     -- May also be set to the string `"default"`, due to which Neorg will always
     -- open up the index file for the workspace defined in `default_workspace`.
     open_last_workspace = false,
+
+    -- Whether to use core.ui.text_popup for `dirman.new.note` event.
+    -- if `false`, will use vim's default `vim.ui.input` instead.
+    use_popup = true,
 }
 
 module.private = {
@@ -513,18 +517,27 @@ module.on_event = function(event)
 
     -- If the user has executed a keybind to create a new note then create a prompt
     if event.type == "core.keybinds.events.core.norg.dirman.new.note" then
-        module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
-            -- Create the file that the user has entered
-            module.public.create_file(text)
-        end, {
-            center_x = true,
-            center_y = true,
-        }, {
-            width = 25,
-            height = 1,
-            row = 10,
-            col = 0,
-        })
+        local use_popup = module.config.public.use_popup
+        if use_popup then
+            module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
+                -- Create the file that the user has entered
+                module.public.create_file(text)
+            end, {
+                center_x = true,
+                center_y = true,
+            }, {
+                width = 25,
+                height = 1,
+                row = 10,
+                col = 0,
+            })
+        else
+            vim.ui.input({ prompt = "New Note: " }, function(text)
+                if text ~= nil and #text > 0 then
+                    module.public.create_file(text)
+                end
+            end)
+        end
     end
 end
 
