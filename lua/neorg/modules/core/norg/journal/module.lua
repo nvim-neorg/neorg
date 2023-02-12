@@ -1,23 +1,22 @@
 --[[
-    File: Journal
-    Title: Journal module for Neorg
-    Summary: Easily create files for a journal.
+    file: Journal
+    title: Dear diary...
+    description: The journal module allows you to take personal notes with zero friction.
+    summary: Easily track a journal within Neorg.
     ---
-How to use this module:
-This module creates five commands.
-- `:Neorg journal today`
-- `:Neorg journal yesterday`
-- `:Neorg journal tomorrow`
-With this commands you can open the config files for the dates.
-- `Neorg journal custom`
-This command requires a date as an argument.
-The date should have to format yyyy-mm-dd.
-- `:Neorg journal template`
-This command creates a template file which will be used whenever a new journal entry is created.
-- `:Neorg journal toc update`
-This command creates or updates a TOC file containing all the entries located in the journal folder, named after the workspace index.
-- `:Neorg journal toc open`
-This command opens the TOC file without updating it.
+The journal module exposes a total of six commands.
+The first three, `:Neorg journal today|yesterday|tomorrow`, allow you to access entries
+for a given time relative to today. A file will be opened with the respective date as a `.norg` file.
+
+The fourth command, `:Neorg journal custom`, allows you to specify a custom date as an argument.
+The date must be formatted according to the `YYYY-mm-dd` format, e.g. `2023-01-01`.
+
+The `:Neorg journal template` command creates a template file which will be used as the base whenever
+a new journal entry is created.
+
+Last but not least, the `:Neorg journal toc open|update` commands open or create/update a Table of Contents
+file found in the root of the journal. This file contains links to all other journal entries, alongside
+their titles.
 --]]
 
 require("neorg.modules.base")
@@ -201,6 +200,8 @@ module.private = {
         local workspace = module.config.public.workspace
             or module.required["core.norg.dirman"].get_current_workspace()[1]
         local index = neorg.modules.get_module_config("core.norg.dirman").index
+        local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
+        local workspace_name_for_links = module.config.public.workspace or ""
         local folder_name = module.config.public.journal_folder
 
         -- Each entry is a table that contains tables like { yy, mm, dd, link, title }
@@ -210,7 +211,8 @@ module.private = {
         -- path is for each subfolder
         local get_fs_handle = function(path)
             path = path or ""
-            local handle = vim.loop.fs_scandir(folder_name .. neorg.configuration.pathsep .. path)
+            local handle = vim.loop.fs_scandir(workspace_path .. neorg.configuration.pathsep
+              .. folder_name .. neorg.configuration.pathsep .. path)
 
             if type(handle) ~= "userdata" then
                 error(neorg.lib.lazy_string_concat("Failed to scan directory '", workspace, path, "': ", handle))
@@ -227,7 +229,14 @@ module.private = {
             return title
         end
 
-        vim.loop.fs_scandir(folder_name .. neorg.configuration.pathsep, function(_, handle)
+        vim.loop.fs_scandir( workspace_path .. neorg.configuration.pathsep
+          .. folder_name .. neorg.configuration.pathsep,
+          function(err, handle)
+            assert(
+                not err,
+                neorg.lib.lazy_string_concat("Unable to generate TOC for directory '", folder_name, "' - ", err)
+            )
+
             while true do
                 -- Name corresponds to either a YYYY-mm-dd.norg file, or just the year ("nested" strategy)
                 local name, type = vim.loop.fs_scandir_next(handle)
@@ -278,6 +287,7 @@ module.private = {
                                             tonumber(mname),
                                             tonumber(file[1]),
                                             "{:$"
+                                                .. workspace_name_for_links
                                                 .. neorg.configuration.pathsep
                                                 .. module.config.public.journal_folder
                                                 .. neorg.configuration.pathsep
@@ -320,6 +330,7 @@ module.private = {
                             parts[2],
                             parts[3],
                             "{:$"
+                                .. workspace_name_for_links
                                 .. neorg.configuration.pathsep
                                 .. module.config.public.journal_folder
                                 .. neorg.configuration.pathsep
@@ -385,25 +396,32 @@ module.private = {
 }
 
 module.config.public = {
-    -- which workspace to use for the journal files, default is the current
+    -- Which workspace to use for the journal files, the default behaviour
+    -- is to use the current workspace.
+    --
+    -- It is recommended to set this to a static workspace, but the most optimal
+    -- behaviour may vary from workflow to workflow.
     workspace = nil,
-    -- the name for the folder in which the journal files are put
+
+    -- The name for the folder in which the journal files are put.
     journal_folder = "journal",
 
-    -- The strategy to use to create directories
-    -- can be "flat" (2022-03-02.norg), "nested" (2022/03/02.norg),
+    -- The strategy to use to create directories.
+    -- May be "flat" (`2022-03-02.norg`), "nested" (`2022/03/02.norg`),
     -- a lua string with the format given to `os.date()` or a lua function
     -- that returns a lua string with the same format.
     strategy = "nested",
 
-    -- the name of the template file
+    -- The name of the template file to use when running `:Neorg journal template`.
     template_name = "template.norg",
-    -- use your journal_folder template
+
+    -- Whether to apply the template file to new journal entries.
     use_template = true,
 
-    -- formatter function used to generate the toc file
-    -- receives a table that contains tables like { yy, mm, dd, link, title }
-    -- must return a table of strings
+    -- Formatter function used to generate the toc file.
+    -- Receives a table that contains tables like { yy, mm, dd, link, title }.
+    --
+    -- The function must return a table of strings.
     toc_format = nil,
 }
 

@@ -1,12 +1,20 @@
 --[[
-    File: User-Keybinds
-    Title: The Keybinds Module
-    Summary: Module for managing keybindings with Neorg mode support.
+    file: User-Keybinds
+    title: The Language of Neorg
+    description: `core.keybinds` manages mappings for operations on or in `.norg` files.
+    summary: Module for managing keybindings with Neorg mode support.
     ---
+The keybind module acts as both an interface to the user and as an interface to other modules.
+External modules can ask `core.keybinds` to reserve a specific keybind name, after which
+`core.keybinds` passes control to you (the user) to specify what key this should be bound to.
+
+Because of this client/server model, you must define your own `hook` function, which can
+set/overwrite several keybindings to your personal preference. Below is some information
+on how to disable keybinds and how to set up a keybind hook.
 
 ### Disabling Default Keybinds
 By default when you load the `core.keybinds` module all keybinds will be enabled.
-If you want to change this, be sure to set `default_keybinds` to `false`:
+If you would like to change this, be sure to set `default_keybinds` to `false`:
 ```lua
 ["core.keybinds"] = {
     config = {
@@ -16,9 +24,9 @@ If you want to change this, be sure to set `default_keybinds` to `false`:
 ```
 
 ### Setting Up a Keybind Hook
-Want to change some keybinds? You can set up a function that will allow you to tweak
-every keybind bit by bit.
-
+To change some keybinds, you must set up a keybind hook. Below is an example
+on how to do so, alongside a bunch of functions exposed to you that you can invoke
+to finely control what gets set and where:
 ```lua
 ["core.keybinds"] = {
     config = {
@@ -75,19 +83,27 @@ module.load = function()
 end
 
 module.config.public = {
-    -- Use the default keybinds provided in https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/keybinds.lua
+    -- Whether to use the default keybinds provided [here](https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/keybinds.lua).
     default_keybinds = true,
 
-    -- Prefix for some Neorg keybinds
+    -- The prefix to use for all Neorg keybinds.
+    --
+    -- By default, this is the local leader key, which you must bind manually.
     neorg_leader = "<LocalLeader>",
 
-    -- Function to be invoked that allows the user to change their keybinds
+    -- Function to be invoked that allows the user to change their keybinds.
+    -- See the [section on setting up a keybind hook](#setting-up-a-keybing-hook) for more details.
     hook = nil,
 
-    -- The keybind preset to use
+    -- The keybind preset to use.
+    --
+    -- This is only partially supported, and will be fully applicable in a future rewrite.
+    -- For now it is recommended not to touch this setting.
     keybind_preset = "neorg",
 
-    -- An array of functions, each one corresponding to a separate preset
+    -- An array of functions, each one corresponding to a separate preset.
+    --
+    -- Also currently partially supported, should not be touched.
     keybind_presets = {},
 }
 

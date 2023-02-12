@@ -1,3 +1,12 @@
+--[[
+    file: Truezen-Integration
+    title: A TrueZen integration for Neorg
+    summary: Integrates the TrueZen module for use within Neorg.
+    internal: true
+    ---
+This is a basic wrapper around truezen that allows one to toggle the atraxis mode programatically.
+--]]
+
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.integrations.truezen")
@@ -5,12 +14,9 @@ local module = neorg.modules.create("core.integrations.truezen")
 module.load = function()
     local success, truezen = pcall(require, "true-zen.main")
 
-    assert(success, "Unable to load truezen...")
-
-    local _success, truezen_setup = pcall(require, "true-zen")
-    assert(_success, "Unable to load truezen setup")
-
-    truezen_setup.setup(module.config.public)
+    if not success then
+        return { success = false }
+    end
 
     module.private.truezen = truezen
 end
@@ -19,15 +25,11 @@ module.private = {
     truezen = nil,
 }
 
-module.config.public = {
-    -- truezen setup configs: https://github.com/Pocco81/TrueZen.nvim
-    setup = {},
-}
-
 ---@class core.integrations.truezen
 module.public = {
     toggle_ataraxis = function()
         vim.cmd(":TZAtaraxis")
     end,
 }
+
 return module

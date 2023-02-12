@@ -1,8 +1,11 @@
 --[[
-    File: Core-Highlights
-    Title: Neorg module for managing highlight groups
-    Summary: Manages your highlight groups with this module.
-    Internal: true
+    file: Core-Highlights
+    title: No Colour Means no Productivity
+    summary: Manages your highlight groups with this module.
+    internal: true
+    ---
+`core.highlights` maps all possible highlight groups available throughout
+Neorg under a single tree of highlights: `@neorg.*`.
 --]]
 
 require("neorg.modules.base")
@@ -10,21 +13,35 @@ require("neorg.modules.base")
 local module = neorg.modules.create("core.highlights")
 
 --[[
-    Nested trees concatenate
-    So:
-        tag = { begin = "+@comment" }
-    matches the highlight group:
-        @neorg.tag.begin
-    and converts into the command:
-        highlight! link @neorg.tag.begin @comment
 --]]
 module.config.public = {
-    -- The TS highlights for each Neorg type
+    -- The TS highlights for each Neorg type.
+    --
+    -- The `highlights` table is a large collection of nested trees. At the leaves of each of these
+    -- trees is the final highlight to apply to that tree. For example: `"+@comment"` tells Neorg to
+    -- link to an existing highlight group `@comment` (denoted by the `+` prefix). When no prefix is
+    -- found, the string is treated as arguments passed to `:highlight`, for example: `gui=bold
+    -- fg=#000000`.
+    --
+    -- Nested trees concatenate, thus:
+    -- ```lua
+    -- tags = {
+    --     ranged_verbatim = {
+    --         begin = "+@comment",
+    --     },
+    -- }
+    -- ```
+    -- matches the highlight group:
+    -- ```lua
+    -- @neorg.tags.ranged_verbatim.begin
+    -- ```
+    -- and converts into the following command:
+    -- ```vim
+    -- highlight! link @neorg.tags.ranged_verbatim.begin @comment
+    -- ```
     highlights = {
+        -- Highlights displayed in Neorg selection window popups.
         selection_window = {
-            -- The + tells neorg to link to an existing hl
-            -- You may also supply any arguments you would to :highlight here
-            -- Example: ["heading"] = "gui=underline",
             heading = "+@annotation",
             arrow = "+@none",
             key = "+@namespace",
@@ -32,7 +49,11 @@ module.config.public = {
             nestedkeyname = "+@string",
         },
 
+        -- Highlights displayed in all sorts of tag types.
+        --
+        -- These include: `@`, `.`, `|`, `#`, `+` and `=`.
         tags = {
+            -- Highlights for the `@` verbatim tags.
             ranged_verbatim = {
                 begin = "+@keyword",
 
@@ -69,6 +90,7 @@ module.config.public = {
                 },
             },
 
+            -- Highlights for the carryover (`#`, `+`) tags.
             carryover = {
                 begin = "+@label",
 
@@ -81,11 +103,15 @@ module.config.public = {
                 parameters = "+@string",
             },
 
+            -- Highlights for the content of any tag named `comment`.
+            --
+            -- Most prominent use case is for the `#comment` carryover tag.
             comment = {
                 content = "+@comment",
             },
         },
 
+        -- Highlights for each individual heading level.
         headings = {
             ["1"] = {
                 title = "+@attribute",
@@ -113,13 +139,10 @@ module.config.public = {
             },
         },
 
+        -- In case of errors in the syntax tree, use the following highlight.
         error = "+@error",
 
-        markers = {
-            prefix = "+@label",
-            title = "+@none",
-        },
-
+        -- Highlights for definitions (`$ Definition`).
         definitions = {
             prefix = "+@punctuation.delimiter",
             suffix = "+@punctuation.delimiter",
@@ -127,6 +150,7 @@ module.config.public = {
             content = "+@text.emphasis",
         },
 
+        -- Highlights for footnotes (`^ My Footnote`).
         footnotes = {
             prefix = "+@punctuation.delimiter",
             suffix = "+@punctuation.delimiter",
@@ -134,6 +158,11 @@ module.config.public = {
             content = "+@text.emphasis",
         },
 
+        -- Highlights for TODO items.
+        --
+        -- This strictly covers the `( )` component of any detached modifier. In other words, these
+        -- highlights only bother with highlighting the brackets and the content within, but not the
+        -- object containing the TODO item itself.
         todo_items = {
             undone = {
                 ["1"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
@@ -201,6 +230,7 @@ module.config.public = {
             },
         },
 
+        -- Highlights for all the possible levels of ordered and unordered lists.
         lists = {
             unordered = {
                 ["1"] = {
@@ -257,6 +287,7 @@ module.config.public = {
             },
         },
 
+        -- Highlights for all the possible levels of quotes.
         quotes = {
             ["1"] = {
                 prefix = "+@punctuation.delimiter",
@@ -284,6 +315,7 @@ module.config.public = {
             },
         },
 
+        -- Highlights for the anchor syntax: `[name]{location}`.
         anchors = {
             declaration = {
                 [""] = "+@text.reference",
@@ -369,6 +401,9 @@ module.config.public = {
             },
         },
 
+        -- Highlights for inline markup.
+        --
+        -- This is all the highlights like `bold`, `italic` and so on.
         markup = {
             bold = {
                 [""] = "+@text.strong",
@@ -416,12 +451,22 @@ module.config.public = {
             free_form_delimiter = "+NonText",
         },
 
+        -- Highlights for all the delimiter types. These include:
+        -- - `---` - the weak delimiter
+        -- - `===` - the strong delimiter
+        -- - `___` - the horizontal rule
         delimiters = {
             strong = "+@punctuation.delimiter",
             weak = "+@punctuation.delimiter",
             horizontal_line = "+@punctuation.delimiter",
         },
 
+        -- Inline modifiers.
+        --
+        -- This includes:
+        -- - `~` - the trailing modifier
+        -- - All link characters (`{`, `}`, `[`, `]`, `<`, `>`)
+        -- - The escape character (`\`)
         modifiers = {
             trailing = "+NonText",
             link = "+NonText",
@@ -429,7 +474,20 @@ module.config.public = {
         },
     },
 
-    -- Where and how to dim TS types
+    -- Handles the dimming of certain highlight groups.
+    --
+    -- It sometimes is favourable to use an existing highlight group,
+    -- but to dim or brighten it a little bit.
+    --
+    -- To do so, you may use this table, which, similarly to the `highlights` table,
+    -- will concatenate nested trees to form a highlight group name.
+    --
+    -- The difference is, however, that the leaves of the tree are a table, not a single string.
+    -- This table has three possible fields:
+    -- - `reference` - which highlight to use as reference for the dimming.
+    -- - `percentage` - by how much to darken the reference highlight. This value may be between
+    --   `-100` and `100`, where negative percentages brighten the reference highlight, whereas
+    --   positive values dim the highlight by the given percentage.
     dim = {
         tags = {
             ranged_verbatim = {
@@ -454,13 +512,13 @@ module.config.public = {
         },
     },
 
+    -- How to change the colour of TODO items depending on their state.
+    --
     -- This can be one of four values: `false`, `"all"`, `"except_undone"` and `"cancelled"`.
     -- - When set to `false` the content of TODO items will not be coloured in any special way.
     -- - When set to `"all"` the content of TODO items will directly reflect the colour of the item's TODO box.
     -- - When set to `"except_undone"`, will have the same behaviour as `"all"` but will exclude undone TODO items.
     -- - When set to `"cancelled"` will only highlight the content of TODO items for cancelled tasks.
-    --
-    -- Default value: "cancelled".
     todo_items_match_color = "cancelled",
 }
 

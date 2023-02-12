@@ -1,12 +1,21 @@
 --[[
-    File: Syntax
-    Title: Syntax Module for Neorg
-    Summary: Handles interaction for syntax files for code blocks.
+    file: Syntax
+    title: Where Treesitter can't Reach
+    description: When a language not supported by Treesitter is found a fallback is made to use vim regex highlighting.
+    summary: Handles interaction for syntax files for code blocks.
+    internal: true
     ---
-    Author's note:
-    This module will appear as spaghetti code at first glance. This is intentional.
-    If one needs to edit this module, it is best to talk to me at `katawful` on GitHub.
-    Any edit is assumed to break this module.
+The `core.syntax` module highlights any `@code` region where there is no treesitter parser present
+to highlight the region.
+
+This module very closely resembles the [`concealer`](@core.norg.concealer), but some parts have been
+adapted to fit the correct use case.
+
+##### Author's note:
+
+This module will appear as spaghetti code at first glance. This is intentional.
+If one needs to edit this module, it is best to talk to me at `katawful` on GitHub.
+Any edit is assumed to break this module.
 --]]
 
 require("neorg.modules.base")
@@ -435,11 +444,30 @@ module.public = {
 }
 
 module.config.public = {
-    -- note that these come from core.norg.concealer as well
+    -- Performance options for highlighting.
+    --
+    -- These options exhibit the same behaviour as the [`concealer`](@core.norg.concealer)'s.
     performance = {
+        -- How many lines each "chunk" of a file should take up.
+        --
+        -- When the size of the buffer is greater than this value,
+        -- the buffer is then broken up into equal chunks and operations
+        -- are done individually on those chunks.
         increment = 1250,
+
+        -- How long the syntax module should wait before starting to conceal
+        -- the buffer.
         timeout = 0,
+
+        -- How long the syntax module should wait before starting to conceal
+        -- a new chunk.
         interval = 500,
+
+        -- The maximum amount of recalculations that take place at a single time.
+        -- More operations than this count will be dropped.
+        --
+        -- Especially useful when e.g. holding down `x` in a buffer, forcing
+        -- hundreds of recalculations at a time.
         max_debounce = 5,
     },
 }

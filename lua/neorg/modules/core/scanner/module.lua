@@ -1,16 +1,16 @@
 --[[
-    File: Scanner-Module
-    Title: Scanner module for Neorg.
-    Summary: This module is an implementation of a scanner that can be used anywhere TS can't be used.
-    Internal: true
+    file: Scanner-Module
+    title: Scanner module for Neorg
+    summary: This module is an implementation of a scanner that can be used anywhere TS can't be used.
+    internal: true
     ---
+This module is an implementation of a scanner that can be used anywhere TS can't be used.
+It is not currently used anywhere, and is small enough to be self-documenting.
 --]]
 
 require("neorg.modules.base")
 
 local module = neorg.modules.create("core.scanner")
-
--- NOTE: This module is very small and very simple, therefore I don't believe it requires any documentation
 
 ---@class core.scanner
 module.public = {

@@ -1,3 +1,19 @@
+--[[
+    file: Looking-Glass
+    title: Code Blocks + Superpowers
+    description: The `core.looking-glass` module magnifies code blocks and allows you to edit them in a separate buffer.
+    summary: Allows for editing of code blocks within a separate buffer.
+    embed: https://user-images.githubusercontent.com/76052559/216782314-5d82907f-ea6c-44f9-9bd8-1675f1849358.gif
+    ---
+The looking glass module provides a simple way to edit code blocks in an external buffer,
+which allows LSPs and other language-specific tools to kick in.
+
+The magnify command can be accessed by running `:Neorg keybind all
+core.looking-glass.magnify-code-block` with your cursor underneath the code
+block you would like to magnify - it is not bound to any key as of currently,
+but you may map it yourself via the [`core.keybinds`](@core.keybinds) module.
+--]]
+
 local module = neorg.modules.create("core.looking-glass")
 
 module.setup = function()

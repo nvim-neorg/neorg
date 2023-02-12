@@ -1,8 +1,17 @@
 --[[
-    File: Neorgcmd-Module
-    Title: Neorgcmd module for Neorg.
-    Summary: This module deals with handling everything related to the `:Neorg` command.
+    file: Neorgcmd-Module
+    title: Does the Heavy Lifting for the `:Neorg` Command
+    summary: This module deals with handling everything related to the `:Neorg` command.
+    internal: true
     ---
+This internal module handles everything there is for the `:Neorg` command to function.
+
+Different modules can define their own commands, completions and conditions on when they'd
+like these commands to be avaiable.
+
+For a full example on how to create your own command, it is recommended to read the
+`core.neorgcmd`'s `module.lua` file. At the beginning of the file is an examples table
+which walks you through the necessary steps.
 --]]
 
 require("neorg.modules.base")
@@ -105,10 +114,15 @@ module.load = function()
 end
 
 module.config.public = {
+    -- A list of neorgcmd modules to load automatically.
+    -- This feature will soon be deprecated, so it is not recommended to touch it.
     load = {
         "default",
     },
 
+    -- A list of default commands to load.
+    --
+    -- This feature will soon be deprecated, so it is not recommended to touch it.
     default = {
         "module.list",
         "module.load",

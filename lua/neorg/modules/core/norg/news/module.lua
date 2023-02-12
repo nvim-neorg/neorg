@@ -1,8 +1,22 @@
 --[[
-    File: Displaying-News
-    Title: Seeing The Latest Neorg News at Your Fingertips
-    Summary: Handles the displaying of Neorg news and other forms of media in a popup.
+    file: Displaying-News
+    title: It's like newspapers about Neorg... but digital!
+    description: `core.norg.news` displays information about any breaking changes or important information about the state of Neorg.
+    summary: Handles the displaying of Neorg news and other forms of media in a popup.
     ---
+When any sort of critical event occurs within Neorg (a big breaking change is pushed or any other form
+of noteworthy information) the next version of Neorg will ship with a new news file, which is then displayed
+to you, the user.
+
+When a new bit of news is found, Neorg will prompt you with a message telling you which versions have news
+that you have not viewed yet. The message will appear when Neovim starts up, and will permanently disappear
+once you view (or dismiss) the news.
+
+To view all available news for every version, use `:Neorg news all`. To view only the news you haven't seen
+yet, use `:Neorg news new`. Consequently, there is also a `:Neorg news old` command to view only seen news.
+
+To dismiss all news for the current version, use `:Neorg news dismiss`. This will not display the news,
+and you may peacefully continue whatever you were doing previously.
 --]]
 
 local module = neorg.modules.create("core.norg.news")
@@ -26,6 +40,8 @@ module.setup = function()
 end
 
 module.config.public = {
+    -- An "enable" switch - when true, will check for new news on startup.
+    -- If false, will not perform any operations.
     check_news = true,
 }
 

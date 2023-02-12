@@ -1,7 +1,9 @@
 --[[
-    File: Treesitter-Integration
-    Title: TreeSitter integration in Neorg
-    Summary: A module designed to integrate TreeSitter into Neorg.
+    file: Treesitter-Integration
+    title: Snazzy Treesitter Integration
+    summary: A module designed to integrate Treesitter into Neorg.
+    embed: https://user-images.githubusercontent.com/76052559/151668244-9805afc4-8c50-4925-85ec-1098aff5ede6.gif
+    internal: true
     ---
 --]]
 
@@ -105,21 +107,25 @@ end
 
 module.config.public = {
     --- If true will auto-configure the parsers to use the recommended setup.
-    --  Sometimes `nvim-treesitter`'s repositories lag behind and this is the only good fix.
+    --  Set to false only if you know what you're doing, or if the setting messes
+    --  with your personal configuration.
     configure_parsers = true,
 
-    --- If true will automatically install parsers if they are not present.
+    --- If true will automatically install Norg parsers if they are not present.
     install_parsers = true,
 
-    --- Configurations for each parser as expected by `nvim-treesitter`.
-    --  If you want to tweak your parser configs you can do so here.
+    --- Configurations for each parser as required by `nvim-treesitter`.
+    --  If you would like to tweak your parser configs you may do so here.
     parser_configs = {
+        -- Configuration for the mainline norg parser.
         norg = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg",
             files = { "src/parser.c", "src/scanner.cc" },
             branch = "main",
             revision = "6348056b999f06c2c7f43bb0a5aa7cfde5302712",
         },
+        -- Configuration for the metadata parser (used to parse the contents
+        -- of `@document.meta` blocks).
         norg_meta = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
             files = { "src/parser.c" },
@@ -500,7 +506,7 @@ module.public = {
     --- Extracts the document root from the current document or from the string
     ---@param src number|string The number of the buffer to extract or string with code (can be nil)
     ---@param filetype string? #The filetype of the buffer or the string with code
-    ---@return userdata #The root node of the document
+    ---@return userdata? #The root node of the document
     get_document_root = function(src, filetype)
         filetype = filetype or "norg"
 
@@ -514,7 +520,6 @@ module.public = {
         local tree = parser:parse()[1]
 
         if not tree or not tree:root() or tree:root():type() == "ERROR" then
-            log.warn("Unable to parse the current document's syntax tree :(")
             return
         end
 
@@ -545,7 +550,7 @@ module.public = {
     ---@param buf number #The buffer to search in (0 for current)
     ---@param line number #The line number (0-indexed) to get the node from
     -- the same line as `line`.
-    ---@param string|table? #Don't recurse to the provided type(s)
+    ---@param stop_type string|table? #Don't recurse to the provided type(s)
     ---@return userdata|nil #The first node on `line`
     get_first_node_on_line = function(buf, line, stop_type)
         if type(stop_type) == "string" then

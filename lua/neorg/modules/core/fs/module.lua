@@ -1,8 +1,11 @@
 --[[
-    File: Filesystem
-    Title: Module for Filesystem Operations
-    Summary: A cross-platform set of utilities to traverse filesystems.
+    file: Filesystem
+    title: Module for Filesystem Operations
+    summary: A cross-platform set of utilities to traverse filesystems.
+    internal: true
     ---
+`core.fs` is a small module providing functionality to perform common
+operations safely on arbitrary filesystems.
 --]]
 
 local module = neorg.modules.create("core.fs")

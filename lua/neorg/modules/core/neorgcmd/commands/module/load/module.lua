@@ -1,10 +1,11 @@
 --[[
-    File: Neorgcmd-List
-    Title: Provides `:Neorg load ...` command
-    Summary: Load a new module dynamically.
-    Internal: true
+    file: Neorgcmd-List
+    title: Provides the `:Neorg load ...` Command
+    summary: Load a new module dynamically.
+    internal: true
     ---
-After loading the module run `:Neorg module load <module_path>` to dynamically load in a new module.
+Upon exection (`:Neorg module load <module_path>`) dynamically docks a new module
+into the current Neorg environment. Useful to include modules as a one-off.
 --]]
 
 require("neorg.modules.base")

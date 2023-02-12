@@ -4,43 +4,28 @@
 set rtp+=.
 
 " For test suites
-set rtp+=/tmp/lua
 set rtp+=./plenary.nvim
 set rtp+=./nvim-treesitter
 
-" If you use vim-plug if you got it locally
-set rtp+=~/.vim/plugged/plenary.nvim
-set rtp+=~/.vim/plugged/nvim-treesitter
-set rtp+=~/.vim/plugged/neorg
-
-" If you are using packer
-set rtp+=~/.local/share/nvim/site/pack/packer/start/plenary.nvim
-set rtp+=~/.local/share/nvim/site/pack/packer/start/nvim-treesitter
-set rtp+=~/.local/share/nvim/site/pack/packer/start/neorg
-set rtp+=~/.local/share/nvim/site/pack/packer/opt/plenary.nvim
-set rtp+=~/.local/share/nvim/site/pack/packer/opt/nvim-treesitter
-set rtp+=~/.local/share/nvim/site/pack/packer/opt/neorg
-
-" If you are using minpac
-set rtp+=~/.config/nvim/pack/minpac/start/plenary.nvim
-set rtp+=~/.config/nvim/pack/minpac/start/nvim-treesitter
-set rtp+=~/.config/nvim/pack/minpac/start/neorg
-set rtp+=~/.config/nvim/pack/minpac/opt/plenary.nvim
-set rtp+=~/.config/nvim/pack/minpac/opt/nvim-treesitter
-set rtp+=~/.config/nvim/pack/minpac/opt/neorg
-
 set noswapfile
 
+runtime! plugin/plenary.vim
+runtime! plugin/nvim-treesitter.vim
+
 lua << EOF
-P = function(...)
-    print(vim.inspect(...))
-end
+require("nvim-treesitter").setup({})
 
 local ok, module = pcall(require,'nvim-treesitter.configs')
 if ok then
     module.setup({})
 end
-EOF
 
-runtime! plugin/plenary.vim
-runtime! plugin/nvim-treesitter.vim
+package.path = "../lua/?.lua;" .. package.path
+package.path = "../plenary.nvim/lua/?.lua;" .. package.path
+package.path = "../nvim-treesitter/lua/?.lua;" .. package.path
+
+vim.cmd.TSInstallSync({
+    bang = true,
+    args = { "lua" },
+})
+EOF

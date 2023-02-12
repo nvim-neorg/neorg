@@ -1,9 +1,19 @@
 --[[
     file: TOC
-    title: Table of Contents within Neorg
-    summary: Generates a table of contents for a given Neorg buffer.
+    title: A Bird's Eye View of Norg Documents
+    description: The TOC module geneates a table of contents for a given Norg buffer.
+    summary: Generates a table of contents for a given Norg buffer.
     ---
 <!-- TODO: make nested objects also appear nested within the TOC view (i.e. headings in headings) --!>
+The TOC module exposes a single command - `:Neorg toc`. This command can be executed with one of three
+optional arguments: `left`, `right` and `qflist`.
+
+When `left` or `right` is supplied, the Table of Contents split is placed on that side of the screen.
+When the `qflist` argument is provided, the whole table of contents is sent to the Neovim quickfix list,
+should that be more convenient for you.
+
+When in the TOC view, `<CR>` can be pressed on any of the entries to move to that location in the respective
+Norg document. The TOC view updates automatically when switching buffers.
 --]]
 
 local module = neorg.modules.create("core.norg.qol.toc")

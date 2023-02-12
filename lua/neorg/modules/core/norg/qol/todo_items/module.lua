@@ -1,18 +1,25 @@
 --[[
-    File: Todo-Items
-    Title: Todo Items
-    Summary: Module for implementing todo lists.
+    file: Todo-Items
+    title: Todo Item Swiss Army Knife
+    summary: Module for implementing todo lists.
     ---
-Some available keybinds
-    - `todo.task_done`
-    - `todo.task_undone`
-    - `todo.task_pending`
-    - `todo.task_on_hold`
-    - `todo.task_cancelled`
-    - `todo.task_recurring`
-    - `todo.task_important`
-    - `todo.task_cycle`
-    - `todo.task_cycle_reverse`
+This module handles the whole concept of toggling TODO items, as well as updating
+parent and/or children items alongside the current item.
+
+The following keybinds are exposed:
+- `core.norg.qol.todo_items.todo.task_done` (`gtd`)
+- `core.norg.qol.todo_items.todo.task_undone` (`gtu`)
+- `core.norg.qol.todo_items.todo.task_pending` (`gtp`)
+- `core.norg.qol.todo_items.todo.task_on_hold` (`gth`)
+- `core.norg.qol.todo_items.todo.task_cancelled` (`gtc`)
+- `core.norg.qol.todo_items.todo.task_recurring` (`gtr`)
+- `core.norg.qol.todo_items.todo.task_important` (`gti`)
+- `core.norg.qol.todo_items.todo.task_cycle` (`<C-Space>`)
+- `core.norg.qol.todo_items.todo.task_cycle_reverse` (no default keybind)
+
+With your cursor on a line that contains an item with a TODO attribute, press
+any of the above keys to toggle the state of that particular item.
+Parent items of the same type and children items of the same type are update accordingly.
 --]]
 
 require("neorg.modules.base")
@@ -39,13 +46,68 @@ module.load = function()
 end
 
 module.config.public = {
-    -- The order of cycling between todo items
+    -- The default order of TODO item cycling when cycling via
+    -- `<C-Space>`.
+    --
+    -- Defaults to the following order: `undone`, `done`, `pending`.
     order = {
         { "undone", " " },
         { "done", "x" },
         { "pending", "-" },
     },
+
+    -- The default order of TODO item cycling when the item
+    -- has nested children with TODO items.
+    --
+    -- When cycling through TODO items with children it's not
+    -- always sensible to follow the same schema as the `order` table.
+    --
+    -- Defaults to the following order: `undone`, `done`.
+    order_with_children = {
+        { "undone", " " },
+        { "done", "x" },
+    },
+
+    -- When set to `true`, will automatically convert parent
+    -- items to TODOs whenever a child item's TODO state is updated.
+    --
+    -- For instance, given the following example:
+    -- ```norg
+    -- - Text
+    -- -- ( ) Child text
+    -- ```
+    --
+    -- When this option is `true` and the child's state is updated to e.g.
+    -- `(x)` via the `gtd` keybind, the new output becomes:
+    -- ```norg
+    -- - (x) Text
+    -- -- (x) Child text
+    -- ```
+    create_todo_parents = false,
+
+    -- When `true`, will automatically create a TODO extension for an item
+    -- if it does not exist and an operation is performed on that item.
+    --
+    -- Given the following example:
+    -- ```norg
+    -- - Test Item
+    -- ```
+    -- With this option set to true, performing an operation (like pressing `<C-space>`
+    -- or `gtu` or what have you) will convert the non-todo item into one:
+    -- ```norg
+    -- - ( ) Test Item
+    -- ```
+    create_todo_items = true,
 }
+
+---@alias TodoItemType "undone"
+---|"pending"
+---|"done"
+---|"cancelled"
+---|"recurring"
+---|"on_hold"
+---|"urgent"
+---|"uncertain"
 
 ---@class core.norg.qol.todo_items
 module.public = {
@@ -55,10 +117,9 @@ module.public = {
         -- Force a reparse (this is required because otherwise some cached nodes will be incorrect)
         vim.treesitter.get_parser(buf, "norg"):parse()
 
-        -- If present grab the list item that is under the cursor
-        local item_at_cursor = module.public.get_list_item_from_cursor(buf, line)
+        -- If present grab the item that is under the cursor
+        local item_at_cursor = module.public.get_todo_item_from_cursor(buf, line)
 
-        -- If we didn't manage to grab any valid item then return
         if not item_at_cursor then
             return
         end
@@ -68,37 +129,44 @@ module.public = {
             item_at_cursor = item_at_cursor:parent()
         end
 
-        -- If the list node isn't present or if the list element's type isn't a todo_item then return
-        if not item_at_cursor then
-            return
-        end
-
+        -- If the final item does not exist or the target item is not a detached modifier
+        -- (i.e. it does not have a "prefix" node) then it is not a node worth updating.
         if
-            not item_at_cursor:named_child(1)
-            or item_at_cursor:named_child(1):type() ~= "detached_modifier_extension"
+            not item_at_cursor
+            or not item_at_cursor:named_child(0)
+            or not item_at_cursor:named_child(0):type():match("prefix")
         then
             return
         end
 
-        local done_item_count, pending_item_count = 0, 0
+        local counts = {
+            undone = 0,
+            pending = 0,
+            done = 0,
+            cancelled = 0,
+            recurring = 0,
+            on_hold = 0,
+            urgent = 0,
+            uncertain = 0,
+        }
+
         local counter = 0
 
         -- Go through all the children of the current todo item node and count the amount of "done" children
         for node in item_at_cursor:iter_children() do
             if node:named_child(1) and node:named_child(1):type() == "detached_modifier_extension" then
                 for status in node:named_child(1):iter_children() do
-                    if status:type() == "todo_item_done" then
-                        done_item_count = done_item_count + 1
-                        break
-                    elseif status:type() == "todo_item_pending" then
-                        pending_item_count = pending_item_count + 1
-                        break
-                    elseif status:type() == "todo_item_cancelled" then
-                        counter = counter - 1
-                        break
-                    end
+                    if status:type():match("^todo_item_") then
+                        local type = status:type():match("^todo_item_(.+)$")
 
-                    counter = counter + 1
+                        counts[type] = counts[type] + 1
+
+                        if type == "cancelled" then
+                            break
+                        end
+
+                        counter = counter + 1
+                    end
                 end
             end
         end
@@ -117,13 +185,15 @@ module.public = {
 
         local resulting_char = ""
 
-        if pending_item_count > 0 then
+        if counts.uncertain > 0 and counts.done + counts.uncertain == counter then
+            resulting_char = "="
+        elseif counts.pending > 0 then
             resulting_char = "-"
-        elseif counter == done_item_count then
+        elseif counter == counts.done then
             resulting_char = "x"
-        elseif done_item_count == 0 then
+        elseif counts.done == 0 then
             resulting_char = " "
-        elseif done_item_count < counter then
+        elseif counts.done < counter then
             resulting_char = "-"
         end
 
@@ -137,6 +207,15 @@ module.public = {
         --     * (x|@ Mon 5th Feb) Test
         --     ** (x) Test
         if not first_status_extension then
+            if not module.config.public.create_todo_parents then
+                return
+            end
+
+            local row, _, _, column = item_at_cursor:named_child(0):range()
+
+            vim.api.nvim_buf_set_text(buf, row, column, row, column, { "(" .. resulting_char .. ") " })
+
+            module.public.update_parent(buf, line, recursion_level + 1)
             return
         end
 
@@ -171,8 +250,8 @@ module.public = {
     end,
 
     --- Tries to locate a todo_item node under the cursor
-    ---@return userdata nil if no such node could be found else returns the todo_item node
-    get_list_item_from_cursor = function(buf, line)
+    ---@return userdata? #The node if it was located, else nil
+    get_todo_item_from_cursor = function(buf, line)
         local node_at_cursor = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, line)
 
         if not node_at_cursor then
@@ -193,9 +272,9 @@ module.public = {
                 return
             end
 
-            local second_named_child = node_at_cursor:named_child(1)
+            local first_named_child = node_at_cursor:named_child(0)
 
-            if second_named_child and second_named_child:type() == "detached_modifier_extension" then
+            if first_named_child and first_named_child:type():match("prefix") then
                 break
             else
                 node_at_cursor = node_at_cursor:parent()
@@ -206,35 +285,47 @@ module.public = {
     end,
 
     --- Returns the type of a todo item (either "done", "pending" or "undone")
-    ---@param todo_node userdata the todo node to extract the data from
-    ---@return string one of "done", "pending" or "undone" or an empty string if an error occurred
+    ---@param todo_node userdata #The todo node to extract the data from
+    ---@return TodoItemType? #A todo item type as a string, else nil
     get_todo_item_type = function(todo_node)
         if not todo_node or not todo_node:named_child(1) then
-            return ""
+            return
         end
 
         local todo_type = module.public.find_first_status_extension(todo_node:named_child(1))
 
-        return todo_type and todo_type:type():sub(string.len("todo_item_") + 1) or ""
+        return todo_type and todo_type:type():sub(string.len("todo_item_") + 1) or nil
     end,
 
     --- Converts the current node and all its children to a certain type
     ---@param buf number the current buffer number
     ---@param node userdata the node to modify
-    ---@param todo_item_type string one of "done", "pending" or "undone"
+    ---@param todo_item_type TodoItemType #The todo item type as a string
     ---@param char string the character to place within the square brackets of the todo item (one of "x", "*" or " ")
     make_all = function(buf, node, todo_item_type, char)
         if not node then
             return
         end
 
-        local function update(child)
-            local first_status_extension = module.public.find_first_status_extension(child:named_child(1))
+        local type = node:type():match("^(.+)%d+$")
 
-            if not first_status_extension then
+        -- If the type of the current todo item differs from the one we want to change to then
+        -- We do this because we don't want to be unnecessarily modifying a line that doesn't need changing
+        if module.public.get_todo_item_type(node) == todo_item_type then
+            return
+        end
+
+        local first_status_extension = module.public.find_first_status_extension(node:named_child(1))
+
+        if not first_status_extension then
+            if not module.config.public.create_todo_items then
                 return
             end
 
+            local row, _, _, column = node:named_child(0):range()
+
+            vim.api.nvim_buf_set_text(buf, row, column, row, column, { "(" .. char .. ") " })
+        else
             local range = module.required["core.integrations.treesitter"].get_node_range(first_status_extension)
 
             vim.api.nvim_buf_set_text(
@@ -247,30 +338,26 @@ module.public = {
             )
         end
 
-        local type = node:type():match("^(.+)%d+$")
-
-        -- If the type of the current todo item differs from the one we want to change to then
-        -- We do this because we don't want to be unnecessarily modifying a line that doesn't need changing
-        if module.public.get_todo_item_type(node) ~= todo_item_type then
-            update(node)
-
-            for child in node:iter_children() do
-                if type == child:type():match("^(.+)%d+$") then
-                    update(child)
-                    module.public.make_all(buf, child, todo_item_type, char)
-                end
+        for child in node:iter_children() do
+            if type == child:type():match("^(.+)%d+$") then
+                module.public.make_all(buf, child, todo_item_type, char)
             end
         end
     end,
 
-    task_cycle = function(buf, linenr, types)
-        local todo_item_at_cursor = module.public.get_list_item_from_cursor(buf, linenr - 1)
+    task_cycle = function(buf, linenr, types, alternative_types)
+        local todo_item_at_cursor = module.public.get_todo_item_from_cursor(buf, linenr - 1)
+
+        if not todo_item_at_cursor then
+            return
+        end
+
         local todo_item_type = module.public.get_todo_item_type(todo_item_at_cursor)
 
         --- Gets the next item of a flat list based on the first item
-        ---@param type_list list #A list of { "type", "char" } items
+        ---@param type_list table[] #A list of { "type", "char" } items
         ---@param item_type string #The `type` field from the `type_list` array
-        ---@return number #An index into the next item of `type_list`
+        ---@return number? #An index into the next item of `type_list`
         local function get_index(type_list, item_type)
             for i, element in ipairs(type_list) do
                 if element[1] == item_type then
@@ -283,17 +370,23 @@ module.public = {
             end
         end
 
+        if not todo_item_type then
+            if not module.config.public.create_todo_items then
+                return
+            end
+
+            module.public.make_all(buf, todo_item_at_cursor, types[1][1], types[1][2])
+            module.public.update_parent(buf, linenr - 1, 0)
+            return
+        end
+
         local index = get_index(types, todo_item_type)
 
         local next = types[index] or types[1]
 
         for child in todo_item_at_cursor:iter_children() do
-            if module.public.get_todo_item_type(child) ~= "" then
-                if (index + 1) >= #types then
-                    next = types[#types - index + 1]
-                else
-                    next = types[index + 1]
-                end
+            if module.public.get_todo_item_type(child) then
+                next = alternative_types[get_index(alternative_types, todo_item_type)]
                 break
             end
         end
@@ -307,7 +400,7 @@ module.on_event = function(event)
     local todo_str = "core.norg.qol.todo_items.todo."
 
     if event.split_type[1] == "core.keybinds" then
-        local todo_item_at_cursor = module.public.get_list_item_from_cursor(event.buffer, event.cursor_position[1] - 1)
+        local todo_item_at_cursor = module.public.get_todo_item_from_cursor(event.buffer, event.cursor_position[1] - 1)
 
         if not todo_item_at_cursor then
             return
@@ -334,9 +427,19 @@ module.on_event = function(event)
             )
             module.public.update_parent(event.buffer, event.cursor_position[1] - 1, 0)
         elseif event.split_type[2] == todo_str .. "task_cycle" then
-            module.public.task_cycle(event.buffer, event.cursor_position[1], module.config.public.order)
+            module.public.task_cycle(
+                event.buffer,
+                event.cursor_position[1],
+                module.config.public.order,
+                module.config.public.order_with_children
+            )
         elseif event.split_type[2] == todo_str .. "task_cycle_reverse" then
-            module.public.task_cycle(event.buffer, event.cursor_position[1], vim.fn.reverse(module.config.public.order))
+            module.public.task_cycle(
+                event.buffer,
+                event.cursor_position[1],
+                vim.fn.reverse(module.config.public.order),
+                vim.fn.reverse(module.config.public.order_with_children)
+            )
         end
     end
 end

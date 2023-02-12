@@ -31,10 +31,10 @@ module.public = {
     get_window_size = function(half)
         return half
                 and {
-                    math.floor(vim.opt_local.columns:get() / 2),
-                    math.floor(vim.opt_local.lines:get() / 2),
+                    math.floor(vim.fn.winwidth(0) / 2),
+                    math.floor(vim.fn.winheight(0) / 2),
                 }
-            or { vim.opt_local.columns:get(), vim.opt_local.lines:get() }
+            or { vim.fn.winwidth(0), vim.fn.winheight(0) }
     end,
 
     --- Returns a modified version of floating window options.
