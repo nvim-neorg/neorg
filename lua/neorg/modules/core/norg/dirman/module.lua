@@ -472,6 +472,9 @@ module.public = {
         file:close()
         return true
     end,
+    get_index = function()
+        return module.config.public.index
+    end,
 }
 
 module.on_event = function(event)
