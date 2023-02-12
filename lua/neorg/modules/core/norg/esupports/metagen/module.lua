@@ -36,6 +36,8 @@ module.config.public = {
     delimiter = ": ",
 
     -- Custom template to use for generating content inside `@document.meta` tag
+    -- Fields are merged with default fields. To prevent a field
+    -- from being generate include a table of the form {"field"} or {"field", false}
     template = {
         -- The title field generates a title for the file based on the filename.
         {
@@ -76,7 +78,7 @@ module.config.public = {
         { "version", require("neorg.config").version },
     },
 }
-
+module.config.private.template = module.config.public.template
 module.private = {
     buffers = {},
     listen_event = "none",
@@ -138,7 +140,21 @@ module.public = {
     ---@param buf number #The buffer to query potential data from
     ---@return table #A table of strings that can be directly piped to `nvim_buf_set_lines`
     construct_metadata = function(buf)
-        local template = module.config.public.template
+        local template = module.config.private.template
+        local user_changes = module.config.public and module.config.public.template
+        -- merge user_changes with template
+        if user_changes ~= nil then
+            for _, user_pair in ipairs(user_changes) do
+                template = vim.tbl_filter(function(element)
+                    return element[1] ~= user_pair[1]
+                end, template)
+                table.insert(template, user_pair)
+            end
+        end
+        -- remove all keys where we have {"key",false}
+        template = vim.tbl_filter(function(e)
+            return e and e[2]
+        end, template)
         local whitespace = type(module.config.public.tab) == "function" and module.config.public.tab()
             or module.config.public.tab
         local delimiter = type(module.config.public.delimiter) == "function" and module.config.public.delimiter()
