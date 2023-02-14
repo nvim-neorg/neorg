@@ -4,7 +4,7 @@
 --]]
 require("neorg.modules.base")
 require("neorg.modules")
-
+require("neorg.external.helpers")
 local log = require("neorg.external.log")
 local module = neorg.modules.create("core.norg.dirman.summary")
 
@@ -25,21 +25,7 @@ module.load = function()
     })
 end
 
-module.config.public = {
-    -- The list of summaries, by default contains one inside the index file of a workspace.
-    summaries = {
-        {
-            -- The file to include the summary in
-            file = function()
-                return module.required["core.norg.dirman"].get_index()
-            end,
-            -- The summary location, must be a top level heading.
-            location = "* Index",
-            -- File categories to include in the summary, if empty will include all notes
-            categories = {},
-        },
-    },
-}
+module.config.public = {}
 
 module.public = {}
 
@@ -55,16 +41,16 @@ module.on_event = function(event)
         local files = dirman.get_norg_files(dir)
         local output = vim.defaulttable()
         local function gen_string(tbl, name, all_parents, heading_level)
-            local str = heading_level .. name .. "\n"
+            local str = { heading_level .. " " .. name }
             if type(tbl) ~= "table" then
                 return name
             end
             for i, v in ipairs(tbl) do
                 tbl[i] = nil
-                str = str .. "{:" .. all_parents .. tostring(v) .. ":}[" .. tostring(v) .. "]\n"
+                table.insert(str, "{:" .. all_parents .. tostring(v) .. ":}[" .. tostring(v) .. "]")
             end
             for subdir, path in pairs(tbl) do
-                str = str .. gen_string(path, subdir, all_parents .. subdir .. "/", heading_level .. "*")
+                vim.list_extend(str, gen_string(path, subdir, all_parents .. subdir .. "/", heading_level .. "*"))
             end
             return str
         end
@@ -81,7 +67,28 @@ module.on_event = function(event)
                 end
             end
         end
-        local str = gen_string(output, "", "", "*")
+        local str = gen_string(output, "Index", "", "*")
+        local index = dirman.get_index()
+        dirman.open_file(dir, index)
+        local tstree = vim.treesitter.get_parser(0)
+        local buflc = vim.api.nvim_buf_line_count(0)
+        local query = vim.treesitter.query.parse_query(
+            "norg",
+            [[ 
+            (heading1 (heading1_prefix) title: (paragraph_segment) @title (#eq? @title "Index"))
+        ]]
+        )
+        for _, tree in ipairs(tstree:parse()) do
+            for _, match, _ in query:iter_matches(tree:root(), 0, 1, buflc) do
+                for _, node in pairs(match) do
+                    local parent = node:parent()
+                    local start_row, _, end_row, _ = parent:range()
+                    vim.api.nvim_buf_set_lines(0, start_row, end_row, true, str)
+                end
+                break
+            end
+            break
+        end
     end
 end
 return module
