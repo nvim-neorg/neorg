@@ -398,7 +398,7 @@ module.public = {
 
     --- Returns a list of all files relative path from a `workspace_name`
     ---@param workspace_name string
-    ---@return table
+    ---@return table?
     get_norg_files = function(workspace_name)
         local res = {}
         local workspace = module.public.get_workspace(workspace_name)
@@ -417,7 +417,7 @@ module.public = {
         for _, file in pairs(scanned_dir) do
             local remove_dir = string.gsub(file, workspace_pattern .. neorg.configuration.pathsep, "")
 
-            if string.find(remove_dir, ".norg$") then
+            if vim.endswith(remove_dir, ".norg") then
                 table.insert(res, remove_dir)
             end
         end
@@ -472,6 +472,7 @@ module.public = {
         file:close()
         return true
     end,
+
     get_index = function()
         return module.config.public.index
     end,
