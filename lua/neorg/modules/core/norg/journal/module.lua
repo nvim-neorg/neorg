@@ -125,7 +125,7 @@ module.private = {
 
         local path = os.date(
             type(module.config.public.strategy) == "function" and module.config.public.strategy(os.date("*t", time))
-            or module.config.public.strategy,
+                or module.config.public.strategy,
             time
         )
 
@@ -139,7 +139,8 @@ module.private = {
 
         module.required["core.norg.dirman"].create_file(folder_name .. neorg.configuration.pathsep .. path, workspace)
 
-        if not journal_file_exists
+        if
+            not journal_file_exists
             and module.config.public.use_template
             and module.required["core.norg.dirman"].file_exists(
                 workspace_path .. "/" .. folder_name .. "/" .. template_name
@@ -210,8 +211,9 @@ module.private = {
         -- path is for each subfolder
         local get_fs_handle = function(path)
             path = path or ""
-            local handle = vim.loop.fs_scandir(workspace_path .. neorg.configuration.pathsep
-                .. folder_name .. neorg.configuration.pathsep .. path)
+            local handle = vim.loop.fs_scandir(
+                workspace_path .. neorg.configuration.pathsep .. folder_name .. neorg.configuration.pathsep .. path
+            )
 
             if type(handle) ~= "userdata" then
                 error(neorg.lib.lazy_string_concat("Failed to scan directory '", workspace, path, "': ", handle))
@@ -228,8 +230,8 @@ module.private = {
             return title
         end
 
-        vim.loop.fs_scandir(workspace_path .. neorg.configuration.pathsep
-            .. folder_name .. neorg.configuration.pathsep,
+        vim.loop.fs_scandir(
+            workspace_path .. neorg.configuration.pathsep .. folder_name .. neorg.configuration.pathsep,
             function(err, handle)
                 assert(
                     not err,
@@ -274,10 +276,10 @@ module.private = {
                                             -- Get the title from the metadata, else, it just defaults to the name of the file
                                             local title = get_title(
                                                 name
-                                                .. neorg.configuration.pathsep
-                                                .. mname
-                                                .. neorg.configuration.pathsep
-                                                .. dname
+                                                    .. neorg.configuration.pathsep
+                                                    .. mname
+                                                    .. neorg.configuration.pathsep
+                                                    .. dname
                                             ) or file[1]
 
                                             -- Insert a new entry
@@ -390,7 +392,8 @@ module.private = {
                     vim.api.nvim_buf_set_lines(0, 0, -1, false, format(toc_entries))
                     vim.cmd("w")
                 end)
-            end)
+            end
+        )
     end,
 }
 
