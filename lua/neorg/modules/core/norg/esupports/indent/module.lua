@@ -254,6 +254,14 @@ module.config.public = {
                 return 0
             end
 
+            if list:named_child(1):type() == "detached_modifier_extension" then
+                return module.required["core.integrations.treesitter"].get_node_range(list:named_child(2)).column_start
+                    + module.required["core.integrations.treesitter"]
+                        .get_node_text(list:named_child(2))
+                        :match("^%s*")
+                        :len()
+            end
+
             return module.required["core.integrations.treesitter"].get_node_range(list:named_child(1)).column_start
         end,
     },
