@@ -45,7 +45,7 @@ hassle-free.
 - [ ] [Pandoc](https://pandoc.org/) integration. A pandoc parser (or lua filter) would be super
       useful to convert to and from the `.norg` file format. Work has begun (but is currently stalled)
       in the following [PR](https://github.com/nvim-neorg/neorg/pull/684). There is also an incomplete
-      pandoc parser written in Haskell [here](https://github.com/Simre/neorg-haskell-parser), so if you
+      pandoc parser written in Haskell [here](https://github.com/Simre1/neorg-haskell-parser), so if you
       have some Haskell skills then this is your time to help out! :)
 - [ ] Inbuilt upgraders from `.org` to `.norg`, and vice versa.
       Org and markdown are the most common formats to convert to `.norg`, and whereas markdown can
