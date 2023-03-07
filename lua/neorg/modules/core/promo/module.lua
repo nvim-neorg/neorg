@@ -182,13 +182,16 @@ module.public = {
             ::finish::
         end
 
-        neorg.events.broadcast_event(
-            neorg.events.create(
-                module,
-                "core.norg.concealer.events.update_region",
-                { start = start_region, ["end"] = end_region }
+        -- HACK(vhyrro): This should be changed after the codebase refactor
+        if neorg.modules.loaded_modules["core.norg.concealer"] then
+            neorg.events.broadcast_event(
+                neorg.events.create(
+                    neorg.modules.loaded_modules["core.norg.concealer"],
+                    "core.norg.concealer.events.update_region",
+                    { start = start_region, ["end"] = end_region }
+                )
             )
-        )
+        end
     end,
 }
 
@@ -211,13 +214,15 @@ module.on_event = function(event)
             module.public.promote_or_demote(event.buffer, "promote", start_pos[1] + i)
         end
 
-        neorg.events.broadcast_event(
-            neorg.events.create(
-                module,
-                "core.norg.concealer.events.update_region",
-                { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
+        if neorg.modules.loaded_modules["core.norg.concealer"] then
+            neorg.events.broadcast_event(
+                neorg.events.create(
+                    neorg.modules.loaded_modules["core.norg.concealer"],
+                    "core.norg.concealer.events.update_region",
+                    { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
+                )
             )
-        )
+        end
     elseif event.split_type[2] == "core.promo.demote_range" then
         local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
         local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
@@ -226,13 +231,15 @@ module.on_event = function(event)
             module.public.promote_or_demote(event.buffer, "demote", start_pos[1] + i)
         end
 
-        neorg.events.broadcast_event(
-            neorg.events.create(
-                module,
-                "core.norg.concealer.events.update_region",
-                { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
+        if neorg.modules.loaded_modules["core.norg.concealer"] then
+            neorg.events.broadcast_event(
+                neorg.events.create(
+                    neorg.modules.loaded_modules["core.norg.concealer"],
+                    "core.norg.concealer.events.update_region",
+                    { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
+                )
             )
-        )
+        end
     end
 end
 
