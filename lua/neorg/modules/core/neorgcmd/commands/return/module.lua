@@ -39,9 +39,6 @@ module.on_event = function(event)
                 end
             end
         end
-
-        -- Set the dirman workspace to the one we had before we started the Neorg environment
-        neorg.modules.get_module("core.norg.dirman").set_workspace("default")
     end
 end
 
