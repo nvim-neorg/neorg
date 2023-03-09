@@ -459,13 +459,13 @@ module.public = {
         local ws_match = module.public.get_workspace(workspace)
 
         if not workspace then
-            return
+            return false
         end
 
         local file = io.open(ws_match .. neorg.configuration.pathsep .. path, "w")
 
         if not file then
-            return
+            return false
         end
 
         file:write("")
@@ -511,8 +511,16 @@ module.on_event = function(event)
         local index_path = table.concat({ current_ws[2], "/", module.config.public.index })
 
         if vim.fn.filereadable(index_path) == 0 then
-            vim.notify(table.concat({ "No '", module.config.public.index, "' found in current workspace!" }))
-            return
+            if not module.public.touch_file(module.config.public.index, module.public.get_current_workspace()[1]) then
+                vim.notify(
+                    table.concat({
+                        "Unable to create '",
+                        module.config.public.index,
+                        "' in the current workspace - are your filesystem permissions set correctly?",
+                    })
+                )
+                return
+            end
         end
 
         vim.cmd.edit(index_path)
