@@ -34,7 +34,7 @@ module.load = function()
                     local amount_to_cut_off = position["start"][2] - indentation
 
                     if amount_to_cut_off < 0 then
-                        content[i] = line:sub(-amount_to_cut_off)
+                        content[i] = line:sub(-amount_to_cut_off + 1)
                     end
 
                     goto continue
