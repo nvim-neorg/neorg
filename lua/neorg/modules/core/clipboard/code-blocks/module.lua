@@ -26,10 +26,22 @@ module.load = function()
                 return
             end
 
+            -- Check if the start of the selection that was made is worth cutting off.
             local _, indentation = node:start()
 
             for i, line in ipairs(content) do
+                if i == 1 then
+                    local amount_to_cut_off = position["start"][2] - indentation
+
+                    if amount_to_cut_off < 0 then
+                        content[i] = line:sub(-amount_to_cut_off)
+                    end
+
+                    goto continue
+                end
+
                 content[i] = line:sub(indentation + 1)
+                ::continue::
             end
 
             return content
