@@ -70,7 +70,7 @@ embeddable-anywhere tools. These include:
   [`zig`](https://github.com/vhyrro/zig-norg),
   [`haskell`](https://github.com/Simre1/neorg-haskell-parser) and
   [`julia`](https://github.com/klafyvel/Norg.jl)!
-- [ ] Directory Manager and File Aggregator - workspaces are a pretty fundamental concept within
+- [x] Directory Manager and File Aggregator - workspaces are a pretty fundamental concept within
   Neorg, and writing a tool that can efficiently manage and manipulate enormous collections
   of notes will be critical for any Neorg-like tool.
 - [ ] Multithreaded parsing library - note collections can get big, like really big. Parsing
