@@ -15,7 +15,7 @@ Your New Life Organization Tool - All in Lua
 •
 [Showcase](#-showcase)
 •
-[Installation](#-installation--quickstart)
+[Installation](#-installationquickstart)
 •
 [Setup](#-setup)
 •
@@ -23,7 +23,7 @@ Your New Life Organization Tool - All in Lua
 <br>
 [Modules](#-modules)
 •
-[Roadmap](#-roadmap)
+[Roadmap](/ROADMAP.md)
 •
 [Philosophy](#-philosophy)
 •
