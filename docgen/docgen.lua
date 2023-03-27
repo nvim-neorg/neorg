@@ -143,7 +143,7 @@ end
 ---@param root userdata #The root node
 ---@return userdata? #The `module.config.public` node
 docgen.get_module_config_node = function(buffer, root)
-    local query = vim.treesitter.parse_query(
+    local query = neorg.utils.ts_parse_query(
         "lua",
         [[
         (assignment_statement

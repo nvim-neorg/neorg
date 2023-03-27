@@ -19,6 +19,7 @@ Any edit is assumed to break this module.
 --]]
 
 require("neorg.modules.base")
+require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.syntax")
 
@@ -115,7 +116,7 @@ module.public = {
 
         if tree then
             -- get the language node used by the code block
-            local code_lang = vim.treesitter.parse_query(
+            local code_lang = neorg.utils.ts_parse_query(
                 "norg",
                 [[(
                     (ranged_verbatim_tag (tag_name) @_tagname (tag_parameters) @language)

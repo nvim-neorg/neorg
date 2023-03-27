@@ -4,6 +4,17 @@
 --]]
 
 neorg.utils = {
+    --- A version agnostic way to call the neovim treesitter query parser
+    --- @param language string # Language to use for the query
+    --- @param query_string string # Query in s-expr syntax
+    --- @return any # Parsed query
+    ts_parse_query = function(language, query_string)
+        if vim.treesitter.query.parse then
+            return vim.treesitter.query.parse(language, query_string)
+        else
+            return vim.treesitter.parse_query(language, query_string)
+        end
+    end,
 
     --- An OS agnostic way of querying the current user
     get_username = function()

@@ -72,7 +72,7 @@ module.on_event = function(event)
         dirman.open_file(dir, index)
         local tstree = vim.treesitter.get_parser(0)
         local buflc = vim.api.nvim_buf_line_count(0)
-        local query = vim.treesitter.query.parse_query(
+        local query = neorg.utils.ts_parse_query(
             "norg",
             [[ 
             (heading1 (heading1_prefix) title: (paragraph_segment) @title (#eq? @title "Index"))
