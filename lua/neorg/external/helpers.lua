@@ -9,7 +9,7 @@ neorg.utils = {
     --- @param query_string string # Query in s-expr syntax
     --- @return any # Parsed query
     ts_parse_query = function(language, query_string)
-        if vim.fn.has("nvim-0.9") == 1 then
+        if vim.treesitter.query.parse then
             return vim.treesitter.query.parse(language, query_string)
         else
             return vim.treesitter.parse_query(language, query_string)
