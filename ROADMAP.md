@@ -22,7 +22,7 @@ It will be switched to a `.norg` file when possible.
 
 ## Workflow
 
-- [ ] The Calendar UI
+- [ ] [The Calendar UI](#calendar)
 - [ ] The GTD Methodology
 - [ ] Zettelkasten
 - [ ] The `sc-im`esque Table Editor
@@ -36,6 +36,49 @@ For the motivation behind this, see the [external tools](#external-tooling) sect
     - [ ] Provide a written tutorial on how to get started with Neorg.
     - [ ] Provided a tutorial on how to develop for Neorg (modules, events, etc.).
 - [ ] Provide a dropdown in the wiki which will display a module's entire configuration as a lua snippet.
+
+### Calendar
+
+The calendar is a planned sophisticated and flexible tool for selecting a date.
+While it sounds rather trivial, the calendar is the main user interaction for any
+date related operation. Because of this, there are many components to a calendar.
+
+At its core the calendar is simply supposed to allow the user to select a date.
+This is such a vast concept however that the calendar should be able to handle a variety
+of situations/contexts.
+
+#### Context Switching
+
+Depending on the preferred context, the calendar should be able to work in four
+major views - `DAILY`, `WEEKLY`, `MONTHLY` and `YEARLY`. Each mode has a
+different layout fit for the task at hand, and displays varying amounts of
+information based on said view.
+
+- The daily view displays only the current day, but allows you to quickly select an hour in that day.
+  Moving left or right moves one hour forward or backward, respectively.
+  The view is vertical, meaning an hour takes up a horizontal bar and they are stacked top to bottom starting
+  from midnight.
+- The weekly view displays all 7 days of the week. Moving forwards or backwards moves one day forward
+  or backward, respectively. This view is also vertical, where each day takes up a single bar
+  of the view.
+- The monthly view shows all days of the month in a horizontally rendered fashion.
+  It is the default mode if none is specified.
+- The yearly view is meant to summarize more than it is supposed to serve any function.
+  The details of this view have not yet been fully drawn out.
+
+As with all things Neorg, other modules should be free to create their own
+views via an API. Apart from just creating views, any module should be free to
+add "custom data" to the view, which the view should be able to handle
+appropriately through a set of default API functions. An example of this may be
+the GTD module, which could display all the tasks for a day in the daily view, or
+it could highlight a day as red in the monthly view if there are urgent tasks
+that have not been yet completed.
+
+#### Keybinds
+
+The user experience comes first - the keybinds should be as close as possible to vim, with
+slight deviations if the keybinds hinder the "mnemonic" keybind model, where a sequence of words
+(e.g. `delete around word`) can be converted to a set of keybinds (`daw`).
 
 # Cross-Compatibility
 
@@ -73,7 +116,7 @@ embeddable-anywhere tools. These include:
 - [x] Directory Manager and File Aggregator - workspaces are a pretty fundamental concept within
   Neorg, and writing a tool that can efficiently manage and manipulate enormous collections
   of notes will be critical for any Neorg-like tool.
-- [ ] Multithreaded parsing library - note collections can get big, like really big. Parsing
+- [ ] (STALLED: Waiting for [tree-sitter](https://github.com/tree-sitter/tree-sitter/pull/2126)) Multithreaded parsing library - note collections can get big, like really big. Parsing
       all of these on a single thread could take even minutes. Having a good multithreaded
       parsing library will help a lot.
 - [ ] Sqlite - having an sqlite database as a centralized data store will be super
