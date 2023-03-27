@@ -13,6 +13,7 @@ masks, or sometimes completely hides many categories of markup.
 --]]
 
 require("neorg.modules.base")
+require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.norg.concealer")
 
@@ -98,7 +99,7 @@ module.public = {
                 if icon_data.query then
                     -- Attempt to parse the query provided by `icon_data.query`
                     -- A query must have at least one capture, e.g. "(test_node) @icon"
-                    local query = vim.treesitter.parse_query("norg", icon_data.query)
+                    local query = neorg.utils.ts_parse_query("norg", icon_data.query)
 
                     -- This is a mapping of [id] = to_omit pairs, where `id` is a treesitter
                     -- node's id and `to_omit` is a boolean.
@@ -209,7 +210,7 @@ module.public = {
         if tree then
             -- Query all code blocks
             local ok, query = pcall(
-                vim.treesitter.parse_query,
+                neorg.utils.ts_parse_query,
                 "norg",
                 [[(
                     (ranged_verbatim_tag (tag_name) @_name) @tag

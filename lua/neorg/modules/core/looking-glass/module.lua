@@ -14,6 +14,8 @@ block you would like to magnify - it is not bound to any key as of currently,
 but you may map it yourself via the [`core.keybinds`](@core.keybinds) module.
 --]]
 
+require("neorg.external.helpers")
+
 local module = neorg.modules.create("core.looking-glass")
 
 module.setup = function()
@@ -179,7 +181,7 @@ module.public = {
 module.on_event = function(event)
     if event.split_type[2] == "core.looking-glass.magnify-code-block" then
         -- First we must check if the user has their cursor under a code block
-        local query = vim.treesitter.parse_query(
+        local query = neorg.utils.ts_parse_query(
             "norg",
             [[
             (ranged_verbatim_tag

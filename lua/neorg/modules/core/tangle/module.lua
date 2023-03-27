@@ -147,6 +147,8 @@ print("Ayo")
 The first code block will be tangled to `./output.lua`, the second code block will also be tangled to `./output.lua` and the third code block will be ignored.
 --]]
 
+require("neorg.external.helpers")
+
 local module = neorg.modules.create("core.tangle")
 
 module.setup = function()
@@ -241,7 +243,7 @@ module.public = {
             ]],
         })
 
-        local query = vim.treesitter.parse_query("norg", query_str)
+        local query = neorg.utils.ts_parse_query("norg", query_str)
 
         for id, node in query:iter_captures(document_root, buffer, 0, -1) do
             local capture = query.captures[id]

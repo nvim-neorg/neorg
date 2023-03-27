@@ -8,6 +8,7 @@
 --]]
 
 require("neorg.modules.base")
+require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.integrations.treesitter")
 
@@ -156,7 +157,7 @@ module.public = {
         if not document_root then
             return
         end
-        local next_match_query = vim.treesitter.parse_query("norg", query_string)
+        local next_match_query = neorg.utils.ts_parse_query("norg", query_string)
         for id, node in next_match_query:iter_captures(document_root, 0, line_number - 1, -1) do
             if next_match_query.captures[id] == "next-segment" then
                 local start_line, start_col = node:range()
@@ -190,7 +191,7 @@ module.public = {
         if not document_root then
             return
         end
-        local previous_match_query = vim.treesitter.parse_query("norg", query_string)
+        local previous_match_query = neorg.utils.ts_parse_query("norg", query_string)
         local final_node = nil
 
         for id, node in previous_match_query:iter_captures(document_root, 0, 0, line_number) do
@@ -611,7 +612,7 @@ module.public = {
                 return
             end
 
-            local query = vim.treesitter.parse_query(
+            local query = neorg.utils.ts_parse_query(
                 "norg_meta",
                 [[
                 (metadata
@@ -694,7 +695,7 @@ module.public = {
     ---@param start number? #The start line for the query
     ---@param finish number? #The end line for the query
     execute_query = function(query_string, callback, buffer, start, finish)
-        local query = vim.treesitter.parse_query("norg", query_string)
+        local query = neorg.utils.ts_parse_query("norg", query_string)
         local root = module.public.get_document_root(buffer)
 
         if not root then

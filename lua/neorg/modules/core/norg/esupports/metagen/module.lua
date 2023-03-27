@@ -12,6 +12,7 @@ The metagen module exposes two commands - `:Neorg inject-metadata` and `:Neorg u
 --]]
 
 require("neorg.modules.base")
+require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.norg.esupports.metagen")
 
@@ -88,7 +89,7 @@ module.public = {
     ---@param buf number #The buffer to check in
     ---@return boolean,table #Whether the metadata was present, and the range of the metadata node
     is_metadata_present = function(buf)
-        local query = vim.treesitter.parse_query(
+        local query = neorg.utils.ts_parse_query(
             "norg",
             [[
                  (ranged_verbatim_tag
@@ -214,7 +215,7 @@ module.public = {
 
         local current_date = os.date("%Y-%m-%d")
 
-        local query = vim.treesitter.parse_query(
+        local query = neorg.utils.ts_parse_query(
             "norg_meta",
             [[
             (pair
