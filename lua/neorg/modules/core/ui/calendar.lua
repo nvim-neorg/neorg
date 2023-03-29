@@ -48,11 +48,17 @@ module.private = {
             end
         end
 
-        return vim.api.nvim_buf_set_extmark(ui_info.buffer, module.private.namespaces.decorational, row, col, vim.tbl_deep_extend("force", {
-            virt_text = virt_text,
-            virt_text_pos = "overlay",
-            end_col = col + length,
-        }, extra or {}))
+        return vim.api.nvim_buf_set_extmark(
+            ui_info.buffer,
+            module.private.namespaces.decorational,
+            row,
+            col,
+            vim.tbl_deep_extend("force", {
+                virt_text = virt_text,
+                virt_text_pos = "overlay",
+                end_col = col + length,
+            }, extra or {})
+        )
     end,
 
     set_logical_extmark = function(ui_info, row, col, virt_text, alignment, extra)
@@ -203,11 +209,9 @@ module.private = {
         local render_column = days_of_month[1] - 1
         local render_row = 1
 
-        module.private.extmarks.logical.months[month] = module.private.extmarks.logical.months[month]
-            or {}
+        module.private.extmarks.logical.months[month] = module.private.extmarks.logical.months[month] or {}
 
         for day_of_month, day_of_week in ipairs(days_of_month) do
-
             local is_current_day = current_date.year == target_date.year
                 and current_date.month == target_date.month
                 and day_of_month == day
@@ -258,10 +262,9 @@ module.private = {
             30,
             31,
         })[month]
-
     end,
 
-    is_leap_year = function (year)
+    is_leap_year = function(year)
         if year % 4 ~= 0 then
             return false
         end
@@ -272,7 +275,7 @@ module.private = {
         end
 
         return true
-    end
+    end,
 }
 
 module.public = {
@@ -440,7 +443,9 @@ module.public = {
 
                         current_day = 1
                         current_month = current_month + 1
-                        render_month_array(reformat_time({ day = current_day, month = current_month, year = current_year }))
+                        render_month_array(
+                            reformat_time({ day = current_day, month = current_month, year = current_year })
+                        )
                         next_extmark_id = next_month[current_day]
                     else
                         current_day = current_day + 1
@@ -475,7 +480,9 @@ module.public = {
 
                         current_day = #prev_month
                         current_month = current_month - 1
-                        render_month_array(reformat_time({ day = current_day, month = current_month, year = current_year }))
+                        render_month_array(
+                            reformat_time({ day = current_day, month = current_month, year = current_year })
+                        )
                         prev_extmark_id = prev_month[current_day]
                     else
                         current_day = current_day - 1
