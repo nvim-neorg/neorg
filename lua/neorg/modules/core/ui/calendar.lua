@@ -181,7 +181,7 @@ module.private = {
 
         local days_in_current_month = ({
             31,
-            (year % 4 == 0) and 29 or 28,
+            (module.private.is_leap_year(year)) and 29 or 28,
             31,
             30,
             31,
@@ -253,6 +253,19 @@ module.private = {
             end
         end
     end,
+
+    is_leap_year = function (year)
+        if year % 4 ~= 0 then
+            return false
+        end
+
+        -- Years disible by 100 are leap years only if also divisible by 400
+        if year % 100 == 0 and year % 400 ~= 0 then
+            return false
+        end
+
+        return true
+    end
 }
 
 module.public = {
