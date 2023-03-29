@@ -129,6 +129,7 @@ module.public = {
     update_toc = function(namespace, toc_title, original_buffer, original_window, ui_buffer, ui_window)
         vim.api.nvim_buf_clear_namespace(original_buffer, namespace, 0, -1)
 
+        table.insert(toc_title, "")
         vim.api.nvim_buf_set_lines(ui_buffer, 0, -1, true, toc_title)
         local offset = vim.api.nvim_buf_line_count(ui_buffer)
 
