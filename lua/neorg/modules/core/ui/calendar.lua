@@ -82,6 +82,7 @@ module.private = {
         )
     end,
 
+    -- TODO: implemant distance like in render_weekday_banner
     render_month_banner = function(ui_info, date, weekday_banner_extmark_id)
         local month_name = os.date(
             "%B",
@@ -179,20 +180,7 @@ module.private = {
 
         local day, month, year = target_date.day, target_date.month, target_date.year
 
-        local days_in_current_month = ({
-            31,
-            (module.private.is_leap_year(year)) and 29 or 28,
-            31,
-            30,
-            31,
-            30,
-            31,
-            31,
-            30,
-            31,
-            30,
-            31,
-        })[month]
+        local days_in_current_month = module.private.get_month_length(month, year)
 
         for i = 1, days_in_current_month do
             days_of_month[i] = tonumber(os.date(
@@ -252,6 +240,24 @@ module.private = {
                 render_column = render_column + 1
             end
         end
+    end,
+
+    get_month_length = function(month, year)
+        return ({
+            31,
+            (module.private.is_leap_year(year)) and 29 or 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        })[month]
+
     end,
 
     is_leap_year = function (year)
