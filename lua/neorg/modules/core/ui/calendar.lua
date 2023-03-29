@@ -378,7 +378,7 @@ module.public = {
                 local positive_target_date = reformat_time({
                     year = date.year,
                     month = date.month + blockid,
-                    day = date.day,
+                    day = 1,
                 })
 
                 module.private.render_month_banner(ui_info, positive_target_date, weekday_banner)
@@ -389,10 +389,10 @@ module.public = {
                 local negative_target_date = reformat_time({
                     year = date.year,
                     month = date.month - blockid,
-                    day = date.day,
+                    day = 1,
                 })
 
-                module.private.render_month_banner(ui_info, negative_target_date, weekday_banner, options.distance)
+                module.private.render_month_banner(ui_info, negative_target_date, weekday_banner)
                 module.private.render_month(ui_info, negative_target_date, date, weekday_banner)
 
                 blockid = blockid + 1
