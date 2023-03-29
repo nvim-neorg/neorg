@@ -203,9 +203,10 @@ module.private = {
         local render_column = days_of_month[1] - 1
         local render_row = 1
 
+        module.private.extmarks.logical.months[month] = module.private.extmarks.logical.months[month]
+            or {}
+
         for day_of_month, day_of_week in ipairs(days_of_month) do
-            module.private.extmarks.logical.months[month] = module.private.extmarks.logical.months[month]
-                or {}
 
             local is_current_day = current_date.year == target_date.year
                 and current_date.month == target_date.month
