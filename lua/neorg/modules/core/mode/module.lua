@@ -142,7 +142,7 @@ module.on_event = function(event)
     if event.type == "core.neorgcmd.events.mode" then
         -- If no parameters were given then just print the current mode
         if not event.content[1] then
-            vim.notify("Active Mode: " .. module.public.get_mode())
+            neorg.utils.notify("Active Mode: " .. module.public.get_mode())
         else -- Else actually set the mode to the one we specified
             module.public.set_mode(event.content[1])
         end

@@ -103,7 +103,10 @@ module.on_event = function(event)
         end
 
         if not current or current:type() == "document" then
-            vim.notify("No object to continue! Make sure you're under an iterable item like a list or heading.")
+            neorg.utils.notify(
+                "No object to continue! Make sure you're under an iterable item like a list or heading.",
+                vim.log.levels.WARN
+            )
             return
         end
 

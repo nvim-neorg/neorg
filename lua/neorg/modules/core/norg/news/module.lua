@@ -141,7 +141,7 @@ module.load = function()
 
         if not vim.tbl_isempty(module.private.new_news) then
             vim.schedule(function()
-                vim.notify(string.format(
+                neorg.utils.notify(string.format(
                     [[
 There's some new Neorg news for you!
 
@@ -272,7 +272,7 @@ module.on_event = function(event)
                 news_state = neorg.configuration.version,
             })
 
-            vim.notify("Dismissed all news!")
+            neorg.utils.notify("Dismissed all news!")
         end,
 
         _ = function()

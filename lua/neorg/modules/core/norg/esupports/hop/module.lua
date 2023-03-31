@@ -752,7 +752,7 @@ module.private = {
         end
 
         if vim.tbl_isempty(similarities) then
-            vim.notify("Sorry, Neorg couldn't fix that link :(")
+            neorg.utils.notify("Sorry, Neorg couldn't fix that link :(", vim.log.levels.WARN)
         end
 
         table.sort(similarities, function(lhs, rhs)

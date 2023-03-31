@@ -727,8 +727,8 @@ module.on_event = function(event)
         local ok = pcall(vim.cmd, "TSInstall! norg")
 
         if not ok then
-            vim.notify([[Unable to install norg parser.
-]])
+            neorg.utils.notify([[Unable to install norg parser.
+]], vim.log.levels.WARN)
         end
 
         pcall(vim.cmd, "TSInstall! norg_meta")

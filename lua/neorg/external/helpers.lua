@@ -2,7 +2,6 @@
 --    HELPER FUNCTIONS FOR NEORG
 --    This file contains some simple helper functions to improve QOL
 --]]
-
 neorg.utils = {
     --- A version agnostic way to call the neovim treesitter query parser
     --- @param language string # Language to use for the query
@@ -15,7 +14,6 @@ neorg.utils = {
             return vim.treesitter.parse_query(language, query_string)
         end
     end,
-
     --- An OS agnostic way of querying the current user
     get_username = function()
         local current_os = require("neorg.config").os_info
@@ -32,7 +30,6 @@ neorg.utils = {
 
         return ""
     end,
-
     --- Returns an array of strings, the array being a list of languages that Neorg can inject
     ---@param values boolean #If set to true will return an array of strings, if false will return a key-value table
     get_language_list = function(values)
@@ -65,7 +62,6 @@ neorg.utils = {
 
         return values and vim.tbl_keys(ret) or ret
     end,
-
     get_language_shorthands = function(reverse_lookup)
         local langs = {
             ["bash"] = { "sh", "zsh" },
@@ -97,7 +93,6 @@ neorg.utils = {
 
         return reverse_lookup and vim.tbl_add_reverse_lookup(langs) or langs
     end,
-
     --- Checks whether Neovim is running at least at a specific version
     ---@param major number #The major release of Neovim
     ---@param minor number #The minor release of Neovim
@@ -108,7 +103,6 @@ neorg.utils = {
 
         return major <= version.major and minor <= version.minor and patch <= version.patch
     end,
-
     --- Parses a version string like "0.4.2" and provides back a table like { major = <number>, minor = <number>, patch = <number> }
     ---@param version_string string #The input string
     ---@return table #The parsed version string, or `nil` if a failure occurred during parsing
@@ -147,7 +141,6 @@ neorg.utils = {
 
         return ret
     end,
-
     get_filetype = function(file, force_filetype)
         local filetype = force_filetype
 
@@ -163,6 +156,13 @@ neorg.utils = {
         end
 
         return filetype
+    end,
+
+    --- Custom neorg notifications. Wrapper around vim.notify
+    ---@param msg string message to send
+    ---@param log_level integer|nil log level in `vim.log.levels`.
+    notify = function(msg, log_level)
+        vim.notify(msg, log_level, { title = "Neorg" })
     end,
 }
 
@@ -235,7 +235,6 @@ neorg.lib = {
             end
         end
     end,
-
     --- Wrapped around `match()` that performs an action based on a condition
     ---@param comparison boolean #The comparison to perform
     ---@param when_true function|any #The value to return when `comparison` is true
@@ -251,7 +250,6 @@ neorg.lib = {
             ["false"] = when_false,
         })
     end,
-
     --- Maps a function to every element of a table
     --  The function can return a value, in which case that specific element will be assigned
     --  the return value of that function.
@@ -271,7 +269,6 @@ neorg.lib = {
 
         return copy
     end,
-
     --- Iterates over all elements of a table and returns the first value returned by the callback.
     ---@param tbl table #The table to iterate over
     ---@param callback function #The callback function that should be invoked on each iteration.
@@ -286,7 +283,6 @@ neorg.lib = {
             end
         end
     end,
-
     --- Finds any key in an array
     ---@param tbl array #An array of values to iterate over
     ---@param element any #The item to find
@@ -298,7 +294,6 @@ neorg.lib = {
             end
         end)
     end,
-
     --- Inserts a value into a table if it doesn't exist, else returns the existing value.
     ---@param tbl table #The table to insert into
     ---@param value number|string #The value to insert
@@ -312,7 +307,6 @@ neorg.lib = {
                 return value
             end)()
     end,
-
     --- Picks a set of values from a table and returns them in an array
     ---@param tbl table #The table to extract the keys from
     ---@param values array[string] #An array of strings, these being the keys you'd like to extract
@@ -328,7 +322,6 @@ neorg.lib = {
 
         return result
     end,
-
     --- Tries to extract a variable in all nesting levels of a table.
     ---@param tbl table #The table to traverse
     ---@param value any #The value to look for - note that comparison is done through the `==` operator
@@ -348,7 +341,6 @@ neorg.lib = {
 
         return results
     end,
-
     --- Wraps a conditional "not" function in a vim.tbl callback
     ---@param cb function #The function to wrap
     ---@vararg ... #The arguments to pass to the wrapped function
@@ -359,7 +351,6 @@ neorg.lib = {
             return not cb(v, unpack(params))
         end
     end,
-
     --- Wraps a conditional function in a vim.tbl callback
     ---@param cb function #The function to wrap
     ---@vararg ... #The arguments to pass to the wrapped function
@@ -370,7 +361,6 @@ neorg.lib = {
             return cb(v, unpack(params))
         end
     end,
-
     --- Wraps a function in a callback
     ---@param function_pointer function #The function to wrap
     ---@vararg ... #The arguments to pass to the wrapped function
@@ -392,7 +382,6 @@ neorg.lib = {
             return function_pointer(unpack(params))
         end
     end,
-
     --- Modifiers for the `map` function
     mod = {
         --- Wrapper function to add two values
@@ -405,7 +394,6 @@ neorg.lib = {
                 return value + amount
             end
         end,
-
         --- Wrapper function to set a value to another value in a `map` sequence
         ---@param to any #A static value to set each element of the table to
         ---@return function #A callback that returns the static value
@@ -414,7 +402,6 @@ neorg.lib = {
                 return to
             end
         end,
-
         --- Filtering modifiers that exclude certain elements from a table
         exclude = {
             first = function(func, alt)
@@ -422,7 +409,6 @@ neorg.lib = {
                     return i == 1 and (alt and alt(i, val) or val) or func(i, val)
                 end
             end,
-
             last = function(func, alt)
                 return function(i, val, tbl)
                     return next(tbl, i) and func(i, val) or (alt and alt(i, val) or val)
@@ -430,7 +416,6 @@ neorg.lib = {
             end,
         },
     },
-
     --- Repeats an arguments `index` amount of times
     ---@param value any #The value to repeat
     ---@param index number #The amount of times to repeat the argument
@@ -442,7 +427,6 @@ neorg.lib = {
 
         return value, neorg.lib.reparg(value, index - 1)
     end,
-
     --- Lazily concatenates a string to prevent runtime errors where an object may not exist
     --  Consider the following example:
     --
@@ -459,7 +443,6 @@ neorg.lib = {
     lazy_string_concat = function(...)
         return table.concat({ ... })
     end,
-
     --- Converts an array of values to a table of keys
     ---@param values string[]|number[] #An array of values to store as keys
     ---@param default any #The default value to assign to all key pairs
@@ -473,7 +456,6 @@ neorg.lib = {
 
         return ret
     end,
-
     --- Constructs a new key-pair table by running a callback on all elements of an array.
     ---@param keys string[] #A string array with the keys to iterate over
     ---@param cb function #A function that gets invoked with each key and returns a value to be placed in the output table
@@ -487,7 +469,6 @@ neorg.lib = {
 
         return result
     end,
-
     --- If `val` is a function, executes it with the desired arguments, else just returns `val`
     ---@param val any|function #Either a function or any other value
     ---@vararg any #Potential arguments to give `val` if it is a function
@@ -499,13 +480,11 @@ neorg.lib = {
 
         return val
     end,
-
     --- Extends a list by constructing a new one vs mutating an existing
     --  list in the case of `vim.list_extend`
     list_extend = function(list, ...)
         return list and { unpack(list), unpack(neorg.lib.list_extend(...)) } or {}
     end,
-
     --- Converts a table with `key = value` pairs to a `{ key, value }` array.
     ---@param tbl_with_keys table #A table with key-value pairs
     ---@return array #An array of `{ key, value }` pairs.
@@ -518,7 +497,6 @@ neorg.lib = {
 
         return res
     end,
-
     --- Works just like pcall, except returns only a single value or nil (useful for ternary operations
     --  which are not possible with a function like `pcall` that returns two values).
     ---@param func function #The function to invoke in a protected environment
@@ -533,7 +511,6 @@ neorg.lib = {
 
         -- return nil
     end,
-
     --- Perform a backwards search for a character and return the index of that character
     ---@param str string #The string to search
     ---@param char string #The substring to search for
@@ -543,7 +520,6 @@ neorg.lib = {
         local found_from_back = str:reverse():find(char)
         return found_from_back and length - found_from_back
     end,
-
     --- Ensure that a nested set of variables exists.
     --  Useful when you want to initialise a chain of nested values before writing to them.
     ---@param tbl table #The table you want to modify

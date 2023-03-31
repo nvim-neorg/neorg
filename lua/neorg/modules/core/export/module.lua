@@ -232,7 +232,7 @@ module.on_event = function(event)
                 )
             end)
 
-            vim.schedule(neorg.lib.wrap(vim.notify, "Successfully exported 1 file!"))
+            vim.schedule(neorg.lib.wrap(neorg.utils.notify, "Successfully exported 1 file!"))
         end)
     elseif event.type == "core.neorgcmd.events.export.directory" then
         local path = event.content[3] and vim.fn.expand(event.content[3])
@@ -267,7 +267,7 @@ module.on_event = function(event)
                         if parsed_counter >= file_counter then
                             vim.schedule(
                                 neorg.lib.wrap(
-                                    vim.notify,
+                                    neorg.utils.notify,
                                     string.format("Successfully exported %d files!", file_counter)
                                 )
                             )

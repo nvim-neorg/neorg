@@ -221,7 +221,7 @@ module.on_event = function(event)
             if module.config.public.ask_for_backup then
                 local halt = false
 
-                vim.notify(
+                neorg.utils.notify(
                     "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?"
                 )
                 vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
@@ -243,7 +243,7 @@ module.on_event = function(event)
                 end
             end
 
-            vim.notify("Begin upgrade...")
+            neorg.utils.notify("Begin upgrade...")
 
             local output = table.concat(module.public.upgrade(event.buffer))
 
@@ -257,7 +257,7 @@ module.on_event = function(event)
                     )
                 end)
 
-                vim.schedule(neorg.lib.wrap(vim.notify, "Successfully upgraded 1 file!"))
+                vim.schedule(neorg.lib.wrap(neorg.utils.notify, "Successfully upgraded 1 file!"))
             end)
         end)
     elseif event.split_type[2] == "core.upgrade.current-directory" then
@@ -267,7 +267,7 @@ module.on_event = function(event)
             do
                 local halt = false
 
-                vim.notify(
+                neorg.utils.notify(
                     ("Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!"):format(
                         path
                     )
@@ -286,7 +286,7 @@ module.on_event = function(event)
             if module.config.public.ask_for_backup then
                 local halt = false
 
-                vim.notify(
+                neorg.utils.notify(
                     "\nUpgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this directory?"
                 )
                 vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
@@ -331,7 +331,10 @@ module.on_event = function(event)
 
                     if parsed_counter >= file_counter then
                         vim.schedule(
-                            neorg.lib.wrap(vim.notify, string.format("Successfully upgraded %d files!", file_counter))
+                            neorg.lib.wrap(
+                                neorg.utils.notify,
+                                string.format("Successfully upgraded %d files!", file_counter)
+                            )
                         )
                     end
                 end
@@ -384,11 +387,11 @@ module.on_event = function(event)
         local dirman = neorg.modules.get_module("core.norg.dirman")
 
         if not dirman then
-            vim.notify("ERROR: `core.norg.dirman` is not loaded!")
+            neorg.utils.notify("ERROR: `core.norg.dirman` is not loaded!", vim.log.levels.WARN)
             return
         end
 
-        vim.notify("This behaviour isn't implemented yet!")
+        neorg.utils.notify("This behaviour isn't implemented yet!", vim.log.levels.WARN)
     end
 end
 

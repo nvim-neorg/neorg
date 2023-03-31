@@ -35,7 +35,6 @@ To query the current workspace, run `:Neorg workspace`. To set the workspace, ru
 After a recent update `core.norg.dirman` will no longer change the current working directory after switching
 workspace. To get the best experience it's recommended to set the `autochdir` Neovim option.
 --]]
-
 require("neorg.modules.base")
 require("neorg.modules")
 
@@ -97,22 +96,18 @@ module.config.public = {
     workspaces = {
         default = vim.fn.getcwd(),
     },
-
     -- The name for the index file.
     --
     -- The index file is the "entry point" for all of your notes.
     index = "index.norg",
-
     -- The default workspace to set whenever Neovim starts.
     default_workspace = nil,
-
     -- Whether to open the last workspace's index file when `nvim` is executed
     -- without arguments.
     --
     -- May also be set to the string `"default"`, due to which Neorg will always
     -- open up the index file for the workspace defined in `default_workspace`.
     open_last_workspace = false,
-
     -- Whether to use core.ui.text_popup for `dirman.new.note` event.
     -- if `false`, will use vim's default `vim.ui.input` instead.
     use_popup = true,
@@ -127,22 +122,18 @@ module.public = {
     get_workspaces = function()
         return module.config.public.workspaces
     end,
-
     get_workspace_names = function()
         return vim.tbl_keys(module.config.public.workspaces)
     end,
-
     --- If present retrieve a workspace's path by its name, else returns nil
     ---@param name string #The name of the workspace
     get_workspace = function(name)
         return module.config.public.workspaces[name]
     end,
-
     --- Returns a table in the format { "workspace_name", "path" }
     get_current_workspace = function()
         return module.private.current_workspace
     end,
-
     --- Sets the workspace to the one specified (if it exists) and broadcasts the workspace_changed event
     ---@return boolean True if the workspace is set correctly, false otherwise
     ---@param ws_name string #The name of a valid namespace we want to switch to
@@ -182,7 +173,6 @@ module.public = {
 
         return true
     end,
-
     --- Dynamically defines a new workspace if the name isn't already occupied and broadcasts the workspace_added event
     ---@return boolean True if the workspace is added successfully, false otherwise
     ---@param workspace_name string #The unique name of the new workspace
@@ -205,7 +195,6 @@ module.public = {
 
         return true
     end,
-
     --- If the file we opened is within a workspace directory, returns the name of the workspace, else returns nil
     get_workspace_match = function()
         -- Cache the current working directory
@@ -242,7 +231,6 @@ module.public = {
 
         return result:len() ~= 0 and result or "default"
     end,
-
     --- Uses the `get_workspace_match()` function to determine the root of the workspace based on the
     --- current working directory, then changes into that workspace
     set_closest_workspace_match = function()
@@ -257,7 +245,6 @@ module.public = {
             module.public.set_workspace("default")
         end
     end,
-
     --- Updates completions for the :Neorg command
     sync = function()
         -- Get all the workspace names
@@ -272,7 +259,6 @@ module.public = {
             },
         })
     end,
-
     --- Takes in a path (can include directories) and creates a .norg file from that path
     ---@param path string a path to place the .norg file in
     ---@param workspace string workspace name
@@ -330,7 +316,6 @@ module.public = {
         -- Begin editing that newly created file
         vim.cmd("e " .. fname .. " | w")
     end,
-
     --- Takes in a workspace name and a path for a file and opens it
     ---@param workspace_name string #The name of the workspace to use
     ---@param path string #A path to open the file (e.g directory/filename.norg)
@@ -343,7 +328,6 @@ module.public = {
 
         vim.cmd("e " .. workspace .. neorg.configuration.pathsep .. path .. " | w")
     end,
-
     --- Reads the neorg_last_workspace.txt file and loads the cached workspace from there
     set_last_workspace = function()
         -- Attempt to open the last workspace cache file in read-only mode
@@ -370,10 +354,9 @@ module.public = {
         if module.public.set_workspace(last_workspace) then
             vim.cmd("e " .. workspace_path .. neorg.configuration.pathsep .. module.config.public.index)
 
-            vim.notify("Last Workspace -> " .. workspace_path)
+            neorg.utils.notify("Last Workspace -> " .. workspace_path)
         end
     end,
-
     --- Checks for file existence by supplying a full path in `filepath`
     ---@param filepath string
     file_exists = function(filepath)
@@ -386,7 +369,6 @@ module.public = {
             return false
         end
     end,
-
     --- Get the bufnr for a `filepath` (full path)
     ---@param filepath string
     get_file_bufnr = function(filepath)
@@ -395,7 +377,6 @@ module.public = {
             return vim.uri_to_bufnr(uri)
         end
     end,
-
     --- Returns a list of all files relative path from a `workspace_name`
     ---@param workspace_name string
     ---@return table?
@@ -424,7 +405,6 @@ module.public = {
 
         return res
     end,
-
     --- Sets the current workspace and opens that workspace's index file
     ---@param workspace string #The name of the workspace to open
     open_workspace = function(workspace)
@@ -445,7 +425,6 @@ module.public = {
             vim.cmd("e " .. ws_match .. neorg.configuration.pathsep .. module.config.public.index)
         end
     end,
-
     --- Touches a file in workspace
     --- TODO: make the touch file recursive
     ---@param path string
@@ -472,7 +451,6 @@ module.public = {
         file:close()
         return true
     end,
-
     get_index = function()
         return module.config.public.index
     end,
@@ -492,7 +470,7 @@ module.on_event = function(event)
                     return
                 end
 
-                vim.notify("New Workspace: " .. event.content[1] .. " -> " .. new_workspace)
+                neorg.utils.notify("New Workspace: " .. event.content[1] .. " -> " .. new_workspace)
             end)
         else -- No argument supplied, simply print the current workspace
             -- Query the current workspace
@@ -500,7 +478,7 @@ module.on_event = function(event)
             -- Nicely print it. We schedule_wrap here because people with a configured logger will have this message
             -- silenced by other trace logs
             vim.schedule(function()
-                vim.notify("Current Workspace: " .. current_ws[1] .. " -> " .. current_ws[2])
+                neorg.utils.notify("Current Workspace: " .. current_ws[1] .. " -> " .. current_ws[2])
             end)
         end
     end
@@ -512,12 +490,13 @@ module.on_event = function(event)
 
         if vim.fn.filereadable(index_path) == 0 then
             if not module.public.touch_file(module.config.public.index, module.public.get_current_workspace()[1]) then
-                vim.notify(
+                neorg.utils.notify(
                     table.concat({
                         "Unable to create '",
                         module.config.public.index,
                         "' in the current workspace - are your filesystem permissions set correctly?",
-                    })
+                    }),
+                    vim.log.levels.WARN
                 )
                 return
             end
@@ -562,16 +541,13 @@ module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
     },
-
     ["core.norg.dirman"] = {
         workspace_changed = true,
     },
-
     ["core.neorgcmd"] = {
         ["dirman.workspace"] = true,
         ["dirman.index"] = true,
     },
-
     ["core.keybinds"] = {
         ["core.norg.dirman.new.note"] = true,
     },

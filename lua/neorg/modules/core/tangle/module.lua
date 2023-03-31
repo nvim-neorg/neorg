@@ -294,7 +294,7 @@ module.on_event = function(event)
         local tangles = module.public.tangle(event.buffer)
 
         if not tangles or vim.tbl_isempty(tangles) then
-            vim.notify("Nothing to tangle!")
+            neorg.utils.notify("Nothing to tangle!", vim.log.levels.WARN)
             return
         end
 
@@ -317,7 +317,7 @@ module.on_event = function(event)
                 if file_count == 0 then
                     vim.schedule(
                         neorg.lib.wrap(
-                            vim.notify,
+                            neorg.utils.notify,
                             string.format(
                                 "Successfully tangled %d file%s!",
                                 tangled_count,

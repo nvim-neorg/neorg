@@ -13,7 +13,6 @@ core.looking-glass.magnify-code-block` with your cursor underneath the code
 block you would like to magnify - it is not bound to any key as of currently,
 but you may map it yourself via the [`core.keybinds`](@core.keybinds) module.
 --]]
-
 require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.looking-glass")
@@ -205,7 +204,7 @@ module.on_event = function(event)
                     local tag_info = module.required["core.integrations.treesitter"].get_tag_info(node)
 
                     if not tag_info then
-                        vim.notify("Unable to magnify current code block :(")
+                        neorg.utils.notify("Unable to magnify current code block :(", vim.log.levels.WARN)
                         return
                     end
 
@@ -216,7 +215,7 @@ module.on_event = function(event)
 
         -- If the query above failed then we know that the user isn't under a code block
         if not code_block_info then
-            vim.notify("No code block found under cursor!")
+            neorg.utils.notify("No code block found under cursor!", vim.log.levels.WARN)
             return
         end
 
@@ -230,7 +229,10 @@ module.on_event = function(event)
         )
 
         if not vsplit then
-            vim.notify("Unable to magnify current code block because our split didn't want to open :(")
+            neorg.utils.notify(
+                "Unable to magnify current code block because our split didn't want to open :(",
+                vim.log.levels.WARN
+            )
             return
         end
 

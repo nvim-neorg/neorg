@@ -221,7 +221,7 @@ module.on_event = function(event)
         local qflist = module.public.generate_qflist(event.buffer)
 
         if not qflist then
-            vim.notify("An error occurred and the qflist could not be generated")
+            neorg.utils.notify("An error occurred and the qflist could not be generated", vim.log.levels.WARN)
             return
         end
 
