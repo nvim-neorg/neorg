@@ -6,7 +6,6 @@
     internal: true
     ---
 --]]
-
 require("neorg.modules.base")
 require("neorg.external.helpers")
 
@@ -111,10 +110,8 @@ module.config.public = {
     --  Set to false only if you know what you're doing, or if the setting messes
     --  with your personal configuration.
     configure_parsers = true,
-
     --- If true will automatically install Norg parsers if they are not present.
     install_parsers = true,
-
     --- Configurations for each parser as required by `nvim-treesitter`.
     --  If you would like to tweak your parser configs you may do so here.
     parser_configs = {
@@ -139,13 +136,11 @@ module.config.public = {
 ---@class core.integrations.treesitter
 module.public = {
     parser_path = nil,
-
     --- Gives back an instance of `nvim-treesitter.ts_utils`
     ---@return table #`nvim-treesitter.ts_utils`
     get_ts_utils = function()
         return module.private.ts_utils
     end,
-
     --- Jumps to the next match of a query in the current buffer
     ---@param query_string string Query with `@next-segment` captures
     goto_next_query_match = function(query_string)
@@ -179,7 +174,6 @@ module.public = {
             ::continue::
         end
     end,
-
     --- Jumps to the previous match of a query in the current buffer
     ---@param query_string string Query with `@next-segment` captures
     goto_previous_query_match = function(query_string)
@@ -217,7 +211,6 @@ module.public = {
             module.private.ts_utils.goto_node(final_node)
         end
     end,
-
     ---  Gets all nodes of a given type from the AST
     ---@param  type string #The type of node to filter out
     ---@param opts? table #A table of two options: `buf` and `ft`, for the buffer and format to use respectively.
@@ -259,7 +252,6 @@ module.public = {
 
         return result
     end,
-
     --- Executes function callback on each child node of the root
     ---@param callback function
     ---@param ts_tree #Optional syntax tree
@@ -272,7 +264,6 @@ module.public = {
             callback(child)
         end
     end,
-
     --- Executes callback on each child recursive
     ---@param callback function Executes with each node as parameter, can return false to stop recursion
     ---@param ts_tree #Optional syntax tree
@@ -292,7 +283,6 @@ module.public = {
 
         descend(root)
     end,
-
     get_node_text = function(node, source)
         source = source or 0
 
@@ -314,7 +304,6 @@ module.public = {
 
         return table.concat(lines, "\n")
     end,
-
     --- Returns the first node of given type if present
     ---@param type string #The type of node to search for
     ---@param buf number #The buffer to search in
@@ -341,7 +330,6 @@ module.public = {
             return iterate(tree:root())
         end)
     end,
-
     --- Recursively attempts to locate a node of a given type
     ---@param type string #The type of node to look for
     ---@param opts table #A table of two options: `buf` and `ft`, for the buffer and format respectively
@@ -392,7 +380,6 @@ module.public = {
 
         return result
     end,
-
     --- Given a node this function will break down the AST elements and return the corresponding text for certain nodes
     -- @Param  tag_node (userdata/treesitter node) - a node of type tag/carryover_tag
     get_tag_info = function(tag_node)
@@ -420,17 +407,7 @@ module.public = {
                     if vim.endswith(subchild:type(), "_carryover") then
                         local meta = module.public.get_tag_info(subchild)
 
-                        if
-                            vim.tbl_isempty(vim.tbl_filter(function(attribute)
-                                return attribute.name == meta.name
-                            end, attributes))
-                        then
-                            table.insert(attributes, meta)
-                        else
-                            log.warn(
-                                "Two carryover tags with the same name detected, the top level tag will take precedence"
-                            )
-                        end
+                        table.insert(attributes, meta)
                     end
                 end
             elseif child:type() == "tag_name" then
@@ -473,7 +450,6 @@ module.public = {
             ["end"] = { row = end_row, column = end_column },
         }
     end,
-
     --- Gets the range of a given node
     ---@param node userdata #The node to get the range of
     ---@return table #A table of `row_start`, `column_start`, `row_end` and `column_end` values
@@ -503,7 +479,6 @@ module.public = {
             column_end = ce,
         }
     end,
-
     --- Extracts the document root from the current document or from the string
     ---@param src number|string The number of the buffer to extract or string with code (can be nil)
     ---@param filetype string? #The filetype of the buffer or the string with code
@@ -526,7 +501,6 @@ module.public = {
 
         return tree:root()
     end,
-
     --- Attempts to find a parent of a node recursively
     ---@param node userdata #The node to start at
     ---@param types table|string #If `types` is a table, this function will attempt to match any of the types present in the table.
@@ -546,7 +520,6 @@ module.public = {
             _node = _node:parent()
         end
     end,
-
     --- Retrieves the first node at a specific line
     ---@param buf number #The buffer to search in (0 for current)
     ---@param line number #The line number (0-indexed) to get the node from
@@ -589,7 +562,6 @@ module.public = {
 
         return descendant
     end,
-
     get_document_metadata = function(buf, no_trim)
         buf = buf or 0
 
@@ -680,14 +652,13 @@ module.public = {
 
                     result[key_content] = (
                         node:next_named_sibling() and parse_data(node:next_named_sibling()) or vim.NIL
-                    )
+                        )
                 end
             end
         end)
 
         return result
     end,
-
     --- Parses a query and automatically executes it for Norg
     ---@param query_string string #The query string
     ---@param callback function #The callback to execute with all the value returned by iter_captures
@@ -742,7 +713,6 @@ module.events.subscribed = {
         ["core.integrations.treesitter.next.link"] = true,
         ["core.integrations.treesitter.previous.link"] = true,
     },
-
     ["core.neorgcmd"] = {
         ["sync-parsers"] = true,
     },
