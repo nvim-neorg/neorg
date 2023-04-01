@@ -358,26 +358,10 @@ To know which configurations are provided by default for a module, just click on
 
 ### Core Modules
 
-Here is a list of core modules that aren't part of `core.defaults` and can be added
+[Here](https://github.com/nvim-neorg/neorg/wiki#default-modules) is a list of core modules that aren't part of `core.defaults` and can be added
 individually by you.
 
 Feel free to try by adding them to your Neorg setup.
-
-<!-- TODO: Use docgen to generate this automatically -->
-
-<details>
-<summary>List of Core Modules:</summary>
-
-| Module name                                                                     | Description                                                                 |
-| :------------------------------------------------------------------------------ | :-------------------------------------------------------------------------- |
-| [`core.norg.completion`](https://github.com/nvim-neorg/neorg/wiki/Completion)   | A wrapper to interface with several different completion engines.           |
-| [`core.norg.concealer`](https://github.com/nvim-neorg/neorg/wiki/Concealer)     | Enhances the basic Neorg experience by using icons instead of text.         |
-| [`core.norg.dirman`](https://github.com/nvim-neorg/neorg/wiki/Dirman)           | This module is be responsible for managing directories full of .norg files. |
-| [`core.norg.journal`](https://github.com/nvim-neorg/neorg/wiki/Journal)         | Easily create files for a journal.                                          |
-| [`core.norg.qol.toc`](https://github.com/nvim-neorg/neorg/wiki/Qol-Toc)         | Generates a Table of Contents from the Neorg file.                          |
-| [`core.presenter`](https://github.com/nvim-neorg/neorg/wiki/Core-Presenter)     | Neorg module to create gorgeous presentation slides.                        |
-
-</details>
 
 ### External Modules
 
