@@ -242,7 +242,7 @@ module.public = {
         local query_str = [[
             (anchor_definition
                 (link_description
-                    text: (paragraph_segment) @text
+                    text: (paragraph) @text
                 )
             )
         ]]
