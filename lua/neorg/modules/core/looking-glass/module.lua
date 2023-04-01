@@ -239,10 +239,25 @@ module.on_event = function(event)
         -- Set the content of the target buffer to the content of the code block (initial synchronization)
         vim.api.nvim_buf_set_lines(vsplit, 0, -1, true, code_block_info.content)
 
+
+        -- iterate over attributes and find the last row of them.
+        local last_attribute = nil
+        if code_block_info.attributes then
+            last_attribute = code_block_info.attributes[1]
+
+            for i, v in ipairs(code_block_info.attributes) do
+                if v["end"].row > last_attribute["end"].row then
+                    last_attribute = v
+                end
+            end
+        end
+
+        local start = last_attribute and last_attribute["end"] or code_block_info.start
+
         module.public.sync_text_segment(
             event.buffer,
             event.window,
-            code_block_info.start,
+            start,
             code_block_info["end"],
             vsplit,
             vim.api.nvim_get_current_win()
