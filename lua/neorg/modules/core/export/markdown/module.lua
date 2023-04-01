@@ -60,7 +60,7 @@ end
 
 local function todo_item_extended(replace_text)
     return function(_, node, state)
-        if not node:parent():type():match("_list%d$") then
+        if not node:parent():parent():type():match("_list%d$") then
             return
         end
 
@@ -439,12 +439,12 @@ module.public = {
             ["quote6_prefix"] = true,
 
             ["todo_item_done"] = function(_, node, state)
-                if not node:parent():type():match("_list%d$") then
+                if not node:parent():parent():type():match("_list%d$") then
                     return
                 end
 
                 return {
-                    output = module.config.public.extensions["todo-items-basic"] and "[x] ",
+                    output = module.config.public.extensions["todo-items-basic"] and "[x]",
                     state = {
                         weak_indent = state.weak_indent + 4,
                     },
@@ -452,12 +452,12 @@ module.public = {
             end,
 
             ["todo_item_undone"] = function(_, node, state)
-                if not node:parent():type():match("_list%d$") then
+                if not node:parent():parent():type():match("_list%d$") then
                     return
                 end
 
                 return {
-                    output = module.config.public.extensions["todo-items-basic"] and "[ ] ",
+                    output = module.config.public.extensions["todo-items-basic"] and "[ ]",
                     state = {
                         weak_indent = state.weak_indent + 4,
                     },
@@ -465,23 +465,23 @@ module.public = {
             end,
 
             ["todo_item_pending"] = function(_, node, state)
-                if not node:parent():type():match("_list%d$") then
+                if not node:parent():parent():type():match("_list%d$") then
                     return
                 end
 
                 return {
-                    output = module.config.public.extensions["todo-items-pending"] and "[*] ",
+                    output = module.config.public.extensions["todo-items-pending"] and "[*]",
                     state = {
                         weak_indent = state.weak_indent + 4,
                     },
                 }
             end,
 
-            ["todo_item_urgent"] = todo_item_extended("[ ] "),
-            ["todo_item_cancelled"] = todo_item_extended("[_] "),
-            ["todo_item_recurring"] = todo_item_extended("[ ] "),
-            ["todo_item_on_hold"] = todo_item_extended("[ ] "),
-            ["todo_item_uncertain"] = todo_item_extended("[ ] "),
+            ["todo_item_urgent"] = todo_item_extended("[ ]"),
+            ["todo_item_cancelled"] = todo_item_extended("[_]"),
+            ["todo_item_recurring"] = todo_item_extended("[ ]"),
+            ["todo_item_on_hold"] = todo_item_extended("[ ]"),
+            ["todo_item_uncertain"] = todo_item_extended("[ ]"),
 
             ["single_definition_prefix"] = function()
                 return module.config.public.extensions["definition-lists"] and ": "

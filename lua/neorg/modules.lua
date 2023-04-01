@@ -109,7 +109,8 @@ function neorg.modules.load_module_from_table(module, parent)
                     end
                 else
                     log.error(
-                        ("Unable to load module %s, wanted dependency %s was not satisfied. Be sure to load the module and its appropriate config too!"):format(
+                        ("Unable to load module %s, wanted dependency %s was not satisfied. Be sure to load the module and its appropriate config too!")
+                        :format(
                             module.name,
                             required_module
                         )
@@ -166,7 +167,8 @@ function neorg.modules.load_module_from_table(module, parent)
         -- If this flag has already been set before, then throw an error - there is no way for us to know which hotswapped module should take priority.
         if module_to_replace.replaced then
             log.error(
-                ("Unable to replace module %s - module replacement clashing detected. This error triggers when a module tries to be replaced more than two times - neorg doesn't know which replacement to prioritize."):format(
+                ("Unable to replace module %s - module replacement clashing detected. This error triggers when a module tries to be replaced more than two times - neorg doesn't know which replacement to prioritize.")
+                :format(
                     module_to_replace.name
                 )
             )
