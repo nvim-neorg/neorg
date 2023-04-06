@@ -457,8 +457,8 @@ module.public = {
 
         do
             -- TODO: Make cursor wrapping behaviour configurable
-            vim.api.nvim_buf_set_keymap(buffer, "n", "l", "", {
-                callback = function()
+            vim.keymap.set("n", "l",
+                function()
                     local new_date = reformat_time({
                         year = current_date.year,
                         month = current_date.month,
@@ -467,10 +467,11 @@ module.public = {
                     module.private.render_view(ui_info, view, new_date, current_date, options)
                     current_date = new_date
                 end,
-            })
+                { buffer = buffer }
+            )
 
-            vim.api.nvim_buf_set_keymap(buffer, "n", "h", "", {
-                callback = function()
+            vim.keymap.set("n", "h",
+                function()
                     local new_date = reformat_time({
                         year = current_date.year,
                         month = current_date.month,
@@ -479,10 +480,11 @@ module.public = {
                     module.private.render_view(ui_info, view, new_date, current_date, options)
                     current_date = new_date
                 end,
-            })
+                { buffer = buffer }
+            )
 
-            vim.api.nvim_buf_set_keymap(buffer, "n", "j", "", {
-                callback = function()
+            vim.keymap.set("n", "j",
+                function()
                     local new_date = reformat_time({
                         year = current_date.year,
                         month = current_date.month,
@@ -491,10 +493,11 @@ module.public = {
                     module.private.render_view(ui_info, view, new_date, current_date, options)
                     current_date = new_date
                 end,
-            })
+                { buffer = buffer }
+            )
 
-            vim.api.nvim_buf_set_keymap(buffer, "n", "k", "", {
-                callback = function()
+            vim.keymap.set("n", "k",
+                function()
                     local new_date = reformat_time({
                         year = current_date.year,
                         month = current_date.month,
@@ -503,7 +506,8 @@ module.public = {
                     module.private.render_view(ui_info, view, new_date, current_date, options)
                     current_date = new_date
                 end,
-            })
+                { buffer = buffer }
+            )
         end
     end,
 
