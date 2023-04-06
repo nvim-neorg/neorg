@@ -247,6 +247,154 @@ module.private = {
         end
     end,
 
+    render_month_array = function (ui_info, date, options)
+        -- Render the first weekday banner in the middle
+        local weekday_banner = module.private.render_weekday_banner(ui_info, 0, options.distance)
+        module.private.render_month_banner(ui_info, date, weekday_banner)
+        module.private.render_month(ui_info, date, date, weekday_banner)
+
+        local blockid = 1
+
+        while math.floor(ui_info.width / (26 + options.distance)) > blockid * 2 do
+            weekday_banner = module.private.render_weekday_banner(ui_info, blockid, options.distance)
+
+            local positive_target_date = reformat_time({
+                year = date.year,
+                month = date.month + blockid,
+                day = 1,
+            })
+
+            module.private.render_month_banner(ui_info, positive_target_date, weekday_banner)
+            module.private.render_month(ui_info, positive_target_date, date, weekday_banner)
+
+            weekday_banner = module.private.render_weekday_banner(ui_info, blockid * -1)
+
+            local negative_target_date = reformat_time({
+                year = date.year,
+                month = date.month - blockid,
+                day = 1,
+            })
+
+            module.private.render_month_banner(ui_info, negative_target_date, weekday_banner)
+            module.private.render_month(ui_info, negative_target_date, date, weekday_banner)
+
+            blockid = blockid + 1
+        end
+    end,
+
+    render_year_tag = function(ui_info, year)
+        -- Display the current year (i.e. `< 2022 >`)
+        local extra = nil
+
+        if module.private.extmarks.logical.year ~= nil then
+            extra = {
+                id = module.private.extmarks.logical.year,
+            }
+        end
+
+        local extmark = module.private.set_logical_extmark(
+            ui_info,
+            2,
+            0,
+            { { "< ", "Whitespace" }, { tostring(year), "@number" }, { " >", "Whitespace" } },
+            "center",
+            extra
+        )
+
+        if (module.private.extmarks.logical.year == nil) then
+            module.private.extmarks.logical.year = extmark
+        end
+    end,
+
+    render_decorative_text = function (ui_info, view)
+        --> Decorational section
+        -- CALENDAR text:
+        module.private.extmarks.decorational = vim.tbl_deep_extend("force", module.private.extmarks.decorational, {
+            calendar_text = module.private.set_decorational_extmark(ui_info, 0, 0, 0, {
+                { "CALENDAR", "@text.strong" },
+            }, "center"),
+
+            -- Help text at the bottom left of the screen
+            help_and_custom_input = module.private.set_decorational_extmark(ui_info, ui_info.height - 1, 0, 0, {
+                { "?", "@character" },
+                { " - " },
+                { "help", "@text.strong" },
+                { "    " },
+                { "i", "@character" },
+                { " - " },
+                { "custom input", "@text.strong" },
+            }),
+
+            -- The current view (bottom right of the screen)
+            current_view = module.private.set_decorational_extmark(
+                ui_info,
+                ui_info.height - 1,
+                0,
+                0,
+                { { "[", "Whitespace" }, { view, "@label" }, { "]", "Whitespace" } },
+                "right"
+            ),
+        })
+    end,
+
+    select_current_day = function(ui_info, date)
+        local extmark_id = module.private.extmarks.logical.months[date.month][date.day]
+
+        local position = vim.api.nvim_buf_get_extmark_by_id(
+            ui_info.buffer,
+            module.private.namespaces.logical,
+            extmark_id,
+            {}
+        )
+
+        vim.api.nvim_win_set_cursor(ui_info.window, { position[1] + 1, position[2] })
+    end,
+
+    render_view = function (ui_info, view, date, previous_date, options)
+        local is_first_render = (previous_date == nil)
+
+        if is_first_render then
+            module.private.fill_buffer(ui_info)
+            module.private.render_decorative_text(ui_info, view)
+            module.private.render_year_tag(ui_info, date.year)
+            module.private.render_month_array(ui_info, date, options)
+            module.private.select_current_day(ui_info, date)
+            return
+        end
+
+        local year_changed = (date.year ~= previous_date.year)
+        local month_changed = (date.month ~= previous_date.month)
+        local day_changed = (date.day ~= previous_date.day)
+
+        if year_changed then
+            module.private.render_year_tag(ui_info, date.year)
+        end
+
+        if year_changed or month_changed then
+            module.private.render_month_array(ui_info, date, options)
+        end
+
+        if year_changed or month_changed or day_changed then
+            module.private.select_current_day(ui_info, date)
+        end
+    end,
+
+    fill_buffer = function(ui_info)
+        -- There are many steps to render a calendar.
+        -- The first step is to fill the entire buffer with spaces. This lets
+        -- us place extmarks at any position in the document. Won't be used for
+        -- the meaty stuff, but will come in handy for rendering decorational
+        -- elements.
+        local fill = {}
+        local filler = string.rep(" ", ui_info.width)
+
+        for i = 1, ui_info.height do
+            fill[i] = filler
+        end
+
+        vim.api.nvim_buf_set_lines(ui_info.buffer, 0, -1, true, fill)
+    end,
+
     get_month_length = function(month, year)
         return ({
             31,
@@ -303,198 +451,57 @@ module.public = {
         vim.api.nvim_buf_clear_namespace(buffer, module.private.namespaces.decorational, 0, -1)
         vim.api.nvim_buf_clear_namespace(buffer, module.private.namespaces.logical, 0, -1)
 
-        --------------------------------------------------
-
-        -- There are many steps to render a calendar.
-        -- The first step is to fill the entire buffer with spaces. This lets
-        -- us place extmarks at any position in the document. Won't be used for
-        -- the meaty stuff, but will come in handy for rendering decorational
-        -- elements.
-        do
-            local fill = {}
-            local filler = string.rep(" ", width)
-
-            for i = 1, height do
-                fill[i] = filler
-            end
-
-            vim.api.nvim_buf_set_lines(buffer, 0, -1, true, fill)
-        end
-
-        -- This `do .. end` block is a routine that draws (almost) all
-        -- decorational content like the "CALENDAR" text, the "help", "custom
-        -- input" and "[VIEW]" texts.
-        do
-            --> Decorational section
-            -- CALENDAR text:
-            module.private.extmarks.decorational = vim.tbl_deep_extend("force", module.private.extmarks.decorational, {
-                calendar_text = module.private.set_decorational_extmark(ui_info, 0, 0, 0, {
-                    { "CALENDAR", "@text.strong" },
-                }, "center"),
-
-                -- Help text at the bottom left of the screen
-                help_and_custom_input = module.private.set_decorational_extmark(ui_info, height - 1, 0, 0, {
-                    { "?", "@character" },
-                    { " - " },
-                    { "help", "@text.strong" },
-                    { "    " },
-                    { "i", "@character" },
-                    { " - " },
-                    { "custom input", "@text.strong" },
-                }),
-
-                -- The current view (bottom right of the screen)
-                current_view = module.private.set_decorational_extmark(
-                    ui_info,
-                    height - 1,
-                    0,
-                    0,
-                    { { "[", "Whitespace" }, { view, "@label" }, { "]", "Whitespace" } },
-                    "right"
-                ),
-            })
-        end
-
         local current_date = os.date("*t")
 
-        -- Display the current year (i.e. `< 2022 >`)
-        module.private.extmarks.logical.year = module.private.set_logical_extmark(
-            ui_info,
-            2,
-            0,
-            { { "< ", "Whitespace" }, { tostring(current_date.year), "@number" }, { " >", "Whitespace" } },
-            "center"
-        )
-
-        -- TODO: implement monthly/yearly/daily/weekly logic
-
-        local function render_month_array(date)
-            -- Render the first weekday banner in the middle
-            local weekday_banner = module.private.render_weekday_banner(ui_info, 0, options.distance)
-            module.private.render_month_banner(ui_info, date, weekday_banner)
-            module.private.render_month(ui_info, date, date, weekday_banner)
-
-            local blockid = 1
-
-            while math.floor(width / (26 + options.distance)) > blockid * 2 do
-                weekday_banner = module.private.render_weekday_banner(ui_info, blockid, options.distance)
-
-                local positive_target_date = reformat_time({
-                    year = date.year,
-                    month = date.month + blockid,
-                    day = 1,
-                })
-
-                module.private.render_month_banner(ui_info, positive_target_date, weekday_banner)
-                module.private.render_month(ui_info, positive_target_date, date, weekday_banner)
-
-                weekday_banner = module.private.render_weekday_banner(ui_info, blockid * -1)
-
-                local negative_target_date = reformat_time({
-                    year = date.year,
-                    month = date.month - blockid,
-                    day = 1,
-                })
-
-                module.private.render_month_banner(ui_info, negative_target_date, weekday_banner)
-                module.private.render_month(ui_info, negative_target_date, date, weekday_banner)
-
-                blockid = blockid + 1
-            end
-        end
-
-        render_month_array(current_date)
+        module.private.render_view(ui_info, view, current_date, nil, options)
 
         do
-            local current_day, current_month, current_year = current_date.day, current_date.month, current_date.year
-
-            local function update_year(new_year)
-                module.private.set_logical_extmark(
-                    ui_info,
-                    2,
-                    0,
-                    { { "< ", "Whitespace" }, { tostring(new_year), "@number" }, { " >", "Whitespace" } },
-                    "center",
-                    {
-                        id = module.private.extmarks.logical.year,
-                    }
-                )
-            end
-
             -- TODO: Make cursor wrapping behaviour configurable
             vim.api.nvim_buf_set_keymap(buffer, "n", "l", "", {
                 callback = function()
-                    local next_extmark_id = module.private.extmarks.logical.months[current_month]
-                            and module.private.extmarks.logical.months[current_month][current_day + 1]
-                        or nil
-
-                    if not next_extmark_id then
-                        if current_month + 1 == 13 then
-                            current_month = 0
-                            current_year = current_year + 1
-                            update_year(current_year)
-                        end
-
-                        local next_month = module.private.extmarks.logical.months[current_month + 1]
-
-                        if not next_month then
-                            return
-                        end
-
-                        current_day = 1
-                        current_month = current_month + 1
-                        render_month_array(
-                            reformat_time({ day = current_day, month = current_month, year = current_year })
-                        )
-                        next_extmark_id = next_month[current_day]
-                    else
-                        current_day = current_day + 1
-                    end
-
-                    local next = vim.api.nvim_buf_get_extmark_by_id(
-                        buffer,
-                        module.private.namespaces.logical,
-                        next_extmark_id,
-                        {}
-                    )
-                    vim.api.nvim_win_set_cursor(window, { next[1] + 1, next[2] })
+                    local new_date = reformat_time({
+                        year = current_date.year,
+                        month = current_date.month,
+                        day = current_date.day + 1
+                    })
+                    module.private.render_view(ui_info, view, new_date, current_date, options)
+                    current_date = new_date
                 end,
             })
 
             vim.api.nvim_buf_set_keymap(buffer, "n", "h", "", {
                 callback = function()
-                    local prev_extmark_id = module.private.extmarks.logical.months[current_month][current_day - 1]
+                    local new_date = reformat_time({
+                        year = current_date.year,
+                        month = current_date.month,
+                        day = current_date.day - 1
+                    })
+                    module.private.render_view(ui_info, view, new_date, current_date, options)
+                    current_date = new_date
+                end,
+            })
 
-                    if not prev_extmark_id then
-                        if current_month - 1 == 0 then
-                            current_month = 13
-                            current_year = current_year - 1
-                            update_year(current_year)
-                        end
+            vim.api.nvim_buf_set_keymap(buffer, "n", "j", "", {
+                callback = function()
+                    local new_date = reformat_time({
+                        year = current_date.year,
+                        month = current_date.month,
+                        day = current_date.day + 7
+                    })
+                    module.private.render_view(ui_info, view, new_date, current_date, options)
+                    current_date = new_date
+                end,
+            })
 
-                        local prev_month = module.private.extmarks.logical.months[current_month - 1]
-
-                        if not prev_month then
-                            return
-                        end
-
-                        current_day = #prev_month
-                        current_month = current_month - 1
-                        render_month_array(
-                            reformat_time({ day = current_day, month = current_month, year = current_year })
-                        )
-                        prev_extmark_id = prev_month[current_day]
-                    else
-                        current_day = current_day - 1
-                    end
-
-                    local prev = vim.api.nvim_buf_get_extmark_by_id(
-                        buffer,
-                        module.private.namespaces.logical,
-                        prev_extmark_id,
-                        {}
-                    )
-                    vim.api.nvim_win_set_cursor(window, { prev[1] + 1, prev[2] })
+            vim.api.nvim_buf_set_keymap(buffer, "n", "k", "", {
+                callback = function()
+                    local new_date = reformat_time({
+                        year = current_date.year,
+                        month = current_date.month,
+                        day = current_date.day - 7
+                    })
+                    module.private.render_view(ui_info, view, new_date, current_date, options)
+                    current_date = new_date
                 end,
             })
         end
