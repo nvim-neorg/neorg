@@ -33,7 +33,7 @@ module.private = {
         decorational = vim.api.nvim_create_namespace("neorg/calendar/decorational"),
     },
 
-    set_decorational_extmark = function(ui_info, row, col, length, virt_text, alignment, extra)
+    set_extmark = function(ui_info, namespace, row, col, length, virt_text, alignment, extra)
         if alignment then
             local text_length = 0
 
@@ -48,43 +48,37 @@ module.private = {
             end
         end
 
+        local default_extra = {
+            virt_text = virt_text,
+            virt_text_pos = "overlay",
+        }
+
+        if length then
+            default_extra.end_col = col + length
+        end
+
         return vim.api.nvim_buf_set_extmark(
             ui_info.buffer,
-            module.private.namespaces.decorational,
+            namespace,
             row,
             col,
-            vim.tbl_deep_extend("force", {
-                virt_text = virt_text,
-                virt_text_pos = "overlay",
-                end_col = col + length,
-            }, extra or {})
+            vim.tbl_deep_extend("force", default_extra, extra or {})
+        )
+    end,
+
+    set_decorational_extmark = function(ui_info, row, col, length, virt_text, alignment, extra)
+        return module.private.set_extmark(
+            ui_info,
+            module.private.namespaces.decorational,
+            row, col, length, virt_text, alignment, extra
         )
     end,
 
     set_logical_extmark = function(ui_info, row, col, virt_text, alignment, extra)
-        if alignment then
-            local text_length = 0
-
-            for _, tuple in ipairs(virt_text) do
-                text_length = text_length + tuple[1]:len()
-            end
-
-            if alignment == "center" then
-                col = col + (ui_info.half_width - math.floor(text_length / 2))
-            elseif alignment == "right" then
-                col = col + (ui_info.width - text_length)
-            end
-        end
-
-        return vim.api.nvim_buf_set_extmark(
-            ui_info.buffer,
+        return module.private.set_extmark(
+            ui_info,
             module.private.namespaces.logical,
-            row,
-            col,
-            vim.tbl_deep_extend("force", {
-                virt_text = virt_text,
-                virt_text_pos = "overlay",
-            }, extra or {})
+            row, col, nil, virt_text, alignment, extra
         )
     end,
 
@@ -253,32 +247,31 @@ module.private = {
         module.private.render_month_banner(ui_info, date, weekday_banner)
         module.private.render_month(ui_info, date, date, weekday_banner)
 
-        local blockid = 1
+        local months_to_render = module.private.rendered_months_in_width(ui_info.width, options.distance)
+        months_to_render = math.floor(months_to_render / 2)
 
-        while math.floor(ui_info.width / (26 + options.distance)) > blockid * 2 do
-            weekday_banner = module.private.render_weekday_banner(ui_info, blockid, options.distance)
+        for i=1,months_to_render do
+            weekday_banner = module.private.render_weekday_banner(ui_info, i, options.distance)
 
             local positive_target_date = reformat_time({
                 year = date.year,
-                month = date.month + blockid,
+                month = date.month + i,
                 day = 1,
             })
 
             module.private.render_month_banner(ui_info, positive_target_date, weekday_banner)
             module.private.render_month(ui_info, positive_target_date, date, weekday_banner)
 
-            weekday_banner = module.private.render_weekday_banner(ui_info, blockid * -1)
+            weekday_banner = module.private.render_weekday_banner(ui_info, i * -1)
 
             local negative_target_date = reformat_time({
                 year = date.year,
-                month = date.month - blockid,
+                month = date.month - i,
                 day = 1,
             })
 
             module.private.render_month_banner(ui_info, negative_target_date, weekday_banner)
             module.private.render_month(ui_info, negative_target_date, date, weekday_banner)
-
-            blockid = blockid + 1
         end
     end,
 
@@ -372,10 +365,54 @@ module.private = {
 
         if year_changed or month_changed then
             module.private.render_month_array(ui_info, date, options)
+            module.private.clear_extmarks(ui_info, date, options)
         end
 
         if year_changed or month_changed or day_changed then
             module.private.select_current_day(ui_info, date)
+        end
+    end,
+
+    clear_extmarks = function(ui_info, current_date, options)
+        local cur_month = current_date.month
+
+        local rendered_months_offset = math.floor(module.private.rendered_months_in_width(ui_info.width, options.distance) / 2)
+
+        -- Mimics ternary operator to be concise
+        local month_min = cur_month - rendered_months_offset
+        month_min = month_min <= 0 and (12 + month_min) or month_min
+
+        local month_max = cur_month + rendered_months_offset
+        month_max = month_max > 12 and (month_max - 12) or month_max
+
+        local clear_extmarks_for_month = function (month)
+            for _, extmark_id in ipairs(module.private.extmarks.logical.months[month]) do
+                vim.api.nvim_buf_del_extmark(
+                    ui_info.buffer,
+                    module.private.namespaces.logical,
+                    extmark_id
+                )
+            end
+
+            module.private.extmarks.logical.months[month] = nil
+        end
+
+        for month, _ in pairs(module.private.extmarks.logical.months) do
+            -- Check if the month is outside the current view range
+            -- considering the month wrapping after 12
+            if month_min < month_max then
+                if month_min > month or month > month_max then
+                    clear_extmarks_for_month(month)
+                end
+            elseif month_min > month_max then
+                if month_max < month and month < month_min then
+                    clear_extmarks_for_month(month)
+                end
+            elseif month_min == month_max then
+                if month ~= cur_month then
+                    clear_extmarks_for_month(month)
+                end
+            end
         end
     end,
 
@@ -423,6 +460,21 @@ module.private = {
         end
 
         return true
+    end,
+
+    rendered_months_in_width = function(width, distance)
+        local rendered_month_width = 26
+        local months = math.floor(width / (rendered_month_width + distance))
+
+        -- Do not show more than one year
+        if months > 12 then
+            months = 12
+        end
+
+        if months % 2 == 0 then
+            return months - 1
+        end
+        return months
     end,
 }
 
@@ -514,6 +566,10 @@ module.public = {
     select_date = function(options)
         local buffer, window =
             module.public.create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
+
+        -- This would fix an issue with the calendar going over the window width
+        -- However, it would probably be better to implement this inside the "create_split" function
+        -- vim.api.nvim_win_set_option(window, 'signcolumn', 'no')
 
         return module.public.create_calendar(buffer, window, options)
     end,
