@@ -247,32 +247,31 @@ module.private = {
         module.private.render_month_banner(ui_info, date, weekday_banner)
         module.private.render_month(ui_info, date, date, weekday_banner)
 
-        local blockid = 1
+        local months_to_render = module.private.rendered_months_in_width(ui_info.width, options.distance)
+        months_to_render = math.floor(months_to_render / 2)
 
-        while math.floor(ui_info.width / (26 + options.distance)) > blockid * 2 do
-            weekday_banner = module.private.render_weekday_banner(ui_info, blockid, options.distance)
+        for i=1,months_to_render do
+            weekday_banner = module.private.render_weekday_banner(ui_info, i, options.distance)
 
             local positive_target_date = reformat_time({
                 year = date.year,
-                month = date.month + blockid,
+                month = date.month + i,
                 day = 1,
             })
 
             module.private.render_month_banner(ui_info, positive_target_date, weekday_banner)
             module.private.render_month(ui_info, positive_target_date, date, weekday_banner)
 
-            weekday_banner = module.private.render_weekday_banner(ui_info, blockid * -1)
+            weekday_banner = module.private.render_weekday_banner(ui_info, i * -1)
 
             local negative_target_date = reformat_time({
                 year = date.year,
-                month = date.month - blockid,
+                month = date.month - i,
                 day = 1,
             })
 
             module.private.render_month_banner(ui_info, negative_target_date, weekday_banner)
             module.private.render_month(ui_info, negative_target_date, date, weekday_banner)
-
-            blockid = blockid + 1
         end
     end,
 
@@ -417,6 +416,15 @@ module.private = {
         end
 
         return true
+    end,
+
+    rendered_months_in_width = function(width, distance)
+        local rendered_month_width = 26
+        local months = math.floor(width / (rendered_month_width + distance))
+        if months % 2 == 0 then
+            return months - 1
+        end
+        return months
     end,
 }
 
