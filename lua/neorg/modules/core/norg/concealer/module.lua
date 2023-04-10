@@ -801,7 +801,7 @@ module.public = {
         if module.private.enabled then
             neorg.events.send_event(
                 "core.norg.concealer",
-                neorg.events.create(module, "core.autocommands.events.bufenter", {
+                neorg.events.create(module, "core.autocommands.events.bufwinenter", {
                     norg = true,
                 })
             )
@@ -1378,7 +1378,7 @@ module.load = function()
     module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
 
     -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
-    module.required["core.autocommands"].enable_autocommand("BufEnter")
+    module.required["core.autocommands"].enable_autocommand("BufWinEnter")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
     module.required["core.autocommands"].enable_autocommand("VimLeavePre")
@@ -1440,7 +1440,7 @@ module.on_event = function(event)
         or false
     )
 
-    if event.type == "core.autocommands.events.bufenter" and event.content.norg then
+    if event.type == "core.autocommands.events.bufwinenter" and event.content.norg then
         if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
             local opts = {
                 scope = "local",
@@ -1676,7 +1676,7 @@ module.events.defined = {
 
 module.events.subscribed = {
     ["core.autocommands"] = {
-        bufenter = true,
+        bufwinenter = true,
         insertenter = true,
         insertleave = true,
         vimleavepre = true,
