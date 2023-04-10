@@ -261,7 +261,7 @@ module.public = {
     end,
     --- Takes in a path (can include directories) and creates a .norg file from that path
     ---@param path string a path to place the .norg file in
-    ---@param workspace string workspace name
+    ---@param workspace? string workspace name
     ---@param opts? table additional options
     ---  - opts.no_open (bool) if true, will not open the file in neovim after creating it
     ---  - opts.force (bool) if true, will overwrite existing file content
@@ -486,6 +486,14 @@ module.on_event = function(event)
     -- If somebody has executed the :Neorg index command then
     if event.type == "core.neorgcmd.events.dirman.index" then
         local current_ws = module.public.get_current_workspace()
+
+        if current_ws[1] == "default" then
+            neorg.utils.notify(
+                "No workspace is set! Use `:Neorg workspace <name>` to set the current workspace. Aborting..."
+            )
+            return
+        end
+
         local index_path = table.concat({ current_ws[2], "/", module.config.public.index })
 
         if vim.fn.filereadable(index_path) == 0 then
