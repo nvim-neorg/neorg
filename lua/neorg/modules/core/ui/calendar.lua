@@ -33,7 +33,7 @@ module.private = {
         decorational = vim.api.nvim_create_namespace("neorg/calendar/decorational"),
     },
 
-    set_decorational_extmark = function(ui_info, row, col, length, virt_text, alignment, extra)
+    set_extmark = function(ui_info, namespace, row, col, length, virt_text, alignment, extra)
         if alignment then
             local text_length = 0
 
@@ -48,43 +48,37 @@ module.private = {
             end
         end
 
+        local default_extra = {
+            virt_text = virt_text,
+            virt_text_pos = "overlay",
+        }
+
+        if length then
+            default_extra.end_col = col + length
+        end
+
         return vim.api.nvim_buf_set_extmark(
             ui_info.buffer,
-            module.private.namespaces.decorational,
+            namespace,
             row,
             col,
-            vim.tbl_deep_extend("force", {
-                virt_text = virt_text,
-                virt_text_pos = "overlay",
-                end_col = col + length,
-            }, extra or {})
+            vim.tbl_deep_extend("force", default_extra, extra or {})
+        )
+    end,
+
+    set_decorational_extmark = function(ui_info, row, col, length, virt_text, alignment, extra)
+        return module.private.set_extmark(
+            ui_info,
+            module.private.namespaces.decorational,
+            row, col, length, virt_text, alignment, extra
         )
     end,
 
     set_logical_extmark = function(ui_info, row, col, virt_text, alignment, extra)
-        if alignment then
-            local text_length = 0
-
-            for _, tuple in ipairs(virt_text) do
-                text_length = text_length + tuple[1]:len()
-            end
-
-            if alignment == "center" then
-                col = col + (ui_info.half_width - math.floor(text_length / 2))
-            elseif alignment == "right" then
-                col = col + (ui_info.width - text_length)
-            end
-        end
-
-        return vim.api.nvim_buf_set_extmark(
-            ui_info.buffer,
+        return module.private.set_extmark(
+            ui_info,
             module.private.namespaces.logical,
-            row,
-            col,
-            vim.tbl_deep_extend("force", {
-                virt_text = virt_text,
-                virt_text_pos = "overlay",
-            }, extra or {})
+            row, col, nil, virt_text, alignment, extra
         )
     end,
 
@@ -514,6 +508,10 @@ module.public = {
     select_date = function(options)
         local buffer, window =
             module.public.create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
+
+        -- This would fix an issue with the calendar going over the window width
+        -- However, it would probably be better to implement this inside the "create_split" function
+        -- vim.api.nvim_win_set_option(window, 'signcolumn', 'no')
 
         return module.public.create_calendar(buffer, window, options)
     end,
