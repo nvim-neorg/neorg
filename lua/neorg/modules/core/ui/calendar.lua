@@ -398,6 +398,8 @@ module.private = {
         end
 
         for month, _ in pairs(module.private.extmarks.logical.months) do
+            -- Check if the month is outside the current view range
+            -- considering the month wrapping after 12
             if month_min < month_max then
                 if month_min > month or month > month_max then
                     clear_extmarks_for_month(month)
@@ -463,6 +465,12 @@ module.private = {
     rendered_months_in_width = function(width, distance)
         local rendered_month_width = 26
         local months = math.floor(width / (rendered_month_width + distance))
+
+        -- Do not show more than one year
+        if months > 12 then
+            months = 12
+        end
+
         if months % 2 == 0 then
             return months - 1
         end
