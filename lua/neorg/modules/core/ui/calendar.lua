@@ -365,10 +365,53 @@ module.private = {
 
         if year_changed or month_changed then
             module.private.render_month_array(ui_info, date, options)
+            module.private.clear_extmarks(ui_info, date, options)
         end
 
         if year_changed or month_changed or day_changed then
             module.private.select_current_day(ui_info, date)
+        end
+    end,
+
+    clear_extmarks = function(ui_info, current_date, options)
+        local cur_month = current_date.month
+
+        local rendered_months_offset = math.floor(module.private.rendered_months_in_width(ui_info.width, options.distance) / 2)
+
+        -- Mimics ternary operator to be concise
+        local month_min = cur_month - rendered_months_offset
+        month_min = month_min <= 0 and (12 + month_min) or month_min
+
+        local month_max = cur_month + rendered_months_offset
+        month_max = month_max > 12 and (month_max - 12) or month_max
+
+        local clear_extmarks_for_month = function (month)
+            print("Clearing extmark for month " .. month)
+            for _, extmark_id in ipairs(module.private.extmarks.logical.months[month]) do
+                vim.api.nvim_buf_del_extmark(
+                    ui_info.buffer,
+                    module.private.namespaces.logical,
+                    extmark_id
+                )
+            end
+
+            module.private.extmarks.logical.months[month] = nil
+        end
+
+        for month, _ in pairs(module.private.extmarks.logical.months) do
+            if month_min < month_max then
+                if month_min > month or month > month_max then
+                    clear_extmarks_for_month(month)
+                end
+            elseif month_min > month_max then
+                if month_max < month and month < month_min then
+                    clear_extmarks_for_month(month)
+                end
+            elseif month_min == month_max then
+                if month ~= cur_month then
+                    clear_extmarks_for_month(month)
+                end
+            end
         end
     end,
 
