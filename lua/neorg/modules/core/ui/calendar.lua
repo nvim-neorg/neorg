@@ -386,7 +386,6 @@ module.private = {
         month_max = month_max > 12 and (month_max - 12) or month_max
 
         local clear_extmarks_for_month = function (month)
-            print("Clearing extmark for month " .. month)
             for _, extmark_id in ipairs(module.private.extmarks.logical.months[month]) do
                 vim.api.nvim_buf_del_extmark(
                     ui_info.buffer,
