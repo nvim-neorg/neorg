@@ -135,6 +135,7 @@ module.public = {
 
         vim.api.nvim_win_set_option(0, "number", false)
         vim.api.nvim_win_set_option(0, "relativenumber", false)
+        vim.api.nvim_win_set_option(0, "signcolumn", "no")
 
         -- Merge the user provided options with the default options and apply them to the new buffer
         module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
