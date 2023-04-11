@@ -164,6 +164,23 @@ neorg.utils = {
     notify = function(msg, log_level)
         vim.notify(msg, log_level, { title = "Neorg" })
     end,
+
+    --- Opens up an array of files and runs a callback for each opened file.
+    ---@param files string[] #An array of files to open.
+    ---@param callback fun(buffer: integer, filename: string) #The callback to invoke for each file.
+    read_files = function(files, callback)
+        for _, file in ipairs(files) do
+            local bufnr = vim.uri_to_bufnr(vim.uri_from_fname(file))
+
+            local should_delete = not vim.api.nvim_buf_is_loaded(bufnr)
+
+            vim.fn.bufload(bufnr)
+            callback(bufnr, file)
+            if should_delete then
+                vim.api.nvim_buf_delete(bufnr, { force = true })
+            end
+        end
+    end,
 }
 
 neorg.lib = {
@@ -531,6 +548,20 @@ neorg.lib = {
             ref[key] = ref[key] or {}
             ref = ref[key]
         end
+    end,
+
+    --- Capitalizes the first letter of each word in a given string.
+    ---@param str string #The string to capitalize
+    ---@return string #The capitalized string.
+    title = function(str)
+        local result = {}
+
+        for word in str:gmatch("[^%s]+") do
+            local lower = word:sub(2):lower()
+
+            table.insert(result, word:sub(1, 1):upper() .. lower)
+        end
+        return table.concat(result, " ")
     end,
 }
 
