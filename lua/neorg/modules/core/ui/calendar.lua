@@ -504,6 +504,7 @@ module.config.public = {
         ['select_date'] = function (callback)
             return {
                 name = 'select_date',
+
                 on_select = function (_, date)
                     if callback then
                         callback(date)
@@ -517,6 +518,7 @@ module.config.public = {
                 name = 'select_range',
                 range_start = nil,
                 range_end = nil,
+
                 on_select = function (self, date)
                     if not self.range_start then
                         self.range_start = date
@@ -531,18 +533,10 @@ module.config.public = {
                     end
                     return false
                 end,
+
                 get_day_highlight = function(self, date, default_highlight)
                     if self.range_start ~= nil then
-                        if date.year < self.range_start.year then
-                            return '@comment'
-                        end
-                        if date.year == self.range_start.year
-                            and date.month < self.range_start.month then
-                            return '@comment'
-                        end
-                        if date.year == self.range_start.year
-                            and date.month == self.range_start.month
-                            and date.day < self.range_start.day then
+                        if os.time(date) < os.time(self.range_start) then
                             return '@comment'
                         end
                     end
