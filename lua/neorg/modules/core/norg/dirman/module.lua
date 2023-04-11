@@ -39,7 +39,6 @@ require("neorg.modules.base")
 require("neorg.modules")
 
 local module = neorg.modules.create("core.norg.dirman")
-local scan = require("plenary.scandir")
 
 module.setup = function()
     return {
@@ -383,23 +382,16 @@ module.public = {
     get_norg_files = function(workspace_name)
         local res = {}
         local workspace = module.public.get_workspace(workspace_name)
-        if workspace == nil then
-            log.error("Workspace " .. workspace_name .. "does not exist")
+
+        if not workspace then
             return
         end
 
-        local scanned_dir = scan.scan_dir(workspace)
+        local scanned_dir = vim.fs.dir(workspace, { depth = 20 })
 
-        -- We remove the workspace path and only keep relative path.
-        -- In order to prevent bugs with special characters (hyphens), we escapte them in the pattern
-        -- @see https://stackoverflow.com/questions/6705872/how-to-escape-a-variable-in-lua
-        local workspace_pattern = string.gsub(workspace, "%p", "%%%1")
-
-        for _, file in pairs(scanned_dir) do
-            local remove_dir = string.gsub(file, workspace_pattern .. neorg.configuration.pathsep, "")
-
-            if vim.endswith(remove_dir, ".norg") then
-                table.insert(res, remove_dir)
+        for name, type in scanned_dir do
+            if type == "file" and vim.endswith(name, ".norg") then
+                table.insert(res, workspace .. neorg.configuration.pathsep .. name)
             end
         end
 
