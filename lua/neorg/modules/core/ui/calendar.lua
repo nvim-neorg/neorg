@@ -33,6 +33,9 @@ module.private = {
         decorational = vim.api.nvim_create_namespace("neorg/calendar/decorational"),
     },
 
+
+    current_mode = {},
+
     set_extmark = function(ui_info, namespace, row, col, length, virt_text, alignment, extra)
         if alignment then
             local text_length = 0
@@ -235,12 +238,22 @@ module.private = {
                 vim.api.nvim_win_set_cursor(ui_info.window, { start_row + 1, start_col })
             end
 
+            local day_highlight = is_current_day and "@text.todo" or nil
+
+            if module.private.current_mode.get_day_highlight then
+                day_highlight = module.private.current_mode:get_day_highlight({
+                    year = year,
+                    month = month,
+                    day = day_of_month
+                }, day_highlight)
+            end
+
             module.private.extmarks.logical.months[month][day_of_month] =
                 vim.api.nvim_buf_set_extmark(ui_info.buffer, module.private.namespaces.logical, start_row, start_col, {
                     virt_text = {
                         {
                             (day_of_month < 10 and "0" or "") .. tostring(day_of_month),
-                            (is_current_day and "@text.todo" or nil),
+                            day_highlight,
                         },
                     },
                     virt_text_pos = "overlay",
@@ -486,9 +499,70 @@ module.private = {
     end,
 }
 
+module.config.public = {
+    available_modes = {
+        ['select_date'] = function (callback)
+            return {
+                name = 'select_date',
+                on_select = function (_, date)
+                    if callback then
+                        callback(date)
+                    end
+                    return true
+                end
+            }
+        end,
+        ['select_range'] = function (callback)
+            return {
+                name = 'select_range',
+                range_start = nil,
+                range_end = nil,
+                on_select = function (self, date)
+                    if not self.range_start then
+                        self.range_start = date
+                    else
+                        if os.time(date) <= os.time(self.range_start) then
+                            print("Error: you should choose a date that is after the starting day.")
+                            return false
+                        end
+                        self.range_end = date
+                        callback({self.range_start, self.range_end})
+                        return true
+                    end
+                    return false
+                end,
+                get_day_highlight = function(self, date, default_highlight)
+                    if self.range_start ~= nil then
+                        if date.year < self.range_start.year then
+                            return '@comment'
+                        end
+                        if date.year == self.range_start.year
+                            and date.month < self.range_start.month then
+                            return '@comment'
+                        end
+                        if date.year == self.range_start.year
+                            and date.month == self.range_start.month
+                            and date.day < self.range_start.day then
+                            return '@comment'
+                        end
+                    end
+                    return default_highlight
+                end,
+            }
+        end,
+    },
+}
+
 module.public = {
     create_calendar = function(buffer, window, options)
         options.distance = options.distance or 4
+
+        if options.mode and module.config.public.available_modes[options.mode] ~= nil then
+            module.private.current_mode = module.config.public.available_modes[options.mode](options.callback)
+        else
+            print("Error: mode not set or not available")
+            return
+        end
 
         -- Variables
         local width = vim.api.nvim_win_get_width(window)
@@ -556,12 +630,34 @@ module.public = {
                 module.private.render_view(ui_info, view, new_date, current_date, options)
                 current_date = new_date
             end, { buffer = buffer })
+
+            vim.keymap.set("n", "<cr>", function()
+                local should_close = module.private.current_mode:on_select(current_date)
+
+                if should_close then
+                    module.public.delete_window(ui_info.buffer)
+                    return
+                end
+
+                module.private.render_view(ui_info, view, current_date, nil, options)
+            end, { buffer = buffer })
         end
     end,
 
     select_date = function(options)
         local buffer, window =
             module.public.create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
+
+        options.mode = 'select_date'
+
+        return module.public.create_calendar(buffer, window, options)
+    end,
+
+    select_date_range = function(options)
+        local buffer, window =
+            module.public.create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
+
+        options.mode = 'select_range'
 
         return module.public.create_calendar(buffer, window, options)
     end,
