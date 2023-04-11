@@ -244,7 +244,7 @@ module.on_event = function(event)
         if code_block_info.attributes then
             last_attribute = code_block_info.attributes[1]
 
-            for i, v in ipairs(code_block_info.attributes) do
+            for _, v in ipairs(code_block_info.attributes) do
                 if v["end"].row > last_attribute["end"].row then
                     last_attribute = v
                 end
