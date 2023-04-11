@@ -112,7 +112,7 @@ module.on_event = function(event)
         local node_at_cursor = ts.get_first_node_on_line(buffer, event.cursor_position[1] - 1)
 
         if not node_at_cursor or not node_at_cursor:type():match("^heading%d$") then
-            vim.notify(
+            neorg.utils.notify(
                 "No heading under cursor! Please move your cursor under the heading you'd like to generate the summary under."
             )
             return
@@ -121,14 +121,14 @@ module.on_event = function(event)
         local dirman = neorg.modules.get_module("core.norg.dirman")
 
         if not dirman then
-            vim.notify("`core.norg.dirman` is not loaded! It is required to generate summaries")
+            neorg.utils.notify("`core.norg.dirman` is not loaded! It is required to generate summaries")
             return
         end
 
         local generated = module.config.public.strategy(dirman.get_norg_files(dirman.get_current_workspace()[1]) or {})
 
         if not generated or vim.tbl_isempty(generated) then
-            vim.notify(
+            neorg.utils.notify(
                 "No summary to generate! Either change the `strategy` option or ensure you have some indexable files in your workspace."
             )
             return
