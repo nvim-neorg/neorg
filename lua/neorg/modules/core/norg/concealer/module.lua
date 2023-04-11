@@ -18,15 +18,14 @@ require("neorg.external.helpers")
 local module = neorg.modules.create("core.norg.concealer")
 
 --- Schedule a function if there is no debounce active or if deferred updates have been disabled
+---@param buffer number #Source buffer to verify it still exists
 ---@param func function #Any function to execute
-local function schedule(func)
+local function schedule(buffer, func)
     vim.schedule(function()
         if
             module.private.disable_deferred_updates
-            or (
-                (module.private.debounce_counters[vim.api.nvim_win_get_cursor(0)[1] + 1] or 0)
-                >= module.config.public.performance.max_debounce
-            )
+            or ((module.private.debounce_counters[vim.api.nvim_win_get_cursor(0)[1] + 1] or 0) >= module.config.public.performance.max_debounce)
+            or (buffer and not vim.api.nvim_buf_is_loaded(buffer))
         then
             return
         end
@@ -95,7 +94,7 @@ module.public = {
 
         -- Loop through all icons that the user has enabled
         for _, icon_data in ipairs(icon_set) do
-            schedule(function()
+            schedule(buf, function()
                 if icon_data.query then
                     -- Attempt to parse the query provided by `icon_data.query`
                     -- A query must have at least one capture, e.g. "(test_node) @icon"
@@ -182,7 +181,7 @@ module.public = {
         end
 
         -- After we have applied every extmark we can remove the old ones
-        schedule(function()
+        schedule(buf, function()
             neorg.lib.map(old_extmarks, function(_, id)
                 vim.api.nvim_buf_del_extmark(buf, namespace, id)
             end)
@@ -242,7 +241,7 @@ module.public = {
                         )
                     )
 
-                    schedule(function()
+                    schedule(buf, function()
                         if module.config.public.dim_code_blocks.conceal then
                             pcall(
                                 vim.api.nvim_buf_set_extmark,
@@ -413,7 +412,7 @@ module.public = {
                 end
             end
 
-            schedule(function()
+            schedule(buf, function()
                 neorg.lib.map(old_extmarks, function(_, id)
                     vim.api.nvim_buf_del_extmark(buf, module.private.code_block_namespace, id)
                 end)
@@ -1554,7 +1553,7 @@ module.on_event = function(event)
                     module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
                         + 1
 
-                    schedule(function()
+                    schedule(buf, function()
                         local new_line_count = vim.api.nvim_buf_line_count(buf)
 
                         -- Sometimes occurs with one-line undos
@@ -1588,7 +1587,10 @@ module.on_event = function(event)
                         end)
                     end)
                 else
-                    schedule(neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, has_conceal, start, _end))
+                    schedule(
+                        buf,
+                        neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, has_conceal, start, _end)
+                    )
 
                     if module.private.largest_change_start == -1 then
                         module.private.largest_change_start = start
@@ -1606,7 +1608,7 @@ module.on_event = function(event)
             end,
         })
     elseif event.type == "core.autocommands.events.insertenter" then
-        schedule(function()
+        schedule(event.buffer, function()
             module.private.last_change = {
                 active = false,
                 line = event.cursor_position[1] - 1,
@@ -1624,7 +1626,7 @@ module.on_event = function(event)
             return
         end
 
-        schedule(function()
+        schedule(event.buffer, function()
             if not module.private.last_change.active or module.private.largest_change_end == -1 then
                 module.public.trigger_icons(
                     event.buffer,
@@ -1650,7 +1652,7 @@ module.on_event = function(event)
     elseif event.type == "core.autocommands.events.vimleavepre" then
         module.private.disable_deferred_updates = true
     elseif event.type == "core.norg.concealer.events.update_region" then
-        schedule(function()
+        schedule(event.buffer, function()
             vim.api.nvim_buf_clear_namespace(
                 event.buffer,
                 module.private.icon_namespace,
