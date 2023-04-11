@@ -70,7 +70,12 @@ module.private = {
         return module.private.set_extmark(
             ui_info,
             module.private.namespaces.decorational,
-            row, col, length, virt_text, alignment, extra
+            row,
+            col,
+            length,
+            virt_text,
+            alignment,
+            extra
         )
     end,
 
@@ -78,7 +83,12 @@ module.private = {
         return module.private.set_extmark(
             ui_info,
             module.private.namespaces.logical,
-            row, col, nil, virt_text, alignment, extra
+            row,
+            col,
+            nil,
+            virt_text,
+            alignment,
+            extra
         )
     end,
 
@@ -92,6 +102,9 @@ module.private = {
                 day = date.day,
             })
         )
+
+        -- NOTE(vhyrro): This is just here to make the language server's type annotator happy.
+        assert(type(month_name) == "string")
 
         local weekday_banner_id = vim.api.nvim_buf_get_extmark_by_id(
             ui_info.buffer,
@@ -241,7 +254,7 @@ module.private = {
         end
     end,
 
-    render_month_array = function (ui_info, date, options)
+    render_month_array = function(ui_info, date, options)
         -- Render the first weekday banner in the middle
         local weekday_banner = module.private.render_weekday_banner(ui_info, 0, options.distance)
         module.private.render_month_banner(ui_info, date, weekday_banner)
@@ -250,7 +263,7 @@ module.private = {
         local months_to_render = module.private.rendered_months_in_width(ui_info.width, options.distance)
         months_to_render = math.floor(months_to_render / 2)
 
-        for i=1,months_to_render do
+        for i = 1, months_to_render do
             weekday_banner = module.private.render_weekday_banner(ui_info, i, options.distance)
 
             local positive_target_date = reformat_time({
@@ -294,12 +307,12 @@ module.private = {
             extra
         )
 
-        if (module.private.extmarks.logical.year == nil) then
+        if module.private.extmarks.logical.year == nil then
             module.private.extmarks.logical.year = extmark
         end
     end,
 
-    render_decorative_text = function (ui_info, view)
+    render_decorative_text = function(ui_info, view)
         --> Decorational section
         -- CALENDAR text:
         module.private.extmarks.decorational = vim.tbl_deep_extend("force", module.private.extmarks.decorational, {
@@ -333,17 +346,13 @@ module.private = {
     select_current_day = function(ui_info, date)
         local extmark_id = module.private.extmarks.logical.months[date.month][date.day]
 
-        local position = vim.api.nvim_buf_get_extmark_by_id(
-            ui_info.buffer,
-            module.private.namespaces.logical,
-            extmark_id,
-            {}
-        )
+        local position =
+            vim.api.nvim_buf_get_extmark_by_id(ui_info.buffer, module.private.namespaces.logical, extmark_id, {})
 
         vim.api.nvim_win_set_cursor(ui_info.window, { position[1] + 1, position[2] })
     end,
 
-    render_view = function (ui_info, view, date, previous_date, options)
+    render_view = function(ui_info, view, date, previous_date, options)
         local is_first_render = (previous_date == nil)
 
         if is_first_render then
@@ -376,7 +385,8 @@ module.private = {
     clear_extmarks = function(ui_info, current_date, options)
         local cur_month = current_date.month
 
-        local rendered_months_offset = math.floor(module.private.rendered_months_in_width(ui_info.width, options.distance) / 2)
+        local rendered_months_offset =
+            math.floor(module.private.rendered_months_in_width(ui_info.width, options.distance) / 2)
 
         -- Mimics ternary operator to be concise
         local month_min = cur_month - rendered_months_offset
@@ -385,13 +395,9 @@ module.private = {
         local month_max = cur_month + rendered_months_offset
         month_max = month_max > 12 and (month_max - 12) or month_max
 
-        local clear_extmarks_for_month = function (month)
+        local clear_extmarks_for_month = function(month)
             for _, extmark_id in ipairs(module.private.extmarks.logical.months[month]) do
-                vim.api.nvim_buf_del_extmark(
-                    ui_info.buffer,
-                    module.private.namespaces.logical,
-                    extmark_id
-                )
+                vim.api.nvim_buf_del_extmark(ui_info.buffer, module.private.namespaces.logical, extmark_id)
             end
 
             module.private.extmarks.logical.months[month] = nil
@@ -509,57 +515,45 @@ module.public = {
 
         do
             -- TODO: Make cursor wrapping behaviour configurable
-            vim.keymap.set("n", "l",
-                function()
-                    local new_date = reformat_time({
-                        year = current_date.year,
-                        month = current_date.month,
-                        day = current_date.day + 1
-                    })
-                    module.private.render_view(ui_info, view, new_date, current_date, options)
-                    current_date = new_date
-                end,
-                { buffer = buffer }
-            )
+            vim.keymap.set("n", "l", function()
+                local new_date = reformat_time({
+                    year = current_date.year,
+                    month = current_date.month,
+                    day = current_date.day + 1,
+                })
+                module.private.render_view(ui_info, view, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = buffer })
 
-            vim.keymap.set("n", "h",
-                function()
-                    local new_date = reformat_time({
-                        year = current_date.year,
-                        month = current_date.month,
-                        day = current_date.day - 1
-                    })
-                    module.private.render_view(ui_info, view, new_date, current_date, options)
-                    current_date = new_date
-                end,
-                { buffer = buffer }
-            )
+            vim.keymap.set("n", "h", function()
+                local new_date = reformat_time({
+                    year = current_date.year,
+                    month = current_date.month,
+                    day = current_date.day - 1,
+                })
+                module.private.render_view(ui_info, view, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = buffer })
 
-            vim.keymap.set("n", "j",
-                function()
-                    local new_date = reformat_time({
-                        year = current_date.year,
-                        month = current_date.month,
-                        day = current_date.day + 7
-                    })
-                    module.private.render_view(ui_info, view, new_date, current_date, options)
-                    current_date = new_date
-                end,
-                { buffer = buffer }
-            )
+            vim.keymap.set("n", "j", function()
+                local new_date = reformat_time({
+                    year = current_date.year,
+                    month = current_date.month,
+                    day = current_date.day + 7,
+                })
+                module.private.render_view(ui_info, view, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = buffer })
 
-            vim.keymap.set("n", "k",
-                function()
-                    local new_date = reformat_time({
-                        year = current_date.year,
-                        month = current_date.month,
-                        day = current_date.day - 7
-                    })
-                    module.private.render_view(ui_info, view, new_date, current_date, options)
-                    current_date = new_date
-                end,
-                { buffer = buffer }
-            )
+            vim.keymap.set("n", "k", function()
+                local new_date = reformat_time({
+                    year = current_date.year,
+                    month = current_date.month,
+                    day = current_date.day - 7,
+                })
+                module.private.render_view(ui_info, view, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = buffer })
         end
     end,
 
