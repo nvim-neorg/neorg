@@ -180,7 +180,7 @@ module.private = {
         return weekday_banner_id
     end,
 
-    render_month = function(ui_info, target_date, current_date, weekday_banner_extmark_id)
+    render_month = function(ui_info, target_date, weekday_banner_extmark_id)
         --> Month rendering routine
         -- We render the first month at the very center of the screen. Each
         -- month takes up a static amount of characters.
@@ -191,7 +191,9 @@ module.private = {
             -- [day of month] = <day of week>,
         }
 
-        local day, month, year = target_date.day, target_date.month, target_date.year
+        local current_date = os.date("*t")
+
+        local month, year = target_date.month, target_date.year
 
         local days_in_current_month = module.private.get_month_length(month, year)
 
@@ -219,9 +221,9 @@ module.private = {
         module.private.extmarks.logical.months[month] = module.private.extmarks.logical.months[month] or {}
 
         for day_of_month, day_of_week in ipairs(days_of_month) do
-            local is_current_day = current_date.year == target_date.year
-                and current_date.month == target_date.month
-                and day_of_month == day
+            local is_current_day = current_date.year == year
+                and current_date.month == month
+                and day_of_month == current_date.day
 
             local start_row = beginning_of_weekday_extmark[1] + render_row
             local start_col = beginning_of_weekday_extmark[2] + (4 * render_column)
@@ -258,7 +260,7 @@ module.private = {
         -- Render the first weekday banner in the middle
         local weekday_banner = module.private.render_weekday_banner(ui_info, 0, options.distance)
         module.private.render_month_banner(ui_info, date, weekday_banner)
-        module.private.render_month(ui_info, date, date, weekday_banner)
+        module.private.render_month(ui_info, date, weekday_banner)
 
         local months_to_render = module.private.rendered_months_in_width(ui_info.width, options.distance)
         months_to_render = math.floor(months_to_render / 2)
@@ -273,7 +275,7 @@ module.private = {
             })
 
             module.private.render_month_banner(ui_info, positive_target_date, weekday_banner)
-            module.private.render_month(ui_info, positive_target_date, date, weekday_banner)
+            module.private.render_month(ui_info, positive_target_date, weekday_banner)
 
             weekday_banner = module.private.render_weekday_banner(ui_info, i * -1)
 
@@ -284,7 +286,7 @@ module.private = {
             })
 
             module.private.render_month_banner(ui_info, negative_target_date, weekday_banner)
-            module.private.render_month(ui_info, negative_target_date, date, weekday_banner)
+            module.private.render_month(ui_info, negative_target_date, weekday_banner)
         end
     end,
 
@@ -560,10 +562,6 @@ module.public = {
     select_date = function(options)
         local buffer, window =
             module.public.create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
-
-        -- This would fix an issue with the calendar going over the window width
-        -- However, it would probably be better to implement this inside the "create_split" function
-        -- vim.api.nvim_win_set_option(window, 'signcolumn', 'no')
 
         return module.public.create_calendar(buffer, window, options)
     end,
