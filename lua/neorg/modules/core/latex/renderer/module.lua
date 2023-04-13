@@ -60,13 +60,12 @@ module.public = {
 
         local content = table.concat(
             {
-                "\\documentclass[12pt]{standalone}",
+                "\\documentclass[6pt]{standalone}",
                 "\\usepackage{amsmath}",
                 "\\usepackage{amssymb}",
+                "\\usepackage{graphicx}",
                 "\\begin{document}",
-                "\\begin{align}",
                 snippet,
-                "\\end{align}",
                 "\\end{document}",
             },
             "\n"
