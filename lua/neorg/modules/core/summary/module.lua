@@ -69,7 +69,7 @@ module.load = function()
                     for _, datapoint in ipairs(data) do
                         table.insert(
                             result,
-                            table.concat({ "- {:", datapoint.filename, ":}[", neorg.lib.title(datapoint.title), "]" })
+                            table.concat({ "   - {:", datapoint.filename, ":}[", neorg.lib.title(datapoint.title), "]" })
                                 .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
                         )
                     end
