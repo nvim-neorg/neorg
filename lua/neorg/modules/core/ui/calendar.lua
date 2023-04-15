@@ -7,11 +7,11 @@ local function reformat_time(date)
     return os.date("*t", os.time(date))
 end
 
-module.setup = function ()
+module.setup = function()
     return {
         requires = {
-            "core.ui"
-        }
+            "core.ui",
+        },
     }
 end
 
@@ -38,7 +38,7 @@ module.private = {
 
     modes = {},
 
-    get_mode = function (name, callback)
+    get_mode = function(name, callback)
         if module.private.modes[name] ~= nil then
             local cur_mode = module.private.modes[name](callback)
             cur_mode.name = name
@@ -52,7 +52,6 @@ module.private = {
         logical = vim.api.nvim_create_namespace("neorg/calendar/logical"),
         decorational = vim.api.nvim_create_namespace("neorg/calendar/decorational"),
     },
-
 
     current_mode = {},
 
@@ -264,7 +263,7 @@ module.private = {
                 day_highlight = module.private.current_mode:get_day_highlight({
                     year = year,
                     month = month,
-                    day = day_of_month
+                    day = day_of_month,
                 }, day_highlight)
             end
 
@@ -520,7 +519,7 @@ module.private = {
 }
 
 module.public = {
-    add_mode = function (name, factory)
+    add_mode = function(name, factory)
         module.private.modes[name] = factory
     end,
 
@@ -603,7 +602,7 @@ module.public = {
                 local should_close = module.private.current_mode:on_select(current_date)
 
                 if should_close then
-                    module.required['core.ui'].delete_window(ui_info.buffer)
+                    module.required["core.ui"].delete_window(ui_info.buffer)
                     return
                 end
 
@@ -613,76 +612,75 @@ module.public = {
     end,
 
     select_date = function(options)
-        local buffer, window =
-            module.required['core.ui'].create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
+        local buffer, window = module.required["core.ui"].create_split(
+            "calendar",
+            {},
+            options.height or math.floor(vim.opt.lines:get() * 0.3)
+        )
 
-        options.mode = 'select_date'
+        options.mode = "select_date"
 
         return module.public.create_calendar(buffer, window, options)
     end,
 
     select_date_range = function(options)
-        local buffer, window =
-            module.required['core.ui'].create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
+        local buffer, window = module.required["core.ui"].create_split(
+            "calendar",
+            {},
+            options.height or math.floor(vim.opt.lines:get() * 0.3)
+        )
 
-        options.mode = 'select_range'
+        options.mode = "select_range"
 
         return module.public.create_calendar(buffer, window, options)
     end,
 }
 
-
-module.load = function ()
+module.load = function()
     -- Add default calendar modes
-    module.public.add_mode('standalone')
+    module.public.add_mode("standalone")
 
-    module.public.add_mode(
-        'select_date',
-        function (callback)
-            return {
-                on_select = function (_, date)
-                    if callback then
-                        callback(date)
+    module.public.add_mode("select_date", function(callback)
+        return {
+            on_select = function(_, date)
+                if callback then
+                    callback(date)
+                end
+                return true
+            end,
+        }
+    end)
+
+    module.public.add_mode("select_range", function(callback)
+        return {
+            range_start = nil,
+            range_end = nil,
+
+            on_select = function(self, date)
+                if not self.range_start then
+                    self.range_start = date
+                else
+                    if os.time(date) <= os.time(self.range_start) then
+                        print("Error: you should choose a date that is after the starting day.")
+                        return false
                     end
+                    self.range_end = date
+                    callback({ self.range_start, self.range_end })
                     return true
                 end
-            }
-        end
-    )
+                return false
+            end,
 
-    module.public.add_mode(
-        'select_range',
-        function (callback)
-            return {
-                range_start = nil,
-                range_end = nil,
-
-                on_select = function (self, date)
-                    if not self.range_start then
-                        self.range_start = date
-                    else
-                        if os.time(date) <= os.time(self.range_start) then
-                            print("Error: you should choose a date that is after the starting day.")
-                            return false
-                        end
-                        self.range_end = date
-                        callback({self.range_start, self.range_end})
-                        return true
+            get_day_highlight = function(self, date, default_highlight)
+                if self.range_start ~= nil then
+                    if os.time(date) < os.time(self.range_start) then
+                        return "@comment"
                     end
-                    return false
-                end,
-
-                get_day_highlight = function(self, date, default_highlight)
-                    if self.range_start ~= nil then
-                        if os.time(date) < os.time(self.range_start) then
-                            return '@comment'
-                        end
-                    end
-                    return default_highlight
-                end,
-            }
-        end
-    )
+                end
+                return default_highlight
+            end,
+        }
+    end)
 end
 
 return module
