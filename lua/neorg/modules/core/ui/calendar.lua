@@ -599,7 +599,11 @@ module.public = {
             end, { buffer = buffer })
 
             vim.keymap.set("n", "<cr>", function()
-                local should_close = module.private.current_mode:on_select(current_date)
+                local should_close = false
+
+                if module.private.current_mode.on_select ~= nil then
+                    should_close = module.private.current_mode:on_select(current_date)
+                end
 
                 if should_close then
                     module.required["core.ui"].delete_window(ui_info.buffer)
@@ -609,6 +613,18 @@ module.public = {
                 module.private.render_view(ui_info, view, current_date, nil, options)
             end, { buffer = buffer })
         end
+    end,
+
+    open = function(options)
+        local buffer, window = module.required["core.ui"].create_split(
+            "calendar",
+            {},
+            options.height or math.floor(vim.opt.lines:get() * 0.3)
+        )
+
+        options.mode = "standalone"
+
+        return module.public.create_calendar(buffer, window, options)
     end,
 
     select_date = function(options)
@@ -638,7 +654,9 @@ module.public = {
 
 module.load = function()
     -- Add default calendar modes
-    module.public.add_mode("standalone")
+    module.public.add_mode("standalone", function (_)
+        return {}
+    end)
 
     module.public.add_mode("select_date", function(callback)
         return {
