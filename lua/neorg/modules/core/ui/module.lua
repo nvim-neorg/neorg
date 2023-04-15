@@ -20,8 +20,10 @@ module.setup = function()
         imports = {
             "selection_popup",
             "text_popup",
-            "calendar",
         },
+        requires = {
+            "core.ui.calendar"
+        }
     }
 end
 
