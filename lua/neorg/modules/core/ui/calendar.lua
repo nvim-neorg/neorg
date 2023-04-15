@@ -1,10 +1,18 @@
 -- NOTICE: Consider this whole module a demo for now
 -- A lot of stuff is hardcoded in order to prove that it can work
 
-local module = neorg.modules.extend("core.ui.calendar", "core.ui")
+local module = neorg.modules.create("core.ui.calendar")
 
 local function reformat_time(date)
     return os.date("*t", os.time(date))
+end
+
+module.setup = function ()
+    return {
+        requires = {
+            "core.ui"
+        }
+    }
 end
 
 module.private = {
@@ -27,6 +35,18 @@ module.private = {
             },
         },
     },
+
+    modes = {},
+
+    get_mode = function (name, callback)
+        if module.private.modes[name] ~= nil then
+            local cur_mode = module.private.modes[name](callback)
+            cur_mode.name = name
+            return cur_mode
+        end
+
+        print("Error: mode not set or not available")
+    end,
 
     namespaces = {
         logical = vim.api.nvim_create_namespace("neorg/calendar/logical"),
@@ -499,62 +519,16 @@ module.private = {
     end,
 }
 
-module.config.public = {
-    available_modes = {
-        ['select_date'] = function (callback)
-            return {
-                name = 'select_date',
-
-                on_select = function (_, date)
-                    if callback then
-                        callback(date)
-                    end
-                    return true
-                end
-            }
-        end,
-        ['select_range'] = function (callback)
-            return {
-                name = 'select_range',
-                range_start = nil,
-                range_end = nil,
-
-                on_select = function (self, date)
-                    if not self.range_start then
-                        self.range_start = date
-                    else
-                        if os.time(date) <= os.time(self.range_start) then
-                            print("Error: you should choose a date that is after the starting day.")
-                            return false
-                        end
-                        self.range_end = date
-                        callback({self.range_start, self.range_end})
-                        return true
-                    end
-                    return false
-                end,
-
-                get_day_highlight = function(self, date, default_highlight)
-                    if self.range_start ~= nil then
-                        if os.time(date) < os.time(self.range_start) then
-                            return '@comment'
-                        end
-                    end
-                    return default_highlight
-                end,
-            }
-        end,
-    },
-}
-
 module.public = {
+    add_mode = function (name, factory)
+        module.private.modes[name] = factory
+    end,
+
     create_calendar = function(buffer, window, options)
         options.distance = options.distance or 4
 
-        if options.mode and module.config.public.available_modes[options.mode] ~= nil then
-            module.private.current_mode = module.config.public.available_modes[options.mode](options.callback)
-        else
-            print("Error: mode not set or not available")
+        module.private.current_mode = module.private.get_mode(options.mode, options.callback)
+        if module.private.current_mode == nil then
             return
         end
 
@@ -629,7 +603,7 @@ module.public = {
                 local should_close = module.private.current_mode:on_select(current_date)
 
                 if should_close then
-                    module.public.delete_window(ui_info.buffer)
+                    module.required['core.ui'].delete_window(ui_info.buffer)
                     return
                 end
 
@@ -640,7 +614,7 @@ module.public = {
 
     select_date = function(options)
         local buffer, window =
-            module.public.create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
+            module.required['core.ui'].create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
 
         options.mode = 'select_date'
 
@@ -649,12 +623,66 @@ module.public = {
 
     select_date_range = function(options)
         local buffer, window =
-            module.public.create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
+            module.required['core.ui'].create_split("calendar", {}, options.height or math.floor(vim.opt.lines:get() * 0.3))
 
         options.mode = 'select_range'
 
         return module.public.create_calendar(buffer, window, options)
     end,
 }
+
+
+module.load = function ()
+    -- Add default calendar modes
+    module.public.add_mode('standalone')
+
+    module.public.add_mode(
+        'select_date',
+        function (callback)
+            return {
+                on_select = function (_, date)
+                    if callback then
+                        callback(date)
+                    end
+                    return true
+                end
+            }
+        end
+    )
+
+    module.public.add_mode(
+        'select_range',
+        function (callback)
+            return {
+                range_start = nil,
+                range_end = nil,
+
+                on_select = function (self, date)
+                    if not self.range_start then
+                        self.range_start = date
+                    else
+                        if os.time(date) <= os.time(self.range_start) then
+                            print("Error: you should choose a date that is after the starting day.")
+                            return false
+                        end
+                        self.range_end = date
+                        callback({self.range_start, self.range_end})
+                        return true
+                    end
+                    return false
+                end,
+
+                get_day_highlight = function(self, date, default_highlight)
+                    if self.range_start ~= nil then
+                        if os.time(date) < os.time(self.range_start) then
+                            return '@comment'
+                        end
+                    end
+                    return default_highlight
+                end,
+            }
+        end
+    )
+end
 
 return module
