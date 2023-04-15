@@ -654,7 +654,7 @@ module.public = {
 
 module.load = function()
     -- Add default calendar modes
-    module.public.add_mode("standalone", function (_)
+    module.public.add_mode("standalone", function(_)
         return {}
     end)
 
