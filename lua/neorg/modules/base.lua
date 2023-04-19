@@ -34,10 +34,11 @@ neorg.modules.module_base = {
     -- Every module can expose any set of information it sees fit through the public field
     -- All functions and variables declared in this table will be visible to any other module loaded
     public = {
-        -- Current neorg version. Your module will use this version if not specified, but you can override it.
-        -- Overriding it will mean that your module is only compatible with the overriden neorg version
-        -- E.g: setting version = "1.3.0" will mean that your module requires norg 1.3.0+ to operate
-        version = require("neorg.config").version,
+        -- Current Norg version that this module supports.
+        -- Your module will use this version if not specified, but you can override it.
+        -- Overriding it will mean that your module is only compatible with the overriden Norg revision.
+        -- E.g: setting version = "1.0.0" will mean that your module requires Norg 1.0.0+ to operate
+        version = require("neorg.config").norg_version,
     },
 
     -- Configuration for the module
