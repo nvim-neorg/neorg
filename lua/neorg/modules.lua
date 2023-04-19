@@ -23,7 +23,7 @@ neorg.modules.loaded_modules = {}
 setmetatable(neorg.modules.loaded_modules, {
     __index = function(orig_tbl, old_key)
         if vim.startswith(old_key, "core.norg") then
-            local new_key = "core" .. string.sub(old_key, 10) -- string.len("core.norg") == 10
+            local new_key = "core" .. string.sub(old_key, 10) -- string.len("core.norg") + 1 == 10
             log.warn(string.format("%s is deprecated in Neorg v3.0.0+. Use %s instead.", old_key, new_key))
             return orig_tbl[new_key]
         end
