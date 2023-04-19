@@ -39,6 +39,12 @@ module.load = function()
     end)
 end
 
+module.config.public = {
+    -- If `true`, will close the Table of Contents after an entry in the table
+    -- is picked.
+    close_after_use = false,
+}
+
 module.public = {
     parse_toc_macro = function(buffer)
         local toc, toc_name = false, nil
@@ -205,6 +211,11 @@ module.public = {
                 vim.api.nvim_set_current_win(original_window)
                 vim.api.nvim_set_current_buf(original_buffer)
                 vim.api.nvim_win_set_cursor(original_window, { location[1] + 1, location[2] })
+
+                if module.config.public.close_after_use then
+
+                    vim.api.nvim_buf_delete(ui_buffer, { force = true })
+                end
             end,
         })
     end,
