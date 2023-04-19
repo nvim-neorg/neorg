@@ -1,6 +1,0 @@
-#!/bin/bash
-
-make format
-return="$?"
-git update-index --again
-exit $return
