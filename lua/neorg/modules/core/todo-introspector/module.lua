@@ -45,16 +45,19 @@ module.public = {
                 return
             end
 
-            local aggregates = {}
-
-            aggregates.self = neorg.lib.eval(callback, parent_node) or {}
+            local aggregates = {
+                -- TODO: Merge this with existing data? How though.
+                self = neorg.lib.eval(callback, parent_node) or {},
+                children = {},
+            }
 
             for child in parent_node:iter_children() do
                 for pattern, data in pairs(module.config.public.providers) do
                     if child:type():match(table.concat({ "^", pattern, "$" })) then
-                        aggregates[child:type()] = aggregates[child:type()]
+                        aggregates.children[child:type()] = aggregates.children[child:type()]
                             or {
                                 range = module.required["core.integrations.treesitter"].get_node_range(child),
+                                children = {},
                             }
 
                         local child_aggregates = data.aggregate({
@@ -62,7 +65,7 @@ module.public = {
                         }) or {}
 
                         table.insert(
-                            aggregates[child:type()],
+                            aggregates.children[child:type()],
                             vim.tbl_deep_extend("force", child_aggregates, neorg.lib.eval(callback, child, child_aggregates) or {})
                         )
                     end
@@ -124,6 +127,8 @@ module.public = {
                     recurring = 0,
                 },
             }
+
+            vim.print(child_aggregates)
 
             for name, data in pairs(child_aggregates or {}) do
                 if name == "self" then
