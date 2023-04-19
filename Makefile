@@ -7,8 +7,5 @@ local-documentation:
 format:
 	stylua -v --verify .
 
-install_pre_commit:
-	cp scripts/pre-commit "$$(git rev-parse --git-dir)/hooks/"
-
 check:
 	luacheck lua/
