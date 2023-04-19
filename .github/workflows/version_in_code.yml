@@ -12,12 +12,11 @@ jobs:
     name: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Update Version String
         run: |
-          cd neorg/
-
+          ls -la
           latest_tag=$(git describe --abbrev=0 --tags)
 
           echo "Updating Neorg Version to $latest_tag"
