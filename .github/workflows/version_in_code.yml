@@ -1,0 +1,31 @@
+name: Update Version String in Neorg Code
+
+on:
+  workflow_run:
+    workflows: ["Release Please Automatic Semver"]
+    branches: [main]
+    types: 
+      - completed
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Update Version String
+        run: |
+          latest_tag=$(git describe --abbrev=0 --tags)
+
+          echo "Updating Neorg Version to $latest_tag"
+          sed -ri "s/\sversion\s*=\s*\"[0-9]+\.[0-9]+\.[0-9]+\",$/ version = \"${latest_tag:1}\",/" lua/neorg/config.lua
+
+      - name: Commit Changes
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          if [[ ! -z $(git status -s) ]]; then
+            git add .
+            git commit -m "chore(config.lua): update version variable"
+          fi
