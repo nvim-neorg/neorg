@@ -4,19 +4,19 @@
     description: The `dirman` module handles different collections of notes in separate directories.
     summary: This module is be responsible for managing directories full of .norg files.
     ---
-`core.norg.dirman` provides other modules the ability to see which directories the user is in, where
+`core.dirman` provides other modules the ability to see which directories the user is in, where
 each note collection is stored and how to interact with it.
 
 When writing notes, it is often crucial to have notes on a certain topic be isolated from notes on another topic.
 Dirman achieves this with a concept of "workspaces", which are named directories full of `.norg` notes.
 
-To use `core.norg.dirman`, simply load up the module in your configuration and specify the directories you would like to be managed for you:
+To use `core.dirman`, simply load up the module in your configuration and specify the directories you would like to be managed for you:
 
 ```lua
 require('neorg').setup {
     load = {
         ["core.defaults"] = {},
-        ["core.norg.dirman"] = {
+        ["core.dirman"] = {
             config = {
                 workspaces = {
                     my_ws = "~/neorg", -- Format: <name_of_workspace> = <path_to_workspace_root>
@@ -32,13 +32,13 @@ require('neorg').setup {
 To query the current workspace, run `:Neorg workspace`. To set the workspace, run `:Neorg workspace <workspace_name>`.
 
 ### Changing the Current Working Directory
-After a recent update `core.norg.dirman` will no longer change the current working directory after switching
+After a recent update `core.dirman` will no longer change the current working directory after switching
 workspace. To get the best experience it's recommended to set the `autochdir` Neovim option.
 --]]
 require("neorg.modules.base")
 require("neorg.modules")
 
-local module = neorg.modules.create("core.norg.dirman")
+local module = neorg.modules.create("core.dirman")
 
 module.setup = function()
     return {
@@ -72,7 +72,7 @@ module.load = function()
         if module.config.public.open_last_workspace == "default" then
             if not module.config.public.default_workspace then
                 log.warn(
-                    'Configuration error in `core.norg.dirman`: the `open_last_workspace` option is set to "default", but no default workspace is provided in the `default_workspace` configuration variable. Defaulting to opening the last known workspace.'
+                    'Configuration error in `core.dirman`: the `open_last_workspace` option is set to "default", but no default workspace is provided in the `default_workspace` configuration variable. Defaulting to opening the last known workspace.'
                 )
                 module.public.set_last_workspace()
                 return
@@ -116,7 +116,7 @@ module.private = {
     current_workspace = { "default", vim.fn.getcwd() },
 }
 
----@class core.norg.dirman
+---@class core.dirman
 module.public = {
     get_workspaces = function()
         return module.config.public.workspaces
@@ -165,7 +165,7 @@ module.public = {
         neorg.events.broadcast_event(
             neorg.events.create(
                 module,
-                "core.norg.dirman.events.workspace_changed",
+                "core.dirman.events.workspace_changed",
                 { old = current_ws, new = new_workspace }
             )
         )
@@ -186,7 +186,7 @@ module.public = {
         module.config.public.workspaces[workspace_name] = workspace_path
         -- Broadcast the workspace_added event with the newly added workspace as the content
         neorg.events.broadcast_event(
-            neorg.events.create(module, "core.norg.dirman.events.workspace_added", { workspace_name, workspace_path })
+            neorg.events.create(module, "core.dirman.events.workspace_added", { workspace_name, workspace_path })
         )
 
         -- Sync autocompletions so the user can see the new workspace
@@ -507,7 +507,7 @@ module.on_event = function(event)
     end
 
     -- If the user has executed a keybind to create a new note then create a prompt
-    if event.type == "core.keybinds.events.core.norg.dirman.new.note" then
+    if event.type == "core.keybinds.events.core.dirman.new.note" then
         if module.config.public.use_popup then
             module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
                 -- Create the file that the user has entered
@@ -541,7 +541,7 @@ module.events.subscribed = {
     ["core.autocommands"] = {
         bufenter = true,
     },
-    ["core.norg.dirman"] = {
+    ["core.dirman"] = {
         workspace_changed = true,
     },
     ["core.neorgcmd"] = {
@@ -549,7 +549,7 @@ module.events.subscribed = {
         ["dirman.index"] = true,
     },
     ["core.keybinds"] = {
-        ["core.norg.dirman.new.note"] = true,
+        ["core.dirman.new.note"] = true,
     },
 }
 

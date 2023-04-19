@@ -11,47 +11,47 @@ module.config.public = {
                 n = {
                     -- Marks the task under the cursor as "undone"
                     -- ^mark Task as Undone
-                    { "gtu", "core.norg.qol.todo_items.todo.task_undone" },
+                    { "gtu", "core.qol.todo_items.todo.task_undone" },
 
                     -- Marks the task under the cursor as "pending"
                     -- ^mark Task as Pending
-                    { "gtp", "core.norg.qol.todo_items.todo.task_pending" },
+                    { "gtp", "core.qol.todo_items.todo.task_pending" },
 
                     -- Marks the task under the cursor as "done"
                     -- ^mark Task as Done
-                    { "gtd", "core.norg.qol.todo_items.todo.task_done" },
+                    { "gtd", "core.qol.todo_items.todo.task_done" },
 
                     -- Marks the task under the cursor as "on_hold"
                     -- ^mark Task as on Hold
-                    { "gth", "core.norg.qol.todo_items.todo.task_on_hold" },
+                    { "gth", "core.qol.todo_items.todo.task_on_hold" },
 
                     -- Marks the task under the cursor as "cancelled"
                     -- ^mark Task as Cancelled
-                    { "gtc", "core.norg.qol.todo_items.todo.task_cancelled" },
+                    { "gtc", "core.qol.todo_items.todo.task_cancelled" },
 
                     -- Marks the task under the cursor as "recurring"
                     -- ^mark Task as Recurring
-                    { "gtr", "core.norg.qol.todo_items.todo.task_recurring" },
+                    { "gtr", "core.qol.todo_items.todo.task_recurring" },
 
                     -- Marks the task under the cursor as "important"
                     -- ^mark Task as Important
-                    { "gti", "core.norg.qol.todo_items.todo.task_important" },
+                    { "gti", "core.qol.todo_items.todo.task_important" },
 
                     -- Switches the task under the cursor between a select few states
-                    { "<C-Space>", "core.norg.qol.todo_items.todo.task_cycle" },
+                    { "<C-Space>", "core.qol.todo_items.todo.task_cycle" },
 
                     -- Creates a new .norg file to take notes in
                     -- ^New Note
-                    { leader .. "nn", "core.norg.dirman.new.note" },
+                    { leader .. "nn", "core.dirman.new.note" },
 
                     -- Hop to the destination of the link under the cursor
-                    { "<CR>", "core.norg.esupports.hop.hop-link" },
-                    { "gd", "core.norg.esupports.hop.hop-link" },
-                    { "gf", "core.norg.esupports.hop.hop-link" },
-                    { "gF", "core.norg.esupports.hop.hop-link" },
+                    { "<CR>", "core.esupports.hop.hop-link" },
+                    { "gd", "core.esupports.hop.hop-link" },
+                    { "gf", "core.esupports.hop.hop-link" },
+                    { "gF", "core.esupports.hop.hop-link" },
 
                     -- Same as `<CR>`, except opens the destination in a vertical split
-                    { "<M-CR>", "core.norg.esupports.hop.hop-link", "vsplit" },
+                    { "<M-CR>", "core.esupports.hop.hop-link", "vsplit" },
 
                     { ">.", "core.promo.promote" },
                     { "<,", "core.promo.demote" },
@@ -93,15 +93,15 @@ module.config.public = {
             keybinds.map_event_to_mode("toc-split", {
                 n = {
                     -- Hop to the target of the TOC link
-                    { "<CR>", "core.norg.qol.toc.hop-toc-link" },
+                    { "<CR>", "core.qol.toc.hop-toc-link" },
 
                     -- Closes the TOC split
                     -- ^Quit
-                    { "q", "core.norg.qol.toc.close" },
+                    { "q", "core.qol.toc.close" },
 
                     -- Closes the TOC split
                     -- ^escape
-                    { "<Esc>", "core.norg.qol.toc.close" },
+                    { "<Esc>", "core.qol.toc.close" },
                 },
             }, {
                 silent = true,

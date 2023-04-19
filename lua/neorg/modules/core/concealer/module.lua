@@ -15,7 +15,7 @@ masks, or sometimes completely hides many categories of markup.
 require("neorg.modules.base")
 require("neorg.external.helpers")
 
-local module = neorg.modules.create("core.norg.concealer")
+local module = neorg.modules.create("core.concealer")
 
 --- Schedule a function if there is no debounce active or if deferred updates have been disabled
 ---@param buffer number #Source buffer to verify it still exists
@@ -70,7 +70,7 @@ module.private = {
     attach_uid = 0,
 }
 
----@class core.norg.concealer
+---@class core.concealer
 module.public = {
 
     --- Triggers an icon set for the current buffer
@@ -799,7 +799,7 @@ module.public = {
 
         if module.private.enabled then
             neorg.events.send_event(
-                "core.norg.concealer",
+                "core.concealer",
                 neorg.events.create(module, "core.autocommands.events.bufwinenter", {
                     norg = true,
                 })
@@ -1385,7 +1385,7 @@ module.load = function()
     neorg.modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             ["toggle-concealer"] = {
-                name = "core.norg.concealer.toggle",
+                name = "core.concealer.toggle",
                 args = 0,
                 condition = "norg",
             },
@@ -1418,7 +1418,7 @@ module.load = function()
 end
 
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.core.norg.concealer.toggle" then
+    if event.type == "core.neorgcmd.events.core.concealer.toggle" then
         module.public.toggle_concealer()
     end
 
@@ -1449,7 +1449,7 @@ module.on_event = function(event)
             vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
             vim.api.nvim_set_option_value(
                 "foldtext",
-                "v:lua.neorg.modules.get_module('core.norg.concealer').foldtext()",
+                "v:lua.neorg.modules.get_module('core.concealer').foldtext()",
                 opts
             )
         end
@@ -1651,7 +1651,7 @@ module.on_event = function(event)
         end)
     elseif event.type == "core.autocommands.events.vimleavepre" then
         module.private.disable_deferred_updates = true
-    elseif event.type == "core.norg.concealer.events.update_region" then
+    elseif event.type == "core.concealer.events.update_region" then
         schedule(event.buffer, function()
             vim.api.nvim_buf_clear_namespace(
                 event.buffer,
@@ -1685,10 +1685,10 @@ module.events.subscribed = {
     },
 
     ["core.neorgcmd"] = {
-        ["core.norg.concealer.toggle"] = true,
+        ["core.concealer.toggle"] = true,
     },
 
-    ["core.norg.concealer"] = {
+    ["core.concealer"] = {
         update_region = true,
     },
 }

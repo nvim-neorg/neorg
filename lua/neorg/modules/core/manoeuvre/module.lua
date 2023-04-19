@@ -13,7 +13,7 @@ There is no available successor to this module yet.
 
 require("neorg.modules.base")
 
-local module = neorg.modules.create("core.norg.manoeuvre")
+local module = neorg.modules.create("core.manoeuvre")
 
 module.setup = function()
     if not require("neorg.external.helpers").is_minimum_version(0, 7, 0) then
@@ -62,7 +62,7 @@ module.config.public = {
     },
 }
 
----@class core.norg.manoeuvre
+---@class core.manoeuvre
 module.public = {
     get_element_from_cursor = function(node_pattern)
         local node_at_cursor = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
@@ -191,11 +191,11 @@ module.config.private = {
 module.on_event = function(event)
     local config = module.config.public.moveables
 
-    if event.split_type[2] == "core.norg.manoeuvre.item_down" then
+    if event.split_type[2] == "core.manoeuvre.item_down" then
         for _, data in pairs(config) do
             module.public.move_item_down(data[1], data[2])
         end
-    elseif event.split_type[2] == "core.norg.manoeuvre.item_up" then
+    elseif event.split_type[2] == "core.manoeuvre.item_up" then
         for _, data in pairs(config) do
             module.public.move_item_up(data[1], data[2])
         end

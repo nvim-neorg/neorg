@@ -3,7 +3,7 @@
     title: Formatting on the Fly
     summary: A set of instructions for Neovim to indent Neorg documents.
     ---
-`core.norg.esupports.indent` uses Norg's format to unambiguously determine
+`core.esupports.indent` uses Norg's format to unambiguously determine
 the indentation level for the current line.
 
 The indent calculation is aided by [treesitter](@core.integrations.treesitter), which
@@ -15,7 +15,7 @@ Indent levels are also calculated as you type, but may not be entirely correct
 due to incomplete syntax trees (if you find any such examples, then file an issue!).
 --]]
 
-local module = neorg.modules.create("core.norg.esupports.indent")
+local module = neorg.modules.create("core.esupports.indent")
 
 module.setup = function()
     return {
@@ -287,7 +287,7 @@ module.on_event = function(event)
         vim.api.nvim_buf_set_option(
             event.buffer,
             "indentexpr",
-            ("v:lua.neorg.modules.get_module('core.norg.esupports.indent').indentexpr(%d)"):format(event.buffer)
+            ("v:lua.neorg.modules.get_module('core.esupports.indent').indentexpr(%d)"):format(event.buffer)
         )
 
         local indentkeys = "o,O,*<M-o>,*<M-O>"

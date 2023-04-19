@@ -8,7 +8,7 @@
 The `core.syntax` module highlights any `@code` region where there is no treesitter parser present
 to highlight the region.
 
-This module very closely resembles the [`concealer`](@core.norg.concealer), but some parts have been
+This module very closely resembles the [`concealer`](@core.concealer), but some parts have been
 adapted to fit the correct use case.
 
 ##### Author's note:
@@ -447,7 +447,7 @@ module.public = {
 module.config.public = {
     -- Performance options for highlighting.
     --
-    -- These options exhibit the same behaviour as the [`concealer`](@core.norg.concealer)'s.
+    -- These options exhibit the same behaviour as the [`concealer`](@core.concealer)'s.
     performance = {
         -- How many lines each "chunk" of a file should take up.
         --

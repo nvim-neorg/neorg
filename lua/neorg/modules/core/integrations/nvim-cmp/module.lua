@@ -4,11 +4,11 @@
     summary: A module for integrating nvim-cmp with Neorg.
     internal: true
     ---
-This module works with the [`core.norg.completion`](@core.norg.completion) module to attempt to provide
+This module works with the [`core.completion`](@core.completion) module to attempt to provide
 intelligent completions. Note that integrations like this are second-class citizens and may not work in 100%
 of scenarios. If they don't then please file a bug report!
 
-After setting up `core.norg.completion` with the `engine` set to `nvim-cmp`, make sure to also set up "neorg"
+After setting up `core.completion` with the `engine` set to `nvim-cmp`, make sure to also set up "neorg"
 as a source in `nvim-cmp`:
 ```lua
 sources = {

@@ -116,8 +116,8 @@ You can install it through your favorite plugin manager:
           require('neorg').setup {
               load = {
                   ["core.defaults"] = {}, -- Loads default behaviour
-                  ["core.norg.concealer"] = {}, -- Adds pretty icons to your documents
-                  ["core.norg.dirman"] = { -- Manages Neorg workspaces
+                  ["core.concealer"] = {}, -- Adds pretty icons to your documents
+                  ["core.dirman"] = { -- Manages Neorg workspaces
                       config = {
                           workspaces = {
                               notes = "~/notes",
@@ -151,8 +151,8 @@ You can install it through your favorite plugin manager:
           require('neorg').setup {
               load = {
                   ["core.defaults"] = {}, -- Loads default behaviour
-                  ["core.norg.concealer"] = {}, -- Adds pretty icons to your documents
-                  ["core.norg.dirman"] = { -- Manages Neorg workspaces
+                  ["core.concealer"] = {}, -- Adds pretty icons to your documents
+                  ["core.dirman"] = { -- Manages Neorg workspaces
                       config = {
                           workspaces = {
                               notes = "~/notes",
@@ -185,8 +185,8 @@ You can install it through your favorite plugin manager:
   require('neorg').setup {
       load = {
           ["core.defaults"] = {}, -- Loads default behaviour
-          ["core.norg.concealer"] = {}, -- Adds pretty icons to your documents
-          ["core.norg.dirman"] = { -- Manages Neorg workspaces
+          ["core.concealer"] = {}, -- Adds pretty icons to your documents
+          ["core.dirman"] = { -- Manages Neorg workspaces
               config = {
                   workspaces = {
                       notes = "~/notes",
@@ -210,8 +210,8 @@ You can install it through your favorite plugin manager:
           opts = {
               load = {
                   ["core.defaults"] = {}, -- Loads default behaviour
-                  ["core.norg.concealer"] = {}, -- Adds pretty icons to your documents
-                  ["core.norg.dirman"] = { -- Manages Neorg workspaces
+                  ["core.concealer"] = {}, -- Adds pretty icons to your documents
+                  ["core.dirman"] = { -- Manages Neorg workspaces
                       config = {
                           workspaces = {
                               notes = "~/notes",
@@ -292,14 +292,14 @@ You can view a summary directly in your neovim instance by running `:h neorg` if
 
 Afterwards it's as simple as hopping into a `.norg` file and typing away.
 
-A good first step is to require the `core.norg.dirman` module, it'll help you manage Neorg workspaces.
+A good first step is to require the `core.dirman` module, it'll help you manage Neorg workspaces.
 Workspaces are basically isolated directories that you can jump between:
 
 ```lua
 require('neorg').setup {
     load = {
         ["core.defaults"] = {},
-        ["core.norg.dirman"] = {
+        ["core.dirman"] = {
             config = {
                 workspaces = {
                     work = "~/notes/work",
@@ -318,8 +318,8 @@ Voila!
 
 We recommend you add some core modules that can greatly improve your experience, such as:
 
-- Using the concealer module to enable icons (`core.norg.concealer`)
-- Setting up a completion engine (`core.norg.completion`)
+- Using the concealer module to enable icons (`core.concealer`)
+- Setting up a completion engine (`core.completion`)
 
 Setting these up is discussed in the wiki, so be sure to check there!
 
@@ -328,7 +328,7 @@ if you care about what makes Neorg tick, or you want to genuinely get good at us
 
 ## 🥡 Modules
 
-As you saw previously, we loaded `core.defaults` and recommended that you load `core.norg.dirman`.
+As you saw previously, we loaded `core.defaults` and recommended that you load `core.dirman`.
 As you probably know those are modules. But what are they, exactly?
 
 Modules are basically isolated bits of code that provide a specific subset of features. They can be docked into

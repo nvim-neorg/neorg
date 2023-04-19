@@ -13,7 +13,7 @@ or [`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
 require("neorg.modules.base")
 require("neorg.modules")
 
-local module = neorg.modules.create("core.norg.completion")
+local module = neorg.modules.create("core.completion")
 
 module.config.public = {
     -- The engine to use for completion.
@@ -63,7 +63,7 @@ module.load = function()
     })
 end
 
----@class core.norg.completion
+---@class core.completion
 module.public = {
 
     -- Define completions

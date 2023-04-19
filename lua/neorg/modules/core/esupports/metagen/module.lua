@@ -14,7 +14,7 @@ The metagen module exposes two commands - `:Neorg inject-metadata` and `:Neorg u
 require("neorg.modules.base")
 require("neorg.external.helpers")
 
-local module = neorg.modules.create("core.norg.esupports.metagen")
+local module = neorg.modules.create("core.esupports.metagen")
 
 module.setup = function()
     return { requires = { "core.autocommands", "core.keybinds", "core.integrations.treesitter" } }
@@ -83,7 +83,7 @@ module.private = {
     listen_event = "none",
 }
 
----@class core.norg.esupports.metagen
+---@class core.esupports.metagen
 module.public = {
     --- Returns true if there is a `@document.meta` tag in the current document
     ---@param buf number #The buffer to check in

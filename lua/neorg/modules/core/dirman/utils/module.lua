@@ -1,14 +1,14 @@
 --[[
     file: Dirman-Utils
-    summary: A set of utilities for the `core.norg.dirman` module.
+    summary: A set of utilities for the `core.dirman` module.
     internal: true
     ---
-This internal submodule implements some basic utility functions for [`core.norg.dirman`](@core.norg.dirman).
+This internal submodule implements some basic utility functions for [`core.dirman`](@core.dirman).
 Currently the only exposed API function is `expand_path`, which takes a path like `$name/my/location` and
 converts `$name` into the full path of the workspace called `name`.
 --]]
 
-local module = neorg.modules.create("core.norg.dirman.utils")
+local module = neorg.modules.create("core.dirman.utils")
 
 module.public = {
     expand_path = function(path)
@@ -16,11 +16,11 @@ module.public = {
         local custom_workspace_path = path:match("^%$([^/]*)/")
 
         if custom_workspace_path then
-            local dirman = neorg.modules.get_module("core.norg.dirman")
+            local dirman = neorg.modules.get_module("core.dirman")
 
             if not dirman then
                 log.error(
-                    "Unable to jump to link with custom workspace: `core.norg.dirman` is not loaded. Please load the module in order to get workspace support."
+                    "Unable to jump to link with custom workspace: `core.dirman` is not loaded. Please load the module in order to get workspace support."
                 )
                 return
             end

@@ -14,7 +14,7 @@ prompted with a set of actions that you can perform on the broken link.
 require("neorg.modules.base")
 require("neorg.external.helpers")
 
-local module = neorg.modules.create("core.norg.esupports.hop")
+local module = neorg.modules.create("core.esupports.hop")
 local job = require("plenary.job")
 
 module.setup = function()
@@ -24,7 +24,7 @@ module.setup = function()
             "core.keybinds",
             "core.integrations.treesitter",
             "core.ui",
-            "core.norg.dirman.utils",
+            "core.dirman.utils",
         },
     }
 end
@@ -49,7 +49,7 @@ module.config.public = {
     external_filetypes = {},
 }
 
----@class core.norg.esupports.hop
+---@class core.esupports.hop
 module.public = {
     --- Follow link from a specific node
     ---@param node userdata
@@ -390,7 +390,7 @@ module.public = {
         -- Check whether our target is from a different file
         if parsed_link_information.link_file_text then
             local expanded_link_text =
-                module.required["core.norg.dirman.utils"].expand_path(parsed_link_information.link_file_text)
+                module.required["core.dirman.utils"].expand_path(parsed_link_information.link_file_text)
 
             if expanded_link_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
@@ -717,7 +717,7 @@ module.private = {
 
         if parsed_link_information.link_file_text then
             local expanded_link_text =
-                module.required["core.norg.dirman.utils"].expand_path(parsed_link_information.link_file_text)
+                module.required["core.dirman.utils"].expand_path(parsed_link_information.link_file_text)
 
             if expanded_link_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
@@ -825,7 +825,7 @@ module.private = {
 }
 
 module.on_event = function(event)
-    if event.split_type[2] == "core.norg.esupports.hop.hop-link" then
+    if event.split_type[2] == "core.esupports.hop.hop-link" then
         local split_mode = event.content[1]
 
         -- Get link node at cursor
@@ -844,7 +844,7 @@ end
 
 module.events.subscribed = {
     ["core.keybinds"] = {
-        ["core.norg.esupports.hop.hop-link"] = true,
+        ["core.esupports.hop.hop-link"] = true,
     },
 }
 

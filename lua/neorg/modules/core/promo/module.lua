@@ -138,7 +138,7 @@ module.public = {
 
         -- After the promotion/demotion reindent all children
         if reindent_children then
-            local indent_module = neorg.modules.get_module("core.norg.esupports.indent")
+            local indent_module = neorg.modules.get_module("core.esupports.indent")
 
             if not indent_module then
                 goto finish
@@ -183,11 +183,11 @@ module.public = {
         end
 
         -- HACK(vhyrro): This should be changed after the codebase refactor
-        if neorg.modules.loaded_modules["core.norg.concealer"] then
+        if neorg.modules.loaded_modules["core.concealer"] then
             neorg.events.broadcast_event(
                 neorg.events.create(
-                    neorg.modules.loaded_modules["core.norg.concealer"],
-                    "core.norg.concealer.events.update_region",
+                    neorg.modules.loaded_modules["core.concealer"],
+                    "core.concealer.events.update_region",
                     { start = start_region, ["end"] = end_region }
                 )
             )
@@ -214,11 +214,11 @@ module.on_event = function(event)
             module.public.promote_or_demote(event.buffer, "promote", start_pos[1] + i)
         end
 
-        if neorg.modules.loaded_modules["core.norg.concealer"] then
+        if neorg.modules.loaded_modules["core.concealer"] then
             neorg.events.broadcast_event(
                 neorg.events.create(
-                    neorg.modules.loaded_modules["core.norg.concealer"],
-                    "core.norg.concealer.events.update_region",
+                    neorg.modules.loaded_modules["core.concealer"],
+                    "core.concealer.events.update_region",
                     { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
                 )
             )
@@ -231,11 +231,11 @@ module.on_event = function(event)
             module.public.promote_or_demote(event.buffer, "demote", start_pos[1] + i)
         end
 
-        if neorg.modules.loaded_modules["core.norg.concealer"] then
+        if neorg.modules.loaded_modules["core.concealer"] then
             neorg.events.broadcast_event(
                 neorg.events.create(
-                    neorg.modules.loaded_modules["core.norg.concealer"],
-                    "core.norg.concealer.events.update_region",
+                    neorg.modules.loaded_modules["core.concealer"],
+                    "core.concealer.events.update_region",
                     { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
                 )
             )

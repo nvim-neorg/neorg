@@ -16,7 +16,7 @@ When in the TOC view, `<CR>` can be pressed on any of the entries to move to tha
 Norg document. The TOC view updates automatically when switching buffers.
 --]]
 
-local module = neorg.modules.create("core.norg.qol.toc")
+local module = neorg.modules.create("core.qol.toc")
 
 module.setup = function()
     return {
@@ -28,7 +28,7 @@ module.load = function()
     neorg.modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             toc = {
-                name = "core.norg.qol.toc",
+                name = "core.qol.toc",
                 max_args = 1,
                 condition = "norg",
                 complete = {

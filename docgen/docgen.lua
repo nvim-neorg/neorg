@@ -522,7 +522,7 @@ docgen.check_comment_integrity = function(comment)
     end
 end
 
---- Replaces all instances of a module reference (e.g. `@core.norg.concealer`) with a link in the wiki
+--- Replaces all instances of a module reference (e.g. `@core.concealer`) with a link in the wiki
 ---@param modules Modules #The list of loaded modules
 ---@param str string #The string to perform the lookup in
 ---@return string #The original `str` parameter with all `@` references replaced with links

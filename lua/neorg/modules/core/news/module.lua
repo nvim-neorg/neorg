@@ -1,7 +1,7 @@
 --[[
     file: Displaying-News
     title: It's like newspapers about Neorg... but digital!
-    description: `core.norg.news` displays information about any breaking changes or important information about the state of Neorg.
+    description: `core.news` displays information about any breaking changes or important information about the state of Neorg.
     summary: Handles the displaying of Neorg news and other forms of media in a popup.
     ---
 When any sort of critical event occurs within Neorg (a big breaking change is pushed or any other form
@@ -19,7 +19,7 @@ To dismiss all news for the current version, use `:Neorg news dismiss`. This wil
 and you may peacefully continue whatever you were doing previously.
 --]]
 
-local module = neorg.modules.create("core.norg.news")
+local module = neorg.modules.create("core.news")
 
 local function is_version_greater_than(ver1, ver2)
     -- Here we assume that the versions aren't malformed

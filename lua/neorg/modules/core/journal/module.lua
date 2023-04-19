@@ -21,17 +21,17 @@ their titles.
 
 require("neorg.modules.base")
 
-local module = neorg.modules.create("core.norg.journal")
+local module = neorg.modules.create("core.journal")
 local log = require("neorg.external.log")
 
 module.examples = {
     ["Changing TOC format to divide year in quarters"] = function()
-        -- In your ["core.norg.journal"] options, change toc_format to a function like this:
+        -- In your ["core.journal"] options, change toc_format to a function like this:
 
         require("neorg").setup({
             load = {
                 -- ...
-                ["core.norg.journal"] = {
+                ["core.journal"] = {
                     config = {
                         -- ...
                         toc_format = function(entries)
@@ -90,7 +90,7 @@ module.setup = function()
     return {
         success = true,
         requires = {
-            "core.norg.dirman",
+            "core.dirman",
             "core.keybinds",
             "core.neorgcmd",
             "core.integrations.treesitter",
@@ -104,7 +104,7 @@ module.private = {
     ---@param custom_date? string #A YYYY-mm-dd string that specifies a date to open the diary at instead
     open_diary = function(time, custom_date)
         local workspace = module.config.public.workspace
-            or module.required["core.norg.dirman"].get_current_workspace()[1]
+            or module.required["core.dirman"].get_current_workspace()[1]
         local folder_name = module.config.public.journal_folder
         local template_name = module.config.public.template_name
 
@@ -129,20 +129,20 @@ module.private = {
             time
         )
 
-        local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
+        local workspace_path = module.required["core.dirman"].get_workspace(workspace)
 
-        local journal_file_exists = module.required["core.norg.dirman"].file_exists(
+        local journal_file_exists = module.required["core.dirman"].file_exists(
             workspace_path .. "/" .. folder_name .. neorg.configuration.pathsep .. path
         )
 
-        module.required["core.norg.dirman"].create_file(folder_name .. neorg.configuration.pathsep .. path, workspace)
+        module.required["core.dirman"].create_file(folder_name .. neorg.configuration.pathsep .. path, workspace)
 
-        module.required["core.norg.dirman"].create_file(folder_name .. neorg.configuration.pathsep .. path, workspace)
+        module.required["core.dirman"].create_file(folder_name .. neorg.configuration.pathsep .. path, workspace)
 
         if
             not journal_file_exists
             and module.config.public.use_template
-            and module.required["core.norg.dirman"].file_exists(
+            and module.required["core.dirman"].file_exists(
                 workspace_path .. "/" .. folder_name .. "/" .. template_name
             )
         then
@@ -171,22 +171,22 @@ module.private = {
         local folder_name = module.config.public.journal_folder
         local template_name = module.config.public.template_name
 
-        module.required["core.norg.dirman"].create_file(
+        module.required["core.dirman"].create_file(
             folder_name .. neorg.configuration.pathsep .. template_name,
-            workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
+            workspace or module.required["core.dirman"].get_current_workspace()[1]
         )
     end,
 
     --- Opens the toc file
     open_toc = function()
         local workspace = module.config.public.workspace
-            or module.required["core.norg.dirman"].get_current_workspace()[1]
-        local index = neorg.modules.get_module_config("core.norg.dirman").index
+            or module.required["core.dirman"].get_current_workspace()[1]
+        local index = neorg.modules.get_module_config("core.dirman").index
         local folder_name = module.config.public.journal_folder
 
         -- If the toc exists, open it, if not, create it
-        if module.required["core.norg.dirman"].file_exists(folder_name .. neorg.configuration.pathsep .. index) then
-            module.required["core.norg.dirman"].open_file(
+        if module.required["core.dirman"].file_exists(folder_name .. neorg.configuration.pathsep .. index) then
+            module.required["core.dirman"].open_file(
                 workspace,
                 folder_name .. neorg.configuration.pathsep .. index
             )
@@ -198,9 +198,9 @@ module.private = {
     --- Creates or updates the toc file
     create_toc = function()
         local workspace = module.config.public.workspace
-            or module.required["core.norg.dirman"].get_current_workspace()[1]
-        local index = neorg.modules.get_module_config("core.norg.dirman").index
-        local workspace_path = module.required["core.norg.dirman"].get_workspace(workspace)
+            or module.required["core.dirman"].get_current_workspace()[1]
+        local index = neorg.modules.get_module_config("core.dirman").index
+        local workspace_path = module.required["core.dirman"].get_workspace(workspace)
         local workspace_name_for_links = module.config.public.workspace or ""
         local folder_name = module.config.public.journal_folder
 
@@ -383,9 +383,9 @@ module.private = {
                             return output
                         end
 
-                    module.required["core.norg.dirman"].create_file(
+                    module.required["core.dirman"].create_file(
                         folder_name .. neorg.configuration.pathsep .. index,
-                        workspace or module.required["core.norg.dirman"].get_current_workspace()[1]
+                        workspace or module.required["core.dirman"].get_current_workspace()[1]
                     )
 
                     -- The current buffer now must be the toc file, so we set our toc entries there

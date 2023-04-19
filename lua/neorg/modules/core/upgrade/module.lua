@@ -384,10 +384,10 @@ module.on_event = function(event)
             end)
         end)
     elseif event.split_type[2] == "core.upgrade.all-workspaces" then
-        local dirman = neorg.modules.get_module("core.norg.dirman")
+        local dirman = neorg.modules.get_module("core.dirman")
 
         if not dirman then
-            neorg.utils.notify("ERROR: `core.norg.dirman` is not loaded!", vim.log.levels.WARN)
+            neorg.utils.notify("ERROR: `core.dirman` is not loaded!", vim.log.levels.WARN)
             return
         end
 

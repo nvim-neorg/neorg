@@ -7,15 +7,15 @@ This module handles the whole concept of toggling TODO items, as well as updatin
 parent and/or children items alongside the current item.
 
 The following keybinds are exposed:
-- `core.norg.qol.todo_items.todo.task_done` (`gtd`)
-- `core.norg.qol.todo_items.todo.task_undone` (`gtu`)
-- `core.norg.qol.todo_items.todo.task_pending` (`gtp`)
-- `core.norg.qol.todo_items.todo.task_on_hold` (`gth`)
-- `core.norg.qol.todo_items.todo.task_cancelled` (`gtc`)
-- `core.norg.qol.todo_items.todo.task_recurring` (`gtr`)
-- `core.norg.qol.todo_items.todo.task_important` (`gti`)
-- `core.norg.qol.todo_items.todo.task_cycle` (`<C-Space>`)
-- `core.norg.qol.todo_items.todo.task_cycle_reverse` (no default keybind)
+- `core.qol.todo_items.todo.task_done` (`gtd`)
+- `core.qol.todo_items.todo.task_undone` (`gtu`)
+- `core.qol.todo_items.todo.task_pending` (`gtp`)
+- `core.qol.todo_items.todo.task_on_hold` (`gth`)
+- `core.qol.todo_items.todo.task_cancelled` (`gtc`)
+- `core.qol.todo_items.todo.task_recurring` (`gtr`)
+- `core.qol.todo_items.todo.task_important` (`gti`)
+- `core.qol.todo_items.todo.task_cycle` (`<C-Space>`)
+- `core.qol.todo_items.todo.task_cycle_reverse` (no default keybind)
 
 With your cursor on a line that contains an item with a TODO attribute, press
 any of the above keys to toggle the state of that particular item.
@@ -24,7 +24,7 @@ Parent items of the same type and children items of the same type are update acc
 
 require("neorg.modules.base")
 
-local module = neorg.modules.create("core.norg.qol.todo_items")
+local module = neorg.modules.create("core.qol.todo_items")
 
 module.setup = function()
     return { success = true, requires = { "core.keybinds", "core.integrations.treesitter" } }
@@ -109,7 +109,7 @@ module.config.public = {
 ---|"urgent"
 ---|"uncertain"
 
----@class core.norg.qol.todo_items
+---@class core.qol.todo_items
 module.public = {
     --- Updates the parent todo item for the current todo item if it exists
     ---@param recursion_level number the index of the parent to change. The higher the number the more the code will traverse up the syntax tree.
@@ -397,7 +397,7 @@ module.public = {
 }
 
 module.on_event = function(event)
-    local todo_str = "core.norg.qol.todo_items.todo."
+    local todo_str = "core.qol.todo_items.todo."
 
     if event.split_type[1] == "core.keybinds" then
         local todo_item_at_cursor = module.public.get_todo_item_from_cursor(event.buffer, event.cursor_position[1] - 1)
@@ -446,15 +446,15 @@ end
 
 module.events.subscribed = {
     ["core.keybinds"] = {
-        ["core.norg.qol.todo_items.todo.task_done"] = true,
-        ["core.norg.qol.todo_items.todo.task_undone"] = true,
-        ["core.norg.qol.todo_items.todo.task_pending"] = true,
-        ["core.norg.qol.todo_items.todo.task_on_hold"] = true,
-        ["core.norg.qol.todo_items.todo.task_cancelled"] = true,
-        ["core.norg.qol.todo_items.todo.task_important"] = true,
-        ["core.norg.qol.todo_items.todo.task_recurring"] = true,
-        ["core.norg.qol.todo_items.todo.task_cycle"] = true,
-        ["core.norg.qol.todo_items.todo.task_cycle_reverse"] = true,
+        ["core.qol.todo_items.todo.task_done"] = true,
+        ["core.qol.todo_items.todo.task_undone"] = true,
+        ["core.qol.todo_items.todo.task_pending"] = true,
+        ["core.qol.todo_items.todo.task_on_hold"] = true,
+        ["core.qol.todo_items.todo.task_cancelled"] = true,
+        ["core.qol.todo_items.todo.task_important"] = true,
+        ["core.qol.todo_items.todo.task_recurring"] = true,
+        ["core.qol.todo_items.todo.task_cycle"] = true,
+        ["core.qol.todo_items.todo.task_cycle_reverse"] = true,
     },
 }
 

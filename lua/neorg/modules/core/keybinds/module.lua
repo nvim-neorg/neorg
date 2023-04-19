@@ -44,8 +44,8 @@ to finely control what gets set and where:
 
             -- Sometimes you may simply want to rebind the Neorg action something is bound to
             -- versus remapping the entire keybind. This remap is essentially the same as if you
-            -- did `keybinds.remap("norg", "n", "<C-Space>, "<cmd>Neorg keybind norg core.norg.qol.todo_items.todo.task_done<CR>")
-            keybinds.remap_event("norg", "n", "<C-Space>", "core.norg.qol.todo_items.todo.task_done")
+            -- did `keybinds.remap("norg", "n", "<C-Space>, "<cmd>Neorg keybind norg core.qol.todo_items.todo.task_done<CR>")
+            keybinds.remap_event("norg", "n", "<C-Space>", "core.qol.todo_items.todo.task_done")
 
             -- Want to move one keybind into the other? `remap_key` moves the data of the
             -- first keybind to the second keybind, then unbinds the first keybind.
@@ -204,7 +204,7 @@ module.public = {
             ---@param neorg_mode string #The Neorg mode to bind to
             ---@param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
             ---@param key string #The lhs value from `:h vim.keymap.set`
-            ---@param expr string #The Neorg event to bind to (e.g. `core.norg.dirman.new.note`)
+            ---@param expr string #The Neorg event to bind to (e.g. `core.dirman.new.note`)
             ---@param opts table #The table value from `:h vim.keymap.set`
             map_event = function(neorg_mode, mode, key, expr, opts)
                 payload.map(neorg_mode, mode, key, "<cmd>Neorg keybind " .. neorg_mode .. " " .. expr .. "<CR>", opts)

@@ -9,7 +9,7 @@ When executed with the cursor hovering over a heading, `core.summary` will gener
 a summary of the entire workspace, with links to each respective entry in that workspace.
 
 The way the summary is generated relies on the `strategy` configuration option, which by default
-consults the document metadata (see also [`core.norg.esupports.metagen`](@core.norg.esupports.metagen))
+consults the document metadata (see also [`core.esupports.metagen`](@core.esupports.metagen))
 of each file to build up a tree of categories, titles and descriptions.
 --]]
 
@@ -17,7 +17,7 @@ require("neorg.modules.base")
 require("neorg.modules")
 require("neorg.external.helpers")
 
-local module = neorg.modules.create("core.norg.dirman.summary")
+local module = neorg.modules.create("core.dirman.summary")
 
 module.setup = function()
     return {
@@ -118,10 +118,10 @@ module.on_event = function(event)
             return
         end
 
-        local dirman = neorg.modules.get_module("core.norg.dirman")
+        local dirman = neorg.modules.get_module("core.dirman")
 
         if not dirman then
-            neorg.utils.notify("`core.norg.dirman` is not loaded! It is required to generate summaries")
+            neorg.utils.notify("`core.dirman` is not loaded! It is required to generate summaries")
             return
         end
 

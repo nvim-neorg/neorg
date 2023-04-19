@@ -8,7 +8,7 @@ WARNING: This module is **deprecated**, and no further support for the module wi
 That does not mean it will not work, however any bugs will not be dealt with by the main Neorg team.
 
 A module for integrating nvim-compe with Neorg.
-Works with [`core.norg.completion`](@core.norg.completion) to provide intelligent completions.
+Works with [`core.completion`](@core.completion) to provide intelligent completions.
 --]]
 
 require("neorg.modules.base")
@@ -91,7 +91,7 @@ module.public = {
         -- Abstract away the context to a completion engine agnostic format
         local abstracted_context = module.public.create_abstracted_context(context)
 
-        -- Update the current completion cache with the data returned by core.norg.completion
+        -- Update the current completion cache with the data returned by core.completion
         module.private.completion_cache = module.public.invoke_completion_engine(abstracted_context)
 
         -- If we haven't returned any items to complete via that function then return an empty table,
