@@ -51,6 +51,16 @@ module.private = {
             half_height = half_height,
         }
     end,
+
+    open_window = function (options)
+        local buffer, window = module.required["core.ui"].create_split(
+            "calendar",
+            {},
+            options.height or math.floor(vim.opt.lines:get() * 0.3)
+        )
+
+        return buffer, window
+    end
 }
 
 module.public = {
@@ -84,11 +94,7 @@ module.public = {
     end,
 
     open = function(options)
-        local buffer, window = module.required["core.ui"].create_split(
-            "calendar",
-            {},
-            options.height or math.floor(vim.opt.lines:get() * 0.3)
-        )
+        local buffer, window = module.private.open_window(options)
 
         options.mode = "standalone"
 
@@ -96,11 +102,7 @@ module.public = {
     end,
 
     select_date = function(options)
-        local buffer, window = module.required["core.ui"].create_split(
-            "calendar",
-            {},
-            options.height or math.floor(vim.opt.lines:get() * 0.3)
-        )
+        local buffer, window = module.private.open_window(options)
 
         options.mode = "select_date"
 
@@ -108,11 +110,7 @@ module.public = {
     end,
 
     select_date_range = function(options)
-        local buffer, window = module.required["core.ui"].create_split(
-            "calendar",
-            {},
-            options.height or math.floor(vim.opt.lines:get() * 0.3)
-        )
+        local buffer, window = module.private.open_window(options)
 
         options.mode = "select_range"
 
