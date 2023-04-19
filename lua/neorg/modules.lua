@@ -18,6 +18,19 @@ neorg.modules.loaded_module_count = 0
 --- The table of currently loaded modules
 neorg.modules.loaded_modules = {}
 
+-- Warns access to `core.norg.foo` modules since they are deprecated in v3.0.0
+-- Accesses to `core.foo` automatically instead
+setmetatable(neorg.modules.loaded_modules, {
+    __index = function(orig_tbl, old_key)
+        if vim.startswith(old_key, "core.norg") then
+            local new_key = "core" .. string.sub(old_key, 10) -- string.len("core.norg") + 1 == 10
+            log.warn(string.format("%s is deprecated in Neorg v3.0.0+. Use %s instead.", old_key, new_key))
+            return orig_tbl[new_key]
+        end
+        return nil
+    end,
+})
+
 --- Loads and enables a module
 -- Loads a specified module. If the module subscribes to any events then they will be activated too.
 ---@param module table #The actual module to load
