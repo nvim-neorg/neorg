@@ -306,7 +306,7 @@ docgen.generators = {
             "",
             "At first configuring Neorg might be rather scary. I have to define what modules I want to use in the `require('neorg').setup()` function?",
             "I don't even know what the default available values are!",
-            "Don't worry, an installation guide is present [here](https://github.com/nvim-neorg/neorg#-installation), so go ahead and read it!",
+            "Don't worry, an installation guide is present [here](https://github.com/nvim-neorg/neorg#-installationquickstart), so go ahead and read it!",
             "",
             "# Contributing to Neorg",
             "",
