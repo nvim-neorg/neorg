@@ -1,6 +1,8 @@
 --[[
+    file: Summary
     title: Write notes, not boilerplate.
     description: The summary module creates links and annotations to all files in a given workspace.
+    summary: Creates links to all files in any workspace.
     ---
 <!-- TODO: GIF -->
 The `core.summary` module exposes a single command - `:Neorg generate-workspace-summary`.
