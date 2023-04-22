@@ -19,7 +19,7 @@ require("neorg.modules.base")
 require("neorg.modules")
 require("neorg.external.helpers")
 
-local module = neorg.modules.create("core.dirman.summary")
+local module = neorg.modules.create("core.summary")
 
 module.setup = function()
     return {
@@ -33,7 +33,7 @@ module.load = function()
         ["generate-workspace-summary"] = {
             args = 0,
             condition = "norg",
-            name = "dirman.summary",
+            name = "summary.summarize",
         },
     })
 
@@ -102,12 +102,12 @@ module.public = {}
 
 module.events.subscribed = {
     ["core.neorgcmd"] = {
-        ["dirman.summary"] = true,
+        ["summary.summarize"] = true,
     },
 }
 
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.dirman.summary" then
+    if event.type == "core.neorgcmd.events.summary.summarize" then
         local ts = module.required["core.integrations.treesitter"]
         local buffer = event.buffer
 
