@@ -13,12 +13,12 @@ end
 
 module.load = function()
     neorg.modules.await("core.keybinds", function(keybinds)
-        keybinds.register_keybind(module.name, "toggle-list-type")
+        keybinds.register_keybinds(module.name, { "toggle-list-type", "invert-list-type" })
     end)
 end
 
 module.on_event = function(event)
-    if event.split_type[2] == "core.pivot.toggle-list-type" then
+    if event.split_type[2] == "core.pivot.toggle-list-type" or event.split_type[2] == "core.pivot.invert-list-type" then
         local node = module.required["core.integrations.treesitter"].get_first_node_on_line(
             event.buffer,
             event.cursor_position[1] - 1
@@ -45,6 +45,10 @@ module.on_event = function(event)
         local type = first_child:type():match("^un") and "~" or "-"
 
         for child in node:iter_children() do
+            if event.split_type[2] == "core.pivot.invert-list-type" then
+                type = child:type():match("^un") and "~" or "-"
+            end
+
             -- We loop over every subchild because list items may have attached
             -- weak carryover tags which we have to skip.
             for subchild in child:iter_children() do
@@ -63,6 +67,7 @@ end
 module.events.subscribed = {
     ["core.keybinds"] = {
         ["core.pivot.toggle-list-type"] = true,
+        ["core.pivot.invert-list-type"] = true,
     },
 }
 
