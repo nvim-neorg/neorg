@@ -44,7 +44,9 @@ jobs:
 
       - name: Run Documentation Generator
         run: |
-          rm wiki/*.md 2> /dev/null
+          if ls wiki/*.md 1> /dev/null 2>&1; then
+            rm wiki/*.md 
+          fi
           make documentation
 
       - name: Commit Wiki Changes
