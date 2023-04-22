@@ -1,7 +1,7 @@
 --[[
     file: Pivot
     title: Ordered or Unordered?
-    description: That is the question. Now you no longer have to ask!
+    description: That ~~is~~ was the question. Now you no longer have to ask!
     summary: Toggles the type of list currently under the cursor.
     ---
 `core.pivot` allows you to switch (or pivot) between the two list types in Norg with the press of a button.
