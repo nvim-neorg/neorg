@@ -1,4 +1,20 @@
 --[[
+    file: Pivot
+    title: Ordered or Unordered?
+    description: That is the question. Now you no longer have to ask!
+    summary: Toggles the type of list currently under the cursor.
+    ---
+`core.pivot` allows you to switch (or pivot) between the two list types in Norg with the press of a button.
+
+### Keybinds
+
+This module exposes two keybinds:
+- `core.pivot.toggle-list-type` (default binding: `<LocalLeader>lt` ["list toggle"]) - takes a
+  list and, based on the opposite type of the first list item, inverts all the other items in that list.
+  Does not respect mixed lists, all items in the list will be converted to the same type.
+- `core.pivot.invert-list-type` (default binding: `<LocalLeader>li` ["list invert"]) - same behaviour as
+  the previous keybind, however respects mixed lists - unordered items will become ordered, whereas ordered
+  items will become unordered.
 --]]
 
 local module = neorg.modules.create("core.pivot")
