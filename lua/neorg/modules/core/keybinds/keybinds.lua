@@ -58,6 +58,9 @@ module.config.public = {
 
                     { ">>", "core.promo.promote", "nested" },
                     { "<<", "core.promo.demote", "nested" },
+
+                    { leader .. "lt", "core.pivot.toggle-list-type" },
+                    { leader .. "li", "core.pivot.invert-list-type" },
                 },
 
                 i = {
@@ -125,6 +128,7 @@ module.config.public = {
                 noremap = true,
                 nowait = true,
             })
+
             -- Apply the below keys to all modes
             keybinds.map_to_mode("all", {
                 n = {
