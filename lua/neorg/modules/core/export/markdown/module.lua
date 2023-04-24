@@ -118,15 +118,6 @@ module.load = function()
     module.config.public.extensions = neorg.lib.to_keys(module.config.public.extensions)
 end
 
-module.config.private = {
-    url_escapes = {
-        ["%%3f"] = "?",
-        ["%%23"] = "#",
-        ["%%5b"] = "[",
-        ["%%5d"] = "]",
-    },
-}
-
 module.config.public = {
     -- Any extensions you may want to use when exporting to markdown. By
     -- default no extensions are loaded (the exporter is commonmark compliant).
@@ -574,13 +565,6 @@ module.public = {
 
                 if state.is_url then
                     state.is_url = false
-                    local url = vim.uri_from_fname(output[#output - 1]):sub(string.len("file://") + 1)
-                    if url ~= output[#output - 1] then -- at least something has changed
-                        for key, value in pairs(module.config.private.url_escapes) do
-                            url = string.gsub(url, key, value)
-                        end
-                    end
-                    output[#output - 1] = url
                     return output
                 end
 
