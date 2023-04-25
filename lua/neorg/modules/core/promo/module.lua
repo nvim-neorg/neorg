@@ -124,7 +124,7 @@ module.public = {
                 if col_start+2 == col_end then
                     return false
                 end
-                vim.api.nvim_buf_set_text(buffer, row, col, row, col+1, {''})
+                vim.api.nvim_buf_set_text(buffer, row_start, col_start, row_start, col_start+1, {''})
                 return true
             end
         end
@@ -133,13 +133,14 @@ module.public = {
         -- assumption: the prefix node of the root comes before all other children
         function apply_recursive(node, f)
             if not f(node) then
-                return
+                return false
             end
             for child in node:iter_children() do
                 if not apply_recursive(child, f) then
-                    return
+                    return false
                 end
             end
+            return true
         end
 
         apply_recursive(node, function(c)
