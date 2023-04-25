@@ -144,7 +144,7 @@ module.public = {
         end
 
         apply_recursive(node, function(c)
-            if c:type():sub(-7) == "_prefix" then
+            if module.public.get_promotable_node_prefix(c) then
                 return adjust_prefix(c)
             end
             return true
