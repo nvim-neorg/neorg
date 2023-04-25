@@ -109,89 +109,37 @@ module.public = {
             return
         end
 
-        local title_node = node:named_child(0)
-        local title_range = module.required["core.integrations.treesitter"].get_node_range(title_node)
-        local title = module.required["core.integrations.treesitter"].get_node_text(title_node, buffer)
-
-        do
-            if mode == "promote" then
-                title = table.concat({ prefix, title })
-            elseif mode == "demote" then
-                if title:match(table.concat({ "^", prefix, "*" })):len() <= 1 then
-                    return
-                end
-
-                title = title:sub(2)
+	if mode == "promote" then
+            function adjust_prefix(prefix_node)
+                row,col = prefix_node:start()
+                vim.api.nvim_buf_set_text(buffer, row, col, row, col, {prefix})
             end
-
-            vim.api.nvim_buf_set_text(
-                buffer,
-                title_range.row_start,
-                title_range.column_start,
-                title_range.row_end,
-                title_range.column_end,
-                { title }
-            )
+        else
+            function adjust_prefix(prefix_node)
+                row,col = prefix_node:start()
+                vim.api.nvim_buf_set_text(buffer, row, col, row, col+1, {''})
+            end
         end
 
-        local start_region, end_region = row, row + 1
-
-        -- After the promotion/demotion reindent all children
-        if reindent_children then
-            local indent_module = neorg.modules.get_module("core.esupports.indent")
-
-            if not indent_module then
-                goto finish
+        function apply_recursive(node, f)
+            f(node)
+            for child in node:iter_children() do
+                apply_recursive(child, f)
             end
-
-            if not affect_children then
-                node = module.required["core.integrations.treesitter"].get_first_node_on_line(buffer, row)
-            end
-
-            local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-            start_region = node_range.row_start
-            end_region = node_range.row_end
-
-            if node_range.column_end == 0 then
-                node_range.row_end = node_range.row_end - 1
-            end
-
-            for i = node_range.row_start, node_range.row_end do
-                local node_on_line = module.required["core.integrations.treesitter"].get_first_node_on_line(buffer, i)
-
-                if not module.public.get_promotable_node_prefix(node_on_line) then
-                    local whitespace = (vim.api.nvim_buf_get_lines(buffer, i, i + 1, true)[1] or ""):match("^%s*"):len()
-                    vim.api.nvim_buf_set_text(
-                        buffer,
-                        i,
-                        0,
-                        i,
-                        whitespace,
-                        { string.rep(" ", indent_module.indentexpr(buffer, i)) }
-                    )
-                elseif affect_children and i ~= node_range.row_start then
-                    module.public.promote_or_demote(buffer, mode, i, reindent_children, affect_children)
-
-                    -- luacheck: push ignore
-                    i = module.required["core.integrations.treesitter"].get_node_range(node_on_line).row_end
-                    -- luacheck: pop
-                end
-            end
-
-            ::finish::
         end
 
-        -- HACK(vhyrro): This should be changed after the codebase refactor
-        if neorg.modules.loaded_modules["core.concealer"] then
-            neorg.events.broadcast_event(
-                neorg.events.create(
-                    neorg.modules.loaded_modules["core.concealer"],
-                    "core.concealer.events.update_region",
-                    { start = start_region, ["end"] = end_region }
-                )
-            )
-        end
+        apply_recursive(node, function(c)
+            if c:type():sub(-7) == "_prefix" then
+                adjust_prefix(c)
+            end
+	end)
+
+        local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
+        -- TODO: preserve cursor position
+        vim.api.nvim_win_set_cursor(0,{node_range.row_start+1,0})
+        n_rows = node_range.row_end - node_range.row_start + 1
+        -- indent range
+        vim.api.nvim_feedkeys(n_rows .. '==', "n", false)
     end,
 }
 
