@@ -113,25 +113,40 @@ module.public = {
             function adjust_prefix(prefix_node)
                 row,col = prefix_node:start()
                 vim.api.nvim_buf_set_text(buffer, row, col, row, col, {prefix})
+                return true
             end
         else
             function adjust_prefix(prefix_node)
-                row,col = prefix_node:start()
+                row_start,col_start = prefix_node:start()
+                row_end, col_end = prefix_node:end_()
+                -- TODO: assert row_start==row_end ?
+                -- TODO: assert col_start+2 <= col_end ?
+                if col_start+2 == col_end then
+                    return false
+                end
                 vim.api.nvim_buf_set_text(buffer, row, col, row, col+1, {''})
+                return true
             end
         end
 
+        -- apply f recursively to node, until f returns false
+        -- assumption: the prefix node of the root comes before all other children
         function apply_recursive(node, f)
-            f(node)
+            if not f(node) then
+                return
+            end
             for child in node:iter_children() do
-                apply_recursive(child, f)
+                if not apply_recursive(child, f) then
+                    return
+                end
             end
         end
 
         apply_recursive(node, function(c)
             if c:type():sub(-7) == "_prefix" then
-                adjust_prefix(c)
+                return adjust_prefix(c)
             end
+            return true
 	end)
 
         local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
