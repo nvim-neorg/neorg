@@ -126,6 +126,12 @@ module.public = {
             return first_child
         end
 
+        local function get_node_row_range(node)
+            local row_start, _ = node:start()
+            local row_end, _ = node:end_()
+            return row_start, row_end
+        end
+
         local function is_prefix_node(node)
             return node:type():match("_prefix$") ~= nil
         end
@@ -161,9 +167,6 @@ module.public = {
         local adjust_prefix
         if mode == "promote" then
             adjust_prefix = function(prefix_node)
-                -- FIXME:
-                -- it will lose all children when increased to level>=6
-                -- thus promotion and demotion is not mutually reversable
                 local row,col,_ = get_prefix_position_and_level(prefix_node)
                 buffer_insert(buffer, row, col, root_prefix_char:rep(action_count))
             end
@@ -188,22 +191,55 @@ module.public = {
             return
         end
 
-        local function apply_recursive(node, f)
-            if not f(node) then
+        local function apply_recursive_normal(node, is_target, f)
+            if not is_target(node) then
                 return
             end
+            f(node)
             for child in node:iter_children() do
-                apply_recursive(child, f)
+                apply_recursive_normal(child, is_target, f)
             end
         end
 
-        apply_recursive(root_node, function(node)
-            if module.public.get_promotable_node_prefix(node) ~= root_prefix_char then
-                return false
+        local function apply_recursive_verylow(node, is_target, f)
+            local started = false
+            local _r, _c, level = get_prefix_position_and_level(get_header_prefix_node(node))
+            f(node)
+            for sibling in node:parent():iter_children() do
+                if started then
+                    if not is_target(sibling) then
+                        -- assert(false), shouldn't reach here ?
+                        break
+                    end
+                    local _, _, sibling_level = get_prefix_position_and_level(get_header_prefix_node(sibling))
+                    if sibling_level <= level then
+                        break
+                    end
+                    f(sibling)
+                end
+                started = started or (sibling == node)
             end
+        end
+
+        local HEADING_VERYLOW_LEVEL = 6
+
+        local indent_targets = {}
+        local apply_recursive = root_level<HEADING_VERYLOW_LEVEL and apply_recursive_normal or apply_recursive_verylow
+
+        apply_recursive(root_node,
+            function(node) return module.public.get_promotable_node_prefix(node) == root_prefix_char end,
+            function(node) indent_targets[#indent_targets+1] = node end
+        )
+
+        local indent_row_start, indent_row_end = get_node_row_range(root_node)
+        if root_level >= HEADING_VERYLOW_LEVEL then
+            local _, last_child_row_end = get_node_row_range(indent_targets[#indent_targets])
+            indent_row_end = math.max(indent_row_end, last_child_row_end)
+        end
+
+        for _,node in ipairs(indent_targets) do
             adjust_prefix(get_header_prefix_node(node))
-            return true
-        end)
+        end
 
         if not reindent_children then
             return
@@ -236,9 +272,8 @@ module.public = {
             end
         end
 
-        local node_range = module.required["core.integrations.treesitter"].get_node_range(root_node)
-        reindent_range(node_range.row_start, node_range.row_end)
-        notify_concealer(node_range.row_start, node_range.row_end)
+        reindent_range(indent_row_start, indent_row_end)
+        notify_concealer(indent_row_start, indent_row_end)
     end,
 }
 
