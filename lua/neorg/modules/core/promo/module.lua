@@ -180,7 +180,6 @@ module.public = {
                 row, col, level = get_prefix_position_and_level(prefix_node)
                 assert(level > action_count)
                 buffer_delete(buffer, row, col, action_count)
-                return true
             end
         end
 
