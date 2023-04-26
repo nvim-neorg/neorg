@@ -116,7 +116,7 @@ module.public = {
 
         local function buffer_set_line_indent(buffer, row, new_indent)
             local n_whitespace = count_leading_whitespace(buffer_get_line(buffer, row))
-            vim.api.nvim_buf_set_text(buffer, row, 0, row, n_whitespace, { (" "):rep(new_indent) })
+            return vim.api.nvim_buf_set_text(buffer, row, 0, row, n_whitespace, { (" "):rep(new_indent) })
         end
 
         -- treesitter node helpers
