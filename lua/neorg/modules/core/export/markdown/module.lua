@@ -557,6 +557,8 @@ module.public = {
 
                 return text
             end,
+
+            ["horizontal_line"] = "___",
         },
 
         recollectors = {
