@@ -87,75 +87,159 @@ module.public = {
     end,
 
     promote_or_demote = function(buffer, mode, row, reindent_children, affect_children)
-        local node = module.required["core.integrations.treesitter"].get_first_node_on_line(
+        local root_node = module.required["core.integrations.treesitter"].get_first_node_on_line(
             buffer,
             row,
             module.private.ignore_types
         )
 
-        if not node or node:has_error() then
+        if not root_node or root_node:has_error() then
             return
         end
 
-        local prefix = module.public.get_promotable_node_prefix(node)
+        -- vim buffer helpers
+        local function buffer_get_line(buffer, row)
+            return vim.api.nvim_buf_get_lines(buffer, row, row+1, true)[1]
+        end
 
-        if not prefix then
-            vim.api.nvim_feedkeys(
-                mode == "promote" and table.concat({ tostring(vim.v.count), ">>" })
-                    or table.concat({ vim.v.count, "<<" }),
-                "n",
-                false
-            )
+        local function count_leading_whitespace(s)
+            return s:match("^%s*"):len()
+        end
+
+        local function buffer_insert(buffer, row, col, s)
+            return vim.api.nvim_buf_set_text(buffer, row, col, row, col, {s})
+        end
+
+        local function buffer_delete(buffer, row, col, n_char)
+            return vim.api.nvim_buf_set_text(buffer, row, col, row, col+n_char, {})
+        end
+
+        local function buffer_set_line_indent(buffer, row, new_indent)
+            local n_whitespace = count_leading_whitespace(buffer_get_line(buffer, row))
+            vim.api.nvim_buf_set_text(buffer, row, 0, row, n_whitespace, { (" "):rep(new_indent) })
+        end
+
+        -- treesitter node helpers
+        local function get_header_prefix_node(header_node)
+            first_child = header_node:child(0)
+            assert(first_child:type() == header_node:type() .. "_prefix")
+            return first_child
+        end
+
+        local function is_prefix_node(node)
+            return node:type():match("_prefix$")
+        end
+
+        local function get_prefix_position_and_level(prefix_node)
+            assert(is_prefix_node(prefix_node))
+            row_start,col_start = prefix_node:start()
+            row_end, col_end = prefix_node:end_()
+            assert(row_start == row_end)
+            assert(col_start+2 <= col_end)
+            return row_start, col_start, (col_end - col_start - 1)
+        end
+
+        local action_count = vim.v.count
+        assert(action_count >= 0)
+        action_count = math.max(action_count, 1)
+
+        local root_prefix_char = module.public.get_promotable_node_prefix(root_node)
+        if not root_prefix_char then
+            local n_space_diff = vim.bo.shiftwidth * action_count
+            if mode == "demote" then
+                n_space_diff = -n_space_diff
+            end
+            local current_visual_indent = vim.fn.indent(row+1)
+            local new_indent = math.max(0, current_visual_indent + n_space_diff)
+            buffer_set_line_indent(buffer, row, new_indent)
             return
         end
 
-	if mode == "promote" then
-            function adjust_prefix(prefix_node)
-                row,col = prefix_node:start()
-                vim.api.nvim_buf_set_text(buffer, row, col, row, col, {prefix})
-                return true
+        local root_prefix_node = get_header_prefix_node(root_node)
+        local _, _, root_level = get_prefix_position_and_level(root_prefix_node)
+
+        local adjust_prefix
+        if mode == "promote" then
+            adjust_prefix = function(prefix_node)
+                -- FIXME:
+                -- it will lose all children when increased to level>=6
+                -- thus promotion and demotion is not mutually reversable
+                local row,col,_ = get_prefix_position_and_level(prefix_node)
+                buffer_insert(buffer, row, col, root_prefix_char:rep(action_count))
             end
         else
-            function adjust_prefix(prefix_node)
-                row_start,col_start = prefix_node:start()
-                row_end, col_end = prefix_node:end_()
-                -- TODO: assert row_start==row_end ?
-                -- TODO: assert col_start+2 <= col_end ?
-                if col_start+2 == col_end then
-                    return false
-                end
-                vim.api.nvim_buf_set_text(buffer, row_start, col_start, row_start, col_start+1, {''})
+            action_count = math.min(action_count, root_level-1)
+            assert(action_count >= 0)
+            if action_count == 0 then
+                assert(root_level == 1)
+                -- TODO: warning?
+                return
+            end
+
+            adjust_prefix = function(prefix_node)
+                row, col, level = get_prefix_position_and_level(prefix_node)
+                assert(level > action_count)
+                buffer_delete(buffer, row, col, action_count)
                 return true
             end
         end
 
-        -- apply f recursively to node, until f returns false
-        -- assumption: the prefix node of the root comes before all other children
-        function apply_recursive(node, f)
-            if not f(node) then
-                return false
-            end
-            for child in node:iter_children() do
-                if not apply_recursive(child, f) then
-                    return false
-                end
-            end
-            return true
+        if not affect_children then
+            adjust_prefix(root_prefix_node)
+            return
         end
 
-        apply_recursive(node, function(c)
-            if module.public.get_promotable_node_prefix(c) == prefix then
-                return adjust_prefix(c)
+        local function apply_recursive(node, f)
+            if not f(node) then
+                return
             end
-            return true
-	end)
+            for child in node:iter_children() do
+                apply_recursive(child, f)
+            end
+        end
 
-        local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
-        -- TODO: preserve cursor position
-        vim.api.nvim_win_set_cursor(0,{node_range.row_start+1,0})
-        n_rows = node_range.row_end - node_range.row_start + 1
-        -- indent range
-        vim.api.nvim_feedkeys(n_rows .. '==', "n", false)
+        apply_recursive(root_node, function(node)
+            if module.public.get_promotable_node_prefix(node) ~= root_prefix_char then
+                return false
+            end
+            adjust_prefix(get_header_prefix_node(node))
+            return true
+        end)
+
+        if not reindent_children then
+            return
+        end
+
+        local indent_module = neorg.modules.get_module("core.esupports.indent")
+        if not indent_module then
+            return
+        end
+
+        local function notify_concealer(row_start, row_end)
+            -- HACK(vhyrro): This should be changed after the codebase refactor
+            local concealer_module = neorg.modules.get_module("core.esupports.indent")
+            if not concealer_module then
+                return
+            end
+            neorg.events.broadcast_event(
+                neorg.events.create(
+                    concealer_module,
+                    "core.concealer.events.update_region",
+                    { start = row_start, ["end"] = row_end }
+                )
+            )
+        end
+
+        local function reindent_range(row_start, row_end)
+            for i = row_start, row_end-1 do
+                local indent_level = indent_module.indentexpr(buffer, i)
+                buffer_set_line_indent(buffer, i, indent_level)
+            end
+        end
+
+        local node_range = module.required["core.integrations.treesitter"].get_node_range(root_node)
+        reindent_range(node_range.row_start, node_range.row_end)
+        notify_concealer(node_range.row_start, node_range.row_end)
     end,
 }
 
