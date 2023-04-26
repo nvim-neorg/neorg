@@ -121,7 +121,7 @@ module.public = {
 
         -- treesitter node helpers
         local function get_header_prefix_node(header_node)
-            first_child = header_node:child(0)
+            local first_child = header_node:child(0)
             assert(first_child:type() == header_node:type() .. "_prefix")
             return first_child
         end
@@ -180,7 +180,7 @@ module.public = {
             end
 
             adjust_prefix = function(prefix_node)
-                row, col, level = get_prefix_position_and_level(prefix_node)
+                local row, col, level = get_prefix_position_and_level(prefix_node)
                 assert(level > action_count)
                 buffer_delete(buffer, row, col, action_count)
             end
