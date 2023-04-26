@@ -127,7 +127,7 @@ module.public = {
         end
 
         local function is_prefix_node(node)
-            return node:type():match("_prefix$")
+            return node:type():match("_prefix$") ~= nil
         end
 
         local function get_prefix_position_and_level(prefix_node)
