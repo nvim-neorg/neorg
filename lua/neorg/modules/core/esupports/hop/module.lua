@@ -472,34 +472,31 @@ module.public = {
 
                     [{ "definition", "footnote" }] = string.format(
                         [[
-                            [(single_%s
-                               [(strong_carryover_set
+                        (%s_list
+                            (strong_carryover_set
                                   (strong_carryover
                                     name: (tag_name) @tag_name
                                     (tag_parameters) @title
-                                    (#eq? @tag_name "name")))
-                                (weak_carryover_set
+                                    (#eq? @tag_name "name")))?
+                            .
+                            [(single_%s
+                               (weak_carryover_set
                                   (weak_carryover
                                     name: (tag_name) @tag_name
                                     (tag_parameters) @title
-                                    (#eq? @tag_name "name")))]?
+                                    (#eq? @tag_name "name")))?
                                (single_%s_prefix)
                                title: (paragraph_segment) @title)
                              (multi_%s
-                               [(strong_carryover_set
-                                  (strong_carryover
-                                   name: (tag_name) @tag_name
-                                   (tag_parameters) @title
-                                   (#eq? @tag_name "name")))
-                                (weak_carryover_set
+                               (weak_carryover_set
                                   (weak_carryover
                                     name: (tag_name) @tag_name
                                     (tag_parameters) @title
-                                    (#eq? @tag_name "name")))]?
+                                    (#eq? @tag_name "name")))?
                                 (multi_%s_prefix)
-                                  title: (paragraph_segment) @title)]
+                                  title: (paragraph_segment) @title)])
                         ]],
-                        neorg.lib.reparg(parsed_link_information.link_type, 4)
+                        neorg.lib.reparg(parsed_link_information.link_type, 5)
                     ),
                     _ = string.format(
                         [[
@@ -656,34 +653,31 @@ module.private = {
             ]],
             [{ "definition", "footnote" }] = string.format(
                 [[
-                [(single_%s
-                   [(strong_carryover_set
-                      (strong_carryover
-                        name: (tag_name) @tag_name
-                        (tag_parameters) @title
-                        (#eq? @tag_name "name")))
-                    (weak_carryover_set
-                      (weak_carryover
-                        name: (tag_name) @tag_name
-                        (tag_parameters) @title
-                        (#eq? @tag_name "name")))]?
-                   (single_%s_prefix)
-                   title: (paragraph_segment) @title)
-                 (multi_%s
-                   [(strong_carryover_set
-                      (strong_carryover
-                       name: (tag_name) @tag_name
-                       (tag_parameters) @title
-                       (#eq? @tag_name "name")))
-                    (weak_carryover_set
-                      (weak_carryover
-                        name: (tag_name) @tag_name
-                        (tag_parameters) @title
-                        (#eq? @tag_name "name")))]?
-                    (multi_%s_prefix)
-                      title: (paragraph_segment) @title)]
+                (%s_list
+                    (strong_carryover_set
+                          (strong_carryover
+                            name: (tag_name) @tag_name
+                            (tag_parameters) @title
+                            (#eq? @tag_name "name")))?
+                    .
+                    [(single_%s
+                       (weak_carryover_set
+                          (weak_carryover
+                            name: (tag_name) @tag_name
+                            (tag_parameters) @title
+                            (#eq? @tag_name "name")))?
+                       (single_%s_prefix)
+                       title: (paragraph_segment) @title)
+                     (multi_%s
+                       (weak_carryover_set
+                          (weak_carryover
+                            name: (tag_name) @tag_name
+                            (tag_parameters) @title
+                            (#eq? @tag_name "name")))?
+                        (multi_%s_prefix)
+                          title: (paragraph_segment) @title)])
             ]],
-                neorg.lib.reparg(parsed_link_information.link_type, 4)
+                neorg.lib.reparg(parsed_link_information.link_type, 5)
             ),
             _ = string.format(
                 [[
