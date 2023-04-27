@@ -4,7 +4,9 @@
     description: The TOC module geneates a table of contents for a given Norg buffer.
     summary: Generates a table of contents for a given Norg buffer.
     ---
+
 <!-- TODO: make nested objects also appear nested within the TOC view (i.e. headings in headings) --!>
+
 The TOC module exposes a single command - `:Neorg toc`. This command can be executed with one of three
 optional arguments: `left`, `right` and `qflist`.
 
