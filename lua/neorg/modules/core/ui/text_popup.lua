@@ -74,6 +74,10 @@ module.public = {
 
         -- Create the floating popup window with the prompt buffer
         module.private.windows[name] = vim.api.nvim_open_win(buf, true, window_config)
+
+        -- HACK(vhyrro): Prevent the "not enough room" error when leaving the window.
+        -- See: https://github.com/neovim/neovim/issues/19464
+        vim.api.nvim_win_set_option(module.private.windows[name], "winbar", "")
     end,
 }
 
