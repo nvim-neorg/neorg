@@ -1,21 +1,21 @@
--- NOTICE: Consider this whole module a demo for now
--- A lot of stuff is hardcoded in order to prove that it can work
-
-local module = neorg.modules.create("core.ui.calendar")
+local module = neorg.modules.create('core.ui.calendar.views.monthly')
 
 local function reformat_time(date)
     return os.date("*t", os.time(date))
 end
 
-module.setup = function()
+module.setup = function ()
     return {
         requires = {
-            "core.ui",
-        },
+            'core.ui.calendar'
+        }
     }
 end
 
 module.private = {
+
+    current_mode = {},
+
     -- TODO(vhyrro): Localize this to the functions themselves
     -- and return extmarks data within the functions.
     -- Right now only a single calendar can be open at once
@@ -36,24 +36,10 @@ module.private = {
         },
     },
 
-    modes = {},
-
-    get_mode = function(name, callback)
-        if module.private.modes[name] ~= nil then
-            local cur_mode = module.private.modes[name](callback)
-            cur_mode.name = name
-            return cur_mode
-        end
-
-        print("Error: mode not set or not available")
-    end,
-
     namespaces = {
         logical = vim.api.nvim_create_namespace("neorg/calendar/logical"),
         decorational = vim.api.nvim_create_namespace("neorg/calendar/decorational"),
     },
-
-    current_mode = {},
 
     set_extmark = function(ui_info, namespace, row, col, length, virt_text, alignment, extra)
         if alignment then
@@ -386,12 +372,15 @@ module.private = {
         vim.api.nvim_win_set_cursor(ui_info.window, { position[1] + 1, position[2] })
     end,
 
-    render_view = function(ui_info, view, date, previous_date, options)
+    render_view = function(ui_info, date, previous_date, options)
         local is_first_render = (previous_date == nil)
 
         if is_first_render then
+            vim.api.nvim_buf_clear_namespace(ui_info.buffer, module.private.namespaces.decorational, 0, -1)
+            vim.api.nvim_buf_clear_namespace(ui_info.buffer, module.private.namespaces.logical, 0, -1)
+
             module.private.fill_buffer(ui_info)
-            module.private.render_decorative_text(ui_info, view)
+            module.private.render_decorative_text(ui_info, module.public.view_name:upper())
             module.private.render_year_tag(ui_info, date.year)
             module.private.render_month_array(ui_info, date, options)
             module.private.select_current_day(ui_info, date)
@@ -519,42 +508,17 @@ module.private = {
 }
 
 module.public = {
-    add_mode = function(name, factory)
-        module.private.modes[name] = factory
-    end,
 
-    create_calendar = function(buffer, window, options)
+    view_name = "monthly",
+
+    setup = function (ui_info, mode, options)
         options.distance = options.distance or 4
 
-        module.private.current_mode = module.private.get_mode(options.mode, options.callback)
-        if module.private.current_mode == nil then
-            return
-        end
-
-        -- Variables
-        local width = vim.api.nvim_win_get_width(window)
-        local height = vim.api.nvim_win_get_height(window)
-
-        local half_width = math.floor(width / 2)
-        local half_height = math.floor(height / 2)
-
-        local ui_info = {
-            window = window,
-            buffer = buffer,
-            width = width,
-            height = height,
-            half_width = half_width,
-            half_height = half_height,
-        }
-
-        local view = options.view or "MONTHLY"
-
-        vim.api.nvim_buf_clear_namespace(buffer, module.private.namespaces.decorational, 0, -1)
-        vim.api.nvim_buf_clear_namespace(buffer, module.private.namespaces.logical, 0, -1)
+        module.private.current_mode = mode
 
         local current_date = os.date("*t")
 
-        module.private.render_view(ui_info, view, current_date, nil, options)
+        module.private.render_view(ui_info, current_date, nil, options)
 
         do
             -- TODO: Make cursor wrapping behaviour configurable
@@ -564,9 +528,9 @@ module.public = {
                     month = current_date.month,
                     day = current_date.day + 1,
                 })
-                module.private.render_view(ui_info, view, new_date, current_date, options)
+                module.private.render_view(ui_info, new_date, current_date, options)
                 current_date = new_date
-            end, { buffer = buffer })
+            end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "h", function()
                 local new_date = reformat_time({
@@ -574,9 +538,9 @@ module.public = {
                     month = current_date.month,
                     day = current_date.day - 1,
                 })
-                module.private.render_view(ui_info, view, new_date, current_date, options)
+                module.private.render_view(ui_info, new_date, current_date, options)
                 current_date = new_date
-            end, { buffer = buffer })
+            end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "j", function()
                 local new_date = reformat_time({
@@ -584,9 +548,9 @@ module.public = {
                     month = current_date.month,
                     day = current_date.day + 7,
                 })
-                module.private.render_view(ui_info, view, new_date, current_date, options)
+                module.private.render_view(ui_info, new_date, current_date, options)
                 current_date = new_date
-            end, { buffer = buffer })
+            end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "k", function()
                 local new_date = reformat_time({
@@ -594,111 +558,28 @@ module.public = {
                     month = current_date.month,
                     day = current_date.day - 7,
                 })
-                module.private.render_view(ui_info, view, new_date, current_date, options)
+                module.private.render_view(ui_info, new_date, current_date, options)
                 current_date = new_date
-            end, { buffer = buffer })
+            end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "<cr>", function()
-                local should_close = false
+                local should_redraw = false
 
                 if module.private.current_mode.on_select ~= nil then
-                    should_close = module.private.current_mode:on_select(current_date)
+                    should_redraw = module.private.current_mode:on_select(current_date)
                 end
 
-                if should_close then
-                    module.required["core.ui"].delete_window(ui_info.buffer)
-                    return
+                if should_redraw then
+                    module.private.render_view(ui_info, current_date, nil, options)
                 end
-
-                module.private.render_view(ui_info, view, current_date, nil, options)
-            end, { buffer = buffer })
+            end, { buffer = ui_info.buffer })
         end
-    end,
 
-    open = function(options)
-        local buffer, window = module.required["core.ui"].create_split(
-            "calendar",
-            {},
-            options.height or math.floor(vim.opt.lines:get() * 0.3)
-        )
-
-        options.mode = "standalone"
-
-        return module.public.create_calendar(buffer, window, options)
-    end,
-
-    select_date = function(options)
-        local buffer, window = module.required["core.ui"].create_split(
-            "calendar",
-            {},
-            options.height or math.floor(vim.opt.lines:get() * 0.3)
-        )
-
-        options.mode = "select_date"
-
-        return module.public.create_calendar(buffer, window, options)
-    end,
-
-    select_date_range = function(options)
-        local buffer, window = module.required["core.ui"].create_split(
-            "calendar",
-            {},
-            options.height or math.floor(vim.opt.lines:get() * 0.3)
-        )
-
-        options.mode = "select_range"
-
-        return module.public.create_calendar(buffer, window, options)
-    end,
+    end
 }
 
-module.load = function()
-    -- Add default calendar modes
-    module.public.add_mode("standalone", function(_)
-        return {}
-    end)
-
-    module.public.add_mode("select_date", function(callback)
-        return {
-            on_select = function(_, date)
-                if callback then
-                    callback(date)
-                end
-                return true
-            end,
-        }
-    end)
-
-    module.public.add_mode("select_range", function(callback)
-        return {
-            range_start = nil,
-            range_end = nil,
-
-            on_select = function(self, date)
-                if not self.range_start then
-                    self.range_start = date
-                else
-                    if os.time(date) <= os.time(self.range_start) then
-                        print("Error: you should choose a date that is after the starting day.")
-                        return false
-                    end
-                    self.range_end = date
-                    callback({ self.range_start, self.range_end })
-                    return true
-                end
-                return false
-            end,
-
-            get_day_highlight = function(self, date, default_highlight)
-                if self.range_start ~= nil then
-                    if os.time(date) < os.time(self.range_start) then
-                        return "@comment"
-                    end
-                end
-                return default_highlight
-            end,
-        }
-    end)
+module.load = function ()
+    module.required['core.ui.calendar'].add_view(module.public.view_name, module.public)
 end
 
 return module
