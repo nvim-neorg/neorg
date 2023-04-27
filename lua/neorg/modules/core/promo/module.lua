@@ -252,7 +252,7 @@ module.public = {
 
         local function notify_concealer(row_start, row_end)
             -- HACK(vhyrro): This should be changed after the codebase refactor
-            local concealer_module = neorg.modules.get_module("core.esupports.indent")
+            local concealer_module = neorg.modules.loaded_modules["core.concealer"]
             if not concealer_module then
                 return
             end
