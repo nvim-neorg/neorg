@@ -565,7 +565,6 @@ module.public = {
 
                 if state.is_url then
                     state.is_url = false
-                    output[#output - 1] = vim.uri_from_fname(output[#output - 1]):sub(string.len("file://") + 1)
                     return output
                 end
 
