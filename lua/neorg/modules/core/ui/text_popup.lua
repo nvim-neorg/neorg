@@ -9,7 +9,7 @@ module.public = {
     --- Opens a floating window at the specified position and asks for user input
     ---@param name string #The name of the floating window
     ---@param input_text string #The input text to prompt the user for input
-    ---@param callback #(function(entered_text)) - a function that gets invoked whenever the user provides some text.
+    ---@param callback fun(entered_text: string, data: table) #A function that gets invoked whenever the user provides some text.
     ---@param modifiers table #Special table to modify certain attributes of the floating window (like centering on the x or y axis)
     ---@param config table #A config like you would pass into nvim_open_win()
     create_prompt = function(name, input_text, callback, modifiers, config)
