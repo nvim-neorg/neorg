@@ -97,29 +97,18 @@ module.public = {
             return
         end
 
-        -- vim buffer helpers
-        local function buffer_get_line(buffer, row)
-            return vim.api.nvim_buf_get_lines(buffer, row, row+1, true)[1]
-        end
-
+        -- Vim buffer helpers
         local function count_leading_whitespace(s)
             return s:match("^%s*"):len()
         end
 
-        local function buffer_insert(buffer, row, col, s)
-            return vim.api.nvim_buf_set_text(buffer, row, col, row, col, {s})
+        local function buffer_set_line_indent(start_row, new_indent)
+            local n_whitespace =
+                count_leading_whitespace(vim.api.nvim_buf_get_lines(buffer, start_row, start_row + 1, true)[1])
+            return vim.api.nvim_buf_set_text(buffer, start_row, 0, start_row, n_whitespace, { (" "):rep(new_indent) })
         end
 
-        local function buffer_delete(buffer, row, col, n_char)
-            return vim.api.nvim_buf_set_text(buffer, row, col, row, col+n_char, {})
-        end
-
-        local function buffer_set_line_indent(buffer, row, new_indent)
-            local n_whitespace = count_leading_whitespace(buffer_get_line(buffer, row))
-            return vim.api.nvim_buf_set_text(buffer, row, 0, row, n_whitespace, { (" "):rep(new_indent) })
-        end
-
-        -- treesitter node helpers
+        -- Treesitter node helpers
         local function get_header_prefix_node(header_node)
             local first_child = header_node:child(0)
             assert(first_child:type() == header_node:type() .. "_prefix")
@@ -138,10 +127,10 @@ module.public = {
 
         local function get_prefix_position_and_level(prefix_node)
             assert(is_prefix_node(prefix_node))
-            row_start,col_start = prefix_node:start()
-            row_end, col_end = prefix_node:end_()
+            local row_start, col_start, row_end, col_end = prefix_node:range()
+
             assert(row_start == row_end)
-            assert(col_start+2 <= col_end)
+            assert(col_start + 2 <= col_end)
             return row_start, col_start, (col_end - col_start - 1)
         end
 
@@ -155,9 +144,11 @@ module.public = {
             if mode == "demote" then
                 n_space_diff = -n_space_diff
             end
-            local current_visual_indent = vim.fn.indent(row+1)
+
+            local current_visual_indent = vim.fn.indent(row + 1)
             local new_indent = math.max(0, current_visual_indent + n_space_diff)
-            buffer_set_line_indent(buffer, row, new_indent)
+
+            buffer_set_line_indent(row, new_indent)
             return
         end
 
@@ -167,22 +158,29 @@ module.public = {
         local adjust_prefix
         if mode == "promote" then
             adjust_prefix = function(prefix_node)
-                local row,col,_ = get_prefix_position_and_level(prefix_node)
-                buffer_insert(buffer, row, col, root_prefix_char:rep(action_count))
+                local prefix_row, prefix_col, _ = get_prefix_position_and_level(prefix_node)
+                vim.api.nvim_buf_set_text(
+                    buffer,
+                    prefix_row,
+                    prefix_col,
+                    prefix_row,
+                    prefix_col,
+                    { root_prefix_char:rep(action_count) }
+                )
             end
         else
-            action_count = math.min(action_count, root_level-1)
+            action_count = math.min(action_count, root_level - 1)
             assert(action_count >= 0)
+
             if action_count == 0 then
                 assert(root_level == 1)
-                -- TODO: warning?
                 return
             end
 
             adjust_prefix = function(prefix_node)
-                local row, col, level = get_prefix_position_and_level(prefix_node)
+                local prefix_row, prefix_col, level = get_prefix_position_and_level(prefix_node)
                 assert(level > action_count)
-                buffer_delete(buffer, row, col, action_count)
+                vim.api.nvim_buf_set_text(buffer, prefix_row, prefix_col, prefix_row, prefix_col + action_count, {})
             end
         end
 
@@ -203,15 +201,18 @@ module.public = {
 
         local function apply_recursive_verylow(node, is_target, f)
             local started = false
-            local _r, _c, level = get_prefix_position_and_level(get_header_prefix_node(node))
+            local _, _, level = get_prefix_position_and_level(get_header_prefix_node(node))
+
             f(node)
+
             for sibling in node:parent():iter_children() do
                 if started then
                     if not is_target(sibling) then
-                        -- assert(false), shouldn't reach here ?
                         break
                     end
+
                     local _, _, sibling_level = get_prefix_position_and_level(get_header_prefix_node(sibling))
+
                     if sibling_level <= level then
                         break
                     end
@@ -224,12 +225,13 @@ module.public = {
         local HEADING_VERYLOW_LEVEL = 6
 
         local indent_targets = {}
-        local apply_recursive = root_level<HEADING_VERYLOW_LEVEL and apply_recursive_normal or apply_recursive_verylow
+        local apply_recursive = root_level < HEADING_VERYLOW_LEVEL and apply_recursive_normal or apply_recursive_verylow
 
-        apply_recursive(root_node,
-            function(node) return module.public.get_promotable_node_prefix(node) == root_prefix_char end,
-            function(node) indent_targets[#indent_targets+1] = node end
-        )
+        apply_recursive(root_node, function(node)
+            return module.public.get_promotable_node_prefix(node) == root_prefix_char
+        end, function(node)
+            indent_targets[#indent_targets + 1] = node
+        end)
 
         local indent_row_start, indent_row_end = get_node_row_range(root_node)
         if root_level >= HEADING_VERYLOW_LEVEL then
@@ -237,7 +239,7 @@ module.public = {
             indent_row_end = math.max(indent_row_end, last_child_row_end)
         end
 
-        for _,node in ipairs(indent_targets) do
+        for _, node in ipairs(indent_targets) do
             adjust_prefix(get_header_prefix_node(node))
         end
 
@@ -266,9 +268,9 @@ module.public = {
         end
 
         local function reindent_range(row_start, row_end)
-            for i = row_start, row_end-1 do
+            for i = row_start, row_end - 1 do
                 local indent_level = indent_module.indentexpr(buffer, i)
-                buffer_set_line_indent(buffer, i, indent_level)
+                buffer_set_line_indent(i, indent_level)
             end
         end
 
