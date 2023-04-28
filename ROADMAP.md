@@ -116,7 +116,7 @@ embeddable-anywhere tools. These include:
 - [x] Directory Manager and File Aggregator - workspaces are a pretty fundamental concept within
   Neorg, and writing a tool that can efficiently manage and manipulate enormous collections
   of notes will be critical for any Neorg-like tool.
-- [ ] (STALLED: Waiting for [tree-sitter](https://github.com/tree-sitter/tree-sitter/pull/2126)) Multithreaded parsing library - note collections can get big, like really big. Parsing
+- [ ] Multithreaded parsing library - note collections can get big, like really big. Parsing
       all of these on a single thread could take even minutes. Having a good multithreaded
       parsing library will help a lot.
 - [ ] Sqlite - having an sqlite database as a centralized data store will be super
