@@ -87,111 +87,193 @@ module.public = {
     end,
 
     promote_or_demote = function(buffer, mode, row, reindent_children, affect_children)
-        local node = module.required["core.integrations.treesitter"].get_first_node_on_line(
+        local root_node = module.required["core.integrations.treesitter"].get_first_node_on_line(
             buffer,
             row,
             module.private.ignore_types
         )
 
-        if not node or node:has_error() then
+        if not root_node or root_node:has_error() then
             return
         end
 
-        local prefix = module.public.get_promotable_node_prefix(node)
+        -- vim buffer helpers
+        local function buffer_get_line(buffer, row)
+            return vim.api.nvim_buf_get_lines(buffer, row, row+1, true)[1]
+        end
 
-        if not prefix then
-            vim.api.nvim_feedkeys(
-                mode == "promote" and table.concat({ tostring(vim.v.count), ">>" })
-                    or table.concat({ vim.v.count, "<<" }),
-                "n",
-                false
-            )
+        local function count_leading_whitespace(s)
+            return s:match("^%s*"):len()
+        end
+
+        local function buffer_insert(buffer, row, col, s)
+            return vim.api.nvim_buf_set_text(buffer, row, col, row, col, {s})
+        end
+
+        local function buffer_delete(buffer, row, col, n_char)
+            return vim.api.nvim_buf_set_text(buffer, row, col, row, col+n_char, {})
+        end
+
+        local function buffer_set_line_indent(buffer, row, new_indent)
+            local n_whitespace = count_leading_whitespace(buffer_get_line(buffer, row))
+            return vim.api.nvim_buf_set_text(buffer, row, 0, row, n_whitespace, { (" "):rep(new_indent) })
+        end
+
+        -- treesitter node helpers
+        local function get_header_prefix_node(header_node)
+            local first_child = header_node:child(0)
+            assert(first_child:type() == header_node:type() .. "_prefix")
+            return first_child
+        end
+
+        local function get_node_row_range(node)
+            local row_start, _ = node:start()
+            local row_end, _ = node:end_()
+            return row_start, row_end
+        end
+
+        local function is_prefix_node(node)
+            return node:type():match("_prefix$") ~= nil
+        end
+
+        local function get_prefix_position_and_level(prefix_node)
+            assert(is_prefix_node(prefix_node))
+            row_start,col_start = prefix_node:start()
+            row_end, col_end = prefix_node:end_()
+            assert(row_start == row_end)
+            assert(col_start+2 <= col_end)
+            return row_start, col_start, (col_end - col_start - 1)
+        end
+
+        local action_count = vim.v.count
+        assert(action_count >= 0)
+        action_count = math.max(action_count, 1)
+
+        local root_prefix_char = module.public.get_promotable_node_prefix(root_node)
+        if not root_prefix_char then
+            local n_space_diff = vim.bo.shiftwidth * action_count
+            if mode == "demote" then
+                n_space_diff = -n_space_diff
+            end
+            local current_visual_indent = vim.fn.indent(row+1)
+            local new_indent = math.max(0, current_visual_indent + n_space_diff)
+            buffer_set_line_indent(buffer, row, new_indent)
             return
         end
 
-        local title_node = node:named_child(0)
-        local title_range = module.required["core.integrations.treesitter"].get_node_range(title_node)
-        local title = module.required["core.integrations.treesitter"].get_node_text(title_node, buffer)
+        local root_prefix_node = get_header_prefix_node(root_node)
+        local _, _, root_level = get_prefix_position_and_level(root_prefix_node)
 
-        do
-            if mode == "promote" then
-                title = table.concat({ prefix, title })
-            elseif mode == "demote" then
-                if title:match(table.concat({ "^", prefix, "*" })):len() <= 1 then
-                    return
-                end
-
-                title = title:sub(2)
+        local adjust_prefix
+        if mode == "promote" then
+            adjust_prefix = function(prefix_node)
+                local row,col,_ = get_prefix_position_and_level(prefix_node)
+                buffer_insert(buffer, row, col, root_prefix_char:rep(action_count))
+            end
+        else
+            action_count = math.min(action_count, root_level-1)
+            assert(action_count >= 0)
+            if action_count == 0 then
+                assert(root_level == 1)
+                -- TODO: warning?
+                return
             end
 
-            vim.api.nvim_buf_set_text(
-                buffer,
-                title_range.row_start,
-                title_range.column_start,
-                title_range.row_end,
-                title_range.column_end,
-                { title }
-            )
+            adjust_prefix = function(prefix_node)
+                local row, col, level = get_prefix_position_and_level(prefix_node)
+                assert(level > action_count)
+                buffer_delete(buffer, row, col, action_count)
+            end
         end
 
-        local start_region, end_region = row, row + 1
-
-        -- After the promotion/demotion reindent all children
-        if reindent_children then
-            local indent_module = neorg.modules.get_module("core.esupports.indent")
-
-            if not indent_module then
-                goto finish
-            end
-
-            if not affect_children then
-                node = module.required["core.integrations.treesitter"].get_first_node_on_line(buffer, row)
-            end
-
-            local node_range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-            start_region = node_range.row_start
-            end_region = node_range.row_end
-
-            if node_range.column_end == 0 then
-                node_range.row_end = node_range.row_end - 1
-            end
-
-            for i = node_range.row_start, node_range.row_end do
-                local node_on_line = module.required["core.integrations.treesitter"].get_first_node_on_line(buffer, i)
-
-                if not module.public.get_promotable_node_prefix(node_on_line) then
-                    local whitespace = (vim.api.nvim_buf_get_lines(buffer, i, i + 1, true)[1] or ""):match("^%s*"):len()
-                    vim.api.nvim_buf_set_text(
-                        buffer,
-                        i,
-                        0,
-                        i,
-                        whitespace,
-                        { string.rep(" ", indent_module.indentexpr(buffer, i)) }
-                    )
-                elseif affect_children and i ~= node_range.row_start then
-                    module.public.promote_or_demote(buffer, mode, i, reindent_children, affect_children)
-
-                    -- luacheck: push ignore
-                    i = module.required["core.integrations.treesitter"].get_node_range(node_on_line).row_end
-                    -- luacheck: pop
-                end
-            end
-
-            ::finish::
+        if not affect_children then
+            adjust_prefix(root_prefix_node)
+            return
         end
 
-        -- HACK(vhyrro): This should be changed after the codebase refactor
-        if neorg.modules.loaded_modules["core.concealer"] then
+        local function apply_recursive_normal(node, is_target, f)
+            if not is_target(node) then
+                return
+            end
+            f(node)
+            for child in node:iter_children() do
+                apply_recursive_normal(child, is_target, f)
+            end
+        end
+
+        local function apply_recursive_verylow(node, is_target, f)
+            local started = false
+            local _r, _c, level = get_prefix_position_and_level(get_header_prefix_node(node))
+            f(node)
+            for sibling in node:parent():iter_children() do
+                if started then
+                    if not is_target(sibling) then
+                        -- assert(false), shouldn't reach here ?
+                        break
+                    end
+                    local _, _, sibling_level = get_prefix_position_and_level(get_header_prefix_node(sibling))
+                    if sibling_level <= level then
+                        break
+                    end
+                    f(sibling)
+                end
+                started = started or (sibling == node)
+            end
+        end
+
+        local HEADING_VERYLOW_LEVEL = 6
+
+        local indent_targets = {}
+        local apply_recursive = root_level<HEADING_VERYLOW_LEVEL and apply_recursive_normal or apply_recursive_verylow
+
+        apply_recursive(root_node,
+            function(node) return module.public.get_promotable_node_prefix(node) == root_prefix_char end,
+            function(node) indent_targets[#indent_targets+1] = node end
+        )
+
+        local indent_row_start, indent_row_end = get_node_row_range(root_node)
+        if root_level >= HEADING_VERYLOW_LEVEL then
+            local _, last_child_row_end = get_node_row_range(indent_targets[#indent_targets])
+            indent_row_end = math.max(indent_row_end, last_child_row_end)
+        end
+
+        for _,node in ipairs(indent_targets) do
+            adjust_prefix(get_header_prefix_node(node))
+        end
+
+        if not reindent_children then
+            return
+        end
+
+        local indent_module = neorg.modules.get_module("core.esupports.indent")
+        if not indent_module then
+            return
+        end
+
+        local function notify_concealer(row_start, row_end)
+            -- HACK(vhyrro): This should be changed after the codebase refactor
+            local concealer_module = neorg.modules.loaded_modules["core.concealer"]
+            if not concealer_module then
+                return
+            end
             neorg.events.broadcast_event(
                 neorg.events.create(
-                    neorg.modules.loaded_modules["core.concealer"],
+                    concealer_module,
                     "core.concealer.events.update_region",
-                    { start = start_region, ["end"] = end_region }
+                    { start = row_start, ["end"] = row_end }
                 )
             )
         end
+
+        local function reindent_range(row_start, row_end)
+            for i = row_start, row_end-1 do
+                local indent_level = indent_module.indentexpr(buffer, i)
+                buffer_set_line_indent(buffer, i, indent_level)
+            end
+        end
+
+        reindent_range(indent_row_start, indent_row_end)
+        notify_concealer(indent_row_start, indent_row_end)
     end,
 }
 
