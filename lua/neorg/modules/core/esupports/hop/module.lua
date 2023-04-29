@@ -275,7 +275,7 @@ module.public = {
     --- Converts a link node into a table of data related to the link
     ---@param link_node userdata #The link node that was found by e.g. `extract_link_node()`
     ---@param buf number #The buffer to parse the link in
-    ---@return table #A table of data about the link
+    ---@return table? #A table of data about the link
     parse_link = function(link_node, buf)
         buf = buf or 0
         if not link_node or not vim.tbl_contains({ "link", "anchor_definition" }, link_node:type()) then
@@ -328,8 +328,8 @@ module.public = {
                             (link_target_heading4)
                             (link_target_heading5)
                             (link_target_heading6)
-                        ] @link_type
-                        text: (paragraph) @link_location_text
+                        ]? @link_type
+                        text: (paragraph)? @link_location_text
                     )
                 )
             ]
