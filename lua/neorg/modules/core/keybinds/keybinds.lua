@@ -93,25 +93,6 @@ module.config.public = {
                 noremap = true,
             })
 
-            keybinds.map_event_to_mode("toc-split", {
-                n = {
-                    -- Hop to the target of the TOC link
-                    { "<CR>", "core.qol.toc.hop-toc-link" },
-
-                    -- Closes the TOC split
-                    -- ^Quit
-                    { "q", "core.qol.toc.close" },
-
-                    -- Closes the TOC split
-                    -- ^escape
-                    { "<Esc>", "core.qol.toc.close" },
-                },
-            }, {
-                silent = true,
-                noremap = true,
-                nowait = true,
-            })
-
             -- Map the below keys on presenter mode
             keybinds.map_event_to_mode("presenter", {
                 n = {
