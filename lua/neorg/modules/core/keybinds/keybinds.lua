@@ -11,31 +11,31 @@ module.config.public = {
                 n = {
                     -- Marks the task under the cursor as "undone"
                     -- ^mark Task as Undone
-                    { "gtu", "core.qol.todo_items.todo.task_undone" },
+                    { leader .. "tu", "core.qol.todo_items.todo.task_undone" },
 
                     -- Marks the task under the cursor as "pending"
                     -- ^mark Task as Pending
-                    { "gtp", "core.qol.todo_items.todo.task_pending" },
+                    { leader .. "tp", "core.qol.todo_items.todo.task_pending" },
 
                     -- Marks the task under the cursor as "done"
                     -- ^mark Task as Done
-                    { "gtd", "core.qol.todo_items.todo.task_done" },
+                    { leader .. "td", "core.qol.todo_items.todo.task_done" },
 
                     -- Marks the task under the cursor as "on_hold"
                     -- ^mark Task as on Hold
-                    { "gth", "core.qol.todo_items.todo.task_on_hold" },
+                    { leader .. "th", "core.qol.todo_items.todo.task_on_hold" },
 
                     -- Marks the task under the cursor as "cancelled"
                     -- ^mark Task as Cancelled
-                    { "gtc", "core.qol.todo_items.todo.task_cancelled" },
+                    { leader .. "tc", "core.qol.todo_items.todo.task_cancelled" },
 
                     -- Marks the task under the cursor as "recurring"
                     -- ^mark Task as Recurring
-                    { "gtr", "core.qol.todo_items.todo.task_recurring" },
+                    { leader .. "tr", "core.qol.todo_items.todo.task_recurring" },
 
                     -- Marks the task under the cursor as "important"
                     -- ^mark Task as Important
-                    { "gti", "core.qol.todo_items.todo.task_important" },
+                    { leader .. "ti", "core.qol.todo_items.todo.task_important" },
 
                     -- Switches the task under the cursor between a select few states
                     { "<C-Space>", "core.qol.todo_items.todo.task_cycle" },
