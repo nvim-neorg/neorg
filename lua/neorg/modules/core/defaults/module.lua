@@ -39,7 +39,6 @@ return neorg.modules.create_meta(
     "core.looking-glass",
     "core.mode",
     "core.neorgcmd",
-    "core.news",
     "core.pivot",
     "core.promo",
     "core.qol.toc",
