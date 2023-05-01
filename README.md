@@ -105,7 +105,7 @@ Plus fancy completion powered by `nvim-cmp`.
 
 You can install it through your favorite plugin manager:
 
-- 
+-
   <details>
   <summary><a href="https://github.com/wbthomason/packer.nvim">packer.nvim</a></summary>
 
@@ -134,7 +134,7 @@ You can install it through your favorite plugin manager:
 
   Every time Neorg hits a new release, a new tag is created by us, so you don't have to worry about all the updates inbetween.
   That means that adding `tag = "*"` in Packer will update to latest stable release.
-  
+
   You can also pin Neorg to one specific version through e.g. `tag = "2.0.0"`.
 
   ---
@@ -170,7 +170,7 @@ You can install it through your favorite plugin manager:
   config is set up.
 
   </details>
-  
+
 - <details>
   <summary><a href="https://github.com/junegunn/vim-plug">vim-plug</a></summary>
 

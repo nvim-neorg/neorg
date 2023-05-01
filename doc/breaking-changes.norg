@@ -11,6 +11,6 @@ version: 1.1.1
 
 ** *Moved all `gt*` keybinds to `<LocalLeader>t*`*
    Change made to prevent clashes with the inbuilt `gt` command present in Neovim.
-      
+
 #comment
 vim:tw=100:ft=norg:norl:
