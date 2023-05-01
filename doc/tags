@@ -36,3 +36,16 @@ neorg-unordered-lists	neorg.norg	/  *** Unordered lists
 neorg-variables	neorg.norg	/  *** Variables
 
 neorg-cheatsheet	cheatsheet.norg	/* Your Quick Neorg Guide
+neorg-cheatsheet-headings	cheatsheet.norg	/** Headings
+neorg-cheatsheet-reverse-headings	cheatsheet.norg	/** Reverse Headings
+neorg-cheatsheet-lists	cheatsheet.norg	/** Lists
+neorg-cheatsheet-code-blocks	cheatsheet.norg	/** Code Blocks
+neorg-cheatsheet-styling	cheatsheet.norg	/** Styling
+neorg-cheatsheet-links-urls	cheatsheet.norg	/*** Links to URLs
+neorg-cheatsheet-links-objects	cheatsheet.norg	/*** Links to Objects
+neorg-cheatsheet-links-non-norg	cheatsheet.norg	/*** Links to non-norg Files
+neorg-cheatsheet-links-descriptions	cheatsheet.norg	/*** Links with Descriptions
+neorg-cheatsheet-links-anything	cheatsheet.norg	/*** Links to Anything
+neorg-cheatsheet-links-files	cheatsheet.norg	/*** Links across Files
+neorg-cheatsheet-anchors	cheatsheet.norg	/** Anchors
+neorg-cheatsheet-tasks	cheatsheet.norg	/* Tasks
