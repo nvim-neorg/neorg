@@ -55,7 +55,7 @@ which also makes `.norg` files easily usable anywhere outside of Neorg itself.
 
 To learn more about the philosophy of the project check the [philosophy](#-philosophy) section.
 
-###### :exclamation: **IMPORTANT**: Neorg is _alpha_ software. We consider it stable however be prepared for changes and potentially outdated documentation. We are advancing fast and while we are doing our best to keep the documentation up-to-date, this may not always be possible.
+###### :exclamation: **IMPORTANT**: Neorg is young software. We consider it stable however be prepared for occasional breaking workflow changes. Make sure to pin the version of Neorg you'd like to use and only update when you are ready.
 
 ## 🌟 Showcase
 
