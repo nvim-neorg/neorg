@@ -48,12 +48,12 @@
 *** Unordered Lists
 
     @code norg
- 
+
     - List item.
     -- Nested list item
     -- Also nested.
     - Next list item.
- 
+
     @end
 
 *** Ordered Lists
@@ -116,17 +116,17 @@
    @end
 
 *** Styling with a Pipe
-    
+
     As shown in the maths example above, you can use the pipe `\|` to allow arbitrary whitespace within the
     markup. You also don't have to escape backslashes!
-    
+
     @code norg
-    
+
     /   this is not allowed  /
     /|  but this is fine!!   |/
-    
+
     @end
-    
+
 ** Links
 
    *NOTE: attempting to hit enter on the links will not work.*
