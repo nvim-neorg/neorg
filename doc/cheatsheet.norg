@@ -1,0 +1,240 @@
+* Your Quick Neorg Guide
+  This is a cheatsheet that quickly lets you get a grip on the Norg syntax.
+  It is by no means exhaustive, but quickly gets you up to speed.
+
+* Structure
+
+** Headings
+
+   You've already seen them in action in this guide.
+
+   @code norg
+
+   * Heading 1
+   ** Heading 2
+   *** Heading 3
+   **** And so on...
+
+   @end
+
+   Norg supports infinite heading levels, but you'll find that Neorg caps out at six.
+   You can still go higher, but the parser will treat it as if it were a level six heading.
+
+** Reverse Headings
+
+   Need to go back a level? `---` takes you back a single level, while `===` closes all headings.
+
+   @code norg
+
+   * Heading 1
+   ** Heading 2
+      Part of heading 2.
+      ---
+     Part of heading 1.
+
+   *** Heading 3
+   **** Heading 4
+        Part of heading 4.
+        ===
+
+   Not part of any heading.
+
+   @end
+
+** Lists
+
+*** Unordered Lists
+
+    @code norg
+ 
+    - List item.
+    -- Nested list item
+    -- Also nested.
+    - Next list item.
+ 
+    @end
+
+*** Ordered Lists
+
+    @code norg
+
+    ~ List item.
+    ~~ Nested list item.
+    ~~ Also nested.
+    ~ Next list item.
+
+    @end
+
+** Code Blocks
+
+   Run `:Neorg toggle-concealer` to see the raw syntax.
+
+   @code
+   This is literally an empty code block.
+   @end
+
+   @code lua
+   print("If you have the lua treesitter parser installed, this will be highlighted as lua.")
+   print("If not, run `:TSInstall lua`.")
+   @end
+
+* Inline Markup
+
+** Styling
+
+   To see the syntax raw, run `:setlocal conceallevel=0`.
+   Set it back to `2` later for a more concise reading experience :)
+
+   @code norg
+
+   This is *bold*.
+   This is /italic/.
+   This is _underline_.
+   This is -strikethrough-.
+   This is a spoiler: !org-mode is a bozo!, to see the content you either enter insert mode on this line (good luck) or toggle the concealer off.
+   This is a `verbatim object, you can't put *markup* in here!`.
+
+   %This is a comment, and you never see it in your exported output.%
+
+   This is _underline, /italic/ and *-strikethrough bold-*_. Mix and match how you see fit, just make sure
+   you're not trying to put markup inside of a verbatim object!
+
+   @end
+
+   For the mathematical nerds:
+
+   @code norg
+
+   This is ^superscript^ (it won't render properly in Neovim).
+   This is ,subscript,   (same as above).
+   This is inline maths: $f(x) = supports \\LaTeX$, but beware! You have to escape backslashes like in the example.
+   Because of this, you should always use the above syntax for very simple things, and the "rigid"
+   syntax for more complicated expressions: $|\int_0^t d(\ln{S}) = ...|$ (notice the `\|` and the use of single backslashes).
+
+   @end
+
+*** Styling with a Pipe
+    
+    As shown in the maths example above, you can use the pipe `\|` to allow arbitrary whitespace within the
+    markup. You also don't have to escape backslashes!
+    
+    @code norg
+    
+    /   this is not allowed  /
+    /|  but this is fine!!   |/
+    
+    @end
+    
+** Links
+
+   *NOTE: attempting to hit enter on the links will not work.*
+
+*** Links to URLs
+
+    @code norg
+
+    {https://github.com/nvim-neorg/neorg}
+    {file:///home/vhyrro/top-secret.txt} - as long as your OS supports your URI (`file://`) it'll work in Neorg
+
+    @end
+
+*** Links to Objects
+
+    To link to an object, you use its prefix and its name. The name part is
+    *only word and punctuation sensistive*. Case and whitespace are ignored.
+
+    @code norg
+
+    {*** styling, but extended} - valid
+    {*** styling,butextended} - valid
+    {*** styling but extended} - invalid, no `,` punctuation
+
+    @end
+
+*** Links to non-norg Files
+
+    @code norg
+
+    {/ myfile.txt}
+    {/ myfile.txt:43} - line 43 of `myfile.txt`
+
+    @end
+
+*** Links with Descriptions
+
+    @code norg
+
+    {* some heading}[my custom description]
+
+    @end
+
+*** Links to Anything
+
+    Don't care about what object type you're linking to?
+    Just use the `#` character.
+
+    @code norg
+
+    {# anything with this title}
+
+    @end
+
+*** Links across Files
+
+    Take your link but prefix it with `:filename:` (without the `.norg` extension).
+
+    @code norg
+
+    {:dir/file:* Heading in that file}
+    {:$/index.norg:* Heading in that file} - `$` signifies the path of the current workspace
+    {:$notes/index.norg:* Heading in that file} - you can also link to other workspaces
+
+    @end
+
+** Anchors
+
+   It's like links, but the syntax is reversed. Anchors can save you from writing the same thing countless times.
+
+   @code norg
+
+   This is a link to [my site]{https://very.long.link.to.my.boring.site}. `<- Works just like a normal link with a description`
+
+   Be sure to reference [my site] if you're interested! `<- Takes you to the correct site`
+
+   @end
+
+   As long as the name inbetween the square brackets is the same you'll be linked to the correct place.
+
+* Tasks
+
+  You can assign a task status to anything by adding a `|( )|`.
+
+  @code norg
+
+  - ( ) Here's a classical TODO item.
+
+  * (x) Here's a heading with a done TODO state. Curious.
+
+  @end
+
+  All supported states:
+
+  @code norg
+
+  ( ) Undone -> not done yet
+  (x) Done -> done with that
+  (?) Needs further input
+
+  (!) Urgent -> high priority task
+  (+) Recurring task with children
+
+  (-) Pending -> currently in progress
+  (=) Task put on hold
+  (_) Task cancelled (put down)
+
+  @end
+
+  ===
+
+#comment
+vim:tw=100:ft=norg:norl:conceallevel=2:concealcursor=nv:

@@ -34,3 +34,5 @@ neorg-tables	neorg.norg	/  *** Tables
 neorg-tasks	neorg.norg	/  *** Tasks
 neorg-unordered-lists	neorg.norg	/  *** Unordered lists
 neorg-variables	neorg.norg	/  *** Variables
+
+neorg-cheatsheet	cheatsheet.norg	/* Your Quick Neorg Guide
