@@ -214,7 +214,6 @@ module.public = {
                 vim.api.nvim_win_set_cursor(original_window, { location[1] + 1, location[2] })
 
                 if module.config.public.close_after_use then
-
                     vim.api.nvim_buf_delete(ui_buffer, { force = true })
                 end
             end,

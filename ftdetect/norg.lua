@@ -1,5 +1,5 @@
 vim.filetype.add({
-  extension = {
-    norg = "norg",
-  }
+    extension = {
+        norg = "norg",
+    },
 })

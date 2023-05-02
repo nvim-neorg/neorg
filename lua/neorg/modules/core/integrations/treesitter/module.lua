@@ -652,7 +652,7 @@ module.public = {
 
                     result[key_content] = (
                         node:next_named_sibling() and parse_data(node:next_named_sibling()) or vim.NIL
-                        )
+                    )
                 end
             end
         end)
@@ -698,8 +698,11 @@ module.on_event = function(event)
         local ok = pcall(vim.cmd, "TSInstall! norg")
 
         if not ok then
-            neorg.utils.notify([[Unable to install norg parser.
-]], vim.log.levels.WARN)
+            neorg.utils.notify(
+                [[Unable to install norg parser.
+]],
+                vim.log.levels.WARN
+            )
         end
 
         pcall(vim.cmd, "TSInstall! norg_meta")

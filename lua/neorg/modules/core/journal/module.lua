@@ -103,8 +103,7 @@ module.private = {
     ---@param time? number #The time to open the journal entry at as returned by `os.time()`
     ---@param custom_date? string #A YYYY-mm-dd string that specifies a date to open the diary at instead
     open_diary = function(time, custom_date)
-        local workspace = module.config.public.workspace
-            or module.required["core.dirman"].get_current_workspace()[1]
+        local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
         local folder_name = module.config.public.journal_folder
         local template_name = module.config.public.template_name
 
@@ -142,9 +141,7 @@ module.private = {
         if
             not journal_file_exists
             and module.config.public.use_template
-            and module.required["core.dirman"].file_exists(
-                workspace_path .. "/" .. folder_name .. "/" .. template_name
-            )
+            and module.required["core.dirman"].file_exists(workspace_path .. "/" .. folder_name .. "/" .. template_name)
         then
             vim.cmd("0read " .. workspace_path .. "/" .. folder_name .. "/" .. template_name .. "| w")
         end
@@ -179,17 +176,13 @@ module.private = {
 
     --- Opens the toc file
     open_toc = function()
-        local workspace = module.config.public.workspace
-            or module.required["core.dirman"].get_current_workspace()[1]
+        local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
         local index = neorg.modules.get_module_config("core.dirman").index
         local folder_name = module.config.public.journal_folder
 
         -- If the toc exists, open it, if not, create it
         if module.required["core.dirman"].file_exists(folder_name .. neorg.configuration.pathsep .. index) then
-            module.required["core.dirman"].open_file(
-                workspace,
-                folder_name .. neorg.configuration.pathsep .. index
-            )
+            module.required["core.dirman"].open_file(workspace, folder_name .. neorg.configuration.pathsep .. index)
         else
             module.private.create_toc()
         end
@@ -197,8 +190,7 @@ module.private = {
 
     --- Creates or updates the toc file
     create_toc = function()
-        local workspace = module.config.public.workspace
-            or module.required["core.dirman"].get_current_workspace()[1]
+        local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
         local index = neorg.modules.get_module_config("core.dirman").index
         local workspace_path = module.required["core.dirman"].get_workspace(workspace)
         local workspace_name_for_links = module.config.public.workspace or ""
