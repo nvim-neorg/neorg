@@ -13,7 +13,7 @@ local module = neorg.modules.create("core.dirman.utils")
 module.public = {
     expand_path = function(path)
         -- Expand special chars like `$`
-        local custom_workspace_path = path:match("^%$([^/]*)/")
+        local custom_workspace_path = path:match("^%$([^/\\]*)[/\\]")
 
         if custom_workspace_path then
             local dirman = neorg.modules.get_module("core.dirman")
