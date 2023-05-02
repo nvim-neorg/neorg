@@ -1429,9 +1429,8 @@ module.on_event = function(event)
     module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
         or 0
 
-    local function should_debounce()
-        return module.private.debounce_counters[event.cursor_position[1] + 1]
-            >= module.config.public.performance.max_debounce
+    local function should_debounce(start)
+        return module.private.debounce_counters[start + 1] >= module.config.public.performance.max_debounce
     end
 
     local has_conceal = (
@@ -1535,7 +1534,9 @@ module.on_event = function(event)
                     return true
                 end
 
-                if should_debounce() then
+                module.private.debounce_counters[start + 1] = module.private.debounce_counters[start + 1] or 0
+
+                if should_debounce(start) then
                     return
                 end
 
@@ -1550,8 +1551,7 @@ module.on_event = function(event)
                 )
 
                 if mode ~= "i" then
-                    module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
-                        + 1
+                    module.private.debounce_counters[start + 1] = module.private.debounce_counters[start + 1] + 1
 
                     schedule(buf, function()
                         local new_line_count = vim.api.nvim_buf_line_count(buf)
@@ -1582,7 +1582,7 @@ module.on_event = function(event)
                         module.public.trigger_code_block_highlights(buf, has_conceal)
 
                         vim.schedule(function()
-                            module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
+                            module.private.debounce_counters[start + 1] = module.private.debounce_counters[start + 1]
                                 - 1
                         end)
                     end)
@@ -1622,7 +1622,7 @@ module.on_event = function(event)
             )
         end)
     elseif event.type == "core.autocommands.events.insertleave" then
-        if should_debounce() then
+        if should_debounce(event.cursor_position[1]) then
             return
         end
 
