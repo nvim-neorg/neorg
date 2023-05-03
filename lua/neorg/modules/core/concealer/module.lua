@@ -1547,7 +1547,6 @@ module.on_event = function(event)
                 has_conceal = (
                     vim.api.nvim_win_is_valid(event.window)
                         and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
-                    or false
                 )
 
                 if mode ~= "i" then
@@ -1600,10 +1599,8 @@ module.on_event = function(event)
                         module.private.largest_change_end = _end
                     end
 
-                    module.private.largest_change_start = start < module.private.largest_change_start and start
-                        or module.private.largest_change_start
-                    module.private.largest_change_end = _end > module.private.largest_change_end and _end
-                        or module.private.largest_change_end
+                    module.private.largest_change_start = math.min(start, module.private.largest_change_start)
+                    module.private.largest_change_end = math.max(_end, module.private.largest_change_end)
                 end
             end,
         })
