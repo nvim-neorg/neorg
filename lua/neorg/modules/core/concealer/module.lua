@@ -193,179 +193,185 @@ module.public = {
         local tree = module.required["core.integrations.treesitter"].get_document_root(buf)
 
         -- If the tree is valid then attempt to perform the query
-        if tree then
-            -- Query all code blocks
-            local ok, query = pcall(
-                neorg.utils.ts_parse_query,
-                "norg",
-                [[(
-                    (ranged_verbatim_tag (tag_name) @_name) @tag
-                    (#any-of? @_name "code" "embed")
-                )]]
+        if not tree then
+            return
+        end
+
+        -- Query all code blocks
+        local ok, query = pcall(
+            neorg.utils.ts_parse_query,
+            "norg",
+            [[(
+                (ranged_verbatim_tag (tag_name) @_name) @tag
+                (#any-of? @_name "code" "embed")
+            )]]
+        )
+
+        -- If something went wrong then go bye bye
+        if not ok or not query then
+            return
+        end
+
+        local function work_capture(node)
+            -- Get the range of the code block
+            local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+            vim.list_extend(
+                old_extmarks,
+                module.public.get_old_extmarks(
+                    buf,
+                    module.private.code_block_namespace,
+                    range.row_start,
+                    range.row_end
+                )
             )
 
-            -- If something went wrong then go bye bye
-            if not ok or not query then
-                return
-            end
-
-            -- Go through every found capture
-            for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
-                local id_name = query.captures[id]
-
-                -- If the capture name is "tag" then that means we're dealing with our ranged_verbatim_tag
-                if id_name == "tag" then
-                    -- Get the range of the code block
-                    local range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-                    vim.list_extend(
-                        old_extmarks,
-                        module.public.get_old_extmarks(
-                            buf,
-                            module.private.code_block_namespace,
-                            range.row_start,
-                            range.row_end
-                        )
-                    )
-
-                    local function buffer_get_line(buffer, row)
-                        return vim.api.nvim_buf_get_lines(buf, row, row+1, false)[1] or ""
-                    end
-
-                    schedule(buf, function()
-                        local row_arg = (module.config.public.dim_code_blocks.conceal
-                            and range.row_start or range.row_end)
-
-                        pcall(
-                            vim.api.nvim_buf_set_extmark,
-                            buf,
-                            module.private.code_block_namespace,
-                            row_arg,
-                            0,
-                            {
-                                end_col = buffer_get_line(buf, row_arg):len(),
-                                conceal = "",
-                            }
-                        )
-
-                        if
-                            module.config.public.dim_code_blocks.conceal
-                            and module.config.public.dim_code_blocks.adaptive
-                        then
-                            module.config.public.dim_code_blocks.content_only = has_conceal
-                        end
-
-                        if module.config.public.dim_code_blocks.content_only then
-                            range.row_start = range.row_start + 1
-                            range.row_end = range.row_end - 1
-                        end
-
-                        local width = module.config.public.dim_code_blocks.width
-                        local hl_eol = width == "fullwidth"
-
-                        local lines = vim.api.nvim_buf_get_lines(
-                            buf,
-                            range.row_start,
-                            (range.row_end >= vim.api.nvim_buf_line_count(buf) and range.row_start or range.row_end + 1),
-                            false
-                        )
-
-                        local longest_len = 0
-
-                        if width == "content" then
-                            for _, line in ipairs(lines) do
-                                longest_len = math.max(longest_len, vim.api.nvim_strwidth(line))
-                            end
-                        end
-
-                        -- Go through every line in the code block and give it a magical highlight
-                        for i, line in ipairs(lines) do
-                            local linenr = range.row_start + (i - 1)
-                            local line_width = vim.api.nvim_strwidth(line)
-
-                            local function do_set_mark(arg_text, arg_highlight, arg_col)
-                                module.public._set_extmark(
-                                    buf,
-                                    arg_text,
-                                    arg_highlight,
-                                    module.private.code_block_namespace,
-                                    linenr,
-                                    linenr + 1,
-                                    arg_col,
-                                    nil,
-                                    hl_eol,
-                                    "blend",
-                                    nil,
-                                    nil,
-                                    true
-                                )
-                            end
-
-                            -- If our line is valid and it's not too short then apply the dimmed highlight
-                            if line and line:len() >= range.column_start then
-                                do_set_mark(
-                                    nil,
-                                    "@neorg.tags.ranged_verbatim.code_block",
-                                    math.max(range.column_start - module.config.public.dim_code_blocks.padding.left, 0)
-                                )
-
-                                if width == "content" then
-                                    local text_space = (" "):rep(
-                                        longest_len
-                                            - line_width
-                                            + module.config.public.dim_code_blocks.padding.right
-                                    )
-                                    do_set_mark(
-                                        {{
-                                            text_space,
-                                            "@neorg.tags.ranged_verbatim.code_block",
-                                        }},
-                                        nil,
-                                        line_width
-                                    )
-                                end
-                            else
-                                -- There may be scenarios where the line is empty, or the line is shorter than the indentation
-                                -- level of the code block, in that case we place the extmark at the very beginning of the line
-                                -- and pad it with enough spaces to "emulate" the existence of whitespace
-                                local text_space1 = (" "):rep(
-                                    range.column_start
-                                        - module.config.public.dim_code_blocks.padding.left
-                                )
-                                local text_space2 = (" "):rep(
-                                    (longest_len - range.column_start)
-                                        + module.config.public.dim_code_blocks.padding.left
-                                        + module.config.public.dim_code_blocks.padding.right
-                                        - math.max(
-                                            module.config.public.dim_code_blocks.padding.left
-                                                - range.column_start,
-                                            0
-                                        )
-                                )
-                                local text2 = (width == "content"
-                                    and {
-                                        text_space2,
-                                        "@neorg.tags.ranged_verbatim.code_block",
-                                    }
-                                    or nil
-                                )
-                                do_set_mark(
-                                    { { text_space1 }, text2 },
-                                    "@neorg.tags.ranged_verbatim.code_block",
-                                    0
-                                )
-                            end
-                        end
-                    end)
-                end
+            local function buffer_get_line(buffer, row)
+                return vim.api.nvim_buf_get_lines(buf, row, row+1, false)[1] or ""
             end
 
             schedule(buf, function()
-                neorg.lib.map(old_extmarks, function(_, id)
-                    vim.api.nvim_buf_del_extmark(buf, module.private.code_block_namespace, id)
-                end)
+                local row_arg = (module.config.public.dim_code_blocks.conceal
+                    and range.row_start or range.row_end)
+
+                pcall(
+                    vim.api.nvim_buf_set_extmark,
+                    buf,
+                    module.private.code_block_namespace,
+                    row_arg,
+                    0,
+                    {
+                        end_col = buffer_get_line(buf, row_arg):len(),
+                        conceal = "",
+                    }
+                )
+
+                if
+                    module.config.public.dim_code_blocks.conceal
+                    and module.config.public.dim_code_blocks.adaptive
+                then
+                    module.config.public.dim_code_blocks.content_only = has_conceal
+                end
+
+                if module.config.public.dim_code_blocks.content_only then
+                    range.row_start = range.row_start + 1
+                    range.row_end = range.row_end - 1
+                end
+
+                local width = module.config.public.dim_code_blocks.width
+                local hl_eol = width == "fullwidth"
+
+                local lines = vim.api.nvim_buf_get_lines(
+                    buf,
+                    range.row_start,
+                    (range.row_end >= vim.api.nvim_buf_line_count(buf) and range.row_start or range.row_end + 1),
+                    false
+                )
+
+                local longest_len = 0
+
+                if width == "content" then
+                    for _, line in ipairs(lines) do
+                        longest_len = math.max(longest_len, vim.api.nvim_strwidth(line))
+                    end
+                end
+
+                -- Go through every line in the code block and give it a magical highlight
+                for i, line in ipairs(lines) do
+                    local linenr = range.row_start + (i - 1)
+                    local line_width = vim.api.nvim_strwidth(line)
+
+                    local function do_set_mark(arg_text, arg_highlight, arg_col)
+                        module.public._set_extmark(
+                            buf,
+                            arg_text,
+                            arg_highlight,
+                            module.private.code_block_namespace,
+                            linenr,
+                            linenr + 1,
+                            arg_col,
+                            nil,
+                            hl_eol,
+                            "blend",
+                            nil,
+                            nil,
+                            true
+                        )
+                    end
+
+                    -- If our line is valid and it's not too short then apply the dimmed highlight
+                    if line and line:len() >= range.column_start then
+                        do_set_mark(
+                            nil,
+                            "@neorg.tags.ranged_verbatim.code_block",
+                            math.max(range.column_start - module.config.public.dim_code_blocks.padding.left, 0)
+                        )
+
+                        if width == "content" then
+                            local text_space = (" "):rep(
+                                longest_len
+                                    - line_width
+                                    + module.config.public.dim_code_blocks.padding.right
+                            )
+                            do_set_mark(
+                                {{
+                                    text_space,
+                                    "@neorg.tags.ranged_verbatim.code_block",
+                                }},
+                                nil,
+                                line_width
+                            )
+                        end
+                    else
+                        -- There may be scenarios where the line is empty, or the line is shorter than the indentation
+                        -- level of the code block, in that case we place the extmark at the very beginning of the line
+                        -- and pad it with enough spaces to "emulate" the existence of whitespace
+                        local text_space1 = (" "):rep(
+                            range.column_start
+                                - module.config.public.dim_code_blocks.padding.left
+                        )
+                        local text_space2 = (" "):rep(
+                            (longest_len - range.column_start)
+                                + module.config.public.dim_code_blocks.padding.left
+                                + module.config.public.dim_code_blocks.padding.right
+                                - math.max(
+                                    module.config.public.dim_code_blocks.padding.left
+                                        - range.column_start,
+                                    0
+                                )
+                        )
+                        local text2 = (width == "content"
+                            and {
+                                text_space2,
+                                "@neorg.tags.ranged_verbatim.code_block",
+                            }
+                            or nil
+                        )
+                        do_set_mark(
+                            { { text_space1 }, text2 },
+                            "@neorg.tags.ranged_verbatim.code_block",
+                            0
+                        )
+                    end
+                end
             end)
         end
+
+        -- Go through every found capture
+        for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
+            local id_name = query.captures[id]
+
+            -- If the capture name is "tag" then that means we're dealing with our ranged_verbatim_tag
+            if id_name == "tag" then
+                work_capture(node)
+            end
+        end
+
+        schedule(buf, function()
+            neorg.lib.map(old_extmarks, function(_, id)
+                vim.api.nvim_buf_del_extmark(buf, module.private.code_block_namespace, id)
+            end)
+        end)
     end,
 
     --- Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it safer
