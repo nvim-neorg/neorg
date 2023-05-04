@@ -1505,7 +1505,7 @@ module.on_event = function(event)
                         or (block_bottom * module.config.public.performance.increment - 1 >= 0)
                     local block_top_valid = block_top * module.config.public.performance.increment - 1 < line_count
 
-                    if not block_bottom_valid and not block_top_valid then
+                    if not vim.api.nvim_buf_is_loaded(buf) or (not block_bottom_valid and not block_top_valid) then
                         timer:stop()
                         return
                     end
