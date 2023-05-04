@@ -1400,10 +1400,7 @@ module.on_event = function(event)
         return module.private.debounce_counters[start + 1] >= module.config.public.performance.max_debounce
     end
 
-    local has_conceal = (
-        vim.api.nvim_win_is_valid(event.window) and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
-        or false
-    )
+    local has_conceal = vim.api.nvim_win_is_valid(event.window) and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
 
     if event.type == "core.autocommands.events.bufread" and event.content.norg then
         if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
