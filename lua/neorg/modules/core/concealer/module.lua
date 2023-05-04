@@ -81,12 +81,13 @@ module.public = {
     ---@param from? number #The line number to start parsing from (used for incremental updates)
     ---@param to? number #The line number to keep parsing to (used for incremental updates)
     trigger_icons = function(buf, has_conceal, icon_set, namespace, from, to)
+        local treesitter_module = module.required["core.integrations.treesitter"]
         -- Get old extmarks - this is done to reduce visual glitches; all old extmarks are stored,
         -- the new extmarks are applied on top of the old ones, then the old ones are deleted.
         local old_extmarks = module.public.get_old_extmarks(buf, namespace, from, to and to - 1)
 
         -- Get the root node of the document (required to iterate over query captures)
-        local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
+        local document_root = treesitter_module.get_document_root(buf)
 
         if not document_root then
             return
@@ -99,8 +100,8 @@ module.public = {
             end
 
             -- Extract both the text and the range of the node
-            local text = module.required["core.integrations.treesitter"].get_node_text(node, buf)
-            local range = module.required["core.integrations.treesitter"].get_node_range(node)
+            local text = treesitter_module.get_node_text(node, buf)
+            local range = treesitter_module.get_node_range(node)
 
             -- Set the offset to 0 here. The offset is a special value that, well, offsets
             -- the location of the icon column-wise
@@ -108,30 +109,22 @@ module.public = {
             -- A prime example of this is the todo item, whose content looks like this: "[x]".
             -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
             -- to use an offset of 1 to start the icon at the "x"
-            local offset = 0
-
             -- The extract function is used exactly to calculate this offset
             -- If that function is present then run it and grab the return value
-            if icon_data.extract then
-                offset = icon_data.extract(text, node) or 0
-            end
+            local offset = icon_data.extract and icon_data.extract(text, node) or 0
 
             -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
             -- This is primarily used in nested quotes
             -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
             local icon = icon_data.render and icon_data:render(text, node) or icon_data.icon
-            module.public._set_extmark(
-                buf,
-                icon,
-                icon_data.highlight,
-                namespace,
-                range.row_start,
-                range.row_end,
-                range.column_start + offset,
-                range.column_end,
-                false,
-                "combine"
-            )
+            module.public._set_extmark(buf, namespace, range.row_start, range.column_start + offset, false, {
+                virt_text=icon,
+                hl_group=icon_data.highlight,
+                end_row = range.row_end,
+                end_col=range.column_end,
+                hl_eol=false,
+                hl_mode="combine",
+            })
         end
 
         -- Loop through all icons that the user has enabled
@@ -222,21 +215,14 @@ module.public = {
             local width = module.config.public.dim_code_blocks.width
             local hl_eol = width == "fullwidth"
 
-            module.public._set_extmark(
-                buf,
-                arg_text,
-                arg_highlight,
-                module.private.code_block_namespace,
-                linenr,
-                linenr + 1,
-                arg_col,
-                nil,
-                hl_eol,
-                "blend",
-                nil,
-                nil,
-                true
-            )
+            module.public._set_extmark(buf, module.private.code_block_namespace, linenr, arg_col, true, {
+                virt_text=text,
+                hl_group=highlight,
+                end_row=linenr+1,
+                end_col=nil,
+                hl_eol=hl_eol,
+                hl_mode="blend",
+            })
         end
 
         local function do_line(line, linenr, range)
@@ -244,6 +230,7 @@ module.public = {
 
             -- If our line is valid and it's not too short then apply the dimmed highlight
             if line and line:len() >= range.column_start then
+        --local function do_set_mark(arg_text, arg_highlight, linenr, arg_col)
                 do_set_mark(
                     nil,
                     "@neorg.tags.ranged_verbatim.code_block",
@@ -321,14 +308,16 @@ module.public = {
                     and range.row_start or range.row_end)
 
                 pcall(
-                    vim.api.nvim_buf_set_extmark,
+                    module.public._set_extmark,
                     buf,
                     module.private.code_block_namespace,
                     row_arg,
                     0,
+                    false,
                     {
                         end_col = buffer_get_line(buf, row_arg):len(),
                         conceal = "",
+                        virt_text_pos = "eol",  -- vim default
                     }
                 )
 
@@ -385,53 +374,23 @@ module.public = {
     end,
 
     --- Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it safer
-    ---@param text string|table #The virtual text to overlay (usually the icon)
-    ---@param highlight string #The name of a highlight to use for the icon
-    ---@param line_number number #The line number to apply the extmark in
-    ---@param end_line number #The last line number to apply the extmark to (useful if you want an extmark to exist for more than one line)
-    ---@param start_column number #The start column of the conceal
-    ---@param end_column number #The end column of the conceal
-    ---@param whole_line boolean #If true will highlight the whole line (like in diffs)
-    ---@param mode string #"replace"/"combine"/"blend" - the highlight mode for the extmark
-    ---@param pos string #"overlay"/"eol"/"right_align" - the position to place the extmark in (defaults to "overlay")
-    ---@param conceal string #The char to use for concealing
+    ---@param opts.virt_text string|table #The virtual text to overlay (usually the icon)
+    ---@param opts.hl_group string #The name of a highlight to use for the icon
     ---@param fixed boolean #When true the extmark will not move
-    _set_extmark = function(
-        buf,
-        text,
-        highlight,
-        ns,
-        line_number,
-        end_line,
-        start_column,
-        end_column,
-        whole_line,
-        mode,
-        pos,
-        conceal,
-        fixed
-    )
+
+    _set_extmark = function(buf, ns, line, col, fixed, opts)
         if not vim.api.nvim_buf_is_loaded(buf) then
             return
         end
 
-        -- If the text type is a string then convert it into something that Neovim's extmark API can understand
-        if type(text) == "string" then
-            text = { { text, highlight } }
+        if type(opts.virt_text) == "string" then
+            opts.virt_text = { { opts.virt_text, opts.hl_group } }
         end
 
-        -- Attempt to call vim.api.nvim_buf_set_extmark with all the parameters
-        pcall(vim.api.nvim_buf_set_extmark, buf, ns, line_number, start_column, {
-            end_col = end_column,
-            hl_group = highlight,
-            end_row = end_line,
-            virt_text = text,
-            virt_text_pos = pos or "overlay",
-            virt_text_win_col = (fixed and start_column or nil),
-            hl_mode = mode,
-            hl_eol = whole_line,
-            conceal = conceal,
-        })
+        opts.virt_text_pos = opts.virt_text_pos or "overlay"
+        opts.virt_text_win_col = (fixed and col or nil)
+
+        pcall(vim.api.nvim_buf_set_extmark, buf, ns, line, col, opts)
     end,
 
     --- Gets the already present extmarks in a buffer
