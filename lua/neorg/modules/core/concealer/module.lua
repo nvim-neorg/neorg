@@ -38,6 +38,10 @@ local function table_set_default(tbl, k, v)
     tbl[k] = tbl[k] or v
 end
 
+local function buffer_get_line(buffer, row)
+    return vim.api.nvim_buf_get_lines(buffer, row, row+1, false)[1] or ""
+end
+
 module.setup = function()
     return {
         success = true,
@@ -74,6 +78,32 @@ module.private = {
     attach_uid = 0,
 }
 
+local function logging(tag, ...)
+    local func_name = debug.getinfo(2, "n")["name"]
+    local n_arg = select("#", ...)
+    local args = {...}
+    for i = 1,n_arg do
+        args[i] = tostring(args[i])
+    end
+    print('[logging]', tag, func_name.."("..table.concat(args,", ")..")")
+end
+
+local function table_tostring_shallow(tbl)
+    local args = {}
+    for k,v in pairs(tbl) do
+        args[#args+1] = k .. '=' .. tostring(v)
+    end
+    return table.concat(args, ", ")
+end
+
+local function logging_named(tag, tbl)
+    local args = {}
+    for k,v in pairs(tbl) do
+        args[#args+1] = k .. '=' .. tostring(v)
+    end
+    return logging(tag, table_tostring_shallow(tbl))
+end
+
 ---@class core.concealer
 module.public = {
 
@@ -85,6 +115,8 @@ module.public = {
     ---@param from? number #The line number to start parsing from (used for incremental updates)
     ---@param to? number #The line number to keep parsing to (used for incremental updates)
     trigger_icons = function(buf, has_conceal, icon_set, namespace, from, to)
+        logging('entering', buf, has_conceal, icon_set, namespace, from, to)
+
         local treesitter_module = module.required["core.integrations.treesitter"]
         -- Get old extmarks - this is done to reduce visual glitches; all old extmarks are stored,
         -- the new extmarks are applied on top of the old ones, then the old ones are deleted.
@@ -211,17 +243,13 @@ module.public = {
             return
         end
 
-        local function buffer_get_line(buffer, row)
-            return vim.api.nvim_buf_get_lines(buf, row, row+1, false)[1] or ""
-        end
-
         local function do_set_mark(arg_text, arg_highlight, linenr, arg_col)
             local width = module.config.public.dim_code_blocks.width
             local hl_eol = width == "fullwidth"
 
             module.public._set_extmark(buf, module.private.code_block_namespace, linenr, arg_col, true, {
-                virt_text=text,
-                hl_group=highlight,
+                virt_text=arg_text,
+                hl_group=arg_highlight,
                 end_row=linenr+1,
                 end_col=nil,
                 hl_eol=hl_eol,
