@@ -34,6 +34,10 @@ local function schedule(buffer, func)
     end)
 end
 
+local function table_set_default(tbl, k, v)
+    tbl[k] = tbl[k] or v
+end
+
 module.setup = function()
     return {
         success = true,
@@ -230,7 +234,6 @@ module.public = {
 
             -- If our line is valid and it's not too short then apply the dimmed highlight
             if line and line:len() >= range.column_start then
-        --local function do_set_mark(arg_text, arg_highlight, linenr, arg_col)
                 do_set_mark(
                     nil,
                     "@neorg.tags.ranged_verbatim.code_block",
@@ -1269,7 +1272,7 @@ module.load = function()
         local result = {}
 
         -- If the current table isn't enabled then don't parser any further - simply return the empty result
-        if vim.tbl_isempty(tbl) or (tbl.enabled ~= nil and tbl.enabled == false) then
+        if vim.tbl_isempty(tbl) or (tbl.enabled == false) then
             return result
         end
 
@@ -1277,18 +1280,16 @@ module.load = function()
         for name, icons in pairs(tbl) do
             -- If we're dealing with a table (which we should be) and if the current icon set is enabled then
             if type(icons) == "table" and icons.enabled then
+                local new_name = rec_name .. name
                 -- If we have defined a query value then add that icon to the result
                 if icons.query then
-                    result[rec_name .. name] = icons
-
-                    if icons.icon == nil then
-                        result[rec_name .. name].icon = parent_icon
-                    end
+                    table_set_default(icons, "icon", parent_icon)
+                    result[new_name] = icons
                 else
                     -- If we don't have an icon variable then we need to descend further down the lua table.
                     -- To do this we recursively call this very function and merge the results into the result table
                     result =
-                        vim.tbl_deep_extend("force", result, get_enabled_icons(icons, parent_icon, rec_name .. name))
+                        vim.tbl_deep_extend("force", result, get_enabled_icons(icons, parent_icon, new_name))
                 end
             end
         end
@@ -1347,10 +1348,6 @@ module.on_event = function(event)
 
     if not module.private.enabled then
         return
-    end
-
-    local function table_set_default(tbl, k, v)
-        tbl[k] = tbl[k] or v
     end
 
     table_set_default(module.private.debounce_counters, event.cursor_position[1] + 1, 0)
