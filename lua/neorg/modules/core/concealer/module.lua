@@ -1402,19 +1402,23 @@ module.on_event = function(event)
 
     local has_conceal = vim.api.nvim_win_is_valid(event.window) and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
 
+    local function set_fold_opts(win)
+        local opts = {
+            scope = "local",
+            win = win,
+        }
+        vim.api.nvim_set_option_value("foldmethod", "expr", opts)
+        vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
+        vim.api.nvim_set_option_value(
+            "foldtext",
+            "v:lua.neorg.modules.get_module('core.concealer').foldtext()",
+            opts
+        )
+    end
+
     if event.type == "core.autocommands.events.bufread" and event.content.norg then
         if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
-            local opts = {
-                scope = "local",
-                win = event.window,
-            }
-            vim.api.nvim_set_option_value("foldmethod", "expr", opts)
-            vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
-            vim.api.nvim_set_option_value(
-                "foldtext",
-                "v:lua.neorg.modules.get_module('core.concealer').foldtext()",
-                opts
-            )
+            set_fold_opts(event.window)
         end
 
         local buf = event.buffer
@@ -1461,29 +1465,31 @@ module.on_event = function(event)
 
             local timer = vim.loop.new_timer()
 
+            local function do_timer()
+                local block_bottom_valid = block_bottom == 0
+                    or (block_bottom * module.config.public.performance.increment - 1 >= 0)
+                local block_top_valid = block_top * module.config.public.performance.increment - 1 < line_count
+
+                if not block_bottom_valid and not block_top_valid then
+                    timer:stop()
+                    return
+                end
+
+                if block_bottom_valid then
+                    trigger_conceals_for_block(block_bottom)
+                    block_bottom = block_bottom - 1
+                end
+
+                if block_top_valid then
+                    trigger_conceals_for_block(block_top)
+                    block_top = block_top + 1
+                end
+            end
+
             timer:start(
                 module.config.public.performance.timeout,
                 module.config.public.performance.interval,
-                vim.schedule_wrap(function()
-                    local block_bottom_valid = block_bottom == 0
-                        or (block_bottom * module.config.public.performance.increment - 1 >= 0)
-                    local block_top_valid = block_top * module.config.public.performance.increment - 1 < line_count
-
-                    if not block_bottom_valid and not block_top_valid then
-                        timer:stop()
-                        return
-                    end
-
-                    if block_bottom_valid then
-                        trigger_conceals_for_block(block_bottom)
-                        block_bottom = block_bottom - 1
-                    end
-
-                    if block_top_valid then
-                        trigger_conceals_for_block(block_top)
-                        block_top = block_top + 1
-                    end
-                end)
+                vim.schedule_wrap(do_timer)
             )
         end
 
