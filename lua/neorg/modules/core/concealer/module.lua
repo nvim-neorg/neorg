@@ -92,6 +92,48 @@ module.public = {
             return
         end
 
+        local function work_capture(node, icon_data)
+            local rs, _, re = node:range()
+            if rs < (from or 0) or re > (to or math.huge) then
+                return
+            end
+
+            -- Extract both the text and the range of the node
+            local text = module.required["core.integrations.treesitter"].get_node_text(node, buf)
+            local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+            -- Set the offset to 0 here. The offset is a special value that, well, offsets
+            -- the location of the icon column-wise
+            -- It's used in scenarios where the node spans more than what we want to iconify.
+            -- A prime example of this is the todo item, whose content looks like this: "[x]".
+            -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
+            -- to use an offset of 1 to start the icon at the "x"
+            local offset = 0
+
+            -- The extract function is used exactly to calculate this offset
+            -- If that function is present then run it and grab the return value
+            if icon_data.extract then
+                offset = icon_data.extract(text, node) or 0
+            end
+
+            -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
+            -- This is primarily used in nested quotes
+            -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
+            local icon = icon_data.render and icon_data:render(text, node) or icon_data.icon
+            module.public._set_extmark(
+                buf,
+                icon,
+                icon_data.highlight,
+                namespace,
+                range.row_start,
+                range.row_end,
+                range.column_start + offset,
+                range.column_end,
+                false,
+                "combine"
+            )
+        end
+
         -- Loop through all icons that the user has enabled
         for _, icon_data in ipairs(icon_set) do
             schedule(buf, function()
@@ -113,7 +155,6 @@ module.public = {
                 -- we also want to support special captures and predicates like `(#has-parent?)`
                 for id, node in query:iter_captures(document_root, buf, from or 0, to or -1) do
                     local capture = query.captures[id]
-                    local rs, _, re = node:range()
 
                     -- If the node has a `no-conceal` capture name then omit it
                     -- when rendering icons.
@@ -122,47 +163,8 @@ module.public = {
                     end
 
                     if capture == "icon" and not nodes_to_omit[node:id()] then
-                        if rs < (from or 0) or re > (to or math.huge) then
-                            goto continue
-                        end
-
-                        -- Extract both the text and the range of the node
-                        local text = module.required["core.integrations.treesitter"].get_node_text(node, buf)
-                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-                        -- Set the offset to 0 here. The offset is a special value that, well, offsets
-                        -- the location of the icon column-wise
-                        -- It's used in scenarios where the node spans more than what we want to iconify.
-                        -- A prime example of this is the todo item, whose content looks like this: "[x]".
-                        -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
-                        -- to use an offset of 1 to start the icon at the "x"
-                        local offset = 0
-
-                        -- The extract function is used exactly to calculate this offset
-                        -- If that function is present then run it and grab the return value
-                        if icon_data.extract then
-                            offset = icon_data.extract(text, node) or 0
-                        end
-
-                        -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
-                        -- This is primarily used in nested quotes
-                        -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
-                        local icon = icon_data.render and icon_data:render(text, node) or icon_data.icon
-                        module.public._set_extmark(
-                            buf,
-                            icon,
-                            icon_data.highlight,
-                            namespace,
-                            range.row_start,
-                            range.row_end,
-                            range.column_start + offset,
-                            range.column_end,
-                            false,
-                            "combine"
-                        )
+                        work_capture(node, icon_data)
                     end
-
-                    ::continue::
                 end
             end)
         end
@@ -212,6 +214,93 @@ module.public = {
             return
         end
 
+        local function buffer_get_line(buffer, row)
+            return vim.api.nvim_buf_get_lines(buf, row, row+1, false)[1] or ""
+        end
+
+        local function do_set_mark(arg_text, arg_highlight, linenr, arg_col)
+            local width = module.config.public.dim_code_blocks.width
+            local hl_eol = width == "fullwidth"
+
+            module.public._set_extmark(
+                buf,
+                arg_text,
+                arg_highlight,
+                module.private.code_block_namespace,
+                linenr,
+                linenr + 1,
+                arg_col,
+                nil,
+                hl_eol,
+                "blend",
+                nil,
+                nil,
+                true
+            )
+        end
+
+        local function do_line(line, linenr, range)
+            local line_width = vim.api.nvim_strwidth(line)
+
+            -- If our line is valid and it's not too short then apply the dimmed highlight
+            if line and line:len() >= range.column_start then
+                do_set_mark(
+                    nil,
+                    "@neorg.tags.ranged_verbatim.code_block",
+                    linenr,
+                    math.max(range.column_start - module.config.public.dim_code_blocks.padding.left, 0)
+                )
+
+                if width == "content" then
+                    local text_space = (" "):rep(
+                        longest_len
+                            - line_width
+                            + module.config.public.dim_code_blocks.padding.right
+                    )
+                    do_set_mark(
+                        {{
+                            text_space,
+                            "@neorg.tags.ranged_verbatim.code_block",
+                        }},
+                        nil,
+                        linenr,
+                        line_width
+                    )
+                end
+            else
+                -- There may be scenarios where the line is empty, or the line is shorter than the indentation
+                -- level of the code block, in that case we place the extmark at the very beginning of the line
+                -- and pad it with enough spaces to "emulate" the existence of whitespace
+                local text_space1 = (" "):rep(
+                    range.column_start
+                        - module.config.public.dim_code_blocks.padding.left
+                )
+                local text_space2 = (" "):rep(
+                    (longest_len - range.column_start)
+                        + module.config.public.dim_code_blocks.padding.left
+                        + module.config.public.dim_code_blocks.padding.right
+                        - math.max(
+                            module.config.public.dim_code_blocks.padding.left
+                                - range.column_start,
+                            0
+                        )
+                )
+                local text2 = (width == "content"
+                    and {
+                        text_space2,
+                        "@neorg.tags.ranged_verbatim.code_block",
+                    }
+                    or nil
+                )
+                do_set_mark(
+                    { { text_space1 }, text2 },
+                    "@neorg.tags.ranged_verbatim.code_block",
+                    linenr,
+                    0
+                )
+            end
+        end
+
         local function work_capture(node)
             -- Get the range of the code block
             local range = module.required["core.integrations.treesitter"].get_node_range(node)
@@ -226,9 +315,6 @@ module.public = {
                 )
             )
 
-            local function buffer_get_line(buffer, row)
-                return vim.api.nvim_buf_get_lines(buf, row, row+1, false)[1] or ""
-            end
 
             schedule(buf, function()
                 local row_arg = (module.config.public.dim_code_blocks.conceal
@@ -258,9 +344,6 @@ module.public = {
                     range.row_end = range.row_end - 1
                 end
 
-                local width = module.config.public.dim_code_blocks.width
-                local hl_eol = width == "fullwidth"
-
                 local lines = vim.api.nvim_buf_get_lines(
                     buf,
                     range.row_start,
@@ -279,80 +362,7 @@ module.public = {
                 -- Go through every line in the code block and give it a magical highlight
                 for i, line in ipairs(lines) do
                     local linenr = range.row_start + (i - 1)
-                    local line_width = vim.api.nvim_strwidth(line)
-
-                    local function do_set_mark(arg_text, arg_highlight, arg_col)
-                        module.public._set_extmark(
-                            buf,
-                            arg_text,
-                            arg_highlight,
-                            module.private.code_block_namespace,
-                            linenr,
-                            linenr + 1,
-                            arg_col,
-                            nil,
-                            hl_eol,
-                            "blend",
-                            nil,
-                            nil,
-                            true
-                        )
-                    end
-
-                    -- If our line is valid and it's not too short then apply the dimmed highlight
-                    if line and line:len() >= range.column_start then
-                        do_set_mark(
-                            nil,
-                            "@neorg.tags.ranged_verbatim.code_block",
-                            math.max(range.column_start - module.config.public.dim_code_blocks.padding.left, 0)
-                        )
-
-                        if width == "content" then
-                            local text_space = (" "):rep(
-                                longest_len
-                                    - line_width
-                                    + module.config.public.dim_code_blocks.padding.right
-                            )
-                            do_set_mark(
-                                {{
-                                    text_space,
-                                    "@neorg.tags.ranged_verbatim.code_block",
-                                }},
-                                nil,
-                                line_width
-                            )
-                        end
-                    else
-                        -- There may be scenarios where the line is empty, or the line is shorter than the indentation
-                        -- level of the code block, in that case we place the extmark at the very beginning of the line
-                        -- and pad it with enough spaces to "emulate" the existence of whitespace
-                        local text_space1 = (" "):rep(
-                            range.column_start
-                                - module.config.public.dim_code_blocks.padding.left
-                        )
-                        local text_space2 = (" "):rep(
-                            (longest_len - range.column_start)
-                                + module.config.public.dim_code_blocks.padding.left
-                                + module.config.public.dim_code_blocks.padding.right
-                                - math.max(
-                                    module.config.public.dim_code_blocks.padding.left
-                                        - range.column_start,
-                                    0
-                                )
-                        )
-                        local text2 = (width == "content"
-                            and {
-                                text_space2,
-                                "@neorg.tags.ranged_verbatim.code_block",
-                            }
-                            or nil
-                        )
-                        do_set_mark(
-                            { { text_space1 }, text2 },
-                            "@neorg.tags.ranged_verbatim.code_block",
-                            0
-                        )
-                    end
+                    do_line(line, linenr, range)
                 end
             end)
         end
