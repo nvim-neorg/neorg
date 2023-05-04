@@ -95,87 +95,74 @@ module.public = {
         -- Loop through all icons that the user has enabled
         for _, icon_data in ipairs(icon_set) do
             schedule(buf, function()
-                if icon_data.query then
-                    -- Attempt to parse the query provided by `icon_data.query`
-                    -- A query must have at least one capture, e.g. "(test_node) @icon"
-                    local query = neorg.utils.ts_parse_query("norg", icon_data.query)
+                if not icon_data.query then
+                    return
+                end
+                -- Attempt to parse the query provided by `icon_data.query`
+                -- A query must have at least one capture, e.g. "(test_node) @icon"
+                local query = neorg.utils.ts_parse_query("norg", icon_data.query)
 
-                    -- This is a mapping of [id] = to_omit pairs, where `id` is a treesitter
-                    -- node's id and `to_omit` is a boolean.
-                    -- The reason we do this is because some nodes should not be iconified
-                    -- if `conceallevel` > 2.
-                    local nodes_to_omit = {}
+                -- This is a mapping of [id] = to_omit pairs, where `id` is a treesitter
+                -- node's id and `to_omit` is a boolean.
+                -- The reason we do this is because some nodes should not be iconified
+                -- if `conceallevel` > 2.
+                local nodes_to_omit = {}
 
-                    -- Go through every found node and try to apply an icon to it
-                    -- The reason `iter_prepared_matches` and other `nvim-treesitter` functions are used here is because
-                    -- we also want to support special captures and predicates like `(#has-parent?)`
-                    for id, node in query:iter_captures(document_root, buf, from or 0, to or -1) do
-                        local capture = query.captures[id]
-                        local rs, _, re = node:range()
+                -- Go through every found node and try to apply an icon to it
+                -- The reason `iter_prepared_matches` and other `nvim-treesitter` functions are used here is because
+                -- we also want to support special captures and predicates like `(#has-parent?)`
+                for id, node in query:iter_captures(document_root, buf, from or 0, to or -1) do
+                    local capture = query.captures[id]
+                    local rs, _, re = node:range()
 
-                        -- If the node has a `no-conceal` capture name then omit it
-                        -- when rendering icons.
-                        if capture == "no-conceal" and has_conceal then
-                            nodes_to_omit[node:id()] = true
-                        end
-
-                        if capture == "icon" and not nodes_to_omit[node:id()] then
-                            if rs < (from or 0) or re > (to or math.huge) then
-                                goto continue
-                            end
-
-                            -- Extract both the text and the range of the node
-                            local text = module.required["core.integrations.treesitter"].get_node_text(node, buf)
-                            local range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-                            -- Set the offset to 0 here. The offset is a special value that, well, offsets
-                            -- the location of the icon column-wise
-                            -- It's used in scenarios where the node spans more than what we want to iconify.
-                            -- A prime example of this is the todo item, whose content looks like this: "[x]".
-                            -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
-                            -- to use an offset of 1 to start the icon at the "x"
-                            local offset = 0
-
-                            -- The extract function is used exactly to calculate this offset
-                            -- If that function is present then run it and grab the return value
-                            if icon_data.extract then
-                                offset = icon_data.extract(text, node) or 0
-                            end
-
-                            -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
-                            -- This is primarily used in nested quotes
-                            -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
-                            if not icon_data.render then
-                                module.public._set_extmark(
-                                    buf,
-                                    icon_data.icon,
-                                    icon_data.highlight,
-                                    namespace,
-                                    range.row_start,
-                                    range.row_end,
-                                    range.column_start + offset,
-                                    range.column_end,
-                                    false,
-                                    "combine"
-                                )
-                            else
-                                module.public._set_extmark(
-                                    buf,
-                                    icon_data:render(text, node),
-                                    icon_data.highlight,
-                                    namespace,
-                                    range.row_start,
-                                    range.row_end,
-                                    range.column_start + offset,
-                                    range.column_end,
-                                    false,
-                                    "combine"
-                                )
-                            end
-                        end
-
-                        ::continue::
+                    -- If the node has a `no-conceal` capture name then omit it
+                    -- when rendering icons.
+                    if capture == "no-conceal" and has_conceal then
+                        nodes_to_omit[node:id()] = true
                     end
+
+                    if capture == "icon" and not nodes_to_omit[node:id()] then
+                        if rs < (from or 0) or re > (to or math.huge) then
+                            goto continue
+                        end
+
+                        -- Extract both the text and the range of the node
+                        local text = module.required["core.integrations.treesitter"].get_node_text(node, buf)
+                        local range = module.required["core.integrations.treesitter"].get_node_range(node)
+
+                        -- Set the offset to 0 here. The offset is a special value that, well, offsets
+                        -- the location of the icon column-wise
+                        -- It's used in scenarios where the node spans more than what we want to iconify.
+                        -- A prime example of this is the todo item, whose content looks like this: "[x]".
+                        -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
+                        -- to use an offset of 1 to start the icon at the "x"
+                        local offset = 0
+
+                        -- The extract function is used exactly to calculate this offset
+                        -- If that function is present then run it and grab the return value
+                        if icon_data.extract then
+                            offset = icon_data.extract(text, node) or 0
+                        end
+
+                        -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
+                        -- This is primarily used in nested quotes
+                        -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
+                        local icon = icon_data.render and icon_data:render(text, node) or icon_data.icon
+                        module.public._set_extmark(
+                            buf,
+                            icon,
+                            icon_data.highlight,
+                            namespace,
+                            range.row_start,
+                            range.row_end,
+                            range.column_start + offset,
+                            range.column_end,
+                            false,
+                            "combine"
+                        )
+                    end
+
+                    ::continue::
                 end
             end)
         end
@@ -241,39 +228,25 @@ module.public = {
                         )
                     )
 
+                    local function buffer_get_line(buffer, row)
+                        return vim.api.nvim_buf_get_lines(buf, row, row+1, false)[1] or ""
+                    end
+
                     schedule(buf, function()
-                        if module.config.public.dim_code_blocks.conceal then
-                            pcall(
-                                vim.api.nvim_buf_set_extmark,
-                                buf,
-                                module.private.code_block_namespace,
-                                range.row_start,
-                                0,
-                                {
-                                    end_col = (vim.api.nvim_buf_get_lines(
-                                        buf,
-                                        range.row_start,
-                                        range.row_start + 1,
-                                        false
-                                    )[1] or ""):len(),
-                                    conceal = "",
-                                }
-                            )
-                            pcall(
-                                vim.api.nvim_buf_set_extmark,
-                                buf,
-                                module.private.code_block_namespace,
-                                range.row_end,
-                                0,
-                                {
-                                    end_col = (
-                                        vim.api.nvim_buf_get_lines(buf, range.row_end, range.row_end + 1, false)[1]
-                                        or ""
-                                    ):len(),
-                                    conceal = "",
-                                }
-                            )
-                        end
+                        local row_arg = (module.config.public.dim_code_blocks.conceal
+                            and range.row_start or range.row_end)
+
+                        pcall(
+                            vim.api.nvim_buf_set_extmark,
+                            buf,
+                            module.private.code_block_namespace,
+                            row_arg,
+                            0,
+                            {
+                                end_col = buffer_get_line(buf, row_arg):len(),
+                                conceal = "",
+                            }
+                        )
 
                         if
                             module.config.public.dim_code_blocks.conceal
@@ -310,16 +283,15 @@ module.public = {
                             local linenr = range.row_start + (i - 1)
                             local line_width = vim.api.nvim_strwidth(line)
 
-                            -- If our line is valid and it's not too short then apply the dimmed highlight
-                            if line and line:len() >= range.column_start then
+                            local function do_set_mark(arg_text, arg_highlight, arg_col)
                                 module.public._set_extmark(
                                     buf,
-                                    nil,
-                                    "@neorg.tags.ranged_verbatim.code_block",
+                                    arg_text,
+                                    arg_highlight,
                                     module.private.code_block_namespace,
                                     linenr,
                                     linenr + 1,
-                                    math.max(range.column_start - module.config.public.dim_code_blocks.padding.left, 0),
+                                    arg_col,
                                     nil,
                                     hl_eol,
                                     "blend",
@@ -327,84 +299,60 @@ module.public = {
                                     nil,
                                     true
                                 )
+                            end
+
+                            -- If our line is valid and it's not too short then apply the dimmed highlight
+                            if line and line:len() >= range.column_start then
+                                do_set_mark(
+                                    nil,
+                                    "@neorg.tags.ranged_verbatim.code_block",
+                                    math.max(range.column_start - module.config.public.dim_code_blocks.padding.left, 0)
+                                )
 
                                 if width == "content" then
-                                    module.public._set_extmark(
-                                        buf,
-                                        {
-                                            {
-                                                string.rep(
-                                                    " ",
-                                                    longest_len
-                                                        - line_width
-                                                        + module.config.public.dim_code_blocks.padding.right
-                                                ),
-                                                "@neorg.tags.ranged_verbatim.code_block",
-                                            },
-                                        },
+                                    local text_space = (" "):rep(
+                                        longest_len
+                                            - line_width
+                                            + module.config.public.dim_code_blocks.padding.right
+                                    )
+                                    do_set_mark(
+                                        {{
+                                            text_space,
+                                            "@neorg.tags.ranged_verbatim.code_block",
+                                        }},
                                         nil,
-                                        module.private.code_block_namespace,
-                                        linenr,
-                                        linenr + 1,
-                                        line_width,
-                                        nil,
-                                        hl_eol,
-                                        "blend",
-                                        nil,
-                                        nil,
-                                        true
+                                        line_width
                                     )
                                 end
                             else
                                 -- There may be scenarios where the line is empty, or the line is shorter than the indentation
                                 -- level of the code block, in that case we place the extmark at the very beginning of the line
                                 -- and pad it with enough spaces to "emulate" the existence of whitespace
-                                module.public._set_extmark(
-                                    buf,
-                                    {
-                                        {
-                                            string.rep(
-                                                " ",
-                                                math.max(
-                                                    range.column_start
-                                                        - module.config.public.dim_code_blocks.padding.left,
-                                                    0
-                                                )
-                                            ),
-                                        },
-                                        (
-                                            width == "content"
-                                                and {
-                                                    string.rep(
-                                                        " ",
-                                                        math.max(
-                                                            (longest_len - range.column_start)
-                                                                + module.config.public.dim_code_blocks.padding.left
-                                                                + module.config.public.dim_code_blocks.padding.right
-                                                                - math.max(
-                                                                    module.config.public.dim_code_blocks.padding.left
-                                                                        - range.column_start,
-                                                                    0
-                                                                ),
-                                                            0
-                                                        )
-                                                    ),
-                                                    "@neorg.tags.ranged_verbatim.code_block",
-                                                }
-                                            or nil
-                                        ),
-                                    },
+                                local text_space1 = (" "):rep(
+                                    range.column_start
+                                        - module.config.public.dim_code_blocks.padding.left
+                                )
+                                local text_space2 = (" "):rep(
+                                    (longest_len - range.column_start)
+                                        + module.config.public.dim_code_blocks.padding.left
+                                        + module.config.public.dim_code_blocks.padding.right
+                                        - math.max(
+                                            module.config.public.dim_code_blocks.padding.left
+                                                - range.column_start,
+                                            0
+                                        )
+                                )
+                                local text2 = (width == "content"
+                                    and {
+                                        text_space2,
+                                        "@neorg.tags.ranged_verbatim.code_block",
+                                    }
+                                    or nil
+                                )
+                                do_set_mark(
+                                    { { text_space1 }, text2 },
                                     "@neorg.tags.ranged_verbatim.code_block",
-                                    module.private.code_block_namespace,
-                                    linenr,
-                                    linenr + 1,
-                                    0,
-                                    nil,
-                                    hl_eol,
-                                    "blend",
-                                    nil,
-                                    nil,
-                                    true
+                                    0
                                 )
                             end
                         end
@@ -1426,8 +1374,11 @@ module.on_event = function(event)
         return
     end
 
-    module.private.debounce_counters[event.cursor_position[1] + 1] = module.private.debounce_counters[event.cursor_position[1] + 1]
-        or 0
+    local function table_set_default(tbl, k, v)
+        tbl[k] = tbl[k] or v
+    end
+
+    table_set_default(module.private.debounce_counters, event.cursor_position[1] + 1, 0)
 
     local function should_debounce(start)
         return module.private.debounce_counters[start + 1] >= module.config.public.performance.max_debounce
@@ -1526,84 +1477,84 @@ module.on_event = function(event)
         module.private.attach_uid = module.private.attach_uid + 1
         local uid_upvalue = module.private.attach_uid
 
-        vim.api.nvim_buf_attach(buf, false, {
-            on_lines = function(_, cur_buf, _, start, _end)
-                -- There are edge cases where the current buffer is not the same as the tracked buffer,
-                -- which causes desyncs
-                if buf ~= cur_buf or not module.private.enabled or uid_upvalue ~= module.private.attach_uid then
-                    return true
-                end
+        local function on_line_callback(_, cur_buf, _, start, _end)
+            -- There are edge cases where the current buffer is not the same as the tracked buffer,
+            -- which causes desyncs
+            if buf ~= cur_buf or not module.private.enabled or uid_upvalue ~= module.private.attach_uid then
+                return true
+            end
 
-                module.private.debounce_counters[start + 1] = module.private.debounce_counters[start + 1] or 0
+            table_set_default(module.private.debounce_counters, start + 1, 0)
 
-                if should_debounce(start) then
-                    return
-                end
+            if should_debounce(start) then
+                return
+            end
 
-                module.private.last_change.active = true
+            module.private.last_change.active = true
 
-                local mode = vim.api.nvim_get_mode().mode
+            local mode = vim.api.nvim_get_mode().mode
 
-                has_conceal = (
-                    vim.api.nvim_win_is_valid(event.window)
-                        and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
-                )
+            has_conceal = (
+                vim.api.nvim_win_is_valid(event.window)
+                    and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
+            )
 
-                if mode ~= "i" then
-                    module.private.debounce_counters[start + 1] = module.private.debounce_counters[start + 1] + 1
+            if mode ~= "i" then
+                module.private.debounce_counters[start + 1] = module.private.debounce_counters[start + 1] + 1
 
-                    schedule(buf, function()
-                        local new_line_count = vim.api.nvim_buf_line_count(buf)
+                schedule(buf, function()
+                    local new_line_count = vim.api.nvim_buf_line_count(buf)
 
-                        -- Sometimes occurs with one-line undos
-                        if start == _end then
-                            _end = _end + 1
-                        end
+                    -- Sometimes occurs with one-line undos
+                    if start == _end then
+                        _end = _end + 1
+                    end
 
-                        if new_line_count > line_count then
-                            _end = _end + (new_line_count - line_count - 1)
-                        end
+                    if new_line_count > line_count then
+                        _end = _end + (new_line_count - line_count - 1)
+                    end
 
-                        line_count = new_line_count
+                    line_count = new_line_count
 
-                        module.public.trigger_icons(
-                            buf,
-                            has_conceal,
-                            module.private.icons,
-                            module.private.icon_namespace,
-                            start,
-                            _end
-                        )
-
-                        -- NOTE(vhyrro): It is simply not possible to perform incremental
-                        -- updates here. Code blocks require more context than simply a few lines.
-                        -- It's still incredibly fast despite this fact though.
-                        module.public.trigger_code_block_highlights(buf, has_conceal)
-
-                        vim.schedule(function()
-                            module.private.debounce_counters[start + 1] = module.private.debounce_counters[start + 1]
-                                - 1
-                        end)
-                    end)
-                else
-                    schedule(
+                    module.public.trigger_icons(
                         buf,
-                        neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, has_conceal, start, _end)
+                        has_conceal,
+                        module.private.icons,
+                        module.private.icon_namespace,
+                        start,
+                        _end
                     )
 
-                    if module.private.largest_change_start == -1 then
-                        module.private.largest_change_start = start
-                    end
+                    -- NOTE(vhyrro): It is simply not possible to perform incremental
+                    -- updates here. Code blocks require more context than simply a few lines.
+                    -- It's still incredibly fast despite this fact though.
+                    module.public.trigger_code_block_highlights(buf, has_conceal)
 
-                    if module.private.largest_change_end == -1 then
-                        module.private.largest_change_end = _end
-                    end
+                    vim.schedule(function()
+                        module.private.debounce_counters[start + 1] = module.private.debounce_counters[start + 1]
+                            - 1
+                    end)
+                end)
+            else
+                schedule(
+                    buf,
+                    neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, has_conceal, start, _end)
+                )
 
-                    module.private.largest_change_start = math.min(start, module.private.largest_change_start)
-                    module.private.largest_change_end = math.max(_end, module.private.largest_change_end)
+                if module.private.largest_change_start == -1 then
+                    module.private.largest_change_start = start
                 end
-            end,
-        })
+
+                if module.private.largest_change_end == -1 then
+                    module.private.largest_change_end = _end
+                end
+
+                module.private.largest_change_start = math.min(start, module.private.largest_change_start)
+                module.private.largest_change_end = math.max(_end, module.private.largest_change_end)
+            end
+        end
+
+        vim.api.nvim_buf_attach(buf, false, { on_lines = on_line_callback })
     elseif event.type == "core.autocommands.events.insertenter" then
         schedule(event.buffer, function()
             module.private.last_change = {
