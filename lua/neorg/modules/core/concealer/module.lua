@@ -34,8 +34,26 @@ local function schedule(buffer, func)
     end)
 end
 
+local function set_fold_opts(win)
+    local opts = {
+        scope = "local",
+        win = win,
+    }
+    vim.api.nvim_set_option_value("foldmethod", "expr", opts)
+    vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
+    vim.api.nvim_set_option_value(
+        "foldtext",
+        "v:lua.neorg.modules.get_module('core.concealer').foldtext()",
+        opts
+    )
+end
+
 local function table_set_default(tbl, k, v)
     tbl[k] = tbl[k] or v
+end
+
+local function table_add_number(tbl, k, v)
+    tbl[k] = tbl[k] + v
 end
 
 local function buffer_get_line(buffer, row)
@@ -79,6 +97,7 @@ module.private = {
 }
 
 local function logging(tag, ...)
+    do return end
     local func_name = debug.getinfo(2, "n")["name"]
     local n_arg = select("#", ...)
     local args = {...}
@@ -1370,6 +1389,10 @@ module.load = function()
 end
 
 module.on_event = function(event)
+    local function should_debounce(start)
+        return module.private.debounce_counters[start + 1] >= module.config.public.performance.max_debounce
+    end
+
     if event.type == "core.neorgcmd.events.core.concealer.toggle" then
         module.public.toggle_concealer()
     end
@@ -1380,25 +1403,7 @@ module.on_event = function(event)
 
     table_set_default(module.private.debounce_counters, event.cursor_position[1] + 1, 0)
 
-    local function should_debounce(start)
-        return module.private.debounce_counters[start + 1] >= module.config.public.performance.max_debounce
-    end
-
     local has_conceal = vim.api.nvim_win_is_valid(event.window) and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
-
-    local function set_fold_opts(win)
-        local opts = {
-            scope = "local",
-            win = win,
-        }
-        vim.api.nvim_set_option_value("foldmethod", "expr", opts)
-        vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
-        vim.api.nvim_set_option_value(
-            "foldtext",
-            "v:lua.neorg.modules.get_module('core.concealer').foldtext()",
-            opts
-        )
-    end
 
     if event.type == "core.autocommands.events.bufread" and event.content.norg then
         if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
@@ -1421,8 +1426,7 @@ module.on_event = function(event)
             -- chunk at a set interval and applies the conceals that way to reduce load and improve performance.
 
             -- This points to the current block the user's cursor is in
-            local block_current =
-                math.floor((line_count / module.config.public.performance.increment) % event.cursor_position[1])
+            local block_current = math.floor(event.cursor_position[1] / module.config.public.performance.increment)
 
             local function trigger_conceals_for_block(block)
                 local line_begin = block == 0 and 0 or block * module.config.public.performance.increment - 1
@@ -1495,24 +1499,16 @@ module.on_event = function(event)
 
             module.private.last_change.active = true
 
-            local mode = vim.api.nvim_get_mode().mode
-
-            has_conceal = (
-                vim.api.nvim_win_is_valid(event.window)
-                    and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
-            )
-
-            if mode ~= "i" then
-                module.private.debounce_counters[start + 1] = module.private.debounce_counters[start + 1] + 1
+            if vim.api.nvim_get_mode().mode ~= "i" then
+                table_add_number(module.private.debounce_counters, start + 1, 1)
 
                 schedule(buf, function()
-                    local new_line_count = vim.api.nvim_buf_line_count(buf)
-
                     -- Sometimes occurs with one-line undos
                     if start == _end then
                         _end = _end + 1
                     end
 
+                    local new_line_count = vim.api.nvim_buf_line_count(buf)
                     if new_line_count > line_count then
                         _end = _end + (new_line_count - line_count - 1)
                     end
@@ -1533,10 +1529,7 @@ module.on_event = function(event)
                     -- It's still incredibly fast despite this fact though.
                     module.public.trigger_code_block_highlights(buf, has_conceal)
 
-                    vim.schedule(function()
-                        module.private.debounce_counters[start + 1] = module.private.debounce_counters[start + 1]
-                            - 1
-                    end)
+                    vim.schedule(neorg.lib.wrap(table_add_number, module.private.debounce_counters, start + 1, -1))
                 end)
             else
                 schedule(
