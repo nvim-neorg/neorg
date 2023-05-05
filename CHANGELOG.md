@@ -1,5 +1,33 @@
 # Changelog
 
+## [4.0.0](https://github.com/nvim-neorg/neorg/compare/v3.2.2...v4.0.0) (2023-05-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* move all `gt*` keybinds to `<LocalLeader>t*`
+* remove `core.news`
+
+### Features
+
+* add basic cheatsheet (viewable via `:h neorg-cheatsheet`) ([d3e37a6](https://github.com/nvim-neorg/neorg/commit/d3e37a681743181a34dcfa7adb6ec61fb5aeb63c))
+* **keybinds:** warn when a deprecated keybind is used (will be removed with `5.0`) ([e20d3c3](https://github.com/nvim-neorg/neorg/commit/e20d3c324b091cac29ccd7ec8431d24aa9b792c8))
+
+
+### Bug Fixes
+
+* **concealer:** buggy debounce logic causing visual artifacts (especially on the first line of a buffer) ([45388fc](https://github.com/nvim-neorg/neorg/commit/45388fc0478e8d1273bd80789e7e1af1df76458f))
+* **concealer:** stop concealer if buffer is not loaded ([#836](https://github.com/nvim-neorg/neorg/issues/836)) ([6aa9fd3](https://github.com/nvim-neorg/neorg/commit/6aa9fd303c807ed1ca3fb15cdeab1e322d02fd31))
+* **dirman.expand_path:** search for both `$/` and `$\` in links to support windows paths ([#830](https://github.com/nvim-neorg/neorg/issues/830)) ([160d40f](https://github.com/nvim-neorg/neorg/commit/160d40f5261be5149842942adbf260d6e359d9ec))
+* **esupports.hop:** anchors to files woul dresult in a "link not found" ([#688](https://github.com/nvim-neorg/neorg/issues/688)) ([3009adf](https://github.com/nvim-neorg/neorg/commit/3009adf2cf48aedcbb309d0765e0fbbb64a0fdf4))
+* **keybinds.lua:** remove dead `toc` keybinds ([06666f2](https://github.com/nvim-neorg/neorg/commit/06666f298e146d758d691366ca3465a3bd1e3f7f))
+
+
+### Code Refactoring
+
+* move all `gt*` keybinds to `&lt;LocalLeader&gt;t*` ([f67110d](https://github.com/nvim-neorg/neorg/commit/f67110d11d37fde09756eb2de8a1814d04a4a03b))
+* remove `core.news` ([4086d9f](https://github.com/nvim-neorg/neorg/commit/4086d9f17d823cfe5a13e7b12b30e13b5d3b796d))
+
 ## [3.2.2](https://github.com/nvim-neorg/neorg/compare/v3.2.1...v3.2.2) (2023-04-27)
 
 
