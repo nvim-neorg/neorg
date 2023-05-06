@@ -838,13 +838,13 @@ module.config.public = {
 
             done = {
                 enabled = true,
-                icon = "",
+                icon = "󰄬",
                 query = "(todo_item_done) @icon",
             },
 
             pending = {
                 enabled = true,
-                icon = "",
+                icon = "󰥔",
                 query = "(todo_item_pending) @icon",
             },
 
