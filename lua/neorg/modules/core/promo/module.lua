@@ -252,21 +252,6 @@ module.public = {
             return
         end
 
-        local function notify_concealer(row_start, row_end)
-            -- HACK(vhyrro): This should be changed after the codebase refactor
-            local concealer_module = neorg.modules.loaded_modules["core.concealer"]
-            if not concealer_module then
-                return
-            end
-            neorg.events.broadcast_event(
-                neorg.events.create(
-                    concealer_module,
-                    "core.concealer.events.update_region",
-                    { start = row_start, ["end"] = row_end }
-                )
-            )
-        end
-
         local function reindent_range(row_start, row_end)
             for i = row_start, row_end - 1 do
                 local indent_level = indent_module.indentexpr(buffer, i)
@@ -275,7 +260,7 @@ module.public = {
         end
 
         reindent_range(indent_row_start, indent_row_end)
-        notify_concealer(indent_row_start, indent_row_end)
+        -- notify_concealer(indent_row_start, indent_row_end)
     end,
 }
 
@@ -294,35 +279,15 @@ module.on_event = function(event)
         local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
         local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
 
-        for i = 0, end_pos[1] - start_pos[1] do
-            module.public.promote_or_demote(event.buffer, "promote", start_pos[1] + i)
-        end
-
-        if neorg.modules.loaded_modules["core.concealer"] then
-            neorg.events.broadcast_event(
-                neorg.events.create(
-                    neorg.modules.loaded_modules["core.concealer"],
-                    "core.concealer.events.update_region",
-                    { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
-                )
-            )
+        for i = start_pos[1], end_pos[1] do
+            module.public.promote_or_demote(event.buffer, "promote", i)
         end
     elseif event.split_type[2] == "core.promo.demote_range" then
         local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
         local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
 
-        for i = 0, end_pos[1] - start_pos[1] do
-            module.public.promote_or_demote(event.buffer, "demote", start_pos[1] + i)
-        end
-
-        if neorg.modules.loaded_modules["core.concealer"] then
-            neorg.events.broadcast_event(
-                neorg.events.create(
-                    neorg.modules.loaded_modules["core.concealer"],
-                    "core.concealer.events.update_region",
-                    { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
-                )
-            )
+        for i = start_pos[1], end_pos[1]  do
+            module.public.promote_or_demote(event.buffer, "demote", i)
         end
     end
 end

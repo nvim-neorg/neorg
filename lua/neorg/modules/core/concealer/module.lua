@@ -17,37 +17,6 @@ require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.concealer")
 
---- Schedule a function if there is no debounce active or if deferred updates have been disabled
----@param buffer number #Source buffer to verify it still exists
----@param func function #Any function to execute
-local function schedule(buffer, func)
-    vim.schedule(function()
-        if
-            module.private.disable_deferred_updates
-            or ((module.private.debounce_counters[vim.api.nvim_win_get_cursor(0)[1] + 1] or 0) >= module.config.public.performance.max_debounce)
-            or (buffer and not vim.api.nvim_buf_is_loaded(buffer))
-        then
-            return
-        end
-
-        func()
-    end)
-end
-
-local function set_fold_opts(win)
-    local opts = {
-        scope = "local",
-        win = win,
-    }
-    vim.api.nvim_set_option_value("foldmethod", "expr", opts)
-    vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
-    vim.api.nvim_set_option_value(
-        "foldtext",
-        "v:lua.neorg.modules.get_module('core.concealer').foldtext()",
-        opts
-    )
-end
-
 local function table_set_default(tbl, k, v)
     tbl[k] = tbl[k] or v
 end
@@ -76,24 +45,6 @@ module.setup = function()
 end
 
 module.private = {
-    icon_namespace = vim.api.nvim_create_namespace("neorg-conceals"),
-    code_block_namespace = vim.api.nvim_create_namespace("neorg-code-blocks"),
-    icons = {},
-
-    largest_change_start = -1,
-    largest_change_end = -1,
-
-    last_change = {
-        active = false,
-        line = 0,
-    },
-
-    disable_deferred_updates = false,
-    debounce_counters = {},
-
-    enabled = true,
-
-    attach_uid = 0,
 }
 
 local function logging(tag, ...)
@@ -110,7 +61,7 @@ end
 local function table_tostring_shallow(tbl)
     local args = {}
     for k,v in pairs(tbl) do
-        args[#args+1] = k .. '=' .. tostring(v)
+        table.insert(args, k .. '=' .. tostring(v))
     end
     return table.concat(args, ", ")
 end
@@ -118,1506 +69,461 @@ end
 local function logging_named(tag, tbl)
     local args = {}
     for k,v in pairs(tbl) do
-        args[#args+1] = k .. '=' .. tostring(v)
+        table.insert(args, k .. '=' .. tostring(v))
     end
     return logging(tag, table_tostring_shallow(tbl))
 end
 
 ---@class core.concealer
 module.public = {
-
-    --- Triggers an icon set for the current buffer
-    ---@param buf number #The ID of the buffer to apply conceals in
-    ---@param has_conceal boolean #Whether or not concealing is enabled
-    ---@param icon_set table #The icon set to use
-    ---@param namespace number #The extmark namespace to use when setting extmarks
-    ---@param from? number #The line number to start parsing from (used for incremental updates)
-    ---@param to? number #The line number to keep parsing to (used for incremental updates)
-    trigger_icons = function(buf, has_conceal, icon_set, namespace, from, to)
-        logging('entering', buf, has_conceal, icon_set, namespace, from, to)
-
-        local treesitter_module = module.required["core.integrations.treesitter"]
-        -- Get old extmarks - this is done to reduce visual glitches; all old extmarks are stored,
-        -- the new extmarks are applied on top of the old ones, then the old ones are deleted.
-        local old_extmarks = module.public.get_old_extmarks(buf, namespace, from, to and to - 1)
-
-        -- Get the root node of the document (required to iterate over query captures)
-        local document_root = treesitter_module.get_document_root(buf)
-
-        if not document_root then
-            return
-        end
-
-        local function work_capture(node, icon_data)
-            local rs, _, re = node:range()
-            if rs < (from or 0) or re > (to or math.huge) then
-                return
-            end
-
-            -- Extract both the text and the range of the node
-            local text = treesitter_module.get_node_text(node, buf)
-            local range = treesitter_module.get_node_range(node)
-
-            -- Set the offset to 0 here. The offset is a special value that, well, offsets
-            -- the location of the icon column-wise
-            -- It's used in scenarios where the node spans more than what we want to iconify.
-            -- A prime example of this is the todo item, whose content looks like this: "[x]".
-            -- We obviously don't want to iconify the entire thing, this is why we will tell Neorg
-            -- to use an offset of 1 to start the icon at the "x"
-            -- The extract function is used exactly to calculate this offset
-            -- If that function is present then run it and grab the return value
-            local offset = icon_data.extract and icon_data.extract(text, node) or 0
-
-            -- Every icon can also implement a custom "render" function that can allow for things like multicoloured icons
-            -- This is primarily used in nested quotes
-            -- The "render" function must return a table of this structure: { { "text", "highlightgroup1" }, { "optionally more text", "higlightgroup2" } }
-            local icon = icon_data.render and icon_data:render(text, node) or icon_data.icon
-            module.public._set_extmark(buf, namespace, range.row_start, range.column_start + offset, false, {
-                virt_text=icon,
-                hl_group=icon_data.highlight,
-                end_row = range.row_end,
-                end_col=range.column_end,
-                hl_eol=false,
-                hl_mode="combine",
-            })
-        end
-
-        -- Loop through all icons that the user has enabled
-        for _, icon_data in ipairs(icon_set) do
-            schedule(buf, function()
-                if not icon_data.query then
-                    return
-                end
-                -- Attempt to parse the query provided by `icon_data.query`
-                -- A query must have at least one capture, e.g. "(test_node) @icon"
-                local query = neorg.utils.ts_parse_query("norg", icon_data.query)
-
-                -- This is a mapping of [id] = to_omit pairs, where `id` is a treesitter
-                -- node's id and `to_omit` is a boolean.
-                -- The reason we do this is because some nodes should not be iconified
-                -- if `conceallevel` > 2.
-                local nodes_to_omit = {}
-
-                -- Go through every found node and try to apply an icon to it
-                -- The reason `iter_prepared_matches` and other `nvim-treesitter` functions are used here is because
-                -- we also want to support special captures and predicates like `(#has-parent?)`
-                for id, node in query:iter_captures(document_root, buf, from or 0, to or -1) do
-                    local capture = query.captures[id]
-
-                    -- If the node has a `no-conceal` capture name then omit it
-                    -- when rendering icons.
-                    if capture == "no-conceal" and has_conceal then
-                        nodes_to_omit[node:id()] = true
-                    end
-
-                    if capture == "icon" and not nodes_to_omit[node:id()] then
-                        work_capture(node, icon_data)
-                    end
-                end
-            end)
-        end
-
-        -- After we have applied every extmark we can remove the old ones
-        schedule(buf, function()
-            neorg.lib.map(old_extmarks, function(_, id)
-                vim.api.nvim_buf_del_extmark(buf, namespace, id)
-            end)
-        end)
-    end,
-
-    --- Dims code blocks in the buffer
-    ---@param buf number #The buffer to apply the dimming in
-    ---@param from? number #The line number to start parsing from (used for incremental updates)
-    ---@param to? number #The line number to keep parsing until (used for incremental updates)
-    trigger_code_block_highlights = function(buf, has_conceal, from, to)
-        -- If the code block dimming is disabled, return right away.
-        if not module.config.public.dim_code_blocks.enabled then
-            return
-        end
-
-        -- Similarly to `trigger_icons()`, we gather all old extmarks here, apply the new dims on top of the old ones,
-        -- then delete the old extmarks to prevent flickering
-        local old_extmarks = {}
-
-        -- The next block of code will be responsible for dimming code blocks accordingly
-        local tree = module.required["core.integrations.treesitter"].get_document_root(buf)
-
-        -- If the tree is valid then attempt to perform the query
-        if not tree then
-            return
-        end
-
-        -- Query all code blocks
-        local ok, query = pcall(
-            neorg.utils.ts_parse_query,
-            "norg",
-            [[(
-                (ranged_verbatim_tag (tag_name) @_name) @tag
-                (#any-of? @_name "code" "embed")
-            )]]
-        )
-
-        -- If something went wrong then go bye bye
-        if not ok or not query then
-            return
-        end
-
-        local function do_set_mark(arg_text, arg_highlight, linenr, arg_col)
-            local width = module.config.public.dim_code_blocks.width
-            local hl_eol = width == "fullwidth"
-
-            module.public._set_extmark(buf, module.private.code_block_namespace, linenr, arg_col, true, {
-                virt_text=arg_text,
-                hl_group=arg_highlight,
-                end_row=linenr+1,
-                end_col=nil,
-                hl_eol=hl_eol,
-                hl_mode="blend",
-            })
-        end
-
-        local function do_line(line, linenr, range)
-            local line_width = vim.api.nvim_strwidth(line)
-
-            -- If our line is valid and it's not too short then apply the dimmed highlight
-            if line and line:len() >= range.column_start then
-                do_set_mark(
-                    nil,
-                    "@neorg.tags.ranged_verbatim.code_block",
-                    linenr,
-                    math.max(range.column_start - module.config.public.dim_code_blocks.padding.left, 0)
-                )
-
-                if width == "content" then
-                    local text_space = (" "):rep(
-                        longest_len
-                            - line_width
-                            + module.config.public.dim_code_blocks.padding.right
-                    )
-                    do_set_mark(
-                        {{
-                            text_space,
-                            "@neorg.tags.ranged_verbatim.code_block",
-                        }},
-                        nil,
-                        linenr,
-                        line_width
-                    )
-                end
-            else
-                -- There may be scenarios where the line is empty, or the line is shorter than the indentation
-                -- level of the code block, in that case we place the extmark at the very beginning of the line
-                -- and pad it with enough spaces to "emulate" the existence of whitespace
-                local text_space1 = (" "):rep(
-                    range.column_start
-                        - module.config.public.dim_code_blocks.padding.left
-                )
-                local text_space2 = (" "):rep(
-                    (longest_len - range.column_start)
-                        + module.config.public.dim_code_blocks.padding.left
-                        + module.config.public.dim_code_blocks.padding.right
-                        - math.max(
-                            module.config.public.dim_code_blocks.padding.left
-                                - range.column_start,
-                            0
-                        )
-                )
-                local text2 = (width == "content"
-                    and {
-                        text_space2,
-                        "@neorg.tags.ranged_verbatim.code_block",
-                    }
-                    or nil
-                )
-                do_set_mark(
-                    { { text_space1 }, text2 },
-                    "@neorg.tags.ranged_verbatim.code_block",
-                    linenr,
-                    0
-                )
-            end
-        end
-
-        local function work_capture(node)
-            -- Get the range of the code block
-            local range = module.required["core.integrations.treesitter"].get_node_range(node)
-
-            vim.list_extend(
-                old_extmarks,
-                module.public.get_old_extmarks(
-                    buf,
-                    module.private.code_block_namespace,
-                    range.row_start,
-                    range.row_end
-                )
-            )
-
-
-            schedule(buf, function()
-                local row_arg = (module.config.public.dim_code_blocks.conceal
-                    and range.row_start or range.row_end)
-
-                pcall(
-                    module.public._set_extmark,
-                    buf,
-                    module.private.code_block_namespace,
-                    row_arg,
-                    0,
-                    false,
-                    {
-                        end_col = buffer_get_line(buf, row_arg):len(),
-                        conceal = "",
-                        virt_text_pos = "eol",  -- vim default
-                    }
-                )
-
-                if
-                    module.config.public.dim_code_blocks.conceal
-                    and module.config.public.dim_code_blocks.adaptive
-                then
-                    module.config.public.dim_code_blocks.content_only = has_conceal
-                end
-
-                if module.config.public.dim_code_blocks.content_only then
-                    range.row_start = range.row_start + 1
-                    range.row_end = range.row_end - 1
-                end
-
-                local lines = vim.api.nvim_buf_get_lines(
-                    buf,
-                    range.row_start,
-                    (range.row_end >= vim.api.nvim_buf_line_count(buf) and range.row_start or range.row_end + 1),
-                    false
-                )
-
-                local longest_len = 0
-
-                if width == "content" then
-                    for _, line in ipairs(lines) do
-                        longest_len = math.max(longest_len, vim.api.nvim_strwidth(line))
-                    end
-                end
-
-                -- Go through every line in the code block and give it a magical highlight
-                for i, line in ipairs(lines) do
-                    local linenr = range.row_start + (i - 1)
-                    do_line(line, linenr, range)
-                end
-            end)
-        end
-
-        -- Go through every found capture
-        for id, node in query:iter_captures(tree:root(), buf, from or 0, to or -1) do
-            local id_name = query.captures[id]
-
-            -- If the capture name is "tag" then that means we're dealing with our ranged_verbatim_tag
-            if id_name == "tag" then
-                work_capture(node)
-            end
-        end
-
-        schedule(buf, function()
-            neorg.lib.map(old_extmarks, function(_, id)
-                vim.api.nvim_buf_del_extmark(buf, module.private.code_block_namespace, id)
-            end)
-        end)
-    end,
-
-    --- Mostly a wrapper around vim.api.nvim_buf_set_extmark in order to make it safer
-    ---@param opts.virt_text string|table #The virtual text to overlay (usually the icon)
-    ---@param opts.hl_group string #The name of a highlight to use for the icon
-    ---@param fixed boolean #When true the extmark will not move
-
-    _set_extmark = function(buf, ns, line, col, fixed, opts)
-        if not vim.api.nvim_buf_is_loaded(buf) then
-            return
-        end
-
-        if type(opts.virt_text) == "string" then
-            opts.virt_text = { { opts.virt_text, opts.hl_group } }
-        end
-
-        opts.virt_text_pos = opts.virt_text_pos or "overlay"
-        opts.virt_text_win_col = (fixed and col or nil)
-
-        pcall(vim.api.nvim_buf_set_extmark, buf, ns, line, col, opts)
-    end,
-
-    --- Gets the already present extmarks in a buffer
-    ---@param buf number #The buffer to get the extmarks from
-    ---@param namespace number #The namespace to query the extmarks from
-    ---@param from? number #The first line to extract the extmarks from
-    ---@param to? number #The last line to extract the extmarks from
-    ---@return list #A list of extmark IDs
-    get_old_extmarks = function(buf, namespace, from, to)
-        return neorg.lib.map(
-            neorg.lib.inline_pcall(
-                vim.api.nvim_buf_get_extmarks,
-                buf,
-                namespace,
-                from and { from, 0 } or 0,
-                to and { to, -1 } or -1,
-                {}
-            ) or {},
-            function(_, v)
-                return v[1]
-            end
-        )
-    end,
-
-    -- VARIABLES
-    concealing = {
-        ordered = {
-            get_index = function(node, level)
-                local sibling = node:parent():prev_named_sibling()
-                local count = 1
-
-                while sibling and sibling:type() == level do
-                    sibling = sibling:prev_named_sibling()
-                    count = count + 1
-                end
-
-                return count
-            end,
-
-            enumerator = {
-                numeric = function(count)
-                    return tostring(count)
-                end,
-
-                latin_lowercase = function(count)
-                    return string.char(96 + count)
-                end,
-
-                latin_uppercase = function(count)
-                    return string.char(64 + count)
-                end,
-
-                -- NOTE: only supports number up to 12
-                roman_lowercase = function(count)
-                    local chars = {
-                        [1] = "ⅰ",
-                        [2] = "ⅱ",
-                        [3] = "ⅲ",
-                        [4] = "ⅳ",
-                        [5] = "ⅴ",
-                        [6] = "ⅵ",
-                        [7] = "ⅶ",
-                        [8] = "ⅷ",
-                        [9] = "ⅸ",
-                        [10] = "ⅹ",
-                        [11] = "ⅺ",
-                        [12] = "ⅻ",
-                        [50] = "ⅼ",
-                        [100] = "ⅽ",
-                        [500] = "ⅾ",
-                        [1000] = "ⅿ",
-                    }
-                    return chars[count]
-                end,
-
-                -- NOTE: only supports number up to 12
-                roman_uppwercase = function(count)
-                    local chars = {
-                        [1] = "Ⅰ",
-                        [2] = "Ⅱ",
-                        [3] = "Ⅲ",
-                        [4] = "Ⅳ",
-                        [5] = "Ⅴ",
-                        [6] = "Ⅵ",
-                        [7] = "Ⅶ",
-                        [8] = "Ⅷ",
-                        [9] = "Ⅸ",
-                        [10] = "Ⅹ",
-                        [11] = "Ⅺ",
-                        [12] = "Ⅻ",
-                        [50] = "Ⅼ",
-                        [100] = "Ⅽ",
-                        [500] = "Ⅾ",
-                        [1000] = "Ⅿ",
-                    }
-                    return chars[count]
-                end,
-            },
-
-            punctuation = {
-                dot = function(renderer)
-                    return function(count)
-                        return renderer(count) .. "."
-                    end
-                end,
-
-                parenthesis = function(renderer)
-                    return function(count)
-                        return renderer(count) .. ")"
-                    end
-                end,
-
-                double_parenthesis = function(renderer)
-                    return function(count)
-                        return "(" .. renderer(count) .. ")"
-                    end
-                end,
-
-                -- NOTE: only supports arabic numbers up to 20
-                unicode_dot = function(renderer)
-                    return function(count)
-                        local chars = {
-                            ["1"] = "⒈",
-                            ["2"] = "⒉",
-                            ["3"] = "⒊",
-                            ["4"] = "⒋",
-                            ["5"] = "⒌",
-                            ["6"] = "⒍",
-                            ["7"] = "⒎",
-                            ["8"] = "⒏",
-                            ["9"] = "⒐",
-                            ["10"] = "⒑",
-                            ["11"] = "⒒",
-                            ["12"] = "⒓",
-                            ["13"] = "⒔",
-                            ["14"] = "⒕",
-                            ["15"] = "⒖",
-                            ["16"] = "⒗",
-                            ["17"] = "⒘",
-                            ["18"] = "⒙",
-                            ["19"] = "⒚",
-                            ["20"] = "⒛",
-                        }
-                        return chars[renderer(count)]
-                    end
-                end,
-
-                -- NOTE: only supports arabic numbers up to 20 or lowercase latin characters
-                unicode_double_parenthesis = function(renderer)
-                    return function(count)
-                        local chars = {
-                            ["1"] = "⑴",
-                            ["2"] = "⑵",
-                            ["3"] = "⑶",
-                            ["4"] = "⑷",
-                            ["5"] = "⑸",
-                            ["6"] = "⑹",
-                            ["7"] = "⑺",
-                            ["8"] = "⑻",
-                            ["9"] = "⑼",
-                            ["10"] = "⑽",
-                            ["11"] = "⑾",
-                            ["12"] = "⑿",
-                            ["13"] = "⒀",
-                            ["14"] = "⒁",
-                            ["15"] = "⒂",
-                            ["16"] = "⒃",
-                            ["17"] = "⒄",
-                            ["18"] = "⒅",
-                            ["19"] = "⒆",
-                            ["20"] = "⒇",
-                            ["a"] = "⒜",
-                            ["b"] = "⒝",
-                            ["c"] = "⒞",
-                            ["d"] = "⒟",
-                            ["e"] = "⒠",
-                            ["f"] = "⒡",
-                            ["g"] = "⒢",
-                            ["h"] = "⒣",
-                            ["i"] = "⒤",
-                            ["j"] = "⒥",
-                            ["k"] = "⒦",
-                            ["l"] = "⒧",
-                            ["m"] = "⒨",
-                            ["n"] = "⒩",
-                            ["o"] = "⒪",
-                            ["p"] = "⒫",
-                            ["q"] = "⒬",
-                            ["r"] = "⒭",
-                            ["s"] = "⒮",
-                            ["t"] = "⒯",
-                            ["u"] = "⒰",
-                            ["v"] = "⒱",
-                            ["w"] = "⒲",
-                            ["x"] = "⒳",
-                            ["y"] = "⒴",
-                            ["z"] = "⒵",
-                        }
-                        return chars[renderer(count)]
-                    end
-                end,
-
-                -- NOTE: only supports arabic numbers up to 20 or latin characters
-                unicode_circle = function(renderer)
-                    return function(count)
-                        local chars = {
-                            ["1"] = "①",
-                            ["2"] = "②",
-                            ["3"] = "③",
-                            ["4"] = "④",
-                            ["5"] = "⑤",
-                            ["6"] = "⑥",
-                            ["7"] = "⑦",
-                            ["8"] = "⑧",
-                            ["9"] = "⑨",
-                            ["10"] = "⑩",
-                            ["11"] = "⑪",
-                            ["12"] = "⑫",
-                            ["13"] = "⑬",
-                            ["14"] = "⑭",
-                            ["15"] = "⑮",
-                            ["16"] = "⑯",
-                            ["17"] = "⑰",
-                            ["18"] = "⑱",
-                            ["19"] = "⑲",
-                            ["20"] = "⑳",
-                            ["A"] = "Ⓐ",
-                            ["B"] = "Ⓑ",
-                            ["C"] = "Ⓒ",
-                            ["D"] = "Ⓓ",
-                            ["E"] = "Ⓔ",
-                            ["F"] = "Ⓕ",
-                            ["G"] = "Ⓖ",
-                            ["H"] = "Ⓗ",
-                            ["I"] = "Ⓘ",
-                            ["J"] = "Ⓙ",
-                            ["K"] = "Ⓚ",
-                            ["L"] = "Ⓛ",
-                            ["M"] = "Ⓜ",
-                            ["N"] = "Ⓝ",
-                            ["O"] = "Ⓞ",
-                            ["P"] = "Ⓟ",
-                            ["Q"] = "Ⓠ",
-                            ["R"] = "Ⓡ",
-                            ["S"] = "Ⓢ",
-                            ["T"] = "Ⓣ",
-                            ["U"] = "Ⓤ",
-                            ["V"] = "Ⓥ",
-                            ["W"] = "Ⓦ",
-                            ["X"] = "Ⓧ",
-                            ["Y"] = "Ⓨ",
-                            ["Z"] = "Ⓩ",
-                            ["a"] = "ⓐ",
-                            ["b"] = "ⓑ",
-                            ["c"] = "ⓒ",
-                            ["d"] = "ⓓ",
-                            ["e"] = "ⓔ",
-                            ["f"] = "ⓕ",
-                            ["g"] = "ⓖ",
-                            ["h"] = "ⓗ",
-                            ["i"] = "ⓘ",
-                            ["j"] = "ⓙ",
-                            ["k"] = "ⓚ",
-                            ["l"] = "ⓛ",
-                            ["m"] = "ⓜ",
-                            ["n"] = "ⓝ",
-                            ["o"] = "ⓞ",
-                            ["p"] = "ⓟ",
-                            ["q"] = "ⓠ",
-                            ["r"] = "ⓡ",
-                            ["s"] = "ⓢ",
-                            ["t"] = "ⓣ",
-                            ["u"] = "ⓤ",
-                            ["v"] = "ⓥ",
-                            ["w"] = "ⓦ",
-                            ["x"] = "ⓧ",
-                            ["y"] = "ⓨ",
-                            ["z"] = "ⓩ",
-                        }
-                        return chars[renderer(count)]
-                    end
-                end,
-            },
-        },
-    },
-
-    --- Custom foldtext to be used with the native folding support
-    ---@return string #The foldtext
-    foldtext = function()
-        local foldstart = vim.v.foldstart
-        local line = vim.api.nvim_buf_get_lines(0, foldstart - 1, foldstart, true)[1]
-
-        return neorg.lib.match(line, function(lhs, rhs)
-            return vim.startswith(lhs, rhs)
-        end)({
-            ["@document.meta"] = "Document Metadata",
-            _ = function()
-                local line_length = vim.api.nvim_strwidth(line)
-
-                local icon_extmarks = vim.api.nvim_buf_get_extmarks(
-                    0,
-                    module.private.icon_namespace,
-                    { foldstart - 1, 0 },
-                    { foldstart - 1, line_length },
-                    {
-                        details = true,
-                    }
-                )
-
-                for _, extmark in ipairs(icon_extmarks) do
-                    local extmark_details = extmark[4]
-                    local extmark_column = extmark[3] + (line_length - vim.api.nvim_strwidth(line))
-
-                    for _, virt_text in ipairs(extmark_details.virt_text or {}) do
-                        line = line:sub(1, extmark_column)
-                            .. virt_text[1]
-                            .. line:sub(extmark_column + vim.api.nvim_strwidth(virt_text[1]) + 1)
-                        line_length = vim.api.nvim_strwidth(line) - line_length + vim.api.nvim_strwidth(virt_text[1])
-                    end
-                end
-
-                return line
-            end,
-        })
-    end,
-
-    toggle_concealer = function()
-        module.private.enabled = not module.private.enabled
-
-        if module.private.enabled then
-            neorg.events.send_event(
-                "core.concealer",
-                neorg.events.create(module, "core.autocommands.events.bufread", {
-                    norg = true,
-                })
-            )
-        else
-            for _, namespace in ipairs({
-                "icon_namespace",
-                "code_block_namespace",
-            }) do
-                vim.api.nvim_buf_clear_namespace(0, module.private[namespace], 0, -1)
-            end
-        end
-    end,
 }
 
 module.config.public = {
-    -- Which icon preset to use.
-    --
-    -- The currently available icon presets are:
-    -- - "basic" - use a mixture of icons (includes cute flower icons!)
-    -- - "diamond" - use diamond shapes for headings
-    -- - "varied" - use a mix of round and diamond shapes for headings; no cute flower icons though :(
-    icon_preset = "basic",
-
-    -- Configuration for icons.
-    --
-    -- This table contains the full configuration set for each icon, including
-    -- its query (where to be placed), render functions (how to be placed) and
-    -- characters to use.
-    --
-    -- For most use cases, the only values that you should be changing are the `enabled` and
-    -- `icon` fields.
-    icons = {
-        todo = {
-            enabled = true,
-
-            done = {
-                enabled = true,
-                icon = "",
-                query = "(todo_item_done) @icon",
-            },
-
-            pending = {
-                enabled = true,
-                icon = "",
-                query = "(todo_item_pending) @icon",
-            },
-
-            undone = {
-                enabled = true,
-                icon = "×",
-                query = "(todo_item_undone) @icon",
-            },
-
-            uncertain = {
-                enabled = true,
-                icon = "",
-                query = "(todo_item_uncertain) @icon",
-            },
-
-            on_hold = {
-                enabled = true,
-                icon = "",
-                query = "(todo_item_on_hold) @icon",
-            },
-
-            cancelled = {
-                enabled = true,
-                icon = "",
-                query = "(todo_item_cancelled) @icon",
-            },
-
-            recurring = {
-                enabled = true,
-                icon = "↺",
-                query = "(todo_item_recurring) @icon",
-            },
-
-            urgent = {
-                enabled = true,
-                icon = "⚠",
-                query = "(todo_item_urgent) @icon",
-            },
-        },
-
-        list = {
-            enabled = true,
-
-            level_1 = {
-                enabled = true,
-                icon = "•",
-                query = "(unordered_list1_prefix) @icon",
-            },
-
-            level_2 = {
-                enabled = true,
-                icon = " •",
-                query = "(unordered_list2_prefix) @icon",
-            },
-
-            level_3 = {
-                enabled = true,
-                icon = "  •",
-                query = "(unordered_list3_prefix) @icon",
-            },
-
-            level_4 = {
-                enabled = true,
-                icon = "   •",
-                query = "(unordered_list4_prefix) @icon",
-            },
-
-            level_5 = {
-                enabled = true,
-                icon = "    •",
-                query = "(unordered_list5_prefix) @icon",
-            },
-
-            level_6 = {
-                enabled = true,
-                icon = "     •",
-                query = "(unordered_list6_prefix) @icon",
-            },
-        },
-
-        ordered = {
-            enabled = require("neorg.external.helpers").is_minimum_version(0, 6, 0),
-
-            level_1 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_dot(
-                    module.public.concealing.ordered.enumerator.numeric
-                ),
-                query = "(ordered_list1_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list1")
-                    return {
-                        { self.icon(count), self.highlight },
-                    }
-                end,
-            },
-
-            level_2 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.enumerator.latin_uppercase,
-                query = "(ordered_list2_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list2")
-                    return {
-                        { " " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-
-            level_3 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.enumerator.latin_lowercase,
-                query = "(ordered_list3_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list3")
-                    return {
-                        { "  " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-
-            level_4 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_double_parenthesis(
-                    module.public.concealing.ordered.enumerator.numeric
-                ),
-                query = "(ordered_list4_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list4")
-                    return {
-                        { "   " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-
-            level_5 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.enumerator.latin_uppercase,
-                query = "(ordered_list5_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list5")
-                    return {
-                        { "    " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-
-            level_6 = {
-                enabled = true,
-                icon = module.public.concealing.ordered.punctuation.unicode_double_parenthesis(
-                    module.public.concealing.ordered.enumerator.latin_lowercase
-                ),
-                query = "(ordered_list6_prefix) @icon",
-                render = function(self, _, node)
-                    local count = module.public.concealing.ordered.get_index(node, "ordered_list6")
-                    return {
-                        { "     " .. self.icon(count), self.highlight },
-                    }
-                end,
-            },
-        },
-
-        quote = {
-            enabled = true,
-
-            level_1 = {
-                enabled = true,
-                icon = "│",
-                highlight = "@neorg.quotes.1.prefix",
-                query = "(quote1_prefix) @icon",
-            },
-
-            level_2 = {
-                enabled = true,
-                icon = "│",
-                highlight = "@neorg.quotes.2.prefix",
-                query = "(quote2_prefix) @icon",
-                render = function(self)
-                    return {
-                        { self.icon, module.config.public.icons.quote.level_1.highlight },
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-
-            level_3 = {
-                enabled = true,
-                icon = "│",
-                highlight = "@neorg.quotes.3.prefix",
-                query = "(quote3_prefix) @icon",
-                render = function(self)
-                    return {
-                        { self.icon, module.config.public.icons.quote.level_1.highlight },
-                        { self.icon, module.config.public.icons.quote.level_2.highlight },
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-
-            level_4 = {
-                enabled = true,
-                icon = "│",
-                highlight = "@neorg.quotes.4.prefix",
-                query = "(quote4_prefix) @icon",
-                render = function(self)
-                    return {
-                        { self.icon, module.config.public.icons.quote.level_1.highlight },
-                        { self.icon, module.config.public.icons.quote.level_2.highlight },
-                        { self.icon, module.config.public.icons.quote.level_3.highlight },
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-
-            level_5 = {
-                enabled = true,
-                icon = "│",
-                highlight = "@neorg.quotes.5.prefix",
-                query = "(quote5_prefix) @icon",
-                render = function(self)
-                    return {
-                        { self.icon, module.config.public.icons.quote.level_1.highlight },
-                        { self.icon, module.config.public.icons.quote.level_2.highlight },
-                        { self.icon, module.config.public.icons.quote.level_3.highlight },
-                        { self.icon, module.config.public.icons.quote.level_4.highlight },
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-
-            level_6 = {
-                enabled = true,
-                icon = "│",
-                highlight = "@neorg.quotes.6.prefix",
-                query = "(quote6_prefix) @icon",
-                render = function(self)
-                    return {
-                        { self.icon, module.config.public.icons.quote.level_1.highlight },
-                        { self.icon, module.config.public.icons.quote.level_2.highlight },
-                        { self.icon, module.config.public.icons.quote.level_3.highlight },
-                        { self.icon, module.config.public.icons.quote.level_4.highlight },
-                        { self.icon, module.config.public.icons.quote.level_5.highlight },
-                        { self.icon, self.highlight },
-                    }
-                end,
-            },
-        },
-
-        heading = {
-            enabled = true,
-
-            level_1 = {
-                enabled = true,
-                icon = "◉",
-                highlight = "@neorg.headings.1.prefix",
-                query = "[ (heading1_prefix) (link_target_heading1) @no-conceal ] @icon",
-            },
-
-            level_2 = {
-                enabled = true,
-                icon = " ◎",
-                highlight = "@neorg.headings.2.prefix",
-                query = "[ (heading2_prefix) (link_target_heading2) @no-conceal ] @icon",
-            },
-
-            level_3 = {
-                enabled = true,
-                icon = "  ○",
-                highlight = "@neorg.headings.3.prefix",
-                query = "[ (heading3_prefix) (link_target_heading3) @no-conceal ] @icon",
-            },
-
-            level_4 = {
-                enabled = true,
-                icon = "   ✺",
-                highlight = "@neorg.headings.4.prefix",
-                query = "[ (heading4_prefix) (link_target_heading4) @no-conceal ] @icon",
-            },
-
-            level_5 = {
-                enabled = true,
-                icon = "    ▶",
-                highlight = "@neorg.headings.5.prefix",
-                query = "[ (heading5_prefix) (link_target_heading5) @no-conceal ] @icon",
-            },
-
-            level_6 = {
-                enabled = true,
-                icon = "     ⤷",
-                highlight = "@neorg.headings.6.prefix",
-                query = "[ (heading6_prefix) (link_target_heading6) @no-conceal ] @icon",
-                render = function(self, text)
-                    return {
-                        {
-                            string.rep(" ", text:len() - string.len("******") - string.len(" ")) .. self.icon,
-                            self.highlight,
-                        },
-                    }
-                end,
-            },
-        },
-
-        definition = {
-            enabled = true,
-
-            single = {
-                enabled = true,
-                icon = "≡",
-                query = "[ (single_definition_prefix) (link_target_definition) @no-conceal ] @icon",
-            },
-            multi_prefix = {
-                enabled = true,
-                icon = "⋙ ",
-                query = "(multi_definition_prefix) @icon",
-            },
-            multi_suffix = {
-                enabled = true,
-                icon = "⋘ ",
-                query = "(multi_definition_suffix) @icon",
-            },
-        },
-
-        footnote = {
-            enabled = true,
-
-            single = {
-                enabled = true,
-                icon = "⁎",
-                query = "[ (single_footnote_prefix) (link_target_footnote) @no-conceal ] @icon",
-            },
-            multi_prefix = {
-                enabled = true,
-                icon = "⁑ ",
-                query = "(multi_footnote_prefix) @icon",
-            },
-            multi_suffix = {
-                enabled = true,
-                icon = "⁑ ",
-                query = "(multi_footnote_suffix) @icon",
-            },
-        },
-
-        delimiter = {
-            enabled = true,
-
-            weak = {
-                enabled = true,
-                icon = "⟨",
-                highlight = "@neorg.delimiters.weak",
-                query = "(weak_paragraph_delimiter) @icon",
-                render = function(self, text)
-                    return {
-                        { string.rep(self.icon, text:len() - 1), self.highlight },
-                    }
-                end,
-            },
-
-            strong = {
-                enabled = true,
-                icon = "⟪",
-                highlight = "@neorg.delimiters.strong",
-                query = "(strong_paragraph_delimiter) @icon",
-                render = function(self, text)
-                    return {
-                        { string.rep(self.icon, text:len() - 1), self.highlight },
-                    }
-                end,
-            },
-
-            horizontal_line = {
-                enabled = true,
-                icon = "─",
-                highlight = "@neorg.delimiters.horizontal_line",
-                query = "(horizontal_line) @icon",
-                render = function(self, _, node)
-                    return {
-                        {
-                            string.rep(self.icon, vim.api.nvim_win_get_width(0) - ({ node:range() })[2]),
-                            self.highlight,
-                        },
-                    }
-                end,
-            },
-        },
-
-        markup = {
-            enabled = true,
-
-            spoiler = {
-                enabled = true,
-                icon = "•",
-                highlight = "@neorg.markup.spoiler",
-                query = '(spoiler ("_open") _ @icon ("_close"))',
-                render = function(self, text)
-                    return { { string.rep(self.icon, text:len()), self.highlight } }
-                end,
-            },
-        },
-    },
-
-    -- Options that control the behaviour of code block dimming
-    -- (placing a darker background behind `@code` tags).
-    dim_code_blocks = {
-        -- Whether to enable code block dimming
-        enabled = true,
-
-        -- If true will only dim the content of the code block (without the
-        -- `@code` and `@end` lines), not the entirety of the code block itself.
-        content_only = true,
-
-        -- Will adapt the behaviour of based on the `conceallevel` option.
-        -- If `conceallevel` > 0, then only the content will be dimmed,
-        -- else the whole code block will be dimmed.
-        adaptive = true,
-
-        -- The width to use for code block backgrounds.
-        --
-        -- When set to `fullwidth` (the default), will create a background
-        -- that spans the width of the buffer.
-        --
-        -- When set to `content`, will only span as far as the longest line
-        -- within the code block.
-        width = "fullwidth",
-
-        -- Additional padding to apply to either the left or the right. Making
-        -- these values negative is considered undefined behaviour (it is
-        -- likely to work, but it's not officially supported).
-        padding = {
-            left = 0,
-            right = 0,
-        },
-
-        -- If `true` will conceal (hide) the `@code` and `@end` portion of the code
-        -- block.
-        conceal = true,
-    },
-
-    -- If true, Neorg will enable folding by default for `.norg` documents.
-    -- You may use the inbuilt Neovim folding options like `foldnestmax`,
-    -- `foldlevelstart` and others to then tune the behaviour to your liking.
-    --
-    -- Set to `false` if you do not want Neorg setting anything.
-    folds = true,
-
-    -- Options related to concealer performance.
-    -- These options are put into effect when the concealer
-    -- has to deal with very large files.
-    performance = {
-        -- How many lines each "chunk" of a file should take up.
-        --
-        -- When the size of the buffer is greater than this value,
-        -- the buffer is then broken up into equal chunks and operations
-        -- are done individually on those chunks.
-        increment = 1250,
-
-        -- How long the concealer should wait before starting to conceal
-        -- the buffer.
-        timeout = 0,
-
-        -- How long the concealer should wait before starting to conceal
-        -- a new chunk.
-        interval = 500,
-
-        -- The maximum amount of recalculations that take place at a single time.
-        -- More operations than this count will be dropped.
-        --
-        -- Especially useful when e.g. holding down `x` in a buffer, forcing
-        -- hundreds of recalculations at a time.
-        max_debounce = 5,
-    },
 }
 
 module.load = function()
-    if not module.config.private["icon_preset_" .. module.config.public.icon_preset] then
-        log.error(
-            string.format(
-                "Unable to load icon preset '%s' - such a preset does not exist",
-                module.config.public.icon_preset
-            )
-        )
+    module.required["core.autocommands"].enable_autocommand("BufRead")
+    local builder = {"["}
+    for node_type, _ in pairs(conceal_texts) do
+        table.insert(builder, "(" .. node_type .. ")")
+    end
+    table.insert(builder, "]@icon")
+    local query_string = table.concat(builder)
+    conceal_query = neorg.utils.ts_parse_query("norg", query_string)
+end
+
+local function rerender_range(buffer, row_start, row_end)
+    row_start = row_start or 0
+    row_end = row_end or vim.api.nvim_buf_line_count(buffer)
+
+
+end
+
+local function handle_insertenter(event)
+    -- print('@@ handle_insertenter')
+end
+
+local function handle_insertleave(event)
+    -- print('@@ handle_insertleave')
+end
+
+local function handle_vimleavepre(event)
+    -- print('@@ handle_vimleavepre')
+end
+
+local function handle_update_region(event)
+    -- print('@@ handle_update_region')
+end
+
+local function node_text_width(node)
+    local row_start, col_start, row_end, col_end = node:range()
+    assert(row_start == row_end)
+    return col_end - col_start
+end
+
+my_namespace = vim.api.nvim_create_namespace("neorg-conceals")
+
+conceal_texts = {
+    todo_item_done = {
+        icon = "",
+    },
+
+    todo_item_pending = {
+        icon = "",
+    },
+
+    todo_item_undone = {
+        icon = "×",
+    },
+
+    todo_item_uncertain = {
+        icon = "",
+    },
+
+    todo_item_on_hold = {
+        icon = "",
+    },
+
+    todo_item_cancelled = {
+        icon = "",
+    },
+
+    todo_item_recurring = {
+        icon = "↺",
+    },
+
+    todo_item_urgent = {
+        icon = "⚠",
+    },
+
+
+    heading1_prefix = {
+        icon = "◉",
+        highlight = "@neorg.headings.1.prefix",
+    },
+    heading2_prefix = {
+        icon = " ◎",
+        highlight = "@neorg.headings.2.prefix",
+    },
+    heading3_prefix = {
+        icon = "  ○",
+        highlight = "@neorg.headings.3.prefix",
+    },
+
+    heading4_prefix = {
+        icon = "   ✺",
+        highlight = "@neorg.headings.4.prefix",
+    },
+
+    heading5_prefix = {
+        icon = "    ▶",
+        highlight = "@neorg.headings.5.prefix",
+    },
+
+    heading6_prefix = {
+        icon = function(node) return (" "):rep(node_text_width(node) - 2) .. "⤷" end,
+        highlight = "@neorg.headings.6.prefix",
+    },
+
+    -- TODO: >6
+    -- TODO: ordered
+    -- TODO: definition, footnote, delimiter, markup, quote
+
+    unordered_list1_prefix = {
+        icon = "•",
+    },
+
+    unordered_list2_prefix = {
+        icon = " •",
+    },
+
+    unordered_list3_prefix = {
+        icon = "  •",
+    },
+
+    unordered_list4_prefix = {
+        icon = "   •",
+    },
+
+    unordered_list5_prefix = {
+        icon = "    •",
+    },
+
+    unordered_list6_prefix = {
+        icon = function(node) return (" "):rep(node_text_width(node) - 2) .. "•" end,
+    },
+
+    ordered_list1_prefix = {
+        icon = function(...) return get_ordered_icon(conceal_icon_table.numeric_dot, ...) end
+    }
+
+    ordered_list2_prefix = {
+        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_uppercase, ...) end
+    }
+
+    ordered_list3_prefix = {
+        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_lowercase, ...) end
+    }
+
+    ordered_list4_prefix = {
+        icon = function(...) return get_ordered_icon(conceal_icon_table.numeric_pareneses, ...) end
+    }
+
+    ordered_list5_prefix = {
+        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_uppercase, ...) end
+    }
+
+    ordered_list6_prefix = {
+        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_lowercase_parentheses, ...) end
+    }
+}
+
+local conceal_icon_table = {
+    numeric           = { "1", "2", "3", "4", "5", "6", "7", "8", "9" },
+    numeric_dot       = { "⒈", "⒉", "⒊", "⒋", "⒌", "⒍", "⒎", "⒏", "⒐", "⒑", "⒒", "⒓", "⒔", "⒕", "⒖", "⒗", "⒘", "⒙", "⒚", "⒛" },
+    numeric_pareneses = { "⑴", "⑵", "⑶", "⑷", "⑸", "⑹", "⑺", "⑻", "⑼", "⑽", "⑾", "⑿", "⒀", "⒁", "⒂", "⒃", "⒄", "⒅", "⒆", "⒇" },
+    numeric_circled   = { "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳" },
+    latin_lowercase_parentheses = { "⒜", "⒝", "⒞", "⒟", "⒠", "⒡", "⒢", "⒣", "⒤", "⒥", "⒦", "⒧", "⒨", "⒩", "⒪", "⒫", "⒬", "⒭", "⒮", "⒯", "⒰", "⒱", "⒲", "⒳", "⒴", "⒵" },
+    latin_uppercase_circled     = { "Ⓐ", "Ⓑ", "Ⓒ", "Ⓓ", "Ⓔ", "Ⓕ", "Ⓖ", "Ⓗ", "Ⓘ", "Ⓙ", "Ⓚ", "Ⓛ", "Ⓜ", "Ⓝ", "Ⓞ", "Ⓟ", "Ⓠ", "Ⓡ", "Ⓢ", "Ⓣ", "Ⓤ", "Ⓥ", "Ⓦ", "Ⓧ", "Ⓨ", "Ⓩ" },
+    latin_lowercase_circled     = { "ⓐ", "ⓑ", "ⓒ", "ⓓ", "ⓔ", "ⓕ", "ⓖ", "ⓗ", "ⓘ", "ⓙ", "ⓚ", "ⓛ", "ⓜ", "ⓝ", "ⓞ", "ⓟ", "ⓠ", "ⓡ", "ⓢ", "ⓣ", "ⓤ", "ⓥ", "ⓦ", "ⓧ", "ⓨ", "ⓩ" },
+}
+
+local function get_ordered_icon(icon_table, node, get_ordered_index)
+    local index = get_ordered_index(node)
+    local level = node_text_width(node) - 1
+    local indent = (" "):rep(level - 1)
+    local number_icon = icon_table[index] or "~"
+    return indent .. number_icon
+end
+
+local function checked_gsub(...)
+    local result, n_match = string.gsub(...)
+    assert(0 <= n_match)
+    assert(n_match <= 1)
+    assert(result)
+    if n_match==1 then
+        return result
+    end
+end
+
+config_name_dict = {
+    heading = function(key) return checked_gsub(key, "^level_(%d+)$", "heading%1_prefix") end,
+    todo = function(key) return checked_gsub(key, "^%w+$", "todo_item_%0") end,
+    list = function(key) return checked_gsub(key, "^level_(%d+)$", "unordered_list%1_prefix") end,
+    ordered = function(key) return checked_gsub(key, "^level_(%d+)$", "ordered_list%1_prefix") end,
+    quote = function(key) return checked_gsub(key, "^quote_(%d+)$", "quote%1_prefix") end,
+    definition = {
+        single = "single_definition_prefix",
+        multi_prefix = "multi_definition_prefix",
+        multi_suffix = "multi_definition_suffix",
+    },
+    delimiter = {
+        weak = "weak_paragraph_delimiter",
+        strong = "strong_paragraph_delimiter",
+        horizontal_line = "horizontal_line",
+    },
+    footnote = {
+        single = "single_footnote_prefix",
+        multi_prefix = "multi_footnote_prefix",
+        multi_suffix = "multi_footnote_suffix",
+    },
+    markup = {
+        -- TODO: spoilere
+    },
+}
+
+
+local function table_extend_in_place(tbl, tbl_ext)
+    for k,v in pairs(tbl_ext) do
+        tbl[k] = v
+    end
+end
+
+table_extend_in_place(conceal_texts, {
+    link_target_heading1 = vim.tbl_extend("error", conceal_texts.heading1_prefix, { conceal = "." }),
+    link_target_heading2 = vim.tbl_extend("error", conceal_texts.heading2_prefix, { conceal = "." }),
+    link_target_heading3 = vim.tbl_extend("error", conceal_texts.heading3_prefix, { conceal = "." }),
+    link_target_heading4 = vim.tbl_extend("error", conceal_texts.heading4_prefix, { conceal = "." }),
+    link_target_heading5 = vim.tbl_extend("error", conceal_texts.heading5_prefix, { conceal = "." }),
+    link_target_heading6 = vim.tbl_extend("error", conceal_texts.heading6_prefix, { conceal = "." }),
+    -- TODO: link, definition, footnote, 
+})
+
+local function remove_extmarks(buffer, row_start, row_end)
+    print('!!! remove_remarks', row_start, row_end)
+    assert(row_start <= row_end)
+    if row_start == row_end then
+        return
+    end
+    for _, result in ipairs(vim.api.nvim_buf_get_extmarks(buffer, my_namespace, {row_start,0}, {row_end-1,-1}, {})) do
+        vim.api.nvim_buf_del_extmark(buffer, my_namespace, result[1])
+    end
+end
+
+local function conceal_range(buffer, row_start, row_end)
+    -- FIXME: markup across lines?
+
+    -- in case there's undo/removal garbage
+    -- TODO: optimize
+    row_end = row_end + 2
+    remove_extmarks(buffer, row_start, row_end)
+
+    -- one single query
+    -- iterate
+    -- if conceallable
+    -- set conceal
+
+    local treesitter_module = module.required["core.integrations.treesitter"]
+    local document_root = treesitter_module.get_document_root(buffer)
+    assert(document_root)
+
+    for id, node, _metadata in conceal_query:iter_captures(document_root, buffer, row_start, row_end) do
+        local r, c, _ = node:start()
+        local text = conceal_texts[node:type()]
+        local icon = type(text.icon)=="string" and text.icon or text.icon(node)
+        local opt = {
+            virt_text={{icon, text.highlight}},
+            --virt_text_pos="overlay",
+            virt_text_win_col=c,
+            hl_group=nil,
+            conceal=text.conceal,
+            id=nil,
+            end_row=nil, --r,
+            end_col=nil, --c+icon:len(),
+            hl_eol=nil,
+            virt_text_hide=nil,
+            hl_mode="combine",
+            virt_lines=nil,
+            virt_lines_above=nil,
+            virt_lines_leftcol=nil,
+            ephemeral=nil,
+            right_gravity=nil,
+            end_right_gravity=nil,
+            priority=nil,
+            strict=nil, -- default true
+            sign_text=nil,
+            sign_hl_group=nil,
+            number_hl_group=nil,
+            line_hl_group=nil,
+            cursorline_hl_group=nil,
+            spell=nil,
+            ui_watched=nil,
+        }
+        local id = vim.api.nvim_buf_set_extmark(buffer, my_namespace, r, c, opt)
+    end
+end
+
+operations_of_buf = {}
+scheduled = false
+
+local function table_iclear(tbl)
+    for i = #tbl,1,-1 do
+        tbl[i] = nil
+    end
+end
+
+local function table_ifind_first(tbl, pred, from)
+    for i = #tbl, (from or 1), -1 do
+        if not pred(tbl[i]) then
+            return i+1
+        end
+    end
+    return 1
+end
+
+local function table_remove_interval(tbl, l, r)
+    assert(0 <= l)
+    assert(l <= r)
+    assert(r <= #tbl + 1)
+
+    if l == r then
         return
     end
 
-    module.config.public.icons = vim.tbl_deep_extend(
-        "force",
-        module.config.public.icons,
-        module.config.private["icon_preset_" .. module.config.public.icon_preset] or {},
-        module.config.custom
-    )
+    table.move(tbl, r, #tbl, l)
 
-    --- Queries all icons that have their `enable = true` flags set
-    ---@param tbl table #The table to parse
-    ---@param parent_icon? string #Is used to pass icons from parents down to their table children to handle inheritance.
-    ---@param rec_name? string #Should not be set manually. Is used for Neorg to have information about all other previous recursions
-    local function get_enabled_icons(tbl, parent_icon, rec_name)
-        rec_name = rec_name or ""
+    for i = l, r-1 do
+        tbl[#tbl] = nil
+    end
+end
 
-        -- Create a result that we will return at the end of the function
-        local result = {}
+local function do_operations_for_buffer(buffer, operations)
+    assert(not vim.tbl_isempty(operations))
+    --regenerate_full(buffer)
 
-        -- If the current table isn't enabled then don't parser any further - simply return the empty result
-        if vim.tbl_isempty(tbl) or (tbl.enabled == false) then
-            return result
+    -- invariant:
+    -- 0 <= itv.l <= itv.r  forall itv
+    -- itv.r < itv'.l   forall adjacent itv and itv'
+    local changed_intervals = {}
+
+    for _, op in ipairs(operations) do
+        local il = table_ifind_first(changed_intervals, function(itv) return op.row_start <= itv.l end)
+        local ir = table_ifind_first(changed_intervals, function(itv) return op.row_end_old < itv.l end, l)
+        print('###', il, ir)
+
+        if il>1 and op.row_start <= changed_intervals[il-1].r then
+            il = il - 1
+        elseif il==ir then
+            table.insert(changed_intervals, il, { l = op.row_start, r = op.row_end_old })
+            ir = ir + 1
+        else
+            assert(op.row_start <= changed_intervals[il].l)
+            changed_intervals[il].l = op.row_start
         end
-
-        -- Go through every icon
-        for name, icons in pairs(tbl) do
-            -- If we're dealing with a table (which we should be) and if the current icon set is enabled then
-            if type(icons) == "table" and icons.enabled then
-                local new_name = rec_name .. name
-                -- If we have defined a query value then add that icon to the result
-                if icons.query then
-                    table_set_default(icons, "icon", parent_icon)
-                    result[new_name] = icons
-                else
-                    -- If we don't have an icon variable then we need to descend further down the lua table.
-                    -- To do this we recursively call this very function and merge the results into the result table
-                    result =
-                        vim.tbl_deep_extend("force", result, get_enabled_icons(icons, parent_icon, new_name))
-                end
+        changed_intervals[il].r = math.max(op.row_end_old, changed_intervals[ir-1].r)
+        table_remove_interval(changed_intervals, il+1, ir)
+        local end_diff = op.row_end_new - op.row_end_old
+        if end_diff ~= 0 then
+            for i = il, #changed_intervals do
+                changed_intervals[i].r = changed_intervals[i].r + end_diff
+                assert(changed_intervals[i].l <= changed_intervals[i].r)
+                assert(i == il or (changed_intervals[i].l < changed_intervals[i].r))
             end
         end
-
-        return result
     end
 
-    -- Set the module.private.icons variable to the values of the enabled icons
-    module.private.icons = vim.tbl_values(get_enabled_icons(module.config.public.icons))
+    assert(not vim.tbl_isempty(changed_intervals))
+    local overall_l = changed_intervals[1].l
+    local overall_r = changed_intervals[#changed_intervals].r
+    local n_buf_line = vim.api.nvim_buf_line_count(buffer)
+    assert(0 <= overall_l)
+    assert(overall_l <= overall_r)
+    assert(overall_r <= n_buf_line)
+    conceal_range(buffer, overall_l, overall_r)
+end
 
-    -- Enable the required autocommands (these will be used to determine when to update conceals in the buffer)
-    module.required["core.autocommands"].enable_autocommand("BufRead")
-    module.required["core.autocommands"].enable_autocommand("InsertEnter")
-    module.required["core.autocommands"].enable_autocommand("InsertLeave")
-    module.required["core.autocommands"].enable_autocommand("VimLeavePre")
-
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
-        neorgcmd.add_commands_from_table({
-            ["toggle-concealer"] = {
-                name = "core.concealer.toggle",
-                args = 0,
-                condition = "norg",
-            },
-        })
-    end)
-
-    if neorg.utils.is_minimum_version(0, 7, 0) then
-        vim.api.nvim_create_autocmd("OptionSet", {
-            pattern = "conceallevel",
-            callback = function()
-                local current_buffer = vim.api.nvim_get_current_buf()
-                if vim.bo[current_buffer].ft ~= "norg" then
-                    return
-                end
-                local has_conceal = (tonumber(vim.v.option_new) > 0)
-
-                module.public.trigger_icons(
-                    current_buffer,
-                    has_conceal,
-                    module.private.icons,
-                    module.private.icon_namespace
-                )
-
-                if module.config.public.dim_code_blocks.conceal and module.config.public.dim_code_blocks.adaptive then
-                    module.public.trigger_code_block_highlights(current_buffer, has_conceal)
-                end
-            end,
-        })
+local function do_operations_for_all_buffers()
+    print('$$$ do_operations_for_all_buffers')
+    -- local old_lazyredraw = vim.go.lazyredraw
+    -- vim.go.lazyredraw = true
+    for buffer, operations in pairs(operations_of_buf) do
+        do_operations_for_buffer(buffer, operations)
+        --table_iclear(operations)
     end
+    operations_of_buf = {}
+    -- vim.go.lazyredraw = old_lazyredraw
+    scheduled = false
+end
+
+local function add_operation(buffer, op)
+    local operations = operations_of_buf[buffer]
+    if operations == nil then
+        operations = {}
+        operations_of_buf[buffer] = operations
+    end
+
+    table.insert(operations, op)
+    if not scheduled then
+        scheduled = true
+        vim.schedule(do_operations_for_all_buffers)
+    end
+end
+
+local function handle_bufread(event)
+    assert(vim.api.nvim_win_is_valid(event.window))
+
+    local function on_bytes_callback(_tag, buffer, _changedtick, row_start, col_start, byte_offset, old_row_end, old_col_end, old_byte_changed, new_row_end, new_col_end, new_byte_changed)
+        assert(_tag == "bytes")
+        print(("@@@@ on_byte, start=(%s,%s), byte_offset=%s, old_end=(%s,%s):%s, new_end=(%s,%s):%s"):format(
+        row_start, col_start, byte_offset, old_row_end, old_col_end, old_byte_changed, new_row_end, new_col_end, new_byte_changed))
+    end
+
+    local function on_line_callback(_tag, buffer, _changedtick, row_start, row_end, row_updated, n_byte_prev)
+        assert(_tag == "lines")
+        print(("@@@@' on_line, row_start=%s, row_end=%s, row_updated=%s, n_byte_prev=%s"):format(row_start, row_end, row_updated, n_byte_prev))
+        add_operation(buffer, {row_start = row_start, row_end_old = row_end, row_end_new = row_updated})
+    end
+
+    local attach_succeeded = vim.api.nvim_buf_attach(event.buffer, true, { on_lines = on_line_callback })
+    assert(attach_succeeded)
+
+    add_operation(event.buffer, {row_start = 0, row_end_old = 0, row_end_new = vim.api.nvim_buf_line_count(event.buffer)})
 end
 
 module.on_event = function(event)
-    local function should_debounce(start)
-        return module.private.debounce_counters[start + 1] >= module.config.public.performance.max_debounce
-    end
-
-    if event.type == "core.neorgcmd.events.core.concealer.toggle" then
-        module.public.toggle_concealer()
-    end
-
-    if not module.private.enabled then
-        return
-    end
-
-    table_set_default(module.private.debounce_counters, event.cursor_position[1] + 1, 0)
-
-    local has_conceal = vim.api.nvim_win_is_valid(event.window) and (vim.api.nvim_win_get_option(event.window, "conceallevel") > 0)
-
-    if event.type == "core.autocommands.events.bufread" and event.content.norg then
-        if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
-            set_fold_opts(event.window)
+    if event.type == "core.autocommands.events.bufread" then
+        if event.content.norg then
+            handle_bufread(event)
         end
-
-        local buf = event.buffer
-        local line_count = vim.api.nvim_buf_line_count(buf)
-
-        vim.api.nvim_buf_clear_namespace(buf, module.private.icon_namespace, 0, -1)
-        vim.api.nvim_buf_clear_namespace(buf, module.private.code_block_namespace, 0, -1)
-
-        if line_count < module.config.public.performance.increment then
-            module.public.trigger_icons(buf, has_conceal, module.private.icons, module.private.icon_namespace)
-            module.public.trigger_code_block_highlights(buf, has_conceal)
-        else
-            -- This bit of code gets triggered if the line count of the file is bigger than one increment level
-            -- provided by the user.
-            -- In this case, the concealer enters a block mode and splits up the file into chunks. It then goes through each
-            -- chunk at a set interval and applies the conceals that way to reduce load and improve performance.
-
-            -- This points to the current block the user's cursor is in
-            local block_current = math.floor(event.cursor_position[1] / module.config.public.performance.increment)
-
-            local function trigger_conceals_for_block(block)
-                local line_begin = block == 0 and 0 or block * module.config.public.performance.increment - 1
-                local line_end = math.min(
-                    block * module.config.public.performance.increment + module.config.public.performance.increment - 1,
-                    line_count
-                )
-
-                module.public.trigger_icons(
-                    buf,
-                    has_conceal,
-                    module.private.icons,
-                    module.private.icon_namespace,
-                    line_begin,
-                    line_end
-                )
-
-                module.public.trigger_code_block_highlights(buf, has_conceal, line_begin, line_end)
-            end
-
-            trigger_conceals_for_block(block_current)
-
-            local block_bottom, block_top = block_current - 1, block_current + 1
-
-            local timer = vim.loop.new_timer()
-
-            local function do_timer()
-                local block_bottom_valid = block_bottom == 0
-                    or (block_bottom * module.config.public.performance.increment - 1 >= 0)
-                local block_top_valid = block_top * module.config.public.performance.increment - 1 < line_count
-
-                if not block_bottom_valid and not block_top_valid then
-                    timer:stop()
-                    return
-                end
-
-                if block_bottom_valid then
-                    trigger_conceals_for_block(block_bottom)
-                    block_bottom = block_bottom - 1
-                end
-
-                if block_top_valid then
-                    trigger_conceals_for_block(block_top)
-                    block_top = block_top + 1
-                end
-            end
-
-            timer:start(
-                module.config.public.performance.timeout,
-                module.config.public.performance.interval,
-                vim.schedule_wrap(do_timer)
-            )
-        end
-
-        module.private.attach_uid = module.private.attach_uid + 1
-        local uid_upvalue = module.private.attach_uid
-
-        local function on_line_callback(_, cur_buf, _, start, _end)
-            -- There are edge cases where the current buffer is not the same as the tracked buffer,
-            -- which causes desyncs
-            if buf ~= cur_buf or not module.private.enabled or uid_upvalue ~= module.private.attach_uid then
-                return true
-            end
-
-            table_set_default(module.private.debounce_counters, start + 1, 0)
-
-            if should_debounce(start) then
-                return
-            end
-
-            module.private.last_change.active = true
-
-            if vim.api.nvim_get_mode().mode ~= "i" then
-                table_add_number(module.private.debounce_counters, start + 1, 1)
-
-                schedule(buf, function()
-                    -- Sometimes occurs with one-line undos
-                    if start == _end then
-                        _end = _end + 1
-                    end
-
-                    local new_line_count = vim.api.nvim_buf_line_count(buf)
-                    if new_line_count > line_count then
-                        _end = _end + (new_line_count - line_count - 1)
-                    end
-
-                    line_count = new_line_count
-
-                    module.public.trigger_icons(
-                        buf,
-                        has_conceal,
-                        module.private.icons,
-                        module.private.icon_namespace,
-                        start,
-                        _end
-                    )
-
-                    -- NOTE(vhyrro): It is simply not possible to perform incremental
-                    -- updates here. Code blocks require more context than simply a few lines.
-                    -- It's still incredibly fast despite this fact though.
-                    module.public.trigger_code_block_highlights(buf, has_conceal)
-
-                    vim.schedule(neorg.lib.wrap(table_add_number, module.private.debounce_counters, start + 1, -1))
-                end)
-            else
-                schedule(
-                    buf,
-                    neorg.lib.wrap(module.public.trigger_code_block_highlights, buf, has_conceal, start, _end)
-                )
-
-                if module.private.largest_change_start == -1 then
-                    module.private.largest_change_start = start
-                end
-
-                if module.private.largest_change_end == -1 then
-                    module.private.largest_change_end = _end
-                end
-
-                module.private.largest_change_start = math.min(start, module.private.largest_change_start)
-                module.private.largest_change_end = math.max(_end, module.private.largest_change_end)
-            end
-        end
-
-        vim.api.nvim_buf_attach(buf, false, { on_lines = on_line_callback })
     elseif event.type == "core.autocommands.events.insertenter" then
-        schedule(event.buffer, function()
-            module.private.last_change = {
-                active = false,
-                line = event.cursor_position[1] - 1,
-            }
-
-            vim.api.nvim_buf_clear_namespace(
-                event.buffer,
-                module.private.icon_namespace,
-                event.cursor_position[1] - 1,
-                event.cursor_position[1]
-            )
-        end)
+        handle_insertenter()
     elseif event.type == "core.autocommands.events.insertleave" then
-        if should_debounce(event.cursor_position[1]) then
-            return
-        end
-
-        schedule(event.buffer, function()
-            if not module.private.last_change.active or module.private.largest_change_end == -1 then
-                module.public.trigger_icons(
-                    event.buffer,
-                    has_conceal,
-                    module.private.icons,
-                    module.private.icon_namespace,
-                    module.private.last_change.line,
-                    module.private.last_change.line + 1
-                )
-            else
-                module.public.trigger_icons(
-                    event.buffer,
-                    has_conceal,
-                    module.private.icons,
-                    module.private.icon_namespace,
-                    module.private.largest_change_start,
-                    module.private.largest_change_end
-                )
-            end
-
-            module.private.largest_change_start, module.private.largest_change_end = -1, -1
-        end)
+        handle_insertleave()
     elseif event.type == "core.autocommands.events.vimleavepre" then
-        module.private.disable_deferred_updates = true
-    elseif event.type == "core.concealer.events.update_region" then
-        schedule(event.buffer, function()
-            vim.api.nvim_buf_clear_namespace(
-                event.buffer,
-                module.private.icon_namespace,
-                event.content.start,
-                event.content["end"]
-            )
-
-            module.public.trigger_icons(
-                event.buffer,
-                module.private.has_conceal,
-                module.private.icons,
-                module.private.icon_namespace,
-                event.content.start,
-                event.content["end"]
-            )
-        end)
+        handle_vimleavepre()
+    else
+        assert(false, ("unexpected event type: %s"):format(event.type))
     end
 end
 
+-- TODO;
+-- CursorHold
+-- inccommand
+-- lazyredraw, ttyfast
+-- no conceal on cursor line at insert mode
+
 module.events.defined = {
-    update_region = neorg.events.define(module, "update_region"),
+    -- update_region = neorg.events.define(module, "update_region"),
 }
 
 module.events.subscribed = {
@@ -1633,7 +539,7 @@ module.events.subscribed = {
     },
 
     ["core.concealer"] = {
-        update_region = true,
+        -- update_region = true,
     },
 }
 
