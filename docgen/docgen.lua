@@ -2,10 +2,24 @@ local docgen = {}
 
 -- Create the directory if it does not exist
 docgen.output_dir = "../wiki"
+docgen.static_dir = "../res/wiki/static"
 pcall(vim.fn.mkdir, docgen.output_dir)
 
 -- Copy static wiki resources into the wiki
-pcall(vim.fn.system, "cp -r ../res/wiki/static/* " .. docgen.output_dir)
+vim.loop.fs_scandir(docgen.static_dir, function(err, handle)
+    if not handle then
+        print(err) -- docgen.static_dir might not exist, and that's ok
+        return
+    end
+
+    local name, type = vim.loop.fs_scandir_next(handle)
+    while name do
+        if type == "file" then
+            assert(vim.loop.fs_copyfile(docgen.static_dir .. "/" .. name, docgen.output_dir .. "/" .. name))
+        end
+        name, type = vim.loop.fs_scandir_next(handle)
+    end
+end)
 
 require("neorg").setup({
     load = {
