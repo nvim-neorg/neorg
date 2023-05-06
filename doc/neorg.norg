@@ -1,6 +1,6 @@
 @document.meta
 title: Neorg help-page
-description: the Neorg vim help-page
+description: The Neorg vim help-page
 author: The Neorg Community
 categories: docs
 created: 2021-09-05
@@ -9,36 +9,47 @@ version: 0.1
 
 .toc
 
-* The `.norg` file-format
+* The `.norg` File Format
+
   If you find the {https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg}[spec]
   too long and want to jump-start your Neorg skills, you've come to the right place!
 
+  NOTE: If you have `core.concealer` enabled, then be sure to run `:Neorg toggle-concealer`
+  any time you want to see the raw markup.
+
+  This document automatically disables the hiding of characters for clarity.
+  If you would like to reenable this, run `:set conceallevel=2`.
+
 ** Basic Markup
+
    Here is how you can do very basic markup. First you see it raw, then rendered:
-   - \*bold\*: *bold*
-   - \/italic\/: /italic/
-   - \_underline\_: _underline_
-   - \-strikethrough\-: -strikethrough-
-   - \!spoiler\!: !spoiler!
-   - \`inline code\`: `inline code`
-   - \^superscript\^: ^superscript^  (when nested into `subscript`, will highlight as an error)
-   - \,subscript\,: ,subscript,  (when nested into `superscript`, will highlight as an error)
-   - \$inline math\$: $f(x) = y$ (see also {# Math})
-   - \&variable\&: &variable& (see also {# Variables})
-   - \%inline comment\%: %inline comment%
+   - *bold*
+   - /italic/
+   - _underline_
+   - -strikethrough-
+   - !spoiler!
+   - `inline code`
+   - ^superscript^  (when nested into `subscript`, will highlight as an error)
+   - ,subscript,  (when nested into `superscript`, will highlight as an error)
+   - $f(x) = y$ (see also {# Math})
+   - &variable& (see also {# Variables})
+   - %inline comment%
 
    This also immediately shows you how to escape a special character using the backslash, \\.
 
-** Things which you can nest
+** Nesting
+
    Neorg generally does *NOT* care about indentation! 🎉
    Thus, nesting is done via repeating modifiers like you are used to from Markdown headings.
    Note, that this allows you to start at an arbitrary nesting level if you so desire!
 
 *** Unordered lists
+
     |example
     - Unordered list level 1
     -- Unordered list level 2
     |end
+
     - Unordered list level 1
     -- Unordered list level 2
     --- Unordered list level 3
@@ -47,19 +58,21 @@ version: 0.1
     ------ Unordered list level 6
 
 *** Ordered lists
-    |example
-    ~ Ordered list level 1
-    ~~ Ordered list level 2
-    |end
 
+    |example
     ~ Ordered list level 1
     ~~ Ordered list level 2
     ~~~ Ordered list level 3
     ~~~~ Ordered list level 4
     ~~~~~ Ordered list level 5
     ~~~~~~ Ordered list level 6
+    |end
+
+    Weird/buggy ordered list icons are a known bug, and can only be fixed
+    once {https://github.com/neovim/neovim/pull/9496}[anticonceal] is implemented.
 
 *** Tasks
+
     |example
     - ( ) Undone -> not done yet
     - (x) Done -> done with that
@@ -72,31 +85,12 @@ version: 0.1
     - (=) Task put on hold
     - (_) Task cancelled (put down)
     |end
-    - ( ) Undone
-    - (x) Done
-    - (?) Needs further input
 
-    - (!) Urgent
-    - (+) Recurring task
-
-    - (-) Pending
-    - (=) Task put on hold
-    - (_) Task cancelled
-
-    You can also nest tasks:
-    -- ( ) Nested task level 2
-    --- ( ) Nested task level 3
-    ---- ( ) Nested task level 4
-    ----- ( ) Nested task level 5
-    ------ ( ) Nested task level 6
-
-    |example
-    - ( ) Undone Task, Nested level 1
-    -- (-) Pending Task, Nested level 2
-    --- (x) Done Task, Nested level 3
-    |end
+    The task modifier can be placed on any detached modifier, including
+    headings, definitions, footnotes etc. to track their state.
 
 *** Quotes
+
     |example
     > 1. level quote
     >> 2. level quote
@@ -109,55 +103,47 @@ version: 0.1
     >>>>>> 6. level quote
 
 *** Headings
+
     You already saw headings up to the third out of six levels. I assume by now you know how they
     work. But now...
 
 **** ... prepare to have your mind blown!
+
      Because here is something very special and unique to Neorg:
 
 ***** Indentation reversion
+
       As you would expect, this paragraph belongs to the fifth level heading.
 
 ****** Final heading level
+
        And this paragraph belongs to the sixth level. But by using the following modifier:
-       |example
-       --
-       |end
-       --
+       ---
 
       We can move this text to the fifth level again! 🤯
-      --
+      ---
 
      So using 2 or more `-` signs not followed by anything, you move *one* level backwards in the
-     indentation.
-     --
-    |example
-    **** 4. level heading
-    ***** 5. level heading
-    --
-    back to level 4
-    ==
-    back to root level
-    |end
+     indentation (we like using three characters though :p).
 
- ** Links
-    For more info on links check the
-    {https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg#L1327}[spec].
+     Doing the same but with `=` characters instead all heading levels will be closed and
+     you will be dropped back to the root level of the document!
 
-    You can also place horizontal lines using two or more underscores like so:
-    |example
-    __
-    |end
+** Horizontal Lines
 
-    This will never affect the indentation level of the following text, but it will immediately
-    terminate the paragraph which is why this is a new paragraph despite the absence of two (or more)
-    consective new lines.
+   You can also place horizontal lines using two or more underscores like so:
+   ___
+   This will never affect the indentation level of the following text, but it will immediately
+   terminate the paragraph which is why this is a new paragraph despite the absence of two (or more)
+   consective new lines.
 
 ** Links
+
    For more info on links check the
-   {https://github.com/nvim-neorg/neorg/blob/main/docs/NFF-0.1-spec.md#links}[spec].
+   {https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg#L1336}[spec].
 
 *** Link Targets
+
     The following things can be used as link /targets/:
     - `* Heading1` (+ nesting levels)
     - `^ Footnote`
@@ -178,29 +164,22 @@ version: 0.1
     - `:$gtd/path/in/gtd/workspace:` relative to the root of the workspace called `gtd`.
 
 ** There are multiple ways of using links:
+
 *** Pure link location
-    |example
-    An inline link to {* my heading}.
-    |end
+
     An inline link to {* my heading}.
 
     The text used for this link can be inferred from the /target/.
     If it is not a norg-target, this falls back to the URL or filename, etc.
 
 *** Custom link text
-    |example
-    An inline link to {* my heading}[with custom text].
-    |end
+
     An inline link {* my heading}[with custom text].
 
     This links to the same marker but uses a custom link text.
 
 *** Anchors
-    |example
-    A link to [our website].
 
-    Be sure to check out [our website]{https://github.com/nvim-neorg/neorg}!
-    |end
     A link to [our website].
 
     Be sure to check out [our website]{https://github.com/nvim-neorg/neorg}!
@@ -210,6 +189,7 @@ version: 0.1
     This is very useful when you find yourself refering to the same target often.
 
 *** Examples:
+
     {* Heading 1}
     {** Heading 2}
     {*** Heading 3}
@@ -235,27 +215,24 @@ version: 0.1
     {https://github.com/}
     {file:///dev/null}
     {/ external_file.txt}
+
     Note that the following links are malformed:
     {:norg_file:/ external_file.txt}
     {:norg_file:https://github.com/}
 
 ** Definitions
+
    There are two kinds of definitions:
 
 *** Single-paragraph definitions
-    |example
-    $ Term
-      The definition of the object in a single paragraph.
-    |end
+
     $ Term
     The definition of the object in a single paragraph.
 
     This is not considered part of the definition.
 
 *** Multi-paragraph definitions
-    |example
-    $$ Object to be defined
-    |end
+
     $$ Object to be defined
     Here, I can place any number of paragraphs or other format objects.
 
@@ -265,18 +242,14 @@ version: 0.1
     @end
     $$
 
-    |example
-    $$
-    |end
     This is no longer part of the definition because the `$$` on the previous line marked its end.
 
 ** Footnotes
+
    There are also two kinds of footnotes:
 
 *** Single-paragraph footnotes
-    |example
-    ^ This is the title of my footnote. I can use this as a link target.
-    |end
+
     ^ This is the title of my footnote. I can use this as a link target.
     This is the actual footnote content.
 
@@ -284,153 +257,117 @@ version: 0.1
     target}[footnote].
 
 *** Multi-paragraph footnotes
-    |example
-    ^^ This is a multi-paragraph footnote.
-    |end
+
     ^^ This is a multi-paragraph footnote.
     Here go the actual contents...
 
     ... which I can even continue down here.
     ^^
 
-    |example
-    ^^
-    |end
     Now, the footnote has ended.
 
 ** Data Tags
+
    Neorg supports a number of tags. The general format is:
-   |example
+
    @data possible parameters
    contents
    @end
-   |end
 
-*** Carryover
-    There is also an infectious carryover variant which allows shorter syntax. Its format is:
-    `#data possible parameters`, which will apply the `data` tag *only* to the following
-    paragraph or element.
+*** Carryover Tags
 
-*** Comments
-    #comment
-    This is a comment.
-    This is also still a comment because the paragraph has not ended, yet.
+    Carryover tags are a variant of tags that apply some data to the next object.
+    The general syntax looks like this:
 
-    The double line break ended the paragraph so this is no longer part of the comment.
+    #tagname parameter1 parameter2
+    The object to apply the tag to.
 
-    Note, that you can also add in-line comments using the `#`-attached modifier. #E.g. like this#
+    Apart from just `#` you may also use the `+` character. It's best to use `#`
+    most of the time, as it applies recursively to the element you're tagging.
+    Use `+` only if you don't want your tag to apply recursively to the children
+    of an object.
 
-*** Name
-    #name quotes
+**** Name
+
+    #name awesome quotes
     > This is a quote.
     > We can talk about anything we like
 
-    This quote now has a /name/!
-
-*** List ordering
-    You can affect ordered lists and specify their /start/, /step/ and /spacing/ values (all of
-    them default to 1).
-
-    #ordered 2 2 2
-    ~ First entry
-    ~ Second entry
-
-    This will render as:
-   |example
-    2. First entry
-
-    4. Second entry
-    |end
-
-*** Tables
-    @table
-    Column 1 | Column 2
-    -
-    This is in a new row | which got separated by a horizontal line
-    And check this out: I can span the columns!
-    @end
-
-    Tables will become OP in the future!
+    This quote now has a /name/! You can link to it with the magic char: {# awesome quotes}!
 
 *** Code Blocks
-    |example
-    console.log("But I want syntax highlighting...")
-    |end
 
-|example
+    @code
+    console.log("But I want syntax highlighting...")
+    @end
+
+    @code lua
     console.log("Thank you!")
-    |end
+    @end
 
 *** Media
+
     You can embed images directly in base64 format like so:
     @image png svg jpeg jfif exif
     <base64-encoded image data>
     @end
+
     Obviously you need to pick one of the available formats.
 
     You can embed external image or video files like so:
-    @embed image
-    https://github.com/vhyrro/neorg/blob/main/res/neorg.svg
-    @end
+    .image https://github.com/vhyrro/neorg/blob/main/res/neorg.svg
 
 *** Math
+
     There are two ways of typesetting mathematics:
     ~ Inline mathematics using the `$` attached modifier like so: $f(x) = y$.
-    ~ Multiline mathematics using the `math` ranged tag which supports any LaTeX-typeset math.
-    @math
-    f(x) = y
-    @end
-    A `numbered` carryover tag in a similar vain to the `ordered` one for lists is planned to add
-    easy equation numbering support.
+    ~ :
+      Multiline mathematics using the `math` ranged tag which supports any LaTeX-typeset math.
+      @math
+      f(x) = y
+      @end
 
 ** Advanced markup
+
    There are some more advanced markup features:
 
 *** The Link modifier
+
     If you want to mark-up text which is not surrounded by punctuation or whitespace, you need to
     use the *link* modifier, `:`, like so:
 
     W:*h*:y w:/oul/:d a:_nyon_:e w:-an-:t to do t:`hi`:s?
 
 *** Nested markup
+
     You can nest multiple markup groups to combine their effect. Some examples:
     - *Text can be bold _and underlined_!*
     - You can create ,/italic subscripts/,.
-    - If you want to shout in the internet, use */_DOUBLY EMPHASIZED AND UNDERLINED CAPS_/*
+    - If you want to shout on the internet, use */_DOUBLY EMPHASIZED AND UNDERLINED CAPS_/*
 
     Note: You can:*not* combine sub- and superscripts like so:
-   |example
-    ^,This should be super- and subscript.,^ Why though?
-   |end
-    You will notice that this get's highlighted as an error:
+
+    ^,This should be super- and subscript.,^ - why though?
+
+    You will notice that this gets highlighted as an error:
+
     ^,This should be super- and subscript.,^
 
-*** Object continuation
-    The `~` trailing modifier causes the line break to be ignored. This allows you to do things
-    like this:
-
-**** This is a super duper long heading which I am so proud of and I absolutely cannot shorten~
-          to fit onto a single line
-
 *** Variables
+
     You can define variables which you can access later in your document like so:
+
     @code norg
-    = <variable name> <values>
-    @end
-    For a reason explained in the next section, variable names *must* be lowercase!
-    You can refer to this variable later in your document using the `=` attached modifier like so:
-    @code norg
-    Insert my =variable=.
+    =variable-name
+    value
+    =end
     @end
 
-*** Insertions
-    These are dynamically expanded objects which you can add to your document.
-    The simplest example of an insertion is the /table of contents/ which looks like
+    You can refer to this variable later in your document using the `=` attached modifier like so:
+
     @code norg
-    = ToC Table of Contents
+    Insert my &variable&.
     @end
-    This shows the basic syntax `= <capitalized insertion name> <arguments>` and it also explains
-    why {# Variables} have to be lowercased.
 
     #comment
-    vim:tw=100:ft=norg:norl:
+    vim:tw=100:ft=norg:norl:conceallevel=0:concealcursor=:
