@@ -243,6 +243,8 @@ module.on_event = function(event)
         return
     end
 
+    -- FIXME(vhyrro): When the buffer already exists then simply refresh the buffer
+    -- instead of erroring out.
     local namespace = vim.api.nvim_create_namespace("neorg/toc")
     local buffer, window =
         module.required["core.ui"].create_vsplit("toc", { ft = "norg" }, (event.content[1] or "left") == "left")
