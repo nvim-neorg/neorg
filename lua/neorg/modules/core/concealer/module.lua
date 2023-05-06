@@ -12,6 +12,30 @@ To reduce the amount of cognitive load required to "parse" Norg documents with y
 masks, or sometimes completely hides many categories of markup.
 --]]
 
+-- utils copied from promo, to be refactored
+
+local function is_prefix_node(node)
+    return node:type():match("_prefix$") ~= nil or node:type():match("^link_target_heading") ~= nil
+end
+
+local function get_prefix_position_and_level(buffer, prefix_node)
+    assert(is_prefix_node(prefix_node), prefix_node:type())
+    local row_start, col_start, row_end, col_end = prefix_node:range()
+
+    assert(row_start == row_end)
+    assert(col_start + 2 <= col_end)
+    local past_end_pos = vim.treesitter.get_node_text(prefix_node, buffer):find(" ") or (col_end - col_start)
+    return row_start, col_start, (past_end_pos - 1)
+end
+
+local function get_header_prefix_node(header_node)
+    local first_child = header_node:child(0)
+    assert(first_child:type() == header_node:type() .. "_prefix")
+    return first_child
+end
+
+--- end utils
+
 require("neorg.modules.base")
 require("neorg.external.helpers")
 
@@ -84,10 +108,10 @@ module.config.public = {
 module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufRead")
     local builder = {"["}
-    for node_type, _ in pairs(conceal_texts) do
-        table.insert(builder, "(" .. node_type .. ")")
+    for node_type, cfg in pairs(conceal_texts) do
+        table.insert(builder, cfg.query or ("(" .. node_type .. ")@icon"))
     end
-    table.insert(builder, "]@icon")
+    table.insert(builder, "]")
     local query_string = table.concat(builder)
     conceal_query = neorg.utils.ts_parse_query("norg", query_string)
 end
@@ -123,138 +147,123 @@ end
 
 my_namespace = vim.api.nvim_create_namespace("neorg-conceals")
 
-conceal_texts = {
-    todo_item_done = {
-        icon = "",
-    },
-
-    todo_item_pending = {
-        icon = "",
-    },
-
-    todo_item_undone = {
-        icon = "×",
-    },
-
-    todo_item_uncertain = {
-        icon = "",
-    },
-
-    todo_item_on_hold = {
-        icon = "",
-    },
-
-    todo_item_cancelled = {
-        icon = "",
-    },
-
-    todo_item_recurring = {
-        icon = "↺",
-    },
-
-    todo_item_urgent = {
-        icon = "⚠",
-    },
-
-
-    heading1_prefix = {
-        icon = "◉",
-        highlight = "@neorg.headings.1.prefix",
-    },
-    heading2_prefix = {
-        icon = " ◎",
-        highlight = "@neorg.headings.2.prefix",
-    },
-    heading3_prefix = {
-        icon = "  ○",
-        highlight = "@neorg.headings.3.prefix",
-    },
-
-    heading4_prefix = {
-        icon = "   ✺",
-        highlight = "@neorg.headings.4.prefix",
-    },
-
-    heading5_prefix = {
-        icon = "    ▶",
-        highlight = "@neorg.headings.5.prefix",
-    },
-
-    heading6_prefix = {
-        icon = function(node) return (" "):rep(node_text_width(node) - 2) .. "⤷" end,
-        highlight = "@neorg.headings.6.prefix",
-    },
-
-    -- TODO: >6
-    -- TODO: ordered
-    -- TODO: definition, footnote, delimiter, markup, quote
-
-    unordered_list1_prefix = {
-        icon = "•",
-    },
-
-    unordered_list2_prefix = {
-        icon = " •",
-    },
-
-    unordered_list3_prefix = {
-        icon = "  •",
-    },
-
-    unordered_list4_prefix = {
-        icon = "   •",
-    },
-
-    unordered_list5_prefix = {
-        icon = "    •",
-    },
-
-    unordered_list6_prefix = {
-        icon = function(node) return (" "):rep(node_text_width(node) - 2) .. "•" end,
-    },
-
-    ordered_list1_prefix = {
-        icon = function(...) return get_ordered_icon(conceal_icon_table.numeric_dot, ...) end
-    }
-
-    ordered_list2_prefix = {
-        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_uppercase, ...) end
-    }
-
-    ordered_list3_prefix = {
-        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_lowercase, ...) end
-    }
-
-    ordered_list4_prefix = {
-        icon = function(...) return get_ordered_icon(conceal_icon_table.numeric_pareneses, ...) end
-    }
-
-    ordered_list5_prefix = {
-        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_uppercase, ...) end
-    }
-
-    ordered_list6_prefix = {
-        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_lowercase_parentheses, ...) end
-    }
-}
-
 local conceal_icon_table = {
     numeric           = { "1", "2", "3", "4", "5", "6", "7", "8", "9" },
     numeric_dot       = { "⒈", "⒉", "⒊", "⒋", "⒌", "⒍", "⒎", "⒏", "⒐", "⒑", "⒒", "⒓", "⒔", "⒕", "⒖", "⒗", "⒘", "⒙", "⒚", "⒛" },
     numeric_pareneses = { "⑴", "⑵", "⑶", "⑷", "⑸", "⑹", "⑺", "⑻", "⑼", "⑽", "⑾", "⑿", "⒀", "⒁", "⒂", "⒃", "⒄", "⒅", "⒆", "⒇" },
     numeric_circled   = { "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳" },
+    latin_lowercase             = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" },
+    latin_uppercase             = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" },
     latin_lowercase_parentheses = { "⒜", "⒝", "⒞", "⒟", "⒠", "⒡", "⒢", "⒣", "⒤", "⒥", "⒦", "⒧", "⒨", "⒩", "⒪", "⒫", "⒬", "⒭", "⒮", "⒯", "⒰", "⒱", "⒲", "⒳", "⒴", "⒵" },
     latin_uppercase_circled     = { "Ⓐ", "Ⓑ", "Ⓒ", "Ⓓ", "Ⓔ", "Ⓕ", "Ⓖ", "Ⓗ", "Ⓘ", "Ⓙ", "Ⓚ", "Ⓛ", "Ⓜ", "Ⓝ", "Ⓞ", "Ⓟ", "Ⓠ", "Ⓡ", "Ⓢ", "Ⓣ", "Ⓤ", "Ⓥ", "Ⓦ", "Ⓧ", "Ⓨ", "Ⓩ" },
     latin_lowercase_circled     = { "ⓐ", "ⓑ", "ⓒ", "ⓓ", "ⓔ", "ⓕ", "ⓖ", "ⓗ", "ⓘ", "ⓙ", "ⓚ", "ⓛ", "ⓜ", "ⓝ", "ⓞ", "ⓟ", "ⓠ", "ⓡ", "ⓢ", "ⓣ", "ⓤ", "ⓥ", "ⓦ", "ⓧ", "ⓨ", "ⓩ" },
 }
 
-local function get_ordered_icon(icon_table, node, get_ordered_index)
-    local index = get_ordered_index(node)
-    local level = node_text_width(node) - 1
+local function get_prefix_level(buffer, prefix_node)
+    return select(3, get_prefix_position_and_level(buffer, prefix_node))
+end
+
+local function get_ordered_index(buffer, prefix_node)
+    -- TODO: calculate levels in one pass, since treesitter API implementation seems to have ridiculously high complexity
+    local level = get_prefix_level(buffer, prefix_node)
+    local header_node = prefix_node:parent()
+    assert(header_node:type() .. "_prefix" == prefix_node:type())
+    local sibling = header_node:prev_named_sibling()
+    local count = 1
+
+    while sibling and (sibling:type() == header_node:type()) do
+        local sibling_level = get_prefix_level(buffer, get_header_prefix_node(sibling))
+        if sibling_level<level then
+            break
+        elseif sibling_level==level then
+            count = count + 1
+        end
+        sibling = sibling:prev_named_sibling()
+    end
+
+    return count
+end
+
+local function get_ordered_icon(icon_table, buffer, prefix_node)
+    local index = get_ordered_index(buffer, prefix_node)
+    local level = get_prefix_level(buffer, prefix_node)
     local indent = (" "):rep(level - 1)
     local number_icon = icon_table[index] or "~"
+    print(number_icon, level)
     return indent .. number_icon
 end
+
+conceal_texts = {
+    todo_item_done      = { icon = "", },
+    todo_item_pending   = { icon = "", },
+    todo_item_undone    = { icon = "×", },
+    todo_item_uncertain = { icon = "", },
+    todo_item_on_hold   = { icon = "", },
+    todo_item_cancelled = { icon = "", },
+    todo_item_recurring = { icon = "↺", },
+    todo_item_urgent    = { icon = "⚠", },
+
+    heading1_prefix = { icon = "◉", highlight = "@neorg.headings.1.prefix", },
+    heading2_prefix = { icon = " ◎", highlight = "@neorg.headings.2.prefix", },
+    heading3_prefix = { icon = "  ○", highlight = "@neorg.headings.3.prefix", },
+    heading4_prefix = { icon = "   ✺", highlight = "@neorg.headings.4.prefix", },
+    heading5_prefix = { icon = "    ▶", highlight = "@neorg.headings.5.prefix", },
+    heading6_prefix = {
+        icon = function(buffer, node) return (" "):rep(get_prefix_level(buffer, node) - 1) .. "⤷" end,
+        highlight = "@neorg.headings.6.prefix",
+    },
+
+    -- TODO: definition, footnote, delimiter, markup, quote
+    spoiler = {
+        -- query = '(spoiler ("_open") _ @text ("_close"))@icon',
+        highlight = "@neorg.markup.spoiler",
+        icon = function(buffer, node) return ("•"):rep(vim.treesitter.get_node_text(node, buffer):len()-2), 1 end,
+    },
+
+    unordered_list1_prefix = { icon = "•", },
+    unordered_list2_prefix = { icon = " •", },
+    unordered_list3_prefix = { icon = "  •", },
+    unordered_list4_prefix = { icon = "   •", },
+    unordered_list5_prefix = { icon = "    •", },
+    unordered_list6_prefix = {
+        icon = function(buffer, node) return (" "):rep(get_prefix_level(buffer, node) - 1) .. "•" end,
+    },
+
+    ordered_list1_prefix = {
+        icon = function(...) return get_ordered_icon(conceal_icon_table.numeric_dot, ...) end
+    },
+
+    ordered_list2_prefix = {
+        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_uppercase, ...) end
+    },
+
+    ordered_list3_prefix = {
+        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_lowercase, ...) end
+    },
+
+    ordered_list4_prefix = {
+        icon = function(...) return get_ordered_icon(conceal_icon_table.numeric_pareneses, ...) end
+    },
+
+    ordered_list5_prefix = {
+        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_uppercase, ...) end
+    },
+
+    ordered_list6_prefix = {
+        icon = function(buffer, node)
+            local level = get_prefix_level(buffer, node)
+            local icon_tables = {
+                conceal_icon_table.latin_lowercase_parentheses,
+                conceal_icon_table.latin_uppercase_circled,
+                conceal_icon_table.latin_lowercase_circled,
+                conceal_icon_table.numeric_circled,
+                conceal_icon_table.numeric,
+            }
+            local the_icon_table = icon_tables[level-6+1] or icon_tables[#icon_tables]
+            return get_ordered_icon(the_icon_table, buffer, node)
+        end
+    },
+}
 
 local function checked_gsub(...)
     local result, n_match = string.gsub(...)
@@ -288,7 +297,7 @@ config_name_dict = {
         multi_suffix = "multi_footnote_suffix",
     },
     markup = {
-        -- TODO: spoilere
+        spoiler = "spoiler",
     },
 }
 
@@ -310,7 +319,6 @@ table_extend_in_place(conceal_texts, {
 })
 
 local function remove_extmarks(buffer, row_start, row_end)
-    print('!!! remove_remarks', row_start, row_end)
     assert(row_start <= row_end)
     if row_start == row_end then
         return
@@ -340,7 +348,13 @@ local function conceal_range(buffer, row_start, row_end)
     for id, node, _metadata in conceal_query:iter_captures(document_root, buffer, row_start, row_end) do
         local r, c, _ = node:start()
         local text = conceal_texts[node:type()]
-        local icon = type(text.icon)=="string" and text.icon or text.icon(node)
+        local icon, col_offset
+        if type(text.icon)=="string" then
+            icon = text.icon
+        else
+            icon, col_offset = text.icon(buffer, node)
+        end
+        c = c + (col_offset or 0)
         local opt = {
             virt_text={{icon, text.highlight}},
             --virt_text_pos="overlay",
@@ -419,7 +433,6 @@ local function do_operations_for_buffer(buffer, operations)
     for _, op in ipairs(operations) do
         local il = table_ifind_first(changed_intervals, function(itv) return op.row_start <= itv.l end)
         local ir = table_ifind_first(changed_intervals, function(itv) return op.row_end_old < itv.l end, l)
-        print('###', il, ir)
 
         if il>1 and op.row_start <= changed_intervals[il-1].r then
             il = il - 1

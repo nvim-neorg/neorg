@@ -125,13 +125,14 @@ module.public = {
             return node:type():match("_prefix$") ~= nil
         end
 
-        local function get_prefix_position_and_level(prefix_node)
+        local function get_prefix_position_and_level(buffer, prefix_node)
             assert(is_prefix_node(prefix_node))
             local row_start, col_start, row_end, col_end = prefix_node:range()
 
             assert(row_start == row_end)
             assert(col_start + 2 <= col_end)
-            return row_start, col_start, (col_end - col_start - 1)
+            local past_end_pos = vim.treesitter.get_node_text(prefix_node, buffer):find(" ") or (col_end - col_start)
+            return row_start, col_start, (past_end_pos - 1)
         end
 
         local action_count = vim.v.count
@@ -153,12 +154,13 @@ module.public = {
         end
 
         local root_prefix_node = get_header_prefix_node(root_node)
-        local _, _, root_level = get_prefix_position_and_level(root_prefix_node)
+        local _row, _col, root_level = get_prefix_position_and_level(buffer, root_prefix_node)
+        print('$$$$$$$$$', _row, _col, root_level)
 
         local adjust_prefix
         if mode == "promote" then
             adjust_prefix = function(prefix_node)
-                local prefix_row, prefix_col, _ = get_prefix_position_and_level(prefix_node)
+                local prefix_row, prefix_col, _ = get_prefix_position_and_level(buffer, prefix_node)
                 vim.api.nvim_buf_set_text(
                     buffer,
                     prefix_row,
@@ -178,7 +180,7 @@ module.public = {
             end
 
             adjust_prefix = function(prefix_node)
-                local prefix_row, prefix_col, level = get_prefix_position_and_level(prefix_node)
+                local prefix_row, prefix_col, level = get_prefix_position_and_level(buffer, prefix_node)
                 assert(level > action_count)
                 vim.api.nvim_buf_set_text(buffer, prefix_row, prefix_col, prefix_row, prefix_col + action_count, {})
             end
@@ -201,7 +203,7 @@ module.public = {
 
         local function apply_recursive_verylow(node, is_target, f)
             local started = false
-            local _, _, level = get_prefix_position_and_level(get_header_prefix_node(node))
+            local _, _, level = get_prefix_position_and_level(buffer, get_header_prefix_node(node))
 
             f(node)
 
@@ -211,7 +213,7 @@ module.public = {
                         break
                     end
 
-                    local _, _, sibling_level = get_prefix_position_and_level(get_header_prefix_node(sibling))
+                    local _, _, sibling_level = get_prefix_position_and_level(buffer, get_header_prefix_node(sibling))
 
                     if sibling_level <= level then
                         break
