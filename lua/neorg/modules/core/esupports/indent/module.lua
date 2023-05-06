@@ -10,7 +10,7 @@ The indent calculation is aided by [treesitter](@core.integrations.treesitter), 
 means that the quality of indents is "limited" by the quality of the produced syntax tree,
 which will get better and better with time.
 
-To reindent a file, you may use the inbuilt Neovim `=` opeartor.
+To reindent a file, you may use the inbuilt Neovim `=` operator.
 Indent levels are also calculated as you type, but may not be entirely correct
 due to incomplete syntax trees (if you find any such examples, then file an issue!).
 --]]
