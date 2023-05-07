@@ -80,18 +80,14 @@ To make things easier the [`nvim-treesitter`](https://github.com/nvim-treesitter
 **In order for Neorg to work properly, these features must be enabled when you load and `setup()` nvim-treesitter, especially the highlight module.** See [https://github.com/nvim-treesitter/nvim-treesitter#modules](https://github.com/nvim-treesitter/nvim-treesitter#modules) for more details on how to do this. Within Neovim, you can run `:TSConfigInfo` to ensure that `modules.enable.highlight` has the expected value.
 
 
-> #### Tree-sitter-cli
+> ##### C/C++ Toolchain
 >
-> In order for the `nvim-treesitter` plugin to work correctly, it must have access to `nvim-treesitter-cli`, which the user must install separately. See [https://tree-sitter.github.io/tree-sitter/creating-parsers#installation](https://tree-sitter.github.io/tree-sitter/creating-parsers#installation) for details on how to do this.
+> In order for `nvim-treesitter` to properly build the `tree-sitter-norg` parser, it requires an appropriate compiler toolchain. Ensure that the `CC` environment variable points to a compiler that has C++14 support.
+> 
+> ###### MacOS C/C++ Toolchain often outdated
 >
->
-> > ##### C/C++ Toolchain
-> >
-> > In order for `tree-sitter-cli` to properly build the `tree-sitter-norg` grammar, it requires an appropriate compiler toolchain. Ensure that the CC environment variable points to a compiler that has C++14 support.
-> > ###### MacOS C/C++ Toolchain often outdated
-> >
-> > The compiler bundled with many editions of MacOS lacks the appropriate level of support. You can run Neovim like so: `CC=/path/to/newer/compiler nvim -c "TSInstallSync norg"` in your shell of choice to install the Neorg parser with a newer compiler. You may also want to export the CC variable in general: `export CC=/path/to/newer/compiler`.
->
+> The compiler bundled with many editions of MacOS lacks the appropriate level of support. You can run Neovim like so: `CC=/path/to/newer/compiler nvim -c "TSInstallSync norg"` in your shell of choice to install the Neorg parser with a newer compiler. You may also want to export the CC variable in general: `export CC=/path/to/newer/compiler`.
+
 
 ### Tree-sitter-norg
 
