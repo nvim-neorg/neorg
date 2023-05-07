@@ -24,6 +24,21 @@ In insert mode, you are also provided with two keybinds, also being Neovim defau
 This module is commonly used with the [`core.itero`](@core.itero) module for an effective workflow.
 --]]
 
+local function buffer_get_line(buffer, row)
+    return vim.api.nvim_buf_get_lines(buffer, row, row+1, true)[1]
+end
+
+local function count_leading_whitespace(s)
+    return s:match("^%s*"):len()
+end
+
+local function buffer_set_line_indent(buffer, row, new_indent)
+    local n_whitespace =
+    count_leading_whitespace(buffer_get_line(buffer, row))
+    return vim.api.nvim_buf_set_text(buffer, row, 0, row, n_whitespace, { (" "):rep(new_indent) })
+end
+
+
 local module = neorg.modules.create("core.promo")
 
 module.setup = function()
@@ -98,16 +113,6 @@ module.public = {
         end
 
         -- Vim buffer helpers
-        local function count_leading_whitespace(s)
-            return s:match("^%s*"):len()
-        end
-
-        local function buffer_set_line_indent(start_row, new_indent)
-            local n_whitespace =
-                count_leading_whitespace(vim.api.nvim_buf_get_lines(buffer, start_row, start_row + 1, true)[1])
-            return vim.api.nvim_buf_set_text(buffer, start_row, 0, start_row, n_whitespace, { (" "):rep(new_indent) })
-        end
-
         -- Treesitter node helpers
         local function get_header_prefix_node(header_node)
             local first_child = header_node:child(0)
@@ -149,7 +154,7 @@ module.public = {
             local current_visual_indent = vim.fn.indent(row + 1)
             local new_indent = math.max(0, current_visual_indent + n_space_diff)
 
-            buffer_set_line_indent(row, new_indent)
+            buffer_set_line_indent(buffer, row, new_indent)
             return
         end
 
@@ -254,10 +259,14 @@ module.public = {
             return
         end
 
-        local function reindent_range(row_start, row_end)
+        local function reindent_range(row_start, row_end, skip_empty_line)
             for i = row_start, row_end - 1 do
-                local indent_level = indent_module.indentexpr(buffer, i)
-                buffer_set_line_indent(i, indent_level)
+                local not_empty = buffer_get_line(buffer, i):find("%S")
+                if not_empty then
+                    local indent_level = indent_module.indentexpr(buffer, i)
+                    print( buffer, i, indent_level, ';;')
+                    buffer_set_line_indent(buffer, i, indent_level)
+                end
             end
         end
 
