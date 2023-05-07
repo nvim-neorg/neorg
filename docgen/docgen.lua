@@ -2,7 +2,21 @@ local docgen = {}
 
 -- Create the directory if it does not exist
 docgen.output_dir = "../wiki"
+docgen.static_dir = "../res/wiki/static"
 pcall(vim.fn.mkdir, docgen.output_dir)
+
+-- Copy static wiki resources into the wiki
+vim.loop.fs_scandir(docgen.static_dir, function(err, handle)
+    assert(handle, err) -- will not kill docgen on fail, because it is within async callback
+
+    local name, type = vim.loop.fs_scandir_next(handle)
+    while name do
+        if type == "file" then
+            assert(vim.loop.fs_copyfile(docgen.static_dir .. "/" .. name, docgen.output_dir .. "/" .. name))
+        end
+        name, type = vim.loop.fs_scandir_next(handle)
+    end
+end)
 
 require("neorg").setup({
     load = {
@@ -304,6 +318,8 @@ docgen.generators = {
             "",
             "# Using Neorg",
             "",
+            "Neorg depends on a number of other technologies, all of which have to be correctly configured to keep Neorg running smoothly.",
+            "For some help on understanding how your terminal, Neovim, coloschemes, tree-sitter and more come together to produce your Neorg experience (or Neorg problems), see [this document on understanding Neorg dependencies](Dependencies)",
             "At first configuring Neorg might be rather scary. I have to define what modules I want to use in the `require('neorg').setup()` function?",
             "I don't even know what the default available values are!",
             "Don't worry, an installation guide is present [here](https://github.com/nvim-neorg/neorg#-installationquickstart), so go ahead and read it!",
