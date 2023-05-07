@@ -34,6 +34,10 @@ local function get_header_prefix_node(header_node)
     return first_child
 end
 
+local function is_concealing()
+    return vim.wo.conceallevel > 0
+end
+
 --- end utils
 
 require("neorg.modules.base")
@@ -105,40 +109,6 @@ module.public = {
 module.config.public = {
 }
 
-module.load = function()
-    module.required["core.autocommands"].enable_autocommand("BufRead")
-    local builder = {"["}
-    for node_type, cfg in pairs(conceal_texts) do
-        table.insert(builder, cfg.query or ("(" .. node_type .. ")@icon"))
-    end
-    table.insert(builder, "]")
-    local query_string = table.concat(builder)
-    conceal_query = neorg.utils.ts_parse_query("norg", query_string)
-end
-
-local function rerender_range(buffer, row_start, row_end)
-    row_start = row_start or 0
-    row_end = row_end or vim.api.nvim_buf_line_count(buffer)
-
-
-end
-
-local function handle_insertenter(event)
-    -- print('@@ handle_insertenter')
-end
-
-local function handle_insertleave(event)
-    -- print('@@ handle_insertleave')
-end
-
-local function handle_vimleavepre(event)
-    -- print('@@ handle_vimleavepre')
-end
-
-local function handle_update_region(event)
-    -- print('@@ handle_update_region')
-end
-
 local function node_text_width(node)
     local row_start, col_start, row_end, col_end = node:range()
     assert(row_start == row_end)
@@ -147,7 +117,7 @@ end
 
 my_namespace = vim.api.nvim_create_namespace("neorg-conceals")
 
-local conceal_icon_table = {
+local prettify_icon_table = {
     numeric           = { "1", "2", "3", "4", "5", "6", "7", "8", "9" },
     numeric_dot       = { "⒈", "⒉", "⒊", "⒋", "⒌", "⒍", "⒎", "⒏", "⒐", "⒑", "⒒", "⒓", "⒔", "⒕", "⒖", "⒗", "⒘", "⒙", "⒚", "⒛" },
     numeric_pareneses = { "⑴", "⑵", "⑶", "⑷", "⑸", "⑹", "⑺", "⑻", "⑼", "⑽", "⑾", "⑿", "⒀", "⒁", "⒂", "⒃", "⒄", "⒅", "⒆", "⒇" },
@@ -189,11 +159,10 @@ local function get_ordered_icon(icon_table, buffer, prefix_node)
     local level = get_prefix_level(buffer, prefix_node)
     local indent = (" "):rep(level - 1)
     local number_icon = icon_table[index] or "~"
-    print(number_icon, level)
     return indent .. number_icon
 end
 
-conceal_texts = {
+pretty_texts = {
     todo_item_done      = { icon = "", },
     todo_item_pending   = { icon = "", },
     todo_item_undone    = { icon = "×", },
@@ -213,9 +182,17 @@ conceal_texts = {
         highlight = "@neorg.headings.6.prefix",
     },
 
-    -- TODO: definition, footnote, delimiter, markup, quote
+    single_definition_prefix = { icon = "≡" },
+    multi_definition_prefix = { icon = "⋙ " },
+    multi_definition_suffix = { icon = "⋘ " },
+
+    single_footnote_prefix = { icon = "⁎" },
+    multi_footnote_prefix = { icon = "⁑ " },
+    multi_footnote_suffix = { icon = "⁑ " },
+
+    -- TODO: delimiter, quote
     spoiler = {
-        -- query = '(spoiler ("_open") _ @text ("_close"))@icon',
+        -- FIXME: multiilne spoiler
         highlight = "@neorg.markup.spoiler",
         icon = function(buffer, node) return ("•"):rep(vim.treesitter.get_node_text(node, buffer):len()-2), 1 end,
     },
@@ -230,34 +207,34 @@ conceal_texts = {
     },
 
     ordered_list1_prefix = {
-        icon = function(...) return get_ordered_icon(conceal_icon_table.numeric_dot, ...) end
+        icon = function(...) return get_ordered_icon(prettify_icon_table.numeric_dot, ...) end
     },
 
     ordered_list2_prefix = {
-        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_uppercase, ...) end
+        icon = function(...) return get_ordered_icon(prettify_icon_table.latin_uppercase, ...) end
     },
 
     ordered_list3_prefix = {
-        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_lowercase, ...) end
+        icon = function(...) return get_ordered_icon(prettify_icon_table.latin_lowercase, ...) end
     },
 
     ordered_list4_prefix = {
-        icon = function(...) return get_ordered_icon(conceal_icon_table.numeric_pareneses, ...) end
+        icon = function(...) return get_ordered_icon(prettify_icon_table.numeric_pareneses, ...) end
     },
 
     ordered_list5_prefix = {
-        icon = function(...) return get_ordered_icon(conceal_icon_table.latin_uppercase, ...) end
+        icon = function(...) return get_ordered_icon(prettify_icon_table.latin_uppercase, ...) end
     },
 
     ordered_list6_prefix = {
         icon = function(buffer, node)
             local level = get_prefix_level(buffer, node)
             local icon_tables = {
-                conceal_icon_table.latin_lowercase_parentheses,
-                conceal_icon_table.latin_uppercase_circled,
-                conceal_icon_table.latin_lowercase_circled,
-                conceal_icon_table.numeric_circled,
-                conceal_icon_table.numeric,
+                prettify_icon_table.latin_lowercase_parentheses,
+                prettify_icon_table.latin_uppercase_circled,
+                prettify_icon_table.latin_lowercase_circled,
+                prettify_icon_table.numeric_circled,
+                prettify_icon_table.numeric,
             }
             local the_icon_table = icon_tables[level-6+1] or icon_tables[#icon_tables]
             return get_ordered_icon(the_icon_table, buffer, node)
@@ -308,17 +285,21 @@ local function table_extend_in_place(tbl, tbl_ext)
     end
 end
 
-table_extend_in_place(conceal_texts, {
-    link_target_heading1 = vim.tbl_extend("error", conceal_texts.heading1_prefix, { conceal = "." }),
-    link_target_heading2 = vim.tbl_extend("error", conceal_texts.heading2_prefix, { conceal = "." }),
-    link_target_heading3 = vim.tbl_extend("error", conceal_texts.heading3_prefix, { conceal = "." }),
-    link_target_heading4 = vim.tbl_extend("error", conceal_texts.heading4_prefix, { conceal = "." }),
-    link_target_heading5 = vim.tbl_extend("error", conceal_texts.heading5_prefix, { conceal = "." }),
-    link_target_heading6 = vim.tbl_extend("error", conceal_texts.heading6_prefix, { conceal = "." }),
+table_extend_in_place(pretty_texts, {
+    link_target_heading1 = vim.tbl_extend("error", pretty_texts.heading1_prefix, { conceal = true }),
+    link_target_heading2 = vim.tbl_extend("error", pretty_texts.heading2_prefix, { conceal = true }),
+    link_target_heading3 = vim.tbl_extend("error", pretty_texts.heading3_prefix, { conceal = true }),
+    link_target_heading4 = vim.tbl_extend("error", pretty_texts.heading4_prefix, { conceal = true }),
+    link_target_heading5 = vim.tbl_extend("error", pretty_texts.heading5_prefix, { conceal = true }),
+    link_target_heading6 = vim.tbl_extend("error", pretty_texts.heading6_prefix, { conceal = true }),
+
+    link_target_definition = vim.tbl_extend("error", pretty_texts.single_definition_prefix, { conceal = true }),
+    link_target_footnote = vim.tbl_extend("error", pretty_texts.single_footnote_prefix, { conceal = true }),
     -- TODO: link, definition, footnote, 
 })
 
 local function remove_extmarks(buffer, row_start, row_end)
+    print('%%% remove_extmarks', row_start, row_end)
     assert(row_start <= row_end)
     if row_start == row_end then
         return
@@ -328,7 +309,21 @@ local function remove_extmarks(buffer, row_start, row_end)
     end
 end
 
-local function conceal_range(buffer, row_start, row_end)
+local function should_skip_prettify(mode, current_row, row)
+    return (mode == "i") and (current_row == row)
+end
+
+local function is_concealing_on_row(mode, conceallevel, concealcursor, current_row, row)
+    if conceallevel<1 then
+        return false
+    elseif current_row ~= row then
+        return true
+    else
+        return (concealcursor:find(mode) ~= nil)
+    end
+end
+
+local function prettify_range(buffer, row_start, row_end)
     -- FIXME: markup across lines?
 
     -- in case there's undo/removal garbage
@@ -336,18 +331,26 @@ local function conceal_range(buffer, row_start, row_end)
     row_end = row_end + 2
     remove_extmarks(buffer, row_start, row_end)
 
-    -- one single query
-    -- iterate
-    -- if conceallable
-    -- set conceal
+    local current_row = vim.api.nvim_win_get_cursor(0)[1] - 1
+    local current_mode = vim.api.nvim_get_mode().mode
+    local conceallevel = vim.wo.conceallevel
+    local concealcursor = vim.wo.concealcursor
 
     local treesitter_module = module.required["core.integrations.treesitter"]
     local document_root = treesitter_module.get_document_root(buffer)
     assert(document_root)
 
-    for id, node, _metadata in conceal_query:iter_captures(document_root, buffer, row_start, row_end) do
+    for id, node, _metadata in prettify_query:iter_captures(document_root, buffer, row_start, row_end) do
         local r, c, _ = node:start()
-        local text = conceal_texts[node:type()]
+        if should_skip_prettify(current_mode, current_row, r) then
+            goto continue
+        end
+        local text = pretty_texts[node:type()]
+        local has_conceal = text.conceal and is_concealing_on_row(current_mode, conceallevel, concealcursor, current_row, r)
+        print('###', text.conceal, has_conceal, current_mode, conceallevel, concealcursor, current_row, r, node:type())
+        if has_conceal then
+            goto continue
+        end
         local icon, col_offset
         if type(text.icon)=="string" then
             icon = text.icon
@@ -357,13 +360,13 @@ local function conceal_range(buffer, row_start, row_end)
         c = c + (col_offset or 0)
         local opt = {
             virt_text={{icon, text.highlight}},
-            --virt_text_pos="overlay",
-            virt_text_win_col=c,
+            virt_text_pos="overlay",
+            virt_text_win_col=nil, --c,
             hl_group=nil,
-            conceal=text.conceal,
+            conceal=nil,
             id=nil,
-            end_row=nil, --r,
-            end_col=nil, --c+icon:len(),
+            end_row=r,
+            end_col=c,
             hl_eol=nil,
             virt_text_hide=nil,
             hl_mode="combine",
@@ -384,6 +387,7 @@ local function conceal_range(buffer, row_start, row_end)
             ui_watched=nil,
         }
         local id = vim.api.nvim_buf_set_extmark(buffer, my_namespace, r, c, opt)
+        ::continue::
     end
 end
 
@@ -459,10 +463,10 @@ local function do_operations_for_buffer(buffer, operations)
     local overall_l = changed_intervals[1].l
     local overall_r = changed_intervals[#changed_intervals].r
     local n_buf_line = vim.api.nvim_buf_line_count(buffer)
-    assert(0 <= overall_l)
+    assert(0 <= overall_l, ("overall_l=%s"):format(overall_l))
     assert(overall_l <= overall_r)
-    assert(overall_r <= n_buf_line)
-    conceal_range(buffer, overall_l, overall_r)
+    assert(overall_r <= n_buf_line, ("overall_r=%s, n_buf_line=%s"):format(overall_r, n_buf_line))
+    prettify_range(buffer, overall_l, overall_r)
 end
 
 local function do_operations_for_all_buffers()
@@ -492,6 +496,11 @@ local function add_operation(buffer, op)
     end
 end
 
+local function add_operation_whole_buffer(buffer)
+    local line_count = vim.api.nvim_buf_line_count(buffer)
+    add_operation(buffer, {row_start = 0, row_end_old = line_count, row_end_new = line_count})
+end
+
 local function handle_bufread(event)
     assert(vim.api.nvim_win_is_valid(event.window))
 
@@ -510,30 +519,143 @@ local function handle_bufread(event)
     local attach_succeeded = vim.api.nvim_buf_attach(event.buffer, true, { on_lines = on_line_callback })
     assert(attach_succeeded)
 
-    add_operation(event.buffer, {row_start = 0, row_end_old = 0, row_end_new = vim.api.nvim_buf_line_count(event.buffer)})
+    --add_operation(event.buffer, {row_start = 0, row_end_old = 0, row_end_new = vim.api.nvim_buf_line_count(event.buffer)})
+    add_operation_whole_buffer(event.buffer)
+end
+
+local function add_operation_at_row(buffer, row)
+    add_operation(buffer, {row_start = row, row_end_old = row+1, row_end_new = row+1})
+end
+
+local function handle_insert_toggle(event)
+    add_operation_at_row(event.buffer, event.cursor_position[1]-1)
+end
+
+local function handle_insertenter(event)
+    print('$$$ insertenter', vim.inspect(event))
+    handle_insert_toggle(event)
+end
+
+local function handle_insertleave(event)
+    print('$$$ insertleave', vim.inspect(event))
+    handle_insert_toggle(event)
+end
+
+local function handle_update_region(event)
+    -- print('@@ handle_update_region')
+end
+
+prettymark_enabled = true
+
+local function handle_toggle_prettifier(event)
+    prettymark_enabled = not prettymark_enabled
+    if prettymark_enabled then
+        add_operation_whole_buffer(event.buffer)
+    else
+        vim.api.nvim_buf_clear_namespace(0, my_namespace, 0, -1)
+    end
+end
+
+last_cursor_row = nil
+-- TODO: multiple buffer
+
+local function handle_cursor_moved(event)
+    local current_row = event.cursor_position[1] - 1
+    if is_concealing() and (last_cursor_row ~= current_row) then
+        if last_cursor_row then
+            add_operation_at_row(event.buffer, last_cursor_row)
+        end
+        -- TODO: make sure last_cursor_row is not nil
+        add_operation_at_row(event.buffer, current_row)
+    end
+    last_cursor_row = current_row
+end
+
+local function handle_cursor_moved_i(event)
+    local current_row = event.cursor_position[1] - 1
+    if last_cursor_row ~= current_row then
+        if last_cursor_row then
+            add_operation_at_row(event.buffer, last_cursor_row)
+        end
+        -- TODO: make sure last_cursor_row is not nil
+        add_operation_at_row(event.buffer, current_row)
+    end
+    last_cursor_row = current_row
 end
 
 module.on_event = function(event)
-    if event.type == "core.autocommands.events.bufread" then
+    if event.type == "core.neorgcmd.events.core.concealer.toggle" then
+        handle_toggle_prettifier(event)
+    elseif event.type == "core.autocommands.events.bufread" then
         if event.content.norg then
             handle_bufread(event)
         end
     elseif event.type == "core.autocommands.events.insertenter" then
-        handle_insertenter()
+        handle_insertenter(event)
     elseif event.type == "core.autocommands.events.insertleave" then
-        handle_insertleave()
-    elseif event.type == "core.autocommands.events.vimleavepre" then
-        handle_vimleavepre()
+        handle_insertleave(event)
+    elseif event.type == "core.autocommands.events.cursormoved" then
+        handle_cursor_moved(event)
+    elseif event.type == "core.autocommands.events.cursormovedi" then
+        handle_cursor_moved_i(event)
+    -- elseif event.type == "core.autocommands.events.vimleavepre" then
+    --     handle_vimleavepre()
     else
         assert(false, ("unexpected event type: %s"):format(event.type))
     end
 end
 
+module.load = function()
+    module.required["core.autocommands"].enable_autocommand("BufRead")
+    module.required["core.autocommands"].enable_autocommand("InsertEnter")
+    module.required["core.autocommands"].enable_autocommand("InsertLeave")
+    module.required["core.autocommands"].enable_autocommand("CursorMoved")
+    module.required["core.autocommands"].enable_autocommand("CursorMovedI")
+
+    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+        neorgcmd.add_commands_from_table({
+            ["toggle-concealer"] = {
+                name = "core.concealer.toggle",
+                args = 0,
+                condition = "norg",
+            },
+        })
+    end)
+    if neorg.utils.is_minimum_version(0, 7, 0) then
+        vim.api.nvim_create_autocmd("OptionSet", {
+            pattern = "conceallevel",
+            callback = function()
+                local current_buffer = vim.api.nvim_get_current_buf()
+                if vim.bo[current_buffer].ft ~= "norg" then
+                    return
+                end
+                add_operation_whole_buffer(current_buffer)
+            end,
+        })
+    end
+
+    -- compile treesitter query
+    local builder = {"["}
+    for node_type, cfg in pairs(pretty_texts) do
+        table.insert(builder, cfg.query or ("(" .. node_type .. ")@icon"))
+    end
+    table.insert(builder, "]")
+    local query_string = table.concat(builder)
+    prettify_query = neorg.utils.ts_parse_query("norg", query_string)
+end
+
+
 -- TODO;
+-- [x] lazyredraw, ttyfast
+-- [x] no conceal on cursor line at insert mode
+-- [ ] no conceal inside examples
+-- [x] insert mode movement
+-- [ ] code
+-- [x] conceal links
+-- vim.wo.concealcursor, visual mode
+-- BufEnter/BufLeave toggle conceal
 -- CursorHold
 -- inccommand
--- lazyredraw, ttyfast
--- no conceal on cursor line at insert mode
 
 module.events.defined = {
     -- update_region = neorg.events.define(module, "update_region"),
@@ -545,6 +667,8 @@ module.events.subscribed = {
         insertenter = true,
         insertleave = true,
         vimleavepre = true,
+        cursormoved = true,
+        cursormovedi = true,
     },
 
     ["core.neorgcmd"] = {
