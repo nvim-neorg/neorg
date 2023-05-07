@@ -7,10 +7,7 @@ pcall(vim.fn.mkdir, docgen.output_dir)
 
 -- Copy static wiki resources into the wiki
 vim.loop.fs_scandir(docgen.static_dir, function(err, handle)
-    if not handle then
-        print(err) -- docgen.static_dir might not exist, and that's ok
-        return
-    end
+    assert(handle, err) -- will not kill docgen on fail, because it is within async callback
 
     local name, type = vim.loop.fs_scandir_next(handle)
     while name do
