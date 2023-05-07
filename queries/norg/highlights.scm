@@ -268,6 +268,8 @@
         "_close"
         "_trailing_modifier"
         (link_modifier)
+        (free_form_open)
+        (free_form_close)
     ] @conceal
     (#set! conceal "")
 )
