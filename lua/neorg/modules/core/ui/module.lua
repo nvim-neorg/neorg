@@ -22,8 +22,8 @@ module.setup = function()
             "text_popup",
         },
         requires = {
-            "core.ui.calendar"
-        }
+            "core.ui.calendar",
+        },
     }
 end
 
