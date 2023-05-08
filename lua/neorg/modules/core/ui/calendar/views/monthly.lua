@@ -1,14 +1,14 @@
-local module = neorg.modules.create('core.ui.calendar.views.monthly')
+local module = neorg.modules.create("core.ui.calendar.views.monthly")
 
 local function reformat_time(date)
     return os.date("*t", os.time(date))
 end
 
-module.setup = function ()
+module.setup = function()
     return {
         requires = {
-            'core.ui.calendar'
-        }
+            "core.ui.calendar",
+        },
     }
 end
 
@@ -168,13 +168,25 @@ module.private = {
             weekdays_string_length = weekdays_string_length + (i ~= 7 and 4 or 2)
         end
 
+        -- This serves as the index of this week banner extmark inside the extmark table
         local absolute_offset = offset + (offset < 0 and (-offset * 100) or 0)
+
+        local extmark_position = 0
+
+        -- Calculate offset position only for the previous and following months
+        if offset ~= 0 then
+            extmark_position = (weekdays_string_length * math.abs(offset)) + (distance * math.abs(offset))
+        end
+
+        -- For previous months, revert the offset
+        if offset < 0 then
+            extmark_position = -extmark_position
+        end
 
         local weekday_banner_id = module.private.set_decorational_extmark(
             ui_info,
             6,
-            (weekdays_string_length * offset)
-                + (offset < 0 and -distance or (offset > 0 and distance or 0)) * math.abs(offset),
+            extmark_position,
             weekdays_string_length,
             weekdays,
             "center",
@@ -295,7 +307,7 @@ module.private = {
             module.private.render_month_banner(ui_info, positive_target_date, weekday_banner)
             module.private.render_month(ui_info, positive_target_date, weekday_banner)
 
-            weekday_banner = module.private.render_weekday_banner(ui_info, i * -1)
+            weekday_banner = module.private.render_weekday_banner(ui_info, i * -1, options.distance)
 
             local negative_target_date = reformat_time({
                 year = date.year,
@@ -511,7 +523,7 @@ module.public = {
 
     view_name = "monthly",
 
-    setup = function (ui_info, mode, options)
+    setup = function(ui_info, mode, options)
         options.distance = options.distance or 4
 
         module.private.current_mode = mode
@@ -574,12 +586,11 @@ module.public = {
                 end
             end, { buffer = ui_info.buffer })
         end
-
-    end
+    end,
 }
 
-module.load = function ()
-    module.required['core.ui.calendar'].add_view(module.public.view_name, module.public)
+module.load = function()
+    module.required["core.ui.calendar"].add_view(module.public.view_name, module.public)
 end
 
 return module
