@@ -7,7 +7,7 @@ module.setup = function()
     return {
         requires = {
             "core.ui",
-            "core.ui.calendar.views.monthly"
+            "core.ui.calendar.views.monthly",
         },
     }
 end
@@ -35,7 +35,7 @@ module.private = {
         print("Error: view not set or not available")
     end,
 
-    extract_ui_info = function (buffer, window)
+    extract_ui_info = function(buffer, window)
         local width = vim.api.nvim_win_get_width(window)
         local height = vim.api.nvim_win_get_height(window)
 
@@ -52,7 +52,7 @@ module.private = {
         }
     end,
 
-    open_window = function (options)
+    open_window = function(options)
         local buffer, window = module.required["core.ui"].create_split(
             "calendar",
             {},
@@ -60,7 +60,7 @@ module.private = {
         )
 
         return buffer, window
-    end
+    end,
 }
 
 module.public = {
@@ -73,12 +73,12 @@ module.public = {
     end,
 
     create_calendar = function(buffer, window, options)
-        local callback_and_close = function (result)
+        local callback_and_close = function(result)
             if options.callback ~= nil then
                 options.callback(result)
             end
 
-            module.required['core.ui'].delete_window(buffer)
+            module.required["core.ui"].delete_window(buffer)
         end
 
         local mode = module.private.get_mode(options.mode, callback_and_close)
