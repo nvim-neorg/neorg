@@ -514,8 +514,7 @@ module.on_event = function(event)
             -- chunk at a set interval and applies the syntax that way to reduce load and improve performance.
 
             -- This points to the current block the user's cursor is in
-            local block_current =
-                math.floor((line_count / module.config.public.performance.increment) % event.cursor_position[1])
+            local block_current = math.floor(event.cursor_position[1] / module.config.public.performance.increment)
 
             local function trigger_syntax_for_block(block)
                 local line_begin = block == 0 and 0 or block * module.config.public.performance.increment - 1
@@ -542,7 +541,7 @@ module.on_event = function(event)
                         or (block_bottom * module.config.public.performance.increment - 1 >= 0)
                     local block_top_valid = block_top * module.config.public.performance.increment - 1 < line_count
 
-                    if not block_bottom_valid and not block_top_valid then
+                    if not vim.api.nvim_buf_is_loaded(buf) or (not block_bottom_valid and not block_top_valid) then
                         timer:stop()
                         return
                     end

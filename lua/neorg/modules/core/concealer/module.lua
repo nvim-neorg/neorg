@@ -1469,8 +1469,7 @@ module.on_event = function(event)
             -- chunk at a set interval and applies the conceals that way to reduce load and improve performance.
 
             -- This points to the current block the user's cursor is in
-            local block_current =
-                math.floor((line_count / module.config.public.performance.increment) % event.cursor_position[1])
+            local block_current = math.floor(event.cursor_position[1] / module.config.public.performance.increment)
 
             local function trigger_conceals_for_block(block)
                 local line_begin = block == 0 and 0 or block * module.config.public.performance.increment - 1
