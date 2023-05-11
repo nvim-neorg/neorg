@@ -148,7 +148,8 @@ module.public = {
             (_
               .
               (_) @prefix
-              .
+              (detached_modifier_extension
+                (todo_item_cancelled))? @cancelled
               title: (paragraph_segment) @title)
             ]],
             function(query, id, node)
@@ -162,6 +163,8 @@ module.public = {
                     end
                 elseif capture == "title" then
                     title = node
+                elseif capture == "cancelled" then
+                    prefix = nil
                 end
 
                 if prefix and title then
@@ -174,7 +177,7 @@ module.public = {
                     local prefix_text =
                         module.required["core.integrations.treesitter"].get_node_text(prefix, original_buffer)
                     local title_text =
-                        module.required["core.integrations.treesitter"].get_node_text(title, original_buffer)
+                        vim.trim(module.required["core.integrations.treesitter"].get_node_text(title, original_buffer))
 
                     if prefix_text:sub(1, 1) ~= "*" and prefix_text:match("^%W%W") then
                         prefix_text = table.concat({ prefix_text:sub(1, 1), " " })
