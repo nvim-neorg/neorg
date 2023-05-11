@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.0.1](https://github.com/nvim-neorg/neorg/compare/v4.0.0...v4.0.1) (2023-05-11)
+
+
+### Bug Fixes
+
+* **highlights.scm:** free form open/close chars would not be concealed ([5de014e](https://github.com/nvim-neorg/neorg/commit/5de014e7cc3dc6eed0a62854fe8ba58f664d97ea))
+* **qol.toc:** display headings with TODO statuses unless the status is "cancelled" ([2e44346](https://github.com/nvim-neorg/neorg/commit/2e44346813310de9afc411e2348cf2be8540f70c))
+* stop syntax processing if a buffer is already closed ([#859](https://github.com/nvim-neorg/neorg/issues/859)) ([cc2834a](https://github.com/nvim-neorg/neorg/commit/cc2834ae2beb2d5baa75d15848a94dae022faa2c))
+
 ## [4.0.0](https://github.com/nvim-neorg/neorg/compare/v3.2.2...v4.0.0) (2023-05-05)
 
 
