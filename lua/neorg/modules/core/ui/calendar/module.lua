@@ -53,6 +53,12 @@ module.private = {
     end,
 
     open_window = function(options)
+        local bufid = vim.fn.bufnr("neorg://calendar")
+
+        if bufid ~= -1 then
+            vim.api.nvim_buf_delete(bufid, { force = true })
+        end
+
         local buffer, window = module.required["core.ui"].create_split(
             "calendar",
             {},
