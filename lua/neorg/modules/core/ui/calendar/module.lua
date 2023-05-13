@@ -53,17 +53,20 @@ module.private = {
     end,
 
     open_window = function(options)
-        local bufid = vim.fn.bufnr("neorg://calendar")
-
-        if bufid ~= -1 then
-            vim.api.nvim_buf_delete(bufid, { force = true })
-        end
-
         local buffer, window = module.required["core.ui"].create_split(
-            "calendar",
+            "calendar-" .. tostring(os.clock()):gsub("%.", "-"),
             {},
             options.height or math.floor(vim.opt.lines:get() * 0.3)
         )
+
+        vim.api.nvim_create_autocmd({ "WinClosed", "BufDelete" }, {
+            buffer = buffer,
+
+            callback = function()
+                pcall(vim.api.nvim_win_close, window, true)
+                pcall(vim.api.nvim_buf_delete, buffer, { force = true })
+            end,
+        })
 
         return buffer, window
     end,
