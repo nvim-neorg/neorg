@@ -396,6 +396,9 @@ module.private = {
             module.private.render_year_tag(ui_info, date.year)
             module.private.render_month_array(ui_info, date, options)
             module.private.select_current_day(ui_info, date)
+
+            vim.api.nvim_buf_set_option(ui_info.buffer, "modifiable", false)
+
             return
         end
 
