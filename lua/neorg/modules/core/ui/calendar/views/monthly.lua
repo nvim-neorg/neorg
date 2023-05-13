@@ -596,6 +596,10 @@ module.public = {
                 current_date = new_date
             end, { buffer = ui_info.buffer })
 
+            -- FIXME(vhyrro): When the current month has 31 days and the previous month has 30
+            -- then this keybind should jump to the 30th of the previous month.
+            -- Currently it jumps to the first of the current month because of the reformat_time()
+            -- calculation.
             vim.keymap.set("n", "H", function()
                 local new_date = reformat_time({
                     year = current_date.year,
@@ -641,6 +645,38 @@ module.public = {
                     year = current_date.year - 1,
                     month = current_date.month,
                     day = current_date.day,
+                })
+                module.private.render_view(ui_info, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "$", function()
+                local new_date = reformat_time({
+                    year = current_date.year,
+                    month = current_date.month,
+                    day = module.private.get_month_length(current_date.month, current_date.year),
+                })
+                module.private.render_view(ui_info, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = ui_info.buffer })
+
+            -- NOTE(vhyrro): For some reason you can't bind many keys to the same function
+            -- through `vim.keymap.set()`
+            vim.keymap.set("n", "0", function()
+                local new_date = reformat_time({
+                    year = current_date.year,
+                    month = current_date.month,
+                    day = 1,
+                })
+                module.private.render_view(ui_info, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "_", function()
+                local new_date = reformat_time({
+                    year = current_date.year,
+                    month = current_date.month,
+                    day = 1,
                 })
                 module.private.render_view(ui_info, new_date, current_date, options)
                 current_date = new_date
