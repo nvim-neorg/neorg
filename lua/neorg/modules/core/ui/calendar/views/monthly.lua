@@ -585,6 +585,66 @@ module.public = {
                     module.private.render_view(ui_info, current_date, nil, options)
                 end
             end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "L", function()
+                local new_date = reformat_time({
+                    year = current_date.year,
+                    month = current_date.month + 1,
+                    day = current_date.day,
+                })
+                module.private.render_view(ui_info, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "H", function()
+                local new_date = reformat_time({
+                    year = current_date.year,
+                    month = current_date.month - 1,
+                    day = current_date.day,
+                })
+                module.private.render_view(ui_info, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "m", function()
+                local new_date = reformat_time({
+                    year = current_date.year,
+                    month = current_date.month + 1,
+                    day = 1,
+                })
+                module.private.render_view(ui_info, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "M", function()
+                local new_date = reformat_time({
+                    year = current_date.year,
+                    month = current_date.month - 1,
+                    day = 1,
+                })
+                module.private.render_view(ui_info, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "y", function()
+                local new_date = reformat_time({
+                    year = current_date.year + 1,
+                    month = current_date.month,
+                    day = current_date.day,
+                })
+                module.private.render_view(ui_info, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "Y", function()
+                local new_date = reformat_time({
+                    year = current_date.year - 1,
+                    month = current_date.month,
+                    day = current_date.day,
+                })
+                module.private.render_view(ui_info, new_date, current_date, options)
+                current_date = new_date
+            end, { buffer = ui_info.buffer })
         end
     end,
 }
