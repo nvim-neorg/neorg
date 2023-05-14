@@ -1,3 +1,14 @@
+--[[
+    file: Tempus
+    title: Hassle-Free Dates
+    summary: Parses and handles dates in Neorg.
+    internal: true
+    ---
+`core.tempus` is an internal module specifically designed
+to handle complex dates. It exposes two functions: `parse_date(string) -> date|string`
+and `to_lua_date(date) -> osdate`.
+--]]
+
 local module = neorg.modules.create("core.tempus")
 
 -- NOTE: Maybe encapsulate whole date parser in a single PEG grammar?
