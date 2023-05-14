@@ -46,6 +46,5 @@ return neorg.modules.create_meta(
     "core.storage",
     "core.syntax",
     "core.tangle",
-    "core.tempus",
     "core.upgrade"
 )
