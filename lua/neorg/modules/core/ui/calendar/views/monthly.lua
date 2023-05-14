@@ -733,88 +733,93 @@ module.public = {
                 current_date = new_date
             end, { buffer = ui_info.buffer })
 
-            vim.keymap.set("n", "?", neorg.lib.wrap(module.private.display_help, {
-                {
-                    { "<Esc>", "@namespace" },
-                    { " - " },
-                    { "close this window", "@text.strong" },
-                },
-                {},
-                {
-                    { "<CR>", "@namespace" },
-                    { " - " },
-                    { "select date", "@text.strong" },
-                },
-                {},
-                {
-                    { "--- Basic Movement ---", "@text.title" },
-                },
-                {},
-                {
-                    { "l", "@namespace" },
-                    { " - " },
-                    { "next day", "@text.strong" },
-                },
-                {
-                    { "h", "@namespace" },
-                    { " - " },
-                    { "previous day", "@text.strong" },
-                },
-                {
-                    { "j", "@namespace" },
-                    { " - " },
-                    { "next week", "@text.strong" },
-                },
-                {
-                    { "k", "@namespace" },
-                    { " - " },
-                    { "previous week", "@text.strong" },
-                },
-                {},
-                {
-                    { "--- Moving Between Months ---", "@text.title" },
-                },
-                {},
-                {
-                    { "L", "@namespace" },
-                    { " - " },
-                    { "next month", "@text.strong" },
-                },
-                {
-                    { "H", "@namespace" },
-                    { " - " },
-                    { "previous month", "@text.strong" },
-                },
-                {
-                    { "m", "@namespace" },
-                    { " - " },
-                    { "day 1 of next month", "@text.strong" },
-                },
-                {
-                    { "M", "@namespace" },
-                    { " - " },
-                    { "day 1 of previous month", "@text.strong" },
-                },
-                {},
-                {
-                    { "--- Moving Between Years ---", "@text.title" },
-                },
-                {},
-                {
-                    { "y", "@namespace" },
-                    { " - " },
-                    { "next year", "@text.strong" },
-                },
-                {
-                    { "Y", "@namespace" },
-                    { " - " },
-                    { "previous year", "@text.strong" },
-                },
-            }), { buffer = ui_info.buffer })
+            vim.keymap.set(
+                "n",
+                "?",
+                neorg.lib.wrap(module.private.display_help, {
+                    {
+                        { "<Esc>", "@namespace" },
+                        { " - " },
+                        { "close this window", "@text.strong" },
+                    },
+                    {},
+                    {
+                        { "<CR>", "@namespace" },
+                        { " - " },
+                        { "select date", "@text.strong" },
+                    },
+                    {},
+                    {
+                        { "--- Basic Movement ---", "@text.title" },
+                    },
+                    {},
+                    {
+                        { "l", "@namespace" },
+                        { " - " },
+                        { "next day", "@text.strong" },
+                    },
+                    {
+                        { "h", "@namespace" },
+                        { " - " },
+                        { "previous day", "@text.strong" },
+                    },
+                    {
+                        { "j", "@namespace" },
+                        { " - " },
+                        { "next week", "@text.strong" },
+                    },
+                    {
+                        { "k", "@namespace" },
+                        { " - " },
+                        { "previous week", "@text.strong" },
+                    },
+                    {},
+                    {
+                        { "--- Moving Between Months ---", "@text.title" },
+                    },
+                    {},
+                    {
+                        { "L", "@namespace" },
+                        { " - " },
+                        { "next month", "@text.strong" },
+                    },
+                    {
+                        { "H", "@namespace" },
+                        { " - " },
+                        { "previous month", "@text.strong" },
+                    },
+                    {
+                        { "m", "@namespace" },
+                        { " - " },
+                        { "day 1 of next month", "@text.strong" },
+                    },
+                    {
+                        { "M", "@namespace" },
+                        { " - " },
+                        { "day 1 of previous month", "@text.strong" },
+                    },
+                    {},
+                    {
+                        { "--- Moving Between Years ---", "@text.title" },
+                    },
+                    {},
+                    {
+                        { "y", "@namespace" },
+                        { " - " },
+                        { "next year", "@text.strong" },
+                    },
+                    {
+                        { "Y", "@namespace" },
+                        { " - " },
+                        { "previous year", "@text.strong" },
+                    },
+                }),
+                { buffer = ui_info.buffer }
+            )
 
             vim.keymap.set("n", "i", function()
                 local buffer = vim.api.nvim_create_buf(false, true)
-                local window = vim.api.nvim_open_win(buffer, true, {
+                vim.api.nvim_open_win(buffer, true, {
                     style = "minimal",
                     border = "single",
                     title = "Date (`?` for help)",
@@ -829,11 +834,100 @@ module.public = {
 
                 vim.cmd.startinsert()
 
-                vim.keymap.set({"n", "i"}, "<CR>", function()
-                    local line = vim.api.nvim_buf_get_lines(buffer, 0, -1, true)[1]
-
+                local function quit()
                     vim.cmd.stopinsert()
                     vim.api.nvim_buf_delete(buffer, { force = true })
+                end
+
+                vim.keymap.set("n", "<Esc>", quit, { buffer = buffer })
+                vim.keymap.set("i", "<C-c>", quit, { buffer = buffer })
+                vim.keymap.set(
+                    "n",
+                    "?",
+                    neorg.lib.wrap(module.private.display_help, {
+                        {
+                            { "<Esc>", "@namespace" },
+                            { " - " },
+                            { "close this window", "@text.strong" },
+                        },
+                        {
+                            { "<CR>", "@namespace" },
+                            { " - " },
+                            { "confirm date", "@text.strong" },
+                        },
+                        {},
+                        {
+                            { "--- Quitting ---", "@text.title" },
+                        },
+                        {},
+                        {
+                            { "<C-c> (insert mode)", "@namespace" },
+                            { " - " },
+                            { "quit", "@text.strong" },
+                        },
+                        {
+                            { "<Esc>", "@namespace" },
+                            { " - " },
+                            { "quit", "@text.strong" },
+                        },
+                        {},
+                        {
+                            { "--- Date Syntax ---", "@text.title" },
+                        },
+                        {},
+                        {
+                            { "Order " },
+                            { "does not matter", "@text.strong" },
+                            { " with dates." },
+                        },
+                        {},
+                        {
+                            { "Some things depend on locale." },
+                        },
+                        {},
+                        {
+                            { "Months and weekdays may be written" },
+                        },
+                        {
+                            { "with a shorthand." },
+                        },
+                        {},
+                        {
+                            { "Years must contain 4 digits at" },
+                        },
+                        {
+                            { "all times. Prefix with zeroes" },
+                        },
+                        {
+                            { "where necessary." },
+                        },
+                        {},
+                        {
+                            { "Hour syntax: `00:00.00` (hour, min, sec)" },
+                        },
+                        {},
+                        {
+                            { "--- Examples ---", "@text.title" },
+                        },
+                        {},
+                        {
+                            { "Tuesday May 5th 2023 19:00.23", "@neorg.markup.verbatim" },
+                        },
+                        {
+                            { "10 Feb CEST 0600", "@neorg.markup.verbatim" },
+                            { " (", "@comment" },
+                            { "0600", "@text.emphasis" },
+                            { " is the year)", "@comment" },
+                        },
+                        {
+                            { "9:00.4 2nd March Wed", "@neorg.markup.verbatim" },
+                        },
+                    }),
+                    { buffer = buffer }
+                )
+
+                vim.keymap.set({ "n", "i" }, "<CR>", function()
+                    local line = vim.api.nvim_buf_get_lines(buffer, 0, -1, true)[1]
 
                     local date = module.required["core.tempus"].parse_date(line)
 
@@ -842,8 +936,9 @@ module.public = {
                         return
                     end
 
+                    quit()
+
                     local lua_date = module.required["core.tempus"].to_lua_date(date)
-                    vim.print(lua_date)
 
                     local should_redraw = false
 
@@ -855,7 +950,6 @@ module.public = {
                         view:render_view(ui_info, lua_date, nil, options)
                     end
                 end, { buffer = buffer })
-
             end, { buffer = ui_info.buffer })
         end
     end,
