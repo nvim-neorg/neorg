@@ -8,6 +8,7 @@ module.setup = function()
     return {
         requires = {
             "core.ui.calendar",
+            "core.tempus",
         },
     }
 end
@@ -529,7 +530,7 @@ module.private = {
         return months
     end,
 
-    display_help = function()
+    display_help = function(lines)
         local buffer = vim.api.nvim_create_buf(false, true)
         local window = vim.api.nvim_open_win(buffer, true, {
             style = "minimal",
@@ -560,84 +561,7 @@ module.private = {
         vim.api.nvim_buf_set_option(buffer, "modifiable", false)
 
         vim.api.nvim_buf_set_extmark(buffer, namespace, 0, 0, {
-            virt_lines = {
-                {
-                    { "<Esc>", "@namespace" },
-                    { " - " },
-                    { "close this window", "@text.strong" },
-                },
-                {},
-                {
-                    { "<CR>", "@namespace" },
-                    { " - " },
-                    { "select date", "@text.strong" },
-                },
-                {},
-                {
-                    { "--- Basic Movement ---", "@text.title" },
-                },
-                {},
-                {
-                    { "l", "@namespace" },
-                    { " - " },
-                    { "next day", "@text.strong" },
-                },
-                {
-                    { "h", "@namespace" },
-                    { " - " },
-                    { "previous day", "@text.strong" },
-                },
-                {
-                    { "j", "@namespace" },
-                    { " - " },
-                    { "next week", "@text.strong" },
-                },
-                {
-                    { "k", "@namespace" },
-                    { " - " },
-                    { "previous week", "@text.strong" },
-                },
-                {},
-                {
-                    { "--- Moving Between Months ---", "@text.title" },
-                },
-                {},
-                {
-                    { "L", "@namespace" },
-                    { " - " },
-                    { "next month", "@text.strong" },
-                },
-                {
-                    { "H", "@namespace" },
-                    { " - " },
-                    { "previous month", "@text.strong" },
-                },
-                {
-                    { "m", "@namespace" },
-                    { " - " },
-                    { "day 1 of next month", "@text.strong" },
-                },
-                {
-                    { "M", "@namespace" },
-                    { " - " },
-                    { "day 1 of previous month", "@text.strong" },
-                },
-                {},
-                {
-                    { "--- Moving Between Years ---", "@text.title" },
-                },
-                {},
-                {
-                    { "y", "@namespace" },
-                    { " - " },
-                    { "next year", "@text.strong" },
-                },
-                {
-                    { "Y", "@namespace" },
-                    { " - " },
-                    { "previous year", "@text.strong" },
-                },
-            },
+            virt_lines = lines,
         })
     end,
 }
@@ -809,7 +733,130 @@ module.public = {
                 current_date = new_date
             end, { buffer = ui_info.buffer })
 
-            vim.keymap.set("n", "?", module.private.display_help, { buffer = ui_info.buffer })
+            vim.keymap.set("n", "?", neorg.lib.wrap(module.private.display_help, {
+                {
+                    { "<Esc>", "@namespace" },
+                    { " - " },
+                    { "close this window", "@text.strong" },
+                },
+                {},
+                {
+                    { "<CR>", "@namespace" },
+                    { " - " },
+                    { "select date", "@text.strong" },
+                },
+                {},
+                {
+                    { "--- Basic Movement ---", "@text.title" },
+                },
+                {},
+                {
+                    { "l", "@namespace" },
+                    { " - " },
+                    { "next day", "@text.strong" },
+                },
+                {
+                    { "h", "@namespace" },
+                    { " - " },
+                    { "previous day", "@text.strong" },
+                },
+                {
+                    { "j", "@namespace" },
+                    { " - " },
+                    { "next week", "@text.strong" },
+                },
+                {
+                    { "k", "@namespace" },
+                    { " - " },
+                    { "previous week", "@text.strong" },
+                },
+                {},
+                {
+                    { "--- Moving Between Months ---", "@text.title" },
+                },
+                {},
+                {
+                    { "L", "@namespace" },
+                    { " - " },
+                    { "next month", "@text.strong" },
+                },
+                {
+                    { "H", "@namespace" },
+                    { " - " },
+                    { "previous month", "@text.strong" },
+                },
+                {
+                    { "m", "@namespace" },
+                    { " - " },
+                    { "day 1 of next month", "@text.strong" },
+                },
+                {
+                    { "M", "@namespace" },
+                    { " - " },
+                    { "day 1 of previous month", "@text.strong" },
+                },
+                {},
+                {
+                    { "--- Moving Between Years ---", "@text.title" },
+                },
+                {},
+                {
+                    { "y", "@namespace" },
+                    { " - " },
+                    { "next year", "@text.strong" },
+                },
+                {
+                    { "Y", "@namespace" },
+                    { " - " },
+                    { "previous year", "@text.strong" },
+                },
+            }), { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "i", function()
+                local buffer = vim.api.nvim_create_buf(false, true)
+                local window = vim.api.nvim_open_win(buffer, true, {
+                    style = "minimal",
+                    border = "single",
+                    title = "Date (`?` for help)",
+                    row = vim.api.nvim_win_get_height(0),
+                    col = 0,
+                    width = vim.o.columns,
+                    height = 1,
+                    relative = "win",
+                    win = vim.api.nvim_get_current_win(),
+                    noautocmd = true,
+                })
+
+                vim.cmd.startinsert()
+
+                vim.keymap.set({"n", "i"}, "<CR>", function()
+                    local line = vim.api.nvim_buf_get_lines(buffer, 0, -1, true)[1]
+
+                    vim.cmd.stopinsert()
+                    vim.api.nvim_buf_delete(buffer, { force = true })
+
+                    local date = module.required["core.tempus"].parse_date(line)
+
+                    if type(date) == "string" then
+                        log.error("[ERROR]:", date)
+                        return
+                    end
+
+                    local lua_date = module.required["core.tempus"].to_lua_date(date)
+                    vim.print(lua_date)
+
+                    local should_redraw = false
+
+                    if view.current_mode.on_select ~= nil then
+                        should_redraw = view.current_mode:on_select(lua_date)
+                    end
+
+                    if should_redraw then
+                        view:render_view(ui_info, lua_date, nil, options)
+                    end
+                end, { buffer = buffer })
+
+            end, { buffer = ui_info.buffer })
         end
     end,
 }
