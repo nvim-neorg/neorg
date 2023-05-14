@@ -1,5 +1,14 @@
--- NOTICE: Consider this whole module a demo for now
--- A lot of stuff is hardcoded in order to prove that it can work
+--[[
+    file: Calendar
+    title: Frictionless Dates
+    description: The calendar module provides a range of functionality for different date-related tasks.
+    summary: Opens an interactive calendar for date-related tasks.
+---
+The calendar is most often invoked with the intent of selecting a date, but may
+also be launched in standalone mode, select date range mode and others.
+
+To view keybinds and help, press `?` in the calendar view.
+--]]
 
 local module = neorg.modules.create("core.ui.calendar")
 
