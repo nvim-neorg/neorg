@@ -1,5 +1,48 @@
 # Changelog
 
+## [4.1.0](https://github.com/nvim-neorg/neorg/compare/v4.0.1...v4.1.0) (2023-05-14)
+
+
+### Features
+
+* add `core.tempus` module for date management ([b73ec2f](https://github.com/nvim-neorg/neorg/commit/b73ec2f5e1b11864ca0628a842a53a617d5851ce))
+* add left-right cursor movement ([ea588bb](https://github.com/nvim-neorg/neorg/commit/ea588bbc2cabe37f90652a8cb49bf8b286498d2a))
+* add skeleton for the calendar UI element ([3c99106](https://github.com/nvim-neorg/neorg/commit/3c99106d64792533a3cf10ac6ef20a089e94c1ff))
+* **calendar:** add `?` help page for custom input ([211b0ba](https://github.com/nvim-neorg/neorg/commit/211b0ba61b5cf8f4520b5e03f5235f6de87e4417))
+* **calendar:** add `$` and `0`/`_` navigation keybinds ([0061928](https://github.com/nvim-neorg/neorg/commit/006192808d436c27f8ceca0fffcc4a238ec402a7))
+* **calendar:** add `m`/`M`, `L`/`H` and `y`/`Y` keybinds for the monthly view ([9bf562d](https://github.com/nvim-neorg/neorg/commit/9bf562d4633abac71b749ad7380cfe010a4c3bd7))
+* **calendar:** add basic help popup when `?` is invoked ([779d089](https://github.com/nvim-neorg/neorg/commit/779d089e17139acfdd2a4988c34eea892f29a475))
+* **calendar:** allow many simultaneous calendars ([f816fe7](https://github.com/nvim-neorg/neorg/commit/f816fe77ef2abecff9e98d8d35ff48a453317cf0))
+* **calendar:** generalize functions even further, allow for offsets ([d857c34](https://github.com/nvim-neorg/neorg/commit/d857c34fe7a4645501551f2b66dd7915b9575b4f))
+* **calendar:** implement basic `i` functionality ([6713f40](https://github.com/nvim-neorg/neorg/commit/6713f40d5d1f9e7a0e8b80ffdc82d4fff79c16c0))
+* **calendar:** render as many months as is possible on screen ([fa23767](https://github.com/nvim-neorg/neorg/commit/fa237674cf75bf2bbc62a438b1606b65cc277ebd))
+* **core.ui.calendar:** add day of the month rendering ([8bc3364](https://github.com/nvim-neorg/neorg/commit/8bc3364f306d5df528193a8ca68fa8b4a45701ef))
+* **core.ui.calendar:** add static calendar ui ([adbb415](https://github.com/nvim-neorg/neorg/commit/adbb4151677bf22c809f9b6dfd35de5e07da6c7a))
+* **core.ui.calendar:** highlight the current day differently ([eada386](https://github.com/nvim-neorg/neorg/commit/eada386cc79c122b648580de50b1f825b74a9627))
+* **core.ui.calendar:** implement more of the barebones UI ([364f44a](https://github.com/nvim-neorg/neorg/commit/364f44a7d1179d5aa98d1f4ff6b4b6b1b6078bd3))
+* **core.ui.calendar:** make the calendar display full month names ([c6cc059](https://github.com/nvim-neorg/neorg/commit/c6cc059992c812712c9a2bb4075b2d9b31f84f5c))
+* **core.ui:** let `create_split` take in a `height` variable ([7dbbe9d](https://github.com/nvim-neorg/neorg/commit/7dbbe9d236596d8990827e717ea892cd98e79b23))
+* correctly handle year boundaries ([58b55e1](https://github.com/nvim-neorg/neorg/commit/58b55e16366ecd431bece7ba4d42d512b21b972e))
+* implement `render_month` function ([343fb8d](https://github.com/nvim-neorg/neorg/commit/343fb8d02422fe2f2a3c791f2bdba0be95c3c96b))
+* place cursor over current day when creating calendar ([3ce268b](https://github.com/nvim-neorg/neorg/commit/3ce268b703d321561b86e546c7633326b39fa494))
+* **tempus:** add `to_lua_date` function ([ef62e53](https://github.com/nvim-neorg/neorg/commit/ef62e5308c684468a822684382d14de8f8f63193))
+
+
+### Bug Fixes
+
+* **calendar:** allow the view to be written to on rerender ([8e247d4](https://github.com/nvim-neorg/neorg/commit/8e247d414bcb0d1123b2b12c7ff29bdf36c50cbd))
+* **calendar:** fix incorrect movement with `H` across boundaries of months with different lengths ([48face2](https://github.com/nvim-neorg/neorg/commit/48face25855d7844302b13a125363c30b8a6fe9a))
+* **calendar:** fix rest of highlight groups ([ead4c4c](https://github.com/nvim-neorg/neorg/commit/ead4c4c53769839b5063fab71ebb92d155d53676))
+* **calendar:** if another calendar is open then close it instead of erroring ([9751e7d](https://github.com/nvim-neorg/neorg/commit/9751e7d62af0b7e49ff788058154b966be205e2e))
+* **calendar:** make distance between each month uniform and support modifying the distance between each month ([746354d](https://github.com/nvim-neorg/neorg/commit/746354dea70e9657f61531375329e407e7f5a203))
+* **calendar:** make month rendering work again ([164028f](https://github.com/nvim-neorg/neorg/commit/164028fd621e3c5b56603d88d6d5e2ba5db51d42))
+* **calendar:** overlapping month names in the calendar view ([709cf78](https://github.com/nvim-neorg/neorg/commit/709cf78410b6ea631192ad004d3f2b83761f9953))
+* **calendar:** prevent the buffer from being modifiable after it has been filled ([351e103](https://github.com/nvim-neorg/neorg/commit/351e10326e0e2bb6166e165ddb6598e917e6d25c))
+* **calendar:** properly display "today's day" in the calendar view ([74ee71a](https://github.com/nvim-neorg/neorg/commit/74ee71a446662f92afa3cbd49f6c980bdf25ae92))
+* **calendar:** reversed namespace names ([77b214c](https://github.com/nvim-neorg/neorg/commit/77b214cef220580cdcf527265a15ef980e7bcaf3))
+* **core.ui.calendar:** logic error when parsing virt_text length for `set_logical_extmark` ([d5b29ee](https://github.com/nvim-neorg/neorg/commit/d5b29eea8e09d7bd0add778c6818539719914301))
+* **core.ui.calendar:** wrong extmark being queried in month render routine ([46624b9](https://github.com/nvim-neorg/neorg/commit/46624b9a02e0d0e928026a0fd4852c4dd3ca7e0d))
+
 ## [4.0.1](https://github.com/nvim-neorg/neorg/compare/v4.0.0...v4.0.1) (2023-05-11)
 
 
