@@ -398,6 +398,8 @@ module.private = {
                     vim.api.nvim_buf_clear_namespace(ui_info.buffer, module.private.namespaces.decorational, 0, -1)
                     vim.api.nvim_buf_clear_namespace(ui_info.buffer, module.private.namespaces.logical, 0, -1)
 
+                    vim.api.nvim_buf_set_option(ui_info.buffer, "modifiable", true)
+
                     module.private.fill_buffer(ui_info)
                     self:render_decorative_text(ui_info, module.public.view_name:upper())
                     self:render_year_tag(ui_info, date.year)
