@@ -199,10 +199,28 @@ local timezone_list = {
     "YEKT",
 }
 
+---@alias Date {weekday: {name: string, number: number}?, day: number?, month: {name: string, number: number}?, year: number?, timezone: string?, time: {hour: number, minute: number, second: number?}?}
+
 module.public = {
+    --- Converts a parsed date with `parse_date` to a lua date.
+    ---@param parsed_date Date #The date to convert
+    ---@return osdate #A Lua date
+    to_lua_date = function(parsed_date)
+        return {
+            day = parsed_date.day,
+            month = parsed_date.month and parsed_date.month.number or nil,
+            year = parsed_date.year,
+            hour = parsed_date.time and parsed_date.time.hour,
+            min = parsed_date.time and parsed_date.time.minute,
+            sec = parsed_date.time and parsed_date.time.second,
+            wday = parsed_date.weekday and parsed_date.weekday.number,
+            isdst = true,
+        }
+    end,
+
     --- Parses a date and returns a table representing the date
     ---@param input string #The input which should follow the date specification found in the Norg spec.
-    ---@return {weekday: {name: string, number: number}?, day: number?, month: {name: string, number: number}?, year: number?, timezone: string?, time: {hour: number, minute: number, second: number?}?}|string #The data extracted from the input
+    ---@return Date|string #The data extracted from the input or an error message
     parse_date = function(input)
         local weekdays = {}
         for i = 1, 7 do
@@ -223,7 +241,7 @@ module.public = {
 
             if word:match("^-?%d%d%d%d+$") then
                 output.year = tonumber(word)
-            elseif word:match("^%d+,?$") then
+            elseif word:match("^%d+%w+,?$") then
                 output.day = tonumber(word:match("%d+"))
             elseif vim.list_contains(timezone_list, word:upper()) then
                 output.timezone = word:upper()
