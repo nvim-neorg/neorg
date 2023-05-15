@@ -733,6 +733,13 @@ module.public = {
                 date = new_date
             end, { buffer = ui_info.buffer })
 
+            vim.keymap.set("n", "t", function()
+                local new_date = os.date("*t")
+
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer })
+
             vim.keymap.set(
                 "n",
                 "?",
