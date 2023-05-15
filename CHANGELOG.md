@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.1](https://github.com/nvim-neorg/neorg/compare/v4.1.0...v4.1.1) (2023-05-15)
+
+
+### Bug Fixes
+
+* remove calendar as a dependency of `core.ui`, fix errors for people not on nightly ([cd26a22](https://github.com/nvim-neorg/neorg/commit/cd26a220e999cc9103a2502299d16ae8e6fab4d9))
+
 ## [4.1.0](https://github.com/nvim-neorg/neorg/compare/v4.0.1...v4.1.0) (2023-05-14)
 
 
