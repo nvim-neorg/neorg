@@ -1,5 +1,20 @@
 # Changelog
 
+## [4.2.0](https://github.com/nvim-neorg/neorg/compare/v4.1.1...v4.2.0) (2023-05-15)
+
+
+### Features
+
+* **tempus:** add `,id` (insert date) keybinding ([34f13ba](https://github.com/nvim-neorg/neorg/commit/34f13ba253c160e72ef7817a950508430ed050d1))
+* **tempus:** add insert mode `&lt;M-d&gt;` keybind to insert a date ([b420f69](https://github.com/nvim-neorg/neorg/commit/b420f69602b23fa8fc2f7f6526f49838f9521b10))
+* **tempus:** allow dates to be converted to norg-compatible dates with `tostring()` ([3ec5f96](https://github.com/nvim-neorg/neorg/commit/3ec5f96dfd673c2c2a34b09748518accf61ec677))
+
+
+### Bug Fixes
+
+* don't allow tempus to load unless the Neovim ver is at least 0.10.0 ([c4429fa](https://github.com/nvim-neorg/neorg/commit/c4429fa1e1eb0c3c5652495b00aa4e1c56068914))
+* **tempus:** do not assume `osdate` has all fields set ([c37a104](https://github.com/nvim-neorg/neorg/commit/c37a104c992326f8924de783d667f7c4c34f92b7))
+
 ## [4.1.1](https://github.com/nvim-neorg/neorg/compare/v4.1.0...v4.1.1) (2023-05-15)
 
 
