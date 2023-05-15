@@ -261,11 +261,15 @@ module.public = {
                     local hour, minute, second = vim.re.match(word, time_regex)
 
                     if hour and minute then
-                        output.time = {
+                        output.time = setmetatable({
                             hour = tonumber(hour),
                             minute = tonumber(minute),
                             second = second and tonumber(second) or nil,
-                        }
+                        }, {
+                            __tostring = function()
+                                return word
+                            end,
+                        })
 
                         goto continue
                     end
@@ -289,7 +293,7 @@ module.public = {
                         local valid_month_name, valid_month_number = next(valid_months)
 
                         output.month = {
-                            name = valid_month_name,
+                            name = neorg.lib.title(valid_month_name),
                             number = valid_month_number,
                         }
 
@@ -315,7 +319,7 @@ module.public = {
                         local valid_weekday_name, valid_weekday_number = next(valid_weekdays)
 
                         output.weekday = {
-                            name = valid_weekday_name,
+                            name = neorg.lib.title(valid_weekday_name),
                             number = valid_weekday_number,
                         }
 
@@ -331,7 +335,20 @@ module.public = {
             ::continue::
         end
 
-        return output
+        return setmetatable(output, {
+            __tostring = function()
+                local function d(str)
+                    return str and (tostring(str) .. " ") or ""
+                end
+
+                return d(output.weekday and output.weekday.name)
+                    .. d(output.day)
+                    .. d(output.month and output.month.name)
+                    .. d(output.year and string.format("%04d", output.year))
+                    .. d(output.time and tostring(output.time))
+                    .. (output.timezone or "")
+            end,
+        })
     end,
 }
 
