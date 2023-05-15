@@ -271,7 +271,7 @@ module.public = {
                         .. tostring(string.format("%02d", osdate.min))
                         .. (osdate.sec ~= 0 and ("." .. tostring(osdate.sec)) or "")
                 end,
-            }),
+            }) or nil,
         })
     end,
 
@@ -408,12 +408,12 @@ module.private = {
 
 module.load = function()
     neorg.modules.await("core.keybinds", function(keybinds)
-        keybinds.register_keybind(module.name, "insert-date")
+        keybinds.register_keybinds(module.name, { "insert-date", "insert-date-insert-mode" })
     end)
 end
 
 module.on_event = function(event)
-    if event.split_type[2] ~= "core.tempus.insert-date" then
+    if event.split_type[2] ~= "core.tempus.insert-date" and event.split_type[2] ~= "core.tempus.insert-date-insert-mode" then
         return
     end
 
@@ -443,11 +443,16 @@ module.on_event = function(event)
             output = tostring(output)
         end
 
-        vim.api.nvim_paste("{@ " .. output .. "}", false, -1)
+        vim.api.nvim_put({ "{@ " .. output .. "}" }, "c", false, true)
+
+        if vim.endswith(event.split_type[2], "insert-mode") then
+            vim.cmd.startinsert()
+        end
     end
 
     if neorg.modules.is_module_loaded("core.ui.calendar") then
-        neorg.modules.get_module("core.ui.calendar").select_date({ callback = callback })
+        vim.cmd.stopinsert()
+        neorg.modules.get_module("core.ui.calendar").select_date({ callback = vim.schedule_wrap(callback)})
     else
         vim.ui.input({
             prompt = "Date: ",
@@ -458,6 +463,7 @@ end
 module.events.subscribed = {
     ["core.keybinds"] = {
         [module.name .. ".insert-date"] = true,
+        [module.name .. ".insert-date-insert-mode"] = true,
     },
 }
 

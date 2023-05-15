@@ -78,6 +78,7 @@ module.config.public = {
                     { "<C-t>", "core.promo.promote" },
                     { "<C-d>", "core.promo.demote" },
                     { "<M-CR>", "core.itero.next-iteration" },
+                    { "<M-d>", "core.tempus.insert-date-insert-mode" },
                 },
 
                 -- TODO: Readd these
