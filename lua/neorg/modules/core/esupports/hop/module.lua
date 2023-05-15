@@ -294,6 +294,7 @@ module.public = {
                             (link_target_generic)
                             (link_target_external_file)
                             (link_target_definition)
+                            (link_target_timestamp)
                             (link_target_footnote)
                             (link_target_heading1)
                             (link_target_heading2)
@@ -321,6 +322,7 @@ module.public = {
                             (link_target_generic)
                             (link_target_external_file)
                             (link_target_definition)
+                            (link_target_timestamp)
                             (link_target_footnote)
                             (link_target_heading1)
                             (link_target_heading2)
@@ -344,7 +346,9 @@ module.public = {
         local query = neorg.utils.ts_parse_query("norg", query_text)
         local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
 
-        local parsed_link_information = {}
+        local parsed_link_information = {
+            link_node = link_node,
+        }
 
         for id, node in query:iter_captures(document_root, buf, range.row_start, range.row_end + 1) do
             local capture = query.captures[id]
@@ -448,6 +452,46 @@ module.public = {
                     [{ "jpg", "jpeg" }] = open_in_external_app,
                     [module.config.public.external_filetypes] = open_in_external_app,
                     _ = neorg.lib.wrap(vim.api.nvim_exec, "e " .. vim.fn.fnamemodify(destination, ":p"), false),
+                })
+
+                return {}
+            end,
+
+            timestamp = function()
+                local tempus = neorg.modules.get_module("core.tempus")
+
+                if not tempus then
+                    log.error("`core.tempus` is not loaded! Unable to parse timestamp.")
+                    return {}
+                end
+
+                local parsed_date = tempus.parse_date(parsed_link_information.link_location_text)
+
+                if type(parsed_date) == "string" then
+                    log.error("[ERROR]:", parsed_date)
+                    return {}
+                end
+
+                local calendar = neorg.modules.get_module("core.ui.calendar")
+
+                if not calendar then
+                    log.error("`core.ui.calendar` is not loaded! Unable to open timestamp.")
+                    return {}
+                end
+
+                calendar.select_date({
+                    date = tempus.to_lua_date(parsed_date),
+                    callback = function(input)
+                        local start_row, start_col, end_row, end_col = parsed_link_information.link_node:range()
+                        vim.api.nvim_buf_set_text(
+                            buf_pointer,
+                            start_row,
+                            start_col,
+                            end_row,
+                            end_col,
+                            { "{@ " .. tostring(tempus.to_date(input, false)) .. "}" }
+                        )
+                    end,
                 })
 
                 return {}
