@@ -103,9 +103,20 @@ module.public = {
         end
 
         local function buffer_set_line_indent(start_row, new_indent)
-            local n_whitespace =
-                count_leading_whitespace(vim.api.nvim_buf_get_lines(buffer, start_row, start_row + 1, true)[1])
-            return vim.api.nvim_buf_set_text(buffer, start_row, 0, start_row, n_whitespace, { (" "):rep(new_indent) })
+            local line = vim.api.nvim_buf_get_lines(buffer, start_row, start_row + 1, true)[1]
+
+            if line:match("^%s*$") then
+                return
+            end
+
+            return vim.api.nvim_buf_set_text(
+                buffer,
+                start_row,
+                0,
+                start_row,
+                count_leading_whitespace(line),
+                { (" "):rep(new_indent) }
+            )
         end
 
         -- Treesitter node helpers
