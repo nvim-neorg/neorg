@@ -572,167 +572,165 @@ module.public = {
 
     view_name = "monthly",
 
-    setup = function(ui_info, mode, options)
+    setup = function(ui_info, mode, date, options)
         options.distance = options.distance or 4
 
         local view = module.private.new_view_instance()
 
         view.current_mode = mode
 
-        local current_date = os.date("*t")
-
-        view:render_view(ui_info, current_date, nil, options)
+        view:render_view(ui_info, date, nil, options)
 
         do
             -- TODO: Make cursor wrapping behaviour configurable
             vim.keymap.set("n", "l", function()
                 local new_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month,
-                    day = current_date.day + 1,
+                    year = date.year,
+                    month = date.month,
+                    day = date.day + 1,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "h", function()
                 local new_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month,
-                    day = current_date.day - 1,
+                    year = date.year,
+                    month = date.month,
+                    day = date.day - 1,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "j", function()
                 local new_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month,
-                    day = current_date.day + 7,
+                    year = date.year,
+                    month = date.month,
+                    day = date.day + 7,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "k", function()
                 local new_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month,
-                    day = current_date.day - 7,
+                    year = date.year,
+                    month = date.month,
+                    day = date.day - 7,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "<cr>", function()
                 local should_redraw = false
 
                 if view.current_mode.on_select ~= nil then
-                    should_redraw = view.current_mode:on_select(current_date)
+                    should_redraw = view.current_mode:on_select(date)
                 end
 
                 if should_redraw then
-                    view:render_view(ui_info, current_date, nil, options)
+                    view:render_view(ui_info, date, nil, options)
                 end
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "L", function()
                 local new_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month + 1,
-                    day = current_date.day,
+                    year = date.year,
+                    month = date.month + 1,
+                    day = date.day,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "H", function()
-                local length_of_current_month = module.private.get_month_length(current_date.month, current_date.year)
+                local length_of_current_month = module.private.get_month_length(date.month, date.year)
                 local length_of_previous_month = (
-                    current_date.month == 1 and module.private.get_month_length(12, current_date.year - 1)
-                    or module.private.get_month_length(current_date.month - 1, current_date.year)
+                    date.month == 1 and module.private.get_month_length(12, date.year - 1)
+                    or module.private.get_month_length(date.month - 1, date.year)
                 )
 
                 local new_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month - 1,
-                    day = current_date.day == length_of_current_month and length_of_previous_month or current_date.day,
+                    year = date.year,
+                    month = date.month - 1,
+                    day = date.day == length_of_current_month and length_of_previous_month or date.day,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "m", function()
                 local new_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month + 1,
+                    year = date.year,
+                    month = date.month + 1,
                     day = 1,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "M", function()
                 local new_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month - 1,
+                    year = date.year,
+                    month = date.month - 1,
                     day = 1,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "y", function()
                 local new_date = reformat_time({
-                    year = current_date.year + 1,
-                    month = current_date.month,
-                    day = current_date.day,
+                    year = date.year + 1,
+                    month = date.month,
+                    day = date.day,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "Y", function()
                 local new_date = reformat_time({
-                    year = current_date.year - 1,
-                    month = current_date.month,
-                    day = current_date.day,
+                    year = date.year - 1,
+                    month = date.month,
+                    day = date.day,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "$", function()
                 local new_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month,
-                    day = module.private.get_month_length(current_date.month, current_date.year),
+                    year = date.year,
+                    month = date.month,
+                    day = module.private.get_month_length(date.month, date.year),
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             -- NOTE(vhyrro): For some reason you can't bind many keys to the same function
             -- through `vim.keymap.set()`
             vim.keymap.set("n", "0", function()
                 local new_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month,
+                    year = date.year,
+                    month = date.month,
                     day = 1,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "_", function()
                 local new_date = reformat_time({
-                    year = current_date.year,
-                    month = current_date.month,
+                    year = date.year,
+                    month = date.month,
                     day = 1,
                 })
-                view:render_view(ui_info, new_date, current_date, options)
-                current_date = new_date
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set(
@@ -931,16 +929,16 @@ module.public = {
                 vim.keymap.set({ "n", "i" }, "<CR>", function()
                     local line = vim.api.nvim_buf_get_lines(buffer, 0, -1, true)[1]
 
-                    local date = module.required["core.tempus"].parse_date(line)
+                    local parsed_date = module.required["core.tempus"].parse_date(line)
 
-                    if type(date) == "string" then
-                        log.error("[ERROR]:", date)
+                    if type(parsed_date) == "string" then
+                        log.error("[ERROR]:", parsed_date)
                         return
                     end
 
                     quit()
 
-                    local lua_date = module.required["core.tempus"].to_lua_date(date)
+                    local lua_date = module.required["core.tempus"].to_lua_date(parsed_date)
 
                     local should_redraw = false
 

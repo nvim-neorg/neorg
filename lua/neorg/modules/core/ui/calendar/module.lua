@@ -108,7 +108,7 @@ module.public = {
 
         local view = module.private.get_view(options.view or "monthly")
 
-        view.setup(ui_info, mode, options)
+        view.setup(ui_info, mode, options.date or os.date("*t"), options)
     end,
 
     open = function(options)
