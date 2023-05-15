@@ -70,6 +70,8 @@ module.config.public = {
 
                     { leader .. "lt", "core.pivot.toggle-list-type" },
                     { leader .. "li", "core.pivot.invert-list-type" },
+
+                    { leader .. "id", "core.tempus.insert-date" },
                 },
 
                 i = {

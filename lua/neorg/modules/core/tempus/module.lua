@@ -229,6 +229,52 @@ module.public = {
         }
     end,
 
+    --- Converts a lua `osdate` to a Neorg date.
+    ---@param osdate osdate #The date to convert
+    ---@param include_time boolean? #Whether to include the time (hh::mm.ss) in the output.
+    ---@return Date #The converted date
+    to_date = function(osdate, include_time)
+        -- TODO: Extract into a function to get weekdays (have to hot recalculate every time because the user may change locale
+        local weekdays = {}
+        for i = 1, 7 do
+            table.insert(weekdays, os.date("%A", os.time({ year = 2000, month = 5, day = i })):lower())
+        end
+
+        local months = {}
+        for i = 1, 12 do
+            table.insert(months, os.date("%B", os.time({ year = 2000, month = i, day = 1 })):lower())
+        end
+
+        return module.private.tostringable_date({
+            weekday = {
+                number = osdate.wday,
+                name = neorg.lib.title(weekdays[osdate.wday]),
+            },
+            day = osdate.day,
+            month = {
+                number = osdate.month,
+                name = neorg.lib.title(months[osdate.month]),
+            },
+            year = osdate.year,
+            time = setmetatable({
+                hour = osdate.hour,
+                minute = osdate.min,
+                second = osdate.sec,
+            }, {
+                __tostring = function()
+                    if not include_time then
+                        return ""
+                    end
+
+                    return tostring(osdate.hour)
+                        .. ":"
+                        .. tostring(string.format("%02d", osdate.min))
+                        .. (osdate.sec ~= 0 and ("." .. tostring(osdate.sec)) or "")
+                end,
+            }),
+        })
+    end,
+
     --- Parses a date and returns a table representing the date
     ---@param input string #The input which should follow the date specification found in the Norg spec.
     ---@return Date|string #The data extracted from the input or an error message
@@ -335,21 +381,84 @@ module.public = {
             ::continue::
         end
 
-        return setmetatable(output, {
+        return module.private.tostringable_date(output)
+    end,
+}
+
+module.private = {
+    tostringable_date = function(date_table)
+        return setmetatable(date_table, {
             __tostring = function()
                 local function d(str)
                     return str and (tostring(str) .. " ") or ""
                 end
 
-                return d(output.weekday and output.weekday.name)
-                    .. d(output.day)
-                    .. d(output.month and output.month.name)
-                    .. d(output.year and string.format("%04d", output.year))
-                    .. d(output.time and tostring(output.time))
-                    .. (output.timezone or "")
+                return vim.trim(
+                    d(date_table.weekday and date_table.weekday.name)
+                        .. d(date_table.day)
+                        .. d(date_table.month and date_table.month.name)
+                        .. d(date_table.year and string.format("%04d", date_table.year))
+                        .. d(date_table.time and tostring(date_table.time))
+                        .. d(date_table.timezone)
+                )
             end,
         })
     end,
+}
+
+module.load = function()
+    neorg.modules.await("core.keybinds", function(keybinds)
+        keybinds.register_keybind(module.name, "insert-date")
+    end)
+end
+
+module.on_event = function(event)
+    if event.split_type[2] ~= "core.tempus.insert-date" then
+        return
+    end
+
+    local function callback(input)
+        if input == "" or not input then
+            return
+        end
+
+        local output
+
+        if type(input) == "table" then
+            output = tostring(module.public.to_date(input))
+        else
+            output = module.public.parse_date(input)
+
+            if type(output) == "string" then
+                neorg.utils.notify(output, vim.log.levels.ERROR)
+
+                vim.ui.input({
+                    prompt = "Date: ",
+                    default = input,
+                }, callback)
+
+                return
+            end
+
+            output = tostring(output)
+        end
+
+        vim.api.nvim_paste("{@ " .. output .. "}", false, -1)
+    end
+
+    if neorg.modules.is_module_loaded("core.ui.calendar") then
+        neorg.modules.get_module("core.ui.calendar").select_date({ callback = callback })
+    else
+        vim.ui.input({
+            prompt = "Date: ",
+        }, callback)
+    end
+end
+
+module.events.subscribed = {
+    ["core.keybinds"] = {
+        [module.name .. ".insert-date"] = true,
+    },
 }
 
 return module
