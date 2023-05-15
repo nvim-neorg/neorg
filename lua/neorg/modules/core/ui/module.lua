@@ -21,9 +21,6 @@ module.setup = function()
             "selection_popup",
             "text_popup",
         },
-        requires = {
-            "core.ui.calendar",
-        },
     }
 end
 
