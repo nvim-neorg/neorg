@@ -246,20 +246,20 @@ module.public = {
         end
 
         return module.private.tostringable_date({
-            weekday = {
+            weekday = osdate.wday and {
                 number = osdate.wday,
                 name = neorg.lib.title(weekdays[osdate.wday]),
-            },
+            } or nil,
             day = osdate.day,
-            month = {
+            month = osdate.month and {
                 number = osdate.month,
                 name = neorg.lib.title(months[osdate.month]),
-            },
+            } or nil,
             year = osdate.year,
-            time = setmetatable({
+            time = osdate.hour and setmetatable({
                 hour = osdate.hour,
-                minute = osdate.min,
-                second = osdate.sec,
+                minute = osdate.min or 0,
+                second = osdate.sec or 0,
             }, {
                 __tostring = function()
                     if not include_time then
