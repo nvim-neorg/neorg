@@ -214,7 +214,7 @@ module.setup = function()
     if not neorg.utils.is_minimum_version(0, 10, 0) then
         log.error("`core.tempus` requires at least Neovim version 0.10.0 to run!")
         return {
-            success = false
+            success = false,
         }
     end
 
@@ -309,7 +309,7 @@ module.public = {
 
             if word:match("^-?%d%d%d%d+$") then
                 output.year = tonumber(word)
-            elseif word:match("^%d+%w+,?$") then
+            elseif word:match("^%d+%w*$") then
                 output.day = tonumber(word:match("%d+"))
             elseif vim.list_contains(timezone_list, word:upper()) then
                 output.timezone = word:upper()
@@ -359,6 +359,8 @@ module.public = {
                 end
 
                 do
+                    word = word:match("^([^,]+),?$")
+
                     local valid_weekdays = {}
 
                     -- Check for weekday abbreviation
@@ -424,7 +426,10 @@ module.load = function()
 end
 
 module.on_event = function(event)
-    if event.split_type[2] ~= "core.tempus.insert-date" and event.split_type[2] ~= "core.tempus.insert-date-insert-mode" then
+    if
+        event.split_type[2] ~= "core.tempus.insert-date"
+        and event.split_type[2] ~= "core.tempus.insert-date-insert-mode"
+    then
         return
     end
 
@@ -463,7 +468,7 @@ module.on_event = function(event)
 
     if neorg.modules.is_module_loaded("core.ui.calendar") then
         vim.cmd.stopinsert()
-        neorg.modules.get_module("core.ui.calendar").select_date({ callback = vim.schedule_wrap(callback)})
+        neorg.modules.get_module("core.ui.calendar").select_date({ callback = vim.schedule_wrap(callback) })
     else
         vim.ui.input({
             prompt = "Date: ",
