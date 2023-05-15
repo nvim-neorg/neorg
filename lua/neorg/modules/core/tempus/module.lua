@@ -210,6 +210,17 @@ local timezone_list = {
     "YEKT",
 }
 
+module.setup = function()
+    if not neorg.utils.is_minimum_version(0, 10, 0) then
+        log.error("`core.tempus` requires at least Neovim version 0.10.0 to run!")
+        return {
+            success = false
+        }
+    end
+
+    return {}
+end
+
 ---@alias Date {weekday: {name: string, number: number}?, day: number?, month: {name: string, number: number}?, year: number?, timezone: string?, time: {hour: number, minute: number, second: number?}?}
 
 module.public = {
