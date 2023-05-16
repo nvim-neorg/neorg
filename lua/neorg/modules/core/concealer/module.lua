@@ -20,12 +20,12 @@ end
 
 local function get_prefix_position_and_level(buffer, prefix_node)
     assert(is_prefix_node(prefix_node), prefix_node:type())
-    local row_start, col_start, row_end, col_end = prefix_node:range()
+    local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = prefix_node:range()
 
-    assert(row_start == row_end)
-    assert(col_start + 2 <= col_end)
-    local past_end_pos = vim.treesitter.get_node_text(prefix_node, buffer):find(" ") or (col_end - col_start)
-    return row_start, col_start, (past_end_pos - 1)
+    assert(row_start_0b == row_end_0bin)
+    assert(col_start_0b + 2 <= col_end_0bex)
+    local past_end_pos = vim.treesitter.get_node_text(prefix_node, buffer):find(" ") or (col_end_0bex - col_start_0b)
+    return row_start_0b, col_start_0b, (past_end_pos - 1)
 end
 
 local function get_header_prefix_node(header_node)
@@ -34,46 +34,49 @@ local function get_header_prefix_node(header_node)
     return first_child
 end
 
-local function is_concealing()
-    return vim.wo.conceallevel > 0
+local function get_line_length(buffer, row_0b)
+    return vim.api.nvim_strwidth(vim.api.nvim_buf_get_lines(buffer, row_0b, row_0b+1, true)[1])
 end
-
-local function get_line_length(buffer, row)
-    return vim.api.nvim_strwidth(vim.api.nvim_buf_get_lines(buffer, row, row+1, true)[1])
-end
-
---- end utils
-
-require("neorg.modules.base")
-require("neorg.external.helpers")
-
-local module = neorg.modules.create("core.concealer")
 
 local function table_set_default(tbl, k, v)
     tbl[k] = tbl[k] or v
+    return tbl[k]
 end
 
 local function table_add_number(tbl, k, v)
     tbl[k] = tbl[k] + v
 end
 
-module.setup = function()
-    return {
-        success = true,
-        requires = {
-            "core.autocommands",
-            "core.integrations.treesitter",
-        },
-        imports = {
-            "preset_basic",
-            "preset_varied",
-            "preset_diamond",
-        },
-    }
+local function table_iclear(tbl)
+    for i = #tbl,1,-1 do
+        tbl[i] = nil
+    end
 end
 
-module.private = {
-}
+local function table_ifind_first(tbl, pred, from)
+    for i = #tbl, (from or 1), -1 do
+        if not pred(tbl[i]) then
+            return i+1
+        end
+    end
+    return 1
+end
+
+local function table_remove_interval(tbl, il, ir_ex)
+    assert(0 <= il)
+    assert(il <= ir_ex)
+    assert(ir_ex <= #tbl + 1)
+
+    if il == ir_ex then
+        return
+    end
+
+    table.move(tbl, ir_ex, #tbl, il)
+
+    for i = il, ir_ex-1 do
+        tbl[#tbl] = nil
+    end
+end
 
 local function logging(tag, ...)
     do return end
@@ -102,20 +105,45 @@ local function logging_named(tag, tbl)
     return logging(tag, table_tostring_shallow(tbl))
 end
 
+--- end utils
+
+require("neorg.modules.base")
+require("neorg.external.helpers")
+
+local module = neorg.modules.create("core.concealer")
+
+module.setup = function()
+    return {
+        success = true,
+        requires = {
+            "core.autocommands",
+            "core.integrations.treesitter",
+        },
+        imports = {
+            "preset_basic",
+            "preset_varied",
+            "preset_diamond",
+        },
+    }
+end
+
+module.private = {
+    icon_namespace = vim.api.nvim_create_namespace("neorg-conceals"),
+    rerendering_scheduled = false,
+    enabled = true,
+}
+
 ---@class core.concealer
 module.public = {
 }
 
 module.config.public = {
+    icon_preset = "basic",
 }
 
-local function node_text_width(node)
-    local row_start, col_start, row_end, col_end = node:range()
-    assert(row_start == row_end)
-    return col_end - col_start
-end
+local current_viewport = nil
 
-my_namespace = vim.api.nvim_create_namespace("neorg-conceals")
+
 
 local prettify_icon_table = {
     numeric           = { "1", "2", "3", "4", "5", "6", "7", "8", "9" },
@@ -128,6 +156,9 @@ local prettify_icon_table = {
     latin_uppercase_circled     = { "Ⓐ", "Ⓑ", "Ⓒ", "Ⓓ", "Ⓔ", "Ⓕ", "Ⓖ", "Ⓗ", "Ⓘ", "Ⓙ", "Ⓚ", "Ⓛ", "Ⓜ", "Ⓝ", "Ⓞ", "Ⓟ", "Ⓠ", "Ⓡ", "Ⓢ", "Ⓣ", "Ⓤ", "Ⓥ", "Ⓦ", "Ⓧ", "Ⓨ", "Ⓩ" },
     latin_lowercase_circled     = { "ⓐ", "ⓑ", "ⓒ", "ⓓ", "ⓔ", "ⓕ", "ⓖ", "ⓗ", "ⓘ", "ⓙ", "ⓚ", "ⓛ", "ⓜ", "ⓝ", "ⓞ", "ⓟ", "ⓠ", "ⓡ", "ⓢ", "ⓣ", "ⓤ", "ⓥ", "ⓦ", "ⓧ", "ⓨ", "ⓩ" },
 }
+
+local operations_of_buf = {}
+
 
 local function get_prefix_level(buffer, prefix_node)
     return select(3, get_prefix_position_and_level(buffer, prefix_node))
@@ -151,7 +182,7 @@ local function get_ordered_index(buffer, prefix_node)
         sibling = sibling:prev_named_sibling()
     end
 
-    return count
+    return count, (sibling or header_node:parent())
 end
 
 local function get_ordered_icon(icon_table, buffer, prefix_node)
@@ -160,6 +191,19 @@ local function get_ordered_icon(icon_table, buffer, prefix_node)
     local indent = (" "):rep(level - 1)
     local number_icon = icon_table[index] or "~"
     return indent .. number_icon
+end
+
+local function get_quote_icon(buffer, node)
+    local level = node:type():match("^quote(%d)_prefix$")
+    assert(level)
+    local row_start_0b, col_start_0b, _row_end_0bin, _col_end_0bex = node:range()
+    assert(row_start_0b == _row_end_0bin)
+    local icon = "|"
+    local texts = {}
+    for i = 1,level do
+        table.insert(texts, { row_start_0b, col_start_0b+(i-1), icon, "@neorg.quotes."..i..".prefix" })
+    end
+    return texts
 end
 
 pretty_texts = {
@@ -190,21 +234,29 @@ pretty_texts = {
     multi_footnote_prefix = { icon = "⁑ " },
     multi_footnote_suffix = { icon = "⁑ " },
 
-    -- TODO: delimiter, quote
+    -- TODO: delimiter
     spoiler = {
         -- FIXME: multiilne spoiler
         highlight = "@neorg.markup.spoiler",
         icon = function(buffer, node)
-            local row_start, col_start, row_end, col_end = node:range()
+            local highlight = pretty_texts.spoiler.highlight
+            local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
             local extmarks = {}
-            for i = row_start, row_end do
-                local l = i==row_start and col_start+1 or 0
-                local r = i==row_end and col_end-1 or get_line_length(buffer, i)
-                table.insert(extmarks, {i, l, ("•"):rep(r-l)})
+            for i = row_start_0b, row_end_0bin do
+                local l = i==row_start_0b and col_start_0b+1 or 0
+                local r_ex = i==row_end_0bin and col_end_0bex-1 or get_line_length(buffer, i)
+                table.insert(extmarks, {i, l, ("•"):rep(r_ex-l), highlight})
             end
             return extmarks
         end,
     },
+
+    quote1_prefix = { icon = get_quote_icon },
+    quote2_prefix = { icon = get_quote_icon },
+    quote3_prefix = { icon = get_quote_icon },
+    quote4_prefix = { icon = get_quote_icon },
+    quote5_prefix = { icon = get_quote_icon },
+    quote6_prefix = { icon = get_quote_icon },
 
     unordered_list1_prefix = { icon = "•", },
     unordered_list2_prefix = { icon = " •", },
@@ -249,6 +301,18 @@ pretty_texts = {
             return get_ordered_icon(the_icon_table, buffer, node)
         end
     },
+
+    ranged_verbatim_tag = {
+        icon = function(buffer, node)
+            local highlight = "@neorg.tags.ranged_verbatim.code_block" 
+            local row_start_0b, _col_start_0b, row_end_0bin, _col_end_0bex = node:range()
+            local texts = {}
+            for i = row_start_0b, row_end_0bin do
+                table.insert(texts, { i, 0, "", highlight})
+            end
+            return texts, { hl_eol = true, hl_group = highlight }
+        end
+    }
 }
 
 local function checked_gsub(...)
@@ -313,38 +377,61 @@ table_extend_in_place(pretty_texts, {
     -- TODO: link, definition, footnote, 
 })
 
-local function remove_extmarks(buffer, row_start, row_end)
-    print('%%% remove_extmarks', row_start, row_end)
-    assert(row_start <= row_end)
-    if row_start == row_end then
-        return
+local function pos_le(pos1, pos2)
+    return pos1.x < pos2.x or (pos1.x == pos2.x and pos1.y <= pos2.y)
+end
+
+local function pos_lt(pos1, pos2)
+    return pos1.x < pos2.x or (pos1.x == pos2.x and pos1.y < pos2.y)
+end
+
+local function remove_extmarks(buffer, pos_start_0b_0b, pos_end_0bin_0bex)
+    print('%%% remove_extmarks', vim.inspect(pos_start_0b_0b), vim.inspect(pos_end_0bin_0bex))
+    assert(pos_start_0b_0b.x <= pos_end_0bin_0bex.x)
+    local icon_namespace = module.private.icon_namespace
+    for _, result in ipairs(vim.api.nvim_buf_get_extmarks(buffer, icon_namespace, {pos_start_0b_0b.x, pos_start_0b_0b.y}, {pos_end_0bin_0bex.x, pos_end_0bin_0bex.y-1}, {})) do
+        local extmark_id = result[1]
+        local node_pos_0b_0b = { x = result[2], y = result[3] }
+        assert(pos_le(pos_start_0b_0b, node_pos_0b_0b) and pos_lt(node_pos_0b_0b, pos_end_0bin_0bex), ("start=%s, end=%s, node=%s"):format(vim.inspect(pos_start_0b_0b), vim.inspect(pos_end_0bin_0bex), vim.inspect(node_pos_0b_0b)))
+        vim.api.nvim_buf_del_extmark(buffer, icon_namespace, extmark_id)
     end
-    for _, result in ipairs(vim.api.nvim_buf_get_extmarks(buffer, my_namespace, {row_start,0}, {row_end-1,-1}, {})) do
-        vim.api.nvim_buf_del_extmark(buffer, my_namespace, result[1])
+end
+
+local function in_range(k, l, r_ex)
+    return l<=k and k<r_ex
+end
+
+local function is_inside_example(node)
+    -- TODO: waiting for parser fix
+    return false
+end
+
+local function should_skip_prettify(mode, current_row_0b, node, row_start_0b, row_end_0bex)
+    local result
+    if (mode == "i") and in_range(current_row_0b, row_start_0b, row_end_0bex) then
+        result = true
+    elseif is_inside_example(node) then
+        result = true
+    else
+        result = false
     end
+    -- print('@@@@@@@ should_skip_prettify =', result, mode, current_row_0b, node, row_start_0b, row_end_0bex, '.')
+    return result
 end
 
-local function in_range(k, l ,r)
-    return l<=k and k<=r
-end
-
-local function should_skip_prettify(mode, current_row, row_start, row_end)
-    return (mode == "i") and in_range(current_row, row_start, row_end)
-end
-
-local function is_concealing_on_row_range(mode, conceallevel, concealcursor, current_row, row_start, row_end)
+local function is_concealing_on_row_range(mode, conceallevel, concealcursor, current_row_0b, row_start_0b, row_end_0bex)
     if conceallevel<1 then
         return false
-    elseif not in_range(current_row, row_start, row_end) then
+    elseif not in_range(current_row_0b, row_start_0b, row_end_0bex) then
         return true
     else
         return (concealcursor:find(mode) ~= nil)
     end
 end
 
-local function query_get_nodes(query, document_root, buffer, row_start, row_end)
+local function query_get_nodes(query, document_root, buffer, row_start_0b, row_end_0bex)
     local result = {}
-    for _id, node, _metadata in query:iter_captures(document_root, buffer, row_start, row_end) do
+    for _id, node, _metadata in query:iter_captures(document_root, buffer, row_start_0b, row_end_0bex) do
         table.insert(result, node)
     end
     return result
@@ -358,66 +445,90 @@ local function get_node_row_end(node)
     return (node:end_())
 end
 
-local function prettify_range(buffer, row_start, row_end)
-    -- FIXME: markup across lines?
+local function check_min(xy, x_new, y_new)
+    if (x_new < xy.x) or (x_new == xy.x and y_new < xy.y) then
+        xy.x = x_new
+        xy.y = y_new
+    end
+end
 
+local function check_max(xy, x_new, y_new)
+    if (x_new > xy.x) or (x_new == xy.x and y_new > xy.y) then
+        xy.x = x_new
+        xy.y = y_new
+    end
+end
+
+local function to_xy(x, y)
+    return { x = x, y = y }
+end
+
+local function prettify_range(buffer, row_start_0b, row_end_0bex)
     -- in case there's undo/removal garbage
     -- TODO: optimize
-    row_end = row_end + 2
+    row_end_0bex = math.min(row_end_0bex + 1, vim.api.nvim_buf_line_count(buffer))
 
     local treesitter_module = module.required["core.integrations.treesitter"]
     local document_root = treesitter_module.get_document_root(buffer)
-    local nodes = query_get_nodes(prettify_query, document_root, buffer, row_start, row_end)
+    local nodes = query_get_nodes(prettify_query, document_root, buffer, row_start_0b, row_end_0bex)
+
+    local pos_start_0b_0b = { x = row_start_0b, y = 0 }
+    local pos_end_0bin_0bex = { x = row_end_0bex-1, y = get_line_length(buffer, row_end_0bex-1) }
 
     for i = 1, #nodes do
-        row_start = math.min(row_start, get_node_row_start(nodes[i]))
-        row_end = math.max(row_end, get_node_row_end(nodes[i]))
+        check_min(pos_start_0b_0b, nodes[i]:start())
+        check_max(pos_end_0bin_0bex, nodes[i]:end_())
     end
 
-    remove_extmarks(buffer, row_start, row_end)
+    remove_extmarks(buffer, pos_start_0b_0b, pos_end_0bin_0bex)
 
-    local current_row = vim.api.nvim_win_get_cursor(0)[1] - 1
+    local current_row_0b = vim.api.nvim_win_get_cursor(0)[1] - 1
     local current_mode = vim.api.nvim_get_mode().mode
     local conceallevel = vim.wo.conceallevel
     local concealcursor = vim.wo.concealcursor
+    local icon_namespace = module.private.icon_namespace
 
     assert(document_root)
 
     for _, node in ipairs(nodes) do
         -- FIXME skip prettify
-        local node_row_start, node_col_start, node_row_end, _node_col_end = node:range()
-        if should_skip_prettify(current_mode, current_row, node_row_start, node_row_end) then
+        local node_row_start_0b, node_col_start_0b, _node_row_end_0bin, _node_col_end_0bex = node:range()
+        local node_row_end_0bex = _node_row_end_0bin + 1
+
+        if should_skip_prettify(current_mode, current_row_0b, node, node_row_start_0b, node_row_end_0bex) then
             goto continue
         end
+
         local text = pretty_texts[node:type()]
         assert(text)
-        local has_conceal = text.check_conceal and text.check_conceal(node) and is_concealing_on_row_range(current_mode, conceallevel, concealcursor, current_row, node_row_start, node_row_end)
+        local has_conceal = text.check_conceal and text.check_conceal(node) and is_concealing_on_row_range(current_mode, conceallevel, concealcursor, current_row_0b, node_row_start_0b, node_row_end_0bex)
         if has_conceal then
             goto continue
         end
-        local texts
+        local texts, ext_opts
         if type(text.icon)=="string" then
-            texts = {{ node_row_start, node_col_start, text.icon }}
+            texts = {{ node_row_start_0b, node_col_start_0b, text.icon, text.highlight}}
         else
-            texts = text.icon(buffer, node)
+            texts, ext_opts = text.icon(buffer, node)
             if type(texts) == "string" then
-                texts = {{ node_row_start, node_col_start, texts }}
+                texts = {{ node_row_start_0b, node_col_start_0b, texts, text.highlight }}
             end
         end
 
         for i = 1, #texts do
-            local r = texts[i][1]
-            local c = texts[i][2]
+            local r_0b = texts[i][1]
+            local c_0b = texts[i][2]
             local virt_text = texts[i][3]
+            local highlight = texts[i][4]
             local opt = {
-                virt_text={{virt_text, text.highlight}},
+                virt_text=virt_text and {{virt_text, highlight}},
                 virt_text_pos="overlay",
-                virt_text_win_col=nil, --c,
+                virt_text_win_col=nil, --c_0b,
                 hl_group=nil,
                 conceal=nil,
                 id=nil,
-                end_row=r,
-                end_col=c,
+                end_row=r_0b,
+                end_col=c_0b,
                 hl_eol=nil,
                 virt_text_hide=nil,
                 hl_mode="combine",
@@ -437,43 +548,12 @@ local function prettify_range(buffer, row_start, row_end)
                 spell=nil,
                 ui_watched=nil,
             }
-            local id = vim.api.nvim_buf_set_extmark(buffer, my_namespace, r, c, opt)
+            if ext_opts then
+                opt = vim.tbl_extend("error", opt, ext_opts)
+            end
+            local id = vim.api.nvim_buf_set_extmark(buffer, icon_namespace, r_0b, c_0b, opt)
         end
         ::continue::
-    end
-end
-
-operations_of_buf = {}
-scheduled = false
-
-local function table_iclear(tbl)
-    for i = #tbl,1,-1 do
-        tbl[i] = nil
-    end
-end
-
-local function table_ifind_first(tbl, pred, from)
-    for i = #tbl, (from or 1), -1 do
-        if not pred(tbl[i]) then
-            return i+1
-        end
-    end
-    return 1
-end
-
-local function table_remove_interval(tbl, l, r)
-    assert(0 <= l)
-    assert(l <= r)
-    assert(r <= #tbl + 1)
-
-    if l == r then
-        return
-    end
-
-    table.move(tbl, r, #tbl, l)
-
-    for i = l, r-1 do
-        tbl[#tbl] = nil
     end
 end
 
@@ -482,47 +562,47 @@ local function do_operations_for_buffer(buffer, operations)
     --regenerate_full(buffer)
 
     -- invariant:
-    -- 0 <= itv.l <= itv.r  forall itv
-    -- itv.r < itv'.l   forall adjacent itv and itv'
+    -- 0 <= itv.l <= itv.r_ex  forall itv
+    -- itv.r_ex < itv'.l   forall adjacent itv and itv'
     local changed_intervals = {}
 
     for _, op in ipairs(operations) do
-        local il = table_ifind_first(changed_intervals, function(itv) return op.row_start <= itv.l end)
-        local ir = table_ifind_first(changed_intervals, function(itv) return op.row_end_old < itv.l end, l)
+        local il = table_ifind_first(changed_intervals, function(itv) return op.row_start_0b <= itv.l end)
+        local ir = table_ifind_first(changed_intervals, function(itv) return op.row_end_old_0bex < itv.l end, l)
 
-        if il>1 and op.row_start <= changed_intervals[il-1].r then
+        if il>1 and op.row_start_0b <= changed_intervals[il-1].r_ex then
             il = il - 1
         elseif il==ir then
-            table.insert(changed_intervals, il, { l = op.row_start, r = op.row_end_old })
+            table.insert(changed_intervals, il, { l = op.row_start_0b, r_ex = op.row_end_old_0bex })
             ir = ir + 1
         else
-            assert(op.row_start <= changed_intervals[il].l)
-            changed_intervals[il].l = op.row_start
+            assert(op.row_start_0b <= changed_intervals[il].l)
+            changed_intervals[il].l = op.row_start_0b
         end
-        changed_intervals[il].r = math.max(op.row_end_old, changed_intervals[ir-1].r)
+        changed_intervals[il].r_ex = math.max(op.row_end_old_0bex, changed_intervals[ir-1].r_ex)
         table_remove_interval(changed_intervals, il+1, ir)
-        local end_diff = op.row_end_new - op.row_end_old
+        local end_diff = op.row_end_new_0bex - op.row_end_old_0bex
         if end_diff ~= 0 then
             for i = il, #changed_intervals do
-                changed_intervals[i].r = changed_intervals[i].r + end_diff
-                assert(changed_intervals[i].l <= changed_intervals[i].r)
-                assert(i == il or (changed_intervals[i].l < changed_intervals[i].r))
+                changed_intervals[i].r_ex = changed_intervals[i].r_ex + end_diff
+                assert(changed_intervals[i].l <= changed_intervals[i].r_ex)
+                assert(i == il or (changed_intervals[i].l < changed_intervals[i].r_ex))
             end
         end
     end
 
     assert(not vim.tbl_isempty(changed_intervals))
     local overall_l = changed_intervals[1].l
-    local overall_r = changed_intervals[#changed_intervals].r
+    local overall_r_ex = changed_intervals[#changed_intervals].r_ex
     local n_buf_line = vim.api.nvim_buf_line_count(buffer)
     assert(0 <= overall_l, ("overall_l=%s"):format(overall_l))
-    assert(overall_l <= overall_r)
-    assert(overall_r <= n_buf_line, ("overall_r=%s, n_buf_line=%s"):format(overall_r, n_buf_line))
-    prettify_range(buffer, overall_l, overall_r)
+    assert(overall_l <= overall_r_ex)
+    -- assert(overall_r_ex <= n_buf_line, ("overall_r_ex=%s, n_buf_line=%s"):format(overall_r_ex, n_buf_line))
+    overall_r_ex = math.min(overall_r_ex, n_buf_line)
+    prettify_range(buffer, overall_l, overall_r_ex)
 end
 
 local function do_operations_for_all_buffers()
-    print('$$$ do_operations_for_all_buffers')
     -- local old_lazyredraw = vim.go.lazyredraw
     -- vim.go.lazyredraw = true
     for buffer, operations in pairs(operations_of_buf) do
@@ -531,7 +611,7 @@ local function do_operations_for_all_buffers()
     end
     operations_of_buf = {}
     -- vim.go.lazyredraw = old_lazyredraw
-    scheduled = false
+    module.private.rerendering_scheduled = false
 end
 
 local function add_operation(buffer, op)
@@ -542,30 +622,30 @@ local function add_operation(buffer, op)
     end
 
     table.insert(operations, op)
-    if not scheduled then
-        scheduled = true
+    if not module.private.rerendering_scheduled then
+        module.private.rerendering_scheduled = true
         vim.schedule(do_operations_for_all_buffers)
     end
 end
 
 local function add_operation_whole_buffer(buffer)
     local line_count = vim.api.nvim_buf_line_count(buffer)
-    add_operation(buffer, {row_start = 0, row_end_old = line_count, row_end_new = line_count})
+    add_operation(buffer, {row_start_0b = 0, row_end_old_0bex = line_count, row_end_new_0bex = line_count})
 end
 
 local function handle_bufread(event)
     assert(vim.api.nvim_win_is_valid(event.window))
 
-    local function on_bytes_callback(_tag, buffer, _changedtick, row_start, col_start, byte_offset, old_row_end, old_col_end, old_byte_changed, new_row_end, new_col_end, new_byte_changed)
+    local function on_bytes_callback(_tag, buffer, _changedtick, row_start_0b, col_start_0b, byte_offset, old_row_end_0bex, old_col_end_0bex, old_byte_changed, new_row_end_0bex, new_col_end_0bex, new_byte_changed)
         assert(_tag == "bytes")
         print(("@@@@ on_byte, start=(%s,%s), byte_offset=%s, old_end=(%s,%s):%s, new_end=(%s,%s):%s"):format(
-        row_start, col_start, byte_offset, old_row_end, old_col_end, old_byte_changed, new_row_end, new_col_end, new_byte_changed))
+        row_start_0b, col_start_0b, byte_offset, old_row_end_0bex, old_col_end_0bex, old_byte_changed, new_row_end_0bex, new_col_end_0bex, new_byte_changed))
     end
 
-    local function on_line_callback(_tag, buffer, _changedtick, row_start, row_end, row_updated, n_byte_prev)
+    local function on_line_callback(_tag, buffer, _changedtick, row_start_0b, row_end_0bex, row_updated_0bex, n_byte_prev)
         assert(_tag == "lines")
-        print(("@@@@' on_line, row_start=%s, row_end=%s, row_updated=%s, n_byte_prev=%s"):format(row_start, row_end, row_updated, n_byte_prev))
-        add_operation(buffer, {row_start = row_start, row_end_old = row_end, row_end_new = row_updated})
+        print(("@@@@' on_line, row_start_0b=%s, row_end=%s, row_updated=%s, n_byte_prev=%s"):format(row_start_0b, row_end_0bex, row_updated_0bex, n_byte_prev))
+        add_operation(buffer, {row_start_0b = row_start_0b, row_end_old_0bex = row_end_0bex, row_end_new_0bex = row_updated_0bex})
     end
 
     local attach_succeeded = vim.api.nvim_buf_attach(event.buffer, true, { on_lines = on_line_callback })
@@ -573,22 +653,26 @@ local function handle_bufread(event)
     local language_tree = vim.treesitter.get_parser(event.buffer, 'norg')
 
     local buffer = event.buffer
+    -- used for detecting non-local (multiline) changes, like spoiler / code block
+    -- TODO: exemption in certain cases, for example when changing only heading followed by pure texts,
+    -- in which case all its descendents would be unnecessarily re-concealed.
     local function on_changedtree_callback(ranges)
+        -- TODO: abandon if too large
         print(("@@@@' on_changedtree, ranges=%s"):format(vim.inspect(ranges)))
         for i = 1, #ranges do
             local range = ranges[i]
-            add_operation(buffer, { row_start=range[1], row_end_old=range[3], row_end_new=range[3] })
+            add_operation(buffer, { row_start_0b=range[1], row_end_old_0bex=range[3]+1, row_end_new_0bex=range[3]+1 })
         end
     end
 
     language_tree:register_cbs({ on_changedtree = on_changedtree_callback })
 
-    --add_operation(event.buffer, {row_start = 0, row_end_old = 0, row_end_new = vim.api.nvim_buf_line_count(event.buffer)})
+    --add_operation(event.buffer, {row_start_0b = 0, row_end_old_0bex = 0, row_end_new_0bex = vim.api.nvim_buf_line_count(event.buffer)})
     add_operation_whole_buffer(event.buffer)
 end
 
-local function add_operation_at_row(buffer, row)
-    add_operation(buffer, {row_start = row, row_end_old = row+1, row_end_new = row+1})
+local function add_operation_at_row(buffer, row_0b)
+    add_operation(buffer, {row_start_0b = row_0b, row_end_old_0bex = row_0b+1, row_end_new_0bex = row_0b+1})
 end
 
 local function handle_insert_toggle(event)
@@ -609,64 +693,75 @@ local function handle_update_region(event)
     -- print('@@ handle_update_region')
 end
 
-prettymark_enabled = true
-
 local function handle_toggle_prettifier(event)
-    prettymark_enabled = not prettymark_enabled
-    if prettymark_enabled then
+    module.private.enabled = not module.private.enabled
+    if module.private.enabled then
         add_operation_whole_buffer(event.buffer)
     else
-        vim.api.nvim_buf_clear_namespace(0, my_namespace, 0, -1)
+        local icon_namespace = module.private.icon_namespace
+        vim.api.nvim_buf_clear_namespace(0, icon_namespace, 0, -1)
     end
 end
 
-last_cursor_row = nil
+cursor_record = nil
 -- TODO: multiple buffer
 
-local function handle_cursor_moved(event)
-    local current_row = event.cursor_position[1] - 1
-    if is_concealing() and (last_cursor_row ~= current_row) then
-        if last_cursor_row then
-            add_operation_at_row(event.buffer, last_cursor_row)
-        end
-        -- TODO: make sure last_cursor_row is not nil
-        add_operation_at_row(event.buffer, current_row)
+local function is_same_line_movement(event)
+    -- some operations like dd / u cannot yet be listened reliably
+    -- below is our best approximation
+    return (cursor_record
+      and cursor_record.row_0b == event.cursor_position[1]-1
+      and cursor_record.col_0b ~= event.cursor_position[2]
+      and cursor_record.line_content == event.line_content)
+end
+
+local function update_cursor(event)
+    if not cursor_record then
+        cursor_record = {}
     end
-    last_cursor_row = current_row
+    cursor_record.row_0b = event.cursor_position[1] - 1
+    cursor_record.col_0b = event.cursor_position[2]
+    cursor_record.line_content = event.line_content
+end
+
+local function handle_cursor_moved(event)
+    local current_row_0b = event.cursor_position[1] - 1
+    -- reveal/conceal when conceallevel>0
+    -- also triggered when dd / u
+    if not is_same_line_movement(event) then
+        if cursor_record then
+            add_operation_at_row(event.buffer, cursor_record.row_0b)
+        end
+        -- TODO: make sure last_cursor_row_0b is not nil
+        add_operation_at_row(event.buffer, current_row_0b)
+    end
+    update_cursor(event)
 end
 
 local function handle_cursor_moved_i(event)
-    local current_row = event.cursor_position[1] - 1
-    if last_cursor_row ~= current_row then
-        if last_cursor_row then
-            add_operation_at_row(event.buffer, last_cursor_row)
-        end
-        -- TODO: make sure last_cursor_row is not nil
-        add_operation_at_row(event.buffer, current_row)
-    end
-    last_cursor_row = current_row
+    return handle_cursor_moved(event)
 end
 
+local event_handlers = {
+    ["core.neorgcmd.events.core.concealer.toggle"] = handle_toggle_prettifier,
+    ["core.autocommands.events.bufread"] = handle_bufread,
+    ["core.autocommands.events.insertenter"] = handle_insertenter,
+    ["core.autocommands.events.insertleave"] = handle_insertleave,
+    ["core.autocommands.events.cursormoved"] = handle_cursor_moved,
+    ["core.autocommands.events.cursormovedi"] = handle_cursor_moved_i,
+}
+
 module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.core.concealer.toggle" then
-        handle_toggle_prettifier(event)
-    elseif event.type == "core.autocommands.events.bufread" then
-        if event.content.norg then
-            handle_bufread(event)
-        end
-    elseif event.type == "core.autocommands.events.insertenter" then
-        handle_insertenter(event)
-    elseif event.type == "core.autocommands.events.insertleave" then
-        handle_insertleave(event)
-    elseif event.type == "core.autocommands.events.cursormoved" then
-        handle_cursor_moved(event)
-    elseif event.type == "core.autocommands.events.cursormovedi" then
-        handle_cursor_moved_i(event)
-    -- elseif event.type == "core.autocommands.events.vimleavepre" then
-    --     handle_vimleavepre()
-    else
-        assert(false, ("unexpected event type: %s"):format(event.type))
+    if not event.content.norg then
+        -- TODO: move to on_event?
+        return
     end
+
+    print(vim.inspect(event))
+    if (not module.private.enabled) and (event.type ~= "core.neorgcmd.events.core.concealer.toggle") then
+        return
+    end
+    return event_handlers[event.type](event)
 end
 
 module.load = function()
@@ -712,16 +807,22 @@ end
 -- TODO;
 -- [x] lazyredraw, ttyfast
 -- [x] no conceal on cursor line at insert mode
--- [ ] no conceal inside examples
+-- [---------] no conceal inside examples
 -- [x] insert mode movement
--- [ ] code, spoiler, non-local changes, languagetree
+-- [x] code, spoiler, non-local changes, languagetree (WONTFIX complicated cases)
+-- [ ]code config
 -- [x] conceal links
--- [ ] fix toggle-concealer
+-- [x] fix toggle-concealer
 -- [ ] visual mode skip prettify ("ivV"):find(mode), ModeChanged
--- vim.wo.concealcursor, visual mode
--- BufEnter/BufLeave toggle conceal
--- CursorHold
--- inccommand
+-- [+++++++] use vim.b[bufnr]
+-- [ ] chuncked concealing on demand for large file
+-- --- (prev), current, (next): singleton record, changed when moving large steps
+-- [ ] adaptive performance tuning: instant, CursorHold
+-- [ ] multi-column ordering
+-- number_spec: "§A.a1."
+-- digit_infos: { ["A"] = ..., ["a"] = ..., ["1"] = ..., ["⑴"] = ... }
+-- result: render({3,5,2,6,7}) = "§C.e2.6.7"
+-- folding
 
 module.events.defined = {
     -- update_region = neorg.events.define(module, "update_region"),
