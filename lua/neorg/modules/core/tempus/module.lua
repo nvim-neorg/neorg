@@ -12,7 +12,7 @@ and `to_lua_date(date) -> osdate`.
 local module = neorg.modules.create("core.tempus")
 
 -- NOTE: Maybe encapsulate whole date parser in a single PEG grammar?
-local time_regex = vim.re.compile([[{%d%d?} ":" {%d%d} ("." {%d%d?})?]])
+local _, time_regex = pcall(vim.re.compile, [[{%d%d?} ":" {%d%d} ("." {%d%d?})?]])
 
 local timezone_list = {
     "ACDT",
