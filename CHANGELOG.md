@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.4.0](https://github.com/nvim-neorg/neorg/compare/v4.3.0...v4.4.0) (2023-05-16)
+
+
+### Features
+
+* **journal:** allow `custom` to take in no arguments, in which case ([ea0497a](https://github.com/nvim-neorg/neorg/commit/ea0497aea783507ce640e909b6764be4fcd5a388))
+
+
+### Bug Fixes
+
+* **promo:** don't add whitespace to empty lines ([#852](https://github.com/nvim-neorg/neorg/issues/852)) ([a7291f4](https://github.com/nvim-neorg/neorg/commit/a7291f4662664d0c3be3016adff6767dc52f907d))
+* **tempus:** don't use the `re` module if it doesn't exist ([#872](https://github.com/nvim-neorg/neorg/issues/872)) ([3c99638](https://github.com/nvim-neorg/neorg/commit/3c99638db0ce4293e221216bdda03a55da6ad82b))
+
 ## [4.3.0](https://github.com/nvim-neorg/neorg/compare/v4.2.0...v4.3.0) (2023-05-15)
 
 
