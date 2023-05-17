@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.4.1](https://github.com/nvim-neorg/neorg/compare/v4.4.0...v4.4.1) (2023-05-17)
+
+
+### Bug Fixes
+
+* **tempus:** paste correct weekday from calendar ([ba54231](https://github.com/nvim-neorg/neorg/commit/ba54231e14a31c0571ff7baa4828de121a5e3072))
+* **tempus:** properly handle conversions w.r.t Sun-Sat/Mon-Sun ([e39fa1b](https://github.com/nvim-neorg/neorg/commit/e39fa1b1626fc6f4bb9f4695b15d7065561c2567))
+
 ## [4.4.0](https://github.com/nvim-neorg/neorg/compare/v4.3.0...v4.4.0) (2023-05-16)
 
 
