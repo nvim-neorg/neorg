@@ -235,7 +235,7 @@ module.public = {
             hour = parsed_date.time and parsed_date.time.hour,
             min = parsed_date.time and parsed_date.time.minute,
             sec = parsed_date.time and parsed_date.time.second,
-            wday = parsed_date.weekday and parsed_date.weekday.number,
+            wday = parsed_date.weekday and neorg.lib.number_wrap(parsed_date.weekday.number + 1, 1, 7),
             isdst = true,
         }
     end,
@@ -256,12 +256,14 @@ module.public = {
             table.insert(months, os.date("%B", os.time({ year = 2000, month = i, day = 1 })):lower())
         end
 
+        -- os.date("*t") returns wday with Sunday as 1, needs to be
+        -- converted to Monday as 1
+        local converted_weekday = neorg.lib.number_wrap(osdate.wday - 1, 1, 7)
+
         return module.private.tostringable_date({
-            -- os.date("*t") returns wday with Sunday as 1, needs to be
-            -- converted to Monday as 1
             weekday = osdate.wday and {
-                number = osdate.wday == 1 and 7 or osdate.wday-1,
-                name = neorg.lib.title(weekdays[osdate.wday == 1 and 7 or osdate.wday-1]),
+                number = converted_weekday,
+                name = neorg.lib.title(weekdays[converted_weekday]),
             } or nil,
             day = osdate.day,
             month = osdate.month and {
