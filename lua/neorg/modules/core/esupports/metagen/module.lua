@@ -213,7 +213,7 @@ module.public = {
             return
         end
 
-        local current_date = os.date("%Y-%m-%d")
+        local current_date = module.config.public.template.updated()
 
         local query = neorg.utils.ts_parse_query(
             "norg_meta",
