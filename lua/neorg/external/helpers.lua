@@ -563,6 +563,22 @@ neorg.lib = {
         end
         return table.concat(result, " ")
     end,
+
+    --- Wraps a number so that it fits within a given range.
+    ---@param value number #The number to wrap
+    ---@param min number #The lower bound
+    ---@param max number #The higher bound
+    ---@return number #The wrapped number, guarantees `min <= value <= max`.
+    number_wrap = function(value, min, max)
+        local range = max - min + 1
+        local wrapped_value = ((value - min) % range) + min
+
+        if wrapped_value < min then
+            wrapped_value = wrapped_value + range
+        end
+
+        return wrapped_value
+    end,
 }
 
 return neorg.utils
