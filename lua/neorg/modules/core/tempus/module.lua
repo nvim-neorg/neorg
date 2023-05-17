@@ -257,9 +257,11 @@ module.public = {
         end
 
         return module.private.tostringable_date({
+            -- os.date("*t") returns wday with Sunday as 1, needs to be
+            -- converted to Monday as 1
             weekday = osdate.wday and {
-                number = osdate.wday,
-                name = neorg.lib.title(weekdays[osdate.wday]),
+                number = osdate.wday == 1 and 7 or osdate.wday-1,
+                name = neorg.lib.title(weekdays[osdate.wday == 1 and 7 or osdate.wday-1]),
             } or nil,
             day = osdate.day,
             month = osdate.month and {
