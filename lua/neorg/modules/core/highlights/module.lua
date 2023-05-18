@@ -165,68 +165,36 @@ module.config.public = {
         -- object containing the TODO item itself.
         todo_items = {
             undone = {
-                ["1"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
-                ["2"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
-                ["3"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
-                ["4"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
-                ["5"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
-                ["6"] = { [""] = "+@punctuation.delimiter", content = "+@none" },
+                [""] = "+@punctuation.delimiter",
+                content = "+@none",
             },
             pending = {
-                ["1"] = { [""] = "+@namespace", content = "+@none" },
-                ["2"] = { [""] = "+@namespace", content = "+@none" },
-                ["3"] = { [""] = "+@namespace", content = "+@none" },
-                ["4"] = { [""] = "+@namespace", content = "+@none" },
-                ["5"] = { [""] = "+@namespace", content = "+@none" },
-                ["6"] = { [""] = "+@namespace", content = "+@none" },
+                [""] = "+@namespace",
+                content = "+@none",
             },
             done = {
-                ["1"] = { [""] = "+@string", content = "+@none" },
-                ["2"] = { [""] = "+@string", content = "+@none" },
-                ["3"] = { [""] = "+@string", content = "+@none" },
-                ["4"] = { [""] = "+@string", content = "+@none" },
-                ["5"] = { [""] = "+@string", content = "+@none" },
-                ["6"] = { [""] = "+@string", content = "+@none" },
+                [""] = "+@string",
+                content = "+@none",
             },
             on_hold = {
-                ["1"] = { [""] = "+@text.note", content = "+@none" },
-                ["2"] = { [""] = "+@text.note", content = "+@none" },
-                ["3"] = { [""] = "+@text.note", content = "+@none" },
-                ["4"] = { [""] = "+@text.note", content = "+@none" },
-                ["5"] = { [""] = "+@text.note", content = "+@none" },
-                ["6"] = { [""] = "+@text.note", content = "+@none" },
+                [""] = "+@text.note",
+                content = "+@none",
             },
             cancelled = {
-                ["1"] = { [""] = "+Whitespace", content = "+@none" },
-                ["2"] = { [""] = "+Whitespace", content = "+@none" },
-                ["3"] = { [""] = "+Whitespace", content = "+@none" },
-                ["4"] = { [""] = "+Whitespace", content = "+@none" },
-                ["5"] = { [""] = "+Whitespace", content = "+@none" },
-                ["6"] = { [""] = "+Whitespace", content = "+@none" },
+                [""] = "+NonText",
+                content = "+@none",
             },
             urgent = {
-                ["1"] = { [""] = "+@text.danger", content = "+@none" },
-                ["2"] = { [""] = "+@text.danger", content = "+@none" },
-                ["3"] = { [""] = "+@text.danger", content = "+@none" },
-                ["4"] = { [""] = "+@text.danger", content = "+@none" },
-                ["5"] = { [""] = "+@text.danger", content = "+@none" },
-                ["6"] = { [""] = "+@text.danger", content = "+@none" },
+                [""] = "+@text.danger",
+                content = "+@none",
             },
             uncertain = {
-                ["1"] = { [""] = "+@boolean", content = "+@none" },
-                ["2"] = { [""] = "+@boolean", content = "+@none" },
-                ["3"] = { [""] = "+@boolean", content = "+@none" },
-                ["4"] = { [""] = "+@boolean", content = "+@none" },
-                ["5"] = { [""] = "+@boolean", content = "+@none" },
-                ["6"] = { [""] = "+@boolean", content = "+@none" },
+                [""] = "+@boolean",
+                content = "+@none",
             },
             recurring = {
-                ["1"] = { [""] = "+@repeat", content = "+@none" },
-                ["2"] = { [""] = "+@repeat", content = "+@none" },
-                ["3"] = { [""] = "+@repeat", content = "+@none" },
-                ["4"] = { [""] = "+@repeat", content = "+@none" },
-                ["5"] = { [""] = "+@repeat", content = "+@none" },
-                ["6"] = { [""] = "+@repeat", content = "+@none" },
+                [""] = "+@repeat",
+                content = "+@none",
             },
         },
 
@@ -540,25 +508,22 @@ module.load = function()
             return
         end
 
-        for i = 1, 6 do
-            local todo_items = module.config.public.highlights.todo_items
-            local index = tostring(i)
+        local todo_items = module.config.public.highlights.todo_items
 
-            if module.config.public.todo_items_match_color ~= "cancelled" then
-                if module.config.public.todo_items_match_color ~= "except_undone" then
-                    todo_items.undone[index].content = todo_items.undone[index][""]
-                end
-
-                todo_items.pending[index].content = todo_items.pending[index][""]
-                todo_items.done[index].content = todo_items.done[index][""]
-                todo_items.urgent[index].content = todo_items.urgent[index][""]
-                todo_items.on_hold[index].content = todo_items.on_hold[index][""]
-                todo_items.recurring[index].content = todo_items.recurring[index][""]
-                todo_items.uncertain[index].content = todo_items.uncertain[index][""]
+        if module.config.public.todo_items_match_color ~= "cancelled" then
+            if module.config.public.todo_items_match_color ~= "except_undone" then
+                todo_items.undone.content = todo_items.undone[""]
             end
 
-            todo_items.cancelled[index].content = todo_items.cancelled[index][""]
+            todo_items.pending.content = todo_items.pending[""]
+            todo_items.done.content = todo_items.done[""]
+            todo_items.urgent.content = todo_items.urgent[""]
+            todo_items.on_hold.content = todo_items.on_hold[""]
+            todo_items.recurring.content = todo_items.recurring[""]
+            todo_items.uncertain.content = todo_items.uncertain[""]
         end
+
+        todo_items.cancelled.content = todo_items.cancelled[""]
     end
 
     module.public.trigger_highlights()
