@@ -22,7 +22,7 @@ It will be switched to a `.norg` file when possible.
 
 ## Workflow
 
-- [ ] [The Calendar UI](#calendar)
+- [x] [The Calendar UI](#calendar)
 - [ ] The GTD Methodology
 - [ ] Zettelkasten
 - [ ] The `sc-im`esque Table Editor
@@ -116,7 +116,7 @@ embeddable-anywhere tools. These include:
 - [x] Directory Manager and File Aggregator - workspaces are a pretty fundamental concept within
   Neorg, and writing a tool that can efficiently manage and manipulate enormous collections
   of notes will be critical for any Neorg-like tool.
-- [ ] Multithreaded parsing library - note collections can get big, like really big. Parsing
+- [x] Multithreaded parsing library - note collections can get big, like really big. Parsing
       all of these on a single thread could take even minutes. Having a good multithreaded
       parsing library will help a lot.
 - [ ] Sqlite - having an sqlite database as a centralized data store will be super
