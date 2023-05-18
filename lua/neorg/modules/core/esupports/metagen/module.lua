@@ -213,7 +213,13 @@ module.public = {
             return
         end
 
-        local current_date = module.config.public.template.updated()
+        -- Capture current date from config
+        local current_date = ""
+        for _, val in ipairs(module.config.public.template) do
+            if val[1] == "updated" then
+                current_date = val[2]()
+            end
+        end
 
         local query = neorg.utils.ts_parse_query(
             "norg_meta",
