@@ -10,15 +10,11 @@
 
 To reduce the amount of cognitive load required to "parse" Norg documents with your own eyes, this module
 masks, or sometimes completely hides many categories of markup.
+
+Concealer depends on [Nerd Font >=v3.0.1](https://github.com/ryanoasis/nerd-fonts/releases/latest).
 --]]
 
--- utils copied from promo, to be refactored
-
-local function myprint(...)
-    --[[
-    print(...)
-    --]]
-end
+-- utils  to be refactored
 
 local function in_range(k, l, r_ex)
     return l<=k and k<r_ex
@@ -50,18 +46,7 @@ local function table_extend_in_place(tbl, tbl_ext)
     end
 end
 
-local function node_length(node)
-    local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
-    assert(row_start_0b == row_end_0bin)
-    return col_end_0bex - col_start_0b
-end
-
-local function is_prefix_node(node)
-    return node:type():match("_prefix$") ~= nil or node:type():match("^link_target_heading") ~= nil
-end
-
 local function get_node_position_and_text_length(bufid, node)
-    -- assert(is_node(node), node:type())
     local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
 
     -- FIXME parser: multi_definition_suffix should not span across lines
@@ -80,76 +65,10 @@ local function get_line_length(bufid, row_0b)
     return vim.api.nvim_strwidth(vim.api.nvim_buf_get_lines(bufid, row_0b, row_0b+1, true)[1])
 end
 
-local function table_set_default(tbl, k, v)
-    tbl[k] = tbl[k] or v
-    return tbl[k]
-end
-
-local function table_add_number(tbl, k, v)
-    tbl[k] = tbl[k] + v
-end
-
-local function table_iclear(tbl)
-    for i = #tbl,1,-1 do
-        tbl[i] = nil
-    end
-end
-
-local function table_ifind_first(tbl, pred, from)
-    for i = #tbl, (from or 1), -1 do
-        if not pred(tbl[i]) then
-            return i+1
-        end
-    end
-    return 1
-end
-
-local function table_remove_interval(tbl, il, ir_ex)
-    assert(0 <= il)
-    assert(il <= ir_ex)
-    assert(ir_ex <= #tbl + 1)
-
-    if il == ir_ex then
-        return
-    end
-
-    table.move(tbl, ir_ex, #tbl, il)
-
-    for i = il, ir_ex-1 do
-        tbl[#tbl] = nil
-    end
-end
-
-local function logging(tag, ...)
-    local func_name = debug.getinfo(2, "n")["name"]
-    local n_arg = select("#", ...)
-    local args = {...}
-    for i = 1,n_arg do
-        args[i] = tostring(args[i])
-    end
-    myprint('[logging]', tag, func_name.."("..table.concat(args,", ")..")")
-end
-
-local function table_tostring_shallow(tbl)
-    local args = {}
-    for k,v in pairs(tbl) do
-        table.insert(args, k .. '=' .. tostring(v))
-    end
-    return table.concat(args, ", ")
-end
-
-local function logging_named(tag, tbl)
-    local args = {}
-    for k,v in pairs(tbl) do
-        table.insert(args, k .. '=' .. tostring(v))
-    end
-    return logging(tag, table_tostring_shallow(tbl))
-end
-
 --- end utils
 
 require("neorg.modules.base")
-require("neorg.external.helpers")
+-- require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.concealer")
 
@@ -171,16 +90,17 @@ end
 module.private = {
     ns_icon = vim.api.nvim_create_namespace("neorg-conceals"),
     ns_prettify_flag = vim.api.nvim_create_namespace("neorg-conceals.prettify-flag"),
-    rerendering_scheduled = {},
+    rerendering_scheduled_bufid_by_winid = {},
     enabled = true,
+    cursor_record = nil,
 }
 
 local function set_mark(bufid, row_0b, col_0b, text, highlight, ext_opts)
     local ns_icon = module.private.ns_icon
     local opt = {
-        virt_text=text and {{text, highlight}},
+        virt_text={{text, highlight}},
         virt_text_pos="overlay",
-        virt_text_win_col=nil, --col_0b,
+        virt_text_win_col=nil,
         hl_group=nil,
         conceal=nil,
         id=nil,
@@ -209,12 +129,6 @@ local function set_mark(bufid, row_0b, col_0b, text, highlight, ext_opts)
         table_extend_in_place(opt, ext_opts)
     end
     local _id = vim.api.nvim_buf_set_extmark(bufid, ns_icon, row_0b, col_0b, opt)
-end
-
-local function set_mark_many(bufid, row_0b, col_0b, virt_texts)
-    for i in 1, #virt_texts do
-        set_mark(bufid, row_0b, col_0b, virt_texts[i][1], virt_texts[i][2])
-    end
 end
 
 local function table_get_default_last(tbl, index)
@@ -278,7 +192,7 @@ module.public = {
 
                 local icon_extmarks = vim.api.nvim_buf_get_extmarks(
                     0,
-                    module.private.icon_namespace,
+                    module.private.ns_icon,
                     { foldstart - 1, 0 },
                     { foldstart - 1, line_length },
                     {
@@ -305,7 +219,6 @@ module.public = {
 
     icon_renderers =  {
         on_left = function(config, bufid, node)
-            print(node, '#.')
             local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
             local text = (" "):rep(len-1) .. config.icon
             set_mark(bufid, row_0b, col_0b, text, config.highlight)
@@ -355,29 +268,28 @@ module.public = {
         end,
 
         fill_width = function(config, bufid, node)
-            -- TODO: from node's column?
             local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
             local line_len = vim.api.nvim_win_get_width(0)
-            set_mark(bufid, row_start_0b, 0, config.icon:rep(line_len), config.highlight)
+            set_mark(bufid, row_start_0b, col_start_0b, config.icon:rep(line_len - col_start_0b), config.highlight)
         end,
 
         render_code_block = function(config, bufid, node)
-            --
-            -- TODO: check "code" or "embed"
-            -- TODO: content_only
-            -- TODO: padding
-            -- TODO: conceal
-            -- TODO: width
+            local tag_name = vim.treesitter.get_node_text(node:named_child(0), bufid)
+            if not (tag_name == "code" or tag_name == "embed") then
+                return
+            end
+
             local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
             assert(row_start_0b < row_end_0bin)
+            local conceal_on = (vim.wo.conceallevel >= 2) and config.conceal
 
-            if config.conceal then
+            if conceal_on then
                 for _, row_0b in ipairs({row_start_0b, row_end_0bin}) do
                     vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, 0, { end_col = get_line_length(bufid, row_0b), conceal = "" })
                 end
             end
 
-            if has_conceal or config.content_only then
+            if conceal_on or config.content_only then
                 row_start_0b = row_start_0b + 1
                 row_end_0bin = row_end_0bin - 1
             end
@@ -399,7 +311,6 @@ module.public = {
                 local mark_col_start_0b = math.max(0, col_start_0b - config.padding.left)
                 local mark_col_end_0bex = not to_eol and (max_len + config.padding.right) or nil
                 if mark_col_start_0b < len then
-                    ---[[
                     vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, mark_col_start_0b, {
                         end_row = row_0b+1,
                         hl_eol = to_eol,
@@ -408,10 +319,8 @@ module.public = {
                         virt_text_pos = "overlay",
                         virt_text_win_col = 7,
                     })
-                    --]]
                 end
                 if mark_col_end_0bex and mark_col_end_0bex > len then
-                    ---[[
                     vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, len, {
                         end_row = row_0b+1,
                         hl_mode = "blend",
@@ -419,57 +328,31 @@ module.public = {
                         virt_text_pos = "overlay",
                         virt_text_win_col = len,
                     })
-                    --]]
                 end
             end
-            --[[
-            for row_0b = 43, 43 do
-                vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, 7, {
-                    end_row = row_0b+1,
-                    hl_eol = false,
-                    hl_group = "@neorg.tags.ranged_verbatim.code_block",
-                    hl_mode = "blend",
-                    virt_text_pos = "overlay",
-                    virt_text_win_col = 7,
-                })
-                vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b,  14, {
-                    end_row = row_0b+1,
-                    hl_eol = false,
-                    hl_mode = "blend",
-                    virt_text = { { "          ", "@neorg.tags.ranged_verbatim.code_block" } },
-                    virt_text_pos = "overlay",
-                    virt_text_win_col = 14
-                })
-            end
-            --]]
-            --[[
-            local row_0b = 43
-            local highlight = config.highlight
-            vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b,  7, {
-                end_row = 43+1,
-                hl_eol = true,
-                hl_group = highlight,
-                hl_mode = "blend",
-                virt_text_pos = "overlay",
-            })
-            vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b,  14, {
-                end_row = 43+1,
-                --hl_eol = true,
-                hl_mode = "blend",
-                virt_text = { { "          ", highlight } },
-                virt_text_pos = "overlay",
-                virt_text_win_col = 14
-            })
-            --]]
         end,
     },
 }
 
 module.config.public = {
+    -- Which icon preset to use.
+    --
+    -- The currently available icon presets are:
+    -- - "basic" - use a mixture of icons (includes cute flower icons!)
+    -- - "diamond" - use diamond shapes for headings
+    -- - "varied" - use a mix of round and diamond shapes for headings; no cute flower icons though :(
     icon_preset = "basic",
 
     folds = true,
 
+    -- Configuration for icons.
+    --
+    -- This table contains the full configuration set for each icon, including
+    -- its query (where to be placed), render functions (how to be placed) and
+    -- characters to use.
+    --
+    -- For most use cases, the only values that you should be changing are the `enabled` and
+    -- `icon` fields.
     icons = {
         todo = {
             done = {
@@ -539,7 +422,7 @@ module.config.public = {
             render = module.public.icon_renderers.multilevel_ordered_on_right,
         },
         quote = {
-            icons = { "|" },
+            icons = { "│" },
             nodes = {
                 "quote1_prefix",
                 "quote2_prefix",
@@ -667,19 +550,19 @@ module.config.public = {
             --
             -- When set to `content`, will only span as far as the longest line
             -- within the code block.
-            width = "content",
+            width = "fullwidth",
 
             -- Additional padding to apply to either the left or the right. Making
             -- these values negative is considered undefined behaviour (it is
             -- likely to work, but it's not officially supported).
             padding = {
-                left = 3,
-                right = 5,
+                left = 0,
+                right = 0,
             },
 
             -- If `true` will conceal (hide) the `@code` and `@end` portion of the code
             -- block.
-            conceal = true,
+            conceal = false,
 
             nodes = { "ranged_verbatim_tag" },
             highlight = "@neorg.tags.ranged_verbatim.code_block",
@@ -687,93 +570,6 @@ module.config.public = {
         },
     },
 }
-
-
-
-local function get_prefix_level(buffer, prefix_node)
-    return select(3, get_node_position_and_text_length(buffer, prefix_node))
-end
-
-local function render_heading_prefix(buffer, node, icons, highlights)
-    assert(#icons >= 1)
-    local level = get_prefix_level(buffer, node)
-    local icon = (" "):rep(level - 1) .. (icons[level] or icons[#icons])
-    local highlight = highlights and (highlights[level] or highlights[#highlights])
-    return icon, highlight
-end
-
-local heading_icons_default = { "◉", "◎", "○", "✺", "▶", "⤷" }
-local heading_highlights = {
-    "@neorg.headings.1.prefix",
-    "@neorg.headings.2.prefix",
-    "@neorg.headings.3.prefix",
-    "@neorg.headings.4.prefix",
-    "@neorg.headings.5.prefix",
-    "@neorg.headings.6.prefix",
-}
-local unordered_list_icons_default = { "•" }
-
-local ordered_list_icon_tables_default = {
-    prettify_icon_table.numeric_dot,
-    prettify_icon_table.latin_uppercase,
-    prettify_icon_table.latin_lowercase,
-    prettify_icon_table.numeric_pareneses,
-    prettify_icon_table.latin_uppercase,
-    prettify_icon_table.latin_lowercase_parentheses,
-    prettify_icon_table.latin_uppercase_circled,
-    prettify_icon_table.latin_lowercase_circled,
-    prettify_icon_table.numeric_circled,
-    prettify_icon_table.numeric,
-}
-
--- format:
--- "x"
--- function(buffer, node) ... end
--- { icon = "x", highlight = "@foobar", render = function() ... end }
-
-
-local function checked_gsub(...)
-    local result, n_match = string.gsub(...)
-    assert(0 <= n_match)
-    assert(n_match <= 1)
-    assert(result)
-    if n_match==1 then
-        return result
-    end
-end
-
-local config_name_dict = {
-    heading = function(key) return checked_gsub(key, "^level_(%d+)$", "heading%1_prefix") end,
-    todo = function(key) return checked_gsub(key, "^%w+$", "todo_item_%0") end,
-    list = function(key) return checked_gsub(key, "^level_(%d+)$", "unordered_list%1_prefix") end,
-    ordered = function(key) return checked_gsub(key, "^level_(%d+)$", "ordered_list%1_prefix") end,
-    quote = function(key) return checked_gsub(key, "^quote_(%d+)$", "quote%1_prefix") end,
-    definition = {
-        single = "single_definition_prefix",
-        multi_prefix = "multi_definition_prefix",
-        multi_suffix = "multi_definition_suffix",
-    },
-    delimiter = {
-        weak = "weak_paragraph_delimiter",
-        strong = "strong_paragraph_delimiter",
-        horizontal_line = "horizontal_line",
-    },
-    footnote = {
-        single = "single_footnote_prefix",
-        multi_prefix = "multi_footnote_prefix",
-        multi_suffix = "multi_footnote_suffix",
-    },
-    markup = {
-        spoiler = "spoiler",
-    },
-}
-
-
-local function link_target_heading_before_description(node)
-    local sibling = node:parent():next_named_sibling()
-    return sibling and sibling:type() == "link_description"
-    -- BUG found: 190-219
-end
 
 local function pos_le(pos1, pos2)
     return pos1.x < pos2.x or (pos1.x == pos2.x and pos1.y <= pos2.y)
@@ -784,13 +580,12 @@ local function pos_lt(pos1, pos2)
 end
 
 local function remove_extmarks(bufid, pos_start_0b_0b, pos_end_0bin_0bex)
-    myprint('%%% remove_extmarks', vim.inspect(pos_start_0b_0b), vim.inspect(pos_end_0bin_0bex))
     assert(pos_start_0b_0b.x <= pos_end_0bin_0bex.x)
     local ns_icon = module.private.ns_icon
     for _, result in ipairs(vim.api.nvim_buf_get_extmarks(bufid, ns_icon, {pos_start_0b_0b.x, pos_start_0b_0b.y}, {pos_end_0bin_0bex.x, pos_end_0bin_0bex.y-1}, {})) do
         local extmark_id = result[1]
         local node_pos_0b_0b = { x = result[2], y = result[3] }
-        assert(pos_le(pos_start_0b_0b, node_pos_0b_0b) and pos_lt(node_pos_0b_0b, pos_end_0bin_0bex), ("start=%s, end=%s, node=%s"):format(vim.inspect(pos_start_0b_0b), vim.inspect(pos_end_0bin_0bex), vim.inspect(node_pos_0b_0b)))
+        assert(pos_le(pos_start_0b_0b, node_pos_0b_0b) and pos_le(node_pos_0b_0b, pos_end_0bin_0bex), ("start=%s, end=%s, node=%s"):format(vim.inspect(pos_start_0b_0b), vim.inspect(pos_end_0bin_0bex), vim.inspect(node_pos_0b_0b)))
         vim.api.nvim_buf_del_extmark(bufid, ns_icon, extmark_id)
     end
 end
@@ -809,7 +604,6 @@ local function should_skip_prettify(mode, current_row_0b, node, row_start_0b, ro
     else
         result = false
     end
-    -- myprint('@@@@@@@ should_skip_prettify =', result, mode, current_row_0b, node, row_start_0b, row_end_0bex, '.')
     return result
 end
 
@@ -825,14 +619,6 @@ local function query_get_nodes(query, document_root, bufid, row_start_0b, row_en
     return result, concealed_node_ids
 end
 
-local function get_node_row_start(node)
-    return (node:start())
-end
-
-local function get_node_row_end(node)
-    return (node:end_())
-end
-
 local function check_min(xy, x_new, y_new)
     if (x_new < xy.x) or (x_new == xy.x and y_new < xy.y) then
         xy.x = x_new
@@ -846,11 +632,6 @@ local function check_max(xy, x_new, y_new)
         xy.y = y_new
     end
 end
-
-local function to_xy(x, y)
-    return { x = x, y = y }
-end
-
 
 local function add_prettify_flag_line(bufid, row)
     local ns_prettify_flag = module.private.ns_prettify_flag
@@ -872,7 +653,6 @@ end
 local function remove_prettify_flag_range(bufid, row_start_0b, row_end_0bex)
     -- TODO: optimize
     local ns_prettify_flag = module.private.ns_prettify_flag
-    myprint('remove_prettify_flag_range()', bufid, ns_prettify_flag, row_start_0b, row_end_0bex, '.')
     vim.api.nvim_buf_clear_namespace(bufid, ns_prettify_flag, row_start_0b, row_end_0bex)
 end
 
@@ -917,7 +697,6 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
     assert(document_root)
 
     for _, node in ipairs(nodes) do
-        -- FIXME skip prettify
         local node_row_start_0b, node_col_start_0b, _node_row_end_0bin, _node_col_end_0bex = node:range()
         local node_row_end_0bex = _node_row_end_0bin + 1
 
@@ -942,8 +721,6 @@ local function render_window_buffer(winid, bufid)
     local ns_prettify_flag = module.private.ns_prettify_flag
     local row_start_0b, row_end_0bex = get_visible_line_range(winid)
     local prettify_flags_0b = vim.api.nvim_buf_get_extmarks(bufid, ns_prettify_flag, {row_start_0b,0}, {row_end_0bex-1,-1}, {})
-    myprint('prettify_flags_0b = ', vim.inspect(prettify_flags_0b))
-    myprint('row_visible = ', row_start_0b, row_end_0bex)
     local row_nomark_start_0b, row_nomark_end_0bin
     local i_flag = 1
     for i = row_start_0b, row_end_0bex-1 do
@@ -956,7 +733,6 @@ local function render_window_buffer(winid, bufid)
         end
     end
 
-    myprint('row_nomark = ', row_nomark_start_0b, row_nomark_end_0bin, '.')
     assert((row_nomark_start_0b==nil) == (row_nomark_end_0bin==nil))
     if row_nomark_start_0b then
         prettify_range(bufid, row_nomark_start_0b, row_nomark_end_0bin+1)
@@ -964,16 +740,15 @@ local function render_window_buffer(winid, bufid)
 end
 
 local function render_all_scheduled_and_done()
-    for winid, bufid in pairs(module.private.rerendering_scheduled) do
+    for winid, bufid in pairs(module.private.rerendering_scheduled_bufid_by_winid) do
         render_window_buffer(winid, bufid)
     end
-    module.private.rerendering_scheduled = {}
+    module.private.rerendering_scheduled_bufid_by_winid = {}
 end
 
 local function schedule_rendering(winid, bufid)
-    -- FIXME: schedule multiple windows
-    local not_scheduled = vim.tbl_isempty(module.private.rerendering_scheduled)
-    module.private.rerendering_scheduled[winid] = bufid
+    local not_scheduled = vim.tbl_isempty(module.private.rerendering_scheduled_bufid_by_winid)
+    module.private.rerendering_scheduled_bufid_by_winid[winid] = bufid
     if not_scheduled then
         vim.schedule(render_all_scheduled_and_done)
     end
@@ -1004,15 +779,8 @@ end
 local function handle_init_event(event)
     assert(vim.api.nvim_win_is_valid(event.window))
 
-    local function _on_bytes_callback(_tag, bufid, _changedtick, row_start_0b, col_start_0b, byte_offset, old_row_end_0bex, old_col_end_0bex, old_byte_changed, new_row_end_0bex, new_col_end_0bex, new_byte_changed)
-        assert(_tag == "bytes")
-        myprint(("@@@@ on_byte, start=(%s,%s), byte_offset=%s, old_end=(%s,%s):%s, new_end=(%s,%s):%s"):format(
-        row_start_0b, col_start_0b, byte_offset, old_row_end_0bex, old_col_end_0bex, old_byte_changed, new_row_end_0bex, new_col_end_0bex, new_byte_changed))
-    end
-
     local function on_line_callback(_tag, bufid, _changedtick, row_start_0b, row_end_0bex, row_updated_0bex, n_byte_prev)
         assert(_tag == "lines")
-        myprint(("@@@@' on_line, time=%s, row_start_0b=%s, row_end=%s, row_updated=%s, n_byte_prev=%s"):format(vim.loop.now(), row_start_0b, row_end_0bex, row_updated_0bex, n_byte_prev))
         mark_line_range_changed(event.window, bufid, row_start_0b, row_updated_0bex)
     end
 
@@ -1026,7 +794,6 @@ local function handle_init_event(event)
     -- in which case all its descendents would be unnecessarily re-concealed.
     local function on_changedtree_callback(ranges)
         -- TODO: abandon if too large
-        myprint(("@@@@' on_changedtree, ranges=%s"):format(vim.inspect(ranges)))
         for i = 1, #ranges do
             local range = ranges[i]
             local row_start_0b = range[1]
@@ -1058,17 +825,11 @@ local function handle_insert_toggle(event)
 end
 
 local function handle_insertenter(event)
-    myprint('$$$ insertenter', vim.inspect(event))
     handle_insert_toggle(event)
 end
 
 local function handle_insertleave(event)
-    myprint('$$$ insertleave', vim.inspect(event))
     handle_insert_toggle(event)
-end
-
-local function handle_update_region(event)
-    -- myprint('@@ handle_update_region')
 end
 
 local function handle_toggle_prettifier(event)
@@ -1080,12 +841,10 @@ local function handle_toggle_prettifier(event)
     end
 end
 
-cursor_record = nil
--- TODO: multiple buffer
-
 local function is_same_line_movement(event)
     -- some operations like dd / u cannot yet be listened reliably
     -- below is our best approximation
+    local cursor_record = module.private.cursor_record
     return (cursor_record
       and cursor_record.row_0b == event.cursor_position[1]-1
       and cursor_record.col_0b ~= event.cursor_position[2]
@@ -1093,9 +852,10 @@ local function is_same_line_movement(event)
 end
 
 local function update_cursor(event)
-    if not cursor_record then
-        cursor_record = {}
+    if not module.private.cursor_record then
+        module.private.cursor_record = {}
     end
+    local cursor_record = module.private.cursor_record
     cursor_record.row_0b = event.cursor_position[1] - 1
     cursor_record.col_0b = event.cursor_position[2]
     cursor_record.line_content = event.line_content
@@ -1105,6 +865,7 @@ local function handle_cursor_moved(event)
     -- reveal/conceal when conceallevel>0
     -- also triggered when dd / u
     if not is_same_line_movement(event) then
+        local cursor_record = module.private.cursor_record
         if cursor_record then
             -- leaving previous line, conceal it if necessary
             mark_line_changed(event.window, event.buffer, cursor_record.row_0b)
@@ -1173,6 +934,9 @@ module.load = function()
 
     -- compile treesitter query
     local function traverse_config(config, f)
+        if config == false then
+            return
+        end
         if config.nodes then
             f(config)
             return
@@ -1213,7 +977,7 @@ end
 
 
 -- TODO;
--- [x] lazyredraw, ttyfast
+-- [---------] lazyredraw, ttyfast
 -- [x] no conceal on cursor line at insert mode
 -- [---------] no conceal inside examples
 -- [x] insert mode movement
@@ -1237,10 +1001,6 @@ end
 -- rerender on window size change
 -- -- details like queries and highlights are closely coupled with the implementation. revealing it to the users are more noisy than helpful
 
-module.events.defined = {
-    -- update_region = neorg.events.define(module, "update_region"),
-}
-
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufread = true,
@@ -1253,10 +1013,6 @@ module.events.subscribed = {
 
     ["core.neorgcmd"] = {
         ["core.concealer.toggle"] = true,
-    },
-
-    ["core.concealer"] = {
-        -- update_region = true,
     },
 }
 
