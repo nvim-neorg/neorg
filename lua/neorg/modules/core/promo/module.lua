@@ -160,7 +160,6 @@ module.public = {
 
         local root_prefix_node = get_header_prefix_node(root_node)
         local _row, _col, root_level = get_prefix_position_and_level(buffer, root_prefix_node)
-        print('$$$$$$$$$', _row, _col, root_level)
 
         local adjust_prefix
         if mode == "promote" then
@@ -264,7 +263,6 @@ module.public = {
                 local not_empty = buffer_get_line(buffer, i):find("%S")
                 if not_empty then
                     local indent_level = indent_module.indentexpr(buffer, i)
-                    print( buffer, i, indent_level, ';;')
                     buffer_set_line_indent(buffer, i, indent_level)
                 end
             end
