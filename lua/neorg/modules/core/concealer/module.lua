@@ -317,7 +317,7 @@ module.public = {
                         hl_group = config.highlight,
                         hl_mode = "blend",
                         virt_text_pos = "overlay",
-                        virt_text_win_col = 7,
+                        virt_text_win_col = mark_col_start_0b,
                     })
                 end
                 if mark_col_end_0bex and mark_col_end_0bex > len then
