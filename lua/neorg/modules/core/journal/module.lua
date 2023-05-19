@@ -103,6 +103,7 @@ module.private = {
     ---@param time? number #The time to open the journal entry at as returned by `os.time()`
     ---@param custom_date? string #A YYYY-mm-dd string that specifies a date to open the diary at instead
     open_diary = function(time, custom_date)
+        -- TODO(vhyrro): Change this to use Norg dates!
         local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
         local folder_name = module.config.public.journal_folder
         local template_name = module.config.public.template_name
@@ -443,7 +444,7 @@ module.load = function()
                 tomorrow = { args = 0, name = "journal.tomorrow" },
                 yesterday = { args = 0, name = "journal.yesterday" },
                 today = { args = 0, name = "journal.today" },
-                custom = { args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
+                custom = { max_args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
                 template = { args = 0, name = "journal.template" },
                 toc = {
                     args = 1,
@@ -466,7 +467,29 @@ module.on_event = function(event)
         elseif event.split_type[2] == "journal.yesterday" then
             module.private.diary_yesterday()
         elseif event.split_type[2] == "journal.custom" then
-            module.private.open_diary(nil, event.content[1])
+            if not event.content[1] then
+                local calendar = neorg.modules.get_module("core.ui.calendar")
+
+                if not calendar then
+                    log.error("[ERROR]: `core.ui.calendar` is not loaded! Said module is required for this operation.")
+                    return
+                end
+
+                calendar.select_date({
+                    callback = vim.schedule_wrap(function(osdate)
+                        module.private.open_diary(
+                            nil,
+                            string.format("%04d", osdate.year)
+                                .. "-"
+                                .. string.format("%02d", osdate.month)
+                                .. "-"
+                                .. string.format("%02d", osdate.day)
+                        )
+                    end),
+                })
+            else
+                module.private.open_diary(nil, event.content[1])
+            end
         elseif event.split_type[2] == "journal.today" then
             module.private.diary_today()
         elseif event.split_type[2] == "journal.template" then

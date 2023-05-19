@@ -9,6 +9,15 @@ module.config.public = {
             -- Map all the below keybinds only when the "norg" mode is active
             keybinds.map_event_to_mode("norg", {
                 n = {
+                    { "gtu", "core.qol.todo_items.warn-deprecated-keybind" },
+                    { "gtp", "core.qol.todo_items.warn-deprecated-keybind" },
+                    { "gtd", "core.qol.todo_items.warn-deprecated-keybind" },
+                    { "gth", "core.qol.todo_items.warn-deprecated-keybind" },
+                    { "gtc", "core.qol.todo_items.warn-deprecated-keybind" },
+                    { "gtr", "core.qol.todo_items.warn-deprecated-keybind" },
+                    { "gti", "core.qol.todo_items.warn-deprecated-keybind" },
+                    { "gtu", "core.qol.todo_items.warn-deprecated-keybind" },
+
                     -- Marks the task under the cursor as "undone"
                     -- ^mark Task as Undone
                     { leader .. "tu", "core.qol.todo_items.todo.task_undone" },
@@ -61,12 +70,15 @@ module.config.public = {
 
                     { leader .. "lt", "core.pivot.toggle-list-type" },
                     { leader .. "li", "core.pivot.invert-list-type" },
+
+                    { leader .. "id", "core.tempus.insert-date" },
                 },
 
                 i = {
                     { "<C-t>", "core.promo.promote" },
                     { "<C-d>", "core.promo.demote" },
                     { "<M-CR>", "core.itero.next-iteration" },
+                    { "<M-d>", "core.tempus.insert-date-insert-mode" },
                 },
 
                 -- TODO: Readd these

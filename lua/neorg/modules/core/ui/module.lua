@@ -104,11 +104,13 @@ module.public = {
 
     ---Creates a new horizontal split at the bottom of the screen
     ---@param  name string the name of the buffer contained within the split (will have neorg:// prepended to it)
-    ---@param  config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
-    create_split = function(name, config)
+    ---@param  config table? a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
+    ---@param  height number? the height of the new split
+    create_split = function(name, config, height)
         vim.validate({
             name = { name, "string" },
             config = { config, "table", true },
+            height = { height, "number", true },
         })
 
         local bufname = "neorg://" .. name
@@ -119,6 +121,10 @@ module.public = {
         end
 
         vim.cmd("below new")
+
+        if height then
+            vim.api.nvim_win_set_height(0, height)
+        end
 
         local buf = vim.api.nvim_win_get_buf(0)
 
@@ -141,7 +147,7 @@ module.public = {
         module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
 
         -- Make sure to clean up the window if the user leaves the popup at any time
-        vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave", "BufDelete" }, {
+        vim.api.nvim_create_autocmd("BufDelete", {
             buffer = buf,
             once = true,
             callback = function()

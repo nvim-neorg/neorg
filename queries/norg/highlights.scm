@@ -170,7 +170,45 @@
 (escape_sequence) @neorg.modifiers.escape
 
 ; Detached Modifier extensions
-; TODO
+((detached_modifier_extension
+  (todo_item_undone)) @neorg.todo_items.undone
+ .
+ (_) @neorg.todo_items.undone.content)
+
+((detached_modifier_extension
+  (todo_item_done)) @neorg.todo_items.done
+ .
+ (_) @neorg.todo_items.done.content)
+
+((detached_modifier_extension
+  (todo_item_pending)) @neorg.todo_items.pending
+ .
+ (_) @neorg.todo_items.pending.content)
+
+((detached_modifier_extension
+  (todo_item_on_hold)) @neorg.todo_items.on_hold
+ .
+ (_) @neorg.todo_items.on_hold.content)
+
+((detached_modifier_extension
+  (todo_item_cancelled)) @neorg.todo_items.cancelled
+ .
+ (_) @neorg.todo_items.cancelled.content)
+
+((detached_modifier_extension
+  (todo_item_uncertain)) @neorg.todo_items.uncertain
+ .
+ (_) @neorg.todo_items.uncertain.content)
+
+((detached_modifier_extension
+  (todo_item_urgent)) @neorg.todo_items.urgent
+ .
+ (_) @neorg.todo_items.urgent.content)
+
+((detached_modifier_extension
+  (todo_item_recurring)) @neorg.todo_items.recurring
+ .
+ (_) @neorg.todo_items.recurring.content)
 
 ; Unordered lists
 (unordered_list1
@@ -268,6 +306,8 @@
         "_close"
         "_trailing_modifier"
         (link_modifier)
+        (free_form_open)
+        (free_form_close)
     ] @conceal
     (#set! conceal "")
 )
