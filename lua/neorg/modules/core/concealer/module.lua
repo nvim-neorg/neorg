@@ -92,7 +92,7 @@ module.private = {
     ns_prettify_flag = vim.api.nvim_create_namespace("neorg-conceals.prettify-flag"),
     rerendering_scheduled_bufid_by_winid = {},
     enabled = true,
-    cursor_record = nil,
+    cursor_record = {},
 }
 
 local function set_mark(bufid, row_0b, col_0b, text, highlight, ext_opts)
@@ -309,26 +309,27 @@ module.public = {
             for row_0b = row_start_0b, row_end_0bin do
                 local len = line_lengths[row_0b - row_start_0b + 1]
                 local mark_col_start_0b = math.max(0, col_start_0b - config.padding.left)
-                local mark_col_end_0bex = not to_eol and (max_len + config.padding.right) or nil
+                local mark_col_end_0bex = max_len + config.padding.right
                 if mark_col_start_0b <= len then
                     vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, mark_col_start_0b, {
                         end_row = row_0b+1,
-                        hl_eol = to_eol,
+                        --hl_eol = to_eol,
                         hl_group = config.highlight,
                         hl_mode = "blend",
                         virt_text_pos = "overlay",
                         virt_text_win_col = mark_col_start_0b,
                     })
                 end
-                if mark_col_end_0bex and mark_col_end_0bex > len then
-                    vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, len, {
-                        end_row = row_0b+1,
-                        hl_mode = "blend",
-                        virt_text = { { (" "):rep(mark_col_end_0bex - len), config.highlight } },
-                        virt_text_pos = "overlay",
-                        virt_text_win_col = len,
-                    })
-                end
+                -- TODO: optimize
+                vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, len, {
+                    end_row = row_0b+1,
+                    hl_mode = "blend",
+                    virt_text = { { (" "):rep(mark_col_end_0bex - len), config.highlight } },
+                    virt_text_pos = "overlay",
+                    hl_eol = to_eol,
+                    hl_group = config.highlight,
+                    virt_text_win_col = len,
+                })
             end
         end,
     },
@@ -855,11 +856,15 @@ local function is_same_line_movement(event)
       and cursor_record.line_content == event.line_content)
 end
 
-local function update_cursor(event)
-    if not module.private.cursor_record then
-        module.private.cursor_record = {}
+local function get_table_default_empty(tbl, key)
+    if not tbl[key] then
+        tbl[key] = {}
     end
-    local cursor_record = module.private.cursor_record
+    return tbl[key]
+end
+
+local function update_cursor(event)
+    local cursor_record = get_table_default_empty(module.private.cursor_record, event.buffer)
     cursor_record.row_0b = event.cursor_position[1] - 1
     cursor_record.col_0b = event.cursor_position[2]
     cursor_record.line_content = event.line_content
@@ -869,7 +874,7 @@ local function handle_cursor_moved(event)
     -- reveal/conceal when conceallevel>0
     -- also triggered when dd / u
     if not is_same_line_movement(event) then
-        local cursor_record = module.private.cursor_record
+        local cursor_record = module.private.cursor_record[event.buffer]
         if cursor_record then
             -- leaving previous line, conceal it if necessary
             mark_line_changed(event.window, event.buffer, cursor_record.row_0b)
