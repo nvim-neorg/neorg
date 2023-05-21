@@ -310,7 +310,7 @@ module.public = {
                 local len = line_lengths[row_0b - row_start_0b + 1]
                 local mark_col_start_0b = math.max(0, col_start_0b - config.padding.left)
                 local mark_col_end_0bex = not to_eol and (max_len + config.padding.right) or nil
-                if mark_col_start_0b < len then
+                if mark_col_start_0b <= len then
                     vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, mark_col_start_0b, {
                         end_row = row_0b+1,
                         hl_eol = to_eol,
@@ -567,6 +567,7 @@ module.config.public = {
             nodes = { "ranged_verbatim_tag" },
             highlight = "@neorg.tags.ranged_verbatim.code_block",
             render = module.public.icon_renderers.render_code_block,
+            insert_enabled = true,
         },
     },
 }
@@ -595,9 +596,11 @@ local function is_inside_example(node)
     return false
 end
 
-local function should_skip_prettify(mode, current_row_0b, node, row_start_0b, row_end_0bex)
+local function should_skip_prettify(mode, current_row_0b, node, config, row_start_0b, row_end_0bex)
     local result
-    if (mode == "i") and in_range(current_row_0b, row_start_0b, row_end_0bex) then
+    if config.insert_enabled then
+        result = false
+    elseif (mode == "i") and in_range(current_row_0b, row_start_0b, row_end_0bex) then
         result = true
     elseif is_inside_example(node) then
         result = true
@@ -673,6 +676,7 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
 
     local treesitter_module = module.required["core.integrations.treesitter"]
     local document_root = treesitter_module.get_document_root(bufid)
+    assert(document_root)
     local nodes, concealed_node_ids = query_get_nodes(module.private.prettify_query, document_root, bufid, row_start_0b, row_end_0bex)
 
     local pos_start_0b_0b = { x = row_start_0b, y = 0 }
@@ -699,12 +703,12 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
     for _, node in ipairs(nodes) do
         local node_row_start_0b, node_col_start_0b, _node_row_end_0bin, _node_col_end_0bex = node:range()
         local node_row_end_0bex = _node_row_end_0bin + 1
+        local config = module.private.config_by_node_name[node:type()]
 
-        if should_skip_prettify(current_mode, current_row_0b, node, node_row_start_0b, node_row_end_0bex) then
+        if should_skip_prettify(current_mode, current_row_0b, node, config, node_row_start_0b, node_row_end_0bex) then
             goto continue
         end
 
-        local config = module.private.config_by_node_name[node:type()]
         local has_conceal = (concealed_node_ids[node:id()]
             and (not config.check_conceal or config.check_conceal(node))
             and is_concealing_on_row_range(current_mode, conceallevel, concealcursor, current_row_0b, node_row_start_0b, node_row_end_0bex))

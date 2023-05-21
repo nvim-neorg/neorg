@@ -495,7 +495,7 @@ module.public = {
 
         local tree = parser:parse()[1]
 
-        if not tree or not tree:root() or tree:root():type() == "ERROR" then
+        if not tree or not tree:root() then
             return
         end
 
