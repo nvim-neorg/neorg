@@ -259,6 +259,7 @@ will also be updated to the correct revision.
   to install the Neorg parser with a newer compiler. You may also want to export the `CC` variable in general:
   `export CC=/path/to/newer/compiler`.
   See more information here: [#74 comment](https://github.com/nvim-neorg/neorg/issues/74#issuecomment-906627223)
+  See also [#888 comment](https://github.com/nvim-neorg/neorg/discussions/888#discussioncomment-5953479) for configuring `nvim-treesitter` to use a specific compiler.
 
 ## 📦 Setup
 
