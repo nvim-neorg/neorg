@@ -253,11 +253,13 @@ will also be updated to the correct revision.
 
 ### Troubleshooting Treesitter
 - Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
-- If on MacOS, ensure that the `CC` environment variable points to a compiler that has C++14 support.
+- If on MacOS, ensure that the `CC` environment variable points to a compiler that has C++11 support.
   You can run Neovim like so: `CC=/path/to/newer/compiler nvim -c
   "TSInstallSync norg"` in your shell of choice
   to install the Neorg parser with a newer compiler. You may also want to export the `CC` variable in general:
   `export CC=/path/to/newer/compiler`.
+  See more information here: [#74 comment](https://github.com/nvim-neorg/neorg/issues/74#issuecomment-906627223)
+  See also [#888 comment](https://github.com/nvim-neorg/neorg/discussions/888#discussioncomment-5953479) for configuring `nvim-treesitter` to use a specific compiler.
 
 ## 📦 Setup
 
