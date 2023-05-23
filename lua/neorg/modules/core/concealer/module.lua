@@ -90,7 +90,7 @@ end
 module.private = {
     ns_icon = vim.api.nvim_create_namespace("neorg-conceals"),
     ns_prettify_flag = vim.api.nvim_create_namespace("neorg-conceals.prettify-flag"),
-    rerendering_scheduled_bufid_by_winid = {},
+    rerendering_scheduled_bufids = {},
     enabled = true,
     cursor_record = {},
 }
@@ -722,8 +722,9 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
     end
 end
 
-local function render_window_buffer(winid, bufid)
+local function render_window_buffer(bufid)
     local ns_prettify_flag = module.private.ns_prettify_flag
+    local winid = vim.fn.bufwinid(bufid)
     local row_start_0b, row_end_0bex = get_visible_line_range(winid)
     local prettify_flags_0b = vim.api.nvim_buf_get_extmarks(bufid, ns_prettify_flag, {row_start_0b,0}, {row_end_0bex-1,-1}, {})
     local row_nomark_start_0b, row_nomark_end_0bin
@@ -745,33 +746,33 @@ local function render_window_buffer(winid, bufid)
 end
 
 local function render_all_scheduled_and_done()
-    for winid, bufid in pairs(module.private.rerendering_scheduled_bufid_by_winid) do
-        render_window_buffer(winid, bufid)
+    for bufid, _ in pairs(module.private.rerendering_scheduled_bufids) do
+        render_window_buffer(bufid)
     end
-    module.private.rerendering_scheduled_bufid_by_winid = {}
+    module.private.rerendering_scheduled_bufids = {}
 end
 
-local function schedule_rendering(winid, bufid)
-    local not_scheduled = vim.tbl_isempty(module.private.rerendering_scheduled_bufid_by_winid)
-    module.private.rerendering_scheduled_bufid_by_winid[winid] = bufid
+local function schedule_rendering(bufid)
+    local not_scheduled = vim.tbl_isempty(module.private.rerendering_scheduled_bufids)
+    module.private.rerendering_scheduled_bufids[bufid] = true
     if not_scheduled then
         vim.schedule(render_all_scheduled_and_done)
     end
 end
 
-local function mark_line_changed(winid, bufid, row_0b)
+local function mark_line_changed(bufid, row_0b)
     remove_prettify_flag_on_line(bufid, row_0b)
-    schedule_rendering(winid, bufid)
+    schedule_rendering(bufid)
 end
 
-local function mark_line_range_changed(winid, bufid, row_start_0b, row_end_0bex)
+local function mark_line_range_changed(bufid, row_start_0b, row_end_0bex)
     remove_prettify_flag_range(bufid, row_start_0b, row_end_0bex)
-    schedule_rendering(winid, bufid)
+    schedule_rendering(bufid)
 end
 
-local function mark_all_lines_changed(winid, bufid)
+local function mark_all_lines_changed(bufid)
     remove_prettify_flag_all(bufid)
-    schedule_rendering(winid, bufid)
+    schedule_rendering(bufid)
 end
 
 local function clear_all_extmarks(bufid)
@@ -786,7 +787,7 @@ local function handle_init_event(event)
 
     local function on_line_callback(_tag, bufid, _changedtick, row_start_0b, row_end_0bex, row_updated_0bex, n_byte_prev)
         assert(_tag == "lines")
-        mark_line_range_changed(event.window, bufid, row_start_0b, row_updated_0bex)
+        mark_line_range_changed(bufid, row_start_0b, row_updated_0bex)
     end
 
     local attach_succeeded = vim.api.nvim_buf_attach(event.buffer, true, { on_lines = on_line_callback })
@@ -808,7 +809,7 @@ local function handle_init_event(event)
     end
 
     language_tree:register_cbs({ on_changedtree = on_changedtree_callback })
-    mark_all_lines_changed(event.window, event.buffer)
+    mark_all_lines_changed(event.buffer)
 
     if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
         local opts = {
@@ -826,7 +827,7 @@ local function handle_init_event(event)
 end
 
 local function handle_insert_toggle(event)
-    mark_line_changed(event.window, event.buffer, event.cursor_position[1]-1)
+    mark_line_changed(event.buffer, event.cursor_position[1]-1)
 end
 
 local function handle_insertenter(event)
@@ -840,7 +841,7 @@ end
 local function handle_toggle_prettifier(event)
     module.private.enabled = not module.private.enabled
     if module.private.enabled then
-        mark_all_lines_changed(event.window, event.buffer)
+        mark_all_lines_changed(event.buffer)
     else
         clear_all_extmarks(event.buffer)
     end
@@ -877,11 +878,11 @@ local function handle_cursor_moved(event)
         local cursor_record = module.private.cursor_record[event.buffer]
         if cursor_record then
             -- leaving previous line, conceal it if necessary
-            mark_line_changed(event.window, event.buffer, cursor_record.row_0b)
+            mark_line_changed(event.buffer, cursor_record.row_0b)
         end
         -- entering current line, conceal it if necessary
         local current_row_0b = event.cursor_position[1] - 1
-        mark_line_changed(event.window, event.buffer, current_row_0b)
+        mark_line_changed(event.buffer, current_row_0b)
     end
     update_cursor(event)
 end
@@ -943,12 +944,11 @@ module.load = function()
         vim.api.nvim_create_autocmd("OptionSet", {
             pattern = "conceallevel",
             callback = function(_ev)
-                local winid = vim.fn.win_getid()
                 local bufid = vim.api.nvim_get_current_buf()
                 if vim.bo[bufid].ft ~= "norg" then
                     return
                 end
-                mark_all_lines_changed(winid, bufid)
+                mark_all_lines_changed(bufid)
             end,
         })
     end
