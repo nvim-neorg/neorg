@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.5.0](https://github.com/nvim-neorg/neorg/compare/v4.4.1...v4.5.0) (2023-05-24)
+
+
+### Features
+
+* add colouring to TODO items ([238152a](https://github.com/nvim-neorg/neorg/commit/238152ab40ec1fb293fae75744942146876ed08f))
+
+
+### Bug Fixes
+
+* **metagen:** update generation to use user config for `updated` tag ([#882](https://github.com/nvim-neorg/neorg/issues/882)) ([6ed0f3a](https://github.com/nvim-neorg/neorg/commit/6ed0f3aa088e7b3141f01e3a82f3ec6517c34485)), closes [#865](https://github.com/nvim-neorg/neorg/issues/865)
+* TSInstall issues on macOS, hopefully once and for good ([#891](https://github.com/nvim-neorg/neorg/issues/891)) ([4988a6f](https://github.com/nvim-neorg/neorg/commit/4988a6f9166b6ac7b9ba5115e61dc3a2b13e820c))
+
 ## [4.4.1](https://github.com/nvim-neorg/neorg/compare/v4.4.0...v4.4.1) (2023-05-17)
 
 
