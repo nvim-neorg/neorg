@@ -893,7 +893,8 @@ end
 
 local event_handlers = {
     ["core.neorgcmd.events.core.concealer.toggle"] = handle_toggle_prettifier,
-    ["core.autocommands.events.bufread"] = handle_init_event,
+    ["core.autocommands.events.bufnewfile"] = handle_init_event,
+    ["core.autocommands.events.bufreadpost"] = handle_init_event,
     ["core.autocommands.events.insertenter"] = handle_insertenter,
     ["core.autocommands.events.insertleave"] = handle_insertleave,
     ["core.autocommands.events.cursormoved"] = handle_cursor_moved,
@@ -925,7 +926,8 @@ module.load = function()
         module.config.custom
     )
 
-    module.required["core.autocommands"].enable_autocommand("BufRead")
+    module.required["core.autocommands"].enable_autocommand("BufNewFile")
+    module.required["core.autocommands"].enable_autocommand("BufReadPost")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
     module.required["core.autocommands"].enable_autocommand("CursorMoved")
@@ -1024,7 +1026,8 @@ end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
-        bufread = true,
+        bufnewfile = true,
+        bufreadpost = true,
         insertenter = true,
         insertleave = true,
         vimleavepre = true,
