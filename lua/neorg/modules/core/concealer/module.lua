@@ -891,6 +891,10 @@ local function handle_cursor_moved_i(event)
     return handle_cursor_moved(event)
 end
 
+local function handle_winscrolled(event)
+    schedule_rendering(event.buffer)
+end
+
 local event_handlers = {
     ["core.neorgcmd.events.core.concealer.toggle"] = handle_toggle_prettifier,
     ["core.autocommands.events.bufnewfile"] = handle_init_event,
@@ -899,11 +903,11 @@ local event_handlers = {
     ["core.autocommands.events.insertleave"] = handle_insertleave,
     ["core.autocommands.events.cursormoved"] = handle_cursor_moved,
     ["core.autocommands.events.cursormovedi"] = handle_cursor_moved_i,
+    ["core.autocommands.events.winscrolled"] = handle_winscrolled,
 }
 
 module.on_event = function(event)
-    if event.referrer == "core.autocommands" and not event.content.norg then
-        -- TODO: move to on_event?
+    if event.referrer == "core.autocommands" and vim.bo[event.buffer].ft ~= "norg" then
         return
     end
 
@@ -932,6 +936,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
     module.required["core.autocommands"].enable_autocommand("CursorMoved")
     module.required["core.autocommands"].enable_autocommand("CursorMovedI")
+    module.required["core.autocommands"].enable_autocommand("WinScrolled", true)
 
     neorg.modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
@@ -1033,6 +1038,7 @@ module.events.subscribed = {
         vimleavepre = true,
         cursormoved = true,
         cursormovedi = true,
+        winscrolled = true,
     },
 
     ["core.neorgcmd"] = {
