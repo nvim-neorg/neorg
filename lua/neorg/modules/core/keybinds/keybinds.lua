@@ -46,6 +46,10 @@ module.config.public = {
                     -- ^mark Task as Important
                     { leader .. "ti", "core.qol.todo_items.todo.task_important" },
 
+                    -- Marks the task under the cursor as "need_input"
+                    -- ^mark Task as Nedding Input
+                    { leader .. "tn", "core.qol.todo_items.todo.task_need_input" },
+
                     -- Switches the task under the cursor between a select few states
                     { "<C-Space>", "core.qol.todo_items.todo.task_cycle" },
 
