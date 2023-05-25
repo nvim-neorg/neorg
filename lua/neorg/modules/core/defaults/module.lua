@@ -44,7 +44,6 @@ return neorg.modules.create_meta(
     "core.qol.toc",
     "core.qol.todo_items",
     "core.storage",
-    "core.syntax",
     "core.tangle",
     "core.upgrade"
 )
