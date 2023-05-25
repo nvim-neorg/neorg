@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.6.0](https://github.com/nvim-neorg/neorg/compare/v4.5.0...v4.6.0) (2023-05-25)
+
+
+### Features
+
+* **todo-items:** add missing "need input" icon and action ([#896](https://github.com/nvim-neorg/neorg/issues/896)) ([4cb0fa9](https://github.com/nvim-neorg/neorg/commit/4cb0fa9e56cf16672c258d1d97545d0526b506b5))
+
+
+### Bug Fixes
+
+* **esupports:** use structured api to avoid injection ([#899](https://github.com/nvim-neorg/neorg/issues/899)) ([e50b8ae](https://github.com/nvim-neorg/neorg/commit/e50b8aecb61dae1dd726fe00f40d3a554ba1b694))
+* **tempus:** supply unprovided parameters from the current date when converting to `osdate` (supercedes [#897](https://github.com/nvim-neorg/neorg/issues/897)) ([f367451](https://github.com/nvim-neorg/neorg/commit/f36745161d82067e0f26865d93858fd3a15d8ad4))
+
 ## [4.5.0](https://github.com/nvim-neorg/neorg/compare/v4.4.1...v4.5.0) (2023-05-24)
 
 
