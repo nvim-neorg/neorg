@@ -424,7 +424,7 @@ module.on_event = function(event)
             done = "x",
             important = "!",
             recurring = "+",
-            need_input = "?",
+            ambiguous = "?",
         }
 
         local match = event.split_type[2]:match(todo_str .. "task_(.+)")
@@ -464,7 +464,7 @@ module.events.subscribed = {
         ["core.qol.todo_items.todo.task_cancelled"] = true,
         ["core.qol.todo_items.todo.task_important"] = true,
         ["core.qol.todo_items.todo.task_recurring"] = true,
-        ["core.qol.todo_items.todo.task_need_input"] = true,
+        ["core.qol.todo_items.todo.task_ambiguous"] = true,
         ["core.qol.todo_items.todo.task_cycle"] = true,
         ["core.qol.todo_items.todo.task_cycle_reverse"] = true,
         ["core.qol.todo_items.warn-deprecated-keybind"] = true,
