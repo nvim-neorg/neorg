@@ -306,6 +306,9 @@ module.public = {
 
         local output = {}
 
+        -- Add current year as default in case it isn't provided
+        output.year = os.date("%Y")
+
         for word in vim.gsplit(input, "%s+") do
             if word:len() == 0 then
                 goto continue
