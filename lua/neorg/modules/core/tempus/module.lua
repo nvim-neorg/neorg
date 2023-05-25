@@ -228,7 +228,7 @@ module.public = {
     ---@param parsed_date Date #The date to convert
     ---@return osdate #A Lua date
     to_lua_date = function(parsed_date)
-        return {
+        return vim.tbl_deep_extend("force", os.date("*t"), {
             day = parsed_date.day,
             month = parsed_date.month and parsed_date.month.number or nil,
             year = parsed_date.year,
@@ -236,8 +236,7 @@ module.public = {
             min = parsed_date.time and parsed_date.time.minute,
             sec = parsed_date.time and parsed_date.time.second,
             wday = parsed_date.weekday and neorg.lib.number_wrap(parsed_date.weekday.number + 1, 1, 7),
-            isdst = true,
-        }
+        })
     end,
 
     --- Converts a lua `osdate` to a Neorg date.

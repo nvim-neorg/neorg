@@ -480,7 +480,7 @@ module.public = {
                 end
 
                 calendar.select_date({
-                    date = vim.tbl_deep_extend("force", os.date("*t"), tempus.to_lua_date(parsed_date)),
+                    date = tempus.to_lua_date(parsed_date),
                     callback = function(input)
                         local start_row, start_col, end_row, end_col = parsed_link_information.link_node:range()
                         vim.api.nvim_buf_set_text(
