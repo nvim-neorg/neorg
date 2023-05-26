@@ -219,22 +219,29 @@ module.public = {
 
     icon_renderers =  {
         on_left = function(config, bufid, node)
+            if not config.icon then return end
             local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
             local text = (" "):rep(len-1) .. config.icon
             set_mark(bufid, row_0b, col_0b, text, config.highlight)
         end,
 
         multilevel_on_right = function(config, bufid, node)
+            if not config.icons then return end
             local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
-            local text = (" "):rep(len-1) .. table_get_default_last(config.icons, len)
+            local icon = table_get_default_last(config.icons, len)
+            if not icon then return end
+            local text = (" "):rep(len-1) .. icon
             local highlight = config.highlights and table_get_default_last(config.highlights, len)
             set_mark(bufid, row_0b, col_0b, text, highlight)
         end,
 
         multilevel_ordered_on_right = function(config, bufid, node)
+            if not config.icons then return end
             local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
             local initial_number = table_get_default_last(config.icons, len)
+            if not initial_number then return end
             local number_table = get_number_table(initial_number)
+            if not number_table then return end  -- TODO: warning
             local index = get_ordered_index(bufid, node)
             local text = (" "):rep(len-1) .. (number_table[index] or "~")
             local highlight = config.highlights and table_get_default_last(config.highlights, len)
@@ -242,23 +249,30 @@ module.public = {
         end,
 
         multilevel_copied = function(config, bufid, node)
+            if not config.icons then return end
             local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
             local virt_texts = {}
             local last_icon, last_highlight
             for i = 1, len do
-                last_icon = config.icons[i] or last_icon
+                if config.icons[i] ~= nil then
+                    last_icon = config.icons[i]
+                end
+                if not last_icon then goto continue end
                 last_highlight = config.highlights[i] or last_highlight
                 set_mark(bufid, row_0b, col_0b+(i-1), last_icon, last_highlight)
+                ::continue::
             end
         end,
 
         fill_text = function(config, bufid, node)
+            if not config.icon then return end
             local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
             local text = config.icon:rep(len)
             set_mark(bufid, row_0b, col_0b, text, config.highlight)
         end,
 
         fill_multiline_chop2 = function(config, bufid, node)
+            if not config.icon then return end
             local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
             for i = row_start_0b, row_end_0bin do
                 local l = i==row_start_0b and col_start_0b+1 or 0
@@ -268,6 +282,7 @@ module.public = {
         end,
 
         fill_width = function(config, bufid, node)
+            if not config.icon then return end
             local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
             local line_len = vim.api.nvim_win_get_width(0)
             set_mark(bufid, row_start_0b, col_start_0b, config.icon:rep(line_len - col_start_0b), config.highlight)
@@ -344,6 +359,11 @@ module.config.public = {
     -- - "varied" - use a mix of round and diamond shapes for headings; no cute flower icons though :(
     icon_preset = "basic",
 
+    -- If true, Neorg will enable folding by default for `.norg` documents.
+    -- You may use the inbuilt Neovim folding options like `foldnestmax`,
+    -- `foldlevelstart` and others to then tune the behaviour to your liking.
+    --
+    -- Set to `false` if you do not want Neorg setting anything.
     folds = true,
 
     -- Configuration for icons.
@@ -352,8 +372,12 @@ module.config.public = {
     -- its query (where to be placed), render functions (how to be placed) and
     -- characters to use.
     --
-    -- For most use cases, the only values that you should be changing are the `enabled` and
-    -- `icon` fields.
+    -- For most use cases, the only values that you should be changing is the `icon`/`icons` field.
+    -- `icon` is a string, while `icons` is a table of strings for multilevel elements like
+    -- headings, lists, and quotes.
+    --
+    -- To disable part of the config, replace the table with `false`, or prepend `false and` to it.
+    -- For example: `done = false` or `done = false and { ... }`.
     icons = {
         todo = {
             done = {
@@ -539,6 +563,8 @@ module.config.public = {
             },
         },
 
+        -- Options that control the behaviour of code block dimming
+        -- (placing a darker background behind `@code` tags).
         code_block = {
             -- If true will only dim the content of the code block (without the
             -- `@code` and `@end` lines), not the entirety of the code block itself.
