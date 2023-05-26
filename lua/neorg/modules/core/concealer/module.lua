@@ -773,7 +773,9 @@ end
 
 local function render_all_scheduled_and_done()
     for bufid, _ in pairs(module.private.rerendering_scheduled_bufids) do
-        render_window_buffer(bufid)
+        if vim.fn.bufwinid(bufid) >= 0 then
+            render_window_buffer(bufid)
+        end
     end
     module.private.rerendering_scheduled_bufids = {}
 end
