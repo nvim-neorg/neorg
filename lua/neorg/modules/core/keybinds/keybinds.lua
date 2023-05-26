@@ -46,6 +46,10 @@ module.config.public = {
                     -- ^mark Task as Important
                     { leader .. "ti", "core.qol.todo_items.todo.task_important" },
 
+                    -- Marks the task under the cursor as "ambiguous"
+                    -- ^mark Task as ambiguous
+                    { leader .. "ta", "core.qol.todo_items.todo.task_ambiguous" },
+
                     -- Switches the task under the cursor between a select few states
                     { "<C-Space>", "core.qol.todo_items.todo.task_cycle" },
 

@@ -1,5 +1,31 @@
 # Changelog
 
+## [4.6.0](https://github.com/nvim-neorg/neorg/compare/v4.5.0...v4.6.0) (2023-05-25)
+
+
+### Features
+
+* **todo-items:** add missing "need input" icon and action ([#896](https://github.com/nvim-neorg/neorg/issues/896)) ([4cb0fa9](https://github.com/nvim-neorg/neorg/commit/4cb0fa9e56cf16672c258d1d97545d0526b506b5))
+
+
+### Bug Fixes
+
+* **esupports:** use structured api to avoid injection ([#899](https://github.com/nvim-neorg/neorg/issues/899)) ([e50b8ae](https://github.com/nvim-neorg/neorg/commit/e50b8aecb61dae1dd726fe00f40d3a554ba1b694))
+* **tempus:** supply unprovided parameters from the current date when converting to `osdate` (supercedes [#897](https://github.com/nvim-neorg/neorg/issues/897)) ([f367451](https://github.com/nvim-neorg/neorg/commit/f36745161d82067e0f26865d93858fd3a15d8ad4))
+
+## [4.5.0](https://github.com/nvim-neorg/neorg/compare/v4.4.1...v4.5.0) (2023-05-24)
+
+
+### Features
+
+* add colouring to TODO items ([238152a](https://github.com/nvim-neorg/neorg/commit/238152ab40ec1fb293fae75744942146876ed08f))
+
+
+### Bug Fixes
+
+* **metagen:** update generation to use user config for `updated` tag ([#882](https://github.com/nvim-neorg/neorg/issues/882)) ([6ed0f3a](https://github.com/nvim-neorg/neorg/commit/6ed0f3aa088e7b3141f01e3a82f3ec6517c34485)), closes [#865](https://github.com/nvim-neorg/neorg/issues/865)
+* TSInstall issues on macOS, hopefully once and for good ([#891](https://github.com/nvim-neorg/neorg/issues/891)) ([4988a6f](https://github.com/nvim-neorg/neorg/commit/4988a6f9166b6ac7b9ba5115e61dc3a2b13e820c))
+
 ## [4.4.1](https://github.com/nvim-neorg/neorg/compare/v4.4.0...v4.4.1) (2023-05-17)
 
 

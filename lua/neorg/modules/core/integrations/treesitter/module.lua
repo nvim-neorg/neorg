@@ -683,6 +683,45 @@ module.public = {
     end,
 }
 
+-- this fixes the problem of installing neorg ts parsers on macOS without resorting to using gcc
+local function install_norg_ts()
+  if vim.fn.has 'macunix' == 1 then
+    -- https://github.com/nvim-neorg/tree-sitter-norg/issues/7
+    -- (we have to force clang to c++11 mode on macOS manually)
+
+    local shell = require 'nvim-treesitter.shell_command_selectors'
+    local install = require 'nvim-treesitter.install'
+
+    -- save the original functions
+    local select_executable = shell.select_executable
+    local compilers = install.compilers
+
+    -- temporarily patch treesitter install logic
+    local cc = 'clang++ -std=c++11'
+    ---@diagnostic disable-next-line: duplicate-set-field
+    shell.select_executable = function(executables)
+      return vim.tbl_filter(function(c) ---@param c string
+        return c ~= vim.NIL and (vim.fn.executable(c) == 1 or c == cc)
+      end, executables)[1]
+    end
+    install.compilers = { cc }
+
+    -- install norg parsers
+    local ok, err = pcall(function()
+      install.commands.TSInstallSync['run!'] 'norg'
+    end)
+
+    -- no matter what, restore the defaults back
+    shell.select_executable = select_executable
+    install.compilers = compilers
+
+    -- if an error occurred during install, propagate it up
+    if not ok then error(err) end
+  else
+    vim.cmd [[ TSInstall! norg ]]
+  end
+end
+
 module.on_event = function(event)
     if event.split_type[1] == "core.keybinds" then
         if event.split_type[2] == "core.integrations.treesitter.next.heading" then
@@ -695,7 +734,7 @@ module.on_event = function(event)
             module.public.goto_previous_query_match(module.private.link_query)
         end
     elseif event.split_type[2] == "sync-parsers" then
-        local ok = pcall(vim.cmd, "TSInstall! norg")
+        local ok = pcall(install_norg_ts)
 
         if not ok then
             neorg.utils.notify(
