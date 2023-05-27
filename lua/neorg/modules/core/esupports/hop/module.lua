@@ -110,8 +110,9 @@ module.public = {
         local function jump_to_line(line)
             vim.cmd([[normal! m`]])
             local status, _ = pcall(vim.api.nvim_win_set_cursor, 0, { line, 1 })
+
             if not status then
-                log.error("Can't go to line ", line)
+                log.error("Failed to jump to line:", line, "- make sure the line number exists!")
             end
         end
 
