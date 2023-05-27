@@ -108,83 +108,84 @@ module.public = {
         end
 
         local function jump_to_line(line)
-          vim.cmd([[normal! m`]])
-          local status, _ = pcall(vim.api.nvim_win_set_cursor, 0, { line, 1 })
-          if not status then
-            log.error("Can't go to line ", line)
-          end
+            vim.cmd([[normal! m`]])
+            local status, _ = pcall(vim.api.nvim_win_set_cursor, 0, { line, 1 })
+            if not status then
+                log.error("Can't go to line ", line)
+            end
         end
 
         if located_link_information then
             neorg.lib.match(located_link_information.type)({
-              -- If we're dealing with a URI, simply open the URI in the user's preferred method
-              external_app = function()
-                os_open_link(located_link_information.uri)
-              end,
+                -- If we're dealing with a URI, simply open the URI in the user's preferred method
+                external_app = function()
+                    os_open_link(located_link_information.uri)
+                end,
 
-              -- If we're dealing with an external file, open it up in another Neovim buffer (unless otherwise applicable)
-              external_file = function()
-                open_split()
+                -- If we're dealing with an external file, open it up in another Neovim buffer (unless otherwise applicable)
+                external_file = function()
+                    open_split()
 
-                vim.api.nvim_cmd({cmd="edit", args={located_link_information.path}}, {})
+                    vim.api.nvim_cmd({ cmd = "edit", args = { located_link_information.path } }, {})
 
-                if located_link_information.line then
-                  jump_to_line(located_link_information.line, 1)
-                end
-              end,
+                    if located_link_information.line then
+                        jump_to_line(located_link_information.line, 1)
+                    end
+                end,
 
-              buffer = function()
-                open_split()
+                buffer = function()
+                    open_split()
 
-                if located_link_information.buffer ~= vim.api.nvim_get_current_buf() then
-                    vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
-                    vim.api.nvim_set_current_buf(located_link_information.buffer)
-                end
+                    if located_link_information.buffer ~= vim.api.nvim_get_current_buf() then
+                        vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
+                        vim.api.nvim_set_current_buf(located_link_information.buffer)
+                    end
 
-                if located_link_information.line then
-                    jump_to_line(located_link_information.line)
-                    return
-                end
+                    if located_link_information.line then
+                        jump_to_line(located_link_information.line)
+                        return
+                    end
 
-                if located_link_information.node then
-                    local range =
-                        module.required["core.integrations.treesitter"].get_node_range(located_link_information.node)
-
-                    vim.cmd([[normal! m`]])
-                    vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
-                    return
-                end
-              end,
-
-              calendar = function()
-                local calendar = neorg.modules.get_module("core.ui.calendar")
-                if not calendar then
-                    log.error("`core.ui.calendar` is not loaded! Unable to open timestamp.")
-                    return {}
-                end
-
-                local tempus = neorg.modules.get_module("core.tempus")
-                if not tempus then
-                    log.error("`core.tempus` is not loaded! Unable to parse timestamp.")
-                    return {}
-                end
-
-                local buffer = vim.api.nvim_get_current_buf()
-                calendar.select_date({
-                    date = located_link_information.date,
-                    callback = function(input)
-                        local start_row, start_col, end_row, end_col = located_link_information.node:range()
-                        vim.api.nvim_buf_set_text(
-                            buffer,
-                            start_row,
-                            start_col,
-                            end_row,
-                            end_col,
-                            { "{@ " .. tostring(tempus.to_date(input, false)) .. "}" }
+                    if located_link_information.node then
+                        local range = module.required["core.integrations.treesitter"].get_node_range(
+                            located_link_information.node
                         )
-                    end,
-                })
-              end,
+
+                        vim.cmd([[normal! m`]])
+                        vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+                        return
+                    end
+                end,
+
+                calendar = function()
+                    local calendar = neorg.modules.get_module("core.ui.calendar")
+                    if not calendar then
+                        log.error("`core.ui.calendar` is not loaded! Unable to open timestamp.")
+                        return {}
+                    end
+
+                    local tempus = neorg.modules.get_module("core.tempus")
+                    if not tempus then
+                        log.error("`core.tempus` is not loaded! Unable to parse timestamp.")
+                        return {}
+                    end
+
+                    local buffer = vim.api.nvim_get_current_buf()
+                    calendar.select_date({
+                        date = located_link_information.date,
+                        callback = function(input)
+                            local start_row, start_col, end_row, end_col = located_link_information.node:range()
+                            vim.api.nvim_buf_set_text(
+                                buffer,
+                                start_row,
+                                start_col,
+                                end_row,
+                                end_col,
+                                { "{@ " .. tostring(tempus.to_date(input, false)) .. "}" }
+                            )
+                        end,
+                    })
+                end,
             })
             return
         end
@@ -494,15 +495,15 @@ module.public = {
 
         return neorg.lib.match(parsed_link_information.link_type)({
             url = function()
-                return {type="external_app", uri=parsed_link_information.link_location_text}
+                return { type = "external_app", uri = parsed_link_information.link_location_text }
             end,
 
             external_file = function()
                 local destination = parsed_link_information.link_location_text
                 local path, line = string.match(destination, "^(.*):(%d+)$")
                 if line then
-                  destination = path
-                  line = tonumber(line)
+                    destination = path
+                    line = tonumber(line)
                 end
                 destination = (
                     vim.tbl_contains({ "/", "~" }, destination:sub(1, 1)) and "" or (vim.fn.expand("%:p:h") .. "/")
@@ -510,29 +511,29 @@ module.public = {
 
                 return neorg.lib.match(vim.fn.fnamemodify(destination, ":e"))({
                     [{ "jpg", "jpeg", "png", "pdf" }] = {
-                      type = "external_app",
-                      uri = vim.uri_from_fname(vim.fn.expand(destination)),
+                        type = "external_app",
+                        uri = vim.uri_from_fname(vim.fn.expand(destination)),
                     },
                     [module.config.public.external_filetypes] = {
-                      type = "external_app",
-                      uri = vim.uri_from_fname(vim.fn.expand(destination)),
+                        type = "external_app",
+                        uri = vim.uri_from_fname(vim.fn.expand(destination)),
                     },
                     _ = function()
-                      return {
-                        type = "external_file",
-                        path = vim.fn.fnamemodify(destination, ":p"),
-                        line = line,
-                      }
+                        return {
+                            type = "external_file",
+                            path = vim.fn.fnamemodify(destination, ":p"),
+                            line = line,
+                        }
                     end,
                 })
             end,
 
             line_number = function()
-              return {
-                type = "buffer",
-                buffer = buf_pointer,
-                line = tonumber(parsed_link_information.link_location_text),
-              }
+                return {
+                    type = "buffer",
+                    buffer = buf_pointer,
+                    line = tonumber(parsed_link_information.link_location_text),
+                }
             end,
 
             timestamp = function()
