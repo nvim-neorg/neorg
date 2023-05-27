@@ -446,6 +446,14 @@ module.public = {
                     os_open_link(vim.uri_from_fname(vim.fn.expand(destination)))
                 end
 
+                -- remove `:linenumber` from destination (to avoid opening a file named file.txt:123)
+                local line
+                local i, j = string.find(destination, ':%d+$')
+                if i then
+                  line = tonumber(string.sub(destination, i+1, j))
+                  destination = string.sub(destination, 0, i-1)
+                end
+
                 neorg.lib.match(vim.fn.fnamemodify(destination, ":e"))({
                     pdf = open_in_external_app,
                     png = open_in_external_app,
@@ -454,6 +462,22 @@ module.public = {
                     _ = neorg.lib.wrap(vim.api.nvim_cmd, {cmd="edit", args={vim.fn.fnamemodify(destination, ":p")}}, {}),
                 })
 
+                if line then
+                  -- set cursor to linenumber
+                  -- 2 workarounds:
+                  -- 1) I couldn't find a way to send the `e +linenumber filename` syntax via vim.api.nvim_cmd.
+                  -- 2) If I try to wrap both `neorg.lib.wrap`s into a single `function()`, the set_cursor happens too early
+                  --    (in the current buffer, not the new buffer)
+                  local nothing = function()
+                  end
+                  neorg.lib.match(vim.fn.fnamemodify(destination, ":e"))({
+                      pdf = nothing,
+                      png = nothing,
+                      [{ "jpg", "jpeg" }] = nothing,
+                      [module.config.public.external_filetypes] = nothing,
+                      _ = neorg.lib.wrap(vim.api.nvim_win_set_cursor, 0, { line, 0 })
+                    })
+                end
                 return {}
             end,
 
