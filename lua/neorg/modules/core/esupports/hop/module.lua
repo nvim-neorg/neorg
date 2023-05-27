@@ -129,7 +129,7 @@ module.public = {
                     vim.api.nvim_cmd({ cmd = "edit", args = { located_link_information.path } }, {})
 
                     if located_link_information.line then
-                        jump_to_line(located_link_information.line, 1)
+                        jump_to_line(located_link_information.line)
                     end
                 end,
 
@@ -161,13 +161,13 @@ module.public = {
                     local calendar = neorg.modules.get_module("core.ui.calendar")
                     if not calendar then
                         log.error("`core.ui.calendar` is not loaded! Unable to open timestamp.")
-                        return {}
+                        return
                     end
 
                     local tempus = neorg.modules.get_module("core.tempus")
                     if not tempus then
                         log.error("`core.tempus` is not loaded! Unable to parse timestamp.")
-                        return {}
+                        return
                     end
 
                     local buffer = vim.api.nvim_get_current_buf()
