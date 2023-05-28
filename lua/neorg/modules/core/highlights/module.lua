@@ -70,6 +70,7 @@ module.config.public = {
                 document_meta = {
                     key = "+@field",
                     value = "+@string",
+                    number = "+@number",
                     trailing = "+@repeat",
                     title = "+@text.title",
                     description = "+@label",

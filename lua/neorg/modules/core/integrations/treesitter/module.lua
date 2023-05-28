@@ -128,7 +128,7 @@ module.config.public = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
             files = { "src/parser.c" },
             branch = "main",
-            revision = "e93dcbc56a472649547cfc288f10ae4a93ef8795",
+            revision = "a479d1ca05848d0b51dd25bc9f71a17e0108b240",
         },
     },
 }
@@ -562,6 +562,7 @@ module.public = {
 
         return descendant
     end,
+
     get_document_metadata = function(buf, no_trim)
         buf = buf or 0
 
@@ -601,8 +602,11 @@ module.public = {
 
             local function parse_data(node)
                 return neorg.lib.match(node:type())({
-                    value = function()
+                    string = function()
                         return trim(module.public.get_node_text(node, buf))
+                    end,
+                    number = function()
+                        return tonumber(module.public.get_node_text(node, buf))
                     end,
                     array = function()
                         local resulting_array = {}
