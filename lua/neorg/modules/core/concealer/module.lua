@@ -325,27 +325,28 @@ module.public = {
                 local len = line_lengths[row_0b - row_start_0b + 1]
                 local mark_col_start_0b = math.max(0, col_start_0b - config.padding.left)
                 local mark_col_end_0bex = max_len + config.padding.right
-                if mark_col_start_0b <= len then
+                if len >= col_start_0b then
                     vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, mark_col_start_0b, {
                         end_row = row_0b+1,
-                        --hl_eol = to_eol,
+                        hl_eol = to_eol,
                         hl_group = config.highlight,
                         hl_mode = "blend",
+                        virt_text = to_eol and nil or { { (" "):rep(mark_col_end_0bex - len) , config.highlight } },
                         virt_text_pos = "overlay",
-                        virt_text_win_col = mark_col_start_0b,
+                        virt_text_win_col = len,
+                    })
+                else
+                    vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, len, {
+                        end_row = row_0b+1,
+                        hl_eol = to_eol,
+                        hl_group = config.highlight,
+                        hl_mode = "blend",
+                        virt_text = { { (" "):rep(col_start_0b - len) }, { (" "):rep(mark_col_end_0bex - col_start_0b), config.highlight } },
+                        virt_text_pos = "overlay",
+                        virt_text_win_col = len,
                     })
                 end
-                -- TODO: optimize
-                vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, len, {
-                    end_row = row_0b+1,
-                    hl_mode = "blend",
-                    virt_text = { { (" "):rep(mark_col_end_0bex - len), config.highlight } },
-                    virt_text_pos = "overlay",
-                    hl_eol = to_eol,
-                    hl_group = config.highlight,
-                    virt_text_win_col = len,
-                })
-            end
+        end
         end,
     },
 }
