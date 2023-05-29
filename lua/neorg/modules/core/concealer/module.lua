@@ -49,9 +49,10 @@ end
 local function get_node_position_and_text_length(bufid, node)
     local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
 
-    -- FIXME parser: multi_definition_suffix should not span across lines
+    -- FIXME parser: multi_definition_suffix, weak_paragraph_delimiter should not span across lines
     -- assert(row_start_0b == row_end_0bin, row_start_0b .. "," .. row_end_0bin)
-    local past_end_offset_1b = vim.treesitter.get_node_text(node, bufid):find("%s") or (col_end_0bex - col_start_0b + 1)
+    local text = vim.treesitter.get_node_text(node, bufid)
+    local past_end_offset_1b = text:find("%s") or text:len()+1
     return row_start_0b, col_start_0b, (past_end_offset_1b - 1)
 end
 
@@ -600,6 +601,10 @@ module.config.public = {
     },
 }
 
+local function pos_eq(pos1, pos2)
+    return (pos1.x == pos2.x) and (pos1.y == pos2.y)
+end
+
 local function pos_le(pos1, pos2)
     return pos1.x < pos2.x or (pos1.x == pos2.x and pos1.y <= pos2.y)
 end
@@ -609,9 +614,13 @@ local function pos_lt(pos1, pos2)
 end
 
 local function remove_extmarks(bufid, pos_start_0b_0b, pos_end_0bin_0bex)
-    assert(pos_start_0b_0b.x <= pos_end_0bin_0bex.x)
+    assert(pos_le(pos_start_0b_0b, pos_end_0bin_0bex))
+    if pos_eq(pos_start_0b_0b, pos_end_0bin_0bex) then
+        return
+    end
+
     local ns_icon = module.private.ns_icon
-    for _, result in ipairs(vim.api.nvim_buf_get_extmarks(bufid, ns_icon, {pos_start_0b_0b.x, pos_start_0b_0b.y}, {pos_end_0bin_0bex.x, pos_end_0bin_0bex.y-1}, {})) do
+    for _, result in ipairs(vim.api.nvim_buf_get_extmarks(bufid, ns_icon, {pos_start_0b_0b.x, pos_start_0b_0b.y}, {pos_end_0bin_0bex.x - ((pos_end_0bin_0bex.y==0) and 1 or 0), pos_end_0bin_0bex.y-1}, {})) do
         local extmark_id = result[1]
         local node_pos_0b_0b = { x = result[2], y = result[3] }
         assert(pos_le(pos_start_0b_0b, node_pos_0b_0b) and pos_le(node_pos_0b_0b, pos_end_0bin_0bex), ("start=%s, end=%s, node=%s"):format(vim.inspect(pos_start_0b_0b), vim.inspect(pos_end_0bin_0bex), vim.inspect(node_pos_0b_0b)))
