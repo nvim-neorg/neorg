@@ -121,16 +121,21 @@ module.on_event = function(event)
 
         local _, column = current:start()
 
+        local is_on_nonempty_line = vim.api.nvim_buf_get_lines(event.buffer, cursor_pos, cursor_pos+1, true)[1]:match("%S")
+        if is_on_nonempty_line then
+            cursor_pos = cursor_pos + 1
+        end
+
         vim.api.nvim_buf_set_lines(
             event.buffer,
-            cursor_pos + 1,
-            cursor_pos + 1,
+            cursor_pos,
+            cursor_pos + (is_on_nonempty_line and 0 or 1),
             true,
             { string.rep(" ", column) .. text_to_repeat .. (should_append_extension and "( ) " or "") }
         )
         vim.api.nvim_win_set_cursor(
             event.window,
-            { cursor_pos + 2, column + text_to_repeat:len() + (should_append_extension and ("( ) "):len() or 0) }
+            { cursor_pos + 1, column + text_to_repeat:len() + (should_append_extension and ("( ) "):len() or 0) }
         )
     end
 end
