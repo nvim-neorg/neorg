@@ -92,8 +92,8 @@ module.public = {
             return s:match("^%s*"):len()
         end
 
-        local function get_line(row)
-            return vim.api.nvim_buf_get_lines(buffer, row, row + 1, true)[1]
+        local function get_line(target_row)
+            return vim.api.nvim_buf_get_lines(buffer, target_row, target_row + 1, true)[1]
         end
 
         local function buffer_set_line_indent(start_row, new_indent)
@@ -139,21 +139,23 @@ module.public = {
             return row_start, col_start, (col_end - col_start - 1)
         end
 
-        local function is_quasi_prefix(row)
-            local line = get_line(row)
-            return line:match("^%s*-+%s*$") or line:match("^%s*~+%s*$") or line:match("^%s*%*+%s*$")
+        local function is_quasi_prefix(target_row)
+            local line = get_line(target_row)
+            -- NOTE: This is a hardcoded check determined by the limitations of
+            -- the first generation treesitter parser.
+            return line:match("^%s*[%-~%*]+%s*$")
         end
 
-        local function adjust_quasi_prefix(row, count)
-            local line = get_line(row)
+        local function adjust_quasi_prefix(target_row, count)
+            local line = get_line(target_row)
             local l, r = line:find("%S+")
             assert(l)
             assert(count ~= 0)
             if count > 0 then
-                vim.api.nvim_buf_set_text(buffer, row, l-1, row, l-1, { line:sub(l,l):rep(count) })
+                vim.api.nvim_buf_set_text(buffer, target_row, l - 1, target_row, l - 1, { line:sub(l, l):rep(count) })
             else
-                local level_remain = math.max(1, r-l+1+count)
-                vim.api.nvim_buf_set_text(buffer, row, l-1, row, r-level_remain, {})
+                local level_remain = math.max(1, r - l + 1 + count)
+                vim.api.nvim_buf_set_text(buffer, target_row, l - 1, target_row, r - level_remain, {})
             end
         end
 
@@ -169,7 +171,7 @@ module.public = {
 
         if not root_node or root_node:has_error() then
             if is_quasi_prefix(row) then
-                adjust_quasi_prefix(row, action_count * (mode=="promote" and 1 or -1))
+                adjust_quasi_prefix(row, action_count * (mode == "promote" and 1 or -1))
             end
             return
         end
