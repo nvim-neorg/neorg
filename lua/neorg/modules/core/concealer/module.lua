@@ -11,7 +11,8 @@
 To reduce the amount of cognitive load required to "parse" Norg documents with your own eyes, this module
 masks, or sometimes completely hides many categories of markup.
 
-Concealer depends on [Nerd Font >=v3.0.1](https://github.com/ryanoasis/nerd-fonts/releases/latest).
+The concealer depends on [Nerd Fonts >=v3.0.1](https://github.com/ryanoasis/nerd-fonts/releases/latest) to be
+installed on your system.
 --]]
 
 -- utils  to be refactored
