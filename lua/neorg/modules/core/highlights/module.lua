@@ -539,7 +539,19 @@ module.public = {
 
     --- Reads the highlights configuration table and applies all defined highlights
     trigger_highlights = function()
-        assert(require("nvim-treesitter.query").has_highlights("norg"), "nvim-treesitter has no available highlights for norg! Ensure treesitter is properly loaded in your config.")
+        if not require("nvim-treesitter.query").has_highlights("norg") then
+            if vim.bo.filetype == "norg" then
+                require("nvim-treesitter.highlight").attach(vim.api.nvim_get_current_buf(), "norg")
+            else
+                vim.api.nvim_create_autocmd("FileType", {
+                    pattern = "norg",
+                    once = true,
+                    callback = function(data)
+                        require("nvim-treesitter.highlight").attach(data.buf, "norg")
+                    end,
+                })
+            end
+        end
 
         --- Recursively descends down the highlight configuration and applies every highlight accordingly
         ---@param highlights table #The table of highlights to descend down
