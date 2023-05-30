@@ -47,7 +47,7 @@ local function table_extend_in_place(tbl, tbl_ext)
 end
 
 local function get_node_position_and_text_length(bufid, node)
-    local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
+    local row_start_0b, col_start_0b = node:range()
 
     -- FIXME parser: multi_definition_suffix, weak_paragraph_delimiter should not span across lines
     -- assert(row_start_0b == row_end_0bin, row_start_0b .. "," .. row_end_0bin)
@@ -129,7 +129,8 @@ local function set_mark(bufid, row_0b, col_0b, text, highlight, ext_opts)
     if ext_opts then
         table_extend_in_place(opt, ext_opts)
     end
-    local _id = vim.api.nvim_buf_set_extmark(bufid, ns_icon, row_0b, col_0b, opt)
+
+    vim.api.nvim_buf_set_extmark(bufid, ns_icon, row_0b, col_0b, opt)
 end
 
 local function table_get_default_last(tbl, index)
@@ -252,7 +253,6 @@ module.public = {
         multilevel_copied = function(config, bufid, node)
             if not config.icons then return end
             local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
-            local virt_texts = {}
             local last_icon, last_highlight
             for i = 1, len do
                 if config.icons[i] ~= nil then
@@ -284,7 +284,7 @@ module.public = {
 
         fill_width = function(config, bufid, node)
             if not config.icon then return end
-            local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
+            local row_start_0b, col_start_0b = node:range()
             local line_len = vim.api.nvim_win_get_width(0)
             set_mark(bufid, row_start_0b, col_start_0b, config.icon:rep(line_len - col_start_0b), config.highlight)
         end,
@@ -295,7 +295,7 @@ module.public = {
                 return
             end
 
-            local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
+            local row_start_0b, col_start_0b, row_end_0bin = node:range()
             assert(row_start_0b < row_end_0bin)
             local conceal_on = (vim.wo.conceallevel >= 2) and config.conceal
 
@@ -609,9 +609,9 @@ local function pos_le(pos1, pos2)
     return pos1.x < pos2.x or (pos1.x == pos2.x and pos1.y <= pos2.y)
 end
 
-local function pos_lt(pos1, pos2)
-    return pos1.x < pos2.x or (pos1.x == pos2.x and pos1.y < pos2.y)
-end
+-- local function pos_lt(pos1, pos2)
+--     return pos1.x < pos2.x or (pos1.x == pos2.x and pos1.y < pos2.y)
+-- end
 
 local function remove_extmarks(bufid, pos_start_0b_0b, pos_end_0bin_0bex)
     assert(pos_le(pos_start_0b_0b, pos_end_0bin_0bex))
@@ -628,7 +628,7 @@ local function remove_extmarks(bufid, pos_start_0b_0b, pos_end_0bin_0bex)
     end
 end
 
-local function is_inside_example(node)
+local function is_inside_example(_node)
     -- TODO: waiting for parser fix
     return false
 end
@@ -650,7 +650,7 @@ end
 local function query_get_nodes(query, document_root, bufid, row_start_0b, row_end_0bex)
     local result = {}
     local concealed_node_ids = {}
-    for id, node, _metadata in query:iter_captures(document_root, bufid, row_start_0b, row_end_0bex) do
+    for id, node in query:iter_captures(document_root, bufid, row_start_0b, row_end_0bex) do
         if query.captures[id] == "icon-concealed" then
             concealed_node_ids[node:id()] = true
         end
@@ -733,12 +733,11 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
     local current_mode = vim.api.nvim_get_mode().mode
     local conceallevel = vim.wo.conceallevel
     local concealcursor = vim.wo.concealcursor
-    local ns_icon = module.private.ns_icon
 
     assert(document_root)
 
     for _, node in ipairs(nodes) do
-        local node_row_start_0b, node_col_start_0b, _node_row_end_0bin, _node_col_end_0bex = node:range()
+        local node_row_start_0b, _, _node_row_end_0bin = node:range()
         local node_row_end_0bex = _node_row_end_0bin + 1
         local config = module.private.config_by_node_name[node:type()]
 
@@ -823,8 +822,8 @@ end
 local function handle_init_event(event)
     assert(vim.api.nvim_win_is_valid(event.window))
 
-    local function on_line_callback(_tag, bufid, _changedtick, row_start_0b, row_end_0bex, row_updated_0bex, n_byte_prev)
-        assert(_tag == "lines")
+    local function on_line_callback(tag, bufid, _changedtick, row_start_0b, _row_end_0bex, row_updated_0bex, _n_byte_prev)
+        assert(tag == "lines")
         mark_line_range_changed(bufid, row_start_0b, row_updated_0bex)
     end
 
@@ -1014,14 +1013,6 @@ module.load = function()
 
     local config_by_node_name = {}
     local queries = {"["}
-
-    local function query_node_names(query)
-        local node_names = {}
-        for node_name in query:gmatch("%(([%w_]+)%)") do
-            table.insert(node_names, node_name)
-        end
-        return node_names
-    end
 
     traverse_config(module.config.public.icons, function(config)
         for _, node_type in ipairs(config.nodes) do
