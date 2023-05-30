@@ -70,6 +70,7 @@ module.config.public = {
                 document_meta = {
                     key = "+@field",
                     value = "+@string",
+                    number = "+@number",
                     trailing = "+@repeat",
                     title = "+@text.title",
                     description = "+@label",
@@ -538,6 +539,8 @@ module.public = {
 
     --- Reads the highlights configuration table and applies all defined highlights
     trigger_highlights = function()
+        assert(require("nvim-treesitter.query").has_highlights("norg"), "nvim-treesitter has no available highlights for norg! Ensure treesitter is properly loaded in your config.")
+
         --- Recursively descends down the highlight configuration and applies every highlight accordingly
         ---@param highlights table #The table of highlights to descend down
         ---@param callback #(function(hl_name, highlight, prefix) -> bool) - a callback function to be invoked for every highlight. If it returns true then we should recurse down the table tree further

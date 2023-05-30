@@ -43,8 +43,6 @@ module.load = function()
             return keys
         end)()
     )
-
-    module.required["core.keybinds"].register_keybind(module.name, "warn-deprecated-keybind")
 end
 
 module.config.public = {
@@ -386,10 +384,12 @@ module.public = {
 
         local next = types[index] or types[1]
 
-        for child in todo_item_at_cursor:iter_children() do
-            if module.public.get_todo_item_type(child) then
-                next = alternative_types[get_index(alternative_types, todo_item_type)]
-                break
+        if not next then
+            for child in todo_item_at_cursor:iter_children() do
+                if module.public.get_todo_item_type(child) then
+                    next = alternative_types[get_index(alternative_types, todo_item_type)]
+                    break
+                end
             end
         end
 
@@ -400,14 +400,6 @@ module.public = {
 
 module.on_event = function(event)
     local todo_str = "core.qol.todo_items.todo."
-
-    if event.split_type[2] == "core.qol.todo_items.warn-deprecated-keybind" then
-        neorg.utils.notify(
-            "This keybind has been deprecated. Use `<LocalLeader>t` instead of `gt` as your keybind prefix!",
-            vim.log.levels.WARN
-        )
-        return
-    end
 
     if event.split_type[1] == "core.keybinds" then
         local todo_item_at_cursor = module.public.get_todo_item_from_cursor(event.buffer, event.cursor_position[1] - 1)
@@ -467,7 +459,6 @@ module.events.subscribed = {
         ["core.qol.todo_items.todo.task_ambiguous"] = true,
         ["core.qol.todo_items.todo.task_cycle"] = true,
         ["core.qol.todo_items.todo.task_cycle_reverse"] = true,
-        ["core.qol.todo_items.warn-deprecated-keybind"] = true,
     },
 }
 

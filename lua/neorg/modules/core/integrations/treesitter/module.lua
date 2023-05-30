@@ -128,7 +128,7 @@ module.config.public = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
             files = { "src/parser.c" },
             branch = "main",
-            revision = "e93dcbc56a472649547cfc288f10ae4a93ef8795",
+            revision = "a479d1ca05848d0b51dd25bc9f71a17e0108b240",
         },
     },
 }
@@ -562,6 +562,7 @@ module.public = {
 
         return descendant
     end,
+
     get_document_metadata = function(buf, no_trim)
         buf = buf or 0
 
@@ -601,8 +602,11 @@ module.public = {
 
             local function parse_data(node)
                 return neorg.lib.match(node:type())({
-                    value = function()
+                    string = function()
                         return trim(module.public.get_node_text(node, buf))
+                    end,
+                    number = function()
+                        return tonumber(module.public.get_node_text(node, buf))
                     end,
                     array = function()
                         local resulting_array = {}
@@ -685,41 +689,43 @@ module.public = {
 
 -- this fixes the problem of installing neorg ts parsers on macOS without resorting to using gcc
 local function install_norg_ts()
-  if vim.fn.has 'macunix' == 1 then
-    -- https://github.com/nvim-neorg/tree-sitter-norg/issues/7
-    -- (we have to force clang to c++11 mode on macOS manually)
+    if vim.fn.has("macunix") == 1 then
+        -- https://github.com/nvim-neorg/tree-sitter-norg/issues/7
+        -- (we have to force clang to c++11 mode on macOS manually)
 
-    local shell = require 'nvim-treesitter.shell_command_selectors'
-    local install = require 'nvim-treesitter.install'
+        local shell = require("nvim-treesitter.shell_command_selectors")
+        local install = require("nvim-treesitter.install")
 
-    -- save the original functions
-    local select_executable = shell.select_executable
-    local compilers = install.compilers
+        -- save the original functions
+        local select_executable = shell.select_executable
+        local compilers = install.compilers
 
-    -- temporarily patch treesitter install logic
-    local cc = 'clang++ -std=c++11'
-    ---@diagnostic disable-next-line: duplicate-set-field
-    shell.select_executable = function(executables)
-      return vim.tbl_filter(function(c) ---@param c string
-        return c ~= vim.NIL and (vim.fn.executable(c) == 1 or c == cc)
-      end, executables)[1]
+        -- temporarily patch treesitter install logic
+        local cc = "clang++ -std=c++11"
+        ---@diagnostic disable-next-line: duplicate-set-field
+        shell.select_executable = function(executables)
+            return vim.tbl_filter(function(c) ---@param c string
+                return c ~= vim.NIL and (vim.fn.executable(c) == 1 or c == cc)
+            end, executables)[1]
+        end
+        install.compilers = { cc }
+
+        -- install norg parsers
+        local ok, err = pcall(function()
+            install.commands.TSInstallSync["run!"]("norg")
+        end)
+
+        -- no matter what, restore the defaults back
+        shell.select_executable = select_executable
+        install.compilers = compilers
+
+        -- if an error occurred during install, propagate it up
+        if not ok then
+            error(err)
+        end
+    else
+        vim.cmd([[ TSInstall! norg ]])
     end
-    install.compilers = { cc }
-
-    -- install norg parsers
-    local ok, err = pcall(function()
-      install.commands.TSInstallSync['run!'] 'norg'
-    end)
-
-    -- no matter what, restore the defaults back
-    shell.select_executable = select_executable
-    install.compilers = compilers
-
-    -- if an error occurred during install, propagate it up
-    if not ok then error(err) end
-  else
-    vim.cmd [[ TSInstall! norg ]]
-  end
 end
 
 module.on_event = function(event)
