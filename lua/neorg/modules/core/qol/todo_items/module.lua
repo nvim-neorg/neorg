@@ -384,10 +384,12 @@ module.public = {
 
         local next = types[index] or types[1]
 
-        for child in todo_item_at_cursor:iter_children() do
-            if module.public.get_todo_item_type(child) then
-                next = alternative_types[get_index(alternative_types, todo_item_type)]
-                break
+        if not next then
+            for child in todo_item_at_cursor:iter_children() do
+                if module.public.get_todo_item_type(child) then
+                    next = alternative_types[get_index(alternative_types, todo_item_type)]
+                    break
+                end
             end
         end
 
