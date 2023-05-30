@@ -165,9 +165,7 @@ module.public = {
             module.private.ignore_types
         )
 
-        local action_count = vim.v.count
-        assert(action_count >= 0)
-        action_count = math.max(action_count, 1)
+        local action_count = vim.v.count1
 
         if not root_node or root_node:has_error() then
             if is_quasi_prefix(row) then
