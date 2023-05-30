@@ -45,7 +45,9 @@ local module = neorg.modules.create("core.autocommands")
 ---@param name string #The name of the autocommand that was just triggered
 ---@param triggered_from_norg boolean #If true, that means we have received this event as part of a *.norg autocommand
 function _neorg_module_autocommand_triggered(name, triggered_from_norg)
-    neorg.events.broadcast_event(neorg.events.create(module, name, { norg = triggered_from_norg }))
+    local event = neorg.events.create(module, name, { norg = triggered_from_norg })
+    assert(event)
+    neorg.events.broadcast_event(event)
 end
 
 -- A convenience wrapper around neorg.events.define_event
@@ -108,7 +110,7 @@ module.events.subscribed = {
         bufmodifiedset = false,
         bufnew = false,
         bufnewfile = false,
-        bufread = false,
+        bufreadpost = false,
         bufreadcmd = false,
         bufreadpre = false,
         bufunload = false,
@@ -226,7 +228,7 @@ module.events.defined = {
     bufmodifiedset = module.autocmd_base("bufmodifiedset"),
     bufnew = module.autocmd_base("bufnew"),
     bufnewfile = module.autocmd_base("bufnewfile"),
-    bufread = module.autocmd_base("bufread"),
+    bufreadpost = module.autocmd_base("bufreadpost"),
     bufreadcmd = module.autocmd_base("bufreadcmd"),
     bufreadpre = module.autocmd_base("bufreadpre"),
     bufunload = module.autocmd_base("bufunload"),
