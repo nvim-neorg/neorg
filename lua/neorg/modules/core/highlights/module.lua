@@ -545,10 +545,8 @@ module.public = {
             if not query.has_highlights("norg") then
                 query.invalidate_query_cache()
                 assert(
-                    query.has_highlights(
-                        "norg",
-                        "nvim-treesitter has no available highlights for norg! Ensure treesitter is properly loaded in your config."
-                    )
+                    query.has_highlights("norg"),
+                    "nvim-treesitter has no available highlights for norg! Ensure treesitter is properly loaded in your config."
                 )
 
                 if vim.bo.filetype == "norg" then
