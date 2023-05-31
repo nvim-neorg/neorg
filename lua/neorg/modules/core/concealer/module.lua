@@ -1340,7 +1340,6 @@ module.events.subscribed = {
         bufreadpost = true,
         insertenter = true,
         insertleave = true,
-        vimleavepre = true,
         cursormoved = true,
         cursormovedi = true,
         winscrolled = true,
