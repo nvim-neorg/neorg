@@ -553,13 +553,13 @@ module.public = {
                 local len = line_lengths[row_0b - row_start_0b + 1]
                 local mark_col_start_0b = math.max(0, col_start_0b - config.padding.left)
                 local mark_col_end_0bex = max_len + config.padding.right
-                if len >= col_start_0b then
+                if len >= mark_col_start_0b then
                     vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, mark_col_start_0b, {
                         end_row = row_0b + 1,
                         hl_eol = to_eol,
                         hl_group = config.highlight,
                         hl_mode = "blend",
-                        virt_text = to_eol and nil or { { (" "):rep(mark_col_end_0bex - len), config.highlight } },
+                        virt_text = not to_eol and { { (" "):rep(mark_col_end_0bex - len), config.highlight } } or nil,
                         virt_text_pos = "overlay",
                         virt_text_win_col = len,
                     })
@@ -570,8 +570,8 @@ module.public = {
                         hl_group = config.highlight,
                         hl_mode = "blend",
                         virt_text = {
-                            { (" "):rep(col_start_0b - len) },
-                            { (" "):rep(mark_col_end_0bex - col_start_0b), config.highlight },
+                            { (" "):rep(mark_col_start_0b - len) },
+                            { not to_eol and (" "):rep(mark_col_end_0bex - mark_col_start_0b) or "", config.highlight },
                         },
                         virt_text_pos = "overlay",
                         virt_text_win_col = len,
