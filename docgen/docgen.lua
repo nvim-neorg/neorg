@@ -575,10 +575,10 @@ end
 
 --- Converts a ConfigOptionData struct to a html node in the resulting HTML document
 ---@param configuration_option ConfigOptionArray #The config option to render
----@param indent number? #How far to indent the text by. Should not be set manually.
+---@param open boolean? #Whether to auto-open the generated `<details>` tag. Defaults to false.
 ---@return string[] #A list of markdown tables corresponding to the rendered element.
-docgen.render = function(configuration_option, indent)
-    indent = indent or 0
+docgen.render = function(configuration_option, open)
+    open = open or false
 
     local self = configuration_option.self
 
@@ -594,7 +594,7 @@ docgen.render = function(configuration_option, indent)
     end)()
 
     local basis = {
-        "* <details" .. (indent == 0 and " open>" or ">"),
+        "* <details" .. (open and " open>" or ">"),
         "",
         ((self.data.name or ""):match("^%s*$") and "<summary>" or table.concat({
             "<summary><code>",
@@ -627,14 +627,14 @@ docgen.render = function(configuration_option, indent)
         })
     end
 
-    vim.list_extend(basis, docgen.htmlify(configuration_option, indent))
+    vim.list_extend(basis, docgen.htmlify(configuration_option))
     vim.list_extend(basis, {
         "",
         "</details>",
     })
 
     for i, str in ipairs(basis) do
-        basis[i] = string.rep(" ", indent + (i > 1 and 2 or 0)) .. str
+        basis[i] = string.rep(" ", 2 - (i == 1 and 2 or 0)) .. str
     end
 
     return basis
@@ -642,11 +642,8 @@ end
 
 --- Converts an object directly into HTML, with no extra fluff.
 ---@param configuration_option ConfigOptionArray
----@param indent number? #How far to indent the text by. Should not be set manually
 ---@return string[] #An array of markdown strings with the rendered HTML inside
-docgen.htmlify = function(configuration_option, indent)
-    indent = indent or 0
-
+docgen.htmlify = function(configuration_option)
     local self = configuration_option.self
 
     local result = {}
@@ -672,7 +669,7 @@ docgen.htmlify = function(configuration_option, indent)
                 local subitem = configuration_option[name_or_index]
 
                 if subitem then
-                    vim.list_extend(result, docgen.render(subitem, indent + 1))
+                    vim.list_extend(result, docgen.render(subitem))
                 end
             end
 

@@ -1,6 +1,14 @@
 local docgen = require("docgen")
 local fileio = require("fileio")
 
+--- CONFIGURABLE DOCGEN BEHAVIOUR
+--- Tweak as you see fit.
+local config = {
+    --- When true, will auto-unfold the top-level <details>
+    --- tags generated when rendering module configuration options.
+    auto_open_first_level_tags = true,
+}
+
 ---@type Modules
 local modules = {
     --[[
@@ -25,7 +33,7 @@ local function concat_configuration_options(configuration_options)
     end)
 
     for _, values in pairs(unrolled) do
-        vim.list_extend(result, docgen.render(values[2]))
+        vim.list_extend(result, docgen.render(values[2], config.auto_open_first_level_tags))
         table.insert(result, "")
     end
 
