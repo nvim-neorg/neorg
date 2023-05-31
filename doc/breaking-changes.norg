@@ -1,15 +1,46 @@
 @document.meta
 title: Breaking Changes
-authors: vhyrro
+authors: [
+    vhyrro
+]
 created: 2023-04-29
 version: 1.1.1
 @end
 
-* `v4.0.0`
+*NOTE:* See {/ CHANGELOG.md} for a full list of general changes.
+
+
+* v5.0.0
+
+  This release features many performance and stability improvements.
+
+** Removed `gt*` keybinds, `core.norg` deprecation warnings and more.
+
+   You'll no longer be told about deprecated content introduced since `3.0.0`, Neorg will now not
+   recognize it!
+
+** New Concealer!
+
+   `@champignoom` completely refactored the concealer to be much more efficient and stable. It also
+   includes breaking changes to the configuration, so see
+   {https://github.com/nvim-neorg/neorg/wiki/Concealer}[this wiki section] for new configuration
+   options.
+
+** New `@document.meta` Parser
+
+   A rewritten parser was introduced for more stable parsing of contents of `@document.meta` tags.
+   Make sure to run `:Neorg sync-parsers`! The rest should be automatic.
+
+___
+
+* v4.0.0
+
 ** Removed `core.news`!
+
    Please use `:help neorg-breaking-changes` instead.
 
 ** *Moved all `gt*` keybinds to `<LocalLeader>t*`*
+
    Change made to prevent clashes with the inbuilt `gt` command present in Neovim.
 
 #comment
