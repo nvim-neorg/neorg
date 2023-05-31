@@ -7,13 +7,13 @@ This module handles the whole concept of toggling TODO items, as well as updatin
 parent and/or children items alongside the current item.
 
 The following keybinds are exposed:
-- `core.qol.todo_items.todo.task_done` (`gtd`)
-- `core.qol.todo_items.todo.task_undone` (`gtu`)
-- `core.qol.todo_items.todo.task_pending` (`gtp`)
-- `core.qol.todo_items.todo.task_on_hold` (`gth`)
-- `core.qol.todo_items.todo.task_cancelled` (`gtc`)
-- `core.qol.todo_items.todo.task_recurring` (`gtr`)
-- `core.qol.todo_items.todo.task_important` (`gti`)
+- `core.qol.todo_items.todo.task_done` (`<LocalLeader>td`)
+- `core.qol.todo_items.todo.task_undone` (`<LocalLeader>tu`)
+- `core.qol.todo_items.todo.task_pending` (`<LocalLeader>tp`)
+- `core.qol.todo_items.todo.task_on_hold` (`<LocalLeader>th`)
+- `core.qol.todo_items.todo.task_cancelled` (`<LocalLeader>tc`)
+- `core.qol.todo_items.todo.task_recurring` (`<LocalLeader>tr`)
+- `core.qol.todo_items.todo.task_important` (`<LocalLeader>ti`)
 - `core.qol.todo_items.todo.task_cycle` (`<C-Space>`)
 - `core.qol.todo_items.todo.task_cycle_reverse` (no default keybind)
 
