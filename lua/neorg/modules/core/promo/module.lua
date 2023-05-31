@@ -288,21 +288,6 @@ module.public = {
             return
         end
 
-        local function notify_concealer(row_start, row_end)
-            -- HACK(vhyrro): This should be changed after the codebase refactor
-            local concealer_module = neorg.modules.loaded_modules["core.concealer"]
-            if not concealer_module then
-                return
-            end
-            neorg.events.broadcast_event(
-                neorg.events.create(
-                    concealer_module,
-                    "core.concealer.events.update_region",
-                    { start = row_start, ["end"] = row_end }
-                )
-            )
-        end
-
         local function reindent_range(row_start, row_end)
             for i = row_start, row_end - 1 do
                 local indent_level = indent_module.indentexpr(buffer, i)
@@ -311,7 +296,6 @@ module.public = {
         end
 
         reindent_range(indent_row_start, indent_row_end)
-        notify_concealer(indent_row_start, indent_row_end)
     end,
 }
 
