@@ -953,6 +953,46 @@ local function get_visible_line_range(winid)
     return (row_start_1b - 1), row_end_1b
 end
 
+local function get_parsed_query_lazy()
+    if module.private.prettify_query then
+        return module.private.prettify_query
+    end
+
+    local function traverse_config(config, f)
+        if config == false then
+            return
+        end
+        if config.nodes then
+            f(config)
+            return
+        end
+        for _, sub_config in pairs(config) do
+            traverse_config(sub_config, f)
+        end
+    end
+
+    local config_by_node_name = {}
+    local queries = { "[" }
+
+    traverse_config(module.config.public.icons, function(config)
+        for _, node_type in ipairs(config.nodes) do
+            table.insert(queries, ("(%s)@icon"):format(node_type))
+            config_by_node_name[node_type] = config
+        end
+        for _, node_type in ipairs(config.nodes.concealed or {}) do
+            table.insert(queries, ("(%s)@icon-concealed"):format(node_type))
+            config_by_node_name[node_type] = config
+        end
+    end)
+
+    table.insert(queries, "]")
+    local query_combined = table.concat(queries, " ")
+    module.private.prettify_query = neorg.utils.ts_parse_query("norg", query_combined)
+    assert(module.private.prettify_query)
+    module.private.config_by_node_name = config_by_node_name
+    return module.private.prettify_query
+end
+
 local function prettify_range(bufid, row_start_0b, row_end_0bex)
     -- in case there's undo/removal garbage
     -- TODO: optimize
@@ -961,8 +1001,9 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
     local treesitter_module = module.required["core.integrations.treesitter"]
     local document_root = treesitter_module.get_document_root(bufid)
     assert(document_root)
+
     local nodes, concealed_node_ids =
-        query_get_nodes(module.private.prettify_query, document_root, bufid, row_start_0b, row_end_0bex)
+        query_get_nodes(get_parsed_query_lazy(), document_root, bufid, row_start_0b, row_end_0bex)
 
     local pos_start_0b_0b = { x = row_start_0b, y = 0 }
     local pos_end_0bin_0bex = { x = row_end_0bex - 1, y = get_line_length(bufid, row_end_0bex - 1) }
@@ -1266,40 +1307,6 @@ module.load = function()
             end,
         })
     end
-
-    -- compile treesitter query
-    local function traverse_config(config, f)
-        if config == false then
-            return
-        end
-        if config.nodes then
-            f(config)
-            return
-        end
-        for _, sub_config in pairs(config) do
-            traverse_config(sub_config, f)
-        end
-    end
-
-    local config_by_node_name = {}
-    local queries = { "[" }
-
-    traverse_config(module.config.public.icons, function(config)
-        for _, node_type in ipairs(config.nodes) do
-            table.insert(queries, ("(%s)@icon"):format(node_type))
-            config_by_node_name[node_type] = config
-        end
-        for _, node_type in ipairs(config.nodes.concealed or {}) do
-            table.insert(queries, ("(%s)@icon-concealed"):format(node_type))
-            config_by_node_name[node_type] = config
-        end
-    end)
-
-    table.insert(queries, "]")
-    local query_combined = table.concat(queries, " ")
-    local prettify_query = neorg.utils.ts_parse_query("norg", query_combined)
-    module.private.prettify_query = prettify_query
-    module.private.config_by_node_name = config_by_node_name
 end
 
 -- TODO;
