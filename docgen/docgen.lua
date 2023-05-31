@@ -662,7 +662,7 @@ docgen.htmlify = function(configuration_option, indent)
             local unrolled = neorg.lib.unroll(self.object)
 
             table.sort(unrolled, function(x, y)
-                return x[1] < y[1]
+                return tostring(x[1]) < tostring(y[1])
             end)
 
             for _, data in ipairs(unrolled) do
