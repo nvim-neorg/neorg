@@ -39,8 +39,6 @@ require("neorg.external.helpers")
 local ts = neorg.modules.get_module("core.integrations.treesitter")
 assert(ts, "treesitter not available")
 
-local ts_utils = ts.get_ts_utils()
-
 --- Aggregates all the available modules.
 ---@return table #A list of paths to every module's `module.lua` file
 docgen.aggregate_module_files = function()
