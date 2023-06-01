@@ -21,14 +21,27 @@ local function in_range(k, l, r_ex)
     return l <= k and k < r_ex
 end
 
-local function node_followed_by(node, next_node_type)
-    local n = node:parent()
-    n = n and n:next_named_sibling()
-    return n and (n:type() == next_node_type)
+local function check_node_type(node, next_node_type, moves)
+    for i = 1, moves:len() do
+        local c = moves:sub(i,i)
+        if c == "u" then
+            node = node:parent()
+        elseif c == "l" then
+            node = node:prev_named_sibling()
+        elseif c == "r" then
+            node = node:next_named_sibling()
+        else
+            assert(false)
+        end
+        if not node then
+            return
+        end
+    end
+    return (node:type() == next_node_type)
 end
 
-local function is_followed_by_link_description(node)
-    return node_followed_by(node, "link_description")
+local function should_link_location_conceal(node)
+    return check_node_type(node, "link_description", "ur") or check_node_type(node, "link_description", "ul")
 end
 
 local function is_concealing_on_row_range(mode, conceallevel, concealcursor, current_row_0b, row_start_0b, row_end_0bex)
@@ -724,14 +737,14 @@ module.config.public = {
                     "link_target_heading6",
                 },
             },
-            check_conceal = is_followed_by_link_description,
+            check_conceal = should_link_location_conceal,
             render = module.public.icon_renderers.multilevel_on_right,
         },
         definition = {
             single = {
                 icon = "≡",
                 nodes = { "single_definition_prefix", concealed = { "link_target_definition" } },
-                check_conceal = is_followed_by_link_description,
+                check_conceal = should_link_location_conceal,
                 render = module.public.icon_renderers.on_left,
             },
             multi_prefix = {
@@ -750,7 +763,7 @@ module.config.public = {
             single = {
                 icon = "⁎",
                 nodes = { "single_footnote_prefix", concealed = { "link_target_footnote" } },
-                check_conceal = is_followed_by_link_description,
+                check_conceal = should_link_location_conceal,
                 render = module.public.icon_renderers.on_left,
             },
             multi_prefix = {
@@ -958,6 +971,7 @@ local function get_parsed_query_lazy()
         return module.private.prettify_query
     end
 
+    local keys = {"config", "icons"}
     local function traverse_config(config, f)
         if config == false then
             return
@@ -966,8 +980,15 @@ local function get_parsed_query_lazy()
             f(config)
             return
         end
-        for _, sub_config in pairs(config) do
+        if type(config) ~= "table" then
+            log.warn(("unsupported icon config: %s = %s"):format(table.concat(keys, "."), config))
+            return
+        end
+        local key_pos = #keys + 1
+        for key, sub_config in pairs(config) do
+            keys[key_pos] = key
             traverse_config(sub_config, f)
+            keys[key_pos] = nil
         end
     end
 
