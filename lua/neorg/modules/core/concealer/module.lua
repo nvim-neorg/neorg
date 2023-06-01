@@ -1117,8 +1117,23 @@ local function clear_all_extmarks(bufid)
     vim.api.nvim_buf_clear_namespace(bufid, ns_prettify_flag, 0, -1)
 end
 
+local function get_table_default_empty(tbl, key)
+    if not tbl[key] then
+        tbl[key] = {}
+    end
+    return tbl[key]
+end
+
+local function update_cursor(event)
+    local cursor_record = get_table_default_empty(module.private.cursor_record, event.buffer)
+    cursor_record.row_0b = event.cursor_position[1] - 1
+    cursor_record.col_0b = event.cursor_position[2]
+    cursor_record.line_content = event.line_content
+end
+
 local function handle_init_event(event)
     assert(vim.api.nvim_win_is_valid(event.window))
+    update_cursor(event)
 
     local function on_line_callback(
         tag,
@@ -1196,20 +1211,6 @@ local function is_same_line_movement(event)
         and cursor_record.col_0b ~= event.cursor_position[2]
         and cursor_record.line_content == event.line_content
     )
-end
-
-local function get_table_default_empty(tbl, key)
-    if not tbl[key] then
-        tbl[key] = {}
-    end
-    return tbl[key]
-end
-
-local function update_cursor(event)
-    local cursor_record = get_table_default_empty(module.private.cursor_record, event.buffer)
-    cursor_record.row_0b = event.cursor_position[1] - 1
-    cursor_record.col_0b = event.cursor_position[2]
-    cursor_record.line_content = event.line_content
 end
 
 local function handle_cursor_moved(event)
