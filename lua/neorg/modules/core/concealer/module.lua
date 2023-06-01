@@ -21,29 +21,6 @@ local function in_range(k, l, r_ex)
     return l <= k and k < r_ex
 end
 
-local function check_node_type(node, next_node_type, moves)
-    for i = 1, moves:len() do
-        local c = moves:sub(i,i)
-        if c == "u" then
-            node = node:parent()
-        elseif c == "l" then
-            node = node:prev_named_sibling()
-        elseif c == "r" then
-            node = node:next_named_sibling()
-        else
-            assert(false)
-        end
-        if not node then
-            return
-        end
-    end
-    return (node:type() == next_node_type)
-end
-
-local function should_link_location_conceal(node)
-    return check_node_type(node, "link_description", "ur") or check_node_type(node, "link_description", "ul")
-end
-
 local function is_concealing_on_row_range(mode, conceallevel, concealcursor, current_row_0b, row_start_0b, row_end_0bex)
     if conceallevel < 1 then
         return false
@@ -737,14 +714,12 @@ module.config.public = {
                     "link_target_heading6",
                 },
             },
-            check_conceal = should_link_location_conceal,
             render = module.public.icon_renderers.multilevel_on_right,
         },
         definition = {
             single = {
                 icon = "≡",
                 nodes = { "single_definition_prefix", concealed = { "link_target_definition" } },
-                check_conceal = should_link_location_conceal,
                 render = module.public.icon_renderers.on_left,
             },
             multi_prefix = {
@@ -763,7 +738,6 @@ module.config.public = {
             single = {
                 icon = "⁎",
                 nodes = { "single_footnote_prefix", concealed = { "link_target_footnote" } },
-                check_conceal = should_link_location_conceal,
                 render = module.public.icon_renderers.on_left,
             },
             multi_prefix = {
@@ -971,7 +945,7 @@ local function get_parsed_query_lazy()
         return module.private.prettify_query
     end
 
-    local keys = {"config", "icons"}
+    local keys = { "config", "icons" }
     local function traverse_config(config, f)
         if config == false then
             return

@@ -321,6 +321,13 @@
                 "_end"
             ] @conceal
         )
+        (link_location
+            [
+                "_begin"
+                type: (_)
+                "_end"
+            ] @conceal
+        )
         (link
             (link_location) @conceal
             (link_description)
