@@ -971,6 +971,7 @@ local function get_parsed_query_lazy()
         return module.private.prettify_query
     end
 
+    local keys = {"config", "icons"}
     local function traverse_config(config, f)
         if config == false then
             return
@@ -979,8 +980,15 @@ local function get_parsed_query_lazy()
             f(config)
             return
         end
-        for _, sub_config in pairs(config) do
+        if type(config) ~= "table" then
+            log.warn(("unsupported icon config: %s = %s"):format(table.concat(keys, "."), config))
+            return
+        end
+        local key_pos = #keys + 1
+        for key, sub_config in pairs(config) do
+            keys[key_pos] = key
             traverse_config(sub_config, f)
+            keys[key_pos] = nil
         end
     end
 
