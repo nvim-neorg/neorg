@@ -436,26 +436,15 @@ module.public = {
         end,
 
         multilevel_ordered_inline_on_right = function(config, bufid, node)
-            if not config.icons then
+            if not config.generators then
                 return
             end
 
             local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
-            local initial_number = table_get_default_last(config.icons, len)
-
-            if not initial_number then
-                return
-            end
-
-            local vocabulary = get_number_table(initial_number)
-
-            if not vocabulary then
-                return
-            end -- TODO: warning
 
             local index = get_ordered_index(bufid, node)
             local generator = table_get_default_last(config.generators, len)
-            local format = table_get_default_last(config.formatters, index)
+            local format = table_get_default_last(config.formatters, len)
 
             local text = (" "):rep(len - 1) .. string.format(format, generator(index))
 
@@ -720,7 +709,7 @@ module.config.public = {
             render = module.public.icon_renderers.multilevel_on_right,
         },
         ordered = {
-            icons = has_anticonceal and { "1", "A", "a" } or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
+            icons = (not has_anticonceal) and { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" } or nil,
             nodes = {
                 "ordered_list1_prefix",
                 "ordered_list2_prefix",
@@ -734,8 +723,10 @@ module.config.public = {
                 module.public.icon_generators.numeric,
                 module.public.icon_generators.alphanumeric_uppercase,
                 module.public.icon_generators.alphanumeric_lowercase,
+                module.public.icon_generators.numeric,
             },
-            formatters = { "%s." },
+
+            formatters = { "%s.", "%s.", "%s.", "(%s)" },
 
             render = has_anticonceal and module.public.icon_renderers.multilevel_ordered_inline_on_right
                 or module.public.icon_renderers.multilevel_ordered_on_right,
