@@ -454,10 +454,10 @@ module.public = {
             end -- TODO: warning
 
             local index = get_ordered_index(bufid, node)
-            local result = config.generator and config.generator(index) or tostring(index)
+            local generator = table_get_default_last(config.generators, len)
             local format = table_get_default_last(config.formatters, index)
 
-            local text = (" "):rep(len - 1) .. string.format(format, result)
+            local text = (" "):rep(len - 1) .. string.format(format, generator(index))
 
             local highlight = config.highlights and table_get_default_last(config.highlights, len)
 
@@ -606,6 +606,33 @@ module.public = {
             end
         end,
     },
+
+    icon_generators = {
+        numeric = function(index)
+            return tostring(index)
+        end,
+
+        convert_to_base_n = function(vocabulary, number)
+            local result = {}
+
+            while number > 0 do
+                local remainder = ((number - 1) % #vocabulary) + 1
+
+                table.insert(result, 1, string.sub(vocabulary, remainder, remainder))
+                number = math.floor((number - 1) / #vocabulary)
+            end
+
+            return table.concat(result)
+        end,
+
+        alphanumeric_uppercase = function(index)
+            return module.public.icon_generators.convert_to_base_n("ABCDEFGHIJKLMNOPQRSTUVWXYZ", index)
+        end,
+
+        alphanumeric_lowercase = function(index)
+            return module.public.icon_generators.convert_to_base_n("abcdefghijklmnopqrstuvwxyz", index)
+        end,
+    },
 }
 
 module.config.public = {
@@ -703,9 +730,15 @@ module.config.public = {
                 "ordered_list6_prefix",
             },
 
+            generators = {
+                module.public.icon_generators.numeric,
+                module.public.icon_generators.alphanumeric_uppercase,
+                module.public.icon_generators.alphanumeric_lowercase,
+            },
             formatters = { "%s." },
 
-            render = has_anticonceal and module.public.icon_renderers.multilevel_ordered_inline_on_right or module.public.icon_renderers.multilevel_ordered_on_right,
+            render = has_anticonceal and module.public.icon_renderers.multilevel_ordered_inline_on_right
+                or module.public.icon_renderers.multilevel_ordered_on_right,
         },
         quote = {
             icons = { "│" },
