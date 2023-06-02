@@ -60,7 +60,9 @@ end
 --- end utils
 
 require("neorg.modules.base")
--- require("neorg.external.helpers")
+require("neorg.external.helpers")
+
+local has_anticonceal = neorg.utils.is_minimum_version(0, 10, 0)
 
 local module = neorg.modules.create("core.concealer")
 
@@ -117,6 +119,7 @@ local function set_mark(bufid, row_0b, col_0b, text, highlight, ext_opts)
         spell = nil,
         ui_watched = nil,
     }
+
     if ext_opts then
         table_extend_in_place(opt, ext_opts)
     end
@@ -432,6 +435,38 @@ module.public = {
             set_mark(bufid, row_0b, col_0b, text, highlight)
         end,
 
+        multilevel_ordered_inline_on_right = function(config, bufid, node)
+            if not config.icons then
+                return
+            end
+
+            local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
+            local initial_number = table_get_default_last(config.icons, len)
+
+            if not initial_number then
+                return
+            end
+
+            local vocabulary = get_number_table(initial_number)
+
+            if not vocabulary then
+                return
+            end -- TODO: warning
+
+            local index = get_ordered_index(bufid, node)
+            local result = config.generator and config.generator(index) or tostring(index)
+            local format = table_get_default_last(config.formatters, index)
+
+            local text = (" "):rep(len - 1) .. string.format(format, result)
+
+            local highlight = config.highlights and table_get_default_last(config.highlights, len)
+
+            set_mark(bufid, row_0b, col_0b, text:sub(1, len), highlight)
+            set_mark(bufid, row_0b, col_0b + len, text:sub(len + 1), highlight, {
+                virt_text_pos = "inline",
+            })
+        end,
+
         multilevel_ordered_on_right = function(config, bufid, node)
             if not config.icons then
                 return
@@ -448,6 +483,7 @@ module.public = {
             local index = get_ordered_index(bufid, node)
             local text = (" "):rep(len - 1) .. (number_table[index] or "~")
             local highlight = config.highlights and table_get_default_last(config.highlights, len)
+
             set_mark(bufid, row_0b, col_0b, text, highlight)
         end,
 
@@ -657,7 +693,7 @@ module.config.public = {
             render = module.public.icon_renderers.multilevel_on_right,
         },
         ordered = {
-            icons = { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
+            icons = has_anticonceal and { "1", "A", "a" } or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
             nodes = {
                 "ordered_list1_prefix",
                 "ordered_list2_prefix",
@@ -666,7 +702,10 @@ module.config.public = {
                 "ordered_list5_prefix",
                 "ordered_list6_prefix",
             },
-            render = module.public.icon_renderers.multilevel_ordered_on_right,
+
+            formatters = { "%s." },
+
+            render = has_anticonceal and module.public.icon_renderers.multilevel_ordered_inline_on_right or module.public.icon_renderers.multilevel_ordered_on_right,
         },
         quote = {
             icons = { "│" },
