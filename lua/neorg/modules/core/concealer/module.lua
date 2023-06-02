@@ -719,6 +719,11 @@ module.config.public = {
                 "ordered_list6_prefix",
             },
 
+            --- A list of icon generators.
+            ---
+            --- Icon generators live in the `icon_generators` namespace. They create
+            --- a unique ID for each index in the list. This can be as simple as `1, 2, 3, 4...`
+            --- or `A, B, C, D...`, but one could opt for more complex generators.
             generators = {
                 module.public.icon_generators.numeric,
                 module.public.icon_generators.alphanumeric_uppercase,
@@ -726,6 +731,10 @@ module.config.public = {
                 module.public.icon_generators.numeric,
             },
 
+            --- A list of lua patterns specifying how to format each
+            --- nesting level of an ordered list.
+            ---
+            --- `%s` is substituted with the string returned by the `generator`.
             formatters = { "%s.", "%s.", "%s.", "(%s)" },
 
             render = has_anticonceal and module.public.icon_renderers.multilevel_ordered_inline_on_right
