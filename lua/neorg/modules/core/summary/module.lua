@@ -65,7 +65,7 @@ module.load = function()
                           metadata.description = nil
                         end
                         table.insert(
-                            categories[category],
+                            categories[neorg.lib.title(category)],
                             { title = tostring(metadata.title), filename = filename, description = metadata.description }
                         )
                     end
@@ -74,7 +74,7 @@ module.load = function()
                 local prefix = string.rep("*", heading_level)
 
                 for category, data in vim.spairs(categories) do
-                    table.insert(result, prefix .. " " .. neorg.lib.title(category))
+                    table.insert(result, prefix .. " " .. category)
 
                     for _, datapoint in ipairs(data) do
                         table.insert(
