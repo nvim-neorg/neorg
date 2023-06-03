@@ -53,20 +53,24 @@ module.load = function()
 
                     -- normalise categories into a list. Could be vim.NIL, a number, a string or a list ...
                     if not metadata.categories or metadata.categories == vim.NIL then
-                      metadata.categories = {'Uncategorised'}
+                        metadata.categories = { "Uncategorised" }
                     elseif not vim.tbl_islist(metadata.categories) then
-                      metadata.categories = { tostring(metadata.categories) }
+                        metadata.categories = { tostring(metadata.categories) }
                     end
                     for _, category in ipairs(metadata.categories) do
                         if not metadata.title then
-                          metadata.title = vim.fs.basename(filename)
+                            metadata.title = vim.fs.basename(filename)
                         end
                         if metadata.description == vim.NIL then
-                          metadata.description = nil
+                            metadata.description = nil
                         end
                         table.insert(
                             categories[neorg.lib.title(category)],
-                            { title = tostring(metadata.title), filename = filename, description = metadata.description }
+                            {
+                                title = tostring(metadata.title),
+                                filename = filename,
+                                description = metadata.description,
+                            }
                         )
                     end
                 end)
@@ -137,7 +141,8 @@ module.on_event = function(event)
             return
         end
 
-        local generated = module.config.public.strategy(dirman.get_norg_files(dirman.get_current_workspace()[1]) or {}, level+1)
+        local generated =
+            module.config.public.strategy(dirman.get_norg_files(dirman.get_current_workspace()[1]) or {}, level + 1)
 
         if not generated or vim.tbl_isempty(generated) then
             neorg.utils.notify(

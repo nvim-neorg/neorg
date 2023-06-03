@@ -121,7 +121,8 @@ module.on_event = function(event)
 
         local _, column = current:start()
 
-        local is_on_nonempty_line = vim.api.nvim_buf_get_lines(event.buffer, cursor_pos, cursor_pos+1, true)[1]:match("%S")
+        local is_on_nonempty_line =
+            vim.api.nvim_buf_get_lines(event.buffer, cursor_pos, cursor_pos + 1, true)[1]:match("%S")
         if is_on_nonempty_line then
             cursor_pos = cursor_pos + 1
         end
