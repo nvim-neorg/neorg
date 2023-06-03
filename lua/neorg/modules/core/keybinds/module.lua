@@ -326,7 +326,7 @@ module.public = {
                                     .. " "
                                     .. table.concat(vim.list_slice(keymap, 2), " ")
                                     .. "<CR>",
-                                opts
+                                vim.tbl_deep_extend("force", opts, keymap.opts or {})
                             )
                         end
                     end

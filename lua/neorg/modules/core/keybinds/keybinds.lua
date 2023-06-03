@@ -11,35 +11,47 @@ module.config.public = {
                 n = {
                     -- Marks the task under the cursor as "undone"
                     -- ^mark Task as Undone
-                    { leader .. "tu", "core.qol.todo_items.todo.task_undone" },
+                    { leader .. "tu", "core.qol.todo_items.todo.task_undone", opts = { desc = "Mark as Undone" } },
 
                     -- Marks the task under the cursor as "pending"
                     -- ^mark Task as Pending
-                    { leader .. "tp", "core.qol.todo_items.todo.task_pending" },
+                    { leader .. "tp", "core.qol.todo_items.todo.task_pending", opts = { desc = "Mark as Pending" } },
 
                     -- Marks the task under the cursor as "done"
                     -- ^mark Task as Done
-                    { leader .. "td", "core.qol.todo_items.todo.task_done" },
+                    { leader .. "td", "core.qol.todo_items.todo.task_done", opts = { desc = "Mark as Done" } },
 
                     -- Marks the task under the cursor as "on_hold"
                     -- ^mark Task as on Hold
-                    { leader .. "th", "core.qol.todo_items.todo.task_on_hold" },
+                    { leader .. "th", "core.qol.todo_items.todo.task_on_hold", opts = { desc = "Mark as On Hold" } },
 
                     -- Marks the task under the cursor as "cancelled"
                     -- ^mark Task as Cancelled
-                    { leader .. "tc", "core.qol.todo_items.todo.task_cancelled" },
+                    {
+                        leader .. "tc",
+                        "core.qol.todo_items.todo.task_cancelled",
+                        opts = { desc = "Mark as Cancelled" },
+                    },
 
                     -- Marks the task under the cursor as "recurring"
                     -- ^mark Task as Recurring
-                    { leader .. "tr", "core.qol.todo_items.todo.task_recurring" },
+                    {
+                        leader .. "tr",
+                        "core.qol.todo_items.todo.task_recurring",
+                        opts = { desc = "Mark as Recurring" },
+                    },
 
                     -- Marks the task under the cursor as "important"
                     -- ^mark Task as Important
-                    { leader .. "ti", "core.qol.todo_items.todo.task_important" },
+                    {
+                        leader .. "ti",
+                        "core.qol.todo_items.todo.task_important",
+                        opts = { desc = "Mark as Important" },
+                    },
 
                     -- Marks the task under the cursor as "ambiguous"
                     -- ^mark Task as ambiguous
-                    { leader .. "ta", "core.qol.todo_items.todo.task_ambiguous" },
+                    { leader .. "ta", "core.qol.todo_items.todo.task_ambiguous", opts = { desc = "Mark as Ambigous" } },
 
                     -- Switches the task under the cursor between a select few states
                     { "<C-Space>", "core.qol.todo_items.todo.task_cycle" },
