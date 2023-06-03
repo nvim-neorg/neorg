@@ -47,8 +47,8 @@ module.load = function()
             local get_first_heading_title = function(bufnr)
                 local document_root = ts.get_document_root(bufnr)
                 if not heading_query then
-                  -- allow second level headings, just in case
-                  local heading_query_string = [[
+                    -- allow second level headings, just in case
+                    local heading_query_string = [[
                          [
                              (heading1
                                  title: (paragraph_segment) @next-segment
@@ -58,22 +58,22 @@ module.load = function()
                              )
                          ]
                      ]]
-                  heading_query = neorg.utils.ts_parse_query("norg", heading_query_string)
+                    heading_query = neorg.utils.ts_parse_query("norg", heading_query_string)
                 end
-                  -- search up to 20 lines (a doc could potentially have metadata without metadata.title)
+                -- search up to 20 lines (a doc could potentially have metadata without metadata.title)
                 for _, heading in heading_query:iter_captures(document_root, bufnr, 1, 20) do
                     local start_line, _ = heading:start()
-                    local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, start_line+1, false)
+                    local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, start_line + 1, false)
                     if #lines > 0 then
-                      local title = lines[1]:gsub("^%s*%*+%s*", "") -- strip out '*' prefix (handle '* title', ' **title', etc)
-                      if title ~= "" then -- exclude an empty heading like `*` (although the query should have excluded)
-                        return title
-                      end
+                        local title = lines[1]:gsub("^%s*%*+%s*", "") -- strip out '*' prefix (handle '* title', ' **title', etc)
+                        if title ~= "" then -- exclude an empty heading like `*` (although the query should have excluded)
+                            return title
+                        end
                     end
                 end
             end
 
-            return function(files, heading_level)
+            return function(files, ws_root, heading_level)
                 local categories = vim.defaulttable()
 
                 neorg.utils.read_files(files, function(bufnr, filename)
@@ -85,8 +85,9 @@ module.load = function()
 
                     local norgname = filename:match("(.+)%.norg$") -- strip extension for link destinations
                     if not norgname then
-                      norgname  = filename
+                        norgname = filename
                     end
+                    norgname = norgname:gsub("^" .. ws_root .. "/", "")
 
                     -- normalise categories into a list. Could be vim.NIL, a number, a string or a list ...
                     if not metadata.categories or metadata.categories == vim.NIL then
@@ -98,20 +99,17 @@ module.load = function()
                         if not metadata.title then
                             metadata.title = get_first_heading_title(bufnr)
                             if not metadata.title then
-                              metadata.title = vim.fs.basename(norgname)
+                                metadata.title = vim.fs.basename(norgname)
                             end
                         end
                         if metadata.description == vim.NIL then
                             metadata.description = nil
                         end
-                        table.insert(
-                            categories[neorg.lib.title(category)],
-                            {
-                                title = tostring(metadata.title),
-                                norgname = norgname,
-                                description = metadata.description,
-                            }
-                        )
+                        table.insert(categories[neorg.lib.title(category)], {
+                            title = tostring(metadata.title),
+                            norgname = norgname,
+                            description = metadata.description,
+                        })
                     end
                 end)
                 local result = {}
@@ -144,7 +142,7 @@ module.config.public = {
     -- Possible options are:
     -- - "default" - read the metadata to categorize and annotate files. Files
     --   without metadata will use the top level heading as the title. If no headings are present, the filename will be used.
-    ---@type string|fun(files: string[], heading_level: number?): string[]?
+    ---@type string|fun(files: string[], ws_root: string, heading_level: number?): string[]?
     strategy = "default",
 }
 
@@ -179,8 +177,12 @@ module.on_event = function(event)
             return
         end
 
-        local generated =
-            module.config.public.strategy(dirman.get_norg_files(dirman.get_current_workspace()[1]) or {}, level + 1)
+        local ws_root = dirman.get_current_workspace()[2]
+        local generated = module.config.public.strategy(
+            dirman.get_norg_files(dirman.get_current_workspace()[1]) or {},
+            ws_root,
+            level + 1
+        )
 
         if not generated or vim.tbl_isempty(generated) then
             neorg.utils.notify(
