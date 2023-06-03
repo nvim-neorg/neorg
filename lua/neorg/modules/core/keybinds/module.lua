@@ -316,23 +316,18 @@ module.public = {
                     for neovim_mode, keymaps in pairs(keys) do
                         -- Loop though all the keymaps in that mode
                         for _, keymap in ipairs(keymaps) do
-                            if keymap[3] and type(keymap[3]) == "table" then
-                                for extraopt, value in pairs(keymap[3]) do
-                                    opts[extraopt] = value
-                                end
-                            end
                             -- Map the keybind and keep track of it using the map() function
                             payload.map(
                                 mode,
                                 neovim_mode,
                                 keymap[1],
-                                "<cmd>Neorg keybind " .. mode .. " " .. keymap[2] .. "<CR>",
-                                opts
+                                "<cmd>Neorg keybind "
+                                    .. mode
+                                    .. " "
+                                    .. table.concat(vim.list_slice(keymap, 2), " ")
+                                    .. "<CR>",
+                                vim.tbl_deep_extend("force", opts, keymap.opts or {})
                             )
-                            opts = {
-                                silent = true,
-                                noremap = true,
-                            }
                         end
                     end
                 end
