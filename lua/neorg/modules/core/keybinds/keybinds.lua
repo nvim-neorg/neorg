@@ -54,38 +54,43 @@ module.config.public = {
                     { leader .. "ta", "core.qol.todo_items.todo.task_ambiguous", opts = { desc = "Mark as Ambigous" } },
 
                     -- Switches the task under the cursor between a select few states
-                    { "<C-Space>", "core.qol.todo_items.todo.task_cycle" },
+                    { "<C-Space>", "core.qol.todo_items.todo.task_cycle", opts = { desc = "Cycle Task" } },
 
                     -- Creates a new .norg file to take notes in
                     -- ^New Note
-                    { leader .. "nn", "core.dirman.new.note" },
+                    { leader .. "nn", "core.dirman.new.note", opts = { desc = "Create New Note" } },
 
                     -- Hop to the destination of the link under the cursor
-                    { "<CR>", "core.esupports.hop.hop-link" },
-                    { "gd", "core.esupports.hop.hop-link" },
-                    { "gf", "core.esupports.hop.hop-link" },
-                    { "gF", "core.esupports.hop.hop-link" },
+                    { "<CR>", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
+                    { "gd", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
+                    { "gf", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
+                    { "gF", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
 
                     -- Same as `<CR>`, except opens the destination in a vertical split
-                    { "<M-CR>", "core.esupports.hop.hop-link", "vsplit" },
+                    {
+                        "<M-CR>",
+                        "core.esupports.hop.hop-link",
+                        "vsplit",
+                        opts = { desc = "Jump to Link (Vertical Split)" },
+                    },
 
-                    { ">.", "core.promo.promote" },
-                    { "<,", "core.promo.demote" },
+                    { ">.", "core.promo.promote", opts = { desc = "Promote Object (Non-Recursively)" } },
+                    { "<,", "core.promo.demote", opts = { desc = "Demote Object (Non-Recursively)" } },
 
-                    { ">>", "core.promo.promote", "nested" },
-                    { "<<", "core.promo.demote", "nested" },
+                    { ">>", "core.promo.promote", "nested", opts = { desc = "Promote Object (Recursively)" } },
+                    { "<<", "core.promo.demote", "nested", opts = { desc = "Demote Object (Recursively)" } },
 
-                    { leader .. "lt", "core.pivot.toggle-list-type" },
-                    { leader .. "li", "core.pivot.invert-list-type" },
+                    { leader .. "lt", "core.pivot.toggle-list-type", opts = { desc = "Toggle (Un)ordered List" } },
+                    { leader .. "li", "core.pivot.invert-list-type", opts = { desc = "Invert (Un)ordered List" } },
 
-                    { leader .. "id", "core.tempus.insert-date" },
+                    { leader .. "id", "core.tempus.insert-date", opts = { desc = "Insert Date" } },
                 },
 
                 i = {
-                    { "<C-t>", "core.promo.promote" },
-                    { "<C-d>", "core.promo.demote" },
-                    { "<M-CR>", "core.itero.next-iteration" },
-                    { "<M-d>", "core.tempus.insert-date-insert-mode" },
+                    { "<C-t>", "core.promo.promote", opts = { desc = "Promote Object (Recursively)" } },
+                    { "<C-d>", "core.promo.demote", opts = { desc = "Demote Object (Recursively)" } },
+                    { "<M-CR>", "core.itero.next-iteration", opts = { desc = "Continue Object" } },
+                    { "<M-d>", "core.tempus.insert-date-insert-mode", opts = { desc = "Insert Date" } },
                 },
 
                 -- TODO: Readd these
@@ -102,10 +107,14 @@ module.config.public = {
             keybinds.map_event_to_mode("traverse-heading", {
                 n = {
                     -- Move to the next heading in the document
-                    { "j", "core.integrations.treesitter.next.heading" },
+                    { "j", "core.integrations.treesitter.next.heading", opts = { desc = "Move to Next Heading" } },
 
                     -- Move to the previous heading in the document
-                    { "k", "core.integrations.treesitter.previous.heading" },
+                    {
+                        "k",
+                        "core.integrations.treesitter.previous.heading",
+                        opts = { desc = "Move to Previous Heading" },
+                    },
                 },
             }, {
                 silent = true,
@@ -115,13 +124,13 @@ module.config.public = {
             -- Map the below keys on presenter mode
             keybinds.map_event_to_mode("presenter", {
                 n = {
-                    { "<CR>", "core.presenter.next_page" },
-                    { "l", "core.presenter.next_page" },
-                    { "h", "core.presenter.previous_page" },
+                    { "<CR>", "core.presenter.next_page", opts = { desc = "Next Page" } },
+                    { "l", "core.presenter.next_page", opts = { desc = "Next Page" } },
+                    { "h", "core.presenter.previous_page", opts = { desc = "Previous Page" } },
 
                     -- Keys for closing the current display
-                    { "q", "core.presenter.close" },
-                    { "<Esc>", "core.presenter.close" },
+                    { "q", "core.presenter.close", opts = { desc = "Close Presentation" } },
+                    { "<Esc>", "core.presenter.close", opts = { desc = "Close Presentation" } },
                 },
             }, {
                 silent = true,
@@ -132,9 +141,13 @@ module.config.public = {
             -- Apply the below keys to all modes
             keybinds.map_to_mode("all", {
                 n = {
-                    { leader .. "mn", ":Neorg mode norg<CR>" },
-                    { leader .. "mh", ":Neorg mode traverse-heading<CR>" },
-                    { "gO", ":Neorg toc split<CR>" },
+                    { leader .. "mn", ":Neorg mode norg<CR>", opts = { desc = "Enter Norg Mode" } },
+                    {
+                        leader .. "mh",
+                        ":Neorg mode traverse-heading<CR>",
+                        opts = { desc = "Enter Heading Traversal Mode" },
+                    },
+                    { "gO", ":Neorg toc split<CR>", opts = { desc = "Open a Table of Contents" } },
                 },
             }, {
                 silent = true,
