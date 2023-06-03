@@ -27,15 +27,27 @@ module.config.public = {
 
                     -- Marks the task under the cursor as "cancelled"
                     -- ^mark Task as Cancelled
-                    { leader .. "tc", "core.qol.todo_items.todo.task_cancelled", opts = { desc = "Mark as Cancelled" } },
+                    {
+                        leader .. "tc",
+                        "core.qol.todo_items.todo.task_cancelled",
+                        opts = { desc = "Mark as Cancelled" },
+                    },
 
                     -- Marks the task under the cursor as "recurring"
                     -- ^mark Task as Recurring
-                    { leader .. "tr", "core.qol.todo_items.todo.task_recurring", opts = { desc = "Mark as Recurring" } },
+                    {
+                        leader .. "tr",
+                        "core.qol.todo_items.todo.task_recurring",
+                        opts = { desc = "Mark as Recurring" },
+                    },
 
                     -- Marks the task under the cursor as "important"
                     -- ^mark Task as Important
-                    { leader .. "ti", "core.qol.todo_items.todo.task_important", opts = { desc = "Mark as Important" } },
+                    {
+                        leader .. "ti",
+                        "core.qol.todo_items.todo.task_important",
+                        opts = { desc = "Mark as Important" },
+                    },
 
                     -- Marks the task under the cursor as "ambiguous"
                     -- ^mark Task as ambiguous
