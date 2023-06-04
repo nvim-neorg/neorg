@@ -68,8 +68,7 @@ version: 0.1
     ~~~~~~ Ordered list level 6
     |end
 
-    Weird/buggy ordered list icons are a known bug, and can only be fixed
-    once {https://github.com/neovim/neovim/pull/9496}[anticonceal] is implemented.
+    *NOTE: For proper ordered list rendering ensure you are running Neovim >= `0.10.0`*
 
 *** Tasks
 
@@ -307,6 +306,8 @@ version: 0.1
 
 *** Media
 
+    *NOTE: Media is currently unimplemented within Neorg*
+
     You can embed images directly in base64 format like so:
     @image png svg jpeg jfif exif
     <base64-encoded image data>
@@ -354,6 +355,8 @@ version: 0.1
     ^,This should be super- and subscript.,^
 
 *** Variables
+
+    *NOTE: Variables are not yet implemented in Neorg*
 
     You can define variables which you can access later in your document like so:
 
