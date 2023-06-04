@@ -42,9 +42,9 @@ module.load = function()
     local keybinds = module.required["core.keybinds"]
 
     if module.config.public.zen_mode == "truezen" then
-        neorg.modules.load_module("core.integrations.truezen", module.name)
+        neorg.modules.load_module("core.integrations.truezen")
     elseif module.config.public.zen_mode == "zen-mode" then
-        neorg.modules.load_module("core.integrations.zen_mode", module.name)
+        neorg.modules.load_module("core.integrations.zen_mode")
     else
         log.error("Unrecognized mode for 'zen_mode' option. Please check your presenter config")
         error_loading = true
