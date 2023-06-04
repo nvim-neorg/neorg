@@ -61,14 +61,16 @@ module.load = function()
                     heading_query = neorg.utils.ts_parse_query("norg", heading_query_string)
                 end
                 -- search up to 20 lines (a doc could potentially have metadata without metadata.title)
-                for _, heading in heading_query:iter_captures(document_root, bufnr, 1, 20) do
-                    local start_line, _ = heading:start()
-                    local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, start_line + 1, false)
-                    if #lines > 0 then
-                        local title = lines[1]:gsub("^%s*%*+%s*", "") -- strip out '*' prefix (handle '* title', ' **title', etc)
-                        if title ~= "" then -- exclude an empty heading like `*` (although the query should have excluded)
-                            return title
-                        end
+                local _, heading = heading_query:iter_captures(document_root, bufnr)()
+                if not heading then
+                  return nil
+                end
+                local start_line, _ = heading:start()
+                local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, start_line + 1, false)
+                if #lines > 0 then
+                    local title = lines[1]:gsub("^%s*%*+%s*", "") -- strip out '*' prefix (handle '* title', ' **title', etc)
+                    if title ~= "" then -- exclude an empty heading like `*` (although the query should have excluded)
+                        return title
                     end
                 end
             end
@@ -87,7 +89,7 @@ module.load = function()
                     if not norgname then
                         norgname = filename
                     end
-                    norgname = norgname:gsub("^" .. ws_root .. "/", "")
+                    norgname = norgname:gsub("^" .. ws_root, "")
 
                     -- normalise categories into a list. Could be vim.NIL, a number, a string or a list ...
                     if not metadata.categories or metadata.categories == vim.NIL then
@@ -121,7 +123,7 @@ module.load = function()
                     for _, datapoint in ipairs(data) do
                         table.insert(
                             result,
-                            table.concat({ "   - {:", datapoint.norgname, ":}[", neorg.lib.title(datapoint.title), "]" })
+                            table.concat({ "   - {:$", datapoint.norgname, ":}[", neorg.lib.title(datapoint.title), "]" })
                                 .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
                         )
                     end
