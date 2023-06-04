@@ -145,13 +145,13 @@ module.public = {
         end
 
         module.public.neorg_commands =
-            vim.tbl_deep_extend("force", module.public.neorg_commands, module_config.neorg_commands)
+            vim.tbl_extend("force", module.public.neorg_commands, module_config.neorg_commands)
     end,
 
     --- Recursively merges the provided table with the module.config.public.neorg_commands table.
     ---@param functions table #A table that follows the module.config.public.neorg_commands structure
     add_commands_from_table = function(functions)
-        module.public.neorg_commands = vim.tbl_deep_extend("force", module.public.neorg_commands, functions)
+        module.public.neorg_commands = vim.tbl_extend("force", module.public.neorg_commands, functions)
     end,
 
     --- Takes a relative path (e.g "list.modules") and loads it from the commands/ directory
