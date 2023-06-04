@@ -13,7 +13,7 @@ Your New Life Organization Tool - All in Lua
 
 [Summary](#summary)
 •
-[Showcase](#-showcase)
+[Tutorial](#-tutorial)
 •
 [Installation](#-installationquickstart)
 •
@@ -57,47 +57,9 @@ To learn more about the philosophy of the project check the [philosophy](#-philo
 
 ###### :exclamation: **IMPORTANT**: Neorg is young software. We consider it stable however be prepared for occasional breaking workflow changes. Make sure to pin the version of Neorg you'd like to use and only update when you are ready.
 
-## 🌟 Showcase
+## 🌟 Tutorial
 
-<details>
-<summary>A `.norg` file:</summary>
-  <img width="700" alt="Showcase image of a Neorg document" src="https://user-images.githubusercontent.com/76052559/150838408-1a021d7b-1891-4cab-b16e-6b755e741e87.png">
-</details>
-
-<details>
-<summary>Concealing module enabled:</summary>
-  <img width="700" alt="Image of a Neorg document with the concealer module enabled." src="https://user-images.githubusercontent.com/76052559/150838418-b443b92d-186a-45cb-ba84-06f03cdeea8a.png">
-</details>
-
-<details>
-<summary>First class treesitter support:</summary>
-
-![First class treesitter support](https://user-images.githubusercontent.com/76052559/151668244-9805afc4-8c50-4925-85ec-1098aff5ede6.gif)
-
-</details>
-
-<details>
-<summary>Treesitter powered editing:</summary>
-
-![Treesitter powered editing](https://user-images.githubusercontent.com/76052559/151614059-41b590cd-07ea-437c-84b9-536de6d1adfa.gif)
-
-</details>
-
-<details>
-  <summary>Powerpoint-like presentations in Neovim with the presenter module:</summary>
-
-![Powerpoint-like presentations in Neovim with the presenter module](https://user-images.githubusercontent.com/76052559/151674065-ed397716-9d26-4efc-9c2d-2dfdb5539edf.gif)
-
-</details>
-
-<details>
-  <summary>Get syntax highlighting for any language supported by Neovim:</summary>
-
-Plus fancy completion powered by `nvim-cmp`.
-
-![Get syntax highlighting for any language supported by Neovim](https://user-images.githubusercontent.com/76052559/151668015-39a50439-5c95-4a18-9970-090fb68cfc0b.gif)
-
-</details>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/NnmRVY22Lq8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ## 🔧 Installation/Quickstart
 
