@@ -59,7 +59,13 @@ To learn more about the philosophy of the project check the [philosophy](#-philo
 
 ## 🌟 Tutorial
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/NnmRVY22Lq8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<div>
+
+<a href="https://www.youtube.com/watch?v=NnmRVY22Lq8&list=PLx2ksyallYzVI8CN1JMXhEf62j2AijeDa&index=1">
+ <img src="https://img.youtube.com/vi/NnmRVY22Lq8/0.jpg" style="width:75%;">
+</a>
+
+</div>
 
 ## 🔧 Installation/Quickstart
 
