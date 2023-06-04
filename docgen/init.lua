@@ -67,11 +67,11 @@ for _, file in ipairs(docgen.aggregate_module_files()) do
         goto continue
     end
 
-    -- Make Neorg load the module, which also evaluates dependencies and imports
+    -- Make Neorg load the module, which also evaluates dependencies
     neorg.modules.load_module(parsed_module.name)
 
     -- Retrieve the module from the `loaded_modules` table.
-    parsed_module = neorg.modules.loaded_modules[parsed_module.name].real()
+    parsed_module = neorg.modules.loaded_modules[parsed_module.name]
 
     modules[parsed_module.name] = {
         top_comment_data = top_comment_data,

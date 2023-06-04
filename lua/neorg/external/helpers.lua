@@ -2,6 +2,9 @@
 --    HELPER FUNCTIONS FOR NEORG
 --    This file contains some simple helper functions to improve QOL
 --]]
+
+local version = vim.version()
+
 neorg.utils = {
     --- A version agnostic way to call the neovim treesitter query parser
     --- @param language string # Language to use for the query
@@ -99,8 +102,6 @@ neorg.utils = {
     ---@param patch number #The patch number (in case you need it)
     ---@return boolean #Whether Neovim is running at the same or a higher version than the one given
     is_minimum_version = function(major, minor, patch)
-        local version = vim.version()
-
         return major <= version.major and minor <= version.minor and patch <= version.patch
     end,
     --- Parses a version string like "0.4.2" and provides back a table like { major = <number>, minor = <number>, patch = <number> }
@@ -578,6 +579,69 @@ neorg.lib = {
         end
 
         return wrapped_value
+    end,
+
+    --- Lazily copy a table-like object.
+    ---@param to_copy table|any #The table to copy. If any other type is provided it will be copied immediately.
+    ---@return table #The copied table
+    lazy_copy = function(to_copy)
+        if type(to_copy) ~= "table" then
+            return vim.deepcopy(to_copy)
+        end
+
+        local proxy = {
+            original = function()
+                return to_copy
+            end,
+
+            collect = function(self)
+                return vim.tbl_deep_extend("force", to_copy, self)
+            end,
+        }
+
+        return setmetatable(proxy, {
+            __index = function(_, key)
+                if not to_copy[key] then
+                    return nil
+                end
+
+                if type(to_copy[key]) == "table" then
+                    local copied = neorg.lib.lazy_copy(to_copy[key])
+
+                    rawset(proxy, key, copied)
+
+                    return copied
+                end
+
+                local copied = vim.deepcopy(to_copy[key])
+                rawset(proxy, key, copied)
+                return copied
+            end,
+
+            __pairs = function(tbl)
+                local function stateless_iter(_, key)
+                    local value
+                    key, value = next(to_copy, key)
+                    if value ~= nil then
+                        return key, neorg.lib.lazy_copy(value)
+                    end
+                end
+
+                return stateless_iter, tbl, nil
+            end,
+
+            __ipairs = function(tbl)
+                local function stateless_iter(_, i)
+                    i = i + 1
+                    local value = to_copy[i]
+                    if value ~= nil then
+                        return i, neorg.lib.lazy_copy(value)
+                    end
+                end
+
+                return stateless_iter, tbl, 0
+            end,
+        })
     end,
 }
 

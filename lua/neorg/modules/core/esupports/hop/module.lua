@@ -15,7 +15,6 @@ require("neorg.modules.base")
 require("neorg.external.helpers")
 
 local module = neorg.modules.create("core.esupports.hop")
-local job = require("plenary.job")
 
 module.setup = function()
     return {
@@ -92,7 +91,7 @@ module.public = {
                 o.args = { link_location }
             end
 
-            job:new(o):start()
+            require("plenary.job"):new(o):start()
         end
 
         local function open_split()

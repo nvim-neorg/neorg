@@ -8,21 +8,23 @@
 
 require("neorg.modules.base")
 
-local module = neorg.modules.create("core.ui")
+local module = neorg.modules.create("core.ui", {
+    "selection_popup",
+    "text_popup",
+})
+
+module.setup = function()
+    for _, imported in pairs(module.imported) do
+        module.public = vim.tbl_extend("force", module.public, imported.public)
+    end
+
+    return {}
+end
 
 module.private = {
     windows = {},
     namespace = vim.api.nvim_create_namespace("core.ui"),
 }
-
-module.setup = function()
-    return {
-        imports = {
-            "selection_popup",
-            "text_popup",
-        },
-    }
-end
 
 ---@class core.ui
 module.public = {

@@ -13,24 +13,6 @@ require("neorg.callbacks")
 
 neorg.events = {}
 
--- Define the base event, all events will derive from this by default
-neorg.events.base_event = {
-
-    type = "core.base_event",
-    split_type = {},
-    content = nil,
-    referrer = nil,
-    broadcast = true,
-
-    cursor_position = {},
-    filename = "",
-    filehead = "",
-    line_content = "",
-    buffer = 0,
-    window = 0,
-    mode = "",
-}
-
 --- The working of this function is best illustrated with an example:
 --        If type == 'core.some_plugin.events.my_event', this function will return { 'core.some_plugin', 'my_event' }
 ---@param type string #The full path of a module event
@@ -77,7 +59,21 @@ end
 function neorg.events.define(module, name)
     -- Create a copy of the base event and override the values with ones specified by the user
 
-    local new_event = vim.deepcopy(neorg.events.base_event)
+    local new_event = {
+        type = "core.base_event",
+        split_type = {},
+        content = nil,
+        referrer = nil,
+        broadcast = true,
+
+        cursor_position = {},
+        filename = "",
+        filehead = "",
+        line_content = "",
+        buffer = 0,
+        window = 0,
+        mode = "",
+    }
 
     if name then
         new_event.type = module.name .. ".events." .. name

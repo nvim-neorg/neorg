@@ -30,7 +30,6 @@ neorg-ordered-lists	neorg.norg	/  *** Ordered lists
 neorg-ordered-tag	neorg.norg	/  *** List ordering
 neorg-quotes	neorg.norg	/  *** Quotes
 neorg-roadmap	roadmap.norg	/* The Neorg Roadmap
-neorg-tables	neorg.norg	/  *** Tables
 neorg-tasks	neorg.norg	/  *** Tasks
 neorg-unordered-lists	neorg.norg	/  *** Unordered lists
 neorg-variables	neorg.norg	/  *** Variables

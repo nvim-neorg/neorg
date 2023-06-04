@@ -1,4 +1,4 @@
-local module = neorg.modules.extend("core.concealer.preset_diamond", "core.concealer")
+local module = neorg.modules.create("core.concealer.preset_diamond")
 
 module.config.private.icon_preset_diamond = {
     heading = {

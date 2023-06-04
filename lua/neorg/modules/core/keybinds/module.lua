@@ -59,7 +59,7 @@ to finely control what gets set and where:
 require("neorg.modules.base")
 require("neorg.modules")
 
-local module = neorg.modules.create("core.keybinds")
+local module = neorg.modules.create("core.keybinds", { "keybinds" })
 
 local log = require("neorg.external.log")
 
@@ -67,7 +67,6 @@ module.setup = function()
     return {
         success = true,
         requires = { "core.neorgcmd", "core.mode", "core.autocommands" },
-        imports = { "keybinds" },
     }
 end
 
@@ -356,9 +355,11 @@ module.public = {
 
         if
             module.config.public.default_keybinds
-            and module.config.public.keybind_presets[module.config.public.keybind_preset]
+            and module.imported["core.keybinds.keybinds"].config.public.keybind_presets[module.config.public.keybind_preset]
         then
-            module.config.public.keybind_presets[module.config.public.keybind_preset](payload)
+            module.imported["core.keybinds.keybinds"].config.public.keybind_presets[module.config.public.keybind_preset](
+                payload
+            )
         end
 
         for _, callback in pairs(module.private.requested_keys) do
