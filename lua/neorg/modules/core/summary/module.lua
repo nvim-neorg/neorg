@@ -64,14 +64,11 @@ module.load = function()
                         if metadata.description == vim.NIL then
                             metadata.description = nil
                         end
-                        table.insert(
-                            categories[neorg.lib.title(category)],
-                            {
-                                title = tostring(metadata.title),
-                                filename = filename,
-                                description = metadata.description,
-                            }
-                        )
+                        table.insert(categories[neorg.lib.title(category)], {
+                            title = tostring(metadata.title),
+                            filename = filename,
+                            description = metadata.description,
+                        })
                     end
                 end)
                 local result = {}

@@ -64,7 +64,11 @@ require("neorg.external.helpers")
 
 local has_anticonceal = neorg.utils.is_minimum_version(0, 10, 0)
 
-local module = neorg.modules.create("core.concealer")
+local module = neorg.modules.create("core.concealer", {
+    "preset_basic",
+    "preset_varied",
+    "preset_diamond",
+})
 
 module.setup = function()
     return {
@@ -72,11 +76,6 @@ module.setup = function()
         requires = {
             "core.autocommands",
             "core.integrations.treesitter",
-        },
-        imports = {
-            "preset_basic",
-            "preset_varied",
-            "preset_diamond",
         },
     }
 end
@@ -1332,7 +1331,9 @@ module.on_event = function(event)
 end
 
 module.load = function()
-    if not module.config.private["icon_preset_" .. module.config.public.icon_preset] then
+    if
+        not module.imported[module.name .. ".preset_" .. module.config.public.icon_preset].config.private["icon_preset_" .. module.config.public.icon_preset]
+    then
         log.error(
             ("Unable to load icon preset '%s' - such a preset does not exist"):format(module.config.public.icon_preset)
         )
@@ -1342,7 +1343,8 @@ module.load = function()
     module.config.public.icons = vim.tbl_deep_extend(
         "force",
         module.config.public.icons,
-        module.config.private["icon_preset_" .. module.config.public.icon_preset] or {},
+        module.imported[module.name .. ".preset_" .. module.config.public.icon_preset].config.private["icon_preset_" .. module.config.public.icon_preset]
+            or {},
         module.config.custom
     )
 

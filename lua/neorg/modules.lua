@@ -21,19 +21,14 @@ neorg.modules.loaded_modules = {}
 --- Loads and enables a module
 -- Loads a specified module. If the module subscribes to any events then they will be activated too.
 ---@param module table #The actual module to load
----@param parent string? #The name of a potential parent of the module
 ---@return boolean #Whether the module successfully loaded
-function neorg.modules.load_module_from_table(module, parent)
+function neorg.modules.load_module_from_table(module)
     log.info("Loading module with name", module.name)
 
     -- If our module is already loaded don't try loading it again
     if neorg.modules.loaded_modules[module.name] then
         log.trace("Module", module.name, "already loaded. Omitting...")
         return true
-    end
-
-    if parent then
-        module = module:from(neorg.modules.loaded_modules[parent])
     end
 
     -- Invoke the setup function. This function returns whether or not the loading of the module was successful and some metadata.
@@ -44,7 +39,6 @@ function neorg.modules.load_module_from_table(module, parent)
             replace_merge = false,
             requires = {},
             wants = {},
-            imports = {},
         }
 
     -- We do not expect module.setup() to ever return nil, that's why this check is in place
@@ -193,24 +187,6 @@ function neorg.modules.load_module_from_table(module, parent)
         module.replaced = true
     end
 
-    if loaded_module.imports and not vim.tbl_isempty(loaded_module.imports) then
-        log.info("Module", module.name, "has imports. Including them...")
-
-        for _, import in ipairs(loaded_module.imports) do
-            if not neorg.modules.load_module(module.name .. "." .. import, module.name) then
-                log.error(
-                    "Unable to load",
-                    module.name,
-                    "- the module specified an import (" .. import .. ") but that import could not be found under",
-                    "neorg.modules." .. module.name .. "." .. import
-                )
-                return false
-            end
-
-            module = module:from(neorg.modules.loaded_modules[module.name .. "." .. import], "keep")
-        end
-    end
-
     log.info("Successfully loaded module", module.name)
 
     -- Keep track of the number of loaded modules
@@ -247,10 +223,9 @@ end
 -- If the module cannot not be found, attempt to load it off of github (unimplemented). This function also applies user-defined configurations and keymaps to the modules themselves.
 -- This is the recommended way of loading modules - `load_module_from_table()` should only really be used by neorg itself.
 ---@param module_name string #A path to a module on disk. A path seperator in neorg is '.', not '/'
----@param parent string? #The name of a potential parent of the module
 ---@param config table? #A configuration that reflects the structure of `neorg.configuration.user_configuration.load["module.name"].config`
 ---@return boolean #Whether the module was successfully loaded
-function neorg.modules.load_module(module_name, parent, config)
+function neorg.modules.load_module(module_name, config)
     -- Don't bother loading the module from disk if it's already loaded
     if neorg.modules.is_module_loaded(module_name) then
         return true
@@ -302,7 +277,7 @@ function neorg.modules.load_module(module_name, parent, config)
     end
 
     -- Pass execution onto load_module_from_table() and let it handle the rest
-    return neorg.modules.load_module_from_table(module, parent)
+    return neorg.modules.load_module_from_table(module)
 end
 
 --- Has the same principle of operation as load_module_from_table(), except it then sets up the parent module's "required" table, allowing the parent to access the child as if it were a dependency.
@@ -323,7 +298,7 @@ end
 ---@param parent_module string #The name of the parent module. This is the module which the dependency will be attached to.
 ---@param config table #A configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
 function neorg.modules.load_module_as_dependency(module_name, parent_module, config)
-    if neorg.modules.load_module(module_name, nil, config) and neorg.modules.is_module_loaded(parent_module) then
+    if neorg.modules.load_module(module_name, config) and neorg.modules.is_module_loaded(parent_module) then
         neorg.modules.loaded_modules[parent_module].required[module_name] = neorg.modules.get_module_config(module_name)
     end
 end
@@ -380,10 +355,10 @@ end
 
 --- Executes `callback` once `module` is a valid and loaded module, else the callback gets instantly executed.
 ---@param module_name string #The name of the module to listen for.
----@param callback fun(public_module_table) #The callback to execute.
+---@param callback fun(module_public_table: table) #The callback to execute.
 function neorg.modules.await(module_name, callback)
     if neorg.modules.is_module_loaded(module_name) then
-        callback(neorg.modules.get_module(module_name))
+        callback(assert(neorg.modules.get_module(module_name)))
         return
     end
 

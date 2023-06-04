@@ -2,7 +2,7 @@
     File for creating text popups for the user.
 --]]
 
-local module = neorg.modules.extend("core.ui.text_popup")
+local module = neorg.modules.create("core.ui.text_popup")
 
 ---@class core.ui
 module.public = {

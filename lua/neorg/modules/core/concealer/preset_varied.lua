@@ -1,4 +1,4 @@
-local module = neorg.modules.extend("core.concealer.preset_varied", "core.concealer")
+local module = neorg.modules.create("core.concealer.preset_varied")
 
 module.config.private.icon_preset_varied = {
     heading = {
