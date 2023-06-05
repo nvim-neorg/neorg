@@ -165,95 +165,21 @@ module.config.public = {
         -- highlights only bother with highlighting the brackets and the content within, but not the
         -- object containing the TODO item itself.
         todo_items = {
-            undone = {
-                [""] = "+@punctuation.delimiter",
-                content = "+@none",
-            },
-            pending = {
-                [""] = "+@namespace",
-                content = "+@none",
-            },
-            done = {
-                [""] = "+@string",
-                content = "+@none",
-            },
-            on_hold = {
-                [""] = "+@text.note",
-                content = "+@none",
-            },
-            cancelled = {
-                [""] = "+NonText",
-                content = "+@none",
-            },
-            urgent = {
-                [""] = "+@text.danger",
-                content = "+@none",
-            },
-            uncertain = {
-                [""] = "+@boolean",
-                content = "+@none",
-            },
-            recurring = {
-                [""] = "+@repeat",
-                content = "+@none",
-            },
+            undone = "+@punctuation.delimiter",
+            pending = "+@namespace",
+            done = "+@string",
+            on_hold = "+@text.note",
+            cancelled = "+NonText",
+            urgent = "+@text.danger",
+            uncertain = "+@boolean",
+            recurring = "+@repeat",
         },
 
         -- Highlights for all the possible levels of ordered and unordered lists.
         lists = {
-            unordered = {
-                ["1"] = {
-                    prefix = "+@punctuation.delimiter",
-                    content = "+@none",
-                },
-                ["2"] = {
-                    prefix = "+@punctuation.delimiter",
-                    content = "+@none",
-                },
-                ["3"] = {
-                    prefix = "+@punctuation.delimiter",
-                    content = "+@none",
-                },
-                ["4"] = {
-                    prefix = "+@punctuation.delimiter",
-                    content = "+@none",
-                },
-                ["5"] = {
-                    prefix = "+@punctuation.delimiter",
-                    content = "+@none",
-                },
-                ["6"] = {
-                    prefix = "+@punctuation.delimiter",
-                    content = "+@none",
-                },
-            },
+            unordered = { prefix = "+@punctuation.delimiter" },
 
-            ordered = {
-                ["1"] = {
-                    prefix = "+@repeat",
-                    content = "+@none",
-                },
-                ["2"] = {
-                    prefix = "+@repeat",
-                    content = "+@none",
-                },
-                ["3"] = {
-                    prefix = "+@repeat",
-                    content = "+@none",
-                },
-                ["4"] = {
-                    prefix = "+@repeat",
-                    content = "+@none",
-                },
-                ["5"] = {
-                    prefix = "+@repeat",
-                    content = "+@none",
-                },
-                ["6"] = {
-                    prefix = "+@repeat",
-                    content = "+@none",
-                },
-            },
+            ordered = { prefix = "+@repeat" },
         },
 
         -- Highlights for all the possible levels of quotes.

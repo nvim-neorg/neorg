@@ -4,11 +4,11 @@
           [(word) @neorg.tags.ranged_verbatim.name.word
            ("_delimiter") @neorg.tags.ranged_verbatim.name.delimiter]) @neorg.tags.ranged_verbatim.name
   (tag_parameters
-    (tag_param) @neorg.tags.ranged_verbatim.parameters.word)? @neorg.tags.ranged_verbatim.parameters
-  content: (ranged_verbatim_tag_content)?
-  (ranged_verbatim_tag_end
+    (tag_param) @neorg.tags.ranged_verbatim.parameters.word)? @neorg.tags.ranged_verbatim.parameters)
+
+(ranged_verbatim_tag_end
     ("_prefix") @neorg.tags.ranged_verbatim.end
-    ("_name") @neorg.tags.ranged_verbatim.name.word))
+    ("_name") @neorg.tags.ranged_verbatim.name.word)
 
 (ranged_verbatim_tag
   ("_prefix")
@@ -170,85 +170,30 @@
 (escape_sequence) @neorg.modifiers.escape
 
 ; Detached Modifier extensions
-((detached_modifier_extension
-  (todo_item_undone)) @neorg.todo_items.undone
- .
- (_) @neorg.todo_items.undone.content)
+(detached_modifier_extension (todo_item_undone)) @neorg.todo_items.undone
+(detached_modifier_extension (todo_item_done)) @neorg.todo_items.done
+(detached_modifier_extension (todo_item_pending)) @neorg.todo_items.pending
+(detached_modifier_extension (todo_item_on_hold)) @neorg.todo_items.on_hold
+(detached_modifier_extension (todo_item_cancelled)) @neorg.todo_items.cancelled
+(detached_modifier_extension (todo_item_uncertain)) @neorg.todo_items.uncertain
+(detached_modifier_extension (todo_item_urgent)) @neorg.todo_items.urgent
+(detached_modifier_extension (todo_item_recurring)) @neorg.todo_items.recurring
 
-((detached_modifier_extension
-  (todo_item_done)) @neorg.todo_items.done
- .
- (_) @neorg.todo_items.done.content)
-
-((detached_modifier_extension
-  (todo_item_pending)) @neorg.todo_items.pending
- .
- (_) @neorg.todo_items.pending.content)
-
-((detached_modifier_extension
-  (todo_item_on_hold)) @neorg.todo_items.on_hold
- .
- (_) @neorg.todo_items.on_hold.content)
-
-((detached_modifier_extension
-  (todo_item_cancelled)) @neorg.todo_items.cancelled
- .
- (_) @neorg.todo_items.cancelled.content)
-
-((detached_modifier_extension
-  (todo_item_uncertain)) @neorg.todo_items.uncertain
- .
- (_) @neorg.todo_items.uncertain.content)
-
-((detached_modifier_extension
-  (todo_item_urgent)) @neorg.todo_items.urgent
- .
- (_) @neorg.todo_items.urgent.content)
-
-((detached_modifier_extension
-  (todo_item_recurring)) @neorg.todo_items.recurring
- .
- (_) @neorg.todo_items.recurring.content)
-
-; Unordered lists
-(unordered_list1
-  (unordered_list1_prefix) @neorg.lists.unordered.1.prefix
-  content: (paragraph) @neorg.lists.unordered.1.content)
-(unordered_list2
-  (unordered_list2_prefix) @neorg.lists.unordered.2.prefix
-  content: (paragraph) @neorg.lists.unordered.2.content)
-(unordered_list3
-  (unordered_list3_prefix) @neorg.lists.unordered.3.prefix
-  content: (paragraph) @neorg.lists.unordered.3.content)
-(unordered_list4
-  (unordered_list4_prefix) @neorg.lists.unordered.4.prefix
-  content: (paragraph) @neorg.lists.unordered.4.content)
-(unordered_list5
-  (unordered_list5_prefix) @neorg.lists.unordered.5.prefix
-  content: (paragraph) @neorg.lists.unordered.5.content)
-(unordered_list6
-  (unordered_list6_prefix) @neorg.lists.unordered.6.prefix
-  content: (paragraph) @neorg.lists.unordered.6.content)
+; ; Unordered lists
+[(unordered_list1_prefix)
+ (unordered_list2_prefix)
+ (unordered_list3_prefix)
+ (unordered_list4_prefix)
+ (unordered_list5_prefix)
+ (unordered_list6_prefix)] @neorg.lists.unordered.prefix
 
 ; Ordered lists
-(ordered_list1
-  (ordered_list1_prefix) @neorg.lists.ordered.1.prefix
-  content: (paragraph) @neorg.lists.ordered.1.content)
-(ordered_list2
-  (ordered_list2_prefix) @neorg.lists.ordered.2.prefix
-  content: (paragraph) @neorg.lists.ordered.2.content)
-(ordered_list3
-  (ordered_list3_prefix) @neorg.lists.ordered.3.prefix
-  content: (paragraph) @neorg.lists.ordered.3.content)
-(ordered_list4
-  (ordered_list4_prefix) @neorg.lists.ordered.4.prefix
-  content: (paragraph) @neorg.lists.ordered.4.content)
-(ordered_list5
-  (ordered_list5_prefix) @neorg.lists.ordered.5.prefix
-  content: (paragraph) @neorg.lists.ordered.5.content)
-(ordered_list6
-  (ordered_list6_prefix) @neorg.lists.ordered.6.prefix
-  content: (paragraph) @neorg.lists.ordered.6.content)
+[(ordered_list1_prefix)
+ (ordered_list2_prefix)
+ (ordered_list3_prefix)
+ (ordered_list4_prefix)
+ (ordered_list5_prefix)
+ (ordered_list6_prefix)] @neorg.lists.ordered.prefix
 
 ; Quotes
 (quote1
