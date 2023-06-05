@@ -10,9 +10,10 @@ The `core.summary` module exposes a single command - `:Neorg generate-workspace-
 When executed with the cursor hovering over a heading, `core.summary` will generate, you guessed it,
 a summary of the entire workspace, with links to each respective entry in that workspace.
 
-The way the summary is generated relies on the `strategy` configuration option, which by default
-consults the document metadata (see also [`core.esupports.metagen`](@core.esupports.metagen))
-of each file to build up a tree of categories, titles and descriptions.
+The way the summary is generated relies on the `strategy` configuration option,
+which by default consults the document metadata (see also
+[`core.esupports.metagen`](@core.esupports.metagen)) or the first heading title
+as a fallback to build up a tree of categories, titles and descriptions.
 --]]
 
 require("neorg.modules.base")
