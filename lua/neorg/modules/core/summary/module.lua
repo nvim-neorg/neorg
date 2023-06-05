@@ -64,7 +64,7 @@ module.load = function()
                 -- search up to 20 lines (a doc could potentially have metadata without metadata.title)
                 local _, heading = heading_query:iter_captures(document_root, bufnr)()
                 if not heading then
-                  return nil
+                    return nil
                 end
                 local start_line, _ = heading:start()
                 local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, start_line + 1, false)
@@ -124,7 +124,13 @@ module.load = function()
                     for _, datapoint in ipairs(data) do
                         table.insert(
                             result,
-                            table.concat({ "   - {:$", datapoint.norgname, ":}[", neorg.lib.title(datapoint.title), "]" })
+                            table.concat({
+                                "   - {:$",
+                                datapoint.norgname,
+                                ":}[",
+                                neorg.lib.title(datapoint.title),
+                                "]",
+                            })
                                 .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
                         )
                     end
