@@ -363,7 +363,6 @@ module.config.public = {
         -- - All link characters (`{`, `}`, `[`, `]`, `<`, `>`)
         -- - The escape character (`\`)
         modifiers = {
-            trailing = "+NonText",
             link = "+NonText",
             escape = "+@type",
         },
