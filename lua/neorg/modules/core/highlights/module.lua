@@ -406,15 +406,6 @@ module.config.public = {
             },
         },
     },
-
-    -- How to change the colour of TODO items depending on their state.
-    --
-    -- This can be one of four values: `false`, `"all"`, `"except_undone"` and `"cancelled"`.
-    -- - When set to `false` the content of TODO items will not be coloured in any special way.
-    -- - When set to `"all"` the content of TODO items will directly reflect the colour of the item's TODO box.
-    -- - When set to `"except_undone"`, will have the same behaviour as `"all"` but will exclude undone TODO items.
-    -- - When set to `"cancelled"` will only highlight the content of TODO items for cancelled tasks.
-    todo_items_match_color = "cancelled",
 }
 
 module.setup = function()
@@ -424,34 +415,6 @@ end
 module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufEnter")
     module.required["core.autocommands"].enable_autocommand("ColorScheme", true)
-
-    if module.config.public.todo_items_match_color then
-        if
-            not vim.tbl_contains({ "all", "except_undone", "cancelled" }, module.config.public.todo_items_match_color)
-        then
-            log.error(
-                "Error when parsing `todo_items_match_color` for `core.highlights`, the key only accepts the following values: all, except_undone and cancelled."
-            )
-            return
-        end
-
-        local todo_items = module.config.public.highlights.todo_items
-
-        if module.config.public.todo_items_match_color ~= "cancelled" then
-            if module.config.public.todo_items_match_color ~= "except_undone" then
-                todo_items.undone.content = todo_items.undone[""]
-            end
-
-            todo_items.pending.content = todo_items.pending[""]
-            todo_items.done.content = todo_items.done[""]
-            todo_items.urgent.content = todo_items.urgent[""]
-            todo_items.on_hold.content = todo_items.on_hold[""]
-            todo_items.recurring.content = todo_items.recurring[""]
-            todo_items.uncertain.content = todo_items.uncertain[""]
-        end
-
-        todo_items.cancelled.content = todo_items.cancelled[""]
-    end
 
     module.public.trigger_highlights()
 
