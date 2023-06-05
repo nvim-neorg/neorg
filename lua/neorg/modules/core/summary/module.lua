@@ -40,16 +40,56 @@ module.load = function()
     local ts = module.required["core.integrations.treesitter"]
 
     module.config.public.strategy = neorg.lib.match(module.config.public.strategy)({
-        metadata = function()
-            return function(files, heading_level)
+        default = function()
+            -- declare query on load so that it's parsed once, on first use
+            local heading_query
+
+            local get_first_heading_title = function(bufnr)
+                local document_root = ts.get_document_root(bufnr)
+                if not heading_query then
+                    -- allow second level headings, just in case
+                    local heading_query_string = [[
+                         [
+                             (heading1
+                                 title: (paragraph_segment) @next-segment
+                             )
+                             (heading2
+                                 title: (paragraph_segment) @next-segment
+                             )
+                         ]
+                     ]]
+                    heading_query = neorg.utils.ts_parse_query("norg", heading_query_string)
+                end
+                -- search up to 20 lines (a doc could potentially have metadata without metadata.title)
+                local _, heading = heading_query:iter_captures(document_root, bufnr)()
+                if not heading then
+                  return nil
+                end
+                local start_line, _ = heading:start()
+                local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, start_line + 1, false)
+                if #lines > 0 then
+                    local title = lines[1]:gsub("^%s*%*+%s*", "") -- strip out '*' prefix (handle '* title', ' **title', etc)
+                    if title ~= "" then -- exclude an empty heading like `*` (although the query should have excluded)
+                        return title
+                    end
+                end
+            end
+
+            return function(files, ws_root, heading_level)
                 local categories = vim.defaulttable()
 
                 neorg.utils.read_files(files, function(bufnr, filename)
                     local metadata = ts.get_document_metadata(bufnr)
 
-                    if not metadata or vim.tbl_isempty(metadata) then
-                        return
+                    if not metadata then
+                        metadata = {}
                     end
+
+                    local norgname = filename:match("(.+)%.norg$") -- strip extension for link destinations
+                    if not norgname then
+                        norgname = filename
+                    end
+                    norgname = norgname:gsub("^" .. ws_root, "")
 
                     -- normalise categories into a list. Could be vim.NIL, a number, a string or a list ...
                     if not metadata.categories or metadata.categories == vim.NIL then
@@ -59,14 +99,17 @@ module.load = function()
                     end
                     for _, category in ipairs(metadata.categories) do
                         if not metadata.title then
-                            metadata.title = vim.fs.basename(filename)
+                            metadata.title = get_first_heading_title(bufnr)
+                            if not metadata.title then
+                                metadata.title = vim.fs.basename(norgname)
+                            end
                         end
                         if metadata.description == vim.NIL then
                             metadata.description = nil
                         end
                         table.insert(categories[neorg.lib.title(category)], {
                             title = tostring(metadata.title),
-                            filename = filename,
+                            norgname = norgname,
                             description = metadata.description,
                         })
                     end
@@ -80,7 +123,7 @@ module.load = function()
                     for _, datapoint in ipairs(data) do
                         table.insert(
                             result,
-                            table.concat({ "   - {:", datapoint.filename, ":}[", neorg.lib.title(datapoint.title), "]" })
+                            table.concat({ "   - {:$", datapoint.norgname, ":}[", neorg.lib.title(datapoint.title), "]" })
                                 .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
                         )
                     end
@@ -99,12 +142,10 @@ module.config.public = {
     -- The strategy to use to generate a summary.
     --
     -- Possible options are:
-    -- - "metadata" - read the metadata to categorize and annotate files. Files
-    --   without metadata will be ignored.
-    -- - "headings" (UNIMPLEMENTED) - read the top level heading and use that as the title.
-    --   files in subdirectories are treated as subheadings.
-    ---@type string|fun(files: string[], heading_level: number?): string[]?
-    strategy = "metadata",
+    -- - "default" - read the metadata to categorize and annotate files. Files
+    --   without metadata will use the top level heading as the title. If no headings are present, the filename will be used.
+    ---@type string|fun(files: string[], ws_root: string, heading_level: number?): string[]?
+    strategy = "default",
 }
 
 module.public = {}
@@ -138,8 +179,12 @@ module.on_event = function(event)
             return
         end
 
-        local generated =
-            module.config.public.strategy(dirman.get_norg_files(dirman.get_current_workspace()[1]) or {}, level + 1)
+        local ws_root = dirman.get_current_workspace()[2]
+        local generated = module.config.public.strategy(
+            dirman.get_norg_files(dirman.get_current_workspace()[1]) or {},
+            ws_root,
+            level + 1
+        )
 
         if not generated or vim.tbl_isempty(generated) then
             neorg.utils.notify(
