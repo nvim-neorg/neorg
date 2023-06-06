@@ -353,7 +353,8 @@ local function get_ordered_index(bufid, prefix_node)
     -- TODO: calculate levels in one pass, since treesitter API implementation seems to have ridiculously high complexity
     local _, _, level = get_node_position_and_text_length(bufid, prefix_node)
     local header_node = prefix_node:parent()
-    assert(header_node:type() .. "_prefix" == prefix_node:type())
+    -- TODO: fix parser: `(ERROR)` on standalone prefix not followed by text, like `- `
+    -- assert(header_node:type() .. "_prefix" == prefix_node:type())
     local sibling = header_node:prev_named_sibling()
     local count = 1
 
