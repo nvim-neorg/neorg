@@ -1,0 +1,25 @@
+name: Automatically Generate Documentation
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  luarocks-upload:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Required to count the commits
+      - name: Set luarocks version
+        run: echo "LUAROCKS_VERSION=0.0.$(git log --oneline | wc -l)" >> $GITHUB_ENV
+      - name: Get new commits
+        run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '24 hours ago' | wc -l)" >> $GITHUB_ENV
+      - name: LuaRocks Upload
+        uses: nvim-neorocks/luarocks-tag-release@v5
+        if: ${{ env.NEW_COMMIT_COUNT > 0 }}
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
+        with:
+          version: ${{ env.LUAROCKS_VERSION }}
