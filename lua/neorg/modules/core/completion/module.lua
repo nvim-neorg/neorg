@@ -44,8 +44,10 @@ module.load = function()
 
     -- If our engine is compe then attempt to load the integration module for nvim-compe
     if module.config.public.engine == "nvim-compe" and neorg.modules.load_module("core.integrations.nvim-compe") then
+        neorg.modules.load_module_as_dependency("core.integrations.nvim-compe", module.name, {})
         module.private.engine = neorg.modules.get_module("core.integrations.nvim-compe")
     elseif module.config.public.engine == "nvim-cmp" and neorg.modules.load_module("core.integrations.nvim-cmp") then
+        neorg.modules.load_module_as_dependency("core.integrations.nvim-cmp", module.name, {})
         module.private.engine = neorg.modules.get_module("core.integrations.nvim-cmp")
     else
         log.error("Unable to load completion module -", module.config.public.engine, "is not a recognized engine.")
