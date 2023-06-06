@@ -12,6 +12,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Required to count the commits
+      - name: Set luarocks version
+        run: echo "LUAROCKS_VERSION=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
       - name: LuaRocks Upload
         uses: nvim-neorocks/luarocks-tag-release@v5
         env:
