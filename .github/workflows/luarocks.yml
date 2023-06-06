@@ -1,4 +1,4 @@
-name: Automatically Generate Documentation
+name: Push to Luarocks
 
 on:
   push:
