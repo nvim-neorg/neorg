@@ -231,7 +231,7 @@
 (subscript ["_open" "_close"] @neorg.markup.subscript.delimiter) @neorg.markup.subscript
 (inline_comment ["_open" "_close"] @neorg.markup.inline_comment.delimiter) @neorg.markup.inline_comment
 (inline_math ["_open" "_close"] @neorg.markup.inline_math.delimiter) @neorg.markup.inline_math
-(inline_macro ["_open" "_close"] @neorg.markup.variable.delimiter) @neorg.markup.inline_macro
+(inline_macro ["_open" "_close"] @neorg.markup.variable.delimiter) @neorg.markup.variable
 
 ; Free-form Markup
 [(free_form_open)

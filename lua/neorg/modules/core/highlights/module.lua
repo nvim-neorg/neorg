@@ -328,8 +328,8 @@ module.config.public = {
                 [""] = "+@number",
                 delimiter = "+NonText",
             },
-            inline_macro = {
-                [""] = "+@neorg.insertions.inline_macro.name",
+            variable = {
+                [""] = "+@function.macro",
                 delimiter = "+NonText",
             },
             verbatim = {
