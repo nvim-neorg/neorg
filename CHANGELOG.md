@@ -1,5 +1,76 @@
 # Changelog
 
+## [5.0.0](https://github.com/nvim-neorg/neorg/compare/v4.6.0...v5.0.0) (2023-06-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core.ui:** don't use old Neovim APIs, fix errors when using `<LocalLeader>nn`
+* **core.highlights:** remove `todo_items_match_color` option
+* **highlights:** simplify highlights for performance reasons
+* **summary:** fix norg links, use first heading as title if found ([#928](https://github.com/nvim-neorg/neorg/issues/928))
+* **core:** remove `real`/imaginary components of modules, improve startup time, remove `imports` from `module.setup`
+* remove the `core.news` module
+* **concealer:** rewrite for performance and stability ([#834](https://github.com/nvim-neorg/neorg/issues/834))
+* since 5.0 do not longer warn about deprecated `core.norg.*` modules
+* move to new/improved metadata parser, change highlight queries
+
+### Features
+
+* add extra nesting level, make icons specific to non-anticonceal usage ([84ea792](https://github.com/nvim-neorg/neorg/commit/84ea792d97977b98caab8e63538d3286f58b2b1b))
+* add highlights to `&variable&`s ([#710](https://github.com/nvim-neorg/neorg/issues/710)) ([97080f7](https://github.com/nvim-neorg/neorg/commit/97080f798e0872a52510e33cf7f9064af5501da3))
+* add neorg to luarocks ([4fceaa6](https://github.com/nvim-neorg/neorg/commit/4fceaa67656a0ebf17daeac133db2387df44552a))
+* conceal the `{* }` parts of links ([729e7ac](https://github.com/nvim-neorg/neorg/commit/729e7ac46b5feac7f97826f755695f0e2c4799f9))
+* **concealer:** add more icon generators ([49b9788](https://github.com/nvim-neorg/neorg/commit/49b9788a4988235d4357f8ae87d3ce82ee39302e))
+* **concealer:** add numeric anticonceal if supported ([55feccf](https://github.com/nvim-neorg/neorg/commit/55feccf37df2b1143ea85151b9430149c617aa99))
+* **concealer:** rewrite for performance and stability ([#834](https://github.com/nvim-neorg/neorg/issues/834)) ([151c033](https://github.com/nvim-neorg/neorg/commit/151c0337684a30ab8a9b31683b7a2fa28b0a15b0))
+* **esupports.hop:** link jump to line + fixes + refactoring ([#903](https://github.com/nvim-neorg/neorg/issues/903)) ([49610cd](https://github.com/nvim-neorg/neorg/commit/49610cdee13050fc872cc006a690a911dda68413))
+* **indent:** add `dedent_excess` configuration option ([#624](https://github.com/nvim-neorg/neorg/issues/624)) ([66d5a22](https://github.com/nvim-neorg/neorg/commit/66d5a2251b0871aa037135644b6fca2a856de5b4))
+* **itero:** don't start newline on empty line ([#911](https://github.com/nvim-neorg/neorg/issues/911)) ([4c76b74](https://github.com/nvim-neorg/neorg/commit/4c76b741a0003417ed38bf0f43727810c27fb042))
+* **keybinds.lua:** add `desc` fields to task keybinds ([#926](https://github.com/nvim-neorg/neorg/issues/926)) ([978fdc1](https://github.com/nvim-neorg/neorg/commit/978fdc1dede2325374dc5a32db10a4b6dad87bf0))
+* **keybinds.lua:** add descriptions to all keybinds ([bb50538](https://github.com/nvim-neorg/neorg/commit/bb505384372b87ae6193c9ceeb02312d50f0df3c))
+* move to new/improved metadata parser, change highlight queries ([962e45a](https://github.com/nvim-neorg/neorg/commit/962e45a29f1d61f685a5bacb9a2b00eb0a11d9c5))
+* **promo:** promote/demote prefix without following text ([#912](https://github.com/nvim-neorg/neorg/issues/912)) ([544bb06](https://github.com/nvim-neorg/neorg/commit/544bb06c28956c4e21b6d6d32b1b3ea7415be7cd))
+
+
+### Bug Fixes
+
+* **completion:** selected completion engine not being engaged ([474af82](https://github.com/nvim-neorg/neorg/commit/474af829b0f3e25e09e68d2842ffcb6ca24d359b))
+* **concealer:** disable assertion for prefixes until parser changes ([#932](https://github.com/nvim-neorg/neorg/issues/932)) ([92aa737](https://github.com/nvim-neorg/neorg/commit/92aa7373ccdfc5c9d1616027173237ee9cc4098e))
+* **concealer:** do not listen vimleavepre ([#920](https://github.com/nvim-neorg/neorg/issues/920)) ([865224a](https://github.com/nvim-neorg/neorg/commit/865224a59982a148e9b11647d23e2de61272c42c))
+* **concealer:** fix concealing in anchors, don't error on broken config ([#923](https://github.com/nvim-neorg/neorg/issues/923)) ([f448b58](https://github.com/nvim-neorg/neorg/commit/f448b581c6a6cf2747b33ff6bfece6c21c72b03f))
+* **concealer:** minor fixes, plus wiki error fix ([#916](https://github.com/nvim-neorg/neorg/issues/916)) ([5629898](https://github.com/nvim-neorg/neorg/commit/5629898cf24bf25a39723e4113ce87a08f0d9dc1))
+* **concealer:** record cursor upon init to fix first line conceal ([#924](https://github.com/nvim-neorg/neorg/issues/924)) ([44ee0cb](https://github.com/nvim-neorg/neorg/commit/44ee0cb8db3d655d45d5ca5cedc2b0745b232659))
+* **core.highlights:** fix disappearing highlights when opening up norg files ([9db5645](https://github.com/nvim-neorg/neorg/commit/9db56453e2f7f6bc7e81baa338e09a2565ccaff1))
+* **core.highlights:** wrongly placed bracket ([1886d36](https://github.com/nvim-neorg/neorg/commit/1886d363e9f397251060a4d6681fa975ef9d3b64))
+* **core.summary:** bugs + flexibility around incomplete metadata ([#927](https://github.com/nvim-neorg/neorg/issues/927)) ([30343db](https://github.com/nvim-neorg/neorg/commit/30343dbdcdb511ecb6f484c46a9ae6f20a66ff7d))
+* **docgen:** don't fail on mixed-type tables (lists and dictionaries at the same time) ([1afcaf8](https://github.com/nvim-neorg/neorg/commit/1afcaf804bae0048bfca1c0d49b69c968f2c187b))
+* **docgen:** fix incorrect markdown indentation in wiki ([2bf6e63](https://github.com/nvim-neorg/neorg/commit/2bf6e63c299903d6e83fe14a521987dd0745efb0))
+* **docgen:** propagate docgen error exit code ([#917](https://github.com/nvim-neorg/neorg/issues/917)) ([0e97976](https://github.com/nvim-neorg/neorg/commit/0e97976417d3e387d9be2f4fb42cd66c72254b6b))
+* **highlights:** assert on treesitter being enabled ([#914](https://github.com/nvim-neorg/neorg/issues/914)) ([330f04e](https://github.com/nvim-neorg/neorg/commit/330f04ef693fb379c5ff199a05813e270718c850))
+* **highlights:** attempt to reenable highlighting when none is found ([d1fb8c9](https://github.com/nvim-neorg/neorg/commit/d1fb8c94c57161e675402ec06ed80dc9223df655))
+* **presenter:** errors on startup ([ea5fe1b](https://github.com/nvim-neorg/neorg/commit/ea5fe1b51d0a5b9f33a2fdd81906c5661b9198d6))
+* **summary:** fix norg links, use first heading as title if found ([#928](https://github.com/nvim-neorg/neorg/issues/928)) ([6f893a2](https://github.com/nvim-neorg/neorg/commit/6f893a205a7543f2b7390b31176cf6e4ee2442c0))
+* **todo_items:** don't look at child if parent is todo ([#909](https://github.com/nvim-neorg/neorg/issues/909)) ([8e3bcb2](https://github.com/nvim-neorg/neorg/commit/8e3bcb295a834dd57ba1d41ef2903f3dcc53a70e))
+
+
+### Performance Improvements
+
+* **core.highlights:** remove `todo_items_match_color` option ([7b5d550](https://github.com/nvim-neorg/neorg/commit/7b5d550843a3a2576aa95a90972c2ffc0e5c682f))
+* **core.neorgcmd:** unnecessary `vim.tbl_deep_extend` ([71d291f](https://github.com/nvim-neorg/neorg/commit/71d291f97dc7e7fab4ca5740181e25f6d50a6e2d))
+* **core.promo:** don't check `v.count`, use `v.count1` instead ([ca98238](https://github.com/nvim-neorg/neorg/commit/ca982387110ce2b796e585a10cd6f6922cec6c69))
+* **events:** don't deepcopy a table on each new event ([12198ef](https://github.com/nvim-neorg/neorg/commit/12198efd76ec057be207e567dbeed3c8022d6eb6))
+* **hop:** load plenary only when required, remove startup hiccup ([3caca5a](https://github.com/nvim-neorg/neorg/commit/3caca5ac209aa8098a355837b5c4696d16804e19))
+
+
+### Code Refactoring
+
+* **core.ui:** don't use old Neovim APIs, fix errors when using `&lt;LocalLeader&gt;nn` ([bbb25ff](https://github.com/nvim-neorg/neorg/commit/bbb25ffa380a2c159b0d301df9b81a8fcf3ab67a))
+* **core:** remove `real`/imaginary components of modules, improve startup time, remove `imports` from `module.setup` ([593e9b2](https://github.com/nvim-neorg/neorg/commit/593e9b2a0826dfb8068a02277f4a45db00573e9a))
+* **highlights:** simplify highlights for performance reasons ([f1ecd61](https://github.com/nvim-neorg/neorg/commit/f1ecd613d9c2911c7f7d5abd7f6f471614d05518))
+* remove the `core.news` module ([1b9f8da](https://github.com/nvim-neorg/neorg/commit/1b9f8da57fb3e0bab9d1594fce87808ead8d650d))
+* since 5.0 do not longer warn about deprecated `core.norg.*` modules ([19e0e8a](https://github.com/nvim-neorg/neorg/commit/19e0e8a3e983bf0a87c5c791863d4a480f0ff54c))
+
 ## [4.6.0](https://github.com/nvim-neorg/neorg/compare/v4.5.0...v4.6.0) (2023-05-25)
 
 
