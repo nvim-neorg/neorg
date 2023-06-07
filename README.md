@@ -221,16 +221,6 @@ use {
 With the above `run` key set, every time you update Neorg the internal parsers
 will also be updated to the correct revision.
 
-### Troubleshooting Treesitter
-- Not using packer? Make sure that Neorg's `setup()` gets called after `nvim-treesitter`'s setup.
-- If on MacOS, ensure that the `CC` environment variable points to a compiler that has C++11 support.
-  You can run Neovim like so: `CC=/path/to/newer/compiler nvim -c
-  "TSInstallSync norg"` in your shell of choice
-  to install the Neorg parser with a newer compiler. You may also want to export the `CC` variable in general:
-  `export CC=/path/to/newer/compiler`.
-  See more information here: [#74 comment](https://github.com/nvim-neorg/neorg/issues/74#issuecomment-906627223)
-  See also [#888 comment](https://github.com/nvim-neorg/neorg/discussions/888#discussioncomment-5953479) for configuring `nvim-treesitter` to use a specific compiler.
-
 ## 📦 Setup
 
 You've got the basic stuff out the way now, but wait! That's not all. You've installed Neorg - great! Now you have to configure it.
@@ -392,10 +382,14 @@ Our goals are fairly simple:
 
 ## 📚 FAQ
 
-<!-- TODO(vhyrro): Populate with common issues -->
-
 The wiki is the go-to place if you need answers to anything Neorg-related. Usage, Keybinds, User Callbacks, Modules, Events?
 It's all there, so we recommend you seriously go [read it](https://github.com/nvim-neorg/neorg/wiki)!
+
+## Troubleshooting
+
+If you feel that you're in trouble or some component like Treesitter is not working check the
+[Dependencies.md](https://github.com/nvim-neorg/neorg/wiki/Dependencies) file for many common issues
+unrelated to the Neorg core.
 
 ## Contributing
 
