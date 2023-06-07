@@ -294,7 +294,7 @@ module.config.public = {
     -- if the node is to the left of the expected indentation level.
     --
     -- Useful when writing documentation in the style of vimdoc, where content is indented
-    -- heavily to the right in comparison to the default neorg style.
+    -- heavily to the right in comparison to the default Neorg style.
     dedent_excess = true,
 }
 
