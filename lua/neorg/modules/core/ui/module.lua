@@ -22,7 +22,6 @@ module.setup = function()
 end
 
 module.private = {
-    windows = {},
     namespace = vim.api.nvim_create_namespace("core.ui"),
 }
 
@@ -78,23 +77,6 @@ module.public = {
         return config
     end,
 
-    --- Attempts to force close the window that holds the specified buffer
-    ---@param buf number #The buffer ID whose parent window to close
-    delete_window = function(buf)
-        -- Get the name of the buffer with the specified ID
-        local name = vim.api.nvim_buf_get_name(buf)
-
-        if module.private.windows[name] ~= nil then
-            -- Attempt to force close both the window and the buffer
-            vim.api.nvim_win_close(module.private.windows[name], true)
-        end
-
-        vim.api.nvim_buf_delete(buf, { force = true })
-
-        -- Reset the window ID to nil so it can be reused again
-        module.private.windows[name] = nil
-    end,
-
     --- Applies a set of options to a buffer
     ---@param buf number the buffer number to apply the options to
     ---@param option_list table a table of option = value pairs
@@ -108,6 +90,7 @@ module.public = {
     ---@param  name string the name of the buffer contained within the split (will have neorg:// prepended to it)
     ---@param  config table? a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
     ---@param  height number? the height of the new split
+    ---@return number?, number? #Both the buffer ID and window ID
     create_split = function(name, config, height)
         vim.validate({
             name = { name, "string" },
@@ -148,23 +131,26 @@ module.public = {
         -- Merge the user provided options with the default options and apply them to the new buffer
         module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
 
+        local window = vim.api.nvim_get_current_win()
+
         -- Make sure to clean up the window if the user leaves the popup at any time
-        vim.api.nvim_create_autocmd("BufDelete", {
+        vim.api.nvim_create_autocmd({ "BufDelete", "WinClosed" }, {
             buffer = buf,
             once = true,
             callback = function()
-                module.public.delete_window(buf)
+                pcall(vim.api.nvim_win_close, window, true)
+                pcall(vim.api.nvim_buf_delete, buf, { force = true })
             end,
         })
 
-        return buf, vim.api.nvim_get_current_win()
+        return buf, window
     end,
 
     --- Creates a new vertical split
     ---@param name string the name of the buffer
     ---@param config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
     ---@param left boolean if true will spawn the vertical split on the left (default is right)
-    ---@return number #The buffer of the vertical split
+    ---@return number?, number? #The buffer of the vertical split
     create_vsplit = function(name, config, left)
         vim.validate({
             name = { name, "string" },
@@ -201,7 +187,19 @@ module.public = {
         -- Merge the user provided options with the default options and apply them to the new buffer
         module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
 
-        return buf, vim.api.nvim_get_current_win()
+        local window = vim.api.nvim_get_current_win()
+
+        -- Make sure to clean up the window if the user leaves the popup at any time
+        vim.api.nvim_create_autocmd({ "BufDelete", "WinClosed" }, {
+            buffer = buf,
+            once = true,
+            callback = function()
+                pcall(vim.api.nvim_win_close, window, true)
+                pcall(vim.api.nvim_buf_delete, buf, { force = true })
+            end,
+        })
+
+        return buf, window
     end,
 
     --- Creates a new display in which you can place organized data
@@ -273,6 +271,15 @@ module.public = {
 
         local cached_virtualedit = vim.opt.virtualedit:get()
         vim.opt.virtualedit = "all"
+
+        vim.api.nvim_create_autocmd({ "BufLeave", "BufDelete" }, {
+            buffer = buf,
+            callback = function()
+                vim.opt.virtualedit = cached_virtualedit
+                pcall(vim.api.nvim_win_close, 0, true)
+                pcall(vim.api.nvim_buf_delete, buf, { force = true })
+            end,
+        })
 
         vim.cmd(([[
             autocmd BufLeave,BufDelete <buffer=%s> set virtualedit=%s | silent! bd! %s

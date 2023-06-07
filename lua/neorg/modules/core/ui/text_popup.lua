@@ -13,11 +13,6 @@ module.public = {
     ---@param modifiers table #Special table to modify certain attributes of the floating window (like centering on the x or y axis)
     ---@param config table #A config like you would pass into nvim_open_win()
     create_prompt = function(name, input_text, callback, modifiers, config)
-        -- If the window already exists then don't create another one
-        if module.private.windows[name] then
-            return
-        end
-
         -- Create the base cofiguration for the popup window
         local window_config = {
             relative = "win",
@@ -26,17 +21,16 @@ module.public = {
         }
 
         -- Apply any custom modifiers that the user has specified
-        window_config =
-            module.public.apply_custom_options(modifiers, vim.tbl_extend("force", window_config, config or {}))
+        window_config = assert(neorg.modules.get_module("core.ui"), "core.ui is not loaded!").apply_custom_options(
+            modifiers,
+            vim.tbl_extend("force", window_config, config or {})
+        )
 
         local buf = vim.api.nvim_create_buf(false, true)
 
         -- Set the buffer type to "prompt" to give it special behaviour (:h prompt-buffer)
         vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
         vim.api.nvim_buf_set_name(buf, name)
-
-        -- Replace the "simplified" name the user provided with the actual buffer name
-        name = vim.api.nvim_buf_get_name(buf)
 
         -- Create a callback to be invoked on prompt confirmation
         vim.fn.prompt_setcallback(buf, function(content)
@@ -48,15 +42,6 @@ module.public = {
                 })
             end
         end)
-
-        -- Make sure to clean up the window if the user leaves the popup at any time
-        vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave", "BufDelete" }, {
-            buffer = buf,
-            once = true,
-            callback = function()
-                module.public.delete_window(buf)
-            end,
-        })
 
         -- Construct some custom mappings for the popup
         vim.keymap.set("n", "<Esc>", vim.cmd.quit, { silent = true, buffer = buf })
@@ -73,11 +58,21 @@ module.public = {
         vim.api.nvim_feedkeys("i", "t", false)
 
         -- Create the floating popup window with the prompt buffer
-        module.private.windows[name] = vim.api.nvim_open_win(buf, true, window_config)
+        local winid = vim.api.nvim_open_win(buf, true, window_config)
+
+        -- Make sure to clean up the window if the user leaves the popup at any time
+        vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave", "BufDelete" }, {
+            buffer = buf,
+            once = true,
+            callback = function()
+                pcall(vim.api.nvim_win_close, winid, true)
+                pcall(vim.api.nvim_buf_delete, buf, { force = true })
+            end,
+        })
 
         -- HACK(vhyrro): Prevent the "not enough room" error when leaving the window.
         -- See: https://github.com/neovim/neovim/issues/19464
-        vim.api.nvim_win_set_option(module.private.windows[name], "winbar", "")
+        vim.api.nvim_win_set_option(winid, "winbar", "")
     end,
 }
 
