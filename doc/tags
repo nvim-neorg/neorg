@@ -2,7 +2,7 @@ neorg	neorg.norg	/* The `.norg` file-format
 neorg-advanced-markup	neorg.norg	/ ** Advanced markup
 neorg-anchors	neorg.norg	/  *** Anchors
 neorg-basic-markup	neorg.norg	/ ** Basic Markup
-neorg-breaking-changes	breaking-changes.norg	/* All the Breakages
+neorg-breaking-changes	breaking-changes.norg	/*NOTE:
 neorg-carryover-tags	neorg.norg	/  *** Carryover
 neorg-code-blocks	neorg.norg	/  *** Code Blocks
 neorg-comments	neorg.norg	/  *** Comments
