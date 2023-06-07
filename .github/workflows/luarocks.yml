@@ -2,8 +2,6 @@ name: Push to Luarocks
 
 on:
   push:
-    branches:
-      - main
     tags:
       - '*'
 
