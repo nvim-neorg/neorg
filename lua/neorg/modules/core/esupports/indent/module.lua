@@ -95,7 +95,13 @@ module.public = {
                 return -1
             end
 
-            return indent + indent_data.indent + (module.config.public.tweaks[node:type()] or 0)
+            local new_indent = indent + indent_data.indent + (module.config.public.tweaks[node:type()] or 0)
+
+            if (not module.config.public.dedent_excess) and new_indent <= initial_indent then
+                return initial_indent
+            end
+
+            return new_indent
         end
 
         local calculated_indent = indent_data.indent(buf, node, line, indent, initial_indent) or 0
@@ -104,7 +110,13 @@ module.public = {
             return -1
         end
 
-        return indent + calculated_indent + (module.config.public.tweaks[node:type()] or 0)
+        local new_indent = indent + calculated_indent + (module.config.public.tweaks[node:type()] or 0)
+
+        if (not module.config.public.dedent_excess) and new_indent <= initial_indent then
+            return initial_indent
+        end
+
+        return new_indent
     end,
 }
 
@@ -276,6 +288,14 @@ module.config.public = {
     -- When true, will reformat the current line every time you press `<Esc>` (i.e. every
     -- time you leave insert mode).
     format_on_escape = true,
+
+    -- When false will not dedent nodes, only indent them. This means that if a node
+    -- is indented too much to the right, it will not be touched. It will only be indented
+    -- if the node is to the left of the expected indentation level.
+    --
+    -- Useful when writing documentation in the style of vimdoc, where content is indented
+    -- heavily to the right in comparison to the default neorg style.
+    dedent_excess = true,
 }
 
 module.load = function()
