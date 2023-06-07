@@ -96,7 +96,8 @@ module.public = {
                 options.callback(result)
             end
 
-            module.required["core.ui"].delete_window(buffer)
+            pcall(vim.api.nvim_win_close, window, true)
+            pcall(vim.api.nvim_buf_delete, buffer, { force = true })
         end
 
         local mode = module.private.get_mode(options.mode, callback_and_close)
