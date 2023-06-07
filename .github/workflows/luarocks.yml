@@ -2,8 +2,12 @@ name: Push to Luarocks
 
 on:
   push:
+    release:
+      types:
+        - created
     tags:
       - '*'
+  workflow_dispatch:
 
 jobs:
   luarocks-upload:
