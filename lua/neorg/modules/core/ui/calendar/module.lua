@@ -62,10 +62,11 @@ module.private = {
     end,
 
     open_window = function(options)
+        local MIN_HEIGHT = 14
+
         local buffer, window = module.required["core.ui"].create_split(
             "calendar-" .. tostring(os.clock()):gsub("%.", "-"),
-            {},
-            options.height or math.floor(vim.opt.lines:get() * 0.3)
+            {}, options.height or MIN_HEIGHT + (options.padding or 0)
         )
 
         vim.api.nvim_create_autocmd({ "WinClosed", "BufDelete" }, {
