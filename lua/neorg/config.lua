@@ -68,6 +68,14 @@ neorg.configuration.os_info = (function()
     elseif os == "darwin" then
         return "mac"
     elseif os == "linux" then
+        local f = io.open('/proc/version', 'r')
+        if f ~= nil then
+            local version = f:read('*all')
+            f:close()
+            if version:find('microsoft') then
+                return "wsl"
+            end
+        end
         return "linux"
     end
 end)()

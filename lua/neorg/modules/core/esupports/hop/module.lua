@@ -87,6 +87,8 @@ module.public = {
                     o.command = "xdg-open"
                 elseif neorg.configuration.os_info == "mac" then
                     o.command = "open"
+                elseif neorg.configuration.os_info == "wsl" then
+                    o.command = "explorer.exe"
                 end
                 o.args = { link_location }
             end

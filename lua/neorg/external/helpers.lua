@@ -25,7 +25,7 @@ neorg.utils = {
             return ""
         end
 
-        if current_os == "linux" or current_os == "mac" then
+        if current_os == "linux" or current_os == "mac" or current_os == "wsl" then
             return os.getenv("USER") or ""
         elseif current_os == "windows" then
             return os.getenv("username") or ""
