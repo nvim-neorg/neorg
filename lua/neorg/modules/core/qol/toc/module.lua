@@ -247,27 +247,30 @@ module.on_event = function(event)
     end
 
     -- FIXME(vhyrro): When the buffer already exists then simply refresh the buffer
-    -- instead of erroring out.
-    local namespace = vim.api.nvim_create_namespace("neorg/toc")
-    local buffer, window =
-        module.required["core.ui"].create_vsplit("toc", { ft = "norg" }, (event.content[1] or "left") == "left")
+	-- instead of erroring out.
+	local namespace = vim.api.nvim_create_namespace("neorg/toc")
+	local buffer, window =
+		module.required["core.ui"].create_vsplit("toc", { ft = "norg" }, (event.content[1] or "left") == "left")
 
-    vim.api.nvim_win_set_option(window, "scrolloff", 999)
-    module.public.update_toc(namespace, toc_title, event.buffer, event.window, buffer, window)
+	vim.api.nvim_win_set_option(window, "scrolloff", 999)
+	module.public.update_toc(namespace, toc_title, event.buffer, event.window, buffer, window)
 
-    vim.api.nvim_buf_set_keymap(buffer, "n", "q", "", {
-        callback = function()
-            vim.api.nvim_buf_delete(buffer, { force = true })
-        end,
-    })
+	local close_buffer_callback = function()
+		-- Check if buffer exists before deleting it
+		if vim.api.nvim_buf_is_loaded(buffer) then
+			vim.api.nvim_buf_delete(buffer, { force = true })
+		end
+	end
 
-    vim.api.nvim_create_autocmd("WinClosed", {
-        buffer = buffer,
-        once = true,
-        callback = function()
-            vim.api.nvim_buf_delete(buffer, { force = true })
-        end,
-    })
+	vim.api.nvim_buf_set_keymap(buffer, "n", "q", "", {
+		callback = close_buffer_callback,
+	})
+
+	vim.api.nvim_create_autocmd("WinClosed", {
+		buffer = buffer,
+		once = true,
+		callback = close_buffer_callback,
+	})
 
     do
         local previous_buffer, previous_window = event.buffer, event.window
