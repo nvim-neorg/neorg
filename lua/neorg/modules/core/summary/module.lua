@@ -209,7 +209,7 @@ module.on_event = function(event)
 
         local start_line = event.cursor_position[1]
         local end_line = start_line
-        -- find * replace an existing ranged tag
+        -- find & replace an existing ranged tag below this heading
         local node_line_below = ts.get_first_node_on_line(buffer, start_line)
         if node_line_below and node_line_below:type() == "_paragraph_break" then
             -- allow for a line break between heading and tag. Go down one more line.
