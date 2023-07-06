@@ -116,16 +116,19 @@ module.load = function()
                     end
                 end)
                 local result = {}
-                local prefix = string.rep("*", heading_level)
+                local prefix = string.rep(" ", heading_level)
 
                 for category, data in vim.spairs(categories) do
-                    table.insert(result, prefix .. " " .. category)
-
+                    if #result > 0 then
+                      table.insert(result, "")
+                    end
+                    table.insert(result, prefix .. "#cat " .. category)
                     for _, datapoint in ipairs(data) do
                         table.insert(
                             result,
                             table.concat({
-                                "   - {:$",
+                                prefix,
+                                " {:$",
                                 datapoint.norgname,
                                 ":}[",
                                 neorg.lib.title(datapoint.title),
@@ -200,7 +203,27 @@ module.on_event = function(event)
             return
         end
 
-        vim.api.nvim_buf_set_lines(buffer, event.cursor_position[1], event.cursor_position[1], true, generated)
+        -- surround with a ranged tag
+        table.insert(generated, 1, "|group summary")
+        table.insert(generated, "|end")
+
+        local start_line = event.cursor_position[1]
+        local end_line = start_line
+        -- find * replace an existing ranged tag
+        local node_line_below = ts.get_first_node_on_line(buffer, start_line)
+        if node_line_below and node_line_below:type() == "_paragraph_break" then
+          -- allow for a line break between heading and tag
+          node_line_below = ts.get_first_node_on_line(buffer, start_line+1)
+        end
+        if node_line_below and node_line_below:type() == "ranged_tag" then
+            start_line, _ = node_line_below:start()
+            end_line, _ = node_line_below:end_()
+            end_line = end_line + 1
+        else
+          neorg.utils.notify(node_line_below:type())
+        end
+
+        vim.api.nvim_buf_set_lines(buffer, start_line, end_line, true, generated)
     end
 end
 
