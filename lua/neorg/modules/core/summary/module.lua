@@ -212,15 +212,13 @@ module.on_event = function(event)
         -- find * replace an existing ranged tag
         local node_line_below = ts.get_first_node_on_line(buffer, start_line)
         if node_line_below and node_line_below:type() == "_paragraph_break" then
-          -- allow for a line break between heading and tag
-          node_line_below = ts.get_first_node_on_line(buffer, start_line+1)
+            -- allow for a line break between heading and tag. Go down one more line.
+            node_line_below = ts.get_first_node_on_line(buffer, start_line+1)
         end
         if node_line_below and node_line_below:type() == "ranged_tag" then
             start_line, _ = node_line_below:start()
             end_line, _ = node_line_below:end_()
             end_line = end_line + 1
-        else
-          neorg.utils.notify(node_line_below:type())
         end
 
         vim.api.nvim_buf_set_lines(buffer, start_line, end_line, true, generated)
