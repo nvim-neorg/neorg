@@ -353,6 +353,7 @@ require('neorg').setup {
 | Module name                                                                       | Description                                                                          |
 | :-------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
 | [`core.integrations.telescope`](https://github.com/nvim-neorg/neorg-telescope)    | Neorg integration with [Telescope](https://github.com/nvim-telescope/telescope.nvim) |
+| [`external.integrations.figlet`](https://github.com/madskjeldgaard/neorg-figlet-module) | Neorg integration with Figlet |
 
 </details>
 <br>
