@@ -219,7 +219,7 @@ module.on_event = function(event)
         -- Example: Neorg export to-file my-custom-file markdown
 
         local filepath = vim.fn.expand(event.content[1])
-        local filetype = event.content[2] or vim.filetype.match{ filename=filepath }
+        local filetype = event.content[2] or vim.filetype.match({ filename = filepath })
         local exported = module.public.export(event.buffer, filetype)
 
         vim.loop.fs_open(filepath, "w", 438, function(err, fd)
