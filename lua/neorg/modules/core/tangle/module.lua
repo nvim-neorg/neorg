@@ -282,37 +282,37 @@ module.public = {
                     if file_to_tangle_to then
                         if tangles[file_to_tangle_to] then
                             table.insert(content, 1, "")
-
-                            -- get current heading
-                            local heading_string
-                            local heading = module.required["core.integrations.treesitter"].find_parent(node:parent(), "heading%d+")
-                            if heading and heading:named_child(1) then
-                                local srow, scol, erow, ecol = heading:named_child(1):range()
-                                heading_string = vim.api.nvim_buf_get_text(0, srow, scol, erow, ecol, {})[1]
-                            end
-
-                            -- don't reuse the same header more than once
-                            if heading_string and previous_headings[language] ~= heading then
-
-                                -- Get commentstring from vim scratch buffer
-                                if not commentstrings[language] then
-                                    local cur_buf = vim.api.nvim_get_current_buf()
-                                    local tmp_buf = vim.api.nvim_create_buf(false, true)
-                                    vim.api.nvim_set_current_buf(tmp_buf)
-                                    vim.bo.filetype = language
-                                    commentstrings[language] = vim.bo.commentstring
-                                    vim.api.nvim_set_current_buf(cur_buf)
-                                    vim.api.nvim_buf_delete(tmp_buf, {force = true})
-                                end
-
-                                if commentstrings[language] ~= "" then
-                                  table.insert(content, 1, commentstrings[language]:format(heading_string))
-                                  table.insert(content, 1, "")
-                                  previous_headings[language] = heading
-                                end
-                            end
                         else
                             tangles[file_to_tangle_to] = {}
+                        end
+
+                        -- get current heading
+                        local heading_string
+                        local heading = module.required["core.integrations.treesitter"].find_parent(node:parent(), "heading%d+")
+                        if heading and heading:named_child(1) then
+                            local srow, scol, erow, ecol = heading:named_child(1):range()
+                            heading_string = vim.api.nvim_buf_get_text(0, srow, scol, erow, ecol, {})[1]
+                        end
+
+                        -- don't reuse the same header more than once
+                        if heading_string and previous_headings[language] ~= heading then
+
+                            -- Get commentstring from vim scratch buffer
+                            if not commentstrings[language] then
+                                local cur_buf = vim.api.nvim_get_current_buf()
+                                local tmp_buf = vim.api.nvim_create_buf(false, true)
+                                vim.api.nvim_set_current_buf(tmp_buf)
+                                vim.bo.filetype = language
+                                commentstrings[language] = vim.bo.commentstring
+                                vim.api.nvim_set_current_buf(cur_buf)
+                                vim.api.nvim_buf_delete(tmp_buf, {force = true})
+                            end
+
+                            if commentstrings[language] ~= "" then
+                              table.insert(content, 1, commentstrings[language]:format(heading_string))
+                              table.insert(content, 1, "")
+                              previous_headings[language] = heading
+                            end
                         end
 
                         vim.list_extend(tangles[file_to_tangle_to], content)
