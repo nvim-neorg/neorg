@@ -200,7 +200,7 @@ module.public = {
         if type(parsed_document_metadata.tangle) == "table" then
             if vim.tbl_islist(parsed_document_metadata.tangle) then
                 for _, file in ipairs(parsed_document_metadata.tangle) do
-                    options.languages[neorg.utils.get_filetype(file)] = file
+                    options.languages[vim.filetype.match{filename = file}] = file
                 end
             elseif parsed_document_metadata.tangle.languages then
                 for language, file in pairs(parsed_document_metadata.tangle.languages) do
@@ -208,7 +208,7 @@ module.public = {
                 end
             end
         elseif type(parsed_document_metadata.tangle) == "string" then
-            options.languages[neorg.utils.get_filetype(parsed_document_metadata.tangle)] =
+            options.languages[vim.filetype.match{filename = parsed_document_metadata.tangle}] =
                 parsed_document_metadata.tangle
         end
 
