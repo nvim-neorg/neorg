@@ -280,11 +280,6 @@ module.public = {
                     end
 
                     if file_to_tangle_to then
-                        if tangles[file_to_tangle_to] then
-                            table.insert(content, 1, "")
-                        else
-                            tangles[file_to_tangle_to] = {}
-                        end
 
                         -- get current heading
                         local heading_string
@@ -309,10 +304,16 @@ module.public = {
                             end
 
                             if commentstrings[language] ~= "" then
-                              table.insert(content, 1, commentstrings[language]:format(heading_string))
                               table.insert(content, 1, "")
+                              table.insert(content, 1, commentstrings[language]:format(heading_string))
                               previous_headings[language] = heading
                             end
+                        end
+
+                        if not tangles[file_to_tangle_to] then
+                            tangles[file_to_tangle_to] = {}
+                        else
+                            table.insert(content, 1, "")
                         end
 
                         vim.list_extend(tangles[file_to_tangle_to], content)
