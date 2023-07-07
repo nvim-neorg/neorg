@@ -288,7 +288,7 @@ module.public = {
 
                         -- get current heading
                         local heading_string
-                        local heading = module.required["core.integrations.treesitter"].find_parent(node:parent(), "heading%d+")
+                        local heading = module.required["core.integrations.treesitter"].find_parent(node, "heading%d+")
                         if heading and heading:named_child(1) then
                             local srow, scol, erow, ecol = heading:named_child(1):range()
                             heading_string = vim.api.nvim_buf_get_text(0, srow, scol, erow, ecol, {})[1]
