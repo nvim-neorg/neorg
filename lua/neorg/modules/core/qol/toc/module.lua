@@ -255,18 +255,21 @@ module.on_event = function(event)
     vim.api.nvim_win_set_option(window, "scrolloff", 999)
     module.public.update_toc(namespace, toc_title, event.buffer, event.window, buffer, window)
 
-    vim.api.nvim_buf_set_keymap(buffer, "n", "q", "", {
-        callback = function()
+    local close_buffer_callback = function()
+        -- Check if buffer exists before deleting it
+        if vim.api.nvim_buf_is_loaded(buffer) then
             vim.api.nvim_buf_delete(buffer, { force = true })
-        end,
+        end
+    end
+
+    vim.api.nvim_buf_set_keymap(buffer, "n", "q", "", {
+        callback = close_buffer_callback,
     })
 
     vim.api.nvim_create_autocmd("WinClosed", {
         buffer = buffer,
         once = true,
-        callback = function()
-            vim.api.nvim_buf_delete(buffer, { force = true })
-        end,
+        callback = close_buffer_callback,
     })
 
     do
