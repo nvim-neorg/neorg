@@ -69,7 +69,7 @@ module.config.public = {
 
 module.public = {
     --- Returns a module that can handle conversion from `.norg` to the target filetype
-    ---@param ftype string #The filetype to export to (as returned by e.g. `get_filetype()`)
+    ---@param ftype string #The filetype to export to
     ---@return table?,table? #The export module and its configuration, else nil
     get_converter = function(ftype)
         if not neorg.modules.is_module_loaded("core.export." .. ftype) then
@@ -219,7 +219,7 @@ module.on_event = function(event)
         -- Example: Neorg export to-file my-custom-file markdown
 
         local filepath = vim.fn.expand(event.content[1])
-        local filetype = neorg.utils.get_filetype(filepath, event.content[2])
+        local filetype = event.content[2] or vim.filetype.match({ filename = filepath })
         local exported = module.public.export(event.buffer, filetype)
 
         vim.loop.fs_open(filepath, "w", 438, function(err, fd)
