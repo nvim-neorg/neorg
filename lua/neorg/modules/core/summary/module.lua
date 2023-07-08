@@ -183,10 +183,13 @@ module.private = {
             local ranged_tag = node:parent()
             for child in ranged_tag:iter_children() do
                 if child:type() == "tag_parameters" then
-                    local _, param = child:iter_children()
-                    local text = module.required["core.integrations.treesitter"].get_node_text(param)
-                    if text == "summary" then
-                        return ranged_tag
+                    local param = child:child(0)
+                    if param ~= nil then
+                        --for param in child:iter_children() do
+                        local text = module.required["core.integrations.treesitter"].get_node_text(param)
+                        if text == "summary" then
+                            return ranged_tag
+                        end
                     end
                 end
             end
