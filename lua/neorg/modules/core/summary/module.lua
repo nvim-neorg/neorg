@@ -123,8 +123,9 @@ module.load = function()
                     for _, datapoint in ipairs(data) do
                         table.insert(
                             result,
-                            -- TODO each item _SHOULD BE_ a list item,
-                            -- but for now, the parser barfs on list items (or headings) inside a ranged tag
+                            -- TODO each line _SHOULD BE_ a list item,
+                            -- but due to an apparent bug, treesitter currently barfs on list items (or headings) inside a ranged tag.
+                            -- :InspectTree shows an "ERROR" instead of the ranged_tag node.
                             table.concat({
                                 prefix,
                                 "_ {:$",
@@ -165,34 +166,33 @@ module.events.subscribed = {
     },
 }
 
-
 module.private = {
-  find_existing_summary = function(buffer, root)
-    local query_str = neorg.lib.match("all")({
-        _ = [[
+    find_existing_summary = function(buffer, root)
+        local query_str = neorg.lib.match("all")({
+            _ = [[
     (ranged_tag
         name: (tag_name) @_tag_name
         (#eq? @_tag_name "group")
         )
     ]],
-    })
+        })
 
-    local query = neorg.utils.ts_parse_query("norg", query_str)
-    for _, node in query:iter_captures(root, buffer, 0, -1) do
-        -- node is the tag_name. we need its parent node
-        local ranged_tag = node:parent()
-        for child in ranged_tag:iter_children() do
-            if child:type() == "tag_parameters" then
-              local _, param = child:iter_children()
-              local text = module.required["core.integrations.treesitter"].get_node_text(param)
-              if text == "summary" then
-                return ranged_tag
-              end
+        local query = neorg.utils.ts_parse_query("norg", query_str)
+        for _, node in query:iter_captures(root, buffer, 0, -1) do
+            -- node is the tag_name. we need its parent node
+            local ranged_tag = node:parent()
+            for child in ranged_tag:iter_children() do
+                if child:type() == "tag_parameters" then
+                    local _, param = child:iter_children()
+                    local text = module.required["core.integrations.treesitter"].get_node_text(param)
+                    if text == "summary" then
+                        return ranged_tag
+                    end
+                end
             end
         end
-    end
-    return nil
-  end
+        return nil
+    end,
 }
 
 module.on_event = function(event)
@@ -200,35 +200,32 @@ module.on_event = function(event)
         local ts = module.required["core.integrations.treesitter"]
         local buffer = event.buffer
 
-
         local start_line = event.cursor_position[1]
         local end_line = start_line
         local existing = module.private.find_existing_summary(buffer, ts.get_document_root(buffer))
         local heading_level = 0
         if existing ~= nil then
-          -- neorg.utils.notify("matched: " .. existing.type())
-          start_line, _ = existing:start()
-          end_line, _ = existing:end_()
-          end_line = end_line + 1
-          local level = tonumber(string.sub(existing:type(), -1))
-          if level ~= nil then
-            heading_level = level
-          end
+            start_line, _ = existing:start()
+            end_line, _ = existing:end_()
+            end_line = end_line + 1
+            local level = tonumber(string.sub(existing:type(), -1))
+            if level ~= nil then
+                heading_level = level
+            end
         else
-          local node_at_cursor = ts.get_first_node_on_line(buffer, event.cursor_position[1] - 1)
-          if not node_at_cursor or not node_at_cursor:type():match("^heading%d$") then
-              neorg.utils.notify(
-                  "No heading under cursor! Please move your cursor under the heading you'd like to generate the summary under."
-              )
-              return
-          end
-          -- heading level of 'node_at_cursor' (summary headings should be one level deeper)
-          local level = tonumber(string.sub(node_at_cursor:type(), -1))
-          if level ~= nil then
-            heading_level = level
-          end
+            local node_at_cursor = ts.get_first_node_on_line(buffer, event.cursor_position[1] - 1)
+            if not node_at_cursor or not node_at_cursor:type():match("^heading%d$") then
+                neorg.utils.notify(
+                    "No heading under cursor! Please move your cursor under the heading you'd like to generate the summary under."
+                )
+                return
+            end
+            -- heading level of 'node_at_cursor' (summary headings should be one level deeper)
+            local level = tonumber(string.sub(node_at_cursor:type(), -1))
+            if level ~= nil then
+                heading_level = level
+            end
         end
-
 
         local dirman = neorg.modules.get_module("core.dirman")
 
@@ -240,11 +237,8 @@ module.on_event = function(event)
         local current_workspace = dirman.get_current_workspace()
         local ws_name = current_workspace[1]
         local ws_root = current_workspace[2]
-        local generated = module.config.public.strategy(
-            dirman.get_norg_files(ws_name) or {},
-            ws_root,
-            heading_level + 2
-        )
+        local generated =
+            module.config.public.strategy(dirman.get_norg_files(ws_name) or {}, ws_root, heading_level + 2)
 
         if not generated or vim.tbl_isempty(generated) then
             neorg.utils.notify(
@@ -254,10 +248,10 @@ module.on_event = function(event)
         end
         -- use a tag to contain the result
         local content = {
-            string.rep(" ", heading_level)  .. "|group summary " .. ws_name,
+            string.rep(" ", heading_level) .. "|group summary " .. ws_name,
         }
         for _, gen in ipairs(generated) do
-          table.insert(content, gen)
+            table.insert(content, gen)
         end
         table.insert(content, string.rep(" ", heading_level) .. "|end")
 
