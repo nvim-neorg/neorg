@@ -119,16 +119,15 @@ module.load = function()
                 local prefix = string.rep(" ", heading_level)
 
                 for category, data in vim.spairs(categories) do
-                    if #result > 0 then
-                      table.insert(result, "")
-                    end
-                    table.insert(result, prefix .. "#cat " .. category)
+                    table.insert(result, prefix .. "#category " .. category)
                     for _, datapoint in ipairs(data) do
                         table.insert(
                             result,
+                            -- TODO each item _SHOULD BE_ a list item,
+                            -- but for now, the parser barfs on list items (or headings) inside a ranged tag
                             table.concat({
                                 prefix,
-                                " {:$",
+                                "_ {:$",
                                 datapoint.norgname,
                                 ":}[",
                                 neorg.lib.title(datapoint.title),
@@ -166,21 +165,70 @@ module.events.subscribed = {
     },
 }
 
+
+module.private = {
+  find_existing_summary = function(buffer, root)
+    local query_str = neorg.lib.match("all")({
+        _ = [[
+    (ranged_tag
+        name: (tag_name) @_tag_name
+        (#eq? @_tag_name "group")
+        )
+    ]],
+    })
+
+    local query = neorg.utils.ts_parse_query("norg", query_str)
+    for _, node in query:iter_captures(root, buffer, 0, -1) do
+        -- node is the tag_name. we need its parent node
+        local ranged_tag = node:parent()
+        for child in ranged_tag:iter_children() do
+            if child:type() == "tag_parameters" then
+              local _, param = child:iter_children()
+              local text = module.required["core.integrations.treesitter"].get_node_text(param)
+              if text == "summary" then
+                return ranged_tag
+              end
+            end
+        end
+    end
+    return nil
+  end
+}
+
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.summary.summarize" then
         local ts = module.required["core.integrations.treesitter"]
         local buffer = event.buffer
 
-        local node_at_cursor = ts.get_first_node_on_line(buffer, event.cursor_position[1] - 1)
 
-        if not node_at_cursor or not node_at_cursor:type():match("^heading%d$") then
-            neorg.utils.notify(
-                "No heading under cursor! Please move your cursor under the heading you'd like to generate the summary under."
-            )
-            return
+        local start_line = event.cursor_position[1]
+        local end_line = start_line
+        local existing = module.private.find_existing_summary(buffer, ts.get_document_root(buffer))
+        local heading_level = 0
+        if existing ~= nil then
+          -- neorg.utils.notify("matched: " .. existing.type())
+          start_line, _ = existing:start()
+          end_line, _ = existing:end_()
+          end_line = end_line + 1
+          local level = tonumber(string.sub(existing:type(), -1))
+          if level ~= nil then
+            heading_level = level
+          end
+        else
+          local node_at_cursor = ts.get_first_node_on_line(buffer, event.cursor_position[1] - 1)
+          if not node_at_cursor or not node_at_cursor:type():match("^heading%d$") then
+              neorg.utils.notify(
+                  "No heading under cursor! Please move your cursor under the heading you'd like to generate the summary under."
+              )
+              return
+          end
+          -- heading level of 'node_at_cursor' (summary headings should be one level deeper)
+          local level = tonumber(string.sub(node_at_cursor:type(), -1))
+          if level ~= nil then
+            heading_level = level
+          end
         end
-        -- heading level of 'node_at_cursor' (summary headings should be one level deeper)
-        local level = tonumber(string.sub(node_at_cursor:type(), -1))
+
 
         local dirman = neorg.modules.get_module("core.dirman")
 
@@ -189,11 +237,13 @@ module.on_event = function(event)
             return
         end
 
-        local ws_root = dirman.get_current_workspace()[2]
+        local current_workspace = dirman.get_current_workspace()
+        local ws_name = current_workspace[1]
+        local ws_root = current_workspace[2]
         local generated = module.config.public.strategy(
-            dirman.get_norg_files(dirman.get_current_workspace()[1]) or {},
+            dirman.get_norg_files(ws_name) or {},
             ws_root,
-            level + 1
+            heading_level + 2
         )
 
         if not generated or vim.tbl_isempty(generated) then
@@ -202,26 +252,16 @@ module.on_event = function(event)
             )
             return
         end
-
-        -- surround with a ranged tag
-        table.insert(generated, 1, "|group summary")
-        table.insert(generated, "|end")
-
-        local start_line = event.cursor_position[1]
-        local end_line = start_line
-        -- find & replace an existing ranged tag below this heading
-        local node_line_below = ts.get_first_node_on_line(buffer, start_line)
-        if node_line_below and node_line_below:type() == "_paragraph_break" then
-            -- allow for a line break between heading and tag. Go down one more line.
-            node_line_below = ts.get_first_node_on_line(buffer, start_line+1)
+        -- use a tag to contain the result
+        local content = {
+            string.rep(" ", heading_level)  .. "|group summary " .. ws_name,
+        }
+        for _, gen in ipairs(generated) do
+          table.insert(content, gen)
         end
-        if node_line_below and node_line_below:type() == "ranged_tag" then
-            start_line, _ = node_line_below:start()
-            end_line, _ = node_line_below:end_()
-            end_line = end_line + 1
-        end
+        table.insert(content, string.rep(" ", heading_level) .. "|end")
 
-        vim.api.nvim_buf_set_lines(buffer, start_line, end_line, true, generated)
+        vim.api.nvim_buf_set_lines(buffer, start_line, end_line, true, content)
     end
 end
 
