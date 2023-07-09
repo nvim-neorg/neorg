@@ -119,6 +119,10 @@ embeddable-anywhere tools. These include:
 - [x] Multithreaded parsing library - note collections can get big, like really big. Parsing
       all of these on a single thread could take even minutes. Having a good multithreaded
       parsing library will help a lot.
+- [x] Norgopolis and its related modules - norgopolis servers as a router for all server side
+      logic, including the database, for the multithreaded Treesitter parser, as well as for
+      managing active workspaces. Many clients may connect to this server, establishing a single
+      source of truth for any `n` amount of clients.
 - [ ] Sqlite - having an sqlite database as a centralized data store will be super
       useful when dealing with both local and remote servers for data synchronization
       across devices. Such a server would store things like backlinks (for zettelkasten) or notes
