@@ -48,7 +48,7 @@ module.config.public = {
         { "description", "" },
 
         -- The authors field is autopopulated by querying the current user's system username.
-        { 
+        {
             "authors",
             function() return require("neorg.external.helpers").get_username() end,
         },
