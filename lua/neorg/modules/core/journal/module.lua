@@ -217,10 +217,9 @@ module.private = {
 
         -- Gets the title from the metadata of a file, must be called in a vim.schedule
         local get_title = function(file)
-            local buffer = vim.fn.bufadd(folder_name .. neorg.configuration.pathsep .. file)
+            local buffer = vim.fn.bufadd(workspace_path .. neorg.configuration.pathsep .. folder_name .. neorg.configuration.pathsep .. file)
             local meta = module.required["core.integrations.treesitter"].get_document_metadata(buffer)
-            local title = meta["title"]
-            return title
+            return meta.title
         end
 
         vim.loop.fs_scandir(
