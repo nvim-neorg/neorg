@@ -10,6 +10,8 @@ and `to_lua_date(date) -> osdate`.
 --]]
 
 local neorg = require("neorg.core")
+local lib, utils = neorg.lib, neorg.utils
+
 local module = neorg.modules.create("core.tempus")
 
 -- NOTE: Maybe encapsulate whole date parser in a single PEG grammar?
@@ -212,7 +214,7 @@ local timezone_list = {
 }
 
 module.setup = function()
-    if not neorg.utils.is_minimum_version(0, 10, 0) then
+    if not utils.is_minimum_version(0, 10, 0) then
         log.error("`core.tempus` requires at least Neovim version 0.10.0 to run!")
         return {
             success = false,
@@ -236,7 +238,7 @@ module.public = {
             hour = parsed_date.time and parsed_date.time.hour,
             min = parsed_date.time and parsed_date.time.minute,
             sec = parsed_date.time and parsed_date.time.second,
-            wday = parsed_date.weekday and neorg.lib.number_wrap(parsed_date.weekday.number + 1, 1, 7),
+            wday = parsed_date.weekday and lib.number_wrap(parsed_date.weekday.number + 1, 1, 7),
         })
     end,
 
@@ -258,17 +260,17 @@ module.public = {
 
         -- os.date("*t") returns wday with Sunday as 1, needs to be
         -- converted to Monday as 1
-        local converted_weekday = neorg.lib.number_wrap(osdate.wday - 1, 1, 7)
+        local converted_weekday = lib.number_wrap(osdate.wday - 1, 1, 7)
 
         return module.private.tostringable_date({
             weekday = osdate.wday and {
                 number = converted_weekday,
-                name = neorg.lib.title(weekdays[converted_weekday]),
+                name = lib.title(weekdays[converted_weekday]),
             } or nil,
             day = osdate.day,
             month = osdate.month and {
                 number = osdate.month,
-                name = neorg.lib.title(months[osdate.month]),
+                name = lib.title(months[osdate.month]),
             } or nil,
             year = osdate.year,
             time = osdate.hour and setmetatable({
@@ -354,7 +356,7 @@ module.public = {
                         local valid_month_name, valid_month_number = next(valid_months)
 
                         output.month = {
-                            name = neorg.lib.title(valid_month_name),
+                            name = lib.title(valid_month_name),
                             number = valid_month_number,
                         }
 
@@ -382,7 +384,7 @@ module.public = {
                         local valid_weekday_name, valid_weekday_number = next(valid_weekdays)
 
                         output.weekday = {
-                            name = neorg.lib.title(valid_weekday_name),
+                            name = lib.title(valid_weekday_name),
                             number = valid_weekday_number,
                         }
 
@@ -450,7 +452,7 @@ module.on_event = function(event)
             output = module.public.parse_date(input)
 
             if type(output) == "string" then
-                neorg.utils.notify(output, vim.log.levels.ERROR)
+                utils.notify(output, vim.log.levels.ERROR)
 
                 vim.ui.input({
                     prompt = "Date: ",

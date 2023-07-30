@@ -8,8 +8,9 @@
 --]]
 
 local neorg = require("neorg.core")
+local lib, utils = neorg.lib, neorg.utils
+
 require("neorg.modules.base") -- TODO: Move to its own local core module
-require("neorg.external.helpers") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.integrations.treesitter")
 
@@ -154,7 +155,7 @@ module.public = {
         if not document_root then
             return
         end
-        local next_match_query = neorg.utils.ts_parse_query("norg", query_string)
+        local next_match_query = utils.ts_parse_query("norg", query_string)
         for id, node in next_match_query:iter_captures(document_root, 0, line_number - 1, -1) do
             if next_match_query.captures[id] == "next-segment" then
                 local start_line, start_col = node:range()
@@ -187,7 +188,7 @@ module.public = {
         if not document_root then
             return
         end
-        local previous_match_query = neorg.utils.ts_parse_query("norg", query_string)
+        local previous_match_query = utils.ts_parse_query("norg", query_string)
         local final_node = nil
 
         for id, node in previous_match_query:iter_captures(document_root, 0, 0, line_number) do
@@ -465,7 +466,7 @@ module.public = {
             }
         end
 
-        local rs, cs, re, ce = neorg.lib.when(type(node) == "table", function()
+        local rs, cs, re, ce = lib.when(type(node) == "table", function()
             local brs, bcs, _, _ = node[1]:range()
             local _, _, ere, ece = node[#node]:range()
             return brs, bcs, ere, ece
@@ -587,7 +588,7 @@ module.public = {
                 return
             end
 
-            local query = neorg.utils.ts_parse_query(
+            local query = utils.ts_parse_query(
                 "norg_meta",
                 [[
                 (metadata
@@ -603,7 +604,7 @@ module.public = {
             end
 
             local function parse_data(node)
-                return neorg.lib.match(node:type())({
+                return lib.match(node:type())({
                     string = function()
                         return trim(module.public.get_node_text(node, buf))
                     end,
@@ -672,7 +673,7 @@ module.public = {
     ---@param start number? #The start line for the query
     ---@param finish number? #The end line for the query
     execute_query = function(query_string, callback, buffer, start, finish)
-        local query = neorg.utils.ts_parse_query("norg", query_string)
+        local query = utils.ts_parse_query("norg", query_string)
         local root = module.public.get_document_root(buffer)
 
         if not root then
@@ -745,7 +746,7 @@ module.on_event = function(event)
         local ok = pcall(install_norg_ts)
 
         if not ok then
-            neorg.utils.notify(
+            utils.notify(
                 [[Unable to install norg parser.
 ]],
                 vim.log.levels.WARN

@@ -1,3 +1,6 @@
+local neorg = require("neorg.core")
+local lib = neorg.lib
+
 local docgen = require("docgen")
 local fileio = require("fileio")
 
@@ -26,7 +29,7 @@ local modules = {
 local function concat_configuration_options(configuration_options)
     local result = {}
 
-    local unrolled = neorg.lib.unroll(configuration_options)
+    local unrolled = lib.unroll(configuration_options)
 
     table.sort(unrolled, function(x, y)
         return x[1] < y[1]
@@ -130,7 +133,7 @@ for module_name, module in pairs(modules) do
             local object = docgen.to_lua_object(module.parsed, buffer, data.value, module_name)
 
             do
-                neorg.lib.ensure_nested(configuration_options, unpack(data.parents))
+                lib.ensure_nested(configuration_options, unpack(data.parents))
                 local ref = vim.tbl_get(configuration_options, unpack(data.parents)) or configuration_options
                 if data.name then
                     ref[data.name] = {

@@ -10,6 +10,8 @@ The clipboard module is a minimal and generic module allowing to overwrite or ad
 --]]
 
 local neorg = require("neorg.core")
+local lib = neorg.lib
+
 local module = neorg.modules.create("core.clipboard")
 
 module.setup = function()
@@ -40,7 +42,7 @@ module.load = function()
 
                         vim.fn.setreg(
                             vim.v.register,
-                            neorg.lib.filter(module.private.callbacks[node:type()], function(_, callback)
+                            lib.filter(module.private.callbacks[node:type()], function(_, callback)
                                 if callback.strict and (range[1][1] < i or range[2][1] > node:end_()) then
                                     return
                                 end

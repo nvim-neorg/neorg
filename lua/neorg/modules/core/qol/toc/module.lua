@@ -18,6 +18,8 @@ Norg document. The TOC view updates automatically when switching buffers.
 --]]
 
 local neorg = require("neorg.core")
+local utils = neorg.utils
+
 local module = neorg.modules.create("core.qol.toc")
 
 module.setup = function()
@@ -236,7 +238,7 @@ module.on_event = function(event)
         local qflist = module.public.generate_qflist(event.buffer)
 
         if not qflist then
-            neorg.utils.notify("An error occurred and the qflist could not be generated", vim.log.levels.WARN)
+            utils.notify("An error occurred and the qflist could not be generated", vim.log.levels.WARN)
             return
         end
 

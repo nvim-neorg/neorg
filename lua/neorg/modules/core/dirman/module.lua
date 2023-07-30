@@ -37,6 +37,8 @@ workspace. To get the best experience it's recommended to set the `autochdir` Ne
 --]]
 
 local neorg = require("neorg.core")
+local utils = neorg.utils
+
 require("neorg.modules.base") -- TODO: Move to its own local core module
 require("neorg.modules") -- TODO: Move to its own local core module
 
@@ -355,7 +357,7 @@ module.public = {
         if module.public.set_workspace(last_workspace) then
             vim.cmd("e " .. workspace_path .. neorg.configuration.pathsep .. module.config.public.index)
 
-            neorg.utils.notify("Last Workspace -> " .. workspace_path)
+            utils.notify("Last Workspace -> " .. workspace_path)
         end
     end,
     --- Checks for file existence by supplying a full path in `filepath`
@@ -464,7 +466,7 @@ module.on_event = function(event)
                     return
                 end
 
-                neorg.utils.notify("New Workspace: " .. event.content[1] .. " -> " .. new_workspace)
+                utils.notify("New Workspace: " .. event.content[1] .. " -> " .. new_workspace)
             end)
         else -- No argument supplied, simply print the current workspace
             -- Query the current workspace
@@ -472,7 +474,7 @@ module.on_event = function(event)
             -- Nicely print it. We schedule_wrap here because people with a configured logger will have this message
             -- silenced by other trace logs
             vim.schedule(function()
-                neorg.utils.notify("Current Workspace: " .. current_ws[1] .. " -> " .. current_ws[2])
+                utils.notify("Current Workspace: " .. current_ws[1] .. " -> " .. current_ws[2])
             end)
         end
     end
@@ -482,7 +484,7 @@ module.on_event = function(event)
         local current_ws = module.public.get_current_workspace()
 
         if current_ws[1] == "default" then
-            neorg.utils.notify(
+            utils.notify(
                 "No workspace is set! Use `:Neorg workspace <name>` to set the current workspace. Aborting..."
             )
             return
@@ -492,7 +494,7 @@ module.on_event = function(event)
 
         if vim.fn.filereadable(index_path) == 0 then
             if not module.public.touch_file(module.config.public.index, module.public.get_current_workspace()[1]) then
-                neorg.utils.notify(
+                utils.notify(
                     table.concat({
                         "Unable to create '",
                         module.config.public.index,

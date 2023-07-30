@@ -1,4 +1,6 @@
 local neorg = require("neorg.core")
+local lib = neorg.lib
+
 local module = neorg.modules.create("core.ui.calendar.views.monthly")
 
 local function reformat_time(date)
@@ -750,7 +752,7 @@ module.public = {
             vim.keymap.set(
                 "n",
                 "?",
-                neorg.lib.wrap(module.private.display_help, {
+                lib.wrap(module.private.display_help, {
                     {
                         { "<Esc>", "@namespace" },
                         { " - " },
@@ -858,7 +860,7 @@ module.public = {
                 vim.keymap.set(
                     "n",
                     "?",
-                    neorg.lib.wrap(module.private.display_help, {
+                    lib.wrap(module.private.display_help, {
                         {
                             { "<Esc>", "@namespace" },
                             { " - " },

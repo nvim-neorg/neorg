@@ -19,8 +19,9 @@ Any edit is assumed to break this module.
 --]]
 
 local neorg = require("neorg.core")
+local lib, utils = neorg.lib, neorg.utils
+
 require("neorg.modules.base") -- TODO: Move to its own local core module
-require("neorg.external.helpers") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.syntax")
 
@@ -117,7 +118,7 @@ module.public = {
 
         if tree then
             -- get the language node used by the code block
-            local code_lang = neorg.utils.ts_parse_query(
+            local code_lang = utils.ts_parse_query(
                 "norg",
                 [[(
                     (ranged_verbatim_tag (tag_name) @_tagname (tag_parameters) @language)
@@ -488,7 +489,7 @@ module.load = function()
 
     -- Load available regex languages
     -- get the available regex files for the current session
-    module.private.available_languages = require("neorg.external.helpers").get_language_list(false)
+    module.private.available_languages = lib.get_language_list(false)
 end
 
 module.on_event = function(event)

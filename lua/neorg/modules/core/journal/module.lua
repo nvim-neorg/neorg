@@ -20,6 +20,8 @@ their titles.
 --]]
 
 local neorg = require("neorg.core")
+local lib = neorg.lib
+
 require("neorg.modules.base") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.journal")
@@ -210,7 +212,7 @@ module.private = {
             )
 
             if type(handle) ~= "userdata" then
-                error(neorg.lib.lazy_string_concat("Failed to scan directory '", workspace, path, "': ", handle))
+                error(lib.lazy_string_concat("Failed to scan directory '", workspace, path, "': ", handle))
             end
 
             return handle
@@ -228,7 +230,7 @@ module.private = {
             function(err, handle)
                 assert(
                     not err,
-                    neorg.lib.lazy_string_concat("Unable to generate TOC for directory '", folder_name, "' - ", err)
+                    lib.lazy_string_concat("Unable to generate TOC for directory '", folder_name, "' - ", err)
                 )
 
                 while true do

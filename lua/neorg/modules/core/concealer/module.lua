@@ -18,6 +18,7 @@ installed on your system.
 -- utils  to be refactored
 
 local neorg = require("neorg.core")
+local lib, utils = neorg.lib, neorg.utils
 
 local function in_range(k, l, r_ex)
     return l <= k and k < r_ex
@@ -62,9 +63,8 @@ end
 --- end utils
 
 require("neorg.modules.base")
-require("neorg.external.helpers")
 
-local has_anticonceal = neorg.utils.is_minimum_version(0, 10, 0)
+local has_anticonceal = utils.is_minimum_version(0, 10, 0)
 
 local module = neorg.modules.create("core.concealer", {
     "preset_basic",
@@ -379,7 +379,7 @@ module.public = {
         local foldstart = vim.v.foldstart
         local line = vim.api.nvim_buf_get_lines(0, foldstart - 1, foldstart, true)[1]
 
-        return neorg.lib.match(line, function(lhs, rhs)
+        return lib.match(line, function(lhs, rhs)
             return vim.startswith(lhs, rhs)
         end)({
             ["@document.meta"] = "Document Metadata",
@@ -1056,7 +1056,7 @@ local function get_parsed_query_lazy()
 
     table.insert(queries, "]")
     local query_combined = table.concat(queries, " ")
-    module.private.prettify_query = neorg.utils.ts_parse_query("norg", query_combined)
+    module.private.prettify_query = utils.ts_parse_query("norg", query_combined)
     assert(module.private.prettify_query)
     module.private.config_by_node_name = config_by_node_name
     return module.private.prettify_query
@@ -1368,7 +1368,7 @@ module.load = function()
             },
         })
     end)
-    if neorg.utils.is_minimum_version(0, 7, 0) then
+    if utils.is_minimum_version(0, 7, 0) then
         vim.api.nvim_create_autocmd("OptionSet", {
             pattern = "conceallevel",
             callback = function(_ev)

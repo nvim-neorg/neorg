@@ -57,6 +57,8 @@ to finely control what gets set and where:
 --]]
 
 local neorg = require("neorg.core")
+local lib = neorg.lib
+
 require("neorg.modules.base") -- TODO: Move to its own local core module
 require("neorg.modules") -- TODO: Move to its own local core module
 
@@ -428,7 +430,7 @@ module.private = {
 module.neorg_post_load = module.public.sync
 
 module.on_event = function(event)
-    neorg.lib.match(event.type)({
+    lib.match(event.type)({
         ["core.neorgcmd.events.core.keybinds.trigger"] = function()
             -- Query the current mode and the expected mode (the one passed in by the user)
             local expected_mode = event.content[1]

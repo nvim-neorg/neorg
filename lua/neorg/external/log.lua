@@ -8,6 +8,7 @@
 -- under the terms of the MIT license. See LICENSE for details.
 
 local neorg = require("neorg.core")
+local lib = neorg.lib
 
 -- User configuration section
 local default_config = {
@@ -55,7 +56,7 @@ log.new = function(config, standalone)
 
     local outfile = string.format("%s/%s.log", vim.api.nvim_call_function("stdpath", { "data" }), config.plugin)
 
-    local obj = neorg.lib.match(standalone ~= nil)({
+    local obj = lib.match(standalone ~= nil)({
         ["true"] = log,
         ["false"] = {},
     })

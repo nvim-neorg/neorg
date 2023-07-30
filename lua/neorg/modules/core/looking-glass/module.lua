@@ -15,12 +15,12 @@ but you may map it yourself via the [`core.keybinds`](@core.keybinds) module.
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.external.helpers") -- TODO: Move to its own local core module
+local utils = neorg.utils
 
 local module = neorg.modules.create("core.looking-glass")
 
 module.setup = function()
-    if not neorg.utils.is_minimum_version(0, 7, 0) then
+    if not utils.is_minimum_version(0, 7, 0) then
         log.error("The `looking-glass` module requires Neovim 0.7+! Please upgrade your Neovim installation.")
         return {
             success = false,
@@ -182,7 +182,7 @@ module.public = {
 module.on_event = function(event)
     if event.split_type[2] == "core.looking-glass.magnify-code-block" then
         -- First we must check if the user has their cursor under a code block
-        local query = neorg.utils.ts_parse_query(
+        local query = utils.ts_parse_query(
             "norg",
             [[
             (ranged_verbatim_tag
@@ -206,7 +206,7 @@ module.on_event = function(event)
                     local tag_info = module.required["core.integrations.treesitter"].get_tag_info(node)
 
                     if not tag_info then
-                        neorg.utils.notify("Unable to magnify current code block :(", vim.log.levels.WARN)
+                        utils.notify("Unable to magnify current code block :(", vim.log.levels.WARN)
                         return
                     end
 
@@ -217,7 +217,7 @@ module.on_event = function(event)
 
         -- If the query above failed then we know that the user isn't under a code block
         if not code_block_info then
-            neorg.utils.notify("No code block found under cursor!", vim.log.levels.WARN)
+            utils.notify("No code block found under cursor!", vim.log.levels.WARN)
             return
         end
 
@@ -231,7 +231,7 @@ module.on_event = function(event)
         )
 
         if not vsplit then
-            neorg.utils.notify(
+            utils.notify(
                 "Unable to magnify current code block because our split didn't want to open :(",
                 vim.log.levels.WARN
             )

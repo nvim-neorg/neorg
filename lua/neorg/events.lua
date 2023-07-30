@@ -9,7 +9,6 @@ local neorg = require("neorg.core")
 local log = require("neorg.external.log")
 
 require("neorg.modules") -- TODO: Move to its own local core module
-require("neorg.external.helpers") -- TODO: Move to its own local core module
 
 neorg.events = {}
 

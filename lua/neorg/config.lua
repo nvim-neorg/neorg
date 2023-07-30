@@ -1,4 +1,5 @@
 local neorg = require("neorg.core")
+local lib = neorg.lib
 
 -- Configuration template
 neorg.configuration = {
@@ -20,8 +21,6 @@ neorg.configuration = {
     version = "5.0.0",
 
     neovim_version = (function()
-        require("neorg.external.helpers")
-
         local data = {}
         local parsed_output = vim.api.nvim_exec("version", true)
 
@@ -39,14 +38,14 @@ neorg.configuration = {
             if key then
                 key = key:lower():gsub("%p", ""):gsub("%s", "-")
 
-                value = neorg.lib.match(key)({
+                value = lib.match(key)({
                     compilation = function()
                         local split = vim.split(value, "%s+")
 
                         split.compiler = table.remove(split, 1)
                         return split
                     end,
-                    features = neorg.lib.wrap(vim.split, value, "%s*%+", {
+                    features = lib.wrap(vim.split, value, "%s*%+", {
                         trimempty = true,
                     }),
                     nvim = tonumber(value),

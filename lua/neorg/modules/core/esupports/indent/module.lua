@@ -16,6 +16,8 @@ due to incomplete syntax trees (if you find any such examples, then file an issu
 --]]
 
 local neorg = require("neorg.core")
+local lib = neorg.lib
+
 local module = neorg.modules.create("core.esupports.indent")
 
 module.setup = function()
@@ -312,8 +314,8 @@ module.on_event = function(event)
         )
 
         local indentkeys = "o,O,*<M-o>,*<M-O>"
-            .. neorg.lib.when(module.config.public.format_on_enter, ",*<CR>", "")
-            .. neorg.lib.when(module.config.public.format_on_escape, ",*<Esc>", "")
+            .. lib.when(module.config.public.format_on_enter, ",*<CR>", "")
+            .. lib.when(module.config.public.format_on_escape, ",*<Esc>", "")
         vim.api.nvim_buf_set_option(event.buffer, "indentkeys", indentkeys)
     end
 end

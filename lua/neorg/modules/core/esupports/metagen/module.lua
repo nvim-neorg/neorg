@@ -12,8 +12,9 @@ The metagen module exposes two commands - `:Neorg inject-metadata` and `:Neorg u
 --]]
 
 local neorg = require("neorg.core")
+local lib, utils = neorg.lib, neorg.utils
+
 require("neorg.modules.base") -- TODO: Move to its own local core module
-require("neorg.external.helpers") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.esupports.metagen")
 
@@ -51,7 +52,7 @@ module.config.public = {
         -- The authors field is autopopulated by querying the current user's system username.
         {
             "authors",
-            function() return require("neorg.external.helpers").get_username() end,
+            function() return lib.get_username() end,
         },
 
         -- The categories field is always kept empty for the user to fill in.
@@ -90,7 +91,7 @@ module.public = {
     ---@param buf number #The buffer to check in
     ---@return boolean,table #Whether the metadata was present, and the range of the metadata node
     is_metadata_present = function(buf)
-        local query = neorg.utils.ts_parse_query(
+        local query = utils.ts_parse_query(
             "norg",
             [[
                  (ranged_verbatim_tag
@@ -222,7 +223,7 @@ module.public = {
             end
         end
 
-        local query = neorg.utils.ts_parse_query(
+        local query = utils.ts_parse_query(
             "norg_meta",
             [[
             (pair

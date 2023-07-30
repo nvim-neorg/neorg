@@ -1,3 +1,6 @@
+local neorg = require("neorg.core")
+local lib, utils = neorg.lib, neorg.utils
+
 local docgen = {}
 
 -- Create the directory if it does not exist
@@ -31,9 +34,6 @@ require("neorg").setup({
 
 -- Start neorg
 neorg.org_file_entered(false)
-
--- Pull in the `neorg.lib` table
-require("neorg.external.helpers")
 
 -- Extract treesitter utility functions provided by Neorg and nvim-treesitter.ts_utils
 local ts = neorg.modules.get_module("core.integrations.treesitter")
@@ -155,7 +155,7 @@ end
 ---@param root userdata #The root node
 ---@return userdata? #The `module.config.public` node
 docgen.get_module_config_node = function(buffer, root)
-    local query = neorg.utils.ts_parse_query(
+    local query = utils.ts_parse_query(
         "lua",
         [[
         (assignment_statement
@@ -238,7 +238,7 @@ end
 docgen.evaluate_functions = function(tbl)
     local new = {}
 
-    neorg.lib.map(tbl, function(_, value)
+    lib.map(tbl, function(_, value)
         if type(value) == "function" then
             vim.list_extend(new, value())
         else
@@ -259,7 +259,7 @@ end
 --- If the predicate returns false, then the object is dismissed.
 ---@return fun():string[] #An array of markdown strings with the enumerated modules
 local function list_modules_with_predicate(modules, predicate)
-    local sorted = neorg.lib.unroll(modules)
+    local sorted = lib.unroll(modules)
 
     table.sort(sorted, function(x, y)
         return x[1] < y[1]
@@ -647,14 +647,14 @@ docgen.htmlify = function(configuration_option)
     local result = {}
     local code_block = true
 
-    neorg.lib.match(self.data.value:type())({
+    lib.match(self.data.value:type())({
         string = function()
             table.insert(result, table.concat({ '"', self.object, '"' }))
         end,
         table_constructor = function()
             table.insert(result, "")
 
-            local unrolled = neorg.lib.unroll(self.object)
+            local unrolled = lib.unroll(self.object)
 
             table.sort(unrolled, function(x, y)
                 return tostring(x[1]) < tostring(y[1])

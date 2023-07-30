@@ -9,6 +9,7 @@ to query information from Norg documents.
 --]]
 
 local neorg = require("neorg.core")
+local lib = neorg.lib
 require("neorg.modules.base") -- TODO: Move to its own local core module
 
 ---@class core.queries.native.tree_node
@@ -230,10 +231,10 @@ module.public = {
             local uri = vim.uri_from_bufnr(buf)
             local fname = vim.uri_to_fname(uri)
 
-            neorg.lib.when(vim.fn.bufloaded(buf) == 1, function()
+            lib.when(vim.fn.bufloaded(buf) == 1, function()
                 vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-                vim.api.nvim_buf_call(buf, neorg.lib.wrap(vim.cmd, "write!"))
-            end, neorg.lib.wrap(vim.fn.writefile, lines, fname))
+                vim.api.nvim_buf_call(buf, lib.wrap(vim.cmd, "write!"))
+            end, lib.wrap(vim.fn.writefile, lines, fname))
 
             -- We reset the state as false because we are consistent with the original file
             temp_buf.changed = false
@@ -245,7 +246,7 @@ module.public = {
     --- @overload fun()
     ---@param buf number #The content relative to the provided buffer
     delete_content = function(buf)
-        neorg.lib.when(buf, function()
+        lib.when(buf, function()
             module.private.data.temp_bufs[buf] = nil
         end, function()
             module.private.data.temp_bufs = {}

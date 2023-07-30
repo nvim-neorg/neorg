@@ -33,6 +33,8 @@ the item under the cursor with the `<C-t>` and `<C-d>` bindings.
 --]]
 
 local neorg = require("neorg.core")
+local lib, utils = neorg.lib, neorg.utils
+
 local module = neorg.modules.create("core.itero")
 
 module.setup = function()
@@ -93,7 +95,7 @@ module.on_event = function(event)
 
         while current:parent() do
             if
-                neorg.lib.filter(module.config.public.iterables, function(_, iterable)
+                lib.filter(module.config.public.iterables, function(_, iterable)
                     return current:type():match(table.concat({ "^", iterable, "$" })) and iterable or nil
                 end)
             then
@@ -104,14 +106,14 @@ module.on_event = function(event)
         end
 
         if not current or current:type() == "document" then
-            neorg.utils.notify(
+            utils.notify(
                 "No object to continue! Make sure you're under an iterable item like a list or heading.",
                 vim.log.levels.WARN
             )
             return
         end
 
-        local should_append_extension = neorg.lib.filter(
+        local should_append_extension = lib.filter(
             module.config.public.retain_extensions,
             function(match, should_append)
                 return current:type():match(match) and should_append or nil

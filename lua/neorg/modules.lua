@@ -6,6 +6,8 @@
 
 -- Include the global logger instance
 local neorg = require("neorg.core")
+local utils = neorg.utils
+
 local log = require("neorg.external.log")
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
@@ -351,7 +353,7 @@ function neorg.modules.get_module_version(module_name)
         return
     end
 
-    return neorg.utils.parse_version_string(version)
+    return utils.parse_version_string(version)
 end
 
 --- Executes `callback` once `module` is a valid and loaded module, else the callback gets instantly executed.

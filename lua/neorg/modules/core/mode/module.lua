@@ -22,6 +22,8 @@ which can be used by the user to switch modes.
 --]]
 
 local neorg = require("neorg.core")
+local utils = neorg.utils
+
 require("neorg.modules.base") -- TODO: Move to its own local core module
 require("neorg.events") -- TODO: Move to its own local core module
 
@@ -143,7 +145,7 @@ module.on_event = function(event)
     if event.type == "core.neorgcmd.events.mode" then
         -- If no parameters were given then just print the current mode
         if not event.content[1] then
-            neorg.utils.notify("Active Mode: " .. module.public.get_mode())
+            utils.notify("Active Mode: " .. module.public.get_mode())
         else -- Else actually set the mode to the one we specified
             module.public.set_mode(event.content[1])
         end

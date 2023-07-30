@@ -148,7 +148,7 @@ The first code block will be tangled to `./output.lua`, the second code block wi
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.external.helpers") -- TODO: Move to its own local core module
+local lib, utils = neorg.lib, neorg.utils
 
 local module = neorg.modules.create("core.tangle")
 
@@ -217,7 +217,7 @@ module.public = {
             -- filename = { content }
         }
 
-        local query_str = neorg.lib.match(options.scope)({
+        local query_str = lib.match(options.scope)({
             _ = [[
                 (ranged_verbatim_tag
                     name: (tag_name) @_name
@@ -244,7 +244,7 @@ module.public = {
             ]],
         })
 
-        local query = neorg.utils.ts_parse_query("norg", query_str)
+        local query = utils.ts_parse_query("norg", query_str)
 
         for id, node in query:iter_captures(document_root, buffer, 0, -1) do
             local capture = query.captures[id]
@@ -295,7 +295,7 @@ module.on_event = function(event)
         local tangles = module.public.tangle(event.buffer)
 
         if not tangles or vim.tbl_isempty(tangles) then
-            neorg.utils.notify("Nothing to tangle!", vim.log.levels.WARN)
+            utils.notify("Nothing to tangle!", vim.log.levels.WARN)
             return
         end
 
@@ -305,20 +305,20 @@ module.on_event = function(event)
         for file, content in pairs(tangles) do
             vim.loop.fs_open(vim.fn.expand(file), "w", 438, function(err, fd)
                 file_count = file_count - 1
-                assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
+                assert(not err, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
                 vim.loop.fs_write(fd, table.concat(content, "\n"), 0, function(werr)
                     assert(
                         not werr,
-                        neorg.lib.lazy_string_concat("Failed to write to file '", file, "' for tangling: ", werr)
+                        lib.lazy_string_concat("Failed to write to file '", file, "' for tangling: ", werr)
                     )
                 end)
 
                 tangled_count = tangled_count + 1
                 if file_count == 0 then
                     vim.schedule(
-                        neorg.lib.wrap(
-                            neorg.utils.notify,
+                        lib.wrap(
+                            utils.notify,
                             string.format(
                                 "Successfully tangled %d file%s!",
                                 tangled_count,
