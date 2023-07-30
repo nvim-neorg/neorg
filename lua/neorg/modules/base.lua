@@ -4,6 +4,8 @@
 --]]
 
 local neorg = require("neorg.core")
+local configuration = neorg.configuration
+
 neorg.modules = {}
 
 --- Returns a new Neorg module, exposing all the necessary function and variables
@@ -43,7 +45,7 @@ function neorg.modules.create(name, imports)
             -- Your module will use this version if not specified, but you can override it.
             -- Overriding it will mean that your module is only compatible with the overriden Norg revision.
             -- E.g: setting version = "1.0.0" will mean that your module requires Norg 1.0.0+ to operate
-            version = require("neorg.config").norg_version,
+            version = configuration.norg_version,
         },
 
         -- Configuration for the module

@@ -6,7 +6,7 @@
 
 -- Include the global logger instance
 local neorg = require("neorg.core")
-local utils = neorg.utils
+local configuration, utils = neorg.configuration, neorg.utils
 
 local log = require("neorg.external.log")
 
@@ -276,7 +276,7 @@ function neorg.modules.load_module(module_name, config)
         module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
     else
         module.config.public =
-            vim.tbl_deep_extend("force", module.config.public, require("neorg.config").modules[module_name] or {})
+            vim.tbl_deep_extend("force", module.config.public, configuration.modules[module_name] or {})
     end
 
     -- Pass execution onto load_module_from_table() and let it handle the rest

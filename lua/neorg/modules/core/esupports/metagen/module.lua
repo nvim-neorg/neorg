@@ -12,7 +12,7 @@ The metagen module exposes two commands - `:Neorg inject-metadata` and `:Neorg u
 --]]
 
 local neorg = require("neorg.core")
-local lib, utils = neorg.lib, neorg.utils
+local configuration, lib, utils = neorg.configuration, neorg.lib, neorg.utils
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 
@@ -75,7 +75,7 @@ module.config.public = {
         -- the file was created.
         {
             "version",
-            function() return require("neorg.config").norg_version end
+            function() return configuration.norg_version end
         },
     },
 }

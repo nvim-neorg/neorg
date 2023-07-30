@@ -1,3 +1,5 @@
+local configuration = require("neorg.core.config")
+
 local utils = {}
 local version = vim.version() -- TODO: Move to a more local scope
 
@@ -17,7 +19,7 @@ end
 
 --- An OS agnostic way of querying the current user
 function utils.get_username()
-    local current_os = require("neorg.config").os_info
+    local current_os = configuration.os_info
 
     if not current_os then
         return ""

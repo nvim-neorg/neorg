@@ -5,10 +5,10 @@
 
 -- Require the most important modules
 local neorg = require("neorg.core")
+local configuration = neorg.configuration
+
 require("neorg.events") -- TODO: Move to its own local core module
 require("neorg.modules") -- TODO: Move to its own local core module
-
-local configuration = require("neorg.config") -- TODO: Move to its own local core module
 
 --- This function takes in a user configuration, parses it, initializes everything and launches neorg if inside a .norg or .org file
 ---@param config table #A table that reflects the structure of configuration.user_configuration
