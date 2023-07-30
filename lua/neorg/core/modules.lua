@@ -494,9 +494,9 @@ end
 --- Normally loads a module, but then sets up the parent module's "required" table, allowing the parent module to access the child as if it were a dependency.
 ---@param module_name string #A path to a module on disk. A path seperator in neorg is '.', not '/'
 ---@param parent_module string #The name of the parent module. This is the module which the dependency will be attached to.
----@param config table #A config that reflects the structure of neorg.config.user_config.load["module.name"].config
-function modules.load_module_as_dependency(module_name, parent_module, config)
-    if modules.load_module(module_name, config) and modules.is_module_loaded(parent_module) then
+---@param cfg table #A config that reflects the structure of neorg.config.user_config.load["module.name"].config
+function modules.load_module_as_dependency(module_name, parent_module, cfg)
+    if modules.load_module(module_name, cfg) and modules.is_module_loaded(parent_module) then
         modules.loaded_modules[parent_module].required[module_name] = modules.get_module_config(module_name)
     end
 end
