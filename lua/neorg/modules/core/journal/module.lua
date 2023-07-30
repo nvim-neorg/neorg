@@ -20,7 +20,7 @@ their titles.
 --]]
 
 local neorg = require("neorg.core")
-local lib = neorg.lib
+local config, lib = neorg.config, neorg.lib
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 
@@ -135,12 +135,12 @@ module.private = {
         local workspace_path = module.required["core.dirman"].get_workspace(workspace)
 
         local journal_file_exists = module.required["core.dirman"].file_exists(
-            workspace_path .. "/" .. folder_name .. neorg.configuration.pathsep .. path
+            workspace_path .. "/" .. folder_name .. config.pathsep .. path
         )
 
-        module.required["core.dirman"].create_file(folder_name .. neorg.configuration.pathsep .. path, workspace)
+        module.required["core.dirman"].create_file(folder_name .. config.pathsep .. path, workspace)
 
-        module.required["core.dirman"].create_file(folder_name .. neorg.configuration.pathsep .. path, workspace)
+        module.required["core.dirman"].create_file(folder_name .. config.pathsep .. path, workspace)
 
         if
             not journal_file_exists
@@ -173,7 +173,7 @@ module.private = {
         local template_name = module.config.public.template_name
 
         module.required["core.dirman"].create_file(
-            folder_name .. neorg.configuration.pathsep .. template_name,
+            folder_name .. config.pathsep .. template_name,
             workspace or module.required["core.dirman"].get_current_workspace()[1]
         )
     end,
@@ -185,8 +185,8 @@ module.private = {
         local folder_name = module.config.public.journal_folder
 
         -- If the toc exists, open it, if not, create it
-        if module.required["core.dirman"].file_exists(folder_name .. neorg.configuration.pathsep .. index) then
-            module.required["core.dirman"].open_file(workspace, folder_name .. neorg.configuration.pathsep .. index)
+        if module.required["core.dirman"].file_exists(folder_name .. config.pathsep .. index) then
+            module.required["core.dirman"].open_file(workspace, folder_name .. config.pathsep .. index)
         else
             module.private.create_toc()
         end
@@ -208,7 +208,7 @@ module.private = {
         local get_fs_handle = function(path)
             path = path or ""
             local handle = vim.loop.fs_scandir(
-                workspace_path .. neorg.configuration.pathsep .. folder_name .. neorg.configuration.pathsep .. path
+                workspace_path .. config.pathsep .. folder_name .. config.pathsep .. path
             )
 
             if type(handle) ~= "userdata" then
@@ -220,13 +220,13 @@ module.private = {
 
         -- Gets the title from the metadata of a file, must be called in a vim.schedule
         local get_title = function(file)
-            local buffer = vim.fn.bufadd(workspace_path .. neorg.configuration.pathsep .. folder_name .. neorg.configuration.pathsep .. file)
+            local buffer = vim.fn.bufadd(workspace_path .. config.pathsep .. folder_name .. config.pathsep .. file)
             local meta = module.required["core.integrations.treesitter"].get_document_metadata(buffer)
             return meta.title
         end
 
         vim.loop.fs_scandir(
-            workspace_path .. neorg.configuration.pathsep .. folder_name .. neorg.configuration.pathsep,
+            workspace_path .. config.pathsep .. folder_name .. config.pathsep,
             function(err, handle)
                 assert(
                     not err,
@@ -253,7 +253,7 @@ module.private = {
                             end
 
                             if mtype == "directory" then
-                                local months_handle = get_fs_handle(name .. neorg.configuration.pathsep .. mname)
+                                local months_handle = get_fs_handle(name .. config.pathsep .. mname)
                                 while true do
                                     -- dname is the day
                                     local dname, dtype = vim.loop.fs_scandir_next(months_handle)
@@ -271,9 +271,9 @@ module.private = {
                                             -- Get the title from the metadata, else, it just defaults to the name of the file
                                             local title = get_title(
                                                 name
-                                                    .. neorg.configuration.pathsep
+                                                    .. config.pathsep
                                                     .. mname
-                                                    .. neorg.configuration.pathsep
+                                                    .. config.pathsep
                                                     .. dname
                                             ) or file[1]
 
@@ -284,13 +284,13 @@ module.private = {
                                                 tonumber(file[1]),
                                                 "{:$"
                                                     .. workspace_name_for_links
-                                                    .. neorg.configuration.pathsep
+                                                    .. config.pathsep
                                                     .. module.config.public.journal_folder
-                                                    .. neorg.configuration.pathsep
+                                                    .. config.pathsep
                                                     .. name
-                                                    .. neorg.configuration.pathsep
+                                                    .. config.pathsep
                                                     .. mname
-                                                    .. neorg.configuration.pathsep
+                                                    .. config.pathsep
                                                     .. file[1]
                                                     .. ":}",
                                                 title,
@@ -327,9 +327,9 @@ module.private = {
                                 parts[3],
                                 "{:$"
                                     .. workspace_name_for_links
-                                    .. neorg.configuration.pathsep
+                                    .. config.pathsep
                                     .. module.config.public.journal_folder
-                                    .. neorg.configuration.pathsep
+                                    .. config.pathsep
                                     .. file[1]
                                     .. ":}",
                                 title,
@@ -379,7 +379,7 @@ module.private = {
                         end
 
                     module.required["core.dirman"].create_file(
-                        folder_name .. neorg.configuration.pathsep .. index,
+                        folder_name .. config.pathsep .. index,
                         workspace or module.required["core.dirman"].get_current_workspace()[1]
                     )
 
@@ -425,7 +425,7 @@ module.config.public = {
 module.config.private = {
     strategies = {
         flat = "%Y-%m-%d.norg",
-        nested = "%Y" .. neorg.configuration.pathsep .. "%m" .. neorg.configuration.pathsep .. "%d.norg",
+        nested = "%Y" .. config.pathsep .. "%m" .. config.pathsep .. "%d.norg",
     },
 }
 

@@ -12,7 +12,7 @@ prompted with a set of actions that you can perform on the broken link.
 --]]
 
 local neorg = require("neorg.core")
-local lib, utils = neorg.lib, neorg.utils
+local config, lib, utils = neorg.config, neorg.lib, neorg.utils
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 
@@ -81,15 +81,15 @@ module.public = {
 
         local function os_open_link(link_location)
             local o = {}
-            if neorg.configuration.os_info == "windows" then
+            if config.os_info == "windows" then
                 o.command = "rundll32.exe"
                 o.args = { "url.dll,FileProtocolHandler", link_location }
             else
-                if neorg.configuration.os_info == "linux" then
+                if config.os_info == "linux" then
                     o.command = "xdg-open"
-                elseif neorg.configuration.os_info == "mac" then
+                elseif config.os_info == "mac" then
                     o.command = "open"
-                elseif neorg.configuration.os_info == "wsl" then
+                elseif config.os_info == "wsl" then
                     o.command = "explorer.exe"
                 end
                 o.args = { link_location }

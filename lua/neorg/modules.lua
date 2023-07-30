@@ -6,7 +6,7 @@
 
 -- Include the global logger instance
 local neorg = require("neorg.core")
-local configuration, utils = neorg.configuration, neorg.utils
+local config, utils = neorg.config, neorg.utils
 
 local log = require("neorg.external.log")
 
@@ -86,7 +86,7 @@ function neorg.modules.load_module_from_table(module)
 
             -- This would've always returned false had we not added the current module to the loaded module list earlier above
             if not neorg.modules.is_module_loaded(required_module) then
-                if neorg.configuration.user_configuration[required_module] then
+                if config.user_config[required_module] then
                     log.trace(
                         "Wanted module",
                         required_module,
@@ -223,12 +223,12 @@ function neorg.modules.load_module_from_table(module)
 end
 
 --- Unlike `load_module_from_table()`, which loads a module from memory, `load_module()` tries to find the corresponding module file on disk and loads it into memory.
--- If the module cannot not be found, attempt to load it off of github (unimplemented). This function also applies user-defined configurations and keymaps to the modules themselves.
+-- If the module cannot not be found, attempt to load it off of github (unimplemented). This function also applies user-defined config and keymaps to the modules themselves.
 -- This is the recommended way of loading modules - `load_module_from_table()` should only really be used by neorg itself.
 ---@param module_name string #A path to a module on disk. A path seperator in neorg is '.', not '/'
----@param config table? #A configuration that reflects the structure of `neorg.configuration.user_configuration.load["module.name"].config`
+---@param cfg table? #A config that reflects the structure of `neorg.config.user_config.load["module.name"].config`
 ---@return boolean #Whether the module was successfully loaded
-function neorg.modules.load_module(module_name, config)
+function neorg.modules.load_module(module_name, cfg)
     -- Don't bother loading the module from disk if it's already loaded
     if neorg.modules.is_module_loaded(module_name) then
         return true
@@ -270,13 +270,13 @@ function neorg.modules.load_module(module_name, config)
         return false
     end
 
-    -- Load the user-defined configuration
-    if config and not vim.tbl_isempty(config) then
-        module.config.custom = config
+    -- Load the user-defined config
+    if cfg and not vim.tbl_isempty(cfg) then
+        module.config.custom = cfg
         module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
     else
         module.config.public =
-            vim.tbl_deep_extend("force", module.config.public, configuration.modules[module_name] or {})
+            vim.tbl_deep_extend("force", module.config.public, config.modules[module_name] or {})
     end
 
     -- Pass execution onto load_module_from_table() and let it handle the rest
@@ -299,7 +299,7 @@ end
 --- Normally loads a module, but then sets up the parent module's "required" table, allowing the parent module to access the child as if it were a dependency.
 ---@param module_name string #A path to a module on disk. A path seperator in neorg is '.', not '/'
 ---@param parent_module string #The name of the parent module. This is the module which the dependency will be attached to.
----@param config table #A configuration that reflects the structure of neorg.configuration.user_configuration.load["module.name"].config
+---@param config table #A config that reflects the structure of neorg.config.user_config.load["module.name"].config
 function neorg.modules.load_module_as_dependency(module_name, parent_module, config)
     if neorg.modules.load_module(module_name, config) and neorg.modules.is_module_loaded(parent_module) then
         neorg.modules.loaded_modules[parent_module].required[module_name] = neorg.modules.get_module_config(module_name)
@@ -321,7 +321,7 @@ end
 ---@param module_name string #The name of the module to retrieve (module must be loaded)
 function neorg.modules.get_module_config(module_name)
     if not neorg.modules.is_module_loaded(module_name) then
-        log.trace("Attempt to get module configuration with name", module_name, "failed - module is not loaded.")
+        log.trace("Attempt to get module config with name", module_name, "failed - module is not loaded.")
         return
     end
 

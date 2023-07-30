@@ -64,12 +64,12 @@ end
 
 
 -- Configuration template
-local configuration = {
-    user_configuration = {
+local config = {
+    user_config = {
         lazy_loading = false,
         load = {
             --[[
-                ["name"] = { configuration = { ... } }
+                ["name"] = { config = { ... } }
             --]]
         },
     },
@@ -85,7 +85,7 @@ local configuration = {
     os_info = os_info(),
 }
 
--- TODO: Is there a better way to define this inside the body of `configuration'?
-configuration.pathsep = configuration.os_info == "windows" and "\\" or "/"
+-- TODO: Is there a better way to define this inside the body of `config'?
+config.pathsep = config.os_info == "windows" and "\\" or "/"
 
-return configuration
+return config
