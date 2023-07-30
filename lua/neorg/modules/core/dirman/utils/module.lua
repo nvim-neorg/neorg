@@ -8,6 +8,7 @@ Currently the only exposed API function is `expand_path`, which takes a path lik
 converts `$name` into the full path of the workspace called `name`.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.dirman.utils")
 
 module.public = {

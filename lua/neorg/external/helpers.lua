@@ -3,6 +3,7 @@
 --    This file contains some simple helper functions to improve QOL
 --]]
 
+local neorg = require("neorg.core")
 local version = vim.version()
 
 neorg.utils = {

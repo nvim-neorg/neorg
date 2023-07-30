@@ -22,7 +22,8 @@ any of the above keys to toggle the state of that particular item.
 Parent items of the same type and children items of the same type are update accordingly.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.qol.todo_items")
 

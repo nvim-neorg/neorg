@@ -11,8 +11,9 @@ If the link location is found, you will be taken to the destination - if it is n
 prompted with a set of actions that you can perform on the broken link.
 --]]
 
-require("neorg.modules.base")
-require("neorg.external.helpers")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
+require("neorg.external.helpers") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.esupports.hop")
 

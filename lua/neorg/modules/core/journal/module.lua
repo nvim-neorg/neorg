@@ -19,7 +19,8 @@ file found in the root of the journal. This file contains links to all other jou
 their titles.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.journal")
 local log = require("neorg.external.log")

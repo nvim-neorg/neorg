@@ -9,6 +9,7 @@ to handle complex dates. It exposes two functions: `parse_date(string) -> date|s
 and `to_lua_date(date) -> osdate`.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.tempus")
 
 -- NOTE: Maybe encapsulate whole date parser in a single PEG grammar?

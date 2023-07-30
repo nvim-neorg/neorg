@@ -8,7 +8,8 @@ This module is an implementation of a scanner that can be used anywhere TS can't
 It is not currently used anywhere, and is small enough to be self-documenting.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.scanner")
 

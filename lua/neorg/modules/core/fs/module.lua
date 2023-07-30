@@ -8,6 +8,7 @@
 operations safely on arbitrary filesystems.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.fs")
 
 module.public = {

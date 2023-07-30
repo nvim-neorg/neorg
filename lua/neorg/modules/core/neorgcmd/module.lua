@@ -14,9 +14,10 @@ For a full example on how to create your own command, it is recommended to read 
 which walks you through the necessary steps.
 --]]
 
-require("neorg.modules.base")
-require("neorg.modules")
-require("neorg.events")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
+require("neorg.modules") -- TODO: Move to its own local core module
+require("neorg.events") -- TODO: Move to its own local core module
 
 local log = require("neorg.external.log")
 

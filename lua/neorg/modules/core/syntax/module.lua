@@ -18,8 +18,9 @@ If one needs to edit this module, it is best to talk to me at `katawful` on GitH
 Any edit is assumed to break this module.
 --]]
 
-require("neorg.modules.base")
-require("neorg.external.helpers")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
+require("neorg.external.helpers") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.syntax")
 

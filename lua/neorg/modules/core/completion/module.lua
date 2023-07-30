@@ -1,3 +1,4 @@
+
 --[[
     file: Completion
     title: Get completions in Neorg files
@@ -10,8 +11,9 @@ please read the corresponding wiki page for the engine you selected ([`nvim-cmp`
 or [`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
 --]]
 
-require("neorg.modules.base")
-require("neorg.modules")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
+require("neorg.modules") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.completion")
 

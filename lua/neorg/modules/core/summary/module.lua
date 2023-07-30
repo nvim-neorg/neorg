@@ -16,9 +16,10 @@ which by default consults the document metadata (see also
 as a fallback to build up a tree of categories, titles and descriptions.
 --]]
 
-require("neorg.modules.base")
-require("neorg.modules")
-require("neorg.external.helpers")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
+require("neorg.modules") -- TODO: Move to its own local core module
+require("neorg.external.helpers") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.summary")
 

@@ -10,6 +10,7 @@ also be launched in standalone mode, select date range mode and others.
 To view keybinds and help, press `?` in the calendar view.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.ui.calendar")
 
 module.setup = function()

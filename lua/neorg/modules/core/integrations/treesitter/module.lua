@@ -6,8 +6,10 @@
     internal: true
     ---
 --]]
-require("neorg.modules.base")
-require("neorg.external.helpers")
+
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
+require("neorg.external.helpers") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.integrations.treesitter")
 

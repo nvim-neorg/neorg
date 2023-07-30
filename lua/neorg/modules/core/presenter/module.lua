@@ -15,7 +15,8 @@ NOTE: This module is due for a rewrite. All of its behaviour is not fully docume
 overwritten soon anyway.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.presenter")
 local api = vim.api

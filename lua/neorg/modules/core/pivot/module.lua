@@ -17,6 +17,7 @@ This module exposes two keybinds:
   items will become unordered.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.pivot")
 
 module.setup = function()

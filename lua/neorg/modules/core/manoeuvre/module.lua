@@ -11,7 +11,8 @@ There is no available successor to this module yet.
 -- NOTE(vhyrro): This module is obsolete! There is no successor module to this yet, although
 -- we hope to implement one with the module rewrite of 0.2.
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.manoeuvre")
 

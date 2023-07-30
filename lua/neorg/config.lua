@@ -1,3 +1,5 @@
+local neorg = require("neorg.core")
+
 -- Configuration template
 neorg.configuration = {
 

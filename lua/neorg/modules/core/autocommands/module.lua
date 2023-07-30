@@ -36,8 +36,9 @@ Upon receiving an event, it will come in this format:
 ```
 --]]
 
-require("neorg.modules.base")
-require("neorg.events")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
+require("neorg.events") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.autocommands")
 

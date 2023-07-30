@@ -8,7 +8,8 @@ Upon execution (`:Neorg module list`) an info popup is created with a list of cu
 modules.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.neorgcmd.commands.module.list")
 

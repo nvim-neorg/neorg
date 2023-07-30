@@ -5,11 +5,11 @@
 --]]
 
 -- Include the global instance of the logger
+local neorg = require("neorg.core")
 local log = require("neorg.external.log")
 
-require("neorg.modules")
-require("neorg.external.helpers")
-require("neorg.callbacks")
+require("neorg.modules") -- TODO: Move to its own local core module
+require("neorg.external.helpers") -- TODO: Move to its own local core module
 
 neorg.events = {}
 

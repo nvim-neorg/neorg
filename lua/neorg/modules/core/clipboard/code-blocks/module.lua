@@ -14,6 +14,7 @@ excluding the `@code` and `@end` portion itself.
 If the conditions are not met, the content is copied normally, preserving all indentation.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.clipboard.code-blocks")
 
 module.load = function()

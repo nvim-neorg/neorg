@@ -24,6 +24,7 @@ In insert mode, you are also provided with two keybinds, also being Neovim defau
 This module is commonly used with the [`core.itero`](@core.itero) module for an effective workflow.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.promo")
 
 module.setup = function()

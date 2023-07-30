@@ -11,8 +11,9 @@ The metagen module exposes two commands - `:Neorg inject-metadata` and `:Neorg u
   was last edited) as well as a few other non-destructive fields.
 --]]
 
-require("neorg.modules.base")
-require("neorg.external.helpers")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
+require("neorg.external.helpers") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.esupports.metagen")
 

@@ -17,6 +17,8 @@ installed on your system.
 
 -- utils  to be refactored
 
+local neorg = require("neorg.core")
+
 local function in_range(k, l, r_ex)
     return l <= k and k < r_ex
 end

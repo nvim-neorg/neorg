@@ -8,7 +8,8 @@ The `core.queries.native` module provides useful Treesitter wrappers
 to query information from Norg documents.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
 
 ---@class core.queries.native.tree_node
 ---@field query string[]

@@ -32,6 +32,7 @@ This functionality is commonly paired with the [`core.promo`](@core.promo) modul
 the item under the cursor with the `<C-t>` and `<C-d>` bindings.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.itero")
 
 module.setup = function()

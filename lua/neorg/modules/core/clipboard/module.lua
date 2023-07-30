@@ -1,3 +1,4 @@
+
 --[[
     file: Clipboard
     title: Quality of Life Features for the Clipboard
@@ -8,6 +9,7 @@ The clipboard module is a minimal and generic module allowing to overwrite or ad
 `y` (yank) keybind in Neovim.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.clipboard")
 
 module.setup = function()

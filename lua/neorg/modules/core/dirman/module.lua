@@ -35,8 +35,10 @@ To query the current workspace, run `:Neorg workspace`. To set the workspace, ru
 After a recent update `core.dirman` will no longer change the current working directory after switching
 workspace. To get the best experience it's recommended to set the `autochdir` Neovim option.
 --]]
-require("neorg.modules.base")
-require("neorg.modules")
+
+local neorg = require("neorg.core")
+require("neorg.modules.base") -- TODO: Move to its own local core module
+require("neorg.modules") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.dirman")
 

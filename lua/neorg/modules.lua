@@ -5,9 +5,10 @@
 --]]
 
 -- Include the global logger instance
+local neorg = require("neorg.core")
 local log = require("neorg.external.log")
 
-require("neorg.modules.base")
+require("neorg.modules.base") -- TODO: Move to its own local core module
 
 --[[
 --    The reason we do not just call this variable neorg.modules.loaded_modules.count is because

@@ -13,7 +13,9 @@ core.looking-glass.magnify-code-block` with your cursor underneath the code
 block you would like to magnify - it is not bound to any key as of currently,
 but you may map it yourself via the [`core.keybinds`](@core.keybinds) module.
 --]]
-require("neorg.external.helpers")
+
+local neorg = require("neorg.core")
+require("neorg.external.helpers") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.looking-glass")
 

@@ -14,6 +14,7 @@ To learn more about configuration, consult the [relevant section](#configuration
 -- from another person's perspective. Some cleanup and rethinking of certain implementation
 -- details will be necessary.
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.export.markdown")
 
 module.setup = function()

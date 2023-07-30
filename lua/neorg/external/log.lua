@@ -7,6 +7,8 @@
 -- This library is free software; you can redistribute it and/or modify it
 -- under the terms of the MIT license. See LICENSE for details.
 
+local neorg = require("neorg.core")
+
 -- User configuration section
 local default_config = {
     -- Name of the plugin. Prepended to log messages

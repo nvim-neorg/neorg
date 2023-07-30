@@ -18,6 +18,7 @@ When a backup is requested, Neorg backs up the file to `<filename>.old.norg`, th
 the original file/directory in-place.
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.upgrade")
 
 module.setup = function()

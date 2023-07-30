@@ -15,6 +15,7 @@ Indent levels are also calculated as you type, but may not be entirely correct
 due to incomplete syntax trees (if you find any such examples, then file an issue!).
 --]]
 
+local neorg = require("neorg.core")
 local module = neorg.modules.create("core.esupports.indent")
 
 module.setup = function()
