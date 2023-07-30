@@ -18,9 +18,9 @@ Norg document. The TOC view updates automatically when switching buffers.
 --]]
 
 local neorg = require("neorg.core")
-local utils = neorg.utils
+local modules, utils = neorg.modules, neorg.utils
 
-local module = neorg.modules.create("core.qol.toc")
+local module = modules.create("core.qol.toc")
 
 module.setup = function()
     return {
@@ -29,7 +29,7 @@ module.setup = function()
 end
 
 module.load = function()
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             toc = {
                 name = "core.qol.toc",

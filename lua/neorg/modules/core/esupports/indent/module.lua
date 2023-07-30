@@ -16,9 +16,9 @@ due to incomplete syntax trees (if you find any such examples, then file an issu
 --]]
 
 local neorg = require("neorg.core")
-local lib = neorg.lib
+local lib, modules = neorg.lib, neorg.modules
 
-local module = neorg.modules.create("core.esupports.indent")
+local module = modules.create("core.esupports.indent")
 
 module.setup = function()
     return {
@@ -310,7 +310,7 @@ module.on_event = function(event)
         vim.api.nvim_buf_set_option(
             event.buffer,
             "indentexpr",
-            ("v:lua.neorg.modules.get_module('core.esupports.indent').indentexpr(%d)"):format(event.buffer)
+            ("v:lua.modules.get_module('core.esupports.indent').indentexpr(%d)"):format(event.buffer)
         )
 
         local indentkeys = "o,O,*<M-o>,*<M-O>"

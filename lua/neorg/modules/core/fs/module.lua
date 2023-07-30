@@ -9,7 +9,9 @@ operations safely on arbitrary filesystems.
 --]]
 
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.fs")
+local modules = neorg.modules
+
+local module = modules.create("core.fs")
 
 module.public = {
     directory_map = function(path, callback)

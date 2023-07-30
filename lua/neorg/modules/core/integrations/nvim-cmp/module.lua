@@ -18,10 +18,9 @@ sources = {
 --]]
 
 local neorg = require("neorg.core")
-local log = neorg.log
-require("neorg.modules.base") -- TODO: Move to its own local core module
+local log, modules = neorg.log, neorg.modules
 
-local module = neorg.modules.create("core.integrations.nvim-cmp")
+local module = modules.create("core.integrations.nvim-cmp")
 
 module.private = {
     source = {},

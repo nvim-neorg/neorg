@@ -9,16 +9,14 @@ to query information from Norg documents.
 --]]
 
 local neorg = require("neorg.core")
-local lib, log = neorg.lib, neorg.log
-
-require("neorg.modules.base") -- TODO: Move to its own local core module
+local lib, log, modules = neorg.lib, neorg.log, neorg.modules
 
 ---@class core.queries.native.tree_node
 ---@field query string[]
 ---@field subtree core.queries.native.tree_node[]|nil
 ---@field recursive boolean|nil
 
-local module = neorg.modules.create("core.queries.native")
+local module = modules.create("core.queries.native")
 
 module.setup = function()
     return {

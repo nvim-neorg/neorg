@@ -10,9 +10,9 @@ The clipboard module is a minimal and generic module allowing to overwrite or ad
 --]]
 
 local neorg = require("neorg.core")
-local lib = neorg.lib
+local lib, modules = neorg.lib, neorg.modules
 
-local module = neorg.modules.create("core.clipboard")
+local module = modules.create("core.clipboard")
 
 module.setup = function()
     return {

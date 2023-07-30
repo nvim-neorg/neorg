@@ -3,7 +3,9 @@
 --]]
 
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.ui.text_popup")
+local modules = neorg.modules
+
+local module = modules.create("core.ui.text_popup")
 
 ---@class core.ui
 module.public = {
@@ -22,7 +24,7 @@ module.public = {
         }
 
         -- Apply any custom modifiers that the user has specified
-        window_config = assert(neorg.modules.get_module("core.ui"), "core.ui is not loaded!").apply_custom_options(
+        window_config = assert(modules.get_module("core.ui"), "core.ui is not loaded!").apply_custom_options(
             modifiers,
             vim.tbl_extend("force", window_config, config or {})
         )

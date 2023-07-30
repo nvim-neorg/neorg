@@ -5,13 +5,10 @@
 
 -- Require the most important modules
 local neorg = require("neorg.core")
-local config, log = neorg.config, neorg.log
-
-require("neorg.events") -- TODO: Move to its own local core module
-require("neorg.modules") -- TODO: Move to its own local core module
+local config, log, modules = neorg.config, neorg.log, neorg.modules
 
 --- This function takes in a user config, parses it, initializes everything and launches neorg if inside a .norg or .org file
----@param config table #A table that reflects the structure of config.user_config
+---@param cfg table #A table that reflects the structure of config.user_config
 function neorg.setup(cfg)
     config.user_config = vim.tbl_deep_extend("force", config.user_config, cfg or {})
 
@@ -92,17 +89,17 @@ function neorg.org_file_entered(manual, arguments)
     end
 
     -- After all config are merged proceed to actually load the modules
-    local load_module = neorg.modules.load_module
+    local load_module = modules.load_module
     for name, _ in pairs(module_list) do
         -- If it could not be loaded then halt
         if not load_module(name) then
             log.warn("Recovering from error...")
-            neorg.modules.loaded_modules[name] = nil
+            modules.loaded_modules[name] = nil
         end
     end
 
     -- Goes through each loaded module and invokes neorg_post_load()
-    for _, module in pairs(neorg.modules.loaded_modules) do
+    for _, module in pairs(modules.loaded_modules) do
         module.neorg_post_load()
     end
 
@@ -110,7 +107,7 @@ function neorg.org_file_entered(manual, arguments)
     config.started = true
 
     -- Lets the entire Neorg environment know that Neorg has started!
-    neorg.events.broadcast_event({
+    modules.broadcast_event({
         type = "core.started",
         split_type = { "core", "started" },
         filename = "",

@@ -15,9 +15,9 @@ To learn more about configuration, consult the [relevant section](#configuration
 -- details will be necessary.
 
 local neorg = require("neorg.core")
-local lib = neorg.lib
+local lib, modules = neorg.lib, neorg.modules
 
-local module = neorg.modules.create("core.export.markdown")
+local module = modules.create("core.export.markdown")
 
 module.setup = function()
     return {

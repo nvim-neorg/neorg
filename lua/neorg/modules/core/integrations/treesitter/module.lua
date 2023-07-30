@@ -8,11 +8,9 @@
 --]]
 
 local neorg = require("neorg.core")
-local lib, log, utils = neorg.lib, neorg.log, neorg.utils
+local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.utils
 
-require("neorg.modules.base") -- TODO: Move to its own local core module
-
-local module = neorg.modules.create("core.integrations.treesitter")
+local module = modules.create("core.integrations.treesitter")
 
 module.private = {
     ts_utils = nil,

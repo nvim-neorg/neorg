@@ -18,7 +18,7 @@ installed on your system.
 -- utils  to be refactored
 
 local neorg = require("neorg.core")
-local lib, log, utils = neorg.lib, neorg.log, neorg.utils
+local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.utils
 
 local function in_range(k, l, r_ex)
     return l <= k and k < r_ex
@@ -62,11 +62,9 @@ end
 
 --- end utils
 
-require("neorg.modules.base")
-
 local has_anticonceal = utils.is_minimum_version(0, 10, 0)
 
-local module = neorg.modules.create("core.concealer", {
+local module = modules.create("core.concealer", {
     "preset_basic",
     "preset_varied",
     "preset_diamond",
@@ -1250,7 +1248,7 @@ local function handle_init_event(event)
         }
         vim.api.nvim_set_option_value("foldmethod", "expr", opts)
         vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
-        vim.api.nvim_set_option_value("foldtext", "v:lua.neorg.modules.get_module('core.concealer').foldtext()", opts)
+        vim.api.nvim_set_option_value("foldtext", "v:lua.modules.get_module('core.concealer').foldtext()", opts)
     end
 end
 
@@ -1359,7 +1357,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("CursorMovedI")
     module.required["core.autocommands"].enable_autocommand("WinScrolled", true)
 
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             ["toggle-concealer"] = {
                 name = "core.concealer.toggle",

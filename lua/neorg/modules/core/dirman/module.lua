@@ -37,12 +37,9 @@ workspace. To get the best experience it's recommended to set the `autochdir` Ne
 --]]
 
 local neorg = require("neorg.core")
-local config, log, utils = neorg.config, neorg.log, neorg.utils
+local config, log, modules, utils = neorg.config, neorg.log, neorg.modules, neorg.utils
 
-require("neorg.modules.base") -- TODO: Move to its own local core module
-require("neorg.modules") -- TODO: Move to its own local core module
-
-local module = neorg.modules.create("core.dirman")
+local module = modules.create("core.dirman")
 
 module.setup = function()
     return {
@@ -166,8 +163,8 @@ module.public = {
         end
 
         -- Broadcast the workspace_changed event with all the necessary information
-        neorg.events.broadcast_event(
-            neorg.events.create(
+        modules.broadcast_event(
+            modules.create_event(
                 module,
                 "core.dirman.events.workspace_changed",
                 { old = current_ws, new = new_workspace }
@@ -189,8 +186,8 @@ module.public = {
         -- Set the new workspace and its path accordingly
         module.config.public.workspaces[workspace_name] = workspace_path
         -- Broadcast the workspace_added event with the newly added workspace as the content
-        neorg.events.broadcast_event(
-            neorg.events.create(module, "core.dirman.events.workspace_added", { workspace_name, workspace_path })
+        modules.broadcast_event(
+            modules.create_event(module, "core.dirman.events.workspace_added", { workspace_name, workspace_path })
         )
 
         -- Sync autocompletions so the user can see the new workspace
@@ -334,7 +331,7 @@ module.public = {
     --- Reads the neorg_last_workspace.txt file and loads the cached workspace from there
     set_last_workspace = function()
         -- Attempt to open the last workspace cache file in read-only mode
-        local storage = neorg.modules.get_module("core.storage")
+        local storage = modules.get_module("core.storage")
 
         if not storage then
             log.trace("Module `core.storage` not loaded, refusing to load last user's workspace.")
@@ -536,9 +533,9 @@ module.on_event = function(event)
 end
 
 module.events.defined = {
-    workspace_changed = neorg.events.define(module, "workspace_changed"),
-    workspace_added = neorg.events.define(module, "workspace_added"),
-    workspace_cache_empty = neorg.events.define(module, "workspace_cache_empty"),
+    workspace_changed = modules.define_event(module, "workspace_changed"),
+    workspace_added = modules.define_event(module, "workspace_added"),
+    workspace_cache_empty = modules.define_event(module, "workspace_cache_empty"),
 }
 
 module.events.subscribed = {

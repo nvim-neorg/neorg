@@ -9,10 +9,9 @@ the buffer list, and the current workspace is set to "default".
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base") -- TODO: Move to its own local core module
-require("neorg.modules") -- TODO: Move to its own local core module
+local modules = neorg.modules
 
-local module = neorg.modules.create("core.neorgcmd.commands.return")
+local module = modules.create("core.neorgcmd.commands.return")
 
 module.setup = function()
     return { success = true, requires = { "core.neorgcmd" } }

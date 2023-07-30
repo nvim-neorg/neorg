@@ -12,11 +12,9 @@ The metagen module exposes two commands - `:Neorg inject-metadata` and `:Neorg u
 --]]
 
 local neorg = require("neorg.core")
-local config, lib, utils = neorg.config, neorg.lib, neorg.utils
+local config, lib, modules, utils = neorg.config, neorg.lib, neorg.modules, neorg.utils
 
-require("neorg.modules.base") -- TODO: Move to its own local core module
-
-local module = neorg.modules.create("core.esupports.metagen")
+local module = modules.create("core.esupports.metagen")
 
 module.setup = function()
     return { requires = { "core.autocommands", "core.keybinds", "core.integrations.treesitter" } }
@@ -257,7 +255,7 @@ module.public = {
 }
 
 module.load = function()
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             ["inject-metadata"] = {
                 args = 0,

@@ -1,7 +1,7 @@
 local neorg = require("neorg.core")
-local lib, log = neorg.lib, neorg.log
+local lib, log, modules = neorg.lib, neorg.log, neorg.modules
 
-local module = neorg.modules.create("core.ui.calendar.views.monthly")
+local module = modules.create("core.ui.calendar.views.monthly")
 
 local function reformat_time(date)
     return os.date("*t", os.time(date))

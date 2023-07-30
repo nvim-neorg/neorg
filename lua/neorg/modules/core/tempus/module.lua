@@ -10,9 +10,9 @@ and `to_lua_date(date) -> osdate`.
 --]]
 
 local neorg = require("neorg.core")
-local lib, log, utils = neorg.lib, neorg.log, neorg.utils
+local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.utils
 
-local module = neorg.modules.create("core.tempus")
+local module = modules.create("core.tempus")
 
 -- NOTE: Maybe encapsulate whole date parser in a single PEG grammar?
 local _, time_regex = pcall(vim.re.compile, [[{%d%d?} ":" {%d%d} ("." {%d%d?})?]])
@@ -426,7 +426,7 @@ module.private = {
 }
 
 module.load = function()
-    neorg.modules.await("core.keybinds", function(keybinds)
+    modules.await("core.keybinds", function(keybinds)
         keybinds.register_keybinds(module.name, { "insert-date", "insert-date-insert-mode" })
     end)
 end
@@ -472,9 +472,9 @@ module.on_event = function(event)
         end
     end
 
-    if neorg.modules.is_module_loaded("core.ui.calendar") then
+    if modules.is_module_loaded("core.ui.calendar") then
         vim.cmd.stopinsert()
-        neorg.modules.get_module("core.ui.calendar").select_date({ callback = vim.schedule_wrap(callback) })
+        modules.get_module("core.ui.calendar").select_date({ callback = vim.schedule_wrap(callback) })
     else
         vim.ui.input({
             prompt = "Date: ",

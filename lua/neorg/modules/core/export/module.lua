@@ -27,8 +27,8 @@ It takes 3 arguments:
 --]]
 
 local neorg = require("neorg.core")
-local lib, log, utils = neorg.lib, neorg.log, neorg.utils
-local module = neorg.modules.create("core.export")
+local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.utils
+local module = modules.create("core.export")
 
 module.setup = function()
     return {
@@ -40,7 +40,7 @@ module.setup = function()
 end
 
 module.load = function()
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             export = {
                 args = 1,
@@ -74,14 +74,14 @@ module.public = {
     ---@param ftype string #The filetype to export to
     ---@return table?,table? #The export module and its configuration, else nil
     get_converter = function(ftype)
-        if not neorg.modules.is_module_loaded("core.export." .. ftype) then
-            if not neorg.modules.load_module("core.export." .. ftype) then
+        if not modules.is_module_loaded("core.export." .. ftype) then
+            if not modules.load_module("core.export." .. ftype) then
                 return
             end
         end
 
-        return neorg.modules.get_module("core.export." .. ftype),
-            neorg.modules.get_module_config("core.export." .. ftype)
+        return modules.get_module("core.export." .. ftype),
+            modules.get_module_config("core.export." .. ftype)
     end,
 
     --- Takes a buffer and exports it to a specific file

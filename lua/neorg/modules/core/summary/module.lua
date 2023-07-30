@@ -17,12 +17,9 @@ as a fallback to build up a tree of categories, titles and descriptions.
 --]]
 
 local neorg = require("neorg.core")
-local lib, utils = neorg.lib, neorg.utils
+local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
 
-require("neorg.modules.base") -- TODO: Move to its own local core module
-require("neorg.modules") -- TODO: Move to its own local core module
-
-local module = neorg.modules.create("core.summary")
+local module = modules.create("core.summary")
 
 module.setup = function()
     return {
@@ -181,7 +178,7 @@ module.on_event = function(event)
         -- heading level of 'node_at_cursor' (summary headings should be one level deeper)
         local level = tonumber(string.sub(node_at_cursor:type(), -1))
 
-        local dirman = neorg.modules.get_module("core.dirman")
+        local dirman = modules.get_module("core.dirman")
 
         if not dirman then
             utils.notify("`core.dirman` is not loaded! It is required to generate summaries")

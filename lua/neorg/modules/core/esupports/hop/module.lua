@@ -12,11 +12,9 @@ prompted with a set of actions that you can perform on the broken link.
 --]]
 
 local neorg = require("neorg.core")
-local config, lib, log, utils = neorg.config, neorg.lib, neorg.log, neorg.utils
+local config, lib, log, modules, utils = neorg.config, neorg.lib, neorg.log, neorg.modules, neorg.utils
 
-require("neorg.modules.base") -- TODO: Move to its own local core module
-
-local module = neorg.modules.create("core.esupports.hop")
+local module = modules.create("core.esupports.hop")
 
 module.setup = function()
     return {
@@ -162,13 +160,13 @@ module.public = {
                 end,
 
                 calendar = function()
-                    local calendar = neorg.modules.get_module("core.ui.calendar")
+                    local calendar = modules.get_module("core.ui.calendar")
                     if not calendar then
                         log.error("`core.ui.calendar` is not loaded! Unable to open timestamp.")
                         return
                     end
 
-                    local tempus = neorg.modules.get_module("core.tempus")
+                    local tempus = modules.get_module("core.tempus")
                     if not tempus then
                         log.error("`core.tempus` is not loaded! Unable to parse timestamp.")
                         return
@@ -541,7 +539,7 @@ module.public = {
             end,
 
             timestamp = function()
-                local tempus = neorg.modules.get_module("core.tempus")
+                local tempus = modules.get_module("core.tempus")
 
                 if not tempus then
                     log.error("`core.tempus` is not loaded! Unable to parse timestamp.")

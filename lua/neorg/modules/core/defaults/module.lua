@@ -23,9 +23,9 @@ load = {
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base") -- TODO: Move to its own local core module
+local modules = neorg.modules
 
-return neorg.modules.create_meta(
+return modules.create_meta(
     "core.defaults",
     "core.autocommands",
     "core.clipboard",

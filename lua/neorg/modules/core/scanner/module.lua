@@ -9,9 +9,9 @@ It is not currently used anywhere, and is small enough to be self-documenting.
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base") -- TODO: Move to its own local core module
+local modules = neorg.modules
 
-local module = neorg.modules.create("core.scanner")
+local module = modules.create("core.scanner")
 
 ---@class core.scanner
 module.public = {

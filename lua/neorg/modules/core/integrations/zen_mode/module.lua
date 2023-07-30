@@ -8,9 +8,9 @@ This is a basic wrapper around `zen_mode` that allows one to toggle the zen mode
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base") -- TODO: Move to its own local core module
+local modules = neorg.modules
 
-local module = neorg.modules.create("core.integrations.zen_mode")
+local module = modules.create("core.integrations.zen_mode")
 
 module.load = function()
     local success, zen_mode = pcall(require, "zen_mode")

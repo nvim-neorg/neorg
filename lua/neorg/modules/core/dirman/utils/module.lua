@@ -9,7 +9,7 @@ converts `$name` into the full path of the workspace called `name`.
 --]]
 
 local neorg = require("neorg.core")
-local log = neorg.log
+local log, modules = neorg.log, neorg.modules
 
 local module = neorg.modules.create("core.dirman.utils")
 
@@ -19,7 +19,7 @@ module.public = {
         local custom_workspace_path = path:match("^%$([^/\\]*)[/\\]")
 
         if custom_workspace_path then
-            local dirman = neorg.modules.get_module("core.dirman")
+            local dirman = modules.get_module("core.dirman")
 
             if not dirman then
                 log.error(

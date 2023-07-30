@@ -19,11 +19,9 @@ Any edit is assumed to break this module.
 --]]
 
 local neorg = require("neorg.core")
-local lib, utils = neorg.lib, neorg.utils
+local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
 
-require("neorg.modules.base") -- TODO: Move to its own local core module
-
-local module = neorg.modules.create("core.syntax")
+local module = modules.create("core.syntax")
 
 local function schedule(func)
     vim.schedule(function()

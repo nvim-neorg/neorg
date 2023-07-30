@@ -12,10 +12,9 @@ There is no available successor to this module yet.
 -- we hope to implement one with the module rewrite of 0.2.
 
 local neorg = require("neorg.core")
-local lib, log = neorg.lib, neorg.log
+local lib, log, modules = neorg.lib, neorg.log, neorg.modules
 
-require("neorg.modules.base") -- TODO: Move to its own local core module
-local module = neorg.modules.create("core.manoeuvre")
+local module = modules.create("core.manoeuvre")
 
 module.setup = function()
     if not lib.is_minimum_version(0, 7, 0) then

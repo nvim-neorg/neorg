@@ -7,11 +7,9 @@
 --]]
 
 local neorg = require("neorg.core")
-local log = neorg.log
+local log, modules = neorg.log, neorg.modules
 
-require("neorg.modules.base") -- TODO: Move to its own local core module
-
-local module = neorg.modules.create("core.ui", {
+local module = modules.create("core.ui", {
     "selection_popup",
     "text_popup",
 })

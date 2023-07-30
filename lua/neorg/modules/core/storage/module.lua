@@ -7,9 +7,9 @@
 --]]
 
 local neorg = require("neorg.core")
-require("neorg.modules.base") -- TODO: Move to its own local core module
+local modules = neorg.modules
 
-local module = neorg.modules.create("core.storage")
+local module = modules.create("core.storage")
 
 module.setup = function()
     return {

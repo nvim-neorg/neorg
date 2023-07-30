@@ -20,11 +20,9 @@ their titles.
 --]]
 
 local neorg = require("neorg.core")
-local config, lib, log = neorg.config, neorg.lib, neorg.log
+local config, lib, log, modules = neorg.config, neorg.lib, neorg.log, neorg.modules
 
-require("neorg.modules.base") -- TODO: Move to its own local core module
-
-local module = neorg.modules.create("core.journal")
+local module = modules.create("core.journal")
 
 module.examples = {
     ["Changing TOC format to divide year in quarters"] = function()
@@ -180,7 +178,7 @@ module.private = {
     --- Opens the toc file
     open_toc = function()
         local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
-        local index = neorg.modules.get_module_config("core.dirman").index
+        local index = modules.get_module_config("core.dirman").index
         local folder_name = module.config.public.journal_folder
 
         -- If the toc exists, open it, if not, create it
@@ -194,7 +192,7 @@ module.private = {
     --- Creates or updates the toc file
     create_toc = function()
         local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
-        local index = neorg.modules.get_module_config("core.dirman").index
+        local index = modules.get_module_config("core.dirman").index
         local workspace_path = module.required["core.dirman"].get_workspace(workspace)
         local workspace_name_for_links = module.config.public.workspace or ""
         local folder_name = module.config.public.journal_folder
@@ -468,7 +466,7 @@ module.on_event = function(event)
             module.private.diary_yesterday()
         elseif event.split_type[2] == "journal.custom" then
             if not event.content[1] then
-                local calendar = neorg.modules.get_module("core.ui.calendar")
+                local calendar = modules.get_module("core.ui.calendar")
 
                 if not calendar then
                     log.error("[ERROR]: `core.ui.calendar` is not loaded! Said module is required for this operation.")

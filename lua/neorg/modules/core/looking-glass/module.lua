@@ -15,9 +15,9 @@ but you may map it yourself via the [`core.keybinds`](@core.keybinds) module.
 --]]
 
 local neorg = require("neorg.core")
-local log, utils = neorg.log, neorg.utils
+local log, modules, utils = neorg.log, neorg.modules, neorg.utils
 
-local module = neorg.modules.create("core.looking-glass")
+local module = modules.create("core.looking-glass")
 
 module.setup = function()
     if not utils.is_minimum_version(0, 7, 0) then

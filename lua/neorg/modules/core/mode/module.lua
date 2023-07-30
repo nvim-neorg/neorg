@@ -22,12 +22,9 @@ which can be used by the user to switch modes.
 --]]
 
 local neorg = require("neorg.core")
-local log, utils = neorg.log, neorg.utils
+local log, modules, utils = neorg.log, neorg.modules, neorg.utils
 
-require("neorg.modules.base") -- TODO: Move to its own local core module
-require("neorg.events") -- TODO: Move to its own local core module
-
-local module = neorg.modules.create("core.mode")
+local module = modules.create("core.mode")
 
 module.config.public = {
     -- Stores the current mode
@@ -69,8 +66,8 @@ module.public = {
         table.insert(module.private.modes, mode_name)
 
         -- Broadcast the mode_created event
-        neorg.events.broadcast_event(
-            neorg.events.create(
+        modules.broadcast_event(
+            modules.create_event(
                 module,
                 "core.mode.events.mode_created",
                 { current = module.config.public.current_mode, new = mode_name }
@@ -81,7 +78,7 @@ module.public = {
         table.insert(module.public.neorg_commands["mode"].complete[1], mode_name)
 
         -- If core.neorgcmd is loaded then update all autocompletions
-        local neorgcmd = neorg.modules.get_module("core.neorgcmd")
+        local neorgcmd = modules.get_module("core.neorgcmd")
 
         if neorgcmd then
             neorgcmd.sync()
@@ -107,8 +104,8 @@ module.public = {
         module.config.public.current_mode = mode_name
 
         -- Broadcast the mode_set event to all subscribed modules
-        neorg.events.broadcast_event(
-            neorg.events.create(
+        modules.broadcast_event(
+            modules.create_event(
                 module,
                 "core.mode.events.mode_set",
                 { current = module.config.public.previous_mode, new = mode_name }
@@ -151,8 +148,8 @@ module.on_event = function(event)
 end
 
 module.events.defined = {
-    mode_created = neorg.events.define(module, "mode_created"), -- Broadcast when a mode is created
-    mode_set = neorg.events.define(module, "mode_set"), -- Broadcast when a mode changes
+    mode_created = modules.define_event(module, "mode_created"), -- Broadcast when a mode is created
+    mode_set = modules.define_event(module, "mode_set"), -- Broadcast when a mode changes
 }
 
 module.events.subscribed = {

@@ -1,5 +1,7 @@
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.keybinds.keybinds")
+local modules = neorg.modules
+
+local module = modules.create("core.keybinds.keybinds")
 
 ---@class core.keybinds
 module.config.public = {

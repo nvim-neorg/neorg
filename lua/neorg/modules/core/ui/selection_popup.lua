@@ -3,7 +3,9 @@
 --]]
 
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.ui.selection_popup")
+local modules = neorg.modules
+
+local module = modules.create("core.ui.selection_popup")
 
 module.private = {
     -- Stores all currently open selection popups
@@ -143,7 +145,7 @@ module.public = {
                 for _, key in ipairs(keys) do
                     -- TODO: Docs
                     local callback = function()
-                        neorg.modules
+                        modules
                             .get_module(module.name)
                             .invoke_key_in_selection(name, ({ key:gsub("<(.+)>", "|%1|") })[1], type)
                     end
@@ -179,7 +181,7 @@ module.public = {
                 for _, key in pairs(keys) do
                     -- TODO: Docs
                     local callback = function()
-                        neorg.modules
+                        modules
                             .get_module(module.name)
                             .invoke_key_in_selection(name, ({ key:gsub("<(.+)>", "|%1|") })[1], type)
                     end
