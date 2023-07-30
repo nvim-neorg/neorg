@@ -15,7 +15,7 @@ but you may map it yourself via the [`core.keybinds`](@core.keybinds) module.
 --]]
 
 local neorg = require("neorg.core")
-local utils = neorg.utils
+local log, utils = neorg.log, neorg.utils
 
 local module = neorg.modules.create("core.looking-glass")
 

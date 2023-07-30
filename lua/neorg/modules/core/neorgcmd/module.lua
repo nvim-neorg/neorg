@@ -15,11 +15,11 @@ which walks you through the necessary steps.
 --]]
 
 local neorg = require("neorg.core")
+local log = neorg.log
+
 require("neorg.modules.base") -- TODO: Move to its own local core module
 require("neorg.modules") -- TODO: Move to its own local core module
 require("neorg.events") -- TODO: Move to its own local core module
-
-local log = require("neorg.external.log")
 
 local module = neorg.modules.create("core.neorgcmd")
 

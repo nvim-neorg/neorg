@@ -37,7 +37,7 @@ workspace. To get the best experience it's recommended to set the `autochdir` Ne
 --]]
 
 local neorg = require("neorg.core")
-local config, utils = neorg.config, neorg.utils
+local config, log, utils = neorg.config, neorg.log, neorg.utils
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 require("neorg.modules") -- TODO: Move to its own local core module

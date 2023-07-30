@@ -12,7 +12,7 @@ prompted with a set of actions that you can perform on the broken link.
 --]]
 
 local neorg = require("neorg.core")
-local config, lib, utils = neorg.config, neorg.lib, neorg.utils
+local config, lib, log, utils = neorg.config, neorg.lib, neorg.log, neorg.utils
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 

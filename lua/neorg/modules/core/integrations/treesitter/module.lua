@@ -8,7 +8,7 @@
 --]]
 
 local neorg = require("neorg.core")
-local lib, utils = neorg.lib, neorg.utils
+local lib, log, utils = neorg.lib, neorg.log, neorg.utils
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 

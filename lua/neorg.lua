@@ -5,7 +5,7 @@
 
 -- Require the most important modules
 local neorg = require("neorg.core")
-local config = neorg.config
+local config, log = neorg.config, neorg.log
 
 require("neorg.events") -- TODO: Move to its own local core module
 require("neorg.modules") -- TODO: Move to its own local core module
@@ -16,7 +16,7 @@ function neorg.setup(cfg)
     config.user_config = vim.tbl_deep_extend("force", config.user_config, cfg or {})
 
     -- Create a new global instance of the neorg logger
-    require("neorg.external.log").new(config.user_config.logger or log.get_default_config(), true)
+    log.new(config.user_config.logger or log.get_default_config(), true)
 
     -- Make the Neorg filetype detectable through `vim.filetype`.
     -- TODO: Make a PR to Neovim to natively support the org and norg

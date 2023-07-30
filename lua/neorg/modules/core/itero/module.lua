@@ -33,7 +33,7 @@ the item under the cursor with the `<C-t>` and `<C-d>` bindings.
 --]]
 
 local neorg = require("neorg.core")
-local lib, utils = neorg.lib, neorg.utils
+local lib, log, utils = neorg.lib, neorg.log, neorg.utils
 
 local module = neorg.modules.create("core.itero")
 

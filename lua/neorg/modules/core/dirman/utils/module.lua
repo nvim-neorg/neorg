@@ -9,6 +9,8 @@ converts `$name` into the full path of the workspace called `name`.
 --]]
 
 local neorg = require("neorg.core")
+local log = neorg.log
+
 local module = neorg.modules.create("core.dirman.utils")
 
 module.public = {

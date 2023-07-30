@@ -57,14 +57,12 @@ to finely control what gets set and where:
 --]]
 
 local neorg = require("neorg.core")
-local lib = neorg.lib
+local lib, log = neorg.lib, neorg.log
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 require("neorg.modules") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.keybinds", { "keybinds" })
-
-local log = require("neorg.external.log")
 
 module.setup = function()
     return {
@@ -523,7 +521,7 @@ module.examples = {
             -- The event.split_type field is the type field except split into two.
             -- The split point is .events., meaning if the event type is e.g. "core.keybinds.events.test.module.my_keybind" the value of split_type will be { "core.keybinds", "test.module.my_keybind" }.
             if event.split_type[2] == "test.module.my_keybind" then
-                require("neorg.external.log").info("Keybind my_keybind has been pressed!")
+                log.info("Keybind my_keybind has been pressed!")
             end
         end
 

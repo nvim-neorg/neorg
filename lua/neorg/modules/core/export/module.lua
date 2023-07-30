@@ -27,7 +27,7 @@ It takes 3 arguments:
 --]]
 
 local neorg = require("neorg.core")
-local lib, utils = neorg.lib, neorg.utils
+local lib, log, utils = neorg.lib, neorg.log, neorg.utils
 local module = neorg.modules.create("core.export")
 
 module.setup = function()

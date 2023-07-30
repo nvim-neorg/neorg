@@ -12,7 +12,7 @@ or [`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
 --]]
 
 local neorg = require("neorg.core")
-local lib = neorg.lib
+local lib, log = neorg.lib, neorg.log
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 require("neorg.modules") -- TODO: Move to its own local core module

@@ -6,9 +6,7 @@
 
 -- Include the global logger instance
 local neorg = require("neorg.core")
-local config, utils = neorg.config, neorg.utils
-
-local log = require("neorg.external.log")
+local config, log, utils = neorg.config, neorg.log, neorg.utils
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 

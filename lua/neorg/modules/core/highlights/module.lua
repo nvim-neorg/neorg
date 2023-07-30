@@ -9,7 +9,7 @@ Neorg under a single tree of highlights: `@neorg.*`.
 --]]
 
 local neorg = require("neorg.core")
-local lib = neorg.lib
+local lib, log = neorg.lib, neorg.log
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 

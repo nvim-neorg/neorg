@@ -19,7 +19,7 @@ the original file/directory in-place.
 --]]
 
 local neorg = require("neorg.core")
-local lib, utils = neorg.lib, neorg.utils
+local lib, log, utils = neorg.lib, neorg.log, neorg.utils
 
 local module = neorg.modules.create("core.upgrade")
 

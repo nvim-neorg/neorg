@@ -4,7 +4,7 @@
 --]]
 
 local neorg = require("neorg.core")
-local config = neorg.config
+local config, log = neorg.config, neorg.log
 
 neorg.modules = {}
 

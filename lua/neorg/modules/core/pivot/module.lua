@@ -18,6 +18,8 @@ This module exposes two keybinds:
 --]]
 
 local neorg = require("neorg.core")
+local log = neorg.log
+
 local module = neorg.modules.create("core.pivot")
 
 module.setup = function()

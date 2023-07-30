@@ -22,14 +22,12 @@ which can be used by the user to switch modes.
 --]]
 
 local neorg = require("neorg.core")
-local utils = neorg.utils
+local log, utils = neorg.log, neorg.utils
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 require("neorg.events") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.mode")
-
-local log = require("neorg.external.log")
 
 module.config.public = {
     -- Stores the current mode

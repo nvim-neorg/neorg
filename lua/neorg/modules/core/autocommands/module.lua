@@ -37,6 +37,8 @@ Upon receiving an event, it will come in this format:
 --]]
 
 local neorg = require("neorg.core")
+local log = neorg.log
+
 require("neorg.modules.base") -- TODO: Move to its own local core module
 require("neorg.events") -- TODO: Move to its own local core module
 

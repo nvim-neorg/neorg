@@ -20,12 +20,11 @@ their titles.
 --]]
 
 local neorg = require("neorg.core")
-local config, lib = neorg.config, neorg.lib
+local config, lib, log = neorg.config, neorg.lib, neorg.log
 
 require("neorg.modules.base") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.journal")
-local log = require("neorg.external.log")
 
 module.examples = {
     ["Changing TOC format to divide year in quarters"] = function()

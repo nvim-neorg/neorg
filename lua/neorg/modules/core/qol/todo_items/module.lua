@@ -23,6 +23,8 @@ Parent items of the same type and children items of the same type are update acc
 --]]
 
 local neorg = require("neorg.core")
+local log = neorg.log
+
 require("neorg.modules.base") -- TODO: Move to its own local core module
 
 local module = neorg.modules.create("core.qol.todo_items")
