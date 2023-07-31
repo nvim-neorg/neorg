@@ -21,12 +21,10 @@ If `core.neorgcmd` is loaded, `core.mode.public.add_mode()` also updates the aut
 which can be used by the user to switch modes.
 --]]
 
-require("neorg.modules.base")
-require("neorg.events")
+local neorg = require("neorg.core")
+local log, modules, utils = neorg.log, neorg.modules, neorg.utils
 
-local module = neorg.modules.create("core.mode")
-
-local log = require("neorg.external.log")
+local module = modules.create("core.mode")
 
 module.config.public = {
     -- Stores the current mode
@@ -68,8 +66,8 @@ module.public = {
         table.insert(module.private.modes, mode_name)
 
         -- Broadcast the mode_created event
-        neorg.events.broadcast_event(
-            neorg.events.create(
+        modules.broadcast_event(
+            modules.create_event(
                 module,
                 "core.mode.events.mode_created",
                 { current = module.config.public.current_mode, new = mode_name }
@@ -80,7 +78,7 @@ module.public = {
         table.insert(module.public.neorg_commands["mode"].complete[1], mode_name)
 
         -- If core.neorgcmd is loaded then update all autocompletions
-        local neorgcmd = neorg.modules.get_module("core.neorgcmd")
+        local neorgcmd = modules.get_module("core.neorgcmd")
 
         if neorgcmd then
             neorgcmd.sync()
@@ -106,8 +104,8 @@ module.public = {
         module.config.public.current_mode = mode_name
 
         -- Broadcast the mode_set event to all subscribed modules
-        neorg.events.broadcast_event(
-            neorg.events.create(
+        modules.broadcast_event(
+            modules.create_event(
                 module,
                 "core.mode.events.mode_set",
                 { current = module.config.public.previous_mode, new = mode_name }
@@ -142,7 +140,7 @@ module.on_event = function(event)
     if event.type == "core.neorgcmd.events.mode" then
         -- If no parameters were given then just print the current mode
         if not event.content[1] then
-            neorg.utils.notify("Active Mode: " .. module.public.get_mode())
+            utils.notify("Active Mode: " .. module.public.get_mode())
         else -- Else actually set the mode to the one we specified
             module.public.set_mode(event.content[1])
         end
@@ -150,8 +148,8 @@ module.on_event = function(event)
 end
 
 module.events.defined = {
-    mode_created = neorg.events.define(module, "mode_created"), -- Broadcast when a mode is created
-    mode_set = neorg.events.define(module, "mode_set"), -- Broadcast when a mode changes
+    mode_created = modules.define_event(module, "mode_created"), -- Broadcast when a mode is created
+    mode_set = modules.define_event(module, "mode_set"), -- Broadcast when a mode changes
 }
 
 module.events.subscribed = {

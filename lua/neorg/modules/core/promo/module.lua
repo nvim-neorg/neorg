@@ -24,7 +24,10 @@ In insert mode, you are also provided with two keybinds, also being Neovim defau
 This module is commonly used with the [`core.itero`](@core.itero) module for an effective workflow.
 --]]
 
-local module = neorg.modules.create("core.promo")
+local neorg = require("neorg.core")
+local modules = neorg.modules
+
+local module = modules.create("core.promo")
 
 module.setup = function()
     return {
@@ -283,7 +286,7 @@ module.public = {
             return
         end
 
-        local indent_module = neorg.modules.get_module("core.esupports.indent")
+        local indent_module = modules.get_module("core.esupports.indent")
         if not indent_module then
             return
         end
@@ -318,10 +321,10 @@ module.on_event = function(event)
             module.public.promote_or_demote(event.buffer, "promote", start_pos[1] + i)
         end
 
-        if neorg.modules.loaded_modules["core.concealer"] then
-            neorg.events.broadcast_event(
-                neorg.events.create(
-                    neorg.modules.loaded_modules["core.concealer"],
+        if modules.loaded_modules["core.concealer"] then
+            modules.broadcast_event(
+                modules.create_event(
+                    modules.loaded_modules["core.concealer"],
                     "core.concealer.events.update_region",
                     { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
                 )
@@ -335,10 +338,10 @@ module.on_event = function(event)
             module.public.promote_or_demote(event.buffer, "demote", start_pos[1] + i)
         end
 
-        if neorg.modules.loaded_modules["core.concealer"] then
-            neorg.events.broadcast_event(
-                neorg.events.create(
-                    neorg.modules.loaded_modules["core.concealer"],
+        if modules.loaded_modules["core.concealer"] then
+            modules.broadcast_event(
+                modules.create_event(
+                    modules.loaded_modules["core.concealer"],
                     "core.concealer.events.update_region",
                     { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
                 )

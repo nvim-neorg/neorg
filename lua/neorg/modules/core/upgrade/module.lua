@@ -18,7 +18,10 @@ When a backup is requested, Neorg backs up the file to `<filename>.old.norg`, th
 the original file/directory in-place.
 --]]
 
-local module = neorg.modules.create("core.upgrade")
+local neorg = require("neorg.core")
+local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.utils
+
+local module = modules.create("core.upgrade")
 
 module.setup = function()
     return {
@@ -39,7 +42,7 @@ module.config.public = {
 }
 
 module.load = function()
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             upgrade = {
                 subcommands = {
@@ -91,7 +94,7 @@ module.public = {
                 line = start_row
             end
 
-            local output = neorg.lib.match(node:type())({
+            local output = lib.match(node:type())({
                 [{ "_open", "_close" }] = function()
                     if node:parent():type() == "spoiler" then
                         return { text = "!", stop = true }
@@ -221,7 +224,7 @@ module.on_event = function(event)
             if module.config.public.ask_for_backup then
                 local halt = false
 
-                neorg.utils.notify(
+                utils.notify(
                     "Upgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this file?"
                 )
                 vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
@@ -243,21 +246,21 @@ module.on_event = function(event)
                 end
             end
 
-            neorg.utils.notify("Begin upgrade...")
+            utils.notify("Begin upgrade...")
 
             local output = table.concat(module.public.upgrade(event.buffer))
 
             vim.loop.fs_open(path, "w", 438, function(err, fd)
-                assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", path, "' for upgrade: ", err))
+                assert(not err, lib.lazy_string_concat("Failed to open file '", path, "' for upgrade: ", err))
 
                 vim.loop.fs_write(fd, output, 0, function(werr)
                     assert(
                         not werr,
-                        neorg.lib.lazy_string_concat("Failed to write to file '", path, "' for upgrade: ", werr)
+                        lib.lazy_string_concat("Failed to write to file '", path, "' for upgrade: ", werr)
                     )
                 end)
 
-                vim.schedule(neorg.lib.wrap(neorg.utils.notify, "Successfully upgraded 1 file!"))
+                vim.schedule(lib.wrap(utils.notify, "Successfully upgraded 1 file!"))
             end)
         end)
     elseif event.split_type[2] == "core.upgrade.current-directory" then
@@ -267,7 +270,7 @@ module.on_event = function(event)
             do
                 local halt = false
 
-                neorg.utils.notify(
+                utils.notify(
                     ("Your current working directory is %s. This is the root that will be recursively searched for norg files.\nIs this the right directory?\nIf not, change the current working directory with `:cd` or `:lcd` and run this command again!"):format(
                         path
                     )
@@ -286,7 +289,7 @@ module.on_event = function(event)
             if module.config.public.ask_for_backup then
                 local halt = false
 
-                neorg.utils.notify(
+                utils.notify(
                     "\nUpgraders tend to be rock solid, but it's always good to be safe.\nDo you want to back up this directory?"
                 )
                 vim.ui.select({ ("Create backup (%s.old)"):format(path), "Don't create backup" }, {
@@ -331,8 +334,8 @@ module.on_event = function(event)
 
                     if parsed_counter >= file_counter then
                         vim.schedule(
-                            neorg.lib.wrap(
-                                neorg.utils.notify,
+                            lib.wrap(
+                                utils.notify,
                                 string.format("Successfully upgraded %d files!", file_counter)
                             )
                         )
@@ -363,13 +366,13 @@ module.on_event = function(event)
                     vim.loop.fs_open(filepath, "w+", 438, function(fs_err, fd)
                         assert(
                             not fs_err,
-                            neorg.lib.lazy_string_concat("Failed to open file '", filepath, "' for upgrade: ", fs_err)
+                            lib.lazy_string_concat("Failed to open file '", filepath, "' for upgrade: ", fs_err)
                         )
 
                         vim.loop.fs_write(fd, output, 0, function(werr)
                             assert(
                                 not werr,
-                                neorg.lib.lazy_string_concat(
+                                lib.lazy_string_concat(
                                     "Failed to write to file '",
                                     filepath,
                                     "' for upgrade: ",
@@ -384,14 +387,14 @@ module.on_event = function(event)
             end)
         end)
     elseif event.split_type[2] == "core.upgrade.all-workspaces" then
-        local dirman = neorg.modules.get_module("core.dirman")
+        local dirman = modules.get_module("core.dirman")
 
         if not dirman then
-            neorg.utils.notify("ERROR: `core.dirman` is not loaded!", vim.log.levels.WARN)
+            utils.notify("ERROR: `core.dirman` is not loaded!", vim.log.levels.WARN)
             return
         end
 
-        neorg.utils.notify("This behaviour isn't implemented yet!", vim.log.levels.WARN)
+        utils.notify("This behaviour isn't implemented yet!", vim.log.levels.WARN)
     end
 end
 

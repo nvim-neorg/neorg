@@ -11,9 +11,10 @@ A module for integrating nvim-compe with Neorg.
 Works with [`core.completion`](@core.completion) to provide intelligent completions.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+local log, modules = neorg.log, neorg.modules
 
-local module = neorg.modules.create("core.integrations.nvim-compe")
+local module = modules.create("core.integrations.nvim-compe")
 
 -- Define some private data that's not supposed to be seen
 module.private = {

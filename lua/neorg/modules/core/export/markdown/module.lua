@@ -14,7 +14,10 @@ To learn more about configuration, consult the [relevant section](#configuration
 -- from another person's perspective. Some cleanup and rethinking of certain implementation
 -- details will be necessary.
 
-local module = neorg.modules.create("core.export.markdown")
+local neorg = require("neorg.core")
+local lib, modules = neorg.lib, neorg.modules
+
+local module = modules.create("core.export.markdown")
 
 module.setup = function()
     return {
@@ -115,7 +118,7 @@ module.load = function()
         }
     end
 
-    module.config.public.extensions = neorg.lib.to_keys(module.config.public.extensions)
+    module.config.public.extensions = lib.to_keys(module.config.public.extensions)
 end
 
 module.config.public = {

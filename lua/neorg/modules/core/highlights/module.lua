@@ -8,9 +8,10 @@
 Neorg under a single tree of highlights: `@neorg.*`.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+local lib, log, modules = neorg.lib, neorg.log, neorg.modules
 
-local module = neorg.modules.create("core.highlights")
+local module = modules.create("core.highlights")
 
 --[[
 --]]
@@ -475,7 +476,7 @@ module.public = {
             local is_link = highlight:sub(1, 1) == "+"
 
             local full_highlight_name = "@neorg" .. prefix .. (hl_name:len() > 0 and ("." .. hl_name) or "")
-            local does_hl_exist = neorg.lib.inline_pcall(vim.api.nvim_exec, "highlight " .. full_highlight_name, true)
+            local does_hl_exist = lib.inline_pcall(vim.api.nvim_exec, "highlight " .. full_highlight_name, true)
 
             -- If we are dealing with a link then link the highlights together (excluding the + symbol)
             if is_link then
@@ -512,7 +513,7 @@ module.public = {
             end
 
             local full_highlight_name = "@neorg" .. prefix .. (hl_name:len() > 0 and ("." .. hl_name) or "")
-            local does_hl_exist = neorg.lib.inline_pcall(vim.api.nvim_exec, "highlight " .. full_highlight_name, true)
+            local does_hl_exist = lib.inline_pcall(vim.api.nvim_exec, "highlight " .. full_highlight_name, true)
 
             -- If the highlight already exists then assume the user doesn't want it to be
             -- overwritten

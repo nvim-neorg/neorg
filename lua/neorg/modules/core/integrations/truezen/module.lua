@@ -7,9 +7,10 @@
 This is a basic wrapper around truezen that allows one to toggle the atraxis mode programatically.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+local modules = neorg.modules
 
-local module = neorg.modules.create("core.integrations.truezen")
+local module = modules.create("core.integrations.truezen")
 
 module.load = function()
     local success, truezen = pcall(require, "true-zen.main")

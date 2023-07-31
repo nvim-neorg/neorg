@@ -11,10 +11,10 @@ The metagen module exposes two commands - `:Neorg inject-metadata` and `:Neorg u
   was last edited) as well as a few other non-destructive fields.
 --]]
 
-require("neorg.modules.base")
-require("neorg.external.helpers")
+local neorg = require("neorg.core")
+local config, lib, modules, utils = neorg.config, neorg.lib, neorg.modules, neorg.utils
 
-local module = neorg.modules.create("core.esupports.metagen")
+local module = modules.create("core.esupports.metagen")
 
 module.setup = function()
     return { requires = { "core.autocommands", "core.keybinds", "core.integrations.treesitter" } }
@@ -50,7 +50,7 @@ module.config.public = {
         -- The authors field is autopopulated by querying the current user's system username.
         {
             "authors",
-            function() return require("neorg.external.helpers").get_username() end,
+            function() return lib.get_username() end,
         },
 
         -- The categories field is always kept empty for the user to fill in.
@@ -73,7 +73,7 @@ module.config.public = {
         -- the file was created.
         {
             "version",
-            function() return require("neorg.config").norg_version end
+            function() return config.norg_version end
         },
     },
 }
@@ -89,7 +89,7 @@ module.public = {
     ---@param buf number #The buffer to check in
     ---@return boolean,table #Whether the metadata was present, and the range of the metadata node
     is_metadata_present = function(buf)
-        local query = neorg.utils.ts_parse_query(
+        local query = utils.ts_parse_query(
             "norg",
             [[
                  (ranged_verbatim_tag
@@ -221,7 +221,7 @@ module.public = {
             end
         end
 
-        local query = neorg.utils.ts_parse_query(
+        local query = utils.ts_parse_query(
             "norg_meta",
             [[
             (pair
@@ -255,7 +255,7 @@ module.public = {
 }
 
 module.load = function()
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             ["inject-metadata"] = {
                 args = 0,

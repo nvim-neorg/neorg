@@ -8,9 +8,10 @@ Upon execution (`:Neorg module list`) an info popup is created with a list of cu
 modules.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+local modules = neorg.modules
 
-local module = neorg.modules.create("core.neorgcmd.commands.module.list")
+local module = modules.create("core.neorgcmd.commands.module.list")
 
 module.setup = function()
     return { success = true, requires = { "core.neorgcmd", "core.ui" } }
@@ -34,13 +35,13 @@ module.public = {
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.module.list" then
         local lines = {
-            -- neorg.modules.get_module_config("core.concealer").icons.heading.level_1.icon
+            -- modules.get_module_config("core.concealer").icons.heading.level_1.icon
             "*"
                 .. " "
                 .. "Loaded Neorg Modules",
         }
 
-        for _, mod in pairs(neorg.modules.loaded_modules) do
+        for _, mod in pairs(modules.loaded_modules) do
             table.insert(lines, "  - `" .. mod.name .. "`")
         end
 

@@ -6,9 +6,10 @@
     ---
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+local modules = neorg.modules
 
-local module = neorg.modules.create("core.storage")
+local module = modules.create("core.storage")
 
 module.setup = function()
     return {

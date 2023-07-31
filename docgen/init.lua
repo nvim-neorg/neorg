@@ -1,3 +1,6 @@
+local neorg = require("neorg.core")
+local lib, modules = neorg.lib, neorg.modules
+
 local docgen = require("docgen")
 local fileio = require("fileio")
 
@@ -10,7 +13,7 @@ local config = {
 }
 
 ---@type Modules
-local modules = {
+local doc_modules = {
     --[[
     [name] = {
         top_comment_data...
@@ -26,7 +29,7 @@ local modules = {
 local function concat_configuration_options(configuration_options)
     local result = {}
 
-    local unrolled = neorg.lib.unroll(configuration_options)
+    local unrolled = lib.unroll(configuration_options)
 
     table.sort(unrolled, function(x, y)
         return x[1] < y[1]
@@ -68,12 +71,12 @@ for _, file in ipairs(docgen.aggregate_module_files()) do
     end
 
     -- Make Neorg load the module, which also evaluates dependencies
-    neorg.modules.load_module(parsed_module.name)
+    modules.load_module(parsed_module.name)
 
     -- Retrieve the module from the `loaded_modules` table.
-    parsed_module = neorg.modules.loaded_modules[parsed_module.name]
+    parsed_module = modules.loaded_modules[parsed_module.name]
 
-    modules[parsed_module.name] = {
+    doc_modules[parsed_module.name] = {
         top_comment_data = top_comment_data,
         buffer = buffer,
         parsed = parsed_module,
@@ -83,11 +86,11 @@ for _, file in ipairs(docgen.aggregate_module_files()) do
 end
 
 -- Non-module pages have their own dedicated generators
-fileio.write_to_wiki("Home", docgen.generators.homepage(modules))
-fileio.write_to_wiki("_Sidebar", docgen.generators.sidebar(modules))
+fileio.write_to_wiki("Home", docgen.generators.homepage(doc_modules))
+fileio.write_to_wiki("_Sidebar", docgen.generators.sidebar(doc_modules))
 
 -- Loop through all modules and generate their respective wiki files
-for module_name, module in pairs(modules) do
+for module_name, module in pairs(doc_modules) do
     local buffer = module.buffer
 
     -- Query the root node and try to find a `module.config.public` table
@@ -101,7 +104,7 @@ for module_name, module in pairs(modules) do
     if config_node then
         docgen.map_config(buffer, config_node, function(data, comments)
             for i, comment in ipairs(comments) do
-                comments[i] = docgen.lookup_modules(modules, comment:gsub("^%s*%-%-+%s*", ""))
+                comments[i] = docgen.lookup_modules(doc_modules, comment:gsub("^%s*%-%-+%s*", ""))
             end
 
             do
@@ -130,7 +133,7 @@ for module_name, module in pairs(modules) do
             local object = docgen.to_lua_object(module.parsed, buffer, data.value, module_name)
 
             do
-                neorg.lib.ensure_nested(configuration_options, unpack(data.parents))
+                lib.ensure_nested(configuration_options, unpack(data.parents))
                 local ref = vim.tbl_get(configuration_options, unpack(data.parents)) or configuration_options
                 if data.name then
                     ref[data.name] = {
@@ -159,11 +162,11 @@ for module_name, module in pairs(modules) do
     -- This cannot be done earlier because then there would be no guarantee
     -- that all the modules have been properly indexed and parsed.
     for i, line in ipairs(module.top_comment_data.markdown) do
-        module.top_comment_data.markdown[i] = docgen.lookup_modules(modules, line)
+        module.top_comment_data.markdown[i] = docgen.lookup_modules(doc_modules, line)
     end
 
     fileio.write_to_wiki(
         module.top_comment_data.file,
-        docgen.generators.module(modules, module, concat_configuration_options(configuration_options))
+        docgen.generators.module(doc_modules, module, concat_configuration_options(configuration_options))
     )
 end

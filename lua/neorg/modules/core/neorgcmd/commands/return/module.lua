@@ -8,10 +8,10 @@ When executed (`:Neorg return`), all currently open `.norg` files are deleted fr
 the buffer list, and the current workspace is set to "default".
 --]]
 
-require("neorg.modules.base")
-require("neorg.modules")
+local neorg = require("neorg.core")
+local modules = neorg.modules
 
-local module = neorg.modules.create("core.neorgcmd.commands.return")
+local module = modules.create("core.neorgcmd.commands.return")
 
 module.setup = function()
     return { success = true, requires = { "core.neorgcmd" } }

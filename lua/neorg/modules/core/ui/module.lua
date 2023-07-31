@@ -6,9 +6,10 @@
     ---
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+local log, modules = neorg.log, neorg.modules
 
-local module = neorg.modules.create("core.ui", {
+local module = modules.create("core.ui", {
     "selection_popup",
     "text_popup",
 })

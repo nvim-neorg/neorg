@@ -26,7 +26,9 @@ It takes 3 arguments:
   (see [configuration](#configuration)).
 --]]
 
-local module = neorg.modules.create("core.export")
+local neorg = require("neorg.core")
+local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.utils
+local module = modules.create("core.export")
 
 module.setup = function()
     return {
@@ -38,7 +40,7 @@ module.setup = function()
 end
 
 module.load = function()
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             export = {
                 args = 1,
@@ -72,14 +74,14 @@ module.public = {
     ---@param ftype string #The filetype to export to
     ---@return table?,table? #The export module and its configuration, else nil
     get_converter = function(ftype)
-        if not neorg.modules.is_module_loaded("core.export." .. ftype) then
-            if not neorg.modules.load_module("core.export." .. ftype) then
+        if not modules.is_module_loaded("core.export." .. ftype) then
+            if not modules.load_module("core.export." .. ftype) then
                 return
             end
         end
 
-        return neorg.modules.get_module("core.export." .. ftype),
-            neorg.modules.get_module_config("core.export." .. ftype)
+        return modules.get_module("core.export." .. ftype),
+            modules.get_module_config("core.export." .. ftype)
     end,
 
     --- Takes a buffer and exports it to a specific file
@@ -223,16 +225,16 @@ module.on_event = function(event)
         local exported = module.public.export(event.buffer, filetype)
 
         vim.loop.fs_open(filepath, "w", 438, function(err, fd)
-            assert(not err, neorg.lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err))
+            assert(not err, lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err))
 
             vim.loop.fs_write(fd, exported, 0, function(werr)
                 assert(
                     not werr,
-                    neorg.lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr)
+                    lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr)
                 )
             end)
 
-            vim.schedule(neorg.lib.wrap(neorg.utils.notify, "Successfully exported 1 file!"))
+            vim.schedule(lib.wrap(utils.notify, "Successfully exported 1 file!"))
         end)
     elseif event.type == "core.neorgcmd.events.export.directory" then
         local path = event.content[3] and vim.fn.expand(event.content[3])
@@ -247,7 +249,7 @@ module.on_event = function(event)
         local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
 
         vim.loop.fs_scandir(event.content[1], function(err, handle)
-            assert(not err, neorg.lib.lazy_string_concat("Failed to scan directory '", event.content[1], "': ", err))
+            assert(not err, lib.lazy_string_concat("Failed to scan directory '", event.content[1], "': ", err))
 
             local file_counter, parsed_counter = 0, 0
 
@@ -266,8 +268,8 @@ module.on_event = function(event)
 
                         if parsed_counter >= file_counter then
                             vim.schedule(
-                                neorg.lib.wrap(
-                                    neorg.utils.notify,
+                                lib.wrap(
+                                    utils.notify,
                                     string.format("Successfully exported %d files!", file_counter)
                                 )
                             )
@@ -298,7 +300,7 @@ module.on_event = function(event)
                         vim.loop.fs_open(write_path, "w+", 438, function(fs_err, fd)
                             assert(
                                 not fs_err,
-                                neorg.lib.lazy_string_concat(
+                                lib.lazy_string_concat(
                                     "Failed to open file '",
                                     write_path,
                                     "' for export: ",
@@ -309,7 +311,7 @@ module.on_event = function(event)
                             vim.loop.fs_write(fd, exported, 0, function(werr)
                                 assert(
                                     not werr,
-                                    neorg.lib.lazy_string_concat(
+                                    lib.lazy_string_concat(
                                         "Failed to write to file '",
                                         write_path,
                                         "' for export: ",

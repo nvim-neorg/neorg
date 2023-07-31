@@ -11,10 +11,10 @@ If the link location is found, you will be taken to the destination - if it is n
 prompted with a set of actions that you can perform on the broken link.
 --]]
 
-require("neorg.modules.base")
-require("neorg.external.helpers")
+local neorg = require("neorg.core")
+local config, lib, log, modules, utils = neorg.config, neorg.lib, neorg.log, neorg.modules, neorg.utils
 
-local module = neorg.modules.create("core.esupports.hop")
+local module = modules.create("core.esupports.hop")
 
 module.setup = function()
     return {
@@ -79,15 +79,15 @@ module.public = {
 
         local function os_open_link(link_location)
             local o = {}
-            if neorg.configuration.os_info == "windows" then
+            if config.os_info == "windows" then
                 o.command = "rundll32.exe"
                 o.args = { "url.dll,FileProtocolHandler", link_location }
             else
-                if neorg.configuration.os_info == "linux" then
+                if config.os_info == "linux" then
                     o.command = "xdg-open"
-                elseif neorg.configuration.os_info == "mac" then
+                elseif config.os_info == "mac" then
                     o.command = "open"
-                elseif neorg.configuration.os_info == "wsl" then
+                elseif config.os_info == "wsl" then
                     o.command = "explorer.exe"
                 end
                 o.args = { link_location }
@@ -118,7 +118,7 @@ module.public = {
         end
 
         if located_link_information then
-            neorg.lib.match(located_link_information.type)({
+            lib.match(located_link_information.type)({
                 -- If we're dealing with a URI, simply open the URI in the user's preferred method
                 external_app = function()
                     os_open_link(located_link_information.uri)
@@ -160,13 +160,13 @@ module.public = {
                 end,
 
                 calendar = function()
-                    local calendar = neorg.modules.get_module("core.ui.calendar")
+                    local calendar = modules.get_module("core.ui.calendar")
                     if not calendar then
                         log.error("`core.ui.calendar` is not loaded! Unable to open timestamp.")
                         return
                     end
 
-                    local tempus = neorg.modules.get_module("core.tempus")
+                    local tempus = modules.get_module("core.tempus")
                     if not tempus then
                         log.error("`core.tempus` is not loaded! Unable to parse timestamp.")
                         return
@@ -336,7 +336,7 @@ module.public = {
             return
         end
 
-        local query = neorg.utils.ts_parse_query("norg", query_str)
+        local query = utils.ts_parse_query("norg", query_str)
 
         for id, node in query:iter_captures(document_root, 0) do
             local capture = query.captures[id]
@@ -427,7 +427,7 @@ module.public = {
             return
         end
 
-        local query = neorg.utils.ts_parse_query("norg", query_text)
+        local query = utils.ts_parse_query("norg", query_text)
         local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
 
         local parsed_link_information = {
@@ -448,12 +448,12 @@ module.public = {
                 and capture_node_range.column_end <= range.column_end
             then
                 local extract_node_text =
-                    neorg.lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
+                    lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
 
                 parsed_link_information[capture] = parsed_link_information[capture]
-                    or neorg.lib.match(capture)({
+                    or lib.match(capture)({
                         link_file_text = extract_node_text,
-                        link_type = neorg.lib.wrap(string.sub, node:type(), string.len("link_target_") + 1),
+                        link_type = lib.wrap(string.sub, node:type(), string.len("link_target_") + 1),
                         link_location_text = extract_node_text,
                         link_description = extract_node_text,
 
@@ -495,7 +495,7 @@ module.public = {
             end
         end
 
-        return neorg.lib.match(parsed_link_information.link_type)({
+        return lib.match(parsed_link_information.link_type)({
             url = function()
                 return { type = "external_app", uri = parsed_link_information.link_location_text }
             end,
@@ -511,7 +511,7 @@ module.public = {
                     vim.tbl_contains({ "/", "~" }, destination:sub(1, 1)) and "" or (vim.fn.expand("%:p:h") .. "/")
                 ) .. destination
 
-                return neorg.lib.match(vim.fn.fnamemodify(destination, ":e"))({
+                return lib.match(vim.fn.fnamemodify(destination, ":e"))({
                     [{ "jpg", "jpeg", "png", "pdf" }] = {
                         type = "external_app",
                         uri = vim.uri_from_fname(vim.fn.expand(destination)),
@@ -539,7 +539,7 @@ module.public = {
             end,
 
             timestamp = function()
-                local tempus = neorg.modules.get_module("core.tempus")
+                local tempus = modules.get_module("core.tempus")
 
                 if not tempus then
                     log.error("`core.tempus` is not loaded! Unable to parse timestamp.")
@@ -561,7 +561,7 @@ module.public = {
             end,
 
             _ = function()
-                local query_str = neorg.lib.match(parsed_link_information.link_type)({
+                local query_str = lib.match(parsed_link_information.link_type)({
                     generic = [[
                         (_
                           [(strong_carryover_set
@@ -603,7 +603,7 @@ module.public = {
                                 (multi_%s_prefix)
                                   title: (paragraph_segment) @title)])
                         ]],
-                        neorg.lib.reparg(parsed_link_information.link_type, 5)
+                        lib.reparg(parsed_link_information.link_type, 5)
                     ),
                     _ = string.format(
                         [[
@@ -621,7 +621,7 @@ module.public = {
                               (%s_prefix)
                               title: (paragraph_segment) @title)
                         ]],
-                        neorg.lib.reparg(parsed_link_information.link_type, 2)
+                        lib.reparg(parsed_link_information.link_type, 2)
                     ),
                 })
 
@@ -631,7 +631,7 @@ module.public = {
                     return
                 end
 
-                local query = neorg.utils.ts_parse_query("norg", query_str)
+                local query = utils.ts_parse_query("norg", query_str)
 
                 for id, node in query:iter_captures(document_root, buf_pointer) do
                     local capture = query.captures[id]
@@ -744,7 +744,7 @@ module.private = {
     ---@param parsed_link_information table #A table as returned by `parse_link()`
     ---@return table #A table of similarities (fuzzed items)
     fix_link_strict = function(parsed_link_information)
-        local query = neorg.lib.match(parsed_link_information.link_type)({
+        local query = lib.match(parsed_link_information.link_type)({
             generic = [[
                 (_
                   [(strong_carryover_set
@@ -785,7 +785,7 @@ module.private = {
                         (multi_%s_prefix)
                           title: (paragraph_segment) @title)])
             ]],
-                neorg.lib.reparg(parsed_link_information.link_type, 5)
+                lib.reparg(parsed_link_information.link_type, 5)
             ),
             _ = string.format(
                 [[
@@ -803,7 +803,7 @@ module.private = {
                         (%s_prefix)
                         title: (paragraph_segment) @title)
                 ]],
-                neorg.lib.reparg(parsed_link_information.link_type, 2)
+                lib.reparg(parsed_link_information.link_type, 2)
             ),
         })
 
@@ -827,7 +827,7 @@ module.private = {
             end
         end
 
-        local query = neorg.utils.ts_parse_query("norg", query_str)
+        local query = utils.ts_parse_query("norg", query_str)
 
         local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
 
@@ -854,7 +854,7 @@ module.private = {
         end
 
         if vim.tbl_isempty(similarities) then
-            neorg.utils.notify("Sorry, Neorg couldn't fix that link :(", vim.log.levels.WARN)
+            utils.notify("Sorry, Neorg couldn't fix that link :(", vim.log.levels.WARN)
         end
 
         table.sort(similarities, function(lhs, rhs)
@@ -878,10 +878,10 @@ module.private = {
 
         local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
 
-        local prefix = neorg.lib.when(
+        local prefix = lib.when(
             parsed_link_information.link_type == "generic" and not force_type,
             "#",
-            neorg.lib.match(most_similar.node:type())({
+            lib.match(most_similar.node:type())({
                 heading1 = "*",
                 heading2 = "**",
                 heading3 = "***",
@@ -909,17 +909,17 @@ module.private = {
 
         callback(
             "{"
-                .. neorg.lib.when(
+                .. lib.when(
                     parsed_link_information.link_file_text,
-                    neorg.lib.lazy_string_concat(":", parsed_link_information.link_file_text, ":"),
+                    lib.lazy_string_concat(":", parsed_link_information.link_file_text, ":"),
                     ""
                 )
                 .. prefix
                 .. most_similar.text
                 .. "}"
-                .. neorg.lib.when(
+                .. lib.when(
                     parsed_link_information.link_description,
-                    neorg.lib.lazy_string_concat("[", parsed_link_information.link_description, "]"),
+                    lib.lazy_string_concat("[", parsed_link_information.link_description, "]"),
                     ""
                 )
         )

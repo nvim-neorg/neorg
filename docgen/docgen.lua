@@ -1,3 +1,6 @@
+local neorg = require("neorg.core")
+local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
+
 local docgen = {}
 
 -- Create the directory if it does not exist
@@ -32,11 +35,8 @@ require("neorg").setup({
 -- Start neorg
 neorg.org_file_entered(false)
 
--- Pull in the `neorg.lib` table
-require("neorg.external.helpers")
-
 -- Extract treesitter utility functions provided by Neorg and nvim-treesitter.ts_utils
-local ts = neorg.modules.get_module("core.integrations.treesitter")
+local ts = modules.get_module("core.integrations.treesitter")
 assert(ts, "treesitter not available")
 
 --- Aggregates all the available modules.
@@ -155,7 +155,7 @@ end
 ---@param root userdata #The root node
 ---@return userdata? #The `module.config.public` node
 docgen.get_module_config_node = function(buffer, root)
-    local query = neorg.utils.ts_parse_query(
+    local query = utils.ts_parse_query(
         "lua",
         [[
         (assignment_statement
@@ -238,7 +238,7 @@ end
 docgen.evaluate_functions = function(tbl)
     local new = {}
 
-    neorg.lib.map(tbl, function(_, value)
+    lib.map(tbl, function(_, value)
         if type(value) == "function" then
             vim.list_extend(new, value())
         else
@@ -254,12 +254,12 @@ end
 
 --- Returns a function which itself returns a table of links to modules
 --  in a markdown-like unordered list.
----@param modules Modules #A table of modules to enumerate
+---@param mods Modules #A table of modules to enumerate
 ---@param predicate fun(Module):boolean #A predicate that determines whether or not to render this object.
 --- If the predicate returns false, then the object is dismissed.
 ---@return fun():string[] #An array of markdown strings with the enumerated modules
-local function list_modules_with_predicate(modules, predicate)
-    local sorted = neorg.lib.unroll(modules)
+local function list_modules_with_predicate(mods, predicate)
+    local sorted = lib.unroll(mods)
 
     table.sort(sorted, function(x, y)
         return x[1] < y[1]
@@ -301,9 +301,9 @@ end
 
 docgen.generators = {
     --- Generates the Home.md file
-    ---@param modules Modules #A table of modules
-    homepage = function(modules)
-        local core_defaults = modules["core.defaults"]
+    ---@param mods Modules #A table of modules
+    homepage = function(mods)
+        local core_defaults = mods["core.defaults"]
         assert(core_defaults, "core.defaults module not loaded!")
 
         local structure = {
@@ -350,7 +350,7 @@ docgen.generators = {
                 }
             end,
             "",
-            list_modules_with_predicate(modules, function(data)
+            list_modules_with_predicate(mods, function(data)
                 return vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
                     and not data.top_comment_data.internal
             end),
@@ -360,7 +360,7 @@ docgen.generators = {
             "Some modules are not included by default as they require some manual configuration or are merely extra bells and whistles",
             "and are not critical to editing `.norg` files. Below is a list of all modules that are not required by default:",
             "",
-            list_modules_with_predicate(modules, function(data)
+            list_modules_with_predicate(mods, function(data)
                 return not data.parsed.extension
                     and not vim.tbl_contains(core_defaults.parsed.config.public.enable, data.parsed.name)
                     and not data.top_comment_data.internal
@@ -370,7 +370,7 @@ docgen.generators = {
             "",
             "These are modules that are only meant for developers. They are generally required in other modules:",
             "",
-            list_modules_with_predicate(modules, function(data)
+            list_modules_with_predicate(mods, function(data)
                 return not data.parsed.extension and data.top_comment_data.internal
             end),
         }
@@ -379,8 +379,8 @@ docgen.generators = {
     end,
 
     --- Generates the _Sidebar.md file
-    ---@param modules Modules #A table of modules
-    sidebar = function(modules)
+    ---@param mods Modules #A table of modules
+    sidebar = function(mods)
         local structure = {
             "<div align='center'>",
             "",
@@ -395,7 +395,7 @@ docgen.generators = {
                 local res = {}
                 local names = {}
 
-                for n, data in pairs(modules) do
+                for n, data in pairs(mods) do
                     if data.parsed.extension ~= true then
                         table.insert(names, n)
                     end
@@ -404,7 +404,7 @@ docgen.generators = {
                 table.sort(names)
 
                 for _, name in ipairs(names) do
-                    local data = modules[name]
+                    local data = mods[name]
                     if not data.parsed.internal then
                         local insert = ""
                         if data.top_comment_data.file then
@@ -432,11 +432,11 @@ docgen.generators = {
     end,
 
     --- Generates the page for any Neorg module
-    ---@param modules Modules #The list of currently loaded modules
+    ---@param mods Modules #The list of currently loaded modules
     ---@param module Module #The module we want to generate the page for
     ---@param configuration string[] #An array of markdown strings detailing the configuration options for the module
     ---@return string[] #A table of markdown strings representing the page
-    module = function(modules, module, configuration)
+    module = function(mods, module, configuration)
         local structure = {
             '<div align="center">',
             "",
@@ -483,7 +483,7 @@ docgen.generators = {
                 local module_list = {}
 
                 for _, module_name in ipairs(required_modules) do
-                    module_list[module_name] = modules[module_name]
+                    module_list[module_name] = mods[module_name]
                 end
 
                 return docgen.evaluate_functions({
@@ -498,7 +498,7 @@ docgen.generators = {
             function()
                 local required_by = {}
 
-                for mod, data in pairs(modules) do
+                for mod, data in pairs(mods) do
                     local required_modules = data.parsed.setup().requires or {}
 
                     if vim.tbl_contains(required_modules, module.parsed.name) then
@@ -538,18 +538,18 @@ docgen.check_comment_integrity = function(comment)
 end
 
 --- Replaces all instances of a module reference (e.g. `@core.concealer`) with a link in the wiki
----@param modules Modules #The list of loaded modules
+---@param mods Modules #The list of loaded modules
 ---@param str string #The string to perform the lookup in
 ---@return string #The original `str` parameter with all `@` references replaced with links
-docgen.lookup_modules = function(modules, str)
+docgen.lookup_modules = function(mods, str)
     return (
         str:gsub("@([%-%.%w]+)", function(target_module_name)
-            if not modules[target_module_name] then
+            if not mods[target_module_name] then
                 return table.concat({ "@", target_module_name })
             else
                 return table.concat({
                     "https://github.com/nvim-neorg/neorg/wiki/",
-                    modules[target_module_name].top_comment_data.file,
+                    mods[target_module_name].top_comment_data.file,
                 })
             end
         end)
@@ -647,14 +647,14 @@ docgen.htmlify = function(configuration_option)
     local result = {}
     local code_block = true
 
-    neorg.lib.match(self.data.value:type())({
+    lib.match(self.data.value:type())({
         string = function()
             table.insert(result, table.concat({ '"', self.object, '"' }))
         end,
         table_constructor = function()
             table.insert(result, "")
 
-            local unrolled = neorg.lib.unroll(self.object)
+            local unrolled = lib.unroll(self.object)
 
             table.sort(unrolled, function(x, y)
                 return tostring(x[1]) < tostring(y[1])

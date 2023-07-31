@@ -17,7 +17,10 @@ When in the TOC view, `<CR>` can be pressed on any of the entries to move to tha
 Norg document. The TOC view updates automatically when switching buffers.
 --]]
 
-local module = neorg.modules.create("core.qol.toc")
+local neorg = require("neorg.core")
+local modules, utils = neorg.modules, neorg.utils
+
+local module = modules.create("core.qol.toc")
 
 module.setup = function()
     return {
@@ -26,7 +29,7 @@ module.setup = function()
 end
 
 module.load = function()
-    neorg.modules.await("core.neorgcmd", function(neorgcmd)
+    modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             toc = {
                 name = "core.qol.toc",
@@ -235,7 +238,7 @@ module.on_event = function(event)
         local qflist = module.public.generate_qflist(event.buffer)
 
         if not qflist then
-            neorg.utils.notify("An error occurred and the qflist could not be generated", vim.log.levels.WARN)
+            utils.notify("An error occurred and the qflist could not be generated", vim.log.levels.WARN)
             return
         end
 

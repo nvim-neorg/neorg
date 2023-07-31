@@ -15,9 +15,10 @@ NOTE: This module is due for a rewrite. All of its behaviour is not fully docume
 overwritten soon anyway.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+local log, modules = neorg.log, neorg.modules
 
-local module = neorg.modules.create("core.presenter")
+local module = modules.create("core.presenter")
 local api = vim.api
 
 module.setup = function()
@@ -42,9 +43,9 @@ module.load = function()
     local keybinds = module.required["core.keybinds"]
 
     if module.config.public.zen_mode == "truezen" then
-        neorg.modules.load_module("core.integrations.truezen")
+        modules.load_module("core.integrations.truezen")
     elseif module.config.public.zen_mode == "zen-mode" then
-        neorg.modules.load_module("core.integrations.zen_mode")
+        modules.load_module("core.integrations.zen_mode")
     else
         log.error("Unrecognized mode for 'zen_mode' option. Please check your presenter config")
         error_loading = true
@@ -132,13 +133,13 @@ module.public = {
         end
 
         if
-            module.config.public.zen_mode == "truezen" and neorg.modules.is_module_loaded("core.integrations.truezen")
+            module.config.public.zen_mode == "truezen" and modules.is_module_loaded("core.integrations.truezen")
         then
-            neorg.modules.get_module("core.integrations.truezen").toggle_ataraxis()
+            modules.get_module("core.integrations.truezen").toggle_ataraxis()
         elseif
-            module.config.public.zen_mode == "zen-mode" and neorg.modules.is_module_loaded("core.integrations.zen_mode")
+            module.config.public.zen_mode == "zen-mode" and modules.is_module_loaded("core.integrations.zen_mode")
         then
-            neorg.modules.get_module("core.integrations.zen_mode").toggle()
+            modules.get_module("core.integrations.zen_mode").toggle()
         end
 
         -- Generate views selection popup
@@ -207,13 +208,13 @@ module.public = {
         module.required["core.mode"].set_mode(previous_mode)
 
         if
-            module.config.public.zen_mode == "truezen" and neorg.modules.is_module_loaded("core.integrations.truezen")
+            module.config.public.zen_mode == "truezen" and modules.is_module_loaded("core.integrations.truezen")
         then
-            neorg.modules.get_module("core.integrations.truezen").toggle_ataraxis()
+            modules.get_module("core.integrations.truezen").toggle_ataraxis()
         elseif
-            module.config.public.zen_mode == "zen-mode" and neorg.modules.is_module_loaded("core.integrations.zen_mode")
+            module.config.public.zen_mode == "zen-mode" and modules.is_module_loaded("core.integrations.zen_mode")
         then
-            neorg.modules.get_module("core.integrations.zen_mode").toggle()
+            modules.get_module("core.integrations.zen_mode").toggle()
         end
 
         api.nvim_buf_delete(module.private.buf, {})

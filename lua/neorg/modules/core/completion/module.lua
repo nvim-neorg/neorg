@@ -1,3 +1,4 @@
+
 --[[
     file: Completion
     title: Get completions in Neorg files
@@ -10,10 +11,10 @@ please read the corresponding wiki page for the engine you selected ([`nvim-cmp`
 or [`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
 --]]
 
-require("neorg.modules.base")
-require("neorg.modules")
+local neorg = require("neorg.core")
+local lib, log, modules = neorg.lib, neorg.log, neorg.modules
 
-local module = neorg.modules.create("core.completion")
+local module = modules.create("core.completion")
 
 module.config.public = {
     -- The engine to use for completion.
@@ -43,12 +44,12 @@ module.load = function()
     end
 
     -- If our engine is compe then attempt to load the integration module for nvim-compe
-    if module.config.public.engine == "nvim-compe" and neorg.modules.load_module("core.integrations.nvim-compe") then
-        neorg.modules.load_module_as_dependency("core.integrations.nvim-compe", module.name, {})
-        module.private.engine = neorg.modules.get_module("core.integrations.nvim-compe")
-    elseif module.config.public.engine == "nvim-cmp" and neorg.modules.load_module("core.integrations.nvim-cmp") then
-        neorg.modules.load_module_as_dependency("core.integrations.nvim-cmp", module.name, {})
-        module.private.engine = neorg.modules.get_module("core.integrations.nvim-cmp")
+    if module.config.public.engine == "nvim-compe" and modules.load_module("core.integrations.nvim-compe") then
+        modules.load_module_as_dependency("core.integrations.nvim-compe", module.name, {})
+        module.private.engine = modules.get_module("core.integrations.nvim-compe")
+    elseif module.config.public.engine == "nvim-cmp" and modules.load_module("core.integrations.nvim-cmp") then
+        modules.load_module_as_dependency("core.integrations.nvim-cmp", module.name, {})
+        module.private.engine = modules.get_module("core.integrations.nvim-cmp")
     else
         log.error("Unable to load completion module -", module.config.public.engine, "is not a recognized engine.")
         return
@@ -124,7 +125,7 @@ module.public = {
                     regex = "code%s+%w*",
                     -- No node variable, we don't need that sort of check here
 
-                    complete = require("neorg.external.helpers").get_language_list(true),
+                    complete = lib.get_language_list(true),
 
                     -- Extra options
                     options = {
@@ -137,7 +138,7 @@ module.public = {
                 {
                     regex = "export%s+%w*",
 
-                    complete = require("neorg.external.helpers").get_language_list(true),
+                    complete = lib.get_language_list(true),
 
                     options = {
                         type = "Language",

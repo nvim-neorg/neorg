@@ -22,9 +22,10 @@ load = {
 ```
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+local modules = neorg.modules
 
-return neorg.modules.create_meta(
+return modules.create_meta(
     "core.defaults",
     "core.autocommands",
     "core.clipboard",

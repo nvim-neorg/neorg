@@ -14,10 +14,13 @@ excluding the `@code` and `@end` portion itself.
 If the conditions are not met, the content is copied normally, preserving all indentation.
 --]]
 
-local module = neorg.modules.create("core.clipboard.code-blocks")
+local neorg = require("neorg.core")
+local modules = neorg.modules
+
+local module = modules.create("core.clipboard.code-blocks")
 
 module.load = function()
-    neorg.modules.await("core.clipboard", function(clipboard)
+    modules.await("core.clipboard", function(clipboard)
         clipboard.add_callback("ranged_verbatim_tag_content", function(node, content, position)
             -- TODO: Handle visual/visual line/visual block modes
 

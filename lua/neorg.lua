@@ -4,19 +4,16 @@
 --]]
 
 -- Require the most important modules
-require("neorg.callbacks")
-require("neorg.events")
-require("neorg.modules")
+local neorg = require("neorg.core")
+local config, log, modules = neorg.config, neorg.log, neorg.modules
 
-local configuration = require("neorg.config")
-
---- This function takes in a user configuration, parses it, initializes everything and launches neorg if inside a .norg or .org file
----@param config table #A table that reflects the structure of configuration.user_configuration
-function neorg.setup(config)
-    configuration.user_configuration = vim.tbl_deep_extend("force", configuration.user_configuration, config or {})
+--- This function takes in a user config, parses it, initializes everything and launches neorg if inside a .norg or .org file
+---@param cfg table #A table that reflects the structure of config.user_config
+function neorg.setup(cfg)
+    config.user_config = vim.tbl_deep_extend("force", config.user_config, cfg or {})
 
     -- Create a new global instance of the neorg logger
-    require("neorg.external.log").new(configuration.user_configuration.logger or log.get_default_config(), true)
+    log.new(config.user_config.logger or log.get_default_config(), true)
 
     -- Make the Neorg filetype detectable through `vim.filetype`.
     -- TODO: Make a PR to Neovim to natively support the org and norg
@@ -28,7 +25,7 @@ function neorg.setup(config)
     })
 
     -- If the file we have entered has a .norg extension
-    if vim.fn.expand("%:e") == "norg" or not configuration.user_configuration.lazy_loading then
+    if vim.fn.expand("%:e") == "norg" or not config.user_config.lazy_loading then
         -- Then boot up the environment
         neorg.org_file_entered(false)
     else
@@ -51,31 +48,31 @@ end
 ---@param manual boolean #If true then the environment was kickstarted manually by the user
 ---@param arguments string? #A list of arguments in the format of "key=value other_key=other_value"
 function neorg.org_file_entered(manual, arguments)
-    -- Extract the module list from the user configuration
-    local module_list = configuration.user_configuration and configuration.user_configuration.load or {}
+    -- Extract the module list from the user config
+    local module_list = config.user_config and config.user_config.load or {}
 
     -- If we have already started Neorg or if we haven't defined any modules to load then bail
-    if configuration.started or not module_list or vim.tbl_isempty(module_list) then
+    if config.started or not module_list or vim.tbl_isempty(module_list) then
         return
     end
 
     -- If the user has defined a post-load hook then execute it
-    if configuration.user_configuration.hook then
-        configuration.user_configuration.hook(manual, arguments)
+    if config.user_config.hook then
+        config.user_config.hook(manual, arguments)
     end
 
     -- If Neorg was loaded manually (through `:NeorgStart`) then set this flag to true
-    configuration.manual = manual
+    config.manual = manual
 
     -- If the user has supplied any Neorg environment variables
     -- then parse those here
     if arguments and arguments:len() > 0 then
         for key, value in arguments:gmatch("([%w%W]+)=([%w%W]+)") do
-            configuration.arguments[key] = value
+            config.arguments[key] = value
         end
     end
 
-    -- Go through each defined module and grab its configuration
+    -- Go through each defined module and grab its config
     for name, module in pairs(module_list) do
         -- If the module's data is not empty and we have not defined a config table then it probably means there's junk in there
         if not vim.tbl_isempty(module) and not module.config then
@@ -86,31 +83,31 @@ function neorg.org_file_entered(manual, arguments)
             )
         end
 
-        -- Apply the configuration
-        configuration.modules[name] =
-            vim.tbl_deep_extend("force", configuration.modules[name] or {}, module.config or {})
+        -- Apply the config
+        config.modules[name] =
+            vim.tbl_deep_extend("force", config.modules[name] or {}, module.config or {})
     end
 
-    -- After all configurations are merged proceed to actually load the modules
-    local load_module = neorg.modules.load_module
+    -- After all config are merged proceed to actually load the modules
+    local load_module = modules.load_module
     for name, _ in pairs(module_list) do
         -- If it could not be loaded then halt
         if not load_module(name) then
             log.warn("Recovering from error...")
-            neorg.modules.loaded_modules[name] = nil
+            modules.loaded_modules[name] = nil
         end
     end
 
     -- Goes through each loaded module and invokes neorg_post_load()
-    for _, module in pairs(neorg.modules.loaded_modules) do
+    for _, module in pairs(modules.loaded_modules) do
         module.neorg_post_load()
     end
 
     -- Set this variable to prevent Neorg from loading twice
-    configuration.started = true
+    config.started = true
 
     -- Lets the entire Neorg environment know that Neorg has started!
-    neorg.events.broadcast_event({
+    modules.broadcast_event({
         type = "core.started",
         split_type = { "core", "started" },
         filename = "",
@@ -130,7 +127,7 @@ end
 --- Returns whether or not Neorg is loaded
 ---@return boolean
 function neorg.is_loaded()
-    return configuration.started
+    return config.started
 end
 
 return neorg

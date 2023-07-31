@@ -18,10 +18,10 @@ If one needs to edit this module, it is best to talk to me at `katawful` on GitH
 Any edit is assumed to break this module.
 --]]
 
-require("neorg.modules.base")
-require("neorg.external.helpers")
+local neorg = require("neorg.core")
+local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
 
-local module = neorg.modules.create("core.syntax")
+local module = modules.create("core.syntax")
 
 local function schedule(func)
     vim.schedule(function()
@@ -116,7 +116,7 @@ module.public = {
 
         if tree then
             -- get the language node used by the code block
-            local code_lang = neorg.utils.ts_parse_query(
+            local code_lang = utils.ts_parse_query(
                 "norg",
                 [[(
                     (ranged_verbatim_tag (tag_name) @_tagname (tag_parameters) @language)
@@ -487,7 +487,7 @@ module.load = function()
 
     -- Load available regex languages
     -- get the available regex files for the current session
-    module.private.available_languages = require("neorg.external.helpers").get_language_list(false)
+    module.private.available_languages = lib.get_language_list(false)
 end
 
 module.on_event = function(event)

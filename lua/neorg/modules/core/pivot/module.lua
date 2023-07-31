@@ -17,7 +17,10 @@ This module exposes two keybinds:
   items will become unordered.
 --]]
 
-local module = neorg.modules.create("core.pivot")
+local neorg = require("neorg.core")
+local log, modules = neorg.log, neorg.modules
+
+local module = modules.create("core.pivot")
 
 module.setup = function()
     return {
@@ -28,7 +31,7 @@ module.setup = function()
 end
 
 module.load = function()
-    neorg.modules.await("core.keybinds", function(keybinds)
+    modules.await("core.keybinds", function(keybinds)
         keybinds.register_keybinds(module.name, { "toggle-list-type", "invert-list-type" })
     end)
 end

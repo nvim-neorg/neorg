@@ -8,9 +8,10 @@ Upon exection (`:Neorg module load <module_path>`) dynamically docks a new modul
 into the current Neorg environment. Useful to include modules as a one-off.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+local modules = neorg.modules
 
-local module = neorg.modules.create("core.neorgcmd.commands.module.load")
+local module = modules.create("core.neorgcmd.commands.module.load")
 
 module.setup = function()
     return { success = true, requires = { "core.neorgcmd" } }
@@ -34,7 +35,7 @@ module.public = {
 
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.module.load" then
-        neorg.modules.load_module(event.content[1])
+        modules.load_module(event.content[1])
     end
 end
 

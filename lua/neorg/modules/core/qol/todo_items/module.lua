@@ -22,9 +22,10 @@ any of the above keys to toggle the state of that particular item.
 Parent items of the same type and children items of the same type are update accordingly.
 --]]
 
-require("neorg.modules.base")
+local neorg = require("neorg.core")
+local log, modules = neorg.log, neorg.modules
 
-local module = neorg.modules.create("core.qol.todo_items")
+local module = modules.create("core.qol.todo_items")
 
 module.setup = function()
     return { success = true, requires = { "core.keybinds", "core.integrations.treesitter" } }

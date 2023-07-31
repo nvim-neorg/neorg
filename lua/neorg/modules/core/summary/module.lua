@@ -16,11 +16,10 @@ which by default consults the document metadata (see also
 as a fallback to build up a tree of categories, titles and descriptions.
 --]]
 
-require("neorg.modules.base")
-require("neorg.modules")
-require("neorg.external.helpers")
+local neorg = require("neorg.core")
+local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
 
-local module = neorg.modules.create("core.summary")
+local module = modules.create("core.summary")
 
 module.setup = function()
     return {
@@ -40,7 +39,7 @@ module.load = function()
 
     local ts = module.required["core.integrations.treesitter"]
 
-    module.config.public.strategy = neorg.lib.match(module.config.public.strategy)({
+    module.config.public.strategy = lib.match(module.config.public.strategy)({
         default = function()
             -- declare query on load so that it's parsed once, on first use
             local heading_query
@@ -59,7 +58,7 @@ module.load = function()
                              )
                          ]
                      ]]
-                    heading_query = neorg.utils.ts_parse_query("norg", heading_query_string)
+                    heading_query = utils.ts_parse_query("norg", heading_query_string)
                 end
                 -- search up to 20 lines (a doc could potentially have metadata without metadata.title)
                 local _, heading = heading_query:iter_captures(document_root, bufnr)()
@@ -79,7 +78,7 @@ module.load = function()
             return function(files, ws_root, heading_level)
                 local categories = vim.defaulttable()
 
-                neorg.utils.read_files(files, function(bufnr, filename)
+                utils.read_files(files, function(bufnr, filename)
                     local metadata = ts.get_document_metadata(bufnr)
 
                     if not metadata then
@@ -108,7 +107,7 @@ module.load = function()
                         if metadata.description == vim.NIL then
                             metadata.description = nil
                         end
-                        table.insert(categories[neorg.lib.title(category)], {
+                        table.insert(categories[lib.title(category)], {
                             title = tostring(metadata.title),
                             norgname = norgname,
                             description = metadata.description,
@@ -128,7 +127,7 @@ module.load = function()
                                 "   - {:$",
                                 datapoint.norgname,
                                 ":}[",
-                                neorg.lib.title(datapoint.title),
+                                lib.title(datapoint.title),
                                 "]",
                             })
                                 .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
@@ -171,7 +170,7 @@ module.on_event = function(event)
         local node_at_cursor = ts.get_first_node_on_line(buffer, event.cursor_position[1] - 1)
 
         if not node_at_cursor or not node_at_cursor:type():match("^heading%d$") then
-            neorg.utils.notify(
+            utils.notify(
                 "No heading under cursor! Please move your cursor under the heading you'd like to generate the summary under."
             )
             return
@@ -179,10 +178,10 @@ module.on_event = function(event)
         -- heading level of 'node_at_cursor' (summary headings should be one level deeper)
         local level = tonumber(string.sub(node_at_cursor:type(), -1))
 
-        local dirman = neorg.modules.get_module("core.dirman")
+        local dirman = modules.get_module("core.dirman")
 
         if not dirman then
-            neorg.utils.notify("`core.dirman` is not loaded! It is required to generate summaries")
+            utils.notify("`core.dirman` is not loaded! It is required to generate summaries")
             return
         end
 
@@ -194,7 +193,7 @@ module.on_event = function(event)
         )
 
         if not generated or vim.tbl_isempty(generated) then
-            neorg.utils.notify(
+            utils.notify(
                 "No summary to generate! Either change the `strategy` option or ensure you have some indexable files in your workspace."
             )
             return
