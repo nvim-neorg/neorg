@@ -481,9 +481,7 @@ module.on_event = function(event)
         local current_ws = module.public.get_current_workspace()
 
         if current_ws[1] == "default" then
-            utils.notify(
-                "No workspace is set! Use `:Neorg workspace <name>` to set the current workspace. Aborting..."
-            )
+            utils.notify("No workspace is set! Use `:Neorg workspace <name>` to set the current workspace. Aborting...")
             return
         end
 

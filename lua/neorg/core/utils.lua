@@ -4,7 +4,6 @@ local log = require("neorg.core.log")
 local utils = {}
 local version = vim.version() -- TODO: Move to a more local scope
 
-
 --- A version agnostic way to call the neovim treesitter query parser
 --- @param language string # Language to use for the query
 --- @param query_string string # Query in s-expr syntax
@@ -16,7 +15,6 @@ function utils.ts_parse_query(language, query_string)
         return vim.treesitter.parse_query(language, query_string)
     end
 end
-
 
 --- An OS agnostic way of querying the current user
 function utils.get_username()
@@ -34,7 +32,6 @@ function utils.get_username()
 
     return ""
 end
-
 
 --- Returns an array of strings, the array being a list of languages that Neorg can inject
 ---@param values boolean #If set to true will return an array of strings, if false will return a key-value table
@@ -69,7 +66,6 @@ function utils.get_language_list(values)
     return values and vim.tbl_keys(ret) or ret
 end
 
-
 function utils.get_language_shorthands(reverse_lookup)
     local langs = {
         ["bash"] = { "sh", "zsh" },
@@ -102,7 +98,6 @@ function utils.get_language_shorthands(reverse_lookup)
     return reverse_lookup and vim.tbl_add_reverse_lookup(langs) or langs
 end
 
-
 --- Checks whether Neovim is running at least at a specific version
 ---@param major number #The major release of Neovim
 ---@param minor number #The minor release of Neovim
@@ -111,7 +106,6 @@ end
 function utils.is_minimum_version(major, minor, patch)
     return major <= version.major and minor <= version.minor and patch <= version.patch
 end
-
 
 --- Parses a version string like "0.4.2" and provides back a table like { major = <number>, minor = <number>, patch = <number> }
 ---@param version_string string #The input string
@@ -152,14 +146,12 @@ function utils.parse_version_string(version_string)
     return ret
 end
 
-
 --- Custom neorg notifications. Wrapper around vim.notify
 ---@param msg string message to send
 ---@param log_level integer|nil log level in `vim.log.levels`.
 function utils.notify(msg, log_level)
     vim.notify(msg, log_level, { title = "Neorg" })
 end
-
 
 --- Opens up an array of files and runs a callback for each opened file.
 ---@param files string[] #An array of files to open.
@@ -177,6 +169,5 @@ function utils.read_files(files, callback)
         end
     end
 end
-
 
 return utils

@@ -1,10 +1,9 @@
 local lib = {
     -- TODO: Are the mod functions used anywhere?
     mod = { --- Modifiers for the `map` function
-        exclude = {} --- Filtering modifiers that exclude certain elements from a table
-    }
+        exclude = {}, --- Filtering modifiers that exclude certain elements from a table
+    },
 }
-
 
 --- Returns the item that matches the first item in statements
 ---@param value any #The value to compare against
@@ -75,7 +74,6 @@ function lib.match(value, compare)
     end
 end
 
-
 --- Wrapped around `match()` that performs an action based on a condition
 ---@param comparison boolean #The comparison to perform
 ---@param when_true function|any #The value to return when `comparison` is true
@@ -91,7 +89,6 @@ function lib.when(comparison, when_true, when_false)
         ["false"] = when_false,
     })
 end
-
 
 --- Maps a function to every element of a table
 --  The function can return a value, in which case that specific element will be assigned
@@ -113,7 +110,6 @@ function lib.map(tbl, callback)
     return copy
 end
 
-
 --- Iterates over all elements of a table and returns the first value returned by the callback.
 ---@param tbl table #The table to iterate over
 ---@param callback function #The callback function that should be invoked on each iteration.
@@ -129,7 +125,6 @@ function lib.filter(tbl, callback)
     end
 end
 
-
 --- Finds any key in an array
 ---@param tbl array #An array of values to iterate over
 ---@param element any #The item to find
@@ -142,7 +137,6 @@ function lib.find(tbl, element)
     end)
 end
 
-
 --- Inserts a value into a table if it doesn't exist, else returns the existing value.
 ---@param tbl table #The table to insert into
 ---@param value number|string #The value to insert
@@ -150,13 +144,11 @@ end
 function lib.insert_or(tbl, value)
     local item = lib.find(tbl, value)
 
-    return item and tbl[item]
-        or (function()
-            table.insert(tbl, value)
-            return value
-        end)()
-    end
-
+    return item and tbl[item] or (function()
+        table.insert(tbl, value)
+        return value
+    end)()
+end
 
 --- Picks a set of values from a table and returns them in an array
 ---@param tbl table #The table to extract the keys from
@@ -173,7 +165,6 @@ function lib.pick(tbl, values)
 
     return result
 end
-
 
 --- Tries to extract a variable in all nesting levels of a table.
 ---@param tbl table #The table to traverse
@@ -195,7 +186,6 @@ function lib.extract(tbl, value)
     return results
 end
 
-
 --- Wraps a conditional "not" function in a vim.tbl callback
 ---@param cb function #The function to wrap
 ---@vararg ... #The arguments to pass to the wrapped function
@@ -207,7 +197,6 @@ function lib.wrap_cond_not(cb, ...)
     end
 end
 
-
 --- Wraps a conditional function in a vim.tbl callback
 ---@param cb function #The function to wrap
 ---@vararg ... #The arguments to pass to the wrapped function
@@ -218,7 +207,6 @@ function lib.wrap_cond(cb, ...)
         return cb(v, unpack(params))
     end
 end
-
 
 --- Wraps a function in a callback
 ---@param function_pointer function #The function to wrap
@@ -242,7 +230,6 @@ function lib.wrap(function_pointer, ...)
     end
 end
 
-
 --- Repeats an arguments `index` amount of times
 ---@param value any #The value to repeat
 ---@param index number #The amount of times to repeat the argument
@@ -254,7 +241,6 @@ function lib.reparg(value, index)
 
     return value, lib.reparg(value, index - 1)
 end
-
 
 --- Lazily concatenates a string to prevent runtime errors where an object may not exist
 --  Consider the following example:
@@ -273,7 +259,6 @@ function lib.lazy_string_concat(...)
     return table.concat({ ... })
 end
 
-
 --- Converts an array of values to a table of keys
 ---@param values string[]|number[] #An array of values to store as keys
 ---@param default any #The default value to assign to all key pairs
@@ -287,7 +272,6 @@ function lib.to_keys(values, default)
 
     return ret
 end
-
 
 --- Constructs a new key-pair table by running a callback on all elements of an array.
 ---@param keys string[] #A string array with the keys to iterate over
@@ -303,7 +287,6 @@ function lib.construct(keys, cb)
     return result
 end
 
-
 --- If `val` is a function, executes it with the desired arguments, else just returns `val`
 ---@param val any|function #Either a function or any other value
 ---@vararg any #Potential arguments to give `val` if it is a function
@@ -316,13 +299,11 @@ function lib.eval(val, ...)
     return val
 end
 
-
 --- Extends a list by constructing a new one vs mutating an existing
 --  list in the case of `vim.list_extend`
 function lib.list_extend(list, ...)
     return list and { unpack(list), unpack(lib.list_extend(...)) } or {}
 end
-
 
 --- Converts a table with `key = value` pairs to a `{ key, value }` array.
 ---@param tbl_with_keys table #A table with key-value pairs
@@ -336,7 +317,6 @@ function lib.unroll(tbl_with_keys)
 
     return res
 end
-
 
 --- Works just like pcall, except returns only a single value or nil (useful for ternary operations
 --  which are not possible with a function like `pcall` that returns two values).
@@ -353,7 +333,6 @@ function lib.inline_pcall(func, ...)
     -- return nil
 end
 
-
 --- Perform a backwards search for a character and return the index of that character
 ---@param str string #The string to search
 ---@param char string #The substring to search for
@@ -363,7 +342,6 @@ function lib.rfind(str, char)
     local found_from_back = str:reverse():find(char)
     return found_from_back and length - found_from_back
 end
-
 
 --- Ensure that a nested set of variables exists.
 --  Useful when you want to initialise a chain of nested values before writing to them.
@@ -378,7 +356,6 @@ function lib.ensure_nested(tbl, ...)
     end
 end
 
-
 --- Capitalizes the first letter of each word in a given string.
 ---@param str string #The string to capitalize
 ---@return string #The capitalized string.
@@ -392,7 +369,6 @@ function lib.title(str)
     end
     return table.concat(result, " ")
 end
-
 
 --- Wraps a number so that it fits within a given range.
 ---@param value number #The number to wrap
@@ -409,7 +385,6 @@ function lib.number_wrap(value, min, max)
 
     return wrapped_value
 end
-
 
 --- Lazily copy a table-like object.
 ---@param to_copy table|any #The table to copy. If any other type is provided it will be copied immediately.
@@ -474,7 +449,6 @@ function lib.lazy_copy(to_copy)
     })
 end
 
-
 --- Wrapper function to add two values
 --  This function only takes in one argument because the second value
 --  to add is provided as a parameter in the callback.
@@ -486,7 +460,6 @@ function lib.mod.add(amount)
     end
 end
 
-
 --- Wrapper function to set a value to another value in a `map` sequence
 ---@param to any #A static value to set each element of the table to
 ---@return function #A callback that returns the static value
@@ -496,19 +469,16 @@ function lib.mod.modify(to)
     end
 end
 
-
 function lib.mod.exclude.first(func, alt)
     return function(i, val)
         return i == 1 and (alt and alt(i, val) or val) or func(i, val)
     end
 end
 
-
 function lib.mod.exclude.last(func, alt)
     return function(i, val, tbl)
         return next(tbl, i) and func(i, val) or (alt and alt(i, val) or val)
     end
 end
-
 
 return lib

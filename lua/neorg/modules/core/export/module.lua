@@ -80,8 +80,7 @@ module.public = {
             end
         end
 
-        return modules.get_module("core.export." .. ftype),
-            modules.get_module_config("core.export." .. ftype)
+        return modules.get_module("core.export." .. ftype), modules.get_module_config("core.export." .. ftype)
     end,
 
     --- Takes a buffer and exports it to a specific file
@@ -228,10 +227,7 @@ module.on_event = function(event)
             assert(not err, lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err))
 
             vim.loop.fs_write(fd, exported, 0, function(werr)
-                assert(
-                    not werr,
-                    lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr)
-                )
+                assert(not werr, lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr))
             end)
 
             vim.schedule(lib.wrap(utils.notify, "Successfully exported 1 file!"))
@@ -268,10 +264,7 @@ module.on_event = function(event)
 
                         if parsed_counter >= file_counter then
                             vim.schedule(
-                                lib.wrap(
-                                    utils.notify,
-                                    string.format("Successfully exported %d files!", file_counter)
-                                )
+                                lib.wrap(utils.notify, string.format("Successfully exported %d files!", file_counter))
                             )
                         end
                     end
@@ -300,12 +293,7 @@ module.on_event = function(event)
                         vim.loop.fs_open(write_path, "w+", 438, function(fs_err, fd)
                             assert(
                                 not fs_err,
-                                lib.lazy_string_concat(
-                                    "Failed to open file '",
-                                    write_path,
-                                    "' for export: ",
-                                    fs_err
-                                )
+                                lib.lazy_string_concat("Failed to open file '", write_path, "' for export: ", fs_err)
                             )
 
                             vim.loop.fs_write(fd, exported, 0, function(werr)

@@ -131,9 +131,8 @@ module.private = {
 
         local workspace_path = module.required["core.dirman"].get_workspace(workspace)
 
-        local journal_file_exists = module.required["core.dirman"].file_exists(
-            workspace_path .. "/" .. folder_name .. config.pathsep .. path
-        )
+        local journal_file_exists =
+            module.required["core.dirman"].file_exists(workspace_path .. "/" .. folder_name .. config.pathsep .. path)
 
         module.required["core.dirman"].create_file(folder_name .. config.pathsep .. path, workspace)
 
@@ -204,9 +203,8 @@ module.private = {
         -- path is for each subfolder
         local get_fs_handle = function(path)
             path = path or ""
-            local handle = vim.loop.fs_scandir(
-                workspace_path .. config.pathsep .. folder_name .. config.pathsep .. path
-            )
+            local handle =
+                vim.loop.fs_scandir(workspace_path .. config.pathsep .. folder_name .. config.pathsep .. path)
 
             if type(handle) ~= "userdata" then
                 error(lib.lazy_string_concat("Failed to scan directory '", workspace, path, "': ", handle))
@@ -222,170 +220,160 @@ module.private = {
             return meta.title
         end
 
-        vim.loop.fs_scandir(
-            workspace_path .. config.pathsep .. folder_name .. config.pathsep,
-            function(err, handle)
-                assert(
-                    not err,
-                    lib.lazy_string_concat("Unable to generate TOC for directory '", folder_name, "' - ", err)
-                )
+        vim.loop.fs_scandir(workspace_path .. config.pathsep .. folder_name .. config.pathsep, function(err, handle)
+            assert(not err, lib.lazy_string_concat("Unable to generate TOC for directory '", folder_name, "' - ", err))
 
-                while true do
-                    -- Name corresponds to either a YYYY-mm-dd.norg file, or just the year ("nested" strategy)
-                    local name, type = vim.loop.fs_scandir_next(handle)
+            while true do
+                -- Name corresponds to either a YYYY-mm-dd.norg file, or just the year ("nested" strategy)
+                local name, type = vim.loop.fs_scandir_next(handle)
 
-                    if not name then
-                        break
-                    end
+                if not name then
+                    break
+                end
 
-                    -- Handle nested entries
-                    if type == "directory" then
-                        local years_handle = get_fs_handle(name)
-                        while true do
-                            -- mname is the month
-                            local mname, mtype = vim.loop.fs_scandir_next(years_handle)
+                -- Handle nested entries
+                if type == "directory" then
+                    local years_handle = get_fs_handle(name)
+                    while true do
+                        -- mname is the month
+                        local mname, mtype = vim.loop.fs_scandir_next(years_handle)
 
-                            if not mname then
-                                break
-                            end
+                        if not mname then
+                            break
+                        end
 
-                            if mtype == "directory" then
-                                local months_handle = get_fs_handle(name .. config.pathsep .. mname)
-                                while true do
-                                    -- dname is the day
-                                    local dname, dtype = vim.loop.fs_scandir_next(months_handle)
+                        if mtype == "directory" then
+                            local months_handle = get_fs_handle(name .. config.pathsep .. mname)
+                            while true do
+                                -- dname is the day
+                                local dname, dtype = vim.loop.fs_scandir_next(months_handle)
 
-                                    if not dname then
-                                        break
-                                    end
+                                if not dname then
+                                    break
+                                end
 
-                                    -- If it's a .norg file, also ensure it is a day entry
-                                    if dtype == "file" and string.match(dname, "%d%d%.norg") then
-                                        -- Split the file name
-                                        local file = vim.split(dname, ".", { plain = true })
+                                -- If it's a .norg file, also ensure it is a day entry
+                                if dtype == "file" and string.match(dname, "%d%d%.norg") then
+                                    -- Split the file name
+                                    local file = vim.split(dname, ".", { plain = true })
 
-                                        vim.schedule(function()
-                                            -- Get the title from the metadata, else, it just defaults to the name of the file
-                                            local title = get_title(
-                                                name
-                                                    .. config.pathsep
-                                                    .. mname
-                                                    .. config.pathsep
-                                                    .. dname
-                                            ) or file[1]
+                                    vim.schedule(function()
+                                        -- Get the title from the metadata, else, it just defaults to the name of the file
+                                        local title = get_title(
+                                            name .. config.pathsep .. mname .. config.pathsep .. dname
+                                        ) or file[1]
 
-                                            -- Insert a new entry
-                                            table.insert(toc_entries, {
-                                                tonumber(name),
-                                                tonumber(mname),
-                                                tonumber(file[1]),
-                                                "{:$"
-                                                    .. workspace_name_for_links
-                                                    .. config.pathsep
-                                                    .. module.config.public.journal_folder
-                                                    .. config.pathsep
-                                                    .. name
-                                                    .. config.pathsep
-                                                    .. mname
-                                                    .. config.pathsep
-                                                    .. file[1]
-                                                    .. ":}",
-                                                title,
-                                            })
-                                        end)
-                                    end
+                                        -- Insert a new entry
+                                        table.insert(toc_entries, {
+                                            tonumber(name),
+                                            tonumber(mname),
+                                            tonumber(file[1]),
+                                            "{:$"
+                                                .. workspace_name_for_links
+                                                .. config.pathsep
+                                                .. module.config.public.journal_folder
+                                                .. config.pathsep
+                                                .. name
+                                                .. config.pathsep
+                                                .. mname
+                                                .. config.pathsep
+                                                .. file[1]
+                                                .. ":}",
+                                            title,
+                                        })
+                                    end)
                                 end
                             end
                         end
-                    end
-
-                    -- Handles flat entries
-                    -- If it is a .norg file, but it's not any user generated file.
-                    -- The match is here to avoid handling files made by the user, like a template file, or
-                    -- the toc file
-                    if type == "file" and string.match(name, "%d+-%d+-%d+%.norg") then
-                        -- Split yyyy-mm-dd to a table
-                        local file = vim.split(name, ".", { plain = true })
-                        local parts = vim.split(file[1], "-")
-
-                        -- Convert the parts into numbers
-                        for k, v in pairs(parts) do
-                            parts[k] = tonumber(v)
-                        end
-
-                        vim.schedule(function()
-                            -- Get the title from the metadata, else, it just defaults to the name of the file
-                            local title = get_title(name) or parts[3]
-
-                            -- And insert a new entry that corresponds to the file
-                            table.insert(toc_entries, {
-                                parts[1],
-                                parts[2],
-                                parts[3],
-                                "{:$"
-                                    .. workspace_name_for_links
-                                    .. config.pathsep
-                                    .. module.config.public.journal_folder
-                                    .. config.pathsep
-                                    .. file[1]
-                                    .. ":}",
-                                title,
-                            })
-                        end)
                     end
                 end
 
-                vim.schedule(function()
-                    -- Gets a default format for the entries
-                    local format = module.config.public.toc_format
-                        or function(entries)
-                            local months_text = {
-                                "January",
-                                "February",
-                                "March",
-                                "April",
-                                "May",
-                                "June",
-                                "July",
-                                "August",
-                                "September",
-                                "October",
-                                "November",
-                                "December",
-                            }
-                            -- Convert the entries into a certain format to be written
-                            local output = {}
-                            local current_year
-                            local current_month
-                            for _, entry in ipairs(entries) do
-                                -- Don't print the year and month if they haven't changed
-                                if not current_year or current_year < entry[1] then
-                                    current_year = entry[1]
-                                    table.insert(output, "* " .. current_year)
-                                end
-                                if not current_month or current_month < entry[2] then
-                                    current_month = entry[2]
-                                    table.insert(output, "** " .. months_text[current_month])
-                                end
+                -- Handles flat entries
+                -- If it is a .norg file, but it's not any user generated file.
+                -- The match is here to avoid handling files made by the user, like a template file, or
+                -- the toc file
+                if type == "file" and string.match(name, "%d+-%d+-%d+%.norg") then
+                    -- Split yyyy-mm-dd to a table
+                    local file = vim.split(name, ".", { plain = true })
+                    local parts = vim.split(file[1], "-")
 
-                                -- Prints the file link
-                                table.insert(output, entry[4] .. string.format("[%s]", entry[5]))
+                    -- Convert the parts into numbers
+                    for k, v in pairs(parts) do
+                        parts[k] = tonumber(v)
+                    end
+
+                    vim.schedule(function()
+                        -- Get the title from the metadata, else, it just defaults to the name of the file
+                        local title = get_title(name) or parts[3]
+
+                        -- And insert a new entry that corresponds to the file
+                        table.insert(toc_entries, {
+                            parts[1],
+                            parts[2],
+                            parts[3],
+                            "{:$"
+                                .. workspace_name_for_links
+                                .. config.pathsep
+                                .. module.config.public.journal_folder
+                                .. config.pathsep
+                                .. file[1]
+                                .. ":}",
+                            title,
+                        })
+                    end)
+                end
+            end
+
+            vim.schedule(function()
+                -- Gets a default format for the entries
+                local format = module.config.public.toc_format
+                    or function(entries)
+                        local months_text = {
+                            "January",
+                            "February",
+                            "March",
+                            "April",
+                            "May",
+                            "June",
+                            "July",
+                            "August",
+                            "September",
+                            "October",
+                            "November",
+                            "December",
+                        }
+                        -- Convert the entries into a certain format to be written
+                        local output = {}
+                        local current_year
+                        local current_month
+                        for _, entry in ipairs(entries) do
+                            -- Don't print the year and month if they haven't changed
+                            if not current_year or current_year < entry[1] then
+                                current_year = entry[1]
+                                table.insert(output, "* " .. current_year)
+                            end
+                            if not current_month or current_month < entry[2] then
+                                current_month = entry[2]
+                                table.insert(output, "** " .. months_text[current_month])
                             end
 
-                            return output
+                            -- Prints the file link
+                            table.insert(output, entry[4] .. string.format("[%s]", entry[5]))
                         end
 
-                    module.required["core.dirman"].create_file(
-                        folder_name .. config.pathsep .. index,
-                        workspace or module.required["core.dirman"].get_current_workspace()[1]
-                    )
+                        return output
+                    end
 
-                    -- The current buffer now must be the toc file, so we set our toc entries there
-                    vim.api.nvim_buf_set_lines(0, 0, -1, false, format(toc_entries))
-                    vim.cmd("w")
-                end)
-            end
-        )
+                module.required["core.dirman"].create_file(
+                    folder_name .. config.pathsep .. index,
+                    workspace or module.required["core.dirman"].get_current_workspace()[1]
+                )
+
+                -- The current buffer now must be the toc file, so we set our toc entries there
+                vim.api.nvim_buf_set_lines(0, 0, -1, false, format(toc_entries))
+                vim.cmd("w")
+            end)
+        end)
     end,
 }
 

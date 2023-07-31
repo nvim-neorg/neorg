@@ -447,8 +447,7 @@ module.public = {
                 and capture_node_range.column_start >= range.column_start
                 and capture_node_range.column_end <= range.column_end
             then
-                local extract_node_text =
-                    lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
+                local extract_node_text = lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
 
                 parsed_link_information[capture] = parsed_link_information[capture]
                     or lib.match(capture)({

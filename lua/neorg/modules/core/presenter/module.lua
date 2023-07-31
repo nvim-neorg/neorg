@@ -132,9 +132,7 @@ module.public = {
             end
         end
 
-        if
-            module.config.public.zen_mode == "truezen" and modules.is_module_loaded("core.integrations.truezen")
-        then
+        if module.config.public.zen_mode == "truezen" and modules.is_module_loaded("core.integrations.truezen") then
             modules.get_module("core.integrations.truezen").toggle_ataraxis()
         elseif
             module.config.public.zen_mode == "zen-mode" and modules.is_module_loaded("core.integrations.zen_mode")
@@ -207,9 +205,7 @@ module.public = {
         local previous_mode = module.required["core.mode"].get_previous_mode()
         module.required["core.mode"].set_mode(previous_mode)
 
-        if
-            module.config.public.zen_mode == "truezen" and modules.is_module_loaded("core.integrations.truezen")
-        then
+        if module.config.public.zen_mode == "truezen" and modules.is_module_loaded("core.integrations.truezen") then
             modules.get_module("core.integrations.truezen").toggle_ataraxis()
         elseif
             module.config.public.zen_mode == "zen-mode" and modules.is_module_loaded("core.integrations.zen_mode")

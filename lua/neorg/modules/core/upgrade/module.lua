@@ -254,10 +254,7 @@ module.on_event = function(event)
                 assert(not err, lib.lazy_string_concat("Failed to open file '", path, "' for upgrade: ", err))
 
                 vim.loop.fs_write(fd, output, 0, function(werr)
-                    assert(
-                        not werr,
-                        lib.lazy_string_concat("Failed to write to file '", path, "' for upgrade: ", werr)
-                    )
+                    assert(not werr, lib.lazy_string_concat("Failed to write to file '", path, "' for upgrade: ", werr))
                 end)
 
                 vim.schedule(lib.wrap(utils.notify, "Successfully upgraded 1 file!"))
@@ -334,10 +331,7 @@ module.on_event = function(event)
 
                     if parsed_counter >= file_counter then
                         vim.schedule(
-                            lib.wrap(
-                                utils.notify,
-                                string.format("Successfully upgraded %d files!", file_counter)
-                            )
+                            lib.wrap(utils.notify, string.format("Successfully upgraded %d files!", file_counter))
                         )
                     end
                 end
@@ -372,12 +366,7 @@ module.on_event = function(event)
                         vim.loop.fs_write(fd, output, 0, function(werr)
                             assert(
                                 not werr,
-                                lib.lazy_string_concat(
-                                    "Failed to write to file '",
-                                    filepath,
-                                    "' for upgrade: ",
-                                    werr
-                                )
+                                lib.lazy_string_concat("Failed to write to file '", filepath, "' for upgrade: ", werr)
                             )
 
                             check_counters()

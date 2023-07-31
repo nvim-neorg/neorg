@@ -41,7 +41,9 @@ module.config.public = {
         -- The title field generates a title for the file based on the filename.
         {
             "title",
-            function() return vim.fn.expand("%:p:t:r") end,
+            function()
+                return vim.fn.expand("%:p:t:r")
+            end,
         },
 
         -- The description field is always kept empty for the user to fill in.
@@ -50,7 +52,9 @@ module.config.public = {
         -- The authors field is autopopulated by querying the current user's system username.
         {
             "authors",
-            function() return lib.get_username() end,
+            function()
+                return lib.get_username()
+            end,
         },
 
         -- The categories field is always kept empty for the user to fill in.
@@ -59,21 +63,27 @@ module.config.public = {
         -- The created field is populated with the current date as returned by `os.date`.
         {
             "created",
-            function() return os.date("%Y-%m-%d") end,
+            function()
+                return os.date("%Y-%m-%d")
+            end,
         },
 
         -- When creating fresh, new metadata, the updated field is populated the same way
         -- as the `created` date.
         {
             "updated",
-            function() return os.date("%Y-%m-%d") end,
+            function()
+                return os.date("%Y-%m-%d")
+            end,
         },
 
         -- The version field determines which Norg version was used when
         -- the file was created.
         {
             "version",
-            function() return config.norg_version end
+            function()
+                return config.norg_version
+            end,
         },
     },
 }

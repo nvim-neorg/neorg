@@ -154,7 +154,6 @@ function modules.create(name, imports)
     return new_module
 end
 
-
 --- Constructs a metamodule from a list of submodules. Metamodules are modules that can autoload batches of modules at once.
 ---@param name string #The name of the new metamodule. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
 -- @Param  ... (varargs) - a list of module names to load.
@@ -196,7 +195,6 @@ function modules.create_meta(name, ...)
 
     return module
 end
-
 
 -- TODO: What goes below this line until the next notice used to belong to modules
 -- We need to find a way to make these functions easier to maintain
@@ -470,8 +468,7 @@ function modules.load_module(module_name, cfg)
         module.config.custom = cfg
         module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
     else
-        module.config.public =
-            vim.tbl_deep_extend("force", module.config.public, config.modules[module_name] or {})
+        module.config.public = vim.tbl_deep_extend("force", module.config.public, config.modules[module_name] or {})
     end
 
     -- Pass execution onto load_module_from_table() and let it handle the rest
@@ -567,7 +564,6 @@ function modules.await(module_name, callback)
     end)
 end
 
-
 -- TODO: What goes below this line until the next notice used to belong to modules
 -- We need to find a way to make these functions easier to maintain
 
@@ -576,7 +572,6 @@ end
 --    This file is responsible for dealing with event handling and broadcasting.
 --    All modules that subscribe to an event will receive it once it is triggered.
 --]]
-
 
 --- The working of this function is best illustrated with an example:
 --        If type == 'core.some_plugin.events.my_event', this function will return { 'core.some_plugin', 'my_event' }
@@ -659,8 +654,7 @@ function modules.create_event(module, type, content)
     local module_name = modules.split_event_type(type)[1]
 
     -- Retrieve the template from module.events.defined
-    local event_template =
-        modules.get_event_template(modules.loaded_modules[module_name] or { name = "" }, type)
+    local event_template = modules.get_event_template(modules.loaded_modules[module_name] or { name = "" }, type)
 
     if not event_template then
         log.warn("Unable to create event of type", type, ". Returning nil...")

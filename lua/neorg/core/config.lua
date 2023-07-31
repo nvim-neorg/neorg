@@ -1,6 +1,5 @@
 local lib = require("neorg.core.lib")
 
-
 local function neovim_version()
     local data = {}
     local parsed_output = vim.api.nvim_exec("version", true)
@@ -40,7 +39,6 @@ local function neovim_version()
     return data
 end
 
-
 -- Grab OS info on startup
 local function os_info()
     local os = vim.loop.os_uname().sysname:lower()
@@ -50,18 +48,17 @@ local function os_info()
     elseif os == "darwin" then
         return "mac"
     elseif os == "linux" then
-        local f = io.open('/proc/version', 'r')
+        local f = io.open("/proc/version", "r")
         if f ~= nil then
-            local version = f:read('*all')
+            local version = f:read("*all")
             f:close()
-            if version:find('microsoft') then
+            if version:find("microsoft") then
                 return "wsl"
             end
         end
         return "linux"
     end
 end
-
 
 -- Configuration template
 local config = {

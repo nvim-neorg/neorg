@@ -1,4 +1,3 @@
-
 --[[
     file: Completion
     title: Get completions in Neorg files

@@ -1,4 +1,3 @@
-
 --[[
     file: Clipboard
     title: Quality of Life Features for the Clipboard
