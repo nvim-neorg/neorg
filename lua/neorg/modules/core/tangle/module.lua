@@ -277,7 +277,13 @@ module.public = {
                     end
 
                     if file_to_tangle_to then
-                        tangles[file_to_tangle_to] = tangles[file_to_tangle_to] or {}
+                        if tangles[file_to_tangle_to] then
+                            -- insert a blank line between blocks
+                            table.insert(content, 1, "")
+                        else
+                            tangles[file_to_tangle_to] = {}
+                        end
+
                         vim.list_extend(tangles[file_to_tangle_to], content)
                     end
 
