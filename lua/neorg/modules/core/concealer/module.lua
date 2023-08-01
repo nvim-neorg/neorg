@@ -957,10 +957,14 @@ local function query_get_nodes(query, document_root, bufid, row_start_0b, row_en
     local result = {}
     local concealed_node_ids = {}
     for id, node in query:iter_captures(document_root, bufid, row_start_0b, row_end_0bex) do
+        if node:missing() then
+            goto continue
+        end
         if query.captures[id] == "icon-concealed" then
             concealed_node_ids[node:id()] = true
         end
         table.insert(result, node)
+        ::continue::
     end
     return result, concealed_node_ids
 end
