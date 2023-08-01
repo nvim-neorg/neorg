@@ -12,12 +12,12 @@ There is no available successor to this module yet.
 -- we hope to implement one with the module rewrite of 0.2.
 
 local neorg = require("neorg.core")
-local lib, log, modules = neorg.lib, neorg.log, neorg.modules
+local utils, log, modules = neorg.utils, neorg.log, neorg.modules
 
 local module = modules.create("core.manoeuvre")
 
 module.setup = function()
-    if not lib.is_minimum_version(0, 7, 0) then
+    if not utils.is_minimum_version(0, 7, 0) then
         log.error("This module requires at least Neovim 0.7 to run!")
 
         return {
