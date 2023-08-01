@@ -80,7 +80,7 @@ module.load = function()
 end
 
 module.config.public = {
-    -- Whether to use the default keybinds provided [here](https://github.com/nvim-neorg/neorg/blob/main/lua/modules/core/keybinds/keybinds.lua).
+    -- Whether to use the default keybinds provided [here](https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/keybinds.lua).
     default_keybinds = true,
 
     -- The prefix to use for all Neorg keybinds.
@@ -89,7 +89,7 @@ module.config.public = {
     neorg_leader = "<LocalLeader>",
 
     -- Function to be invoked that allows the user to change their keybinds.
-    -- See the [section on setting up a keybind hook](#setting-up-a-keybing-hook) for more details.
+    -- See the [section on setting up a keybind hook](#setting-up-a-keybind-hook) for more details.
     hook = nil,
 
     -- The keybind preset to use.
