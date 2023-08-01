@@ -53,7 +53,7 @@ module.config.public = {
         {
             "authors",
             function()
-                return lib.get_username()
+                return utils.get_username()
             end,
         },
 
