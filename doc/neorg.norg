@@ -366,7 +366,7 @@ version: 0.1
     =end
     @end
 
-    You can refer to this variable later in your document using the `=` attached modifier like so:
+    You can refer to this variable later in your document using the `&` attached modifier like so:
 
     @code norg
     Insert my &variable&.
