@@ -19,7 +19,7 @@ Any edit is assumed to break this module.
 --]]
 
 local neorg = require("neorg.core")
-local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
+local modules, utils = neorg.modules, neorg.utils
 
 local module = modules.create("core.syntax")
 
@@ -487,7 +487,7 @@ module.load = function()
 
     -- Load available regex languages
     -- get the available regex files for the current session
-    module.private.available_languages = lib.get_language_list(false)
+    module.private.available_languages = utils.get_language_list(false)
 end
 
 module.on_event = function(event)

@@ -11,7 +11,7 @@ or [`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
 --]]
 
 local neorg = require("neorg.core")
-local lib, log, modules = neorg.lib, neorg.log, neorg.modules
+local log, modules, utils = neorg.log, neorg.modules, neorg.utils
 
 local module = modules.create("core.completion")
 
@@ -124,7 +124,7 @@ module.public = {
                     regex = "code%s+%w*",
                     -- No node variable, we don't need that sort of check here
 
-                    complete = lib.get_language_list(true),
+                    complete = utils.get_language_list(true),
 
                     -- Extra options
                     options = {
@@ -137,7 +137,7 @@ module.public = {
                 {
                     regex = "export%s+%w*",
 
-                    complete = lib.get_language_list(true),
+                    complete = utils.get_language_list(true),
 
                     options = {
                         type = "Language",
