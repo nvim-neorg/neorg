@@ -20,7 +20,7 @@ if ok then
     module.setup({})
 end
 
-package.path = "../lua/?.lua;" .. package.path
+package.path = "../lua/?.lua;" .. "../lua/?/init.lua;" .. package.path
 package.path = "../plenary.nvim/lua/?.lua;" .. package.path
 package.path = "../nvim-treesitter/lua/?.lua;" .. package.path
 
