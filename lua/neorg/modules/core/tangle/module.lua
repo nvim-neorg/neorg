@@ -212,7 +212,7 @@ module.public = {
         local options = {
             languages = tangle_settings.languages or tangle_settings,
             scope = tangle_settings.scope or "all", -- "all" | "tagged" | "main"
-            delimiter = tangle_settings.delimiter or "heading", -- "newline" | "heading" | "none"
+            delimiter = tangle_settings.delimiter or "newline", -- "newline" | "heading" | "none"
         }
         if vim.tbl_islist(options.languages) then
             options.filenames_only = options.languages
@@ -300,8 +300,6 @@ module.public = {
                                         break
                                     end
                                 end
-                            elseif declared_filetype then
-                                file_to_tangle_to = options.languages[declared_filetype]
                             end
                             if not file_to_tangle_to then
                                 file_to_tangle_to = options.languages["_"]
