@@ -74,18 +74,18 @@ tangle: {
 @end
 ```
 
+The `language` option determines which filetype should go into which file.
+It's a simple language-filepath mapping, but it's especially useful when the output file's language type cannot be inferred from the name or shebang.
+
 The `delimiter` option determines how to delimit codeblocks that exports to the same file.
 The following alternatives are allowed:
 
 * `heading` -- Try to determine the filetype of the code block and insert the current heading as a comment as a delimiter.
-  If filetype determination fails, `newline` will be used instead.
+  If filetype detection fails, `newline` will be used instead.
 * `newline` -- Use an extra newline between blocks.
-* `none` --Do not add delimiter. This implies that the code blocks are inserted into the the tangle target as-is.
+* `none` -- Do not add delimiter. This implies that the code blocks are inserted into the the tangle target as-is.
 
-The `scope` option is discussed in a [later section](#tangling-scopes), what we want to focus on is the `languages` object.
-It's a simple language-filepath mapping, but it's especially useful when the output file's language type cannot be inferred from the name.
-So far we've been using `init.lua`, `output.hs` - but what if we wanted to export all `haskell` code blocks into `my-file-without-an-extension`?
-The only way to do that is through the `languages` object, where we explicitly define the language to tangle. Neat!
+The `scope` option is discussed below.
 
 #### Tangling Scopes
 What you've seen so far is the tangler operating in `all` mode. This means it captures all code blocks of a certain type unless that code block is tagged
@@ -191,15 +191,6 @@ module.load = function()
 end
 
 
-local function clean_norg_content(content)
-    for i, line in ipairs(content) do
-        -- remove escape char
-        local new_line, _ = line:gsub("\\(.?)", "%1")
-        content[i] = new_line or ""
-    end
-    return content
-end
-
 local function get_comment_string(language)
     local cur_buf = vim.api.nvim_get_current_buf()
     local tmp_buf = vim.api.nvim_create_buf(false, true)
@@ -217,26 +208,25 @@ module.public = {
         local treesitter = module.required["core.integrations.treesitter"]
         local parsed_document_metadata = treesitter.get_document_metadata(buffer) or {}
         local tangle_settings = parsed_document_metadata.tangle or {}
-        local scope = tangle_settings.scope or "all" -- "all" | "tagged" | "main"
-        local delimiter = tangle_settings.delimiter or "newline" -- "newline" | "heading" | "none"
-        local filetype_to_filenames = tangle_settings.languages or tangle_settings
-        local filenames_only
-        if vim.tbl_islist(filetype_to_filenames) then
-            filenames_only = filetype_to_filenames
-            filetype_to_filenames = {}
-        elseif type(filetype_to_filenames) == string then
-            filetype_to_filenames = {_ = filetype_to_filenames}
+        local options = {
+            languages = tangle_settings.languages or tangle_settings,
+            scope = tangle_settings.scope or "all", -- "all" | "tagged" | "main"
+            delimiter = tangle_settings.delimiter or "heading", -- "newline" | "heading" | "none"
+        }
+        if vim.tbl_islist(options.languages) then
+            options.filenames_only = options.languages
+            options.languages = {}
+        elseif type(options.languages) == string then
+            options.languages = {_ = options.languages}
         end
 
         local document_root = treesitter.get_document_root(buffer)
-
         local filename_to_languages = {}
-
         local tangles = {
             -- filename = { content }
         }
 
-        local query_str = lib.match(scope)({
+        local query_str = lib.match(options.scope)({
             _ = [[
                 (ranged_verbatim_tag
                     name: (tag_name) @_name
@@ -275,18 +265,22 @@ module.public = {
 
                 if parsed_tag then
                     local declared_filetype = parsed_tag.parameters[1]
-                    local file_to_tangle_to
                     local content = parsed_tag.content
 
                     if parsed_tag.parameters[1] == "norg" then
-                        content = clean_norg_content(content)
+                        for i, line in ipairs(content) do
+                            -- remove escape char
+                            local new_line, _ = line:gsub("\\(.?)", "%1")
+                            content[i] = new_line or ""
+                        end
                     end
 
+                    local file_to_tangle_to
                     for _, attribute in ipairs(parsed_tag.attributes) do
                         if attribute.name == "tangle.none" then
                             goto skip_tag
                         elseif attribute.name == "tangle" and attribute.parameters[1] then
-                            if scope == "main" then
+                            if options.scope == "main" then
                                 goto skip_tag
                             end
                             file_to_tangle_to = table.concat(attribute.parameters)
@@ -295,26 +289,24 @@ module.public = {
 
                     -- determine tangle file target
                     if not file_to_tangle_to then
-                        if declared_filetype and filetype_to_filenames[declared_filetype] then
-                            file_to_tangle_to = filetype_to_filenames[declared_filetype]
+                        if declared_filetype and options.languages[declared_filetype] then
+                            file_to_tangle_to = options.languages[declared_filetype]
                         else
-                            if filenames_only then
-                                for _, filename in ipairs(filenames_only) do
+                            if options.filenames_only then
+                                for _, filename in ipairs(options.filenames_only) do
                                     if declared_filetype == vim.filetype.match({ filename=filename, contents=content }) then
                                         file_to_tangle_to = filename
                                         break
                                     end
                                 end
-                            else
-                                if not declared_filetype then
-                                    goto skip_tag
-                                end
-                                file_to_tangle_to = filetype_to_filenames[declared_filetype]
+                            elseif declared_filetype then
+                                file_to_tangle_to = options.languages[declared_filetype]
                             end
-                            if file_to_tangle_to then
-                                filetype_to_filenames[declared_filetype] = file_to_tangle_to
-                            else
-                                file_to_tangle_to = filetype_to_filenames["_"]
+                            if not file_to_tangle_to then
+                                file_to_tangle_to = options.languages["_"]
+                            end
+                            if declared_filetype then
+                                options.languages[declared_filetype] = file_to_tangle_to
                             end
                         end
                     end
@@ -322,7 +314,7 @@ module.public = {
                         goto skip_tag
                     end
 
-                    if delimiter == "heading" then
+                    if options.delimiter == "heading" then
                         local language
                         if filename_to_languages[file_to_tangle_to] then
                             language = filename_to_languages[file_to_tangle_to]
@@ -359,7 +351,7 @@ module.public = {
 
                     if not tangles[file_to_tangle_to] then
                         tangles[file_to_tangle_to] = {}
-                    elseif delimiter ~= "none" then
+                    elseif options.delimiter ~= "none" then
                         table.insert(content, 1, "")
                     end
 
