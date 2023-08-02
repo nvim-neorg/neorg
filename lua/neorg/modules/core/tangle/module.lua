@@ -181,43 +181,24 @@ module.load = function()
     })
 end
 
+
 module.public = {
     tangle = function(buffer)
-        local parsed_document_metadata = module.required["core.integrations.treesitter"].get_document_metadata(buffer)
+        local parsed_document_metadata = module.required["core.integrations.treesitter"].get_document_metadata(buffer) or {}
+        local tangle_settings = parsed_document_metadata.tangle or {}
+        local scope = tangle_settings.scope or "all" -- "all" | "tagged" | "main"
 
-        if vim.tbl_isempty(parsed_document_metadata) or not parsed_document_metadata.tangle then
-            parsed_document_metadata = {
-                tangle = {},
-            }
-        end
+        local treesitter = module.required["core.integrations.treesitter"]
+        local document_root = treesitter.get_document_root(buffer)
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
-
-        local options = {
-            languages = {},
-            scope = parsed_document_metadata.tangle.scope or "all", -- "all" | "tagged" | "main"
-        }
-
-        if type(parsed_document_metadata.tangle) == "table" then
-            if vim.tbl_islist(parsed_document_metadata.tangle) then
-                for _, file in ipairs(parsed_document_metadata.tangle) do
-                    options.languages[vim.filetype.match({ filename = file })] = file
-                end
-            elseif parsed_document_metadata.tangle.languages then
-                for language, file in pairs(parsed_document_metadata.tangle.languages) do
-                    options.languages[language] = file
-                end
-            end
-        elseif type(parsed_document_metadata.tangle) == "string" then
-            options.languages[vim.filetype.match({ filename = parsed_document_metadata.tangle })] =
-                parsed_document_metadata.tangle
-        end
+        local filetype_to_filenames = {}
+        local filename_to_languages = {}
 
         local tangles = {
             -- filename = { content }
         }
 
-        local query_str = lib.match(options.scope)({
+        local query_str = lib.match(scope)({
             _ = [[
                 (ranged_verbatim_tag
                     name: (tag_name) @_name
@@ -252,11 +233,11 @@ module.public = {
             local capture = query.captures[id]
 
             if capture == "tag" then
-                local parsed_tag = module.required["core.integrations.treesitter"].get_tag_info(node)
+                local parsed_tag = treesitter.get_tag_info(node)
 
                 if parsed_tag then
-                    local language = parsed_tag.parameters[1]
-                    local file_to_tangle_to = options.languages[language]
+                    local declared_filetype = parsed_tag.parameters[1]
+                    local file_to_tangle_to
                     local content = parsed_tag.content
 
                     if parsed_tag.parameters[1] == "norg" then
@@ -271,25 +252,63 @@ module.public = {
                         if attribute.name == "tangle.none" then
                             goto skip_tag
                         elseif attribute.name == "tangle" and attribute.parameters[1] then
-                            if options.scope == "main" then
+                            if scope == "main" then
                                 goto skip_tag
                             end
-
                             file_to_tangle_to = table.concat(attribute.parameters)
                         end
                     end
 
+                    if not file_to_tangle_to then
+                        if declared_filetype and filetype_to_filenames[declared_filetype] then
+                            file_to_tangle_to = filetype_to_filenames[declared_filetype]
+                        elseif type(tangle_settings) == "string" then
+                            file_to_tangle_to = tangle_settings
+                        elseif type(tangle_settings) == "table" then
+                            if not declared_filetype then
+                                goto skip_tag
+                            end
+                            if vim.tbl_islist(tangle_settings) then
+                                for idx, filename in ipairs(tangle_settings) do
+                                    if declared_filetype == vim.filetype.match({ filename=filename, contents=content }) then
+                                        tangle_settings[idx] = nil
+                                        break
+                                    end
+                                end
+                            else
+                                file_to_tangle_to = tangle_settings[declared_filetype]
+                                tangle_settings[declared_filetype] = nil
+                            end
+                            if file_to_tangle_to then
+                                filetype_to_filenames[declared_filetype] = file_to_tangle_to
+                            end
+                        end
+                    end
+
                     if file_to_tangle_to then
+
+                        local language
+                        if filename_to_languages[file_to_tangle_to] then
+                            language = filename_to_languages[file_to_tangle_to]
+                        else
+                            language = vim.filetype.match({ filename=file_to_tangle_to, contents=content })
+                            if not language and declared_filetype then
+                                language = vim.filetype.match({ filename="___." .. declared_filetype, contents=content })
+                            end
+                            filename_to_languages[file_to_tangle_to] = language
+                        end
+
                         -- get current heading
                         local heading_string
-                        local heading = module.required["core.integrations.treesitter"].find_parent(node, "heading%d+")
+                        local heading = treesitter.find_parent(node, "heading%d+")
                         if heading and heading:named_child(1) then
                             local srow, scol, erow, ecol = heading:named_child(1):range()
                             heading_string = vim.api.nvim_buf_get_text(0, srow, scol, erow, ecol, {})[1]
                         end
 
                         -- don't reuse the same header more than once
-                        if heading_string and previous_headings[language] ~= heading then
+                        if heading_string and language and previous_headings[language] ~= heading then
+
                             -- Get commentstring from vim scratch buffer
                             if not commentstrings[language] then
                                 local cur_buf = vim.api.nvim_get_current_buf()
@@ -300,7 +319,6 @@ module.public = {
                                 vim.api.nvim_set_current_buf(cur_buf)
                                 vim.api.nvim_buf_delete(tmp_buf, { force = true })
                             end
-
                             if commentstrings[language] ~= "" then
                                 table.insert(content, 1, "")
                                 table.insert(content, 1, commentstrings[language]:format(heading_string))
@@ -329,6 +347,7 @@ module.public = {
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.core.tangle.current-file" then
         local tangles = module.public.tangle(event.buffer)
+        assert(0, vim.inspect(tangles))
 
         if not tangles or vim.tbl_isempty(tangles) then
             utils.notify("Nothing to tangle!", vim.log.levels.WARN)
