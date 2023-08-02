@@ -76,6 +76,7 @@ tangle: {
 
 The `language` option determines which filetype should go into which file.
 It's a simple language-filepath mapping, but it's especially useful when the output file's language type cannot be inferred from the name or shebang.
+It is also possible to use the name `_` as a catch all to direct output to all files not listed.
 
 The `delimiter` option determines how to delimit codeblocks that exports to the same file.
 The following alternatives are allowed:
