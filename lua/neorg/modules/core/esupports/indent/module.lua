@@ -310,7 +310,7 @@ module.on_event = function(event)
         vim.api.nvim_buf_set_option(
             event.buffer,
             "indentexpr",
-            ("v:lua.modules.get_module('core.esupports.indent').indentexpr(%d)"):format(event.buffer)
+            ("v:lua.require'neorg'.modules.get_module('core.esupports.indent').indentexpr(%d)"):format(event.buffer)
         )
 
         local indentkeys = "o,O,*<M-o>,*<M-O>"
