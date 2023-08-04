@@ -217,7 +217,7 @@ module.public = {
         if vim.tbl_islist(options.languages) then
             options.filenames_only = options.languages
             options.languages = {}
-        elseif type(options.languages) == string then
+        elseif type(options.languages) == "string" then
             options.languages = {_ = options.languages}
         end
 
