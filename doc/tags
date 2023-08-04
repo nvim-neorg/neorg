@@ -1,4 +1,4 @@
-neorg	neorg.norg	/* The `.norg` file-format
+neorg	neorg.norg	/* The `.norg` File Format
 neorg-advanced-markup	neorg.norg	/** Advanced Markup
 neorg-anchors	neorg.norg	/*** Anchors
 neorg-basic-markup	neorg.norg	/** Basic Markup
