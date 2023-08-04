@@ -68,15 +68,25 @@ tangle: {
         lua: ./output.lua
         haskell: my-haskell-file
     }
+    delimiter: heading
     scope: all
 }
 @end
 ```
 
-The `scope` option is discussed in a [later section](#tangling-scopes), what we want to focus on is the `languages` object.
-It's a simple language-filepath mapping, but it's especially useful when the output file's language type cannot be inferred from the name.
-So far we've been using `init.lua`, `output.hs` - but what if we wanted to export all `haskell` code blocks into `my-file-without-an-extension`?
-The only way to do that is through the `languages` object, where we explicitly define the language to tangle. Neat!
+The `language` option determines which filetype should go into which file.
+It's a simple language-filepath mapping, but it's especially useful when the output file's language type cannot be inferred from the name or shebang.
+It is also possible to use the name `_` as a catch all to direct output for all files not otherwise listed.
+
+The `delimiter` option determines how to delimit code blocks that exports to the same file.
+The following alternatives are allowed:
+
+* `heading` -- Try to determine the filetype of the code block and insert the current heading as a comment as a delimiter.
+  If filetype detection fails, `newline` will be used instead.
+* `newline` -- Use an extra newline between blocks.
+* `none` -- Do not add delimiter. This implies that the code blocks are inserted into the tangle target as-is.
+
+The `scope` option is discussed below.
 
 #### Tangling Scopes
 What you've seen so far is the tangler operating in `all` mode. This means it captures all code blocks of a certain type unless that code block is tagged
@@ -181,38 +191,38 @@ module.load = function()
     })
 end
 
+
+local function get_comment_string(language)
+    local cur_buf = vim.api.nvim_get_current_buf()
+    local tmp_buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_set_current_buf(tmp_buf)
+    vim.bo.filetype = language
+    local commentstring = vim.bo.commentstring
+    vim.api.nvim_set_current_buf(cur_buf)
+    vim.api.nvim_buf_delete(tmp_buf, { force = true })
+    return commentstring
+end
+
+
 module.public = {
     tangle = function(buffer)
-        local parsed_document_metadata = module.required["core.integrations.treesitter"].get_document_metadata(buffer)
-
-        if vim.tbl_isempty(parsed_document_metadata) or not parsed_document_metadata.tangle then
-            parsed_document_metadata = {
-                tangle = {},
-            }
-        end
-
-        local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
-
+        local treesitter = module.required["core.integrations.treesitter"]
+        local parsed_document_metadata = treesitter.get_document_metadata(buffer) or {}
+        local tangle_settings = parsed_document_metadata.tangle or {}
         local options = {
-            languages = {},
-            scope = parsed_document_metadata.tangle.scope or "all", -- "all" | "tagged" | "main"
+            languages = tangle_settings.languages or tangle_settings,
+            scope = tangle_settings.scope or "all", -- "all" | "tagged" | "main"
+            delimiter = tangle_settings.delimiter or "newline", -- "newline" | "heading" | "none"
         }
-
-        if type(parsed_document_metadata.tangle) == "table" then
-            if vim.tbl_islist(parsed_document_metadata.tangle) then
-                for _, file in ipairs(parsed_document_metadata.tangle) do
-                    options.languages[vim.filetype.match({ filename = file })] = file
-                end
-            elseif parsed_document_metadata.tangle.languages then
-                for language, file in pairs(parsed_document_metadata.tangle.languages) do
-                    options.languages[language] = file
-                end
-            end
-        elseif type(parsed_document_metadata.tangle) == "string" then
-            options.languages[vim.filetype.match({ filename = parsed_document_metadata.tangle })] =
-                parsed_document_metadata.tangle
+        if vim.tbl_islist(options.languages) then
+            options.filenames_only = options.languages
+            options.languages = {}
+        elseif type(options.languages) == "string" then
+            options.languages = {_ = options.languages}
         end
 
+        local document_root = treesitter.get_document_root(buffer)
+        local filename_to_languages = {}
         local tangles = {
             -- filename = { content }
         }
@@ -245,15 +255,17 @@ module.public = {
         })
 
         local query = utils.ts_parse_query("norg", query_str)
+        local previous_headings = {}
+        local commentstrings = {}
 
         for id, node in query:iter_captures(document_root, buffer, 0, -1) do
             local capture = query.captures[id]
 
             if capture == "tag" then
-                local parsed_tag = module.required["core.integrations.treesitter"].get_tag_info(node)
+                local parsed_tag = treesitter.get_tag_info(node)
 
                 if parsed_tag then
-                    local file_to_tangle_to = options.languages[parsed_tag.parameters[1]]
+                    local declared_filetype = parsed_tag.parameters[1]
                     local content = parsed_tag.content
 
                     if parsed_tag.parameters[1] == "norg" then
@@ -264,6 +276,7 @@ module.public = {
                         end
                     end
 
+                    local file_to_tangle_to
                     for _, attribute in ipairs(parsed_tag.attributes) do
                         if attribute.name == "tangle.none" then
                             goto skip_tag
@@ -271,21 +284,77 @@ module.public = {
                             if options.scope == "main" then
                                 goto skip_tag
                             end
-
                             file_to_tangle_to = table.concat(attribute.parameters)
                         end
                     end
 
-                    if file_to_tangle_to then
-                        if tangles[file_to_tangle_to] then
-                            -- insert a blank line between blocks
-                            table.insert(content, 1, "")
+                    -- determine tangle file target
+                    if not file_to_tangle_to then
+                        if declared_filetype and options.languages[declared_filetype] then
+                            file_to_tangle_to = options.languages[declared_filetype]
                         else
-                            tangles[file_to_tangle_to] = {}
+                            if options.filenames_only then
+                                for _, filename in ipairs(options.filenames_only) do
+                                    if declared_filetype == vim.filetype.match({ filename=filename, contents=content }) then
+                                        file_to_tangle_to = filename
+                                        break
+                                    end
+                                end
+                            end
+                            if not file_to_tangle_to then
+                                file_to_tangle_to = options.languages["_"]
+                            end
+                            if declared_filetype then
+                                options.languages[declared_filetype] = file_to_tangle_to
+                            end
+                        end
+                    end
+                    if not file_to_tangle_to then
+                        goto skip_tag
+                    end
+
+                    if options.delimiter == "heading" then
+                        local language
+                        if filename_to_languages[file_to_tangle_to] then
+                            language = filename_to_languages[file_to_tangle_to]
+                        else
+                            language = vim.filetype.match({filename = file_to_tangle_to, contents = content})
+                            if not language and declared_filetype then
+                                language = vim.filetype.match({ filename="___." .. declared_filetype, contents=content })
+                            end
+                            filename_to_languages[file_to_tangle_to] = language
                         end
 
-                        vim.list_extend(tangles[file_to_tangle_to], content)
+                        -- get current heading
+                        local heading_string
+                        local heading = treesitter.find_parent(node, "heading%d+")
+                        if heading and heading:named_child(1) then
+                            local srow, scol, erow, ecol = heading:named_child(1):range()
+                            heading_string = vim.api.nvim_buf_get_text(0, srow, scol, erow, ecol, {})[1]
+                        end
+
+                        -- don't reuse the same header more than once
+                        if heading_string and language and previous_headings[language] ~= heading then
+
+                            -- Get commentstring from vim scratch buffer
+                            if not commentstrings[language] then
+                                commentstrings[language] = get_comment_string(language)
+                            end
+                            if commentstrings[language] ~= "" then
+                                table.insert(content, 1, "")
+                                table.insert(content, 1, commentstrings[language]:format(heading_string))
+                                previous_headings[language] = heading
+                            end
+                        end
                     end
+
+                    if not tangles[file_to_tangle_to] then
+                        tangles[file_to_tangle_to] = {}
+                    elseif options.delimiter ~= "none" then
+                        table.insert(content, 1, "")
+                    end
+
+                    vim.list_extend(tangles[file_to_tangle_to], content)
 
                     ::skip_tag::
                 end
