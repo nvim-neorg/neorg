@@ -1252,7 +1252,11 @@ local function handle_init_event(event)
         }
         vim.api.nvim_set_option_value("foldmethod", "expr", opts)
         vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
-        vim.api.nvim_set_option_value("foldtext", "v:lua.modules.get_module('core.concealer').foldtext()", opts)
+        vim.api.nvim_set_option_value(
+            "foldtext",
+            "v:lua.require'neorg'.modules.get_module('core.concealer').foldtext()",
+            opts
+        )
     end
 end
 
