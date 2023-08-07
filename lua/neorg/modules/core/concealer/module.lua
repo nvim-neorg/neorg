@@ -1139,6 +1139,10 @@ local function render_window_buffer(bufid)
     local row_nomark_start_0b, row_nomark_end_0bin
     local i_flag = 1
     for i = row_start_0b, row_end_0bex - 1 do
+        while i_flag <= #prettify_flags_0b and i > prettify_flags_0b[i_flag][2] do
+            i_flag = i_flag + 1
+        end
+
         if i_flag <= #prettify_flags_0b and i == prettify_flags_0b[i_flag][2] then
             i_flag = i_flag + 1
         else
