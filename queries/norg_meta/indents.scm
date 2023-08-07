@@ -1,7 +1,7 @@
-(array) @indent
-(object) @indent
+(array) @indent.begin
+(object) @indent.begin
 
 [
     "]"
     "}"
-] @branch @indent_end
+] @indent.branch
