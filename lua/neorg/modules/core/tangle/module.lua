@@ -81,8 +81,10 @@ It is also possible to use the name `_` as a catch all to direct output for all 
 The `delimiter` option determines how to delimit code blocks that exports to the same file.
 The following alternatives are allowed:
 
-* `heading` -- Try to determine the filetype of the code block and insert the current heading as a comment as a delimiter.
+* `heading` -- Try to determine filetype of the code block and insert the current heading as a comment as a delimiter.
   If filetype detection fails, `newline` will be used instead.
+* `file-content` -- Try to deterime filetype of the codeblock and insert the Neorg file content as a delimiter.
+  If filetype detection fails, `none` will be used instead.
 * `newline` -- Use an extra newline between blocks.
 * `none` -- Do not add delimiter. This implies that the code blocks are inserted into the tangle target as-is.
 
@@ -212,7 +214,7 @@ module.public = {
         local options = {
             languages = tangle_settings.languages or tangle_settings,
             scope = tangle_settings.scope or "all", -- "all" | "tagged" | "main"
-            delimiter = tangle_settings.delimiter or "newline", -- "newline" | "heading" | "none"
+            delimiter = tangle_settings.delimiter or "newline", -- "newline" | "heading" | "file-content" | "none"
         }
         if vim.tbl_islist(options.languages) then
             options.filenames_only = options.languages
@@ -224,7 +226,7 @@ module.public = {
         local document_root = treesitter.get_document_root(buffer)
         local filename_to_languages = {}
         local tangles = {
-            -- filename = { content }
+            -- filename = { block_content }
         }
 
         local query_str = lib.match(options.scope)({
@@ -257,6 +259,7 @@ module.public = {
         local query = utils.ts_parse_query("norg", query_str)
         local previous_headings = {}
         local commentstrings = {}
+        local file_content_line_start = {}
 
         for id, node in query:iter_captures(document_root, buffer, 0, -1) do
             local capture = query.captures[id]
@@ -266,13 +269,13 @@ module.public = {
 
                 if parsed_tag then
                     local declared_filetype = parsed_tag.parameters[1]
-                    local content = parsed_tag.content
+                    local block_content = parsed_tag.content
 
                     if parsed_tag.parameters[1] == "norg" then
-                        for i, line in ipairs(content) do
+                        for i, line in ipairs(block_content) do
                             -- remove escape char
                             local new_line, _ = line:gsub("\\(.?)", "%1")
-                            content[i] = new_line or ""
+                            block_content[i] = new_line or ""
                         end
                     end
 
@@ -295,7 +298,7 @@ module.public = {
                         else
                             if options.filenames_only then
                                 for _, filename in ipairs(options.filenames_only) do
-                                    if declared_filetype == vim.filetype.match({ filename=filename, contents=content }) then
+                                    if declared_filetype == vim.filetype.match({ filename=filename, contents=block_content }) then
                                         file_to_tangle_to = filename
                                         break
                                     end
@@ -313,51 +316,94 @@ module.public = {
                         goto skip_tag
                     end
 
-                    if options.delimiter == "heading" then
+                    local delimiter_content
+                    if options.delimiter == "heading" or options.delimiter == "file-content" then
                         local language
                         if filename_to_languages[file_to_tangle_to] then
                             language = filename_to_languages[file_to_tangle_to]
                         else
-                            language = vim.filetype.match({filename = file_to_tangle_to, contents = content})
+                            language = vim.filetype.match({filename = file_to_tangle_to, contents = block_content})
                             if not language and declared_filetype then
-                                language = vim.filetype.match({ filename="___." .. declared_filetype, contents=content })
+                                language = vim.filetype.match({ filename="___." .. declared_filetype, contents=block_content })
                             end
                             filename_to_languages[file_to_tangle_to] = language
                         end
 
-                        -- get current heading
-                        local heading_string
-                        local heading = treesitter.find_parent(node, "heading%d+")
-                        if heading and heading:named_child(1) then
-                            local srow, scol, erow, ecol = heading:named_child(1):range()
-                            heading_string = vim.api.nvim_buf_get_text(0, srow, scol, erow, ecol, {})[1]
+                        -- Get commentstring from vim scratch buffer
+                        if language and not commentstrings[language] then
+                            commentstrings[language] = get_comment_string(language)
                         end
 
-                        -- don't reuse the same header more than once
-                        if heading_string and language and previous_headings[language] ~= heading then
+                        if not language or commentstrings[language] == "" then
+                            -- No action
 
-                            -- Get commentstring from vim scratch buffer
-                            if not commentstrings[language] then
-                                commentstrings[language] = get_comment_string(language)
+                        elseif options.delimiter == "heading" then
+                            -- get current heading
+                            local heading_string
+                            local heading = treesitter.find_parent(node, "heading%d+")
+                            if heading and heading:named_child(1) then
+                                local srow, scol, erow, ecol = heading:named_child(1):range()
+                                heading_string = vim.api.nvim_buf_get_text(0, srow, scol, erow, ecol, {})[1]
                             end
-                            if commentstrings[language] ~= "" then
-                                table.insert(content, 1, "")
-                                table.insert(content, 1, commentstrings[language]:format(heading_string))
+
+                            -- don't reuse the same header more than once
+                            if heading_string and language and previous_headings[language] ~= heading then
                                 previous_headings[language] = heading
+                                if tangles[file_to_tangle_to] then
+                                    delimiter_content = {"", commentstrings[language]:format(heading_string), ""}
+                                else
+                                    delimiter_content = {commentstrings[language]:format(heading_string), ""}
+                                end
+                            elseif tangles[file_to_tangle_to] then
+                                delimiter_content = {""}
                             end
+
+                        elseif options.delimiter == "file-content" then
+                            if not file_content_line_start[file_to_tangle_to] then
+                                file_content_line_start[file_to_tangle_to] = 0
+                            end
+                            local start = file_content_line_start[file_to_tangle_to]
+                            local srow, _, erow, _ = node:range()
+                            delimiter_content = vim.api.nvim_buf_get_lines(buffer, start, srow, true)
+                            file_content_line_start[file_to_tangle_to] = erow+1
+                            for idx, line in ipairs(delimiter_content) do
+                                if line ~= "" then
+                                    delimiter_content[idx] = commentstrings[language]:format(line)
+                                end
+                            end
+                        end
+
+                    elseif options.delimiter == "newline" then
+
+                        if tangles[file_to_tangle_to] then
+                            delimiter_content = {""}
                         end
                     end
 
                     if not tangles[file_to_tangle_to] then
                         tangles[file_to_tangle_to] = {}
-                    elseif options.delimiter ~= "none" then
-                        table.insert(content, 1, "")
                     end
 
-                    vim.list_extend(tangles[file_to_tangle_to], content)
+                    if delimiter_content then
+                        vim.list_extend(tangles[file_to_tangle_to], delimiter_content)
+                    end
+                    vim.list_extend(tangles[file_to_tangle_to], block_content)
 
                     ::skip_tag::
                 end
+            end
+        end
+
+        if options.delimiter == "file-content" then
+            for filename, start in pairs(filecontent_line_start) do
+                local language = filename_to_languages[filename]
+                local delimiter_content = vim.api.nvim_buf_get_lines(buffer, start, -1, true)
+                for idx, line in ipairs(delimiter_content) do
+                    if line ~= "" then
+                        delimiter_content[idx] = commentstrings[language]:format(line)
+                    end
+                end
+                vim.list_extend(tangles[filename], delimiter_content)
             end
         end
 
