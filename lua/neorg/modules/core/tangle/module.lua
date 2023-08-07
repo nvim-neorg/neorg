@@ -83,7 +83,7 @@ The following alternatives are allowed:
 
 * `heading` -- Try to determine filetype of the code block and insert the current heading as a comment as a delimiter.
   If filetype detection fails, `newline` will be used instead.
-* `filecontent` -- Try to deterime filetype of the codeblock and insert the Neorg file content as a delimiter.
+* `file-content` -- Try to deterime filetype of the codeblock and insert the Neorg file content as a delimiter.
   If filetype detection fails, `none` will be used instead.
 * `newline` -- Use an extra newline between blocks.
 * `none` -- Do not add delimiter. This implies that the code blocks are inserted into the tangle target as-is.
@@ -214,7 +214,7 @@ module.public = {
         local options = {
             languages = tangle_settings.languages or tangle_settings,
             scope = tangle_settings.scope or "all", -- "all" | "tagged" | "main"
-            delimiter = tangle_settings.delimiter or "newline", -- "newline" | "heading" | "filecontent" | "none"
+            delimiter = tangle_settings.delimiter or "newline", -- "newline" | "heading" | "file-content" | "none"
         }
         if vim.tbl_islist(options.languages) then
             options.filenames_only = options.languages
@@ -259,7 +259,7 @@ module.public = {
         local query = utils.ts_parse_query("norg", query_str)
         local previous_headings = {}
         local commentstrings = {}
-        local filecontent_line_start = {}
+        local file_content_line_start = {}
 
         for id, node in query:iter_captures(document_root, buffer, 0, -1) do
             local capture = query.captures[id]
@@ -317,7 +317,7 @@ module.public = {
                     end
 
                     local delimiter_content
-                    if options.delimiter == "heading" or options.delimiter == "filecontent" then
+                    if options.delimiter == "heading" or options.delimiter == "file-content" then
                         local language
                         if filename_to_languages[file_to_tangle_to] then
                             language = filename_to_languages[file_to_tangle_to]
@@ -358,14 +358,14 @@ module.public = {
                                 delimiter_content = {""}
                             end
 
-                        elseif options.delimiter == "filecontent" then
-                            if not filecontent_line_start[file_to_tangle_to] then
-                                filecontent_line_start[file_to_tangle_to] = 0
+                        elseif options.delimiter == "file-content" then
+                            if not file_content_line_start[file_to_tangle_to] then
+                                file_content_line_start[file_to_tangle_to] = 0
                             end
-                            local start = filecontent_line_start[file_to_tangle_to]
+                            local start = file_content_line_start[file_to_tangle_to]
                             local srow, _, erow, _ = node:range()
                             delimiter_content = vim.api.nvim_buf_get_lines(buffer, start, srow, true)
-                            filecontent_line_start[file_to_tangle_to] = erow+1
+                            file_content_line_start[file_to_tangle_to] = erow+1
                             for idx, line in ipairs(delimiter_content) do
                                 if line ~= "" then
                                     delimiter_content[idx] = commentstrings[language]:format(line)
@@ -394,7 +394,7 @@ module.public = {
             end
         end
 
-        if options.delimiter == "filecontent" then
+        if options.delimiter == "file-content" then
             for filename, start in pairs(filecontent_line_start) do
                 local language = filename_to_languages[filename]
                 local delimiter_content = vim.api.nvim_buf_get_lines(buffer, start, -1, true)
