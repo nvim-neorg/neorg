@@ -12,7 +12,7 @@ The metagen module exposes two commands - `:Neorg inject-metadata` and `:Neorg u
 --]]
 
 local neorg = require("neorg.core")
-local config, lib, modules, utils = neorg.config, neorg.lib, neorg.modules, neorg.utils
+local config, modules, utils = neorg.config, neorg.modules, neorg.utils
 
 local module = modules.create("core.esupports.metagen")
 
