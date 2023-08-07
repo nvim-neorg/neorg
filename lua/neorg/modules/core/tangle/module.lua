@@ -76,17 +76,17 @@ tangle: {
 
 The `language` option determines which filetype should go into which file.
 It's a simple language-filepath mapping, but it's especially useful when the output file's language type cannot be inferred from the name or shebang.
-It is also possible to use the name `_` as a catch all to direct output for all files not otherwise listed.
+It is also possible to use the name `_` as a catchall to direct output for all files not otherwise listed.
 
-The `delimiter` option determines how to delimit code blocks that exports to the same file.
-The following alternatives are allowed:
+The `delimiter` option determines how to delimit code blocks that export to the same file.
+The following variations are allowed:
 
-* `heading` -- Try to determine filetype of the code block and insert the current heading as a comment as a delimiter.
+* `heading` -- Try to determine the filetype of the code block and insert any headings from the original document as a comment in the tangled output.
   If filetype detection fails, `newline` will be used instead.
-* `file-content` -- Try to deterime filetype of the codeblock and insert the Neorg file content as a delimiter.
+* `file-content` -- Try to determine the filetype of the codeblock and insert the Neorg file content as a delimiter.
   If filetype detection fails, `none` will be used instead.
-* `newline` -- Use an extra newline between blocks.
-* `none` -- Do not add delimiter. This implies that the code blocks are inserted into the tangle target as-is.
+* `newline` -- Use an extra newline between tangled blocks.
+* `none` -- Do not add any delimiter. This implies that the code blocks are inserted into the tangle target as-is.
 
 The `scope` option is discussed below.
 
