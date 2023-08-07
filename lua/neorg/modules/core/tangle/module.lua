@@ -395,7 +395,7 @@ module.public = {
         end
 
         if options.delimiter == "file-content" then
-            for filename, start in pairs(filecontent_line_start) do
+            for filename, start in pairs(file_content_line_start) do
                 local language = filename_to_languages[filename]
                 local delimiter_content = vim.api.nvim_buf_get_lines(buffer, start, -1, true)
                 for idx, line in ipairs(delimiter_content) do
