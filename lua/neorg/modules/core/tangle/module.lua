@@ -334,10 +334,12 @@ module.public = {
                             commentstrings[language] = get_comment_string(language)
                         end
 
-                        if not language or commentstrings[language] == "" then
-                            -- No action
-
-                        elseif options.delimiter == "heading" then
+                        -- TODO(vhyrro): Maybe issue warnings to the user when the target
+                        -- commentstring is not found by Neovim?
+                        -- if not language or commentstrings[language] == "" then
+                        --     No action
+                        -- end
+                        if options.delimiter == "heading" then
                             -- get current heading
                             local heading_string
                             local heading = treesitter.find_parent(node, "heading%d+")
