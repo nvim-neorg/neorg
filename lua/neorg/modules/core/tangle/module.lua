@@ -193,7 +193,6 @@ module.load = function()
     })
 end
 
-
 local function get_comment_string(language)
     local cur_buf = vim.api.nvim_get_current_buf()
     local tmp_buf = vim.api.nvim_create_buf(false, true)
@@ -204,7 +203,6 @@ local function get_comment_string(language)
     vim.api.nvim_buf_delete(tmp_buf, { force = true })
     return commentstring
 end
-
 
 module.public = {
     tangle = function(buffer)
@@ -220,7 +218,7 @@ module.public = {
             options.filenames_only = options.languages
             options.languages = {}
         elseif type(options.languages) == "string" then
-            options.languages = {_ = options.languages}
+            options.languages = { _ = options.languages }
         end
 
         local document_root = treesitter.get_document_root(buffer)
@@ -298,7 +296,10 @@ module.public = {
                         else
                             if options.filenames_only then
                                 for _, filename in ipairs(options.filenames_only) do
-                                    if declared_filetype == vim.filetype.match({ filename=filename, contents=block_content }) then
+                                    if
+                                        declared_filetype
+                                        == vim.filetype.match({ filename = filename, contents = block_content })
+                                    then
                                         file_to_tangle_to = filename
                                         break
                                     end
@@ -322,9 +323,12 @@ module.public = {
                         if filename_to_languages[file_to_tangle_to] then
                             language = filename_to_languages[file_to_tangle_to]
                         else
-                            language = vim.filetype.match({filename = file_to_tangle_to, contents = block_content})
+                            language = vim.filetype.match({ filename = file_to_tangle_to, contents = block_content })
                             if not language and declared_filetype then
-                                language = vim.filetype.match({ filename="___." .. declared_filetype, contents=block_content })
+                                language = vim.filetype.match({
+                                    filename = "___." .. declared_filetype,
+                                    contents = block_content,
+                                })
                             end
                             filename_to_languages[file_to_tangle_to] = language
                         end
@@ -352,14 +356,13 @@ module.public = {
                             if heading_string and language and previous_headings[language] ~= heading then
                                 previous_headings[language] = heading
                                 if tangles[file_to_tangle_to] then
-                                    delimiter_content = {"", commentstrings[language]:format(heading_string), ""}
+                                    delimiter_content = { "", commentstrings[language]:format(heading_string), "" }
                                 else
-                                    delimiter_content = {commentstrings[language]:format(heading_string), ""}
+                                    delimiter_content = { commentstrings[language]:format(heading_string), "" }
                                 end
                             elseif tangles[file_to_tangle_to] then
-                                delimiter_content = {""}
+                                delimiter_content = { "" }
                             end
-
                         elseif options.delimiter == "file-content" then
                             if not file_content_line_start[file_to_tangle_to] then
                                 file_content_line_start[file_to_tangle_to] = 0
@@ -367,18 +370,16 @@ module.public = {
                             local start = file_content_line_start[file_to_tangle_to]
                             local srow, _, erow, _ = node:range()
                             delimiter_content = vim.api.nvim_buf_get_lines(buffer, start, srow, true)
-                            file_content_line_start[file_to_tangle_to] = erow+1
+                            file_content_line_start[file_to_tangle_to] = erow + 1
                             for idx, line in ipairs(delimiter_content) do
                                 if line ~= "" then
                                     delimiter_content[idx] = commentstrings[language]:format(line)
                                 end
                             end
                         end
-
                     elseif options.delimiter == "newline" then
-
                         if tangles[file_to_tangle_to] then
-                            delimiter_content = {""}
+                            delimiter_content = { "" }
                         end
                     end
 
