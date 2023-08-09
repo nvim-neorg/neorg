@@ -92,7 +92,7 @@ module.config.public = {
                 i = {
                     { "<C-t>", "core.promo.promote", opts = { desc = "Promote Object (Recursively)" } },
                     { "<C-d>", "core.promo.demote", opts = { desc = "Demote Object (Recursively)" } },
-                    { "<M-CR>", "core.itero.next-iteration", opts = { desc = "Continue Object" } },
+                    { "<M-CR>", "core.itero.next-iteration", "<CR>", opts = { desc = "Continue Object" } },
                     { "<M-d>", "core.tempus.insert-date-insert-mode", opts = { desc = "Insert Date" } },
                 },
 
