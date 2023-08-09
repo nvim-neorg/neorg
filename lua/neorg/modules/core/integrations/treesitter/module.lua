@@ -122,7 +122,7 @@ module.config.public = {
             url = "https://github.com/nvim-neorg/tree-sitter-norg3",
             files = { "src/parser.c", "src/scanner.cc" },
             branch = "main",
-            revision = "e1552a9039366cf8fc5230669acc91860e3c3842",
+            revision = "a56093d3fad28a14157383ba5b754d199868c51f",
         },
         -- Configuration for the metadata parser (used to parse the contents
         -- of `@document.meta` blocks).
