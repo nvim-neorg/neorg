@@ -61,7 +61,7 @@ module.public = {
         vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
             buffer = source,
             callback = function()
-                if not vim.api.nvim_buf_is_loaded(target) then
+                if not vim.api.nvim_buf_is_loaded(target) or not vim.api.nvim_buf_is_loaded(source) then
                     return true
                 end
 
