@@ -106,6 +106,18 @@ module.on_event = function(event)
         end
 
         if not current or current:type() == "document" then
+            local fallback = event.content[1]
+
+            if fallback then
+                assert(
+                    type(fallback) == "string",
+                    "Invalid argument provided to `next-iterable` keybind! Option should be of type `string`!"
+                )
+
+                vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(fallback, true, true, true), "t", false)
+                return
+            end
+
             utils.notify(
                 "No object to continue! Make sure you're under an iterable item like a list or heading.",
                 vim.log.levels.WARN
