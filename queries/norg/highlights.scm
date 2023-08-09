@@ -1,38 +1,32 @@
-(ranged_verbatim_tag
-  ("_prefix") @neorg.tags.ranged_verbatim.begin
-  name: (tag_name
-          [(word) @neorg.tags.ranged_verbatim.name.word
-           ("_delimiter") @neorg.tags.ranged_verbatim.name.delimiter]) @neorg.tags.ranged_verbatim.name
-  (tag_parameters
-    (tag_param) @neorg.tags.ranged_verbatim.parameters.word)? @neorg.tags.ranged_verbatim.parameters)
+(verbatim_ranged_tag
+  "@" @neorg.tags.ranged_verbatim
+  (tag_name
+    [(identifier) @neorg.tags.ranged_verbatim.name.word
+                  "." @neorg.tags.ranged_verbatim.name.delimiter]) @neorg.tags.ranged_verbatim.name
+  (parameter)* @neorg.tags.ranged_verbatim.parameters.word
+  (end) @neorg.tags.ranged_verbatim)
 
-(ranged_verbatim_tag_end
-    ("_prefix") @neorg.tags.ranged_verbatim.end
-    ("_name") @neorg.tags.ranged_verbatim.name.word)
-
-(ranged_verbatim_tag
-  ("_prefix")
-  name: (tag_name) @neorg.tags.ranged_verbatim.name
+(verbatim_ranged_tag
+  "@" @neorg.tags.ranged_verbatim
+  (tag_name) @neorg.tags.ranged_verbatim.name
   (#eq? @neorg.tags.ranged_verbatim.name "comment")
-  content: (ranged_verbatim_tag_content)? @neorg.tags.comment.content)
+  (content)? @neorg.tags.comment.content)
 
-(paragraph
-  (strong_carryover_set
-    (strong_carryover
-      name: (tag_name) @_name
-      (#eq? @_name "comment")))
-  (paragraph_segment) @neorg.tags.comment.content)
+(
+    (strong_carryover_tag
+      (tag_name) @_name
+      (#eq? @_name "comment"))
+    .
+    (paragraph) @neorg.tags.comment.content
+ )
 
-(strong_carryover
-  ("_prefix" @neorg.tags.carryover.begin)
-  name: (tag_name
-          [(word) @neorg.tags.carryover.name.word
-           ("_delimiter") @neorg.tags.carryover.name.delimiter]) @neorg.tags.carryover.name
-    (tag_parameters
-      (tag_param) @neorg.tags.carryover.parameters.word)? @neorg.tags.carryover.parameters) @neorg.tags.carryover
 
-; Trailing Modifier
-("_trailing_modifier") @neorg.modifiers.trailing
+(strong_carryover_tag
+  "#" @neorg.tags.carryover.begin
+  (tag_name
+          [(identifier) @neorg.tags.carryover.name.word
+           "." @neorg.tags.carryover.name.delimiter]) @neorg.tags.carryover.name
+      (parameter)* @neorg.tags.carryover.parameters.word) @neorg.tags.carryover
 
 ; Link Modifier
 (link_modifier) @neorg.modifiers.link
