@@ -314,17 +314,15 @@ module.public = {
                         -- Loop though all the keymaps in that mode
                         for _, keymap in ipairs(keymaps) do
                             -- Map the keybind and keep track of it using the map() function
-                            payload.map(
-                                mode,
-                                neovim_mode,
-                                keymap[1],
-                                "<cmd>Neorg keybind "
-                                    .. mode
-                                    .. " "
-                                    .. table.concat(vim.list_slice(keymap, 2), " ")
-                                    .. "<CR>",
-                                vim.tbl_deep_extend("force", opts, keymap.opts or {})
-                            )
+                            payload.map(mode, neovim_mode, keymap[1], function()
+                                vim.api.nvim_cmd({
+                                    cmd = "Neorg",
+                                    args = vim.list_extend({
+                                        "keybind",
+                                        mode,
+                                    }, vim.list_slice(keymap, 2)),
+                                }, {})
+                            end, vim.tbl_deep_extend("force", opts, keymap.opts or {}))
                         end
                     end
                 end
