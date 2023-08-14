@@ -419,7 +419,7 @@ module.load = function()
 
     module.public.trigger_highlights()
 
-    vim.api.nvim_create_autocmd({"FileType", "ColorScheme"}, {
+    vim.api.nvim_create_autocmd({ "FileType", "ColorScheme" }, {
         callback = module.public.trigger_highlights,
     })
 end
