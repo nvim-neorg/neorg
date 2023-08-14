@@ -414,11 +414,12 @@ end
 
 module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufEnter")
+    module.required["core.autocommands"].enable_autocommand("FileType")
     module.required["core.autocommands"].enable_autocommand("ColorScheme", true)
 
     module.public.trigger_highlights()
 
-    vim.api.nvim_create_autocmd("ColorScheme", {
+    vim.api.nvim_create_autocmd({"FileType", "ColorScheme"}, {
         callback = module.public.trigger_highlights,
     })
 end
@@ -439,10 +440,10 @@ module.public = {
                         "nvim-treesitter has no available highlights for norg! Ensure treesitter is properly loaded in your config."
                     )
                 end
+            end
 
-                if vim.bo.filetype == "norg" then
-                    require("nvim-treesitter.highlight").attach(vim.api.nvim_get_current_buf(), "norg")
-                end
+            if vim.bo.filetype == "norg" then
+                require("nvim-treesitter.highlight").attach(vim.api.nvim_get_current_buf(), "norg")
             end
         end
 
