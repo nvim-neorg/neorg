@@ -10,7 +10,7 @@
   "@" @neorg.tags.ranged_verbatim
   (tag_name) @neorg.tags.ranged_verbatim.name
   (#eq? @neorg.tags.ranged_verbatim.name "comment")
-  (content)? @neorg.tags.comment.content)
+  (verbatim_content)? @neorg.tags.comment.content)
 
 (
     (strong_carryover_tag
