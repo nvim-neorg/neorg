@@ -90,7 +90,7 @@ module.load = function()
                         norgname = filename
                     end
                     local escaped_ws_root = ws_root:gsub("([%(%)%.%%%+%-%*%?%[%^%$%]])", "%%%1")
-                    norgname = norgname:gsub("^" .. escaped_ws_root, "")
+                    norgname = string.sub(norgname, string.len(ws_root) + 1)
 
                     -- normalise categories into a list. Could be vim.NIL, a number, a string or a list ...
                     if not metadata.categories or metadata.categories == vim.NIL then
