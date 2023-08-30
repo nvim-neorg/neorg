@@ -1,10 +1,11 @@
 ; Injection for code blocks
-(ranged_verbatim_tag (tag_name) @_tagname (tag_parameters .(tag_param) @language) (ranged_verbatim_tag_content) @content (#any-of? @_tagname "code" "embed"))
-(ranged_verbatim_tag (tag_name) @_tagname (tag_parameters)? (ranged_verbatim_tag_content) @latex (#eq? @_tagname "math"))
+(ranged_verbatim_tag (tag_name) @_tagname (tag_parameters .(tag_param) @injection.language) (ranged_verbatim_tag_content) @injection.content (#any-of? @_tagname "code" "embed"))
+(ranged_verbatim_tag (tag_name) @_tagname (tag_parameters)? (ranged_verbatim_tag_content) @injection.content (#eq? @_tagname "math") (#set! injection.language "latex"))
 
 (
-    (inline_math) @latex
-    (#offset! @latex 0 1 0 -1)
+    (inline_math) @injection.content
+    (#offset! @injection.content 0 1 0 -1)
+    (#set! injection.language "latex")
 )
 
-(ranged_verbatim_tag (tag_name) @_tagname (ranged_verbatim_tag_content) @norg_meta (#eq? @_tagname "document.meta"))
+(ranged_verbatim_tag (tag_name) @_tagname (ranged_verbatim_tag_content) @injection.content (#eq? @_tagname "document.meta") (#set! injection.language "norg_meta"))
