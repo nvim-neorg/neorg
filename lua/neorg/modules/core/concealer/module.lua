@@ -721,24 +721,14 @@ module.config.public = {
         list = {
             icons = { "•" },
             nodes = {
-                "unordered_list1_prefix",
-                "unordered_list2_prefix",
-                "unordered_list3_prefix",
-                "unordered_list4_prefix",
-                "unordered_list5_prefix",
-                "unordered_list6_prefix",
+                "unordered_list_prefix",
             },
             render = module.public.icon_renderers.multilevel_on_right,
         },
         ordered = {
             icons = (not has_anticonceal) and { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" } or nil,
             nodes = {
-                "ordered_list1_prefix",
-                "ordered_list2_prefix",
-                "ordered_list3_prefix",
-                "ordered_list4_prefix",
-                "ordered_list5_prefix",
-                "ordered_list6_prefix",
+                "ordered_list_prefix",
             },
 
             --- A list of icon generators.
@@ -765,14 +755,10 @@ module.config.public = {
         quote = {
             icons = { "│" },
             nodes = {
-                "quote1_prefix",
-                "quote2_prefix",
-                "quote3_prefix",
-                "quote4_prefix",
-                "quote5_prefix",
-                "quote6_prefix",
+                "quote_prefix",
             },
             highlights = {
+                -- TODO(vhyrro/rewrite): Update highlights
                 "@neorg.quotes.1.prefix",
                 "@neorg.quotes.2.prefix",
                 "@neorg.quotes.3.prefix",
@@ -793,19 +779,11 @@ module.config.public = {
                 "@neorg.headings.6.prefix",
             },
             nodes = {
-                "heading1_prefix",
-                "heading2_prefix",
-                "heading3_prefix",
-                "heading4_prefix",
-                "heading5_prefix",
-                "heading6_prefix",
+                "heading_prefix",
                 concealed = {
-                    "link_target_heading1",
-                    "link_target_heading2",
-                    "link_target_heading3",
-                    "link_target_heading4",
-                    "link_target_heading5",
-                    "link_target_heading6",
+                    -- TODO(vhyrro/rewrite): this can't be done this way
+                    -- because of `(heading)` being the node name.
+                    "heading_link",
                 },
             },
             render = module.public.icon_renderers.multilevel_on_right,
@@ -813,17 +791,17 @@ module.config.public = {
         definition = {
             single = {
                 icon = "≡",
-                nodes = { "single_definition_prefix", concealed = { "link_target_definition" } },
+                nodes = { "definition_single_prefix", concealed = { "link_target_definition" } },
                 render = module.public.icon_renderers.on_left,
             },
             multi_prefix = {
                 icon = "⋙ ",
-                nodes = { "multi_definition_prefix" },
+                nodes = { "definition_multi_prefix" },
                 render = module.public.icon_renderers.on_left,
             },
             multi_suffix = {
                 icon = "⋘ ",
-                nodes = { "multi_definition_suffix" },
+                nodes = { "definition_multi_end" },
                 render = module.public.icon_renderers.on_left,
             },
         },
@@ -831,17 +809,17 @@ module.config.public = {
         footnote = {
             single = {
                 icon = "⁎",
-                nodes = { "single_footnote_prefix", concealed = { "link_target_footnote" } },
+                nodes = { "footnote_single_prefix", concealed = { "link_target_footnote" } },
                 render = module.public.icon_renderers.on_left,
             },
             multi_prefix = {
                 icon = "⁑ ",
-                nodes = { "multi_footnote_prefix" },
+                nodes = { "footnote_multi_prefix" },
                 render = module.public.icon_renderers.on_left,
             },
             multi_suffix = {
                 icon = "⁑ ",
-                nodes = { "multi_footnote_suffix" },
+                nodes = { "footnote_multi_end" },
                 render = module.public.icon_renderers.on_left,
             },
         },
