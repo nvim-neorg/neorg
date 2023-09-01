@@ -151,27 +151,27 @@
 
 ; Definitions
 (definition_list_single
-  "$" @neorg.definitions.prefix
+  (definition_single_prefix) @neorg.definitions.prefix
   (title) @neorg.definitions.title
   (paragraph) @neorg.definitions.content)
 
 (definition_list_multi
-  "$$" @neorg.definitions.prefix
+  (definition_multi_prefix) @neorg.definitions.prefix
   (title) @neorg.definitions.title
   _* @neorg.definitions.content
-  "$$" @neorg.definitions.suffix)
+  (definition_multi_end) @neorg.definitions.suffix)
 
 ; Footnotes
 (footnote_list_single
-  "^" @neorg.footnotes.prefix
+  (footnote_single_prefix) @neorg.footnotes.prefix
   (title) @neorg.footnotes.title
   (paragraph) @neorg.footnotes.content)
 
 (footnote_list_multi
-  "^^" @neorg.footnotes.prefix
+  (footnote_multi_prefix) @neorg.footnotes.prefix
   (title) @neorg.footnotes.title
   _* @neorg.footnotes.content
-  "^^" @neorg.footnotes.suffix)
+  (footnote_multi_end) @neorg.footnotes.suffix)
 
 ; Escape sequences (\char)
 (escape_sequence) @neorg.modifiers.escape
