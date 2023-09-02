@@ -52,7 +52,9 @@ local function os_info()
         if f ~= nil then
             local version = f:read("*all")
             f:close()
-            if version:find("microsoft") then
+            if version:find("WSL2") then
+                return "wsl2"
+            elseif version:find("microsoft") then
                 return "wsl"
             end
         end
