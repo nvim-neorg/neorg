@@ -87,6 +87,8 @@ module.public = {
                     o.command = "xdg-open"
                 elseif config.os_info == "mac" then
                     o.command = "open"
+                elseif config.os_info == "wsl2" then
+                    o.command = "wslview"
                 elseif config.os_info == "wsl" then
                     o.command = "explorer.exe"
                 end
