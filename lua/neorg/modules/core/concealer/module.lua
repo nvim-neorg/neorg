@@ -640,6 +640,11 @@ module.config.public = {
     -- Set to `false` if you do not want Neorg setting anything.
     folds = true,
 
+    -- When set to `auto`, Neorg will open all folds when opening new documents if `foldlevel` is 0.
+    -- When set to `always`, Neorg will always open all folds when opening new documents.
+    -- When set to `never`, Neorg will not do anything.
+    init_open_folds = "auto",
+
     -- Configuration for icons.
     --
     -- This table contains the full configuration set for each icon, including
@@ -1261,6 +1266,23 @@ local function handle_init_event(event)
             "v:lua.require'neorg'.modules.get_module('core.concealer').foldtext()",
             opts
         )
+
+        local init_open_folds = module.config.public.init_open_folds
+        local function open_folds() vim.cmd("normal! zR") end
+
+        if init_open_folds == "always" then
+            open_folds()
+        elseif init_open_folds == "never" then
+        else
+            if init_open_folds ~= "auto" then
+                log.warn('"init_open_folds" must be "auto", "always", or "never"')
+            end
+
+            local foldlevel = vim.api.nvim_get_option_value("foldlevel", opts)
+            if foldlevel == 0 then
+                open_folds()
+            end
+        end
     end
 end
 
