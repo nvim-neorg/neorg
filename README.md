@@ -109,6 +109,7 @@ For neovim beginners who don't want to tinker with the configurations:
       build = ":TSUpdate",
       opts = {
         ensure_installed = { "lua" },
+        highlight = { enable = true },
       },
       config = function(_, opts)
         require("nvim-treesitter.configs").setup(opts)
