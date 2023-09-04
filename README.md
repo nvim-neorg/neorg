@@ -77,8 +77,9 @@ For neovim beginners who don't want to tinker with the configurations:
 
 1. Install [Meslo Nerd Font](https://github.com/ryanoasis/nerd-fonts/).
 2. Set your terminal font to "MesloLGM Nerd Font Mono".
-3. Paste the sample init.lua below to `~/.config/nvim/init.lua`
-4. Start taking notes by `nvim test.norg`
+3. Make sure you have git.
+4. Paste the sample init.lua below to `~/.config/nvim/init.lua`
+5. Start taking notes by `nvim test.norg`
 
 
   <details>
