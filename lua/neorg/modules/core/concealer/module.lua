@@ -633,8 +633,8 @@ module.config.public = {
     -- - "varied" - use a mix of round and diamond shapes for headings; no cute flower icons though :(
     icon_preset = "basic",
 
-    -- If true, Neorg will enable folding by default for `.norg` documents.
-    -- You may use the inbuilt Neovim folding options like `foldnestmax`,
+    -- If true, Neorg will enable folding and set `foldlevel` to 99 by default for `.norg` documents.
+    -- You may use the inbuilt Neovim folding options like `foldlevel`, `foldnestmax`,
     -- `foldlevelstart` and others to then tune the behaviour to your liking.
     --
     -- Set to `false` if you do not want Neorg setting anything.
@@ -1256,6 +1256,8 @@ local function handle_init_event(event)
         }
         vim.api.nvim_set_option_value("foldmethod", "expr", opts)
         vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
+        local old_foldlevel = vim.api.nvim_get_option_value("foldlevel", opts)
+        vim.api.nvim_set_option_value("foldlevel", old_foldlevel==0 and 99 or old_foldlevel, opts)
         vim.api.nvim_set_option_value(
             "foldtext",
             "v:lua.require'neorg'.modules.get_module('core.concealer').foldtext()",
