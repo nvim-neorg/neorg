@@ -71,6 +71,82 @@ To learn more about the philosophy of the project check the [philosophy](#-philo
 
 **Neorg requires at least Neovim 0.8+ to operate.**
 
+### TL;DR
+
+For neovim beginners who don't want to tinker with the configurations:
+
+1. Install [Meslo Nerd Font](https://github.com/ryanoasis/nerd-fonts/).
+2. Set your terminal font to "MesloLGM Nerd Font Mono".
+3. Paste the sample init.lua below to `~/.config/nvim/init.lua`
+4. Start taking notes by `nvim test.norg`
+
+
+  <details>
+  <summary>sample init.lua</summary>
+
+  ```lua
+  -- adapted from https://github.com/folke/lazy.nvim#-installation
+
+  local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+  if not vim.loop.fs_stat(lazypath) then
+    print(vim.fn.system({
+      "git",
+      "clone",
+      "--filter=blob:none",
+      "https://github.com/folke/lazy.nvim.git",
+      "--branch=stable",
+      lazypath,
+    }))
+  end
+  vim.opt.rtp:prepend(lazypath)
+  
+  vim.g.mapleader = " "
+  
+  require("lazy").setup({
+    "rebelot/kanagawa.nvim",  -- neorg needs a colorscheme with treesitter support
+    {
+      "nvim-treesitter/nvim-treesitter",
+      build = ":TSUpdate",
+      opts = {
+        ensure_installed = { "lua" },
+      },
+      config = function(_, opts)
+        require("nvim-treesitter.configs").setup(opts)
+      end,
+    },
+    {
+      "nvim-neorg/neorg",
+      build = ":Neorg sync-parsers",
+      dependencies = { "nvim-lua/plenary.nvim" },
+      config = function()
+        require("neorg").setup {
+          load = {
+            ["core.defaults"] = {},
+            ["core.concealer"] = {},
+            ["core.dirman"] = {
+              config = {
+                workspaces = {
+                  notes = "~/notes",
+                },
+                default_workspace = "notes",
+              },
+            },
+          },
+        }
+  
+        vim.wo.foldlevel = 99
+        vim.wo.conceallevel = 2
+      end,
+    }
+  })
+  
+  vim.cmd.colorscheme('kanagawa')
+  ```
+
+  </details>
+
+### Installation
+
 You can install it through your favorite plugin manager:
 
 -
