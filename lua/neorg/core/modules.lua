@@ -466,7 +466,7 @@ function modules.load_module(module_name, cfg)
     -- Load the user-defined config
     if cfg and not vim.tbl_isempty(cfg) then
         module.config.custom = cfg
-        module.config.public = vim.tbl_deep_extend("force", module.config.public, config)
+        module.config.public = vim.tbl_deep_extend("force", module.config.public, cfg)
     else
         module.config.public = vim.tbl_deep_extend("force", module.config.public, config.modules[module_name] or {})
     end
