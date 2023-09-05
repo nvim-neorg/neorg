@@ -16,6 +16,23 @@ local config, modules, utils = neorg.config, neorg.modules, neorg.utils
 
 local module = modules.create("core.esupports.metagen")
 
+local function get_timezone_offset()
+    -- http://lua-users.org/wiki/TimeZon
+    -- return the timezone offset in seconds, as it was on the time given by ts
+    -- Eric Feliksik
+    local utcdate   = os.date("!*t", 0)
+    local localdate = os.date("*t", 0)
+    localdate.isdst = false -- this is the trick
+    return os.difftime(os.time(localdate), os.time(utcdate))
+end
+
+local function get_timestamp()
+    -- example: 2023-09-05T09:09:11-0500
+    local tz_offset = get_timezone_offset()
+    local h, m = math.modf(tz_offset / 3600)
+    return os.date("%Y-%m-%dT%H:%M:%S") .. string.format("%+.4d", h * 100 + m * 60)
+end
+
 module.setup = function()
     return { requires = { "core.autocommands", "core.keybinds", "core.integrations.treesitter" } }
 end
@@ -63,18 +80,14 @@ module.config.public = {
         -- The created field is populated with the current date as returned by `os.date`.
         {
             "created",
-            function()
-                return os.date("%Y-%m-%d")
-            end,
+            get_timestamp,
         },
 
         -- When creating fresh, new metadata, the updated field is populated the same way
         -- as the `created` date.
         {
             "updated",
-            function()
-                return os.date("%Y-%m-%d")
-            end,
+            get_timestamp,
         },
 
         -- The version field determines which Norg version was used when
