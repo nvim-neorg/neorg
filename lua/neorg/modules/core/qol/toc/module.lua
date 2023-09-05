@@ -256,6 +256,7 @@ module.on_event = function(event)
         module.required["core.ui"].create_vsplit("toc", { ft = "norg" }, (event.content[1] or "left") == "left")
 
     vim.api.nvim_win_set_option(window, "scrolloff", 999)
+    vim.api.nvim_win_set_option(window, "conceallevel", 0)
     module.public.update_toc(namespace, toc_title, event.buffer, event.window, buffer, window)
 
     local close_buffer_callback = function()
