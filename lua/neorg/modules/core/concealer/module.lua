@@ -430,9 +430,24 @@ module.public = {
             if not icon then
                 return
             end
-            local text = (" "):rep(len - 1) .. icon
+
             local highlight = config.highlights and table_get_default_last(config.highlights, len)
-            set_mark(bufid, row_0b, col_0b, text, highlight)
+            local visual_indent = module.config.public.visual_indent
+
+            if has_anticonceal and visual_indent > 1 then
+                if len==1 then
+                    set_mark(bufid, row_0b, col_0b, icon, highlight)
+                else
+                    assert(visual_indent*(len-1) >= len)
+                    set_mark(bufid, row_0b, col_0b, (" "):rep(len), highlight)
+                    set_mark(bufid, row_0b, col_0b + len, (" "):rep(visual_indent*(len-1)-len) .. icon, highlight, {
+                        virt_text_pos = "inline",
+                    })
+                end
+            else
+                local text = (" "):rep(len-1) .. icon
+                set_mark(bufid, row_0b, col_0b, text, highlight)
+            end
         end,
 
         multilevel_ordered_inline_on_right = function(config, bufid, node)
@@ -639,6 +654,9 @@ module.config.public = {
     --
     -- Set to `false` if you do not want Neorg setting anything.
     folds = true,
+
+    -- The visual indentation of headings and lists
+    visual_indent = 1,
 
     -- Configuration for icons.
     --
@@ -1391,31 +1409,6 @@ module.load = function()
         })
     end
 end
-
--- TODO;
--- [---------] lazyredraw, ttyfast
--- [x] no conceal on cursor line at insert mode
--- [---------] no conceal inside examples
--- [x] insert mode movement
--- [x] code, spoiler, non-local changes, languagetree (WONTFIX complicated cases)
--- [x]code config
--- [x] conceal links
--- [x] fix toggle-concealer
--- [ ] visual mode skip prettify ("ivV"):find(mode), ModeChanged
--- [+++++++] use vim.b[bufnr]
--- [x] chuncked concealing on demand for large file
--- --- (prev), current, (next): singleton record, changed when moving large steps
--- [++++++] adaptive performance tuning: instant, CursorHold
--- [++++++] multi-column ordering
--- [x] strip heading/list icon
--- number_spec: "§A.a1."
--- digit_infos: { ["A"] = ..., ["a"] = ..., ["1"] = ..., ["⑴"] = ... }
--- result: render({3,5,2,6,7}) = "§C.e2.6.7"
--- [ ] folding
--- [x] remove "enabled" and nestings from config
--- [x] fix: quote level >6
--- rerender on window size change
--- -- details like queries and highlights are closely coupled with the implementation. revealing it to the users are more noisy than helpful
 
 module.events.subscribed = {
     ["core.autocommands"] = {
