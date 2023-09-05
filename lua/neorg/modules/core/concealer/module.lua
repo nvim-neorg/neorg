@@ -461,7 +461,9 @@ module.public = {
             local generator = table_get_default_last(config.generators, len)
             local format = table_get_default_last(config.formatters, len)
 
-            local text = (" "):rep(len - 1) .. string.format(format, generator(index))
+            assert(has_anticonceal)
+            local visual_indent = module.config.public.visual_indent
+            local text = (" "):rep(visual_indent*(len-1)) .. string.format(format, generator(index))
 
             local highlight = config.highlights and table_get_default_last(config.highlights, len)
 
