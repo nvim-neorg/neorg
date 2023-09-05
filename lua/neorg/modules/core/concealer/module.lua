@@ -434,19 +434,14 @@ module.public = {
             local highlight = config.highlights and table_get_default_last(config.highlights, len)
             local visual_indent = module.config.public.visual_indent
 
-            if has_anticonceal and visual_indent > 1 then
-                if len==1 then
-                    set_mark(bufid, row_0b, col_0b, icon, highlight)
-                else
-                    assert(visual_indent*(len-1) >= len)
-                    set_mark(bufid, row_0b, col_0b, (" "):rep(len), highlight)
-                    set_mark(bufid, row_0b, col_0b + len, (" "):rep(visual_indent*(len-1)-len) .. icon, highlight, {
-                        virt_text_pos = "inline",
-                    })
-                end
+            if has_anticonceal and visual_indent > 1 and len > 1 then
+                assert(visual_indent*(len-1) >= len)
+                set_mark(bufid, row_0b, col_0b, (" "):rep(len), highlight)
+                set_mark(bufid, row_0b, col_0b + len, (" "):rep(visual_indent*(len-1)-len) .. icon, highlight, {
+                    virt_text_pos = "inline",
+                })
             else
-                local text = (" "):rep(len-1) .. icon
-                set_mark(bufid, row_0b, col_0b, text, highlight)
+                set_mark(bufid, row_0b, col_0b, (" "):rep(len-1) .. icon, highlight)
             end
         end,
 
