@@ -150,7 +150,7 @@ module.public = {
         end
 
         -- Create the workspace directory if not already present
-        vim.loop.fs_mkdir(workspace, 16877)
+        vim.fn.mkdir(workspace, "p")
 
         -- Cache the current workspace
         local current_ws = vim.deepcopy(module.private.current_workspace)
