@@ -283,6 +283,10 @@ module.private = {
             module.events.defined[ref.name] = modules.define_event(module, ref.name)
         end
 
+        if ref.callback then
+            ref.callback(vim.list_slice(args, argument_index + 1))
+        end
+
         modules.broadcast_event(
             modules.create_event(
                 module,

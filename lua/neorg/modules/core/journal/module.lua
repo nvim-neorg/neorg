@@ -428,17 +428,47 @@ module.load = function()
             min_args = 1,
             max_args = 2,
             subcommands = {
-                tomorrow = { args = 0, name = "journal.tomorrow" },
-                yesterday = { args = 0, name = "journal.yesterday" },
-                today = { args = 0, name = "journal.today" },
-                custom = { max_args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
-                template = { args = 0, name = "journal.template" },
+                tomorrow = { args = 0, name = "journal.tomorrow", callback = module.private.diary_tomorrow },
+                yesterday = { args = 0, name = "journal.yesterday", callback = module.private.diary_yesterday },
+                today = { args = 0, name = "journal.today", callback = module.private.diary_today },
+                custom = {
+                    max_args = 1,
+                    name = "journal.custom",
+                    callback = function(args)
+                        if not args or not args[1] then
+                            local calendar = modules.get_module("core.ui.calendar")
+
+                            if not calendar then
+                                log.error(
+                                    "[ERROR]: `core.ui.calendar` is not loaded! Said module is required for this operation."
+                                )
+                                return
+                            end
+
+                            calendar.select_date({
+                                callback = vim.schedule_wrap(function(osdate)
+                                    module.private.open_diary(
+                                        nil,
+                                        string.format("%04d", osdate.year)
+                                            .. "-"
+                                            .. string.format("%02d", osdate.month)
+                                            .. "-"
+                                            .. string.format("%02d", osdate.day)
+                                    )
+                                end),
+                            })
+                        else
+                            module.private.open_diary(nil, args[1])
+                        end
+                    end,
+                }, -- format :yyyy-mm-dd
+                template = { args = 0, name = "journal.template", callback = module.private.create_template },
                 toc = {
                     args = 1,
                     name = "journal.toc",
                     subcommands = {
-                        open = { args = 0, name = "journal.toc.open" },
-                        update = { args = 0, name = "journal.toc.update" },
+                        open = { args = 0, name = "journal.toc.open", callback = module.private.open_toc },
+                        update = { args = 0, name = "journal.toc.update", callback = module.private.create_toc },
                     },
                 },
             },
@@ -447,45 +477,6 @@ module.load = function()
 end
 
 module.on_event = function(event)
-    if vim.tbl_contains({ "core.keybinds", "core.neorgcmd" }, event.split_type[1]) then
-        if event.split_type[2] == "journal.tomorrow" then
-            module.private.diary_tomorrow()
-        elseif event.split_type[2] == "journal.yesterday" then
-            module.private.diary_yesterday()
-        elseif event.split_type[2] == "journal.custom" then
-            if not event.content[1] then
-                local calendar = modules.get_module("core.ui.calendar")
-
-                if not calendar then
-                    log.error("[ERROR]: `core.ui.calendar` is not loaded! Said module is required for this operation.")
-                    return
-                end
-
-                calendar.select_date({
-                    callback = vim.schedule_wrap(function(osdate)
-                        module.private.open_diary(
-                            nil,
-                            string.format("%04d", osdate.year)
-                                .. "-"
-                                .. string.format("%02d", osdate.month)
-                                .. "-"
-                                .. string.format("%02d", osdate.day)
-                        )
-                    end),
-                })
-            else
-                module.private.open_diary(nil, event.content[1])
-            end
-        elseif event.split_type[2] == "journal.today" then
-            module.private.diary_today()
-        elseif event.split_type[2] == "journal.template" then
-            module.private.create_template()
-        elseif event.split_type[2] == "journal.toc.open" then
-            module.private.open_toc()
-        elseif event.split_type[2] == "journal.toc.update" then
-            module.private.create_toc()
-        end
-    end
 end
 
 module.events.subscribed = {
