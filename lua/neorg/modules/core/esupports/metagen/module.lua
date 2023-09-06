@@ -20,7 +20,7 @@ local function get_timezone_offset()
     -- http://lua-users.org/wiki/TimeZon
     -- return the timezone offset in seconds, as it was on the time given by ts
     -- Eric Feliksik
-    local utcdate   = os.date("!*t", 0)
+    local utcdate = os.date("!*t", 0)
     local localdate = os.date("*t", 0)
     localdate.isdst = false -- this is the trick
     return os.difftime(os.time(localdate), os.time(utcdate))
