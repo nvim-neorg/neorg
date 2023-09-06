@@ -1268,7 +1268,9 @@ local function handle_init_event(event)
         )
 
         local init_open_folds = module.config.public.init_open_folds
-        local function open_folds() vim.cmd("normal! zR") end
+        local function open_folds()
+            vim.cmd("normal! zR")
+        end
 
         if init_open_folds == "always" then
             open_folds()
