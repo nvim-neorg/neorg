@@ -27,6 +27,7 @@ local function get_timezone_offset()
 end
 
 local function get_timestamp()
+    -- generate a ISO-8601 timestamp
     -- example: 2023-09-05T09:09:11-0500
     local tz_offset = get_timezone_offset()
     local h, m = math.modf(tz_offset / 3600)
