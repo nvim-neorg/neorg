@@ -122,7 +122,7 @@ version: 0.1
       We can move this text to the fifth level again! 🤯
       ---
 
-     So using 2 or more `-` signs not followed by anything, you move *one* level backwards in the
+     So using 3 or more `-` signs not followed by anything, you move *one* level backwards in the
      indentation (we like using three characters though :p).
 
      Doing the same but with `=` characters instead all heading levels will be closed and
