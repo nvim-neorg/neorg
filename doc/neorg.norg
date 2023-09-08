@@ -123,7 +123,8 @@ version: 0.1
       ---
 
      So using 3 or more `-` signs not followed by anything, you move *one* level backwards in the
-     indentation (we like using three characters though :p).
+     indentation (*NOTE:* this should actually be `2` or more signs as per the latest spec revision,
+     but the parser is in the process of being updated).
 
      Doing the same but with `=` characters instead all heading levels will be closed and
      you will be dropped back to the root level of the document!
