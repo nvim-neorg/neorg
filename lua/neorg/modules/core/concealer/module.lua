@@ -1191,6 +1191,10 @@ local function mark_line_range_changed(bufid, row_start_0b, row_end_0bex)
 end
 
 local function mark_all_lines_changed(bufid)
+    if not module.private.enabled then
+        return
+    end
+
     remove_prettify_flag_all(bufid)
     schedule_rendering(bufid)
 end
