@@ -1305,10 +1305,12 @@ local function handle_insertleave(event)
 end
 
 local function handle_toggle_prettifier(event)
+    -- FIXME: module.private.enabled should be a map from bufid to boolean
     module.private.enabled = not module.private.enabled
     if module.private.enabled then
         mark_all_lines_changed(event.buffer)
     else
+        module.private.rerendering_scheduled_bufids[event.buffer] = nil
         clear_all_extmarks(event.buffer)
     end
 end
