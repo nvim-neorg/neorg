@@ -337,7 +337,7 @@ use {
 }
 ```
 
-After that it's as easy as loading the module it exposes normally:
+After that it's as easy as loading the exposed module normally:
 
 ```lua
 require('neorg').setup {
@@ -347,18 +347,7 @@ require('neorg').setup {
 }
 ```
 
-<details>
-<summary>List of community modules:</summary>
-
-| Module name                                                                       | Description                                                                          |
-| :-------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
-| [`core.integrations.telescope`](https://github.com/nvim-neorg/neorg-telescope)    | Neorg integration with [Telescope](https://github.com/nvim-telescope/telescope.nvim) |
-| [`external.integrations.figlet`](https://github.com/madskjeldgaard/neorg-figlet-module) | Neorg integration with Figlet |
-
-</details>
-<br>
-
-If you ever end up making a module for Neorg feel free to make a pull request and add it to this README!
+A comprehesive list of community made modules can be found [in the awesome-neorg repo](https://github.com/NTBBloodbath/awesome-neorg)!
 
 ## ❓ Philosophy
 
@@ -423,6 +412,5 @@ heartwarming and fuels the urge to keep going :heart:. You can show support here
 - [Support me on LiberaPay](https://liberapay.com/vhyrro)
 - [Support me on Patreon](https://patreon.com/vhyrro)
 - Donate to my monero wallet: `86CXbnPLa14F458FRQFe26PRfffZTZDbUeb4NzYiHDtzcyaoMnfq1TqVU1EiBFrbKqGshFomDzxWzYX2kMvezcNu9TaKd9t`
-- Donate via bitcoin: `bc1q4ey43t9hhstzdqh8kqcllxwnqlx9lfxqqh439s`
 
 <!-- TODO: Create table of donation links for all maintainers -->
