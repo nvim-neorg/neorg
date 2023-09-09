@@ -10,9 +10,11 @@ and `to_lua_date(date) -> osdate`.
 --]]
 
 local neorg = require("neorg.core")
-local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.utils
+local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
 
 local module = modules.create("core.tempus")
+
+assert(vim.re ~= nil, "Neovim 0.10.0+ is required to run the `core.tempus` module! ")
 
 -- NOTE: Maybe encapsulate whole date parser in a single PEG grammar?
 local _, time_regex = pcall(vim.re.compile, [[{%d%d?} ":" {%d%d} ("." {%d%d?})?]])
@@ -212,17 +214,6 @@ local timezone_list = {
     "YAKT",
     "YEKT",
 }
-
-module.setup = function()
-    if not utils.is_minimum_version(0, 10, 0) then
-        log.error("`core.tempus` requires at least Neovim version 0.10.0 to run!")
-        return {
-            success = false,
-        }
-    end
-
-    return {}
-end
 
 ---@alias Date {weekday: {name: string, number: number}?, day: number?, month: {name: string, number: number}?, year: number?, timezone: string?, time: {hour: number, minute: number, second: number?}?}
 
