@@ -52,9 +52,9 @@ module.config.public = {
 module.public = {
     --- Follow link from a specific node
     ---@param node userdata
-    ---@param split string|nil if not nil, will open a new split with the split mode defined (vsplitr...) or new tab (mode="tab")
+    ---@param open_mode string|nil if not nil, will open a new split with the split mode defined (vsplitr...) or new tab (mode="tab") or with external app (mode="external")
     ---@param parsed_link table a table of link information gathered from parse_link()
-    follow_link = function(node, split, parsed_link)
+    follow_link = function(node, open_mode, parsed_link)
         if node:type() == "anchor_declaration" then
             local located_anchor_declaration = module.public.locate_anchor_declaration_target(node)
 
@@ -99,12 +99,12 @@ module.public = {
         end
 
         local function open_split()
-            if split then
-                if split == "vsplit" then
+            if open_mode then
+                if open_mode == "vsplit" then
                     vim.cmd("vsplit")
-                elseif split == "split" then
+                elseif open_mode == "split" then
                     vim.cmd("split")
-                elseif split == "tab" then
+                elseif open_mode == "tab" then
                     vim.cmd("tabnew")
                 end
             end
@@ -120,6 +120,11 @@ module.public = {
         end
 
         if located_link_information then
+            if open_mode == "external" then
+                os_open_link(located_link_information.uri or located_link_information.path)
+                return
+            end
+
             lib.match(located_link_information.type)({
                 -- If we're dealing with a URI, simply open the URI in the user's preferred method
                 external_app = function()
