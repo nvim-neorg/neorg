@@ -6,8 +6,8 @@
 --    This file contains the base module implementation
 --]]
 
-local callbacks = require("neorg.core.callbacks")
 local config = require("neorg.core.config")
+local events = require("neorg.core.events")
 local log = require("neorg.core.log")
 local utils = require("neorg.core.utils")
 
@@ -29,7 +29,12 @@ function modules.create(name, imports)
 
         -- Invoked whenever an event that the module has subscribed to triggers
         -- callback function with a "event" parameter
-        on_event = function() end,
+        on_event = function(self, event)
+            local subscription = self.subscriptions[event.topic]
+            if subscription ~= nil and subscription.active then
+                subscription.handler(event)
+            end
+        end,
 
         -- Invoked after all plugins are loaded
         neorg_post_load = function() end,
@@ -82,22 +87,13 @@ function modules.create(name, imports)
         },
 
         -- Event data regarding the current module
-        events = {
-            subscribed = { -- The events that the module is subscribed to
-                --[[
-                ["core.test"] = { -- The name of the module that has events bound to it
-                    ["test_event"]  = true, -- Subscribes to event core.test.events.test_event
-
-                    ["other_event"] = true -- Subscribes to event core.test.events.other_event
-                }
-                --]]
-            },
-            defined = { -- The events that the module itself has defined
-                --[[
-                ["my_event"] = { event_data } -- Creates an event of type category.module.events.my_event
-                --]]
-            },
-        },
+        -- TODO: Actually define as part of the type system
+        subscriptions = { --[[ The events that the module is subscribed to
+            ["topic_name"] = { -- The name of a topic this module is subscribed to
+                active = true, -- Whether the subscription is active
+                handler = function(self, event) end, -- Function that handles the event
+            }
+        --]]},
 
         -- If you ever require a module through the return value of the setup() function,
         -- All of the modules' public APIs will become available here
@@ -371,12 +367,14 @@ function modules.load_module_from_table(module)
         -- previous module into our new one. This allows for practically seamless hotswapping, as it allows you to retain the data
         -- of the previous module.
         if loaded_module.replace_merge then
-            module = vim.tbl_deep_extend("force", module, {
+            local replaced_module = vim.tbl_deep_extend("force", module, {
                 private = module_to_replace.private,
                 config = module_to_replace.config,
                 public = module_to_replace.public,
                 events = module_to_replace.events,
             })
+            assert(replaced_module ~= nil)
+            module = replaced_module
         end
 
         -- Set the special module.replaced flag to let everyone know we've been hotswapped before
@@ -400,18 +398,7 @@ function modules.load_module_from_table(module)
     -- local msg = ("%fms"):format((vim.loop.hrtime() - start) / 1e6)
     -- vim.notify(msg .. " " .. module.name)
 
-    modules.broadcast_event({
-        type = "core.module_loaded",
-        split_type = { "core", "module_loaded" },
-        filename = "",
-        filehead = "",
-        cursor_position = { 0, 0 },
-        referrer = "core",
-        line_content = "",
-        content = module,
-        broadcast = true,
-    })
-
+    events.publish("module_loaded", module.name --[[@as neorg.event.module_loaded]])
     return true
 end
 
@@ -564,186 +551,5 @@ function modules.await(module_name, callback)
     end)
 end
 
--- TODO: What goes below this line until the next notice used to belong to modules
--- We need to find a way to make these functions easier to maintain
-
---[[
---    NEORG EVENT FILE
---    This file is responsible for dealing with event handling and broadcasting.
---    All modules that subscribe to an event will receive it once it is triggered.
---]]
-
---- The working of this function is best illustrated with an example:
---        If type == 'core.some_plugin.events.my_event', this function will return { 'core.some_plugin', 'my_event' }
----@param type string #The full path of a module event
-function modules.split_event_type(type)
-    local start_str, end_str = type:find("%.events%.")
-
-    local split_event_type = { type:sub(0, start_str - 1), type:sub(end_str + 1) }
-
-    if #split_event_type ~= 2 then
-        log.warn("Invalid type name:", type)
-        return
-    end
-
-    return split_event_type
-end
-
---- Returns an event template defined in module.events.defined
----@param module table #A reference to the module invoking the function
----@param type string #A full path to a valid event type (e.g. 'core.module.events.some_event')
-function modules.get_event_template(module, type)
-    -- You can't get the event template of a type if the type isn't loaded
-    if not modules.is_module_loaded(module.name) then
-        log.info("Unable to get event of type", type, "with module", module.name)
-        return
-    end
-
-    -- Split the event type into two
-    local split_type = modules.split_event_type(type)
-
-    if not split_type then
-        log.warn("Unable to get event template for event", type, "and module", module.name)
-        return
-    end
-
-    log.trace("Returning", split_type[2], "for module", split_type[1])
-
-    -- Return the defined event from the specific module
-    return modules.loaded_modules[module.name].events.defined[split_type[2]]
-end
-
---- Creates a deep copy of the modules.base_event event and returns it with a custom type and referrer
----@param module table #A reference to the module invoking the function
----@param name string #A relative path to a valid event template
-function modules.define_event(module, name)
-    -- Create a copy of the base event and override the values with ones specified by the user
-
-    local new_event = {
-        type = "core.base_event",
-        split_type = {},
-        content = nil,
-        referrer = nil,
-        broadcast = true,
-
-        cursor_position = {},
-        filename = "",
-        filehead = "",
-        line_content = "",
-        buffer = 0,
-        window = 0,
-        mode = "",
-    }
-
-    if name then
-        new_event.type = module.name .. ".events." .. name
-    end
-
-    new_event.referrer = module.name
-
-    return new_event
-end
-
---- Returns a copy of the event template provided by a module
----@param module table #A reference to the module invoking the function
----@param type string #A full path to a valid event type (e.g. 'core.module.events.some_event')
----@param content any #The content of the event, can be anything from a string to a table to whatever you please
----@return table #New event
-function modules.create_event(module, type, content)
-    -- Get the module that contains the event
-    local module_name = modules.split_event_type(type)[1]
-
-    -- Retrieve the template from module.events.defined
-    local event_template = modules.get_event_template(modules.loaded_modules[module_name] or { name = "" }, type)
-
-    if not event_template then
-        log.warn("Unable to create event of type", type, ". Returning nil...")
-        return
-    end
-
-    -- Make a deep copy here - we don't want to override the actual base table!
-    local new_event = vim.deepcopy(event_template)
-
-    new_event.type = type
-    new_event.content = content
-    new_event.referrer = module.name
-
-    -- Override all the important values
-    new_event.split_type = modules.split_event_type(type)
-    new_event.filename = vim.fn.expand("%:t")
-    new_event.filehead = vim.fn.expand("%:p:h")
-    new_event.cursor_position = vim.api.nvim_win_get_cursor(0)
-    new_event.line_content = vim.api.nvim_get_current_line()
-    new_event.referrer = module.name
-    new_event.broadcast = true
-    new_event.buffer = vim.api.nvim_get_current_buf()
-    new_event.window = vim.api.nvim_get_current_win()
-    new_event.mode = vim.api.nvim_get_mode().mode
-
-    return new_event
-end
-
---- Sends an event to all subscribed modules. The event contains the filename, filehead, cursor position and line content as a bonus.
----@param event table #An event, usually created by modules.create_event()
----@param callback function? #A callback to be invoked after all events have been asynchronously broadcast
-function modules.broadcast_event(event, callback)
-    -- Broadcast the event to all modules
-    if not event.split_type then
-        log.error("Unable to broadcast event of type", event.type, "- invalid event name")
-        return
-    end
-
-    -- Let the callback handler know of the event
-    callbacks.handle_callbacks(event)
-
-    -- Loop through all the modules
-    for _, current_module in pairs(modules.loaded_modules) do
-        -- If the current module has any subscribed events and if it has a subscription bound to the event's module name then
-        if current_module.events.subscribed and current_module.events.subscribed[event.split_type[1]] then
-            -- Check whether we are subscribed to the event type
-            local evt = current_module.events.subscribed[event.split_type[1]][event.split_type[2]]
-
-            if evt ~= nil and evt == true then
-                -- Run the on_event() for that module
-                current_module.on_event(event)
-            end
-        end
-    end
-
-    -- Because the broadcasting of events is async we allow the event broadcaster to provide a callback
-    -- TODO: deprecate
-    if callback then
-        callback()
-    end
-end
-
---- Instead of broadcasting to all loaded modules, send_event() only sends to one module
----@param recipient string #The name of a loaded module that will be the recipient of the event
----@param event table #An event, usually created by modules.create_event()
-function modules.send_event(recipient, event)
-    -- If the recipient is not loaded then there's no reason to send an event to it
-    if not modules.is_module_loaded(recipient) then
-        log.warn("Unable to send event to module", recipient, "- the module is not loaded.")
-        return
-    end
-
-    -- Set the broadcast variable to false since we're not invoking broadcast_event()
-    event.broadcast = false
-
-    -- Let the callback handler know of the event
-    callbacks.handle_callbacks(event)
-
-    -- Get the recipient module and check whether it's subscribed to our event
-    local mod = modules.loaded_modules[recipient]
-
-    if mod.events.subscribed and mod.events.subscribed[event.split_type[1]] then
-        local evt = mod.events.subscribed[event.split_type[1]][event.split_type[2]]
-
-        -- If it is then trigger the module's on_event() function
-        if evt ~= nil and evt == true then
-            mod.on_event(event)
-        end
-    end
-end
 
 return modules
