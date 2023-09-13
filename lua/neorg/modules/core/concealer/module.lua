@@ -1279,6 +1279,7 @@ local function handle_init_event(event)
         if init_open_folds == "always" then
             open_folds()
         elseif init_open_folds == "never" then
+            local luacheck_please_dont_panic
         else
             if init_open_folds ~= "auto" then
                 log.warn('"init_open_folds" must be "auto", "always", or "never"')
