@@ -30,12 +30,17 @@ version: 0.1
    - !spoiler!
    - `inline code`
    - ^superscript^  (when nested into `subscript`, will highlight as an error)
-   - ,subscript,  (when nested into `superscript`, will highlight as an error)
-   - $f(x) = y$ (see also {# Math})
-   - &variable& (see also {# Variables})
+   - ,subscript,    (when nested into `superscript`, will highlight as an error)
+   - $f(x) = y$     (see also {# Math})
+   - &variable&     (see also {# Variables})
    - %inline comment%
 
    This also immediately shows you how to escape a special character using the backslash, \\.
+
+   Adding the [pipe]{:cheatsheet:*** Styling with a Pipe} modifier inside any markup
+   characters allows you to include white space before and after the markup characters, as well as
+   ignore escape characters inside.
+   Example: *|   look ma, white space!   |*
 
 ** Nesting
 
@@ -135,7 +140,7 @@ version: 0.1
    ___
    This will never affect the indentation level of the following text, but it will immediately
    terminate the paragraph which is why this is a new paragraph despite the absence of two (or more)
-   consective new lines.
+   consecutive new lines.
 
 ** Links
 
@@ -323,8 +328,9 @@ version: 0.1
 
     There are two ways of typesetting mathematics:
     ~ Inline mathematics using the `$` attached modifier like so: $f(x) = y$.
-    ~ :
-      Multiline mathematics using the `math` ranged tag which supports any LaTeX-typeset math.
+       To access LaTeX-typeset math within inline mathematics, use the [pipe] modifier:
+       $|\theta = \frac{\pi}{3}|$
+    ~ Multi-line mathematics using the `math` ranged tag which supports any LaTeX-typeset math.
       @math
       f(x) = y
       @end
