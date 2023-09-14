@@ -15,15 +15,6 @@ function neorg.setup(cfg)
     -- Create a new global instance of the neorg logger
     log.new(config.user_config.logger or log.get_default_config(), true)
 
-    -- Make the Neorg filetype detectable through `vim.filetype`.
-    -- TODO: Make a PR to Neovim to natively support the org and norg
-    -- filetypes.
-    vim.filetype.add({
-        extension = {
-            norg = "norg",
-        },
-    })
-
     -- If the file we have entered has a .norg extension
     if vim.fn.expand("%:e") == "norg" or not config.user_config.lazy_loading then
         -- Then boot up the environment
