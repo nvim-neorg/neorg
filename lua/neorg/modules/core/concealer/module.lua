@@ -62,7 +62,21 @@ end
 
 --- end utils
 
-local has_anticonceal = utils.is_minimum_version(0, 10, 0)
+local has_anticonceal = (function()
+    if not utils.is_minimum_version(0, 10, 0) then
+        return false
+    end
+
+    if utils.is_minimum_version(0, 10, 1) then
+        return true
+    end
+
+    local full_version = vim.api.nvim_cmd({cmd="version"}, {output=true})
+    local _, _, sub_version = string.find(full_version, "-(%d+)[+]")
+    if not sub_version then return true end  -- no longer a dev version
+    sub_version = tonumber(sub_version)
+    return sub_version and sub_version > 575
+end)()
 
 local module = modules.create("core.concealer", {
     "preset_basic",

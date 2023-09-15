@@ -104,7 +104,10 @@ end
 ---@param patch number #The patch number (in case you need it)
 ---@return boolean #Whether Neovim is running at the same or a higher version than the one given
 function utils.is_minimum_version(major, minor, patch)
-    return major <= version.major and minor <= version.minor and patch <= version.patch
+    if major ~= version.major then return major < version.major end
+    if minor ~= version.minor then return minor < version.minor end
+    if patch ~= version.patch then return patch < version.patch end
+    return true
 end
 
 --- Parses a version string like "0.4.2" and provides back a table like { major = <number>, minor = <number>, patch = <number> }
