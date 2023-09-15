@@ -71,9 +71,11 @@ local has_anticonceal = (function()
         return true
     end
 
-    local full_version = vim.api.nvim_cmd({cmd="version"}, {output=true})
+    local full_version = vim.api.nvim_cmd({ cmd = "version" }, { output = true })
     local _, _, sub_version = string.find(full_version, "-(%d+)[+]")
-    if not sub_version then return true end  -- no longer a dev version
+    if not sub_version then
+        return true
+    end -- no longer a dev version
     sub_version = tonumber(sub_version)
     return sub_version and sub_version > 575
 end)()
