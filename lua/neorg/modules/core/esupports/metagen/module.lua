@@ -88,7 +88,7 @@ local default_template = {
 -- template.
 local function fill_template_defaults()
     local function match_first(comparand)
-        return function(key, value)
+        return function(_key, value)
             if value[1] == comparand then
                 return value
             else
@@ -97,7 +97,7 @@ local function fill_template_defaults()
         end
     end
 
-    module.config.public.template = lib.map(module.config.public.template, function(key, elem)
+    module.config.public.template = lib.map(module.config.public.template, function(_key, elem)
         if not elem[2] then
             return lib.filter(default_template, match_first(elem[1]))
         end
