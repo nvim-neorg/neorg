@@ -62,6 +62,7 @@ end
 
 --- end utils
 
+--- TODO: Migrate to `vim.version` when `0.10.0` becomes stable
 local has_anticonceal = (function()
     if not utils.is_minimum_version(0, 10, 0) then
         return false
