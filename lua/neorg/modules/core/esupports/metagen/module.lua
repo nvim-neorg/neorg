@@ -12,7 +12,7 @@ The metagen module exposes two commands - `:Neorg inject-metadata` and `:Neorg u
 --]]
 
 local neorg = require("neorg.core")
-local config, modules, utils = neorg.config, neorg.modules, neorg.utils
+local config, modules, utils, lib = neorg.config, neorg.modules, neorg.utils, neorg.lib
 
 local module = modules.create("core.esupports.metagen")
 
@@ -32,6 +32,76 @@ local function get_timestamp()
     local tz_offset = get_timezone_offset()
     local h, m = math.modf(tz_offset / 3600)
     return os.date("%Y-%m-%dT%H:%M:%S") .. string.format("%+.4d", h * 100 + m * 60)
+end
+
+-- The default template found in the config for this module.
+local default_template = {
+    -- The title field generates a title for the file based on the filename.
+    {
+        "title",
+        function()
+            return vim.fn.expand("%:p:t:r")
+        end,
+    },
+
+    -- The description field is always kept empty for the user to fill in.
+    { "description", "" },
+
+    -- The authors field is autopopulated by querying the current user's system username.
+    {
+        "authors",
+        function()
+            return utils.get_username()
+        end,
+    },
+
+    -- The categories field is always kept empty for the user to fill in.
+    { "categories", "" },
+
+    -- The created field is populated with the current date as returned by `os.date`.
+    {
+        "created",
+        get_timestamp,
+    },
+
+    -- When creating fresh, new metadata, the updated field is populated the same way
+    -- as the `created` date.
+    {
+        "updated",
+        get_timestamp,
+    },
+
+    -- The version field determines which Norg version was used when
+    -- the file was created.
+    {
+        "version",
+        function()
+            return config.norg_version
+        end,
+    },
+}
+
+-- For all of the currently configured template entries, fall back to default handling
+-- if the configuration omits the handler function. This allows an end user to specify
+-- they want an entry in the generated metadata but they do not want to override the
+-- default value for that entry by adding a singleton (like { "description" }) to the
+-- template.
+local function fill_template_defaults()
+    local function match_first(comparand)
+        return function(key, value)
+            if value[1] == comparand then
+                return value
+            else
+                return nil
+            end
+        end
+    end
+
+    module.config.public.template = lib.map(module.config.public.template, function(key, elem)
+        if not elem[2] then
+            return lib.filter(default_template, match_first(elem[1]))
+        end
+    end)
 end
 
 module.setup = function()
@@ -55,51 +125,7 @@ module.config.public = {
     delimiter = ": ",
 
     -- Custom template to use for generating content inside `@document.meta` tag
-    template = {
-        -- The title field generates a title for the file based on the filename.
-        {
-            "title",
-            function()
-                return vim.fn.expand("%:p:t:r")
-            end,
-        },
-
-        -- The description field is always kept empty for the user to fill in.
-        { "description", "" },
-
-        -- The authors field is autopopulated by querying the current user's system username.
-        {
-            "authors",
-            function()
-                return utils.get_username()
-            end,
-        },
-
-        -- The categories field is always kept empty for the user to fill in.
-        { "categories", "" },
-
-        -- The created field is populated with the current date as returned by `os.date`.
-        {
-            "created",
-            get_timestamp,
-        },
-
-        -- When creating fresh, new metadata, the updated field is populated the same way
-        -- as the `created` date.
-        {
-            "updated",
-            get_timestamp,
-        },
-
-        -- The version field determines which Norg version was used when
-        -- the file was created.
-        {
-            "version",
-            function()
-                return config.norg_version
-            end,
-        },
-    },
+    template = default_template,
 }
 
 module.private = {
@@ -279,6 +305,9 @@ module.public = {
 }
 
 module.load = function()
+    -- combine user-defined template with defaults
+    fill_template_defaults()
+
     modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             ["inject-metadata"] = {
