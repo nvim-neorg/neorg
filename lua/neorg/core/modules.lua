@@ -468,7 +468,8 @@ function modules.load_module(module_name, cfg)
         module.config.custom = cfg
         module.config.public = vim.tbl_deep_extend("force", module.config.public, cfg)
     else
-        module.config.public = vim.tbl_deep_extend("force", module.config.public, config.modules[module_name] or {})
+        module.config.custom = config.modules[module_name]
+        module.config.public = vim.tbl_deep_extend("force", module.config.public, module.config.custom or {})
     end
 
     -- Pass execution onto load_module_from_table() and let it handle the rest
