@@ -1295,7 +1295,8 @@ local function handle_init_event(event)
 
         if init_open_folds == "always" then
             open_folds()
-        -- elseif init_open_folds == "never" then
+        elseif init_open_folds == "never" then -- luacheck:ignore 542
+            -- do nothing
         else
             if init_open_folds ~= "auto" then
                 log.warn('"init_open_folds" must be "auto", "always", or "never"')
