@@ -1402,7 +1402,7 @@ module.load = function()
     end
 
     module.config.public =
-        vim.tbl_deep_extend("force", module.config.public, { icons = icon_preset }, module.config.custom)
+        vim.tbl_deep_extend("force", module.config.public, { icons = icon_preset }, module.config.custom or {})
 
     module.required["core.autocommands"].enable_autocommand("BufNewFile")
     module.required["core.autocommands"].enable_autocommand("BufReadPost")
