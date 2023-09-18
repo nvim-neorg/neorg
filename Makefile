@@ -8,4 +8,4 @@ format:
 	stylua -v --verify .
 
 check:
-	luacheck lua/
+	luacheck lua/ --codes
