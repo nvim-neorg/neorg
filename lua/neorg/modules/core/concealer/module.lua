@@ -1391,7 +1391,8 @@ module.on_event = function(event)
 end
 
 module.load = function()
-    local icon_preset = module.imported[module.name .. ".preset_" .. module.config.public.icon_preset].config.private["icon_preset_" .. module.config.public.icon_preset]
+    local icon_preset =
+        module.imported[module.name .. ".preset_" .. module.config.public.icon_preset].config.private["icon_preset_" .. module.config.public.icon_preset]
     if not icon_preset then
         log.error(
             ("Unable to load icon preset '%s' - such a preset does not exist"):format(module.config.public.icon_preset)
@@ -1399,12 +1400,8 @@ module.load = function()
         return
     end
 
-    module.config.public = vim.tbl_deep_extend(
-        "force",
-        module.config.public,
-        { icons = icon_preset },
-        module.config.custom
-    )
+    module.config.public =
+        vim.tbl_deep_extend("force", module.config.public, { icons = icon_preset }, module.config.custom)
 
     module.required["core.autocommands"].enable_autocommand("BufNewFile")
     module.required["core.autocommands"].enable_autocommand("BufReadPost")
