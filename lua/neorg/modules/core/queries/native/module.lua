@@ -133,7 +133,7 @@ module.public = {
 
         for _, node in ipairs(nodes) do
             local temp_buf = module.public.get_temp_buf(node[2])
-            local extracted = vim.split(vim.treesitter.query.get_node_text(node[1], temp_buf), "\n")
+            local extracted = vim.split(vim.treesitter.get_node_text(node[1], temp_buf), "\n")
 
             if opts.all_lines then
                 table.insert(res, extracted)
