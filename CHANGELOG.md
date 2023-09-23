@@ -1,5 +1,74 @@
 # Changelog
 
+## [6.0.0](https://github.com/nvim-neorg/neorg/compare/v5.0.0...v6.0.0) (2023-09-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* adapt to new injection syntax for treesitter
+* **codebase:** make the `neorg` object local to a `core` module ([#1001](https://github.com/nvim-neorg/neorg/issues/1001))
+
+### Features
+
+* add blank lines between tangled blocks ([#958](https://github.com/nvim-neorg/neorg/issues/958)) ([1c41592](https://github.com/nvim-neorg/neorg/commit/1c41592ec975189c79987aa32228778c111eb67f))
+* **concealer:** add option for opening all folds by default ([#1049](https://github.com/nvim-neorg/neorg/issues/1049)) ([6bfcaeb](https://github.com/nvim-neorg/neorg/commit/6bfcaeb8f36e0e4d2ae52dbde5e18b39d2351d5e))
+* delimit tangle code blocks with file content ([#1014](https://github.com/nvim-neorg/neorg/issues/1014)) ([1809236](https://github.com/nvim-neorg/neorg/commit/18092365b21c73a0478b6bd6d9b3a66fd4b77a36))
+* delimit tangled code blocks with headings ([#981](https://github.com/nvim-neorg/neorg/issues/981)) ([99bfcb1](https://github.com/nvim-neorg/neorg/commit/99bfcb11dc3fbc72c08259d5516738d3a1f7bd11))
+* **document.meta:** indent items of incomplete lists/objects for nicer writing experience ([92f2e9d](https://github.com/nvim-neorg/neorg/commit/92f2e9d4a7bfdbb7ed0e9dcd9b8768db63188149))
+* **esupports.hop:** add open mode for external link target ([#1072](https://github.com/nvim-neorg/neorg/issues/1072)) ([851a3a2](https://github.com/nvim-neorg/neorg/commit/851a3a2b3cea5335fca233273d3c8861a017da14))
+* **esupports.hop:** support `os_open_link` for WSL ([#963](https://github.com/nvim-neorg/neorg/issues/963)) ([628ba9f](https://github.com/nvim-neorg/neorg/commit/628ba9f58e02db6b2818f68b62a1499c22eb9cd4))
+* **esupports:** use `wslview` to open `wsl2` files ([#1038](https://github.com/nvim-neorg/neorg/issues/1038)) ([20502e5](https://github.com/nvim-neorg/neorg/commit/20502e50e9087248f6f8ed8d29fae9c849c1c77f))
+* **itero:** allow fallback keys for when there is no object to iterate ([ba2899d](https://github.com/nvim-neorg/neorg/commit/ba2899d6580706cbf727720db2765aead9d342de))
+* **keybinds:** allow `core.itero.next-iteration` to fall back to a specific key ([51ca15b](https://github.com/nvim-neorg/neorg/commit/51ca15b13e9a7b107bef54c9bed94b5863b9c5d5))
+* **metagen:** allow falling back to the default template functions ([#1079](https://github.com/nvim-neorg/neorg/issues/1079)) ([8200ebc](https://github.com/nvim-neorg/neorg/commit/8200ebc5a5730a14efa2e47751a43539c8a16fb5))
+* **metagen:** more precise timestamp with HH:MM:SS and timezone ([#1052](https://github.com/nvim-neorg/neorg/issues/1052)) ([a8f7a9e](https://github.com/nvim-neorg/neorg/commit/a8f7a9eeef5c22eac626e7533eeee0ac9def72ad))
+
+
+### Bug Fixes
+
+* `:h neorg` not working as intended ([0b3df86](https://github.com/nvim-neorg/neorg/commit/0b3df8633cc1cbb3ffd6f34d4e9073fd6f5083ab))
+* **`:h neorg`:** make link point to correct line in specs ([#1092](https://github.com/nvim-neorg/neorg/issues/1092)) ([e20d032](https://github.com/nvim-neorg/neorg/commit/e20d032ea3c485fc499f4dbc4bf7ce6afd6767ba))
+* `folke/todo-comments.nvim` comments highlighting (again) ([#1094](https://github.com/nvim-neorg/neorg/issues/1094)) ([d8e2c8e](https://github.com/nvim-neorg/neorg/commit/d8e2c8e309c05a7db4ca84fc1216be38cf6a010f))
+* broken configuration merging in modules.lua ([#1062](https://github.com/nvim-neorg/neorg/issues/1062)) ([b4c7935](https://github.com/nvim-neorg/neorg/commit/b4c7935a0e692870f38ff34689fd900de40ea479))
+* **calendar:** call `os.date` twice to generate correct weekday ([#1058](https://github.com/nvim-neorg/neorg/issues/1058)) ([61fb605](https://github.com/nvim-neorg/neorg/commit/61fb60508516b224ec78666187e70074397b37f8))
+* **calendar:** give calendar enough space to render ([#950](https://github.com/nvim-neorg/neorg/issues/950)) ([6fece15](https://github.com/nvim-neorg/neorg/commit/6fece1546d051a5f2a2d932d5978beec1ef920ab))
+* **concealer,indent:** "require'neorg'" missing in v:lua call ([#1010](https://github.com/nvim-neorg/neorg/issues/1010)) ([1d3b425](https://github.com/nvim-neorg/neorg/commit/1d3b4252862cadf80751e0e03463b27a1782ce94))
+* **concealer:** avoid conflict between preset and custom icons ([9a0aab0](https://github.com/nvim-neorg/neorg/commit/9a0aab039b174625bfc4ff708ba32f3fc5713649))
+* **concealer:** do not render missing node ([#1004](https://github.com/nvim-neorg/neorg/issues/1004)) ([08c7d19](https://github.com/nvim-neorg/neorg/commit/08c7d19125f5f8aa36911bfd3ea166b650e05e07))
+* **concealer:** don't rerender at `conceallevel` change when disabled ([#1068](https://github.com/nvim-neorg/neorg/issues/1068)) ([63a7a10](https://github.com/nvim-neorg/neorg/commit/63a7a101387550a220186cab7e85df15635f3356))
+* **concealer:** more precise anticonceal feature detection ([#1056](https://github.com/nvim-neorg/neorg/issues/1056)) ([b0117a4](https://github.com/nvim-neorg/neorg/commit/b0117a40675398cb6b7f0967a52e148d5ddb6f42))
+* **concealer:** revert a wrong fix, make luacheck ignore empty if branch instead (supercedes [#1080](https://github.com/nvim-neorg/neorg/issues/1080)) ([0c82917](https://github.com/nvim-neorg/neorg/commit/0c82917b89a187662cf8c1f5fc3a17153866df9b))
+* **concealer:** tolerate duplicate marks caused by undo during rendering ([#1015](https://github.com/nvim-neorg/neorg/issues/1015)) ([44bb353](https://github.com/nvim-neorg/neorg/commit/44bb3533465d30062b28a334115e37dbbe7e5118))
+* **core:** assign custom field ([4b057ad](https://github.com/nvim-neorg/neorg/commit/4b057ad071f0e395fb1e983c9611913e9b46108f))
+* **dirman:** correctly create nested directory ([#1061](https://github.com/nvim-neorg/neorg/issues/1061)) ([4f0888b](https://github.com/nvim-neorg/neorg/commit/4f0888bdf98f7b1eeb96365aca17aa08ba4a07ea))
+* **docgen:** `neorg.core` not found ([bb29db9](https://github.com/nvim-neorg/neorg/commit/bb29db9320b353da8abdfaebcba74a0a1d6e1a20))
+* **docgen:** inline `esupports.metagen` template function definitions ([#945](https://github.com/nvim-neorg/neorg/issues/945)) ([a993b35](https://github.com/nvim-neorg/neorg/commit/a993b357ab86e153ecd50e2d4b704b8dcffedc1f))
+* don't use deprecated `query.get_node_text()` call ([#1067](https://github.com/nvim-neorg/neorg/issues/1067)) ([7248c34](https://github.com/nvim-neorg/neorg/commit/7248c347704d658daf0fa0a84706c120e92eb1a5))
+* error in loading preventing wiki from generating ([2745ee1](https://github.com/nvim-neorg/neorg/commit/2745ee1371c1029171bb98f2d9fb258e688d2c20))
+* fetched get_language_list from utils ([#1003](https://github.com/nvim-neorg/neorg/issues/1003)) ([3db1001](https://github.com/nvim-neorg/neorg/commit/3db10018e8893aee47f3b5eb9f4d7440f8db5136))
+* **highlights:** always try to attach highlights when triggered ([#1025](https://github.com/nvim-neorg/neorg/issues/1025)) ([31b3bfd](https://github.com/nvim-neorg/neorg/commit/31b3bfddfc1a4e426b41879bdb1a039babc554e3))
+* indents within `document.meta` would not work ([b14334e](https://github.com/nvim-neorg/neorg/commit/b14334e39dcf6d8a6edb18547b7c4580387dce63))
+* issue a more friendly error message when user loads tempus pre-Neovim `0.10.0` ([#1035](https://github.com/nvim-neorg/neorg/issues/1035)) ([333a1fd](https://github.com/nvim-neorg/neorg/commit/333a1fd67aad3dee49305b0278bd59f8ae740f13))
+* **journal:** expand entry path correctly (fixes [#780](https://github.com/nvim-neorg/neorg/issues/780)) ([#995](https://github.com/nvim-neorg/neorg/issues/995)) ([e76f0cb](https://github.com/nvim-neorg/neorg/commit/e76f0cb6b3ae5e990052343ebb73a5c8d8cac783))
+* **journal:** Remove condition from 'toc' subcommand (fixes [#597](https://github.com/nvim-neorg/neorg/issues/597)) ([#996](https://github.com/nvim-neorg/neorg/issues/996)) ([99f33e0](https://github.com/nvim-neorg/neorg/commit/99f33e08fe074126b491e02854e5d00dab10f5ae))
+* **looking-glass:** ensure both the target buffer and the source are loaded before pursuing any operations ([fba064d](https://github.com/nvim-neorg/neorg/commit/fba064db88eae3419d20ce35cf3961d02c355a8f))
+* **maneoeuvre:** `lib` -&gt; `utils` ([0949a4a](https://github.com/nvim-neorg/neorg/commit/0949a4a2816ef19cb19e0ef8d483d3410dd0895a))
+* On close of TOC, only delete buffer if it exists ([#978](https://github.com/nvim-neorg/neorg/issues/978)) ([32bae17](https://github.com/nvim-neorg/neorg/commit/32bae172814611f82e90b696b72cac99ff8de0e9))
+* **presenter:** ensure module.private is not overriden ([#1037](https://github.com/nvim-neorg/neorg/issues/1037)) ([c9dd9f7](https://github.com/nvim-neorg/neorg/commit/c9dd9f7d506717b00e99409e4088e5b739c36b39))
+* replace `get_filetype` with `vim.filetype.match` ([#982](https://github.com/nvim-neorg/neorg/issues/982)) ([4e6dbb1](https://github.com/nvim-neorg/neorg/commit/4e6dbb184442bc33e20ce760f093c07b32ad4128))
+* **summary:** escape ws_root special characters ([#1012](https://github.com/nvim-neorg/neorg/issues/1012)) ([32abc0d](https://github.com/nvim-neorg/neorg/commit/32abc0da29dd5bf4b42d340810b64754fd7a37b8))
+* **tags:** make new tags work with updated neorg help document ([#994](https://github.com/nvim-neorg/neorg/issues/994)) ([3f946f8](https://github.com/nvim-neorg/neorg/commit/3f946f8814a59ac16baaf4bc1dd0f4aca3807736))
+* **tangle:** accessing unused variable ([0f37ab8](https://github.com/nvim-neorg/neorg/commit/0f37ab86ea82838ddd9feeab94986d6d72d0d85a))
+* **toc:** preserve heading hierarchy ([#1053](https://github.com/nvim-neorg/neorg/issues/1053)) ([1c1060f](https://github.com/nvim-neorg/neorg/commit/1c1060f0d187cd0939b05c1310bb58911e84bc22))
+* **ui:** remove possible ui noise caused by user's opts ([68eae35](https://github.com/nvim-neorg/neorg/commit/68eae352bf4b936e667b5eb4d454d4d280d2286d))
+* Update `get_username` call ([#1005](https://github.com/nvim-neorg/neorg/issues/1005)) ([93bf092](https://github.com/nvim-neorg/neorg/commit/93bf092a817df07f75cee578c74b4eabab3b7c87))
+
+
+### Code Refactoring
+
+* adapt to new injection syntax for treesitter ([064f8f6](https://github.com/nvim-neorg/neorg/commit/064f8f65dd32f4fe728e76acfa3e4e153b121147))
+* **codebase:** make the `neorg` object local to a `core` module ([#1001](https://github.com/nvim-neorg/neorg/issues/1001)) ([5706f1e](https://github.com/nvim-neorg/neorg/commit/5706f1efdcf55f273de8f52deeb35375a303be72))
+
 ## [5.0.0](https://github.com/nvim-neorg/neorg/compare/v4.6.0...v5.0.0) (2023-06-07)
 
 
