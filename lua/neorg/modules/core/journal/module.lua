@@ -91,8 +91,6 @@ module.setup = function()
         success = true,
         requires = {
             "core.dirman",
-            "core.keybinds",
-            "core.neorgcmd",
             "core.integrations.treesitter",
         },
     }
@@ -423,27 +421,29 @@ module.load = function()
         module.config.public.strategy = module.config.private.strategies[module.config.public.strategy]
     end
 
-    module.required["core.neorgcmd"].add_commands_from_table({
-        journal = {
-            min_args = 1,
-            max_args = 2,
-            subcommands = {
-                tomorrow = { args = 0, name = "journal.tomorrow" },
-                yesterday = { args = 0, name = "journal.yesterday" },
-                today = { args = 0, name = "journal.today" },
-                custom = { max_args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
-                template = { args = 0, name = "journal.template" },
-                toc = {
-                    args = 1,
-                    name = "journal.toc",
-                    subcommands = {
-                        open = { args = 0, name = "journal.toc.open" },
-                        update = { args = 0, name = "journal.toc.update" },
+    modules.await("core.neorgcmd", function(neorgcmd)
+        neorgcmd.add_commands_from_table({
+            journal = {
+                min_args = 1,
+                max_args = 2,
+                subcommands = {
+                    tomorrow = { args = 0, name = "journal.tomorrow" },
+                    yesterday = { args = 0, name = "journal.yesterday" },
+                    today = { args = 0, name = "journal.today" },
+                    custom = { max_args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
+                    template = { args = 0, name = "journal.template" },
+                    toc = {
+                        args = 1,
+                        name = "journal.toc",
+                        subcommands = {
+                            open = { args = 0, name = "journal.toc.open" },
+                            update = { args = 0, name = "journal.toc.update" },
+                        },
                     },
                 },
             },
-        },
-    })
+        })
+    end)
 end
 
 module.on_event = function(event)

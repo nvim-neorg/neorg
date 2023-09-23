@@ -40,7 +40,6 @@ local module = modules.create("core.itero")
 module.setup = function()
     return {
         requires = {
-            "core.keybinds",
             "core.integrations.treesitter",
         },
     }
@@ -76,7 +75,9 @@ module.config.private = {
 }
 
 module.load = function()
-    module.required["core.keybinds"].register_keybinds(module.name, { "next-iteration", "stop-iteration" })
+    modules.await("core.keybinds", function(keybinds)
+        keybinds.register_keybinds(module.name, { "next-iteration", "stop-iteration" })
+    end)
 end
 
 module.on_event = function(event)

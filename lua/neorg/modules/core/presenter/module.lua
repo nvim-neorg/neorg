@@ -29,18 +29,12 @@ module.setup = function()
             "core.integrations.treesitter",
             "core.ui",
             "core.mode",
-            "core.keybinds",
-            "core.neorgcmd",
         },
     }
 end
 
 module.load = function()
     local error_loading = false
-
-    ---@type core.keybinds
-    ---@diagnostic disable-next-line: unused-local
-    local keybinds = module.required["core.keybinds"]
 
     if module.config.public.zen_mode == "truezen" then
         modules.load_module("core.integrations.truezen")
@@ -55,18 +49,22 @@ module.load = function()
         return
     end
 
-    keybinds.register_keybinds(module.name, { "next_page", "previous_page", "close" })
-    -- Add neorgcmd capabilities
-    module.required["core.neorgcmd"].add_commands_from_table({
-        presenter = {
-            args = 1,
-            condition = "norg",
-            subcommands = {
-                start = { args = 0, name = "presenter.start" },
-                close = { args = 0, name = "presenter.close" },
+    modules.await("core.keybinds", function(keybinds)
+        keybinds.register_keybinds(module.name, { "next_page", "previous_page", "close" })
+    end)
+
+    modules.await("core.neorgcmd", function(neorgcmd)
+        neorgcmd.add_commands_from_table({
+            presenter = {
+                args = 1,
+                condition = "norg",
+                subcommands = {
+                    start = { args = 0, name = "presenter.start" },
+                    close = { args = 0, name = "presenter.close" },
+                },
             },
-        },
-    })
+        })
+    end)
 end
 
 module.config.public = {

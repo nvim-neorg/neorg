@@ -44,7 +44,7 @@ module.private = {
 }
 
 module.setup = function()
-    return { success = true, requires = { "core.highlights", "core.mode", "core.keybinds", "core.neorgcmd" } }
+    return { success = true, requires = { "core.highlights", "core.mode" } }
 end
 
 module.load = function()
@@ -65,12 +65,14 @@ module.load = function()
             install_info = module.config.public.parser_configs.norg_meta,
         }
 
-        module.required["core.neorgcmd"].add_commands_from_table({
-            ["sync-parsers"] = {
-                args = 0,
-                name = "sync-parsers",
-            },
-        })
+        modules.await("core.neorgcmd", function(neorgcmd)
+            neorgcmd.add_commands_from_table({
+                ["sync-parsers"] = {
+                    args = 0,
+                    name = "sync-parsers",
+                },
+            })
+        end)
 
         -- luacheck: pop
 
@@ -100,10 +102,9 @@ module.load = function()
     module.private.ts_utils = ts_utils
 
     module.required["core.mode"].add_mode("traverse-heading")
-    module.required["core.keybinds"].register_keybinds(
-        module.name,
-        { "next.heading", "previous.heading", "next.link", "previous.link" }
-    )
+    modules.await("core.keybinds", function(keybinds)
+        keybinds.register_keybinds(module.name, { "next.heading", "previous.heading", "next.link", "previous.link" })
+    end)
 end
 
 module.config.public = {

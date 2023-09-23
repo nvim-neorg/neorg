@@ -30,7 +30,6 @@ module.setup = function()
     return {
         success = true,
         requires = {
-            "core.keybinds",
             "core.integrations.treesitter",
             "core.ui",
         },
@@ -38,7 +37,9 @@ module.setup = function()
 end
 
 module.load = function()
-    module.required["core.keybinds"].register_keybind(module.name, "magnify-code-block")
+    modules.await("core.keybinds", function(keybinds)
+        keybinds.register_keybind(module.name, "magnify-code-block")
+    end)
 end
 
 module.public = {

@@ -174,23 +174,25 @@ module.setup = function()
 end
 
 module.load = function()
-    module.required["core.neorgcmd"].add_commands_from_table({
-        tangle = {
-            args = 1,
-            condition = "norg",
+    modules.await("core.neorgcmd", function(neorgcmd)
+        neorgcmd.add_commands_from_table({
+            tangle = {
+                args = 1,
+                condition = "norg",
 
-            subcommands = {
-                ["current-file"] = {
-                    args = 0,
-                    name = "core.tangle.current-file",
+                subcommands = {
+                    ["current-file"] = {
+                        args = 0,
+                        name = "core.tangle.current-file",
+                    },
+                    -- directory = {
+                    --     max_args = 1,
+                    --     name = "core.tangle.directory",
+                    -- }
                 },
-                -- directory = {
-                --     max_args = 1,
-                --     name = "core.tangle.directory",
-                -- }
             },
-        },
-    })
+        })
+    end)
 end
 
 local function get_comment_string(language)

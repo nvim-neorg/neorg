@@ -105,7 +105,7 @@ local function fill_template_defaults()
 end
 
 module.setup = function()
-    return { requires = { "core.autocommands", "core.keybinds", "core.integrations.treesitter" } }
+    return { requires = { "core.autocommands", "core.integrations.treesitter" } }
 end
 
 module.config.public = {

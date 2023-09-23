@@ -24,19 +24,20 @@ local module = modules.create("core.summary")
 module.setup = function()
     return {
         sucess = true,
-        requires = { "core.neorgcmd", "core.integrations.treesitter" },
+        requires = { "core.integrations.treesitter" },
     }
 end
 
 module.load = function()
-    module.required["core.neorgcmd"].add_commands_from_table({
-        ["generate-workspace-summary"] = {
-            args = 0,
-            condition = "norg",
-            name = "summary.summarize",
-        },
-    })
-
+    modules.await("core.neorgcmd", function(neorgcmd)
+        neorgcmd.add_commands_from_table({
+            ["generate-workspace-summary"] = {
+                args = 0,
+                condition = "norg",
+                name = "summary.summarize",
+            },
+        })
+    end)
     local ts = module.required["core.integrations.treesitter"]
 
     module.config.public.strategy = lib.match(module.config.public.strategy)({

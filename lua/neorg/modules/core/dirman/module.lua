@@ -44,7 +44,7 @@ local module = modules.create("core.dirman")
 module.setup = function()
     return {
         success = true,
-        requires = { "core.autocommands", "core.neorgcmd", "core.keybinds", "core.ui", "core.storage" },
+        requires = { "core.autocommands", "core.ui", "core.storage" },
     }
 end
 
@@ -54,17 +54,21 @@ module.load = function()
         module.config.public.workspaces[name] = vim.fn.expand(workspace_location)
     end
 
-    module.required["core.keybinds"].register_keybind(module.name, "new.note")
+    modules.await("core.keybinds", function(keybinds)
+        keybinds.register_keybind(module.name, "new.note")
+    end)
 
     -- Used to detect when we've entered a buffer with a potentially different cwd
     module.required["core.autocommands"].enable_autocommand("BufEnter", true)
 
-    module.required["core.neorgcmd"].add_commands_from_table({
-        index = {
-            args = 0,
-            name = "dirman.index",
-        },
-    })
+    modules.await("core.neorgcmd", function(neorgcmd)
+        neorgcmd.add_commands_from_table({
+            index = {
+                args = 0,
+                name = "dirman.index",
+            },
+        })
+    end)
 
     -- Synchronize core.neorgcmd autocompletions
     module.public.sync()
@@ -251,13 +255,15 @@ module.public = {
         local workspace_names = module.public.get_workspace_names()
 
         -- Add the command to core.neorgcmd so it can be used by the user!
-        module.required["core.neorgcmd"].add_commands_from_table({
-            workspace = {
-                max_args = 1,
-                name = "dirman.workspace",
-                complete = { workspace_names },
-            },
-        })
+        modules.await("core.neorgcmd", function(neorgcmd)
+            neorgcmd.add_commands_from_table({
+                workspace = {
+                    max_args = 1,
+                    name = "dirman.workspace",
+                    complete = { workspace_names },
+                },
+            })
+        end)
     end,
     --- Takes in a path (can include directories) and creates a .norg file from that path
     ---@param path string a path to place the .norg file in

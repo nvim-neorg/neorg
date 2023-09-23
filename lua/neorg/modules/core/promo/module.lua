@@ -34,24 +34,25 @@ module.setup = function()
         success = true,
         requires = {
             "core.integrations.treesitter",
-            "core.keybinds",
         },
     }
 end
 
 module.load = function()
-    module.required["core.keybinds"].register_keybinds(
-        module.name,
-        (function()
-            local keys = vim.tbl_keys(module.events.subscribed["core.keybinds"])
+    modules.await("core.keybinds", function(keybinds)
+        keybinds.register_keybinds(
+            module.name,
+            (function()
+                local keys = vim.tbl_keys(module.events.subscribed["core.keybinds"])
 
-            for i, key in ipairs(keys) do
-                keys[i] = key:sub(module.name:len() + 2)
-            end
+                for i, key in ipairs(keys) do
+                    keys[i] = key:sub(module.name:len() + 2)
+                end
 
-            return keys
-        end)()
-    )
+                return keys
+            end)()
+        )
+    end)
 end
 
 module.private = {

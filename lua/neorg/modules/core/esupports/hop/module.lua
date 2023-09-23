@@ -20,7 +20,6 @@ module.setup = function()
     return {
         success = true,
         requires = {
-            "core.keybinds",
             "core.integrations.treesitter",
             "core.ui",
             "core.dirman.utils",
@@ -29,7 +28,9 @@ module.setup = function()
 end
 
 module.load = function()
-    module.required["core.keybinds"].register_keybind(module.name, "hop-link")
+    modules.await("core.keybinds", function(keybinds)
+        keybinds.register_keybind(module.name, "hop-link")
+    end)
 end
 
 module.config.public = {
