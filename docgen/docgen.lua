@@ -595,17 +595,15 @@ docgen.render = function(configuration_option, open)
         "* <details" .. (open and " open>" or ">"),
         "",
         ((self.data.name or ""):match("^%s*$") and "<summary>" or table.concat({
-            "<summary><code>",
+            "<summary><h6><code>",
             self.data.name,
-            "</code>",
+            "</h6></code>",
         })) .. " (" .. type_of_object .. ")</summary>",
         "",
     }
 
     if not vim.tbl_isempty(self.comments) then
         vim.list_extend(basis, {
-            "<h6>",
-            "",
             "<div>",
             "",
         })
@@ -614,8 +612,6 @@ docgen.render = function(configuration_option, open)
         vim.list_extend(basis, {
             "",
             "</div>",
-            "",
-            "</h6>",
             "",
         })
     else
