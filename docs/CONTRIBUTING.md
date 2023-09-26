@@ -11,6 +11,7 @@ Whilst any help is very special, please be considerate of certain rules in order
   - [Formatting rules](#formatting-rules)
   - [Coding style](#coding-style)
   - [Adding extra functionality](#adding-functionality)
+  - [Helping with documentation](#helping-with-documentation)
 ---
 
 ### Reporting a bug or issue
@@ -48,3 +49,11 @@ TODO: Make this reference our new "top comment" style.
 ## Adding functionality
 Whenever you are planning on extending neorg, try your best to add *all* extra functionality through modules and modules only. Make changes to the Neorg core only if absolutely necessary.
 When adding stuff, use lua only. `vim.cmd` in extreme cases :)
+
+## Helping with documentation
+Like mentioned above, the documentation (wiki) is generated via [neogen](https://github.com/danymat/neogen) using comments in the code.
+If you feel like improving the documentation, please make changes to the corresponding file.
+
+For example, to make changes to the `core.qol.todo_items` documentation, please make changes to the comments in `./lua/neorg/modules/core/qol/todo_items/module.lua`
+
+> Tips: `grep` for the string you want to find.
