@@ -14,27 +14,22 @@ module.private = {
 }
 
 module.public = {
-	render = function(buffernr, png_path, position)
+	render = function(buffernr, png_path, position, window)
         local geometry =
         {
             x = position.column_start + vim.opt.numberwidth:get(),
-            y = position.row_start+1,
+            y = position.row_start + 1,
             width = position.column_end - position.column_start,
             height = 1,
         }
 		image = require("image").from_file(png_path, {
+            window = window,
 			buffer = buffernr,
             with_virtual_padding = true,
+            -- geometry = geometry
 		})
-		image:render(geometry) --geometry)
-	end,
-    clear = function()
-        if not image then
-            return
-        end
-        image:clear()
-    end
+		image:render(geometry)
+	end
 }
 
 return module
--- local renderer = neorg.modules.get_module(module.core.integrations.image)
