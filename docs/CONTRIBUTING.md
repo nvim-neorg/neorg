@@ -51,7 +51,7 @@ Whenever you are planning on extending neorg, try your best to add *all* extra f
 When adding stuff, use lua only. `vim.cmd` in extreme cases :)
 
 ## Helping with documentation
-The documentations (wiki pages) are generated based on the comments in the code. And all the settings in generating the wiki are in [`docgen/`](../docgen/).
+The documentations (wiki pages) are generated based on the comments in the code. All the logic for generating the wiki is in [`docgen/`](../docgen/).
 To generate documentations locally, run `make local-documentation` (see [`Makefile`](../Makefile) for more details). If there's no error, you should then see a `wiki/` folder generated.
 
 If you feel like improving the documentation, please make changes to the corresponding comments in the correct file. For example, to make changes to the `core.qol.todo_items` documentation, please make changes to the comments in [`./lua/neorg/modules/core/qol/todo_items/module.lua`](../lua/neorg/modules/core/qol/todo_items/module.lua)
