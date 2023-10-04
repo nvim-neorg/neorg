@@ -470,4 +470,3 @@ module.events.subscribed = {
 }
 
 return module
-
