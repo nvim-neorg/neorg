@@ -22,7 +22,8 @@ any of the above keys to toggle the state of that particular item.
 Parent items of the same type and children items of the same type are update accordingly.
 
 ## Changing Keybinds
-Please refer to the [`core.keybinds`](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds#setting-up-a-keybind-hook) module
+
+To change the existing keybinds please refer to the [`core.keybinds`](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds#setting-up-a-keybind-hook) module!
 --]]
 
 local neorg = require("neorg.core")
