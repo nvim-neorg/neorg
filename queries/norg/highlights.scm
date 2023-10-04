@@ -248,7 +248,7 @@
   (#set! priority 300))
 
 ; Comments
-(inline_comment) @comment
+; (inline_comment) @comment
 
 ; Conceals
 (
