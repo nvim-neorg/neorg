@@ -399,7 +399,7 @@ module.public = {
     end,
 }
 
-module.on_event = function(event)
+module.on_event = neorg.utils.wrap_dotrepeat(function(event)
     local todo_str = "core.qol.todo_items.todo."
 
     if event.split_type[1] == "core.keybinds" then
@@ -446,7 +446,7 @@ module.on_event = function(event)
             )
         end
     end
-end
+end)
 
 module.events.subscribed = {
     ["core.keybinds"] = {
