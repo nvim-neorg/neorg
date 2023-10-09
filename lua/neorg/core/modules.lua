@@ -14,7 +14,7 @@ local utils = require("neorg.core.utils")
 local modules = {}
 
 --- Returns a new Neorg module, exposing all the necessary function and variables
----@param name string #The name of the new mod/home/groctel/Documents/Git/Vim/neorg/lua/modules.luaule. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
+---@param name string #The name of the new module. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
 ---@param imports? string[] #A list of imports to attach to the module. Import data is requestable via `module.required`. Use paths relative to the current module.
 function modules.create(name, imports)
     local new_module = {
