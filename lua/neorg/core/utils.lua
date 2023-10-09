@@ -190,9 +190,9 @@ function utils.wrap_dotrepeat(event_handler)
         utils._neorg_is_dotrepeat = false
         utils.set_operatorfunc(function()
             if utils._neorg_is_dotrepeat then
-                local pos = vim.fn.getpos('.')
+                local pos = vim.fn.getpos(".")
                 event.buffer = pos[1]
-                event.cursor_position = {pos[2], pos[3]}
+                event.cursor_position = { pos[2], pos[3] }
             end
             utils._neorg_is_dotrepeat = true
             event_handler(event)
