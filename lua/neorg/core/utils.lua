@@ -179,4 +179,26 @@ function utils.read_files(files, callback)
     end
 end
 
+-- following https://gist.github.com/kylechui/a5c1258cd2d86755f97b10fc921315c3
+function utils.set_operatorfunc(f)
+    utils._neorg_operatorfunc = f
+    vim.go.operatorfunc = "v:lua.require'neorg'.utils._neorg_operatorfunc"
+end
+
+function utils.wrap_dotrepeat(event_handler)
+    return function(event)
+        utils._neorg_is_dotrepeat = false
+        utils.set_operatorfunc(function()
+            if utils._neorg_is_dotrepeat then
+                local pos = vim.fn.getpos('.')
+                event.buffer = pos[1]
+                event.cursor_position = {pos[2], pos[3]}
+            end
+            utils._neorg_is_dotrepeat = true
+            event_handler(event)
+        end)
+        vim.cmd("normal! g@l")
+    end
+end
+
 return utils
