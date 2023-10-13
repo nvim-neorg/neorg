@@ -187,6 +187,11 @@ end
 
 function utils.wrap_dotrepeat(event_handler)
     return function(event)
+        if vim.api.nvim_get_mode().mode == "i" then
+            event_handler(event)
+            return
+        end
+
         utils._neorg_is_dotrepeat = false
         utils.set_operatorfunc(function()
             if utils._neorg_is_dotrepeat then
