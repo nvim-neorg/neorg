@@ -59,6 +59,19 @@ There are a couple of ways that may help determine if terminal support is limiti
 > #### Check that highlight groups are getting assigned correctly and have an appropriate definition
 >
 > See [Tree-sitter](#tree-sitter) and [Colorschemes](#colorschemes) for this.
+>
+>
+> #### Ensure your fonts support bold/italic/underline
+> 
+> Usually terminal emulators automatically set up bold/italic/underline fonts, but these sometimes may fail.
+> Kitty is the most popularly used terminal emulator and some fonts are known to not have detectable "auto" bold fonts (for example Source Code Pro).
+> To fix this, go to your terminal emulator's configuration and manually set the bold and italic fonts (e.g. `Source Code Pro Bold` and `Source Code Pro Italic`).
+> For kitty, this means:
+> ```
+> bold_font        Source Code Pro Bold
+> italic_font      Source Code Pro Italic
+> bold_italic_font auto
+> ```
 
 
 ## Tree-sitter
