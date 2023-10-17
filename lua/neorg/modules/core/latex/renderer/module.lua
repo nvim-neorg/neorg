@@ -32,7 +32,6 @@ end
 
 module.public = {
     latex_renderer = function()
-
         local renderer = neorg.modules.get_module(module.config.public.renderer)
 
         if not renderer then
@@ -57,7 +56,8 @@ module.public = {
                     return
                 end
 
-                local latex_snippet = module.required["core.integrations.treesitter"].get_node_text(node, vim.api.nvim_get_current_buf())
+                local latex_snippet =
+                    module.required["core.integrations.treesitter"].get_node_text(node, vim.api.nvim_get_current_buf())
 
                 local png_location = module.public.parse_latex(latex_snippet)
 
@@ -71,7 +71,7 @@ module.public = {
             end
         )
     end,
-    latex_clearer = function ()
+    latex_clearer = function()
         local clearer = neorg.modules.get_module(module.config.public.renderer)
 
         if not clearer then
@@ -128,12 +128,12 @@ module.public = {
         vim.fn.jobwait({
             vim.fn.jobstart(
                 "dvipng -D "
-                .. tostring(module.config.public.dpi)
-                .. " -T tight -bg Transparent -fg 'cmyk 0.00 0.04 0.21 0.02' -o "
-                .. png_result
-                .. " "
-                .. document_name
-                .. ".dvi",
+                    .. tostring(module.config.public.dpi)
+                    .. " -T tight -bg Transparent -fg 'cmyk 0.00 0.04 0.21 0.02' -o "
+                    .. png_result
+                    .. " "
+                    .. document_name
+                    .. ".dvi",
                 { cwd = vim.fn.fnamemodify(document_name, ":h") }
             ),
         })
@@ -150,17 +150,16 @@ module.config.public = {
 }
 
 local function render_latex()
-   neorg.modules.get_module('core.latex.renderer').latex_renderer()
+    neorg.modules.get_module("core.latex.renderer").latex_renderer()
 end
 
 local function clear_latex()
-   neorg.modules.get_module('core.latex.renderer').latex_clearer()
+    neorg.modules.get_module("core.latex.renderer").latex_clearer()
 end
 
 local event_handlers = {
     ["core.neorgcmd.events.core.latex.renderer.render"] = render_latex,
     ["core.autocommands.events.bufwinenter"] = render_latex,
-
     ["core.autocommands.events.textchanged"] = clear_latex,
     ["core.autocommands.events.textchangedi"] = clear_latex,
     ["core.autocommands.events.textchangedp"] = clear_latex,
