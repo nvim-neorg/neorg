@@ -4,11 +4,21 @@ local modules = neorg.modules
 
 module.setup = function()
     return {
-        requires = { "core.integrations.treesitter" },
+        requires = {
+            "core.integrations.treesitter",
+            "core.autocommands",
+            "core.neorgcmd",
+        },
     }
 end
 
 module.load = function()
+    module.required["core.autocommands"].enable_autocommand("BufWinEnter")
+    module.required["core.autocommands"].enable_autocommand("TextChanged")
+    module.required["core.autocommands"].enable_autocommand("TextChangedI")
+    module.required["core.autocommands"].enable_autocommand("TextChangedP")
+    module.required["core.autocommands"].enable_autocommand("TextChangedT")
+
     modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             ["render-latex"] = {
@@ -22,6 +32,15 @@ end
 
 module.public = {
     latex_renderer = function()
+
+        local renderer = neorg.modules.get_module(module.config.public.renderer)
+
+        if not renderer then
+            return
+        end
+
+        renderer.clear()
+
         module.required["core.integrations.treesitter"].execute_query(
             [[
                 (
@@ -42,20 +61,24 @@ module.public = {
 
                 local png_location = module.public.parse_latex(latex_snippet)
 
-                local renderer = neorg.modules.get_module(module.config.public.renderer)
-
-                if not renderer then
-                    return
-                end
-
                 renderer.render(
                     vim.api.nvim_get_current_buf(),
                     png_location,
                     module.required["core.integrations.treesitter"].get_node_range(node),
-                    vim.api.nvim_get_current_win()
+                    vim.api.nvim_get_current_win(),
+                    module.config.public.scale
                 )
             end
         )
+    end,
+    latex_clearer = function ()
+        local clearer = neorg.modules.get_module(module.config.public.renderer)
+
+        if not clearer then
+            return
+        end
+
+        clearer.clear()
     end,
     create_latex_document = function(snippet)
         local tempname = vim.fn.tempname()
@@ -123,21 +146,43 @@ module.config.public = {
     -- TODO: Documentation
     renderer = "core.integrations.image",
     dpi = 350,
+    scale = 1,
 }
 
 local function render_latex()
    neorg.modules.get_module('core.latex.renderer').latex_renderer()
 end
 
+local function clear_latex()
+   neorg.modules.get_module('core.latex.renderer').latex_clearer()
+end
+
 local event_handlers = {
-    ["core.neorgcmd.events.core.latex.renderer.render"] = render_latex
+    ["core.neorgcmd.events.core.latex.renderer.render"] = render_latex,
+    ["core.autocommands.events.bufwinenter"] = render_latex,
+
+    ["core.autocommands.events.textchanged"] = clear_latex,
+    ["core.autocommands.events.textchangedi"] = clear_latex,
+    ["core.autocommands.events.textchangedp"] = clear_latex,
+    ["core.autocommands.events.textchangedt"] = clear_latex,
 }
 
 module.on_event = function(event)
+    if event.referrer == "core.autocommands" and vim.bo[event.buffer].ft ~= "norg" then
+        return
+    end
+
     return event_handlers[event.type](event)
 end
 
 module.events.subscribed = {
+    ["core.autocommands"] = {
+        bufwinenter = true,
+        textchanged = true,
+        textchangedi = true,
+        textchangedp = true,
+        textchangedt = true,
+    },
     ["core.neorgcmd"] = {
         ["core.latex.renderer.render"] = true,
     },

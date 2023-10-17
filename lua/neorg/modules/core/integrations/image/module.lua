@@ -14,22 +14,27 @@ module.private = {
 }
 
 module.public = {
-	render = function(buffernr, png_path, position, window)
+	render = function(buffernr, png_path, position, window, scale)
         local geometry =
         {
             x = position.column_start + vim.opt.numberwidth:get(),
             y = position.row_start + 1,
             width = position.column_end - position.column_start,
-            height = 1,
+            height = scale,
         }
-		image = require("image").from_file(png_path, {
+		local image = require("image").from_file(png_path, {
             window = window,
 			buffer = buffernr,
             with_virtual_padding = true,
-            -- geometry = geometry
 		})
 		image:render(geometry)
-	end
+	end,
+    clear = function()
+        local images = require("image").get_images()
+        for _, v in pairs(images) do
+            v:clear()
+        end
+    end
 }
 
 return module
