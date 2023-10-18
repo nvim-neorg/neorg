@@ -20,6 +20,10 @@ The following keybinds are exposed:
 With your cursor on a line that contains an item with a TODO attribute, press
 any of the above keys to toggle the state of that particular item.
 Parent items of the same type and children items of the same type are update accordingly.
+
+## Changing Keybinds
+
+To change the existing keybinds please refer to the [`core.keybinds`](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds#setting-up-a-keybind-hook) module!
 --]]
 
 local neorg = require("neorg.core")
@@ -96,7 +100,7 @@ module.config.public = {
     -- - Test Item
     -- ```
     -- With this option set to true, performing an operation (like pressing `<C-space>`
-    -- or `gtu` or what have you) will convert the non-todo item into one:
+    -- or what have you) will convert the non-todo item into one:
     -- ```norg
     -- - ( ) Test Item
     -- ```
@@ -401,7 +405,7 @@ module.public = {
     end,
 }
 
-module.on_event = function(event)
+module.on_event = neorg.utils.wrap_dotrepeat(function(event)
     local todo_str = "core.qol.todo_items.todo."
 
     if event.split_type[1] == "core.keybinds" then
@@ -448,7 +452,7 @@ module.on_event = function(event)
             )
         end
     end
-end
+end)
 
 module.events.subscribed = {
     ["core.keybinds"] = {
