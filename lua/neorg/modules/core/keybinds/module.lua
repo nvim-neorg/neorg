@@ -33,6 +33,7 @@ to finely control what gets set and where:
         hook = function(keybinds)
             -- Unmaps any Neorg key from the `norg` mode
             keybinds.unmap("norg", "n", "gtd")
+            keybinds.unmap("norg", "n", keybinds.leader .. "nn")
 
             -- Binds the `gtd` key in `norg` mode to execute `:echo 'Hello'`
             keybinds.map("norg", "n", "gtd", "<cmd>echo 'Hello!'<CR>")
