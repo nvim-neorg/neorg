@@ -13,7 +13,12 @@ module.setup = function()
 end
 
 module.load = function()
+    Image = neorg.modules.get_module(module.config.public.renderer)
+    if not Image then
+        return
+    end
     module.required["core.autocommands"].enable_autocommand("BufWinEnter")
+    module.required["core.autocommands"].enable_autocommand("CursorMoved")
     module.required["core.autocommands"].enable_autocommand("TextChanged")
     module.required["core.autocommands"].enable_autocommand("TextChangedI")
     module.required["core.autocommands"].enable_autocommand("TextChangedP")
@@ -32,14 +37,6 @@ end
 
 module.public = {
     latex_renderer = function()
-        local renderer = neorg.modules.get_module(module.config.public.renderer)
-
-        if not renderer then
-            return
-        end
-
-        renderer.clear()
-
         module.required["core.integrations.treesitter"].execute_query(
             [[
                 (
@@ -61,7 +58,7 @@ module.public = {
 
                 local png_location = module.public.parse_latex(latex_snippet)
 
-                renderer.render(
+                Image.new_image(
                     vim.api.nvim_get_current_buf(),
                     png_location,
                     module.required["core.integrations.treesitter"].get_node_range(node),
@@ -70,15 +67,7 @@ module.public = {
                 )
             end
         )
-    end,
-    latex_clearer = function()
-        local clearer = neorg.modules.get_module(module.config.public.renderer)
-
-        if not clearer then
-            return
-        end
-
-        clearer.clear()
+        Images = Image.get_images()
     end,
     create_latex_document = function(snippet)
         local tempname = vim.fn.tempname()
@@ -150,16 +139,23 @@ module.config.public = {
 }
 
 local function render_latex()
+    Image.clear(Images)
     neorg.modules.get_module("core.latex.renderer").latex_renderer()
 end
 
 local function clear_latex()
-    neorg.modules.get_module("core.latex.renderer").latex_clearer()
+    Image.clear(Images)
+end
+
+local function clear_at_cursor()
+    Image.render(Images)
+    Image.clear_at_cursor(Images, vim.api.nvim_win_get_cursor(0)[1])
 end
 
 local event_handlers = {
     ["core.neorgcmd.events.core.latex.renderer.render"] = render_latex,
     ["core.autocommands.events.bufwinenter"] = render_latex,
+    ["core.autocommands.events.cursormoved"] = clear_at_cursor,
     ["core.autocommands.events.textchanged"] = clear_latex,
     ["core.autocommands.events.textchangedi"] = clear_latex,
     ["core.autocommands.events.textchangedp"] = clear_latex,
@@ -177,6 +173,7 @@ end
 module.events.subscribed = {
     ["core.autocommands"] = {
         bufwinenter = true,
+        cursormoved = true,
         textchanged = true,
         textchangedi = true,
         textchangedp = true,
