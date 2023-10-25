@@ -34,6 +34,19 @@ To query the current workspace, run `:Neorg workspace`. To set the workspace, ru
 ### Changing the Current Working Directory
 After a recent update `core.dirman` will no longer change the current working directory after switching
 workspace. To get the best experience it's recommended to set the `autochdir` Neovim option.
+
+
+### Create a new note
+You can use dirman to create new notes in your workspaces.
+
+```lua
+local dirman = require('neorg').modules.get_module("core.dirman")
+dirman.create_file("my_file", "my_ws", {
+    no_open  = false,  -- open file after creation?
+    force    = false,  -- overwrite file if exists
+    metadata = {}      -- key-value table for metadata fields
+})
+```
 --]]
 
 local neorg = require("neorg.core")
@@ -272,6 +285,8 @@ module.public = {
     ---  - opts.no_open (bool) if true, will not open the file in neovim after creating it
     ---  - opts.force (bool) if true, will overwrite existing file content
     ---  - opts.metadata (table) Table of metadata data, overrides defaults if present
+    ---    - the table is a key-value table where the key correspondes to a metadata field,
+    ---      and the value is either a string or a function returning a string.
     create_file = function(path, workspace, opts)
         opts = opts or {}
 
