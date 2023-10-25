@@ -271,6 +271,7 @@ module.public = {
     ---@param opts? table additional options
     ---  - opts.no_open (bool) if true, will not open the file in neovim after creating it
     ---  - opts.force (bool) if true, will overwrite existing file content
+    ---  - opts.metadata (table) Table of metadata data, overrides defaults if present
     create_file = function(path, workspace, opts)
         opts = opts or {}
 
@@ -308,20 +309,33 @@ module.public = {
             fname = fname .. ".norg"
         end
 
+        -- Create the file
+        local fd = vim.loop.fs_open(fname, opts.force and "w" or "a", 438)
+
+        if fd then
+            vim.loop.fs_close(fd)
+        end
+
         if opts.no_open then
-            -- Create the file
-            local fd = vim.loop.fs_open(fname, opts.force and "w" or "a", 438)
-
-            if fd then
-                vim.loop.fs_close(fd)
-            end
-
-            return
+            -- new tab for easy closing again
+            vim.cmd("tabnew")
         end
 
         -- Begin editing that newly created file
-        vim.cmd("e " .. fname .. " | w")
+        vim.cmd("e " .. fname)
+
+        local metagen = neorg.modules.get_module("core.esupports.metagen")
+        if opts.metadata and metagen then
+            metagen.write_metadata(0, true, opts.metadata)
+        end
+
+        vim.cmd("w")
+
+        if opts.no_open then
+            vim.cmd("tabclose")
+        end
     end,
+
     --- Takes in a workspace name and a path for a file and opens it
     ---@param workspace_name string #The name of the workspace to use
     ---@param path string #A path to open the file (e.g directory/filename.norg)
