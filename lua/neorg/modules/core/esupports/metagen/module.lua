@@ -185,10 +185,18 @@ module.public = {
         }
     end,
 
-    --- Creates the metadata contents from the configuration's template.
+    --- Constructs the metadata contents from the configuration's template.
     ---@param buf number #The buffer to query potential data from
     ---@return table #A table of strings that can be directly piped to `nvim_buf_set_lines`
     construct_metadata = function(buf)
+        return module.public.create_metadata(buf, {})
+    end,
+
+    --- Creates the metadata contents from the provided metadata table (defaulting to the configuration's template).
+    ---@param buf number #The buffer to query potential data from
+    ---@param metadata table #Table of metadata data, overrides defaults if present
+    ---@return table #A table of strings that can be directly piped to `nvim_buf_set_lines`
+    create_metadata = function(buf, metadata)
         local template = module.config.public.template
         local whitespace = type(module.config.public.tab) == "function" and module.config.public.tab()
             or module.config.public.tab
@@ -200,6 +208,10 @@ module.public = {
         }
 
         for _, data in ipairs(template) do
+            if metadata and metadata[data[1]] then
+                -- override with data from metadata table
+                data = { data[1], metadata[data[1]] }
+            end
             table.insert(
                 result,
                 whitespace .. data[1] .. delimiter .. tostring(type(data[2]) == "function" and data[2]() or data[2])
