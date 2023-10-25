@@ -194,7 +194,9 @@ module.public = {
 
     --- Creates the metadata contents from the provided metadata table (defaulting to the configuration's template).
     ---@param buf number #The buffer to query potential data from
-    ---@param metadata table #Table of metadata data, overrides defaults if present
+    ---@param metadata table #Table of metadata, overrides defaults if present
+    ---  - the table is a key-value table where the key correspondes to a metadata field,
+    ---    and the value is either a string or a function returning a string.
     ---@return table #A table of strings that can be directly piped to `nvim_buf_set_lines`
     create_metadata = function(buf, metadata)
         local template = module.config.public.template
