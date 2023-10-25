@@ -311,28 +311,19 @@ module.public = {
 
         -- Create the file
         local fd = vim.loop.fs_open(fname, opts.force and "w" or "a", 438)
-
         if fd then
             vim.loop.fs_close(fd)
         end
 
-        if opts.no_open then
-            -- new tab for easy closing again
-            vim.cmd("tabnew")
-        end
-
-        -- Begin editing that newly created file
-        vim.cmd("e " .. fname)
-
         local metagen = neorg.modules.get_module("core.esupports.metagen")
         if opts.metadata and metagen then
-            metagen.write_metadata(0, true, opts.metadata)
+			local bufnr = module.public.get_file_bufnr(fname)
+            metagen.write_metadata(bufnr, true, opts.metadata)
         end
 
-        vim.cmd("w")
-
-        if opts.no_open then
-            vim.cmd("tabclose")
+        if not opts.no_open then
+			-- Begin editing that newly created file
+			vim.cmd("e " .. fname .. "| w")
         end
     end,
 
