@@ -317,13 +317,13 @@ module.public = {
 
         local metagen = neorg.modules.get_module("core.esupports.metagen")
         if opts.metadata and metagen then
-			local bufnr = module.public.get_file_bufnr(fname)
+            local bufnr = module.public.get_file_bufnr(fname)
             metagen.write_metadata(bufnr, true, opts.metadata)
         end
 
         if not opts.no_open then
-			-- Begin editing that newly created file
-			vim.cmd("e " .. fname .. "| w")
+            -- Begin editing that newly created file
+            vim.cmd("e " .. fname .. "| w")
         end
     end,
 
