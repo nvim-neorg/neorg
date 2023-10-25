@@ -231,10 +231,18 @@ module.public = {
     ---@param buf number #The number of the buffer to inject the metadata into
     ---@param force? boolean #Whether to forcefully override existing metadata
     inject_metadata = function(buf, force)
+        module.public.write_metadata(buf, force, {})
+    end,
+
+    --- Inject the metadata into a buffer
+    ---@param buf number #The number of the buffer to inject the metadata into
+    ---@param force? boolean #Whether to forcefully override existing metadata
+    ---@param metadata table #Table of metadata data, overrides defaults if present
+    write_metadata = function(buf, force, metadata)
         local present, data = module.public.is_metadata_present(buf)
 
         if force or not present then
-            local constructed_metadata = module.public.construct_metadata(buf)
+            local constructed_metadata = module.public.create_metadata(buf, metadata)
             vim.api.nvim_buf_set_lines(buf, data.range[1], data.range[2], false, constructed_metadata)
         end
     end,
