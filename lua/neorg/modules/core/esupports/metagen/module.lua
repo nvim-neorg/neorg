@@ -192,7 +192,7 @@ module.public = {
         return module.public.create_metadata(buf, {})
     end,
 
-    ---@class metadata
+    ---@class core.esupports.metagen.metadata
     ---@field title? function|string the title of the note
     ---@field description? function|string the description of the note
     ---@field authors? function|string the authors of the note
@@ -203,7 +203,7 @@ module.public = {
 
     --- Creates the metadata contents from the provided metadata table (defaulting to the configuration's template).
     ---@param buf number #The buffer to query potential data from
-    ---@param metadata? metadata #Table of metadata, overrides defaults if present
+    ---@param metadata? core.esupports.metagen.metadata #Table of metadata, overrides defaults if present
     ---@return table #A table of strings that can be directly piped to `nvim_buf_set_lines`
     create_metadata = function(buf, metadata)
         local template = module.config.public.template
@@ -246,7 +246,7 @@ module.public = {
     --- Inject the metadata into a buffer
     ---@param buf number #The number of the buffer to inject the metadata into
     ---@param force? boolean #Whether to forcefully override existing metadata
-    ---@param metadata? table #Table of metadata data, overrides defaults if present
+    ---@param metadata? core.esupports.metagen.metadata #Table of metadata data, overrides defaults if present
     write_metadata = function(buf, force, metadata)
         local present, data = module.public.is_metadata_present(buf)
 

@@ -279,15 +279,15 @@ module.public = {
         end)
     end,
 
-    ---@class create_file_opts
+    ---@class core.dirman.create_file_opts
     ---@field no_open? boolean do not open the file after creation?
     ---@field force? boolean overwrite file if it already exists?
-    ---@field metadata? metadata metadata fields, if provided inserts metadata - an empty table uses default values
+    ---@field metadata? core.esupports.metagen.metadata metadata fields, if provided inserts metadata - an empty table uses default values
 
     --- Takes in a path (can include directories) and creates a .norg file from that path
     ---@param path string a path to place the .norg file in
     ---@param workspace? string workspace name
-    ---@param opts? create_file_opts additional options
+    ---@param opts? core.dirman.create_file_opts additional options
     create_file = function(path, workspace, opts)
         opts = opts or {}
 
