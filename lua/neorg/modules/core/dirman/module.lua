@@ -279,10 +279,10 @@ module.public = {
         end)
     end,
 
-	---@class create_file_opts
-	---@field no_open? boolean do not open the file after creation?
-	---@field force? boolean overwrite file if it already exists?
-	---@field metadata? metadata metadata fields, if provided inserts metadata - an empty table uses default values
+    ---@class create_file_opts
+    ---@field no_open? boolean do not open the file after creation?
+    ---@field force? boolean overwrite file if it already exists?
+    ---@field metadata? metadata metadata fields, if provided inserts metadata - an empty table uses default values
 
     --- Takes in a path (can include directories) and creates a .norg file from that path
     ---@param path string a path to place the .norg file in

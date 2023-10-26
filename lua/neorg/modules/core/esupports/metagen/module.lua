@@ -192,14 +192,14 @@ module.public = {
         return module.public.create_metadata(buf, {})
     end,
 
-	---@class metadata
-	---@field title? function|string the title of the note
-	---@field description? function|string the description of the note
-	---@field authors? function|string the authors of the note
-	---@field categories? function|string the categories of the note
-	---@field created? function|string a timestamp of creation time for the note
-	---@field updated? function|string a timestamp of last time the note was updated
-	---@field version? function|string the neorg version
+    ---@class metadata
+    ---@field title? function|string the title of the note
+    ---@field description? function|string the description of the note
+    ---@field authors? function|string the authors of the note
+    ---@field categories? function|string the categories of the note
+    ---@field created? function|string a timestamp of creation time for the note
+    ---@field updated? function|string a timestamp of last time the note was updated
+    ---@field version? function|string the neorg version
 
     --- Creates the metadata contents from the provided metadata table (defaulting to the configuration's template).
     ---@param buf number #The buffer to query potential data from
