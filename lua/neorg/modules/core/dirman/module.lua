@@ -278,15 +278,16 @@ module.public = {
             })
         end)
     end,
+
+	---@class create_file_opts
+	---@field no_open? boolean do not open the file after creation?
+	---@field force? boolean overwrite file if it already exists?
+	---@field metadata? metadata metadata fields, if provided inserts metadata - an empty table uses default values
+
     --- Takes in a path (can include directories) and creates a .norg file from that path
     ---@param path string a path to place the .norg file in
     ---@param workspace? string workspace name
-    ---@param opts? table additional options
-    ---  - opts.no_open (bool) if true, will not open the file in neovim after creating it
-    ---  - opts.force (bool) if true, will overwrite existing file content
-    ---  - opts.metadata (table) Table of metadata data, overrides defaults if present
-    ---    - the table is a key-value table where the key correspondes to a metadata field,
-    ---      and the value is either a string or a function returning a string.
+    ---@param opts? create_file_opts additional options
     create_file = function(path, workspace, opts)
         opts = opts or {}
 
