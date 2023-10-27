@@ -576,7 +576,7 @@ module.public = {
 
         local result = {}
 
-        languagetree:for_each_child(function(tree)
+        for _, tree in ipairs(languagetree:children()) do
             if tree:lang() ~= "norg_meta" then
                 return
             end
@@ -661,7 +661,7 @@ module.public = {
                     )
                 end
             end
-        end)
+        end
 
         return result
     end,
