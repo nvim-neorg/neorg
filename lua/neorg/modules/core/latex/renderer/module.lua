@@ -2,6 +2,8 @@ local neorg = require("neorg.core")
 local module = neorg.modules.create("core.latex.renderer")
 local modules = neorg.modules
 
+assert(vim.re ~= nil, "Neovim 0.10.0+ is required to run the `core.renderer.latex` module! ")
+
 module.setup = function()
     return {
         requires = {
