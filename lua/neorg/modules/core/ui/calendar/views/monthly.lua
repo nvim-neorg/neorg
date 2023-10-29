@@ -112,8 +112,7 @@ module.private = {
                     })
                 )
                 ---@cast month_name string
-                -- local month_length = vim.api.nvim_strwidth(month_name)
-                local month_length = string.len(month_name)
+                local month_length = vim.api.nvim_strwidth(month_name)
 
                 local weekday_banner_id = vim.api.nvim_buf_get_extmark_by_id(
                     ui_info.buffer,
