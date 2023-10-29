@@ -37,16 +37,13 @@ end
 
 module.public = {
     latex_renderer = function()
+        Ranges = {}
         module.required["core.integrations.treesitter"].execute_query(
             [[
                 (
                     (inline_math) @latex
                     (#offset! @latex 0 1 0 -1)
                 )
-
-                ; NOTE: We don't look for `@code` blocks here because those should be just that - code blocks, not rendered latex markup.
-                (ranged_verbatim_tag (tag_name) @_tagname (tag_parameters .(tag_param) @_language) (ranged_verbatim_tag_content) @latex (#eq? @_tagname "embed") (#eq? @_language "latex"))
-                (ranged_verbatim_tag (tag_name) @_tagname (tag_parameters)? (ranged_verbatim_tag_content) @latex (#eq? @_tagname "math"))
             ]],
             function(query, id, node)
                 if query.captures[id] ~= "latex" then
@@ -63,8 +60,11 @@ module.public = {
                     png_location,
                     module.required["core.integrations.treesitter"].get_node_range(node),
                     vim.api.nvim_get_current_win(),
-                    module.config.public.scale
+                    module.config.public.scale,
+                    not module.config.public.conceal
                 )
+
+                table.insert(Ranges, { node:range() })
             end
         )
         Images = Image.get_images()
@@ -129,18 +129,45 @@ module.public = {
 
         return png_result
     end,
+    render_inline_math = function(images)
+        local conceal_on = (vim.wo.conceallevel >= 2) and module.config.public.conceal
+        if conceal_on then
+            table.sort(images, function(a, b)
+                return a.internal_id < b.internal_id
+            end)
+
+            for i, range in ipairs(Ranges) do
+                vim.api.nvim_buf_set_extmark(
+                    vim.api.nvim_get_current_buf(),
+                    vim.api.nvim_create_namespace("concealer"),
+                    range[1],
+                    range[2],
+                    {
+                        id = i,
+                        end_col = range[4],
+                        conceal = "",
+                        virt_text = { { (" "):rep(images[i].rendered_geometry.width) } },
+                        virt_text_pos = "inline",
+                    }
+                )
+            end
+        end
+    end,
 }
 
 module.config.public = {
     -- TODO: Documentation
-    renderer = "core.integrations.image",
+    conceal = true,
     dpi = 350,
+    render_on_enter = false,
+    renderer = "core.integrations.image",
     scale = 1,
 }
 
 local function render_latex()
     Image.clear(Images)
     neorg.modules.get_module("core.latex.renderer").latex_renderer()
+    neorg.modules.get_module("core.latex.renderer").render_inline_math(Images)
 end
 
 local function clear_latex()
@@ -148,8 +175,10 @@ local function clear_latex()
 end
 
 local function clear_at_cursor()
-    Image.render(Images)
-    Image.clear_at_cursor(Images, vim.api.nvim_win_get_cursor(0)[1])
+    if Images ~= nil then
+        Image.render(Images)
+        Image.clear_at_cursor(Images, vim.api.nvim_win_get_cursor(0)[1] - 1)
+    end
 end
 
 local event_handlers = {
@@ -172,7 +201,7 @@ end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
-        bufwinenter = true,
+        bufwinenter = module.config.public.render_on_enter,
         cursormoved = true,
         textchanged = true,
         textchangedi = true,

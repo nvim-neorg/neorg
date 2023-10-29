@@ -14,17 +14,17 @@ module.private = {
 }
 
 module.public = {
-    new_image = function(buffernr, png_path, position, window, scale)
+    new_image = function(buffernr, png_path, position, window, scale, virtual_padding)
         local geometry = {
-            x = position.column_start + vim.opt.numberwidth:get(),
-            y = position.row_start + 1,
+            x = position.column_start,
+            y = position.row_start + (virtual_padding and 1 or 0),
             width = position.column_end - position.column_start,
             height = scale,
         }
         local image = require("image").from_file(png_path, {
             window = window,
             buffer = buffernr,
-            with_virtual_padding = true,
+            with_virtual_padding = virtual_padding,
         })
         image:render(geometry)
     end,
@@ -45,14 +45,8 @@ module.public = {
     end,
     clear_at_cursor = function(images, row)
         for _, image in pairs(images) do
-            for k, v in pairs(image) do
-                if k == "geometry" then
-                    for k0, v0 in pairs(v) do
-                        if k0 == "y" and v0 == row then
-                            image:clear()
-                        end
-                    end
-                end
+            if image.geometry.y == row then
+                image:clear()
             end
         end
     end,
