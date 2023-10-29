@@ -206,4 +206,21 @@ function utils.wrap_dotrepeat(event_handler)
     end
 end
 
+--- Truncate input str to fit inside the col_limit when displayed. Takes non-ascii chars into account.
+---@param str string
+---@param col_limit integer #str will be cut so that when displayed, the display length does not exceed limit
+---@return string #substring of input str
+function utils.truncate_by_cell(str, col_limit)
+    if str and str:len() == vim.api.nvim_strwidth(str) then
+        return vim.fn.strcharpart(str, 0, col_limit)
+    end
+    local short = vim.fn.strcharpart(str, 0, col_limit)
+    if vim.api.nvim_strwidth(short) > col_limit then
+        while vim.api.nvim_strwidth(short) > col_limit do
+            short = vim.fn.strcharpart(short, 0, vim.fn.strchars(short) - 1)
+        end
+    end
+    return short
+end
+
 return utils
