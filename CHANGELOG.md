@@ -1,5 +1,22 @@
 # Changelog
 
+## [6.1.0](https://github.com/nvim-neorg/neorg/compare/v6.0.0...v6.1.0) (2023-10-29)
+
+
+### Features
+
+* support dotrepeat for `promo` and `todo_items` ([#1105](https://github.com/nvim-neorg/neorg/issues/1105)) ([2c43e6b](https://github.com/nvim-neorg/neorg/commit/2c43e6b3252af198973cbe91f8fa7a762ff61a77))
+
+
+### Bug Fixes
+
+* **calendar:** display weekdays based on `nvim_strwidth` ([5eadb3c](https://github.com/nvim-neorg/neorg/commit/5eadb3cce8ab490222d12dfbb5c86372c89a5773))
+* **calendar:** use `nvim_strwidth` for month names as well ([a081397](https://github.com/nvim-neorg/neorg/commit/a0813979663d5e55c481bb557c250b551042d115))
+* **dirman:** open index file in default workspace only if it exists ([d1bda3c](https://github.com/nvim-neorg/neorg/commit/d1bda3caf7d73ec93bed125d2d76ba32ce897789))
+* don't autoload `core.neorgcmd` nor `core.keybinds` as dependencies of other modules ([#1051](https://github.com/nvim-neorg/neorg/issues/1051)) ([62ba931](https://github.com/nvim-neorg/neorg/commit/62ba93130eb795ccc2133841ce0e541f8bc51eb7))
+* **meta:** fix treesitter deprecation warning ([#1104](https://github.com/nvim-neorg/neorg/issues/1104)) ([#1130](https://github.com/nvim-neorg/neorg/issues/1130)) ([5205f3f](https://github.com/nvim-neorg/neorg/commit/5205f3f1ed23545a3015021be11d35a012e3b02a))
+* **utils:** don't dotrepeat insert mode actions ([#1111](https://github.com/nvim-neorg/neorg/issues/1111)) ([969b3f1](https://github.com/nvim-neorg/neorg/commit/969b3f106683c66ab685ecba2a67bf11cb806785))
+
 ## [6.0.0](https://github.com/nvim-neorg/neorg/compare/v5.0.0...v6.0.0) (2023-09-23)
 
 
