@@ -678,7 +678,7 @@ module.public = {
         end
 
         if not meta_node then
-          return result
+            return result
         end
 
         local meta_source = module.public.get_node_text(meta_node, buf)
