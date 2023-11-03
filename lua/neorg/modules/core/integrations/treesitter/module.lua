@@ -677,6 +677,10 @@ module.public = {
             end
         end
 
+        if not meta_node then
+          return result
+        end
+
         local meta_source = module.public.get_node_text(meta_node, buf)
 
         local norg_meta_parser = vim.treesitter.get_string_parser(meta_source, "norg_meta")
