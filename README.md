@@ -392,7 +392,7 @@ require('neorg').setup {
 }
 ```
 
-As always, for a little more info you can consult the wiki page [here](https://github.com/nvim-neorg/neorg/wiki/Installation#the-concept-of-modules).
+As always, for a little more info you can consult the wiki page [here](https://github.com/nvim-neorg/neorg/wiki/#module-naming-convention).
 To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the [wiki](https://github.com/nvim-neorg/neorg/wiki).
 
 ### Core Modules
