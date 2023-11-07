@@ -560,7 +560,7 @@ module.events.defined = {
     workspace_changed = modules.define_event(module, "workspace_changed"),
     workspace_added = modules.define_event(module, "workspace_added"),
     workspace_cache_empty = modules.define_event(module, "workspace_cache_empty"),
-	file_created = modules.define_event(module, "file_created")
+    file_created = modules.define_event(module, "file_created"),
 }
 
 module.events.subscribed = {

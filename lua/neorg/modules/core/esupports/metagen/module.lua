@@ -374,7 +374,7 @@ module.on_event = function(event)
     elseif event.type == "core.neorgcmd.events.update-metadata" then
         module.public.update_metadata(event.buffer)
         module.private.buffers[event.buffer] = true
-	elseif event.type == "core.dirman.events.file_created" then
+    elseif event.type == "core.dirman.events.file_created" then
         if event.content.opts.metadata then
             module.public.inject_metadata(event.content.buffer, true, event.content.opts.metadata)
         end
@@ -392,9 +392,9 @@ module.events.subscribed = {
         ["inject-metadata"] = true,
         ["update-metadata"] = true,
     },
-	["core.dirman"] = {
-		["file_created"] = true,
-	}
+    ["core.dirman"] = {
+        ["file_created"] = true,
+    },
 }
 
 return module
