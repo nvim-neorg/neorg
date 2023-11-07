@@ -185,13 +185,6 @@ module.public = {
         }
     end,
 
-    --- Constructs the metadata contents from the configuration's template.
-    ---@param buf number #The buffer to query potential data from
-    ---@return table #A table of strings that can be directly piped to `nvim_buf_set_lines`
-    construct_metadata = function(buf)
-        return module.public.create_metadata(buf, {})
-    end,
-
     ---@class core.esupports.metagen.metadata
     ---@field title? function|string the title of the note
     ---@field description? function|string the description of the note
@@ -205,7 +198,7 @@ module.public = {
     ---@param buf number #The buffer to query potential data from
     ---@param metadata? core.esupports.metagen.metadata #Table of metadata, overrides defaults if present
     ---@return table #A table of strings that can be directly piped to `nvim_buf_set_lines`
-    create_metadata = function(buf, metadata)
+    construct_metadata = function(buf, metadata)
         local template = module.config.public.template
         local whitespace = type(module.config.public.tab) == "function" and module.config.public.tab()
             or module.config.public.tab
@@ -239,19 +232,12 @@ module.public = {
     --- Inject the metadata into a buffer
     ---@param buf number #The number of the buffer to inject the metadata into
     ---@param force? boolean #Whether to forcefully override existing metadata
-    inject_metadata = function(buf, force)
-        module.public.write_metadata(buf, force, {})
-    end,
-
-    --- Inject the metadata into a buffer
-    ---@param buf number #The number of the buffer to inject the metadata into
-    ---@param force? boolean #Whether to forcefully override existing metadata
     ---@param metadata? core.esupports.metagen.metadata #Table of metadata data, overrides defaults if present
-    write_metadata = function(buf, force, metadata)
+    inject_metadata = function(buf, force, metadata)
         local present, data = module.public.is_metadata_present(buf)
 
         if force or not present then
-            local constructed_metadata = module.public.create_metadata(buf, metadata)
+            local constructed_metadata = module.public.construct_metadata(buf, metadata)
             vim.api.nvim_buf_set_lines(buf, data.range[1], data.range[2], false, constructed_metadata)
         end
     end,
@@ -388,6 +374,10 @@ module.on_event = function(event)
     elseif event.type == "core.neorgcmd.events.update-metadata" then
         module.public.update_metadata(event.buffer)
         module.private.buffers[event.buffer] = true
+	elseif event.type == "core.dirman.events.file_created" then
+        if event.content.opts.metadata then
+            module.public.inject_metadata(event.content.buffer, true, event.content.opts.metadata)
+        end
     end
 end
 
@@ -402,6 +392,9 @@ module.events.subscribed = {
         ["inject-metadata"] = true,
         ["update-metadata"] = true,
     },
+	["core.dirman"] = {
+		["file_created"] = true,
+	}
 }
 
 return module

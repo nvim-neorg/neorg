@@ -331,11 +331,10 @@ module.public = {
             vim.loop.fs_close(fd)
         end
 
-        local metagen = neorg.modules.get_module("core.esupports.metagen")
-        if opts.metadata and metagen then
-            local bufnr = module.public.get_file_bufnr(fname)
-            metagen.write_metadata(bufnr, true, opts.metadata)
-        end
+        local bufnr = module.public.get_file_bufnr(fname)
+        modules.broadcast_event(
+            modules.create_event(module, "core.dirman.events.file_created", { buffer = bufnr, opts = opts })
+        )
 
         if not opts.no_open then
             -- Begin editing that newly created file
@@ -561,6 +560,7 @@ module.events.defined = {
     workspace_changed = modules.define_event(module, "workspace_changed"),
     workspace_added = modules.define_event(module, "workspace_added"),
     workspace_cache_empty = modules.define_event(module, "workspace_cache_empty"),
+	file_created = modules.define_event(module, "file_created")
 }
 
 module.events.subscribed = {
