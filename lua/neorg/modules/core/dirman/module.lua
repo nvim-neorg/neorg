@@ -506,14 +506,16 @@ module.on_event = function(event)
     if event.type == "core.neorgcmd.events.dirman.index" then
         local current_ws = module.public.get_current_workspace()
 
-        if current_ws[1] == "default" then
-            utils.notify("No workspace is set! Use `:Neorg workspace <name>` to set the current workspace. Aborting...")
-            return
-        end
-
         local index_path = table.concat({ current_ws[2], "/", module.config.public.index })
 
         if vim.fn.filereadable(index_path) == 0 then
+            if current_ws[1] == "default" then
+                utils.notify(table.concat({
+                    "Index file will not be created in 'default' workspace to avoid confusion.",
+                    "If this is intentional, manually create an index file beforehand to use this command.",
+                }, " "))
+                return
+            end
             if not module.public.touch_file(module.config.public.index, module.public.get_current_workspace()[1]) then
                 utils.notify(
                     table.concat({

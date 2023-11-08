@@ -1,5 +1,5 @@
 local neorg = require("neorg.core")
-local lib, log, modules = neorg.lib, neorg.log, neorg.modules
+local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.utils
 
 local module = modules.create("core.ui.calendar.views.monthly")
 
@@ -111,9 +111,8 @@ module.private = {
                         day = date.day,
                     })
                 )
-
-                -- NOTE(vhyrro): This is just here to make the language server's type annotator happy.
-                assert(type(month_name) == "string")
+                ---@cast month_name string
+                local month_length = vim.api.nvim_strwidth(month_name)
 
                 local weekday_banner_id = vim.api.nvim_buf_get_extmark_by_id(
                     ui_info.buffer,
@@ -129,8 +128,8 @@ module.private = {
                     4,
                     weekday_banner_id[2]
                         + math.ceil((weekday_banner_id[3].end_col - weekday_banner_id[2]) / 2)
-                        - math.floor(month_name:len() / 2),
-                    month_name:len(),
+                        - math.floor(month_length / 2),
+                    month_length,
                     { { month_name, "@text.underline" } },
                     nil,
                     {
@@ -148,26 +147,17 @@ module.private = {
                 -- This makes the weekdays retrieved locale dependent (which is what we want).
                 local weekdays = {}
                 local weekdays_string_length = 0
-
                 for i = 1, 7 do
-                    table.insert(weekdays, {
-                        os.date(
-                            "%a",
-                            os.time({
-                                year = 2000,
-                                month = 5,
-                                day = i,
-                            })
-                        ):sub(1, 2),
-                        "@text.title",
-                    })
-
-                    if i ~= 7 then
-                        table.insert(weekdays, { "  " })
-                    end
-
-                    weekdays_string_length = weekdays_string_length + (i ~= 7 and 4 or 2)
+                    local weekday = os.date("%a", os.time({ year = 2000, month = 5, day = i }))
+                    ---@cast weekday string
+                    local truncated = utils.truncate_by_cell(weekday, 2)
+                    local truncated_length = vim.api.nvim_strwidth(truncated)
+                    weekdays[#weekdays + 1] = { truncated, "@text.title" }
+                    weekdays[#weekdays + 1] = { (" "):rep(4 - truncated_length) }
+                    weekdays_string_length = truncated_length -- remember last day's length
                 end
+                weekdays[#weekdays] = nil -- delete last padding
+                weekdays_string_length = weekdays_string_length + 4 * 6
 
                 -- This serves as the index of this week banner extmark inside the extmark table
                 local absolute_offset = offset + (offset < 0 and (-offset * 100) or 0)

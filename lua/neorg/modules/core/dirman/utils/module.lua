@@ -14,7 +14,11 @@ local log, modules = neorg.log, neorg.modules
 local module = neorg.modules.create("core.dirman.utils")
 
 module.public = {
-    expand_path = function(path)
+    ---Resolve `$<workspace>/path/to/file` and return the real path
+    ---@param path string # path
+    ---@param raw_path boolean? # If true, returns resolved path, else, return with appended ".norg"
+    ---@return string? # Resolved path. If path does not start with `$` or not absolute, adds relative from current file.
+    expand_path = function(path, raw_path)
         -- Expand special chars like `$`
         local custom_workspace_path = path:match("^%$([^/\\]*)[/\\]")
 
@@ -47,7 +51,7 @@ module.public = {
             path = (vim.tbl_contains({ "/", "~" }, path:sub(1, 1)) and "" or (vim.fn.expand("%:p:h") .. "/")) .. path
         end
 
-        return path .. ".norg"
+        return path .. (raw_path and "" or ".norg")
     end,
 }
 

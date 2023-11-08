@@ -260,7 +260,7 @@ module.public = {
 
         local meta_root = nil
 
-        languagetree:for_each_child(function(tree)
+        for _, tree in pairs(languagetree:children()) do
             if tree:lang() ~= "norg_meta" or meta_root then
                 return
             end
@@ -272,7 +272,7 @@ module.public = {
             end
 
             meta_root = meta_tree:root()
-        end)
+        end
 
         if not meta_root then
             return
