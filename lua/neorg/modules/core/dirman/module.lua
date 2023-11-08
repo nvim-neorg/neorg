@@ -34,6 +34,19 @@ To query the current workspace, run `:Neorg workspace`. To set the workspace, ru
 ### Changing the Current Working Directory
 After a recent update `core.dirman` will no longer change the current working directory after switching
 workspace. To get the best experience it's recommended to set the `autochdir` Neovim option.
+
+
+### Create a new note
+You can use dirman to create new notes in your workspaces.
+
+```lua
+local dirman = require('neorg').modules.get_module("core.dirman")
+dirman.create_file("my_file", "my_ws", {
+    no_open  = false,  -- open file after creation?
+    force    = false,  -- overwrite file if exists
+    metadata = {}      -- key-value table for metadata fields
+})
+```
 --]]
 
 local neorg = require("neorg.core")
@@ -265,12 +278,16 @@ module.public = {
             })
         end)
     end,
+
+    ---@class core.dirman.create_file_opts
+    ---@field no_open? boolean do not open the file after creation?
+    ---@field force? boolean overwrite file if it already exists?
+    ---@field metadata? core.esupports.metagen.metadata metadata fields, if provided inserts metadata - an empty table uses default values
+
     --- Takes in a path (can include directories) and creates a .norg file from that path
     ---@param path string a path to place the .norg file in
     ---@param workspace? string workspace name
-    ---@param opts? table additional options
-    ---  - opts.no_open (bool) if true, will not open the file in neovim after creating it
-    ---  - opts.force (bool) if true, will overwrite existing file content
+    ---@param opts? core.dirman.create_file_opts additional options
     create_file = function(path, workspace, opts)
         opts = opts or {}
 
@@ -308,20 +325,23 @@ module.public = {
             fname = fname .. ".norg"
         end
 
-        if opts.no_open then
-            -- Create the file
-            local fd = vim.loop.fs_open(fname, opts.force and "w" or "a", 438)
-
-            if fd then
-                vim.loop.fs_close(fd)
-            end
-
-            return
+        -- Create the file
+        local fd = vim.loop.fs_open(fname, opts.force and "w" or "a", 438)
+        if fd then
+            vim.loop.fs_close(fd)
         end
 
-        -- Begin editing that newly created file
-        vim.cmd("e " .. fname .. " | w")
+        local bufnr = module.public.get_file_bufnr(fname)
+        modules.broadcast_event(
+            modules.create_event(module, "core.dirman.events.file_created", { buffer = bufnr, opts = opts })
+        )
+
+        if not opts.no_open then
+            -- Begin editing that newly created file
+            vim.cmd("e " .. fname .. "| w")
+        end
     end,
+
     --- Takes in a workspace name and a path for a file and opens it
     ---@param workspace_name string #The name of the workspace to use
     ---@param path string #A path to open the file (e.g directory/filename.norg)
@@ -542,6 +562,7 @@ module.events.defined = {
     workspace_changed = modules.define_event(module, "workspace_changed"),
     workspace_added = modules.define_event(module, "workspace_added"),
     workspace_cache_empty = modules.define_event(module, "workspace_cache_empty"),
+    file_created = modules.define_event(module, "file_created"),
 }
 
 module.events.subscribed = {
