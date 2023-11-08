@@ -142,7 +142,7 @@ module.public = {
         local query = utils.ts_parse_query(
             "norg",
             [[
-                 (ranged_verbatim_tag
+                 (verbatim_ranged_tag
                      (tag_name) @name
                      (#eq? @name "document.meta")
                  ) @meta
