@@ -32,7 +32,7 @@ module.load = function()
     modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             ["generate-workspace-summary"] = {
-                args = 0,
+                min_args = 0,
                 condition = "norg",
                 name = "summary.summarize",
             },
@@ -76,8 +76,12 @@ module.load = function()
                 end
             end
 
-            return function(files, ws_root, heading_level)
+            return function(files, ws_root, heading_level, include_categories)
                 local categories = vim.defaulttable()
+
+                if vim.tbl_isempty(include_categories) then
+                    include_categories = nil
+                end
 
                 utils.read_files(files, function(bufnr, filename)
                     local metadata = ts.get_document_metadata(bufnr)
@@ -108,11 +112,13 @@ module.load = function()
                         if metadata.description == vim.NIL then
                             metadata.description = nil
                         end
-                        table.insert(categories[lib.title(category)], {
-                            title = tostring(metadata.title),
-                            norgname = norgname,
-                            description = metadata.description,
-                        })
+                        if not include_categories or vim.tbl_contains(include_categories, category) then
+                            table.insert(categories[lib.title(category)], {
+                                title = tostring(metadata.title),
+                                norgname = norgname,
+                                description = metadata.description,
+                            })
+                        end
                     end
                 end)
                 local result = {}
@@ -151,24 +157,18 @@ module.config.public = {
     -- Possible options are:
     -- - "default" - read the metadata to categorize and annotate files. Files
     --   without metadata will use the top level heading as the title. If no headings are present, the filename will be used.
-    ---@type string|fun(files: string[], ws_root: string, heading_level: number?): string[]?
+    ---@type string|fun(files: string[], ws_root: string, heading_level: number?, include_categories: string[]): string[]?
     strategy = "default",
 }
 
-module.public = {}
-
-module.events.subscribed = {
-    ["core.neorgcmd"] = {
-        ["summary.summarize"] = true,
-    },
-}
-
-module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.summary.summarize" then
+module.public = {
+    generate_workspace_summary = function(buf, cursor_pos, include_categories)
         local ts = module.required["core.integrations.treesitter"]
-        local buffer = event.buffer
 
-        local node_at_cursor = ts.get_first_node_on_line(buffer, event.cursor_position[1] - 1)
+        local buffer = buf or 0
+        local cursor_position = cursor_pos or vim.api.nvim_win_get_cursor(0)
+
+        local node_at_cursor = ts.get_first_node_on_line(buffer, cursor_position[1] - 1)
 
         if not node_at_cursor or not node_at_cursor:type():match("^heading%d$") then
             utils.notify(
@@ -190,7 +190,8 @@ module.on_event = function(event)
         local generated = module.config.public.strategy(
             dirman.get_norg_files(dirman.get_current_workspace()[1]) or {},
             ws_root,
-            level + 1
+            level + 1,
+            include_categories
         )
 
         if not generated or vim.tbl_isempty(generated) then
@@ -200,7 +201,19 @@ module.on_event = function(event)
             return
         end
 
-        vim.api.nvim_buf_set_lines(buffer, event.cursor_position[1], event.cursor_position[1], true, generated)
+        vim.api.nvim_buf_set_lines(buffer, cursor_position[1], cursor_position[1], true, generated)
+    end,
+}
+
+module.events.subscribed = {
+    ["core.neorgcmd"] = {
+        ["summary.summarize"] = true,
+    },
+}
+
+module.on_event = function(event)
+    if event.type == "core.neorgcmd.events.summary.summarize" then
+        module.public.generate_workspace_summary(event.buffer, event.cursor_position, event.content)
     end
 end
 
