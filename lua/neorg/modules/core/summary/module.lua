@@ -157,11 +157,15 @@ module.config.public = {
     -- Possible options are:
     -- - "default" - read the metadata to categorize and annotate files. Files
     --   without metadata will use the top level heading as the title. If no headings are present, the filename will be used.
-    ---@type string|fun(files: string[], ws_root: string, heading_level: number?, include_categories: string[]): string[]?
+    ---@type string|fun(files: string[], ws_root: string, heading_level: number?, include_categories: string[]?): string[]?
     strategy = "default",
 }
 
 module.public = {
+    ---@param buf integer? the buffer to insert the summary to
+    ---@param cursor_pos integer[]? a tuple of row, col of the cursor positon (see nvim_win_get_cursor())
+    ---@param include_categories string[]? table of strings for categories that you wish to include in the summary.
+    -- if excluded then all categories are written into the summary.
     generate_workspace_summary = function(buf, cursor_pos, include_categories)
         local ts = module.required["core.integrations.treesitter"]
 
