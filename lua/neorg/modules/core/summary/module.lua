@@ -112,7 +112,7 @@ module.load = function()
                         if metadata.description == vim.NIL then
                             metadata.description = nil
                         end
-                        if not include_categories or vim.tbl_contains(include_categories, category) then
+                        if not include_categories or vim.tbl_contains(include_categories, category:lower()) then
                             table.insert(categories[lib.title(category)], {
                                 title = tostring(metadata.title),
                                 norgname = norgname,
@@ -164,7 +164,7 @@ module.config.public = {
 module.public = {
     ---@param buf integer? the buffer to insert the summary to
     ---@param cursor_pos integer[]? a tuple of row, col of the cursor positon (see nvim_win_get_cursor())
-    ---@param include_categories string[]? table of strings for categories that you wish to include in the summary.
+    ---@param include_categories string[]? table of strings (ignores case) for categories that you wish to include in the summary.
     -- if excluded then all categories are written into the summary.
     generate_workspace_summary = function(buf, cursor_pos, include_categories)
         local ts = module.required["core.integrations.treesitter"]
@@ -195,7 +195,7 @@ module.public = {
             dirman.get_norg_files(dirman.get_current_workspace()[1]) or {},
             ws_root,
             level + 1,
-            include_categories
+            vim.tbl_map(string.lower, include_categories or {})
         )
 
         if not generated or vim.tbl_isempty(generated) then
