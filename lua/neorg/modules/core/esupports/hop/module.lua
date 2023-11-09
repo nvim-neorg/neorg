@@ -84,16 +84,17 @@ module.public = {
                 o.command = "rundll32.exe"
                 o.args = { "url.dll,FileProtocolHandler", link_location }
             else
+                o.args = { link_location }
                 if config.os_info == "linux" then
                     o.command = "xdg-open"
                 elseif config.os_info == "mac" then
                     o.command = "open"
                 elseif config.os_info == "wsl2" then
                     o.command = "wslview"
+                    o.args[1] = vim.uri_to_fname(link_location)
                 elseif config.os_info == "wsl" then
                     o.command = "explorer.exe"
                 end
-                o.args = { link_location }
             end
 
             require("plenary.job"):new(o):start()
