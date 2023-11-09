@@ -5,7 +5,11 @@
 
 -- Require the most important modules
 local neorg = require("neorg.core")
-local config, log, modules = neorg.config, neorg.log, neorg.modules
+local config, events, log, modules = neorg.config, neorg.events, neorg.log, neorg.modules
+
+---@class event.core.neorg_started
+---Informs all modules that all core Neorg modules have been loaded and Neorg
+---has completed its setup process. It doesn't contain any fields.
 
 --- This function takes in a user config, parses it, initializes everything and launches neorg if inside a .norg or .org file
 ---@param cfg table #A table that reflects the structure of config.user_config
@@ -106,16 +110,7 @@ function neorg.org_file_entered(manual, arguments)
     config.started = true
 
     -- Lets the entire Neorg environment know that Neorg has started!
-    modules.broadcast_event({
-        type = "core.started",
-        split_type = { "core", "started" },
-        filename = "",
-        filehead = "",
-        cursor_position = { 0, 0 },
-        referrer = "core",
-        line_content = "",
-        broadcast = true,
-    })
+    events.publish("neorg_started", nil --[[@as neorg.event.neorg_started]])
 
     -- Sometimes external plugins prefer hooking in to an autocommand
     vim.api.nvim_exec_autocmds("User", {
