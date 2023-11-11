@@ -24,6 +24,16 @@ function neorg.setup(cfg)
         },
     })
 
+    -- Make the Neorg filetype detectable through `plenary.filetype`
+    local plenary_filetype = require("plenary.filetype")
+    if plenary_filetype.detect_from_extension("index.norg") == "" then
+        plenary_filetype.add_table({
+            extension = {
+                norg = "norg",
+            },
+        })
+    end
+
     -- If the file we have entered has a .norg extension
     if vim.fn.expand("%:e") == "norg" or not config.user_config.lazy_loading then
         -- Then boot up the environment
