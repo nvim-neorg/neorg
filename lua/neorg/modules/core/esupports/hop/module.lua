@@ -91,6 +91,9 @@ module.public = {
                     o.command = "open"
                 elseif config.os_info == "wsl2" then
                     o.command = "wslview"
+                    -- The file uri should be decoded when being transformed to a unix path.
+                    -- The decoding step is temporarily missing from wslview (https://github.com/wslutilities/wslu/issues/295),
+                    -- so we work around the problem by doing the transformation before invoking wslview.
                     o.args[1] = vim.uri_to_fname(link_location)
                 elseif config.os_info == "wsl" then
                     o.command = "explorer.exe"
