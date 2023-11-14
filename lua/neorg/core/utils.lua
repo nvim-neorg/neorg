@@ -12,7 +12,7 @@ function utils.ts_parse_query(language, query_string)
     if vim.treesitter.query.parse then
         return vim.treesitter.query.parse(language, query_string)
     else
-        return vim.treesitter.parse_query(language, query_string)
+        return vim.treesitter.parse_query(language, query_string) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end
 end
 
@@ -121,12 +121,12 @@ end
 ---@return table #The parsed version string, or `nil` if a failure occurred during parsing
 function utils.parse_version_string(version_string)
     if not version_string then
-        return
+        return ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end
 
     -- Define variables that split the version up into 3 slices
     local split_version, versions, ret =
-        vim.split(version_string, ".", true), { "major", "minor", "patch" }, { major = 0, minor = 0, patch = 0 }
+        vim.split(version_string, ".", true), { "major", "minor", "patch" }, { major = 0, minor = 0, patch = 0 } ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
     -- If the sliced version string has more than 3 elements error out
     if #split_version > 3 then
@@ -135,7 +135,7 @@ function utils.parse_version_string(version_string)
             version_string,
             "failed - too many version numbers provided. Version should follow this layout: <major>.<minor>.<patch>"
         )
-        return
+        return ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end
 
     -- Loop through all the versions and check whether they are valid numbers. If they are, add them to the return table
@@ -145,7 +145,7 @@ function utils.parse_version_string(version_string)
 
             if not num then
                 log.warn("Invalid version provided, string cannot be converted to integral type.")
-                return
+                return ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             end
 
             ret[ver] = num

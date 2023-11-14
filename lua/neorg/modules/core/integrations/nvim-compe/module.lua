@@ -79,7 +79,7 @@ module.public = {
 
         -- Invoked whenever a completion is confirmed, calls the public confirm() function
         module.private.source.confirm = function(_, context)
-            module.public.confirm(context)
+            module.public.confirm(context) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end
 
         -- Actually register the nvim-compe source
@@ -93,7 +93,7 @@ module.public = {
         local abstracted_context = module.public.create_abstracted_context(context)
 
         -- Update the current completion cache with the data returned by core.completion
-        module.private.completion_cache = module.public.invoke_completion_engine(abstracted_context)
+        module.private.completion_cache = module.public.invoke_completion_engine(abstracted_context) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         -- If we haven't returned any items to complete via that function then return an empty table,
         -- symbolizing a lack of completions
@@ -155,7 +155,6 @@ module.public = {
         })
     end,
 
-    ---@param context table #A context as provided by nvim-compe
     confirm = function()
         -- If the defined completion has a post function then invoke it
         if module.private.completion_cache.options.post then

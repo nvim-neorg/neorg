@@ -222,9 +222,9 @@ module.public = {
     ---@param parsed_date Date #The date to convert
     ---@return osdate #A Lua date
     to_lua_date = function(parsed_date)
-        return os.date(
+        return os.date( ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             "*t",
-            os.time(vim.tbl_deep_extend("force", os.date("*t"), {
+            os.time(vim.tbl_deep_extend("force", os.date("*t"), { ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 day = parsed_date.day,
                 month = parsed_date.month and parsed_date.month.number or nil,
                 year = parsed_date.year,
@@ -243,12 +243,12 @@ module.public = {
         -- TODO: Extract into a function to get weekdays (have to hot recalculate every time because the user may change locale
         local weekdays = {}
         for i = 1, 7 do
-            table.insert(weekdays, os.date("%A", os.time({ year = 2000, month = 5, day = i })):lower())
+            table.insert(weekdays, os.date("%A", os.time({ year = 2000, month = 5, day = i })):lower()) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end
 
         local months = {}
         for i = 1, 12 do
-            table.insert(months, os.date("%B", os.time({ year = 2000, month = i, day = 1 })):lower())
+            table.insert(months, os.date("%B", os.time({ year = 2000, month = i, day = 1 })):lower()) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end
 
         -- os.date("*t") returns wday with Sunday as 1, needs to be
@@ -291,12 +291,12 @@ module.public = {
     parse_date = function(input)
         local weekdays = {}
         for i = 1, 7 do
-            table.insert(weekdays, os.date("%A", os.time({ year = 2000, month = 5, day = i })):lower())
+            table.insert(weekdays, os.date("%A", os.time({ year = 2000, month = 5, day = i })):lower()) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end
 
         local months = {}
         for i = 1, 12 do
-            table.insert(months, os.date("%B", os.time({ year = 2000, month = i, day = 1 })):lower())
+            table.insert(months, os.date("%B", os.time({ year = 2000, month = i, day = 1 })):lower()) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end
 
         local output = {}

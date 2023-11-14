@@ -184,7 +184,7 @@ docgen.map_config = function(buffer, start_node, callback, parents)
     local comments = {}
     local index = 1
 
-    for node in start_node:iter_children() do
+    for node in start_node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         if node:type() == "comment" then
             table.insert(comments, ts.get_node_text(node, buffer))
         elseif node:type() == "field" then
@@ -675,7 +675,7 @@ docgen.htmlify = function(configuration_option)
             local text = ts.get_node_text(self.data.value, self.buffer):match("^function%s*(%b())")
 
             if not text then
-                log.error(string.format("Unable to parse function, perhaps some wrong formatting?"))
+                log.error(string.format("Unable to parse function, perhaps some wrong formatting?")) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 table.insert(result, "<error: incorrect formatting>")
                 return
             end

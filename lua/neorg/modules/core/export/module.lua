@@ -122,13 +122,13 @@ module.public = {
         ---@return string #The exported/converted node as a string
         local function descend(start)
             -- We do not want to parse erroneous nodes, so we skip them instead
-            if start:type() == "ERROR" then
+            if start:type() == "ERROR" then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 return ""
             end
 
             local output = {}
 
-            for node in start:iter_children() do
+            for node in start:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 -- See if there is a conversion function for the specific node type we're dealing with
                 local exporter = converter.export.functions[node:type()]
 
@@ -201,7 +201,7 @@ module.public = {
             --
             -- The recollector can encounter a `definition` node, see the nodes it is made up of ({ ": ", "Term", "Definition" })
             -- and rearrange its components to { "Term", ": ", "Definition" } to then achieve the desired result.
-            local recollector = converter.export.recollectors[start:type()]
+            local recollector = converter.export.recollectors[start:type()] ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
             return recollector and table.concat(recollector(output, state, start, ts_utils) or {})
                 or (not vim.tbl_isempty(output) and table.concat(output))
@@ -220,13 +220,13 @@ module.on_event = function(event)
         -- Example: Neorg export to-file my-custom-file markdown
 
         local filepath = vim.fn.expand(event.content[1])
-        local filetype = event.content[2] or vim.filetype.match({ filename = filepath })
-        local exported = module.public.export(event.buffer, filetype)
+        local filetype = event.content[2] or vim.filetype.match({ filename = filepath }) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+        local exported = module.public.export(event.buffer, filetype) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
-        vim.loop.fs_open(filepath, "w", 438, function(err, fd)
+        vim.loop.fs_open(filepath, "w", 438, function(err, fd) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             assert(not err, lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err))
 
-            vim.loop.fs_write(fd, exported, 0, function(werr)
+            vim.loop.fs_write(fd, exported, 0, function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 assert(not werr, lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr))
             end)
 
@@ -250,7 +250,7 @@ module.on_event = function(event)
             local file_counter, parsed_counter = 0, 0
 
             while true do
-                local name, type = vim.loop.fs_scandir_next(handle)
+                local name, type = vim.loop.fs_scandir_next(handle) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
                 if not name then
                     break
@@ -296,7 +296,7 @@ module.on_event = function(event)
                                 lib.lazy_string_concat("Failed to open file '", write_path, "' for export: ", fs_err)
                             )
 
-                            vim.loop.fs_write(fd, exported, 0, function(werr)
+                            vim.loop.fs_write(fd, exported, 0, function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                                 assert(
                                     not werr,
                                     lib.lazy_string_concat(

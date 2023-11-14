@@ -126,7 +126,7 @@ function lib.filter(tbl, callback)
 end
 
 --- Finds any key in an array
----@param tbl array #An array of values to iterate over
+---@param tbl any #An array of values to iterate over ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 ---@param element any #The item to find
 ---@return any|nil #The found value or `nil` if nothing could be found
 function lib.find(tbl, element)
@@ -152,8 +152,8 @@ end
 
 --- Picks a set of values from a table and returns them in an array
 ---@param tbl table #The table to extract the keys from
----@param values array[string] #An array of strings, these being the keys you'd like to extract
----@return array[any] #The picked values from the table
+---@param values any array[string] #An array of strings, these being the keys you'd like to extract ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+---@return any array[any] #The picked values from the table ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 function lib.pick(tbl, values)
     local result = {}
 
@@ -219,7 +219,7 @@ function lib.wrap(function_pointer, ...)
         local prev = function_pointer
 
         -- luacheck: push ignore
-        function_pointer = function(...)
+        function_pointer = function(...) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             return prev, unpack(params)
         end
         -- luacheck: pop
@@ -307,7 +307,7 @@ end
 
 --- Converts a table with `key = value` pairs to a `{ key, value }` array.
 ---@param tbl_with_keys table #A table with key-value pairs
----@return array #An array of `{ key, value }` pairs.
+---@return any array #An array of `{ key, value }` pairs. ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 function lib.unroll(tbl_with_keys)
     local res = {}
 

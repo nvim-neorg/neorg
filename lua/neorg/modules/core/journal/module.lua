@@ -223,7 +223,7 @@ module.private = {
 
             while true do
                 -- Name corresponds to either a YYYY-mm-dd.norg file, or just the year ("nested" strategy)
-                local name, type = vim.loop.fs_scandir_next(handle)
+                local name, type = vim.loop.fs_scandir_next(handle) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
                 if not name then
                     break
@@ -297,7 +297,7 @@ module.private = {
 
                     -- Convert the parts into numbers
                     for k, v in pairs(parts) do
-                        parts[k] = tonumber(v)
+                        parts[k] = tonumber(v) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     end
 
                     vim.schedule(function()

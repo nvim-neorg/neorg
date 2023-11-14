@@ -243,7 +243,7 @@ module.public = {
             return vim.tbl_isempty(elem) or (elem[3] == nil and true or elem[3])
         end, content))
 
-        vim.api.nvim_buf_set_lines(buf, 0, length, false, vim.split(("\n"):rep(length), "\n", true))
+        vim.api.nvim_buf_set_lines(buf, 0, length, false, vim.split(("\n"):rep(length), "\n", true)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         local line_number = 1
         local buffer = {}
@@ -369,7 +369,7 @@ module.examples = {
 
         -- Binds a selection to that buffer
         local selection = module.public
-            .begin_selection(buffer)
+            .begin_selection(buffer) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             :apply({
                 -- A title will simply be text with a custom highlight
                 title = function(self, text)

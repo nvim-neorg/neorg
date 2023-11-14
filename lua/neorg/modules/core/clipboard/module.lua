@@ -48,7 +48,7 @@ module.load = function()
 
                                 return callback.cb(
                                     node,
-                                    vim.split(register, "\n", {
+                                    vim.split(register, "\n", { ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                                         plain = true,
                                         -- TODO: This causes problems in places
                                         -- where you actually want to copy
@@ -62,7 +62,7 @@ module.load = function()
                                     }
                                 )
                             end) or register,
-                            "l"
+                            "l" ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                         )
 
                         return

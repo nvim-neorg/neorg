@@ -75,7 +75,7 @@ end
 
 module.public = {
     upgrade = function(buffer)
-        vim.treesitter.require_language("norg_old", nil, true, "norg")
+        vim.treesitter.require_language("norg_old", nil, true, "norg") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         local tree = vim.treesitter.get_parser(buffer, "norg_old"):parse()[1]
         local ts = module.required["core.integrations.treesitter"]
 
@@ -195,7 +195,7 @@ module.private = {
             },
         })
 
-        vim.treesitter.require_language("norg_old", nil, true, "norg")
+        vim.treesitter.require_language("norg_old", nil, true, "norg") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         if
             not vim._ts_has_language("norg_old") and not vim.deep_equal(parser_configs.norg_old, parser_configs[name])
         then
@@ -218,7 +218,7 @@ module.on_event = function(event)
     if event.split_type[2] == "core.upgrade.current-file" then
         module.private.neorg_parser_call("norg", function()
             local path = vim.api.nvim_buf_call(event.buffer, function()
-                return vim.fn.expand("%")
+                return vim.fn.expand("%") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             end)
 
             if module.config.public.ask_for_backup then
@@ -253,7 +253,7 @@ module.on_event = function(event)
             vim.loop.fs_open(path, "w", 438, function(err, fd)
                 assert(not err, lib.lazy_string_concat("Failed to open file '", path, "' for upgrade: ", err))
 
-                vim.loop.fs_write(fd, output, 0, function(werr)
+                vim.loop.fs_write(fd, output, 0, function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     assert(not werr, lib.lazy_string_concat("Failed to write to file '", path, "' for upgrade: ", werr))
                 end)
 
@@ -363,7 +363,7 @@ module.on_event = function(event)
                             lib.lazy_string_concat("Failed to open file '", filepath, "' for upgrade: ", fs_err)
                         )
 
-                        vim.loop.fs_write(fd, output, 0, function(werr)
+                        vim.loop.fs_write(fd, output, 0, function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                             assert(
                                 not werr,
                                 lib.lazy_string_concat("Failed to write to file '", filepath, "' for upgrade: ", werr)

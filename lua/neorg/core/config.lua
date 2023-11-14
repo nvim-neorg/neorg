@@ -22,7 +22,7 @@ local function neovim_version()
                 compilation = function()
                     local split = vim.split(value, "%s+")
 
-                    split.compiler = table.remove(split, 1)
+                    split.compiler = table.remove(split, 1) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     return split
                 end,
                 features = lib.wrap(vim.split, value, "%s*%+", {
