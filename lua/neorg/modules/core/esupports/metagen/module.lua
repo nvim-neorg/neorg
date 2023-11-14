@@ -30,7 +30,7 @@ local function get_timestamp()
     -- generate a ISO-8601 timestamp
     -- example: 2023-09-05T09:09:11-0500
     --
-    timezone_config = module.config.public.timezone
+    local timezone_config = module.config.public.timezone
     if timezone_config == "utc" then
         return os.date("!%Y-%m-%dT%H:%M:%S+0000")
     elseif timezone_config == "implicit-local" then
