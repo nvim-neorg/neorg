@@ -101,7 +101,7 @@ module.public = {
 
         local bufname = "neorg://" .. name
 
-        if vim.fn.bufexists(bufname) == 1 then
+        if vim.fn.bufexists(bufname) == 1 then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>: cannot assign `string` to parameter `integer`
             log.error("Buffer '" .. name .. "' already exists")
             return
         end

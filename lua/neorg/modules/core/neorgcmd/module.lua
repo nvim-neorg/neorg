@@ -24,7 +24,7 @@ module.examples = {
         -- In your module.setup(), make sure to require core.neorgcmd (requires = { "core.neorgcmd" })
         -- Afterwards in a function of your choice that gets called *after* core.neorgcmd gets intialized e.g. load():
 
-        module.load = function()
+        module.load = function() ---@diagnostic disable-line -- TODO: type error workaround <pysan3> Duplicate field `load` (L94)
             module.required["core.neorgcmd"].add_commands_from_table({
                 -- The name of our command
                 my_command = {
@@ -91,7 +91,7 @@ module.examples = {
     end,
 }
 
-module.load = function()
+module.load = function() ---@diagnostic disable-line -- TODO: type error workaround <pysan3> Duplicate field `load` (L26)
     -- Define the :Neorg command with autocompletion taking any number of arguments (-nargs=*)
     -- If the user passes no arguments or too few, we'll query them for the remainder using select_next_cmd_arg.
     vim.api.nvim_create_user_command("Neorg", module.private.command_callback, {

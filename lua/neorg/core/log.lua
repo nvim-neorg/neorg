@@ -47,7 +47,7 @@ log.get_default_config = function()
     return default_config
 end
 
-local unpack = unpack or table.unpack
+local unpack = unpack or table.unpack ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
 log.new = function(config, standalone)
     config = vim.tbl_deep_extend("force", default_config, config)
