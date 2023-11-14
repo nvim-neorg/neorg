@@ -486,8 +486,8 @@ heartwarming and fuels the urge to keep going :heart:. You can show support here
 
 - [Buy me a coffee!](https://buymeacoffee.com/vhyrro)
 - [Support me via Github Sponsors](https://github.com/sponsors/vhyrro)
-- [Support me on LiberaPay](https://liberapay.com/vhyrro)
 - [Support me on Patreon](https://patreon.com/vhyrro)
-- Donate to my monero wallet: `86CXbnPLa14F458FRQFe26PRfffZTZDbUeb4NzYiHDtzcyaoMnfq1TqVU1EiBFrbKqGshFomDzxWzYX2kMvezcNu9TaKd9t`
 
-<!-- TODO: Create table of donation links for all maintainers -->
+Immense thank you to all of the sponsors of my work!
+
+<!-- sponsors --><!-- sponsors -->
