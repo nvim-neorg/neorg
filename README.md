@@ -490,4 +490,4 @@ heartwarming and fuels the urge to keep going :heart:. You can show support here
 
 Immense thank you to all of the sponsors of my work!
 
-<!-- sponsors --><!-- sponsors -->
+<!-- sponsors --><a href="https://github.com/vsedov"><img src="https://github.com/vsedov.png" width="60px" alt="Viv Sedov" /></a><a href="https://github.com/bR3iN"><img src="https://github.com/bR3iN.png" width="60px" alt="" /></a><a href="https://github.com/skbolton"><img src="https://github.com/skbolton.png" width="60px" alt="Stephen Bolton" /></a><a href="https://github.com/dimas-cyriaco"><img src="https://github.com/dimas-cyriaco.png" width="60px" alt="Dimas Cyriaco" /></a><a href="https://github.com/molleweide"><img src="https://github.com/molleweide.png" width="60px" alt="" /></a><a href="https://github.com/theherk"><img src="https://github.com/theherk.png" width="60px" alt="Adam Sherwood" /></a><a href="https://github.com/Gwenillia"><img src="https://github.com/Gwenillia.png" width="60px" alt="Gwenillia" /></a><a href="https://github.com/purepani"><img src="https://github.com/purepani.png" width="60px" alt="" /></a><!-- sponsors -->
