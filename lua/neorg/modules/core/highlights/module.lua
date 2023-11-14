@@ -477,7 +477,7 @@ module.public = {
             local is_link = highlight:sub(1, 1) == "+"
 
             local full_highlight_name = "@neorg" .. prefix .. (hl_name:len() > 0 and ("." .. hl_name) or "")
-            local does_hl_exist = lib.inline_pcall(vim.api.nvim_exec, "highlight " .. full_highlight_name, true)
+            local does_hl_exist = lib.inline_pcall(vim.api.nvim_exec, "highlight " .. full_highlight_name, true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
             -- If we are dealing with a link then link the highlights together (excluding the + symbol)
             if is_link then
@@ -514,7 +514,7 @@ module.public = {
             end
 
             local full_highlight_name = "@neorg" .. prefix .. (hl_name:len() > 0 and ("." .. hl_name) or "")
-            local does_hl_exist = lib.inline_pcall(vim.api.nvim_exec, "highlight " .. full_highlight_name, true)
+            local does_hl_exist = lib.inline_pcall(vim.api.nvim_exec, "highlight " .. full_highlight_name, true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
             -- If the highlight already exists then assume the user doesn't want it to be
             -- overwritten
@@ -577,7 +577,7 @@ module.public = {
     -- <3
     get_attribute = function(name, attribute)
         -- Attempt to get the highlight
-        local success, hl = pcall(vim.api.nvim_get_hl_by_name, name, true)
+        local success, hl = pcall(vim.api.nvim_get_hl_by_name, name, true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         -- If we were successful and if the attribute exists then return it
         if success and hl[attribute] then

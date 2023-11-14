@@ -2,7 +2,7 @@ local lib = require("neorg.core.lib")
 
 local function neovim_version()
     local data = {}
-    local parsed_output = vim.api.nvim_exec("version", true)
+    local parsed_output = vim.api.nvim_exec("version", true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
     for _, line in ipairs(vim.split(parsed_output, "\n")) do
         local key, value = line:match("^%s*(.+[^%s]):%s+(.+)$")

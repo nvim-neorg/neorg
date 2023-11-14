@@ -287,7 +287,7 @@ module.public = {
                                     -- make sure that group has things when needed
                                     local regex = group .. "%s+cluster=(.+)"
                                     local _, found_cluster =
-                                        pcall(vim.api.nvim_exec, string.format("syntax list @%s", group), true)
+                                        pcall(vim.api.nvim_exec, string.format("syntax list @%s", group), true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>: `nvim_exec` not found
                                     local actual_cluster
                                     for match in found_cluster:gmatch(regex) do
                                         actual_cluster = match
@@ -319,7 +319,7 @@ module.public = {
                     end
 
                     has_syntax = string.format("syntax list %s", snip)
-                    _, result = pcall(vim.api.nvim_exec, has_syntax, true)
+                    _, result = pcall(vim.api.nvim_exec, has_syntax, true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>: `nvim_exec` not found
                     count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
 
                     --[[
