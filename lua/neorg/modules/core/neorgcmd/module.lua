@@ -97,6 +97,8 @@ module.load = function() ---@diagnostic disable-line -- TODO: type error workaro
     vim.api.nvim_create_user_command("Neorg", module.private.command_callback, {
         nargs = "*",
         complete = module.private.generate_completions,
+        desc = "Controls the Neorg Environment",
+        range = 0,
     })
 
     -- Loop through all the command modules we want to load and load them
