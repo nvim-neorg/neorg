@@ -956,7 +956,7 @@ local function remove_extmarks(bufid, pos_start_0b_0b, pos_end_0bin_0bex)
     end
 end
 
-local function is_inside_example(_node)
+local function is_inside_example(_node) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     -- TODO: waiting for parser fix
     return false
 end
@@ -1244,11 +1244,11 @@ local function handle_init_event(event)
     local function on_line_callback(
         tag,
         bufid,
-        _changedtick,
+        _changedtick, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         row_start_0b,
-        _row_end_0bex,
+        _row_end_0bex, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         row_updated_0bex,
-        _n_byte_prev
+        _n_byte_prev ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     )
         assert(tag == "lines")
         mark_line_range_changed(bufid, row_start_0b, row_updated_0bex)
@@ -1424,7 +1424,7 @@ module.load = function()
     if utils.is_minimum_version(0, 7, 0) then
         vim.api.nvim_create_autocmd("OptionSet", {
             pattern = "conceallevel",
-            callback = function(_ev)
+            callback = function(_ev) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 local bufid = vim.api.nvim_get_current_buf()
                 if vim.bo[bufid].ft ~= "norg" then
                     return

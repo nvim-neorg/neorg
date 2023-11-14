@@ -280,7 +280,7 @@ module.public = {
                                             false
                                         )
                                     end
-                                    file = file[1]
+                                    file = file[1] ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                                     local command = string.format("syntax include @%s %s", group, file)
                                     vim.cmd(command)
 
@@ -533,7 +533,7 @@ module.on_event = function(event)
 
             local timer = vim.loop.new_timer()
 
-            timer:start(
+            timer:start( ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 module.config.public.performance.timeout,
                 module.config.public.performance.interval,
                 vim.schedule_wrap(function()
@@ -542,7 +542,7 @@ module.on_event = function(event)
                     local block_top_valid = block_top * module.config.public.performance.increment - 1 < line_count
 
                     if not vim.api.nvim_buf_is_loaded(buf) or (not block_bottom_valid and not block_top_valid) then
-                        timer:stop()
+                        timer:stop() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                         return
                     end
 

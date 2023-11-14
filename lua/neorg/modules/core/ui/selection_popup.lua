@@ -330,7 +330,7 @@ module.public = {
                         else
                             return callback and callback.callback or function() end
                         end
-                    end)()(data)
+                    end)()(data) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 end)
 
                 module.private.callbacks[name] = self

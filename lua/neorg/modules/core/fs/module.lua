@@ -34,7 +34,7 @@ module.public = {
         local ok, err = vim.loop.fs_mkdir(new_path, file_permissions)
 
         if not ok then
-            return ok, err
+            return ok, err ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end
 
         for name, type in vim.fs.dir(old_path) do
@@ -43,7 +43,7 @@ module.public = {
                     vim.loop.fs_copyfile(table.concat({ old_path, "/", name }), table.concat({ new_path, "/", name }))
 
                 if not ok then
-                    return ok, err
+                    return ok, err ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 end
             elseif type == "directory" and not vim.endswith(new_path, name) then
                 ok, err = module.public.copy_directory(
@@ -52,12 +52,12 @@ module.public = {
                 )
 
                 if not ok then
-                    return ok, err
+                    return ok, err ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 end
             end
         end
 
-        return true, nil
+        return true, nil ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end,
 }
 

@@ -75,7 +75,7 @@ module.public = {
             if type(matched) == "string" then
                 log.error(
                     "Oh no! There's been an error in the query. It seems that we've received some malformed input at one of the subtrees present in parent node of type",
-                    parent:type()
+                    parent:type() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 )
                 log.error("Here's the error message:", matched)
 
@@ -83,7 +83,7 @@ module.public = {
                     log.warn("To fix the issue:", vim.trim(how_to_fix))
                 end
 
-                return
+                return ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             end
 
             -- We extract matching nodes that doesn't have subtree
@@ -195,7 +195,7 @@ module.public = {
                 log.warn("Can't read file " .. fname)
                 if opts.no_force_read then
                     log.error(err)
-                    return
+                    return ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 end
                 lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
             else
@@ -232,7 +232,7 @@ module.public = {
 
             lib.when(vim.fn.bufloaded(buf) == 1, function()
                 vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-                vim.api.nvim_buf_call(buf, lib.wrap(vim.cmd, "write!"))
+                vim.api.nvim_buf_call(buf, lib.wrap(vim.cmd, "write!")) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             end, lib.wrap(vim.fn.writefile, lines, fname))
 
             -- We reset the state as false because we are consistent with the original file
@@ -245,7 +245,7 @@ module.public = {
     --- @overload fun()
     ---@param buf number #The content relative to the provided buffer
     delete_content = function(buf)
-        lib.when(buf, function()
+        lib.when(buf, function() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             module.private.data.temp_bufs[buf] = nil
         end, function()
             module.private.data.temp_bufs = {}
@@ -265,12 +265,12 @@ module.private = {
     ---@return table
     matching_nodes = function(parent, tree, bufnr)
         local res = {}
-        local where = tree.where
+        local where = tree.where ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         local matched_query, how_to_fix =
             module.private.matching_query(parent, tree.query, { recursive = tree.recursive })
 
         if type(matched_query) == "string" then
-            return matched_query, how_to_fix
+            return matched_query, how_to_fix ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end
 
         if not where then
@@ -293,7 +293,7 @@ module.private = {
     ---@param query table
     ---@param opts table
     ---   - opts.recursive (bool):      if true will recursively find the matching query
-    ---@return table
+    ---@return table | any, any ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     matching_query = function(parent, query, opts)
         vim.validate({
             parent = { parent, "userdata" },
@@ -338,7 +338,7 @@ With that in mind, you can do something like this (for example):
 
         -------------------------
 
-        for node in parent:iter_children() do
+        for node in parent:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             if node:type() == query[2] then
                 -- query : { "first", "node_name"} first child node that match node_name
                 if query[1] == "first" then
@@ -376,7 +376,7 @@ With that in mind, you can do something like this (for example):
         end
 
         -- Where statements requesting children nodes from parent node
-        for node in parent:iter_children() do
+        for node in parent:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             if where[1] == "child_exists" then
                 if node:type() == where[2] then
                     return true
@@ -387,7 +387,7 @@ With that in mind, you can do something like this (for example):
                 local temp_buf = module.public.get_temp_buf(opts.bufnr)
                 if
                     node:type() == where[2]
-                    and vim.split(vim.treesitter.query.get_node_text(node, temp_buf), "\n")[1] == where[3]
+                    and vim.split(vim.treesitter.query.get_node_text(node, temp_buf), "\n")[1] == where[3] ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 then
                     return true
                 end

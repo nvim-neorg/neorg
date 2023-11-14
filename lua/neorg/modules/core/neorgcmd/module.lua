@@ -182,7 +182,7 @@ module.public = {
     end,
 
     --- Defines a custom completion function to use for core.neorgcmd.
-    ---@param callback #(function) - the same function format as you would receive by being called by :command -completion=customlist,v:lua.callback Neorg
+    ---@param callback any #(function) - the same function format as you would receive by being called by :command -completion=customlist,v:lua.callback Neorg ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     set_completion_callback = function(callback)
         module.private.generate_completions = callback
     end,

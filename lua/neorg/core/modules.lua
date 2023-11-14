@@ -561,7 +561,7 @@ function modules.await(module_name, callback)
     callbacks.on_event("core.module_loaded", function(_, module)
         callback(module.public)
     end, function(event)
-        return event.content.name == module_name
+        return event.content.name == module_name ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end)
 end
 
@@ -659,7 +659,7 @@ function modules.create_event(module, type, content)
 
     if not event_template then
         log.warn("Unable to create event of type", type, ". Returning nil...")
-        return
+        return ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end
 
     -- Make a deep copy here - we don't want to override the actual base table!

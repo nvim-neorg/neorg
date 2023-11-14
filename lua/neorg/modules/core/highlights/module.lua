@@ -449,7 +449,7 @@ module.public = {
 
         --- Recursively descends down the highlight configuration and applies every highlight accordingly
         ---@param highlights table #The table of highlights to descend down
-        ---@param callback #(function(hl_name, highlight, prefix) -> bool) - a callback function to be invoked for every highlight. If it returns true then we should recurse down the table tree further
+        ---@param callback any #(function(hl_name, highlight, prefix) -> bool) - a callback function to be invoked for every highlight. If it returns true then we should recurse down the table tree further ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         ---@param prefix string #Should be only used by the function itself, acts as a "savestate" so the function can keep track of what path it has descended down
         local function descend(highlights, callback, prefix)
             -- Loop through every highlight defined in the provided table

@@ -133,7 +133,7 @@ module.public = {
 
         -- If we set a recursion level then go through and traverse up the syntax tree `recursion_level` times
         for _ = 0, recursion_level do
-            item_at_cursor = item_at_cursor:parent()
+            item_at_cursor = item_at_cursor:parent() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end
 
         -- If the final item does not exist or the target item is not a detached modifier
@@ -249,7 +249,7 @@ module.public = {
             return
         end
 
-        for status in detached_modifier_extension_node:iter_children() do
+        for status in detached_modifier_extension_node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             if vim.startswith(status:type(), "todo_item_") then
                 return status
             end
@@ -295,11 +295,11 @@ module.public = {
     ---@param todo_node userdata #The todo node to extract the data from
     ---@return TodoItemType? #A todo item type as a string, else nil
     get_todo_item_type = function(todo_node)
-        if not todo_node or not todo_node:named_child(1) then
+        if not todo_node or not todo_node:named_child(1) then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             return
         end
 
-        local todo_type = module.public.find_first_status_extension(todo_node:named_child(1))
+        local todo_type = module.public.find_first_status_extension(todo_node:named_child(1)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         return todo_type and todo_type:type():sub(string.len("todo_item_") + 1) or nil
     end,
@@ -314,7 +314,7 @@ module.public = {
             return
         end
 
-        local type = node:type():match("^(.+)%d+$")
+        local type = node:type():match("^(.+)%d+$") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         -- If the type of the current todo item differs from the one we want to change to then
         -- We do this because we don't want to be unnecessarily modifying a line that doesn't need changing
@@ -322,14 +322,14 @@ module.public = {
             return
         end
 
-        local first_status_extension = module.public.find_first_status_extension(node:named_child(1))
+        local first_status_extension = module.public.find_first_status_extension(node:named_child(1)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         if not first_status_extension then
             if not module.config.public.create_todo_items then
                 return
             end
 
-            local row, _, _, column = node:named_child(0):range()
+            local row, _, _, column = node:named_child(0):range() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
             vim.api.nvim_buf_set_text(buf, row, column, row, column, { "(" .. char .. ") " })
         else
@@ -345,7 +345,7 @@ module.public = {
             )
         end
 
-        for child in node:iter_children() do
+        for child in node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             if type == child:type():match("^(.+)%d+$") then
                 module.public.make_all(buf, child, todo_item_type, char)
             end
@@ -392,7 +392,7 @@ module.public = {
         local next = types[index] or types[1]
 
         if not next then
-            for child in todo_item_at_cursor:iter_children() do
+            for child in todo_item_at_cursor:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 if module.public.get_todo_item_type(child) then
                     next = alternative_types[get_index(alternative_types, todo_item_type)]
                     break

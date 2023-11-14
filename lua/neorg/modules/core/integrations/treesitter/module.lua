@@ -168,7 +168,7 @@ module.public = {
 
                 -- Find and go to the first matching node that starts after the current cursor position.
                 if (start_line == line_number and start_col > col_number) or start_line > line_number then
-                    module.private.ts_utils.goto_node(node)
+                    module.private.ts_utils.goto_node(node) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     return
                 end
             end
@@ -210,7 +210,7 @@ module.public = {
             ::continue::
         end
         if final_node then
-            module.private.ts_utils.goto_node(final_node)
+            module.private.ts_utils.goto_node(final_node) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end
     end,
     ---  Gets all nodes of a given type from the AST
@@ -237,7 +237,7 @@ module.public = {
             ---@param node userdata #The starting point for the search
             local function descend(node)
                 -- Iterate over all children of the node and try to match their type
-                for child, _ in node:iter_children() do
+                for child, _ in node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     if child:type() == type then
                         table.insert(result, child)
                     else
@@ -256,7 +256,7 @@ module.public = {
     end,
     --- Executes function callback on each child node of the root
     ---@param callback function
-    ---@param ts_tree #Optional syntax tree
+    ---@param ts_tree any #Optional syntax tree ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     tree_map = function(callback, ts_tree)
         local tree = ts_tree or vim.treesitter.get_parser(0, "norg"):parse()[1]
 
@@ -268,7 +268,7 @@ module.public = {
     end,
     --- Executes callback on each child recursive
     ---@param callback function Executes with each node as parameter, can return false to stop recursion
-    ---@param ts_tree #Optional syntax tree
+    ---@param ts_tree any #Optional syntax tree ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     tree_map_rec = function(callback, ts_tree)
         local tree = ts_tree or vim.treesitter.get_parser(0, "norg"):parse()[1]
 
@@ -329,13 +329,13 @@ module.public = {
 
         vim.treesitter.get_parser(buf, "norg"):for_each_tree(function(tree)
             -- Iterate over all top-level children and attempt to find a match
-            return iterate(tree:root())
+            return iterate(tree:root()) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end)
     end,
     --- Recursively attempts to locate a node of a given type
     ---@param type string #The type of node to look for
     ---@param opts table #A table of two options: `buf` and `ft`, for the buffer and format respectively
-    ---@return
+    ---@return any ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     get_first_node_recursive = function(type, opts)
         opts = opts or {}
         local result
@@ -362,7 +362,7 @@ module.public = {
             ---@param node userdata #The starting point for the search
             local function descend(node)
                 -- Iterate over all children of the node and try to match their type
-                for child, _ in node:iter_children() do
+                for child, _ in node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     if child:type() == type then
                         return child
                     else
@@ -414,12 +414,12 @@ module.public = {
                 end
             elseif child:type() == "tag_name" then
                 -- If we're dealing with the tag name then append the text of the tag_name node to this table
-                table.insert(resulting_name, vim.split(module.public.get_node_text(child), "\n")[1])
+                table.insert(resulting_name, vim.split(module.public.get_node_text(child), "\n")[1]) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             elseif child:type() == "tag_parameters" then
-                table.insert(params, vim.split(module.public.get_node_text(child), "\n")[1])
+                table.insert(params, vim.split(module.public.get_node_text(child), "\n")[1]) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             elseif child:type() == "ranged_verbatim_tag_content" then
                 -- If we're dealing with tag content then retrieve that content
-                content = vim.split(module.public.get_node_text(child), "\n")
+                content = vim.split(module.public.get_node_text(child), "\n") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 _, content_start_column = child:range()
             end
         end
@@ -470,7 +470,7 @@ module.public = {
             local _, _, ere, ece = node[#node]:range()
             return brs, bcs, ere, ece
         end, function()
-            local a, b, c, d = node:range()
+            local a, b, c, d = node:range() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             return a, b, c, d
         end)
 
@@ -512,14 +512,14 @@ module.public = {
 
         while _node do
             if type(types) == "string" then
-                if _node:type():match(types) then
+                if _node:type():match(types) then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     return _node
                 end
-            elseif vim.tbl_contains(types, _node:type()) then
+            elseif vim.tbl_contains(types, _node:type()) then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 return _node
             end
 
-            _node = _node:parent()
+            _node = _node:parent() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end
     end,
     --- Retrieves the first node at a specific line
@@ -542,7 +542,7 @@ module.public = {
         local first_char = (vim.api.nvim_buf_get_lines(buf, line, line + 1, true)[1] or ""):match("^(%s+)[^%s]")
         first_char = first_char and first_char:len() or 0
 
-        local descendant = document_root:descendant_for_range(line, first_char, line, first_char + 1)
+        local descendant = document_root:descendant_for_range(line, first_char, line, first_char + 1) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         if not descendant then
             return
@@ -551,7 +551,7 @@ module.public = {
         while
             descendant:parent()
             and (descendant:parent():start()) == line
-            and descendant:parent():symbol() ~= document_root:symbol()
+            and descendant:parent():symbol() ~= document_root:symbol() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         do
             local parent = descendant:parent()
 
@@ -683,7 +683,7 @@ module.public = {
 
         local meta_source = module.public.get_node_text(meta_node, buf)
 
-        local norg_meta_parser = vim.treesitter.get_string_parser(meta_source, "norg_meta")
+        local norg_meta_parser = vim.treesitter.get_string_parser(meta_source, "norg_meta") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         local norg_meta_tree = norg_meta_parser:parse()[1]
 
@@ -796,7 +796,7 @@ module.on_event = function(event)
             )
         end
 
-        pcall(vim.cmd, "TSInstall! norg_meta")
+        pcall(vim.cmd, "TSInstall! norg_meta") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end
 end
 

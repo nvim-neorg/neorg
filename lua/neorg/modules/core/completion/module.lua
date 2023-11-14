@@ -56,7 +56,7 @@ module.load = function()
 
     -- Set a special function in the integration module to allow it to communicate with us
     module.private.engine.invoke_completion_engine = function(context)
-        return module.public.complete(context)
+        return module.public.complete(context) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end
 
     -- Create the integration engine's source

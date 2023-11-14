@@ -300,7 +300,7 @@ module.public = {
                                 for _, filename in ipairs(options.filenames_only) do
                                     if
                                         declared_filetype
-                                        == vim.filetype.match({ filename = filename, contents = block_content })
+                                        == vim.filetype.match({ filename = filename, contents = block_content }) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                                     then
                                         file_to_tangle_to = filename
                                         break
@@ -325,7 +325,7 @@ module.public = {
                         if filename_to_languages[file_to_tangle_to] then
                             language = filename_to_languages[file_to_tangle_to]
                         else
-                            language = vim.filetype.match({ filename = file_to_tangle_to, contents = block_content })
+                            language = vim.filetype.match({ filename = file_to_tangle_to, contents = block_content }) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                             if not language and declared_filetype then
                                 language = vim.filetype.match({
                                     filename = "___." .. declared_filetype,
@@ -429,11 +429,11 @@ module.on_event = function(event)
         local tangled_count = 0
 
         for file, content in pairs(tangles) do
-            vim.loop.fs_open(vim.fn.expand(file), "w", 438, function(err, fd)
+            vim.loop.fs_open(vim.fn.expand(file), "w", 438, function(err, fd) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 file_count = file_count - 1
                 assert(not err, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
-                vim.loop.fs_write(fd, table.concat(content, "\n"), 0, function(werr)
+                vim.loop.fs_write(fd, table.concat(content, "\n"), 0, function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     assert(
                         not werr,
                         lib.lazy_string_concat("Failed to write to file '", file, "' for tangling: ", werr)

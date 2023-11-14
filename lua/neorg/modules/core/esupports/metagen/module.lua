@@ -23,7 +23,7 @@ local function get_timezone_offset()
     local utcdate = os.date("!*t", 0)
     local localdate = os.date("*t", 0)
     localdate.isdst = false -- this is the trick
-    return os.difftime(os.time(localdate), os.time(utcdate))
+    return os.difftime(os.time(localdate), os.time(utcdate)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 end
 
 local function get_timestamp()
@@ -97,7 +97,7 @@ local default_template = {
 -- template.
 local function fill_template_defaults()
     local function match_first(comparand)
-        return function(_key, value)
+        return function(_key, value) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             if value[1] == comparand then
                 return value
             else
@@ -106,7 +106,7 @@ local function fill_template_defaults()
         end
     end
 
-    module.config.public.template = lib.map(module.config.public.template, function(_key, elem)
+    module.config.public.template = lib.map(module.config.public.template, function(_key, elem) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         if not elem[2] then
             return lib.filter(default_template, match_first(elem[1]))
         end
@@ -297,7 +297,7 @@ module.public = {
         local current_date = ""
         for _, val in ipairs(module.config.public.template) do
             if val[1] == "updated" then
-                current_date = val[2]()
+                current_date = val[2]() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             end
         end
 
@@ -326,7 +326,7 @@ module.public = {
                         range.column_start,
                         range.row_end,
                         range.column_end,
-                        { current_date }
+                        { current_date } ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     )
                 end
             end

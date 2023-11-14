@@ -50,7 +50,7 @@ module.public = {
 
         for _, modifier in ipairs(indent_data.modifiers or {}) do
             if module.config.public.modifiers[modifier] then
-                local ret = module.config.public.modifiers[modifier](buf, node, line, initial_indent)
+                local ret = module.config.public.modifiers[modifier](buf, node, line, initial_indent) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
                 if ret ~= 0 then
                     indent = ret

@@ -64,7 +64,7 @@ end
 module.load = function()
     -- Go through every workspace and expand special symbols like ~
     for name, workspace_location in pairs(module.config.public.workspaces) do
-        module.config.public.workspaces[name] = vim.fn.expand(workspace_location)
+        module.config.public.workspaces[name] = vim.fn.expand(workspace_location) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end
 
     modules.await("core.keybinds", function(keybinds)
@@ -230,14 +230,14 @@ module.public = {
         for workspace, location in pairs(module.config.public.workspaces) do
             if workspace ~= "default" then
                 -- Expand all special symbols like ~ etc. and escape special characters
-                local expanded = string.gsub(vim.fn.expand(location), "%p", "%%%1")
+                local expanded = string.gsub(vim.fn.expand(location), "%p", "%%%1") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
                 -- If the workspace location is a parent directory of our current realcwd
                 -- or if the ws location is the same then set it as the real workspace
                 -- We check this last_length here because if a match is longer
                 -- than the previous one then we can say it is a much more precise
                 -- match and hence should be prioritized
-                if realcwd:find(expanded) and #expanded > last_length then
+                if realcwd:find(expanded) and #expanded > last_length then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     -- Set the result to the workspace name
                     result = workspace
                     -- Set the last_length variable to the new length
@@ -306,7 +306,7 @@ module.public = {
         end
 
         -- Split the path at every /
-        local split = vim.split(vim.trim(path), config.pathsep, true)
+        local split = vim.split(vim.trim(path), config.pathsep, true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         -- If the last element is empty (i.e. if the string provided ends with '/') then trim it
         if split[#split]:len() == 0 then

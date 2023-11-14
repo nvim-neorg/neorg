@@ -56,7 +56,7 @@ module.public = {
     ---@param open_mode string|nil if not nil, will open a new split with the split mode defined (vsplitr...) or new tab (mode="tab") or with external app (mode="external")
     ---@param parsed_link table a table of link information gathered from parse_link()
     follow_link = function(node, open_mode, parsed_link)
-        if node:type() == "anchor_declaration" then
+        if node:type() == "anchor_declaration" then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             local located_anchor_declaration = module.public.locate_anchor_declaration_target(node)
 
             if not located_anchor_declaration then
@@ -236,7 +236,7 @@ module.public = {
                     return
                 end
 
-                module.private.write_fixed_link(node, parsed_link, similarities)
+                module.private.write_fixed_link(node, parsed_link, similarities) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             end)
             :blank()
             :desc("Does the same as the above keybind, however doesn't limit matches to those")
@@ -326,12 +326,12 @@ module.public = {
     --- Locates the node that an anchor is pointing to
     ---@param anchor_decl_node userdata #A valid anchod declaration node
     locate_anchor_declaration_target = function(anchor_decl_node)
-        if not anchor_decl_node:named_child(0) then
+        if not anchor_decl_node:named_child(0) then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             return
         end
 
         local target = module.required["core.integrations.treesitter"]
-            .get_node_text(anchor_decl_node:named_child(0):named_child(0))
+            .get_node_text(anchor_decl_node:named_child(0):named_child(0)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             :gsub("[%s\\]", "")
 
         local query_str = [[
@@ -373,7 +373,7 @@ module.public = {
     ---@return table? #A table of data about the link
     parse_link = function(link_node, buf)
         buf = buf or 0
-        if not link_node or not vim.tbl_contains({ "link", "anchor_definition" }, link_node:type()) then
+        if not link_node or not vim.tbl_contains({ "link", "anchor_definition" }, link_node:type()) then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             return
         end
 
@@ -525,11 +525,11 @@ module.public = {
                 return lib.match(vim.fn.fnamemodify(destination, ":e"))({
                     [{ "jpg", "jpeg", "png", "pdf" }] = {
                         type = "external_app",
-                        uri = vim.uri_from_fname(vim.fn.expand(destination)),
+                        uri = vim.uri_from_fname(vim.fn.expand(destination)), ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     },
                     [module.config.public.external_filetypes] = {
                         type = "external_app",
-                        uri = vim.uri_from_fname(vim.fn.expand(destination)),
+                        uri = vim.uri_from_fname(vim.fn.expand(destination)), ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     },
                     _ = function()
                         return {
@@ -843,7 +843,7 @@ module.private = {
         local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
 
         if not document_root then
-            return
+            return ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         end
 
         local similarities = {
@@ -949,9 +949,9 @@ module.on_event = function(event)
             return
         end
 
-        local parsed_link = module.public.parse_link(link_node_at_cursor)
+        local parsed_link = module.public.parse_link(link_node_at_cursor) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
-        module.public.follow_link(link_node_at_cursor, split_mode, parsed_link)
+        module.public.follow_link(link_node_at_cursor, split_mode, parsed_link) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end
 end
 
