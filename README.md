@@ -486,8 +486,12 @@ heartwarming and fuels the urge to keep going :heart:. You can show support here
 
 - [Buy me a coffee!](https://buymeacoffee.com/vhyrro)
 - [Support me via Github Sponsors](https://github.com/sponsors/vhyrro)
-- [Support me on LiberaPay](https://liberapay.com/vhyrro)
 - [Support me on Patreon](https://patreon.com/vhyrro)
-- Donate to my monero wallet: `86CXbnPLa14F458FRQFe26PRfffZTZDbUeb4NzYiHDtzcyaoMnfq1TqVU1EiBFrbKqGshFomDzxWzYX2kMvezcNu9TaKd9t`
 
-<!-- TODO: Create table of donation links for all maintainers -->
+Immense thank you to all of the sponsors of my work!
+
+<div align="center">
+
+<!-- sponsors --><a href="https://github.com/vsedov"><img src="https://github.com/vsedov.png" width="60px" alt="vsedov" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/bR3iN"><img src="https://github.com/bR3iN.png" width="60px" alt="bR3iN" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/skbolton"><img src="https://github.com/skbolton.png" width="60px" alt="skbolton" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/dimas-cyriaco"><img src="https://github.com/dimas-cyriaco.png" width="60px" alt="dimas-cyriaco" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/molleweide"><img src="https://github.com/molleweide.png" width="60px" alt="molleweide" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/theherk"><img src="https://github.com/theherk.png" width="60px" alt="theherk" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/Gwenillia"><img src="https://github.com/Gwenillia.png" width="60px" alt="Gwenillia" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/purepani"><img src="https://github.com/purepani.png" width="60px" alt="purepani" /></a>&nbsp;&nbsp;&nbsp;<!-- sponsors -->
+
+</div>

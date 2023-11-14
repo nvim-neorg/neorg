@@ -84,16 +84,20 @@ module.public = {
                 o.command = "rundll32.exe"
                 o.args = { "url.dll,FileProtocolHandler", link_location }
             else
+                o.args = { link_location }
                 if config.os_info == "linux" then
                     o.command = "xdg-open"
                 elseif config.os_info == "mac" then
                     o.command = "open"
                 elseif config.os_info == "wsl2" then
                     o.command = "wslview"
+                    -- The file uri should be decoded when being transformed to a unix path.
+                    -- The decoding step is temporarily missing from wslview (https://github.com/wslutilities/wslu/issues/295),
+                    -- so we work around the problem by doing the transformation before invoking wslview.
+                    o.args[1] = vim.uri_to_fname(link_location)
                 elseif config.os_info == "wsl" then
                     o.command = "explorer.exe"
                 end
-                o.args = { link_location }
             end
 
             require("plenary.job"):new(o):start()

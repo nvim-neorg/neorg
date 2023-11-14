@@ -1,0 +1,28 @@
+name: lua_ls-typecheck
+on:
+  pull_request: ~
+  push:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    name: Type Check Code Base
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Checkout dependency neodev
+        uses: actions/checkout@v3
+        with:
+          repository: "folke/neodev.nvim"
+          path: "deps/neodev.nvim"
+
+      - name: Type Check Code Base
+        uses: mrcjkb/lua-typecheck-action@v0.1.2
+        with:
+          configpath: .github/workflows/.luarc.json
+          directories: |
+            lua

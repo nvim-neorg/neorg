@@ -29,9 +29,18 @@ end
 local function get_timestamp()
     -- generate a ISO-8601 timestamp
     -- example: 2023-09-05T09:09:11-0500
-    local tz_offset = get_timezone_offset()
-    local h, m = math.modf(tz_offset / 3600)
-    return os.date("%Y-%m-%dT%H:%M:%S") .. string.format("%+.4d", h * 100 + m * 60)
+    --
+    local timezone_config = module.config.public.timezone
+    if timezone_config == "utc" then
+        return os.date("!%Y-%m-%dT%H:%M:%S+0000")
+    elseif timezone_config == "implicit-local" then
+        return os.date("%Y-%m-%dT%H:%M:%S")
+    else
+        -- assert(timezone_config == "local")
+        local tz_offset = get_timezone_offset()
+        local h, m = math.modf(tz_offset / 3600)
+        return os.date("%Y-%m-%dT%H:%M:%S") .. string.format("%+.4d", h * 100 + m * 60)
+    end
 end
 
 -- The default template found in the config for this module.
@@ -126,6 +135,12 @@ module.config.public = {
 
     -- Custom template to use for generating content inside `@document.meta` tag
     template = default_template,
+
+    -- Timezone information in the timestamps
+    -- - "utc" the timestamp is in UTC+0
+    -- - "local" the timestmap is in the local timezone
+    -- - "implicit-local" like "local", but the timezone information is omitted from the timestamp
+    timezone = "local",
 }
 
 module.private = {
