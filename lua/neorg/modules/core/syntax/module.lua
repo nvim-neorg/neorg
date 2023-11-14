@@ -225,7 +225,7 @@ module.public = {
                     module.public.remove_syntax(group, snip)
                 end
 
-                local ok, result = pcall(vim.api.nvim_exec, has_syntax, true)
+                local ok, result = pcall(vim.api.nvim_exec, has_syntax, true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>: `nvim_exec` not found
                 local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
                 local empty_result = 0
                 -- look to see if the textGroup is actually empty
