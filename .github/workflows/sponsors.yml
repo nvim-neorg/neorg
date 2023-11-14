@@ -15,9 +15,9 @@ jobs:
         with:
           token: ${{ secrets.GH_SPONSORS_TOKEN }}
           file: 'README.md'
+          template: '<a href="https://github.com/{{{ login }}}"><img src="https://github.com/{{{ login }}}.png" width="60px" alt="{{{ login }}}" /></a>&nbsp;&nbsp;&nbsp;'
 
       - name: Commit to repository
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "docs(README): update sponsors list"
-          template: '<a href="https://github.com/{{{ login }}}"><img src="https://github.com/{{{ login }}}.png" width="60px" alt="{{{ login }}}" /></a>&nbsp;&nbsp;&nbsp;'
