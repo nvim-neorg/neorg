@@ -330,7 +330,9 @@ module.public = {
             return
         end
 
-        local target = module.required["core.integrations.treesitter"]
+        local target = module
+            .required
+            ["core.integrations.treesitter"]
             .get_node_text(anchor_decl_node:named_child(0):named_child(0)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             :gsub("[%s\\]", "")
 

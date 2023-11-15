@@ -106,11 +106,14 @@ local function fill_template_defaults()
         end
     end
 
-    module.config.public.template = lib.map(module.config.public.template, function(_key, elem) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-        if not elem[2] then
-            return lib.filter(default_template, match_first(elem[1]))
+    module.config.public.template = lib.map(
+        module.config.public.template,
+        function(_key, elem) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            if not elem[2] then
+                return lib.filter(default_template, match_first(elem[1]))
+            end
         end
-    end)
+    )
 end
 
 module.setup = function()

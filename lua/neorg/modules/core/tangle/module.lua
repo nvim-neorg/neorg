@@ -429,31 +429,41 @@ module.on_event = function(event)
         local tangled_count = 0
 
         for file, content in pairs(tangles) do
-            vim.loop.fs_open(vim.fn.expand(file), "w", 438, function(err, fd) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                file_count = file_count - 1
-                assert(not err, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
+            vim.loop.fs_open(
+                vim.fn.expand(file),
+                "w",
+                438,
+                function(err, fd) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                    file_count = file_count - 1
+                    assert(not err, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
-                vim.loop.fs_write(fd, table.concat(content, "\n"), 0, function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                    assert(
-                        not werr,
-                        lib.lazy_string_concat("Failed to write to file '", file, "' for tangling: ", werr)
+                    vim.loop.fs_write(
+                        fd,
+                        table.concat(content, "\n"),
+                        0,
+                        function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                            assert(
+                                not werr,
+                                lib.lazy_string_concat("Failed to write to file '", file, "' for tangling: ", werr)
+                            )
+                        end
                     )
-                end)
 
-                tangled_count = tangled_count + 1
-                if file_count == 0 then
-                    vim.schedule(
-                        lib.wrap(
-                            utils.notify,
-                            string.format(
-                                "Successfully tangled %d file%s!",
-                                tangled_count,
-                                tangled_count == 1 and "" or "s"
+                    tangled_count = tangled_count + 1
+                    if file_count == 0 then
+                        vim.schedule(
+                            lib.wrap(
+                                utils.notify,
+                                string.format(
+                                    "Successfully tangled %d file%s!",
+                                    tangled_count,
+                                    tangled_count == 1 and "" or "s"
+                                )
                             )
                         )
-                    )
+                    end
                 end
-            end)
+            )
         end
     end
 end

@@ -253,9 +253,17 @@ module.on_event = function(event)
             vim.loop.fs_open(path, "w", 438, function(err, fd)
                 assert(not err, lib.lazy_string_concat("Failed to open file '", path, "' for upgrade: ", err))
 
-                vim.loop.fs_write(fd, output, 0, function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                    assert(not werr, lib.lazy_string_concat("Failed to write to file '", path, "' for upgrade: ", werr))
-                end)
+                vim.loop.fs_write(
+                    fd,
+                    output,
+                    0,
+                    function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                        assert(
+                            not werr,
+                            lib.lazy_string_concat("Failed to write to file '", path, "' for upgrade: ", werr)
+                        )
+                    end
+                )
 
                 vim.schedule(lib.wrap(utils.notify, "Successfully upgraded 1 file!"))
             end)
@@ -363,14 +371,24 @@ module.on_event = function(event)
                             lib.lazy_string_concat("Failed to open file '", filepath, "' for upgrade: ", fs_err)
                         )
 
-                        vim.loop.fs_write(fd, output, 0, function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                            assert(
-                                not werr,
-                                lib.lazy_string_concat("Failed to write to file '", filepath, "' for upgrade: ", werr)
-                            )
+                        vim.loop.fs_write(
+                            fd,
+                            output,
+                            0,
+                            function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                                assert(
+                                    not werr,
+                                    lib.lazy_string_concat(
+                                        "Failed to write to file '",
+                                        filepath,
+                                        "' for upgrade: ",
+                                        werr
+                                    )
+                                )
 
-                            check_counters()
-                        end)
+                                check_counters()
+                            end
+                        )
                     end)
                 end)
             end)

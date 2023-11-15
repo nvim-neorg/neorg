@@ -224,14 +224,20 @@ module.public = {
     to_lua_date = function(parsed_date)
         return os.date( ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             "*t",
-            os.time(vim.tbl_deep_extend("force", os.date("*t"), { ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                day = parsed_date.day,
-                month = parsed_date.month and parsed_date.month.number or nil,
-                year = parsed_date.year,
-                hour = parsed_date.time and parsed_date.time.hour,
-                min = parsed_date.time and parsed_date.time.minute,
-                sec = parsed_date.time and parsed_date.time.second,
-            }))
+            os.time(
+                vim.tbl_deep_extend(
+                    "force",
+                    os.date("*t"),
+                    { ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                        day = parsed_date.day,
+                        month = parsed_date.month and parsed_date.month.number or nil,
+                        year = parsed_date.year,
+                        hour = parsed_date.time and parsed_date.time.hour,
+                        min = parsed_date.time and parsed_date.time.minute,
+                        sec = parsed_date.time and parsed_date.time.second,
+                    }
+                )
+            )
         )
     end,
 

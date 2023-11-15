@@ -223,15 +223,28 @@ module.on_event = function(event)
         local filetype = event.content[2] or vim.filetype.match({ filename = filepath }) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         local exported = module.public.export(event.buffer, filetype) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
-        vim.loop.fs_open(filepath, "w", 438, function(err, fd) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-            assert(not err, lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err))
+        vim.loop.fs_open(
+            filepath,
+            "w",
+            438,
+            function(err, fd) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                assert(not err, lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err))
 
-            vim.loop.fs_write(fd, exported, 0, function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                assert(not werr, lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr))
-            end)
+                vim.loop.fs_write(
+                    fd,
+                    exported,
+                    0,
+                    function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                        assert(
+                            not werr,
+                            lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr)
+                        )
+                    end
+                )
 
-            vim.schedule(lib.wrap(utils.notify, "Successfully exported 1 file!"))
-        end)
+                vim.schedule(lib.wrap(utils.notify, "Successfully exported 1 file!"))
+            end
+        )
     elseif event.type == "core.neorgcmd.events.export.directory" then
         local path = event.content[3] and vim.fn.expand(event.content[3])
             or module.config.public.export_dir
@@ -296,19 +309,24 @@ module.on_event = function(event)
                                 lib.lazy_string_concat("Failed to open file '", write_path, "' for export: ", fs_err)
                             )
 
-                            vim.loop.fs_write(fd, exported, 0, function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                                assert(
-                                    not werr,
-                                    lib.lazy_string_concat(
-                                        "Failed to write to file '",
-                                        write_path,
-                                        "' for export: ",
-                                        werr
+                            vim.loop.fs_write(
+                                fd,
+                                exported,
+                                0,
+                                function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                                    assert(
+                                        not werr,
+                                        lib.lazy_string_concat(
+                                            "Failed to write to file '",
+                                            write_path,
+                                            "' for export: ",
+                                            werr
+                                        )
                                     )
-                                )
 
-                                check_counters()
-                            end)
+                                    check_counters()
+                                end
+                            )
                         end)
                     end)
                 end
