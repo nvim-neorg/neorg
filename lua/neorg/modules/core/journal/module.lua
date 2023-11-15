@@ -46,6 +46,8 @@ module.examples = {
                                 -- Don't print the year if it hasn't changed
                                 if not current_year or current_year < entry[1] then
                                     current_year = entry[1]
+                                    current_month = nil
+                                    current_quarter = nil
                                     table.insert(output, "* " .. current_year)
                                 end
 
@@ -73,7 +75,7 @@ module.examples = {
                                 end
 
                                 -- Prints the file link
-                                table.insert(output, entry[4] .. string.format("[%s]", entry[5]))
+                                table.insert(output, "   " .. entry[4] .. string.format("[%s]", entry[5]))
                             end
 
                             return output
@@ -348,6 +350,7 @@ module.private = {
                             -- Don't print the year and month if they haven't changed
                             if not current_year or current_year < entry[1] then
                                 current_year = entry[1]
+                                current_month = nil
                                 table.insert(output, "* " .. current_year)
                             end
                             if not current_month or current_month < entry[2] then
@@ -356,7 +359,7 @@ module.private = {
                             end
 
                             -- Prints the file link
-                            table.insert(output, entry[4] .. string.format("[%s]", entry[5]))
+                            table.insert(output, "   " .. entry[4] .. string.format("[%s]", entry[5]))
                         end
 
                         return output
