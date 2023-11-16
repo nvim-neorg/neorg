@@ -429,6 +429,17 @@ module.on_event = function(event)
         local tangled_count = 0
 
         for file, content in pairs(tangles) do
+            local upward_count = 0
+            for _ in string.gmatch(file, "%.%.[\\/]") do
+                upward_count = upward_count + 1
+            end
+            if upward_count > 0 then
+                -- adding one because the filename also has to be removed
+                local base = vim.fn.fnamemodify(vim.fn.expand("%"), ":p" .. string.rep(":h", upward_count + 1))
+                local path, _count = string.gsub(file, "%.%.[\\/]", "")
+                file = vim.fs.joinpath(base, path)
+            end
+
             vim.loop.fs_open(
                 vim.fn.expand(file), ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 "w",
