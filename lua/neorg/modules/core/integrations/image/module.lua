@@ -4,7 +4,7 @@ local module = neorg.modules.create("core.integrations.image")
 module.load = function()
     local success, image = pcall(require, "image")
 
-    assert(success, "Unable to loade image.nvim module")
+    assert(success, "Unable to load image.nvim plugin")
 
     module.private.image = image
 end

@@ -15,10 +15,12 @@ module.setup = function()
 end
 
 module.load = function()
-    Image = neorg.modules.get_module(module.config.public.renderer)
-    if not Image then
-        return
-    end
+    local success, image = pcall(neorg.modules.get_module, module.config.public.renderer)
+
+    assert(success, "Unable to load image module")
+
+    module.private.image = image
+
     module.required["core.autocommands"].enable_autocommand("BufWinEnter")
     module.required["core.autocommands"].enable_autocommand("CursorMoved")
     module.required["core.autocommands"].enable_autocommand("TextChanged")
@@ -57,7 +59,7 @@ module.public = {
 
                 local png_location = module.public.parse_latex(latex_snippet)
 
-                Image.new_image(
+                module.private.image.new_image(
                     vim.api.nvim_get_current_buf(),
                     png_location,
                     module.required["core.integrations.treesitter"].get_node_range(node),
@@ -69,7 +71,7 @@ module.public = {
                 table.insert(Ranges, { node:range() })
             end
         )
-        Images = Image.get_images()
+        Images = module.private.image.get_images()
     end,
     create_latex_document = function(snippet)
         local tempname = vim.fn.tempname()
@@ -167,19 +169,19 @@ module.config.public = {
 }
 
 local function render_latex()
-    Image.clear(Images)
+    module.private.image.clear(Images)
     neorg.modules.get_module("core.latex.renderer").latex_renderer()
     neorg.modules.get_module("core.latex.renderer").render_inline_math(Images)
 end
 
 local function clear_latex()
-    Image.clear(Images)
+    module.private.image.clear(Images)
 end
 
 local function clear_at_cursor()
     if Images ~= nil then
-        Image.render(Images)
-        Image.clear_at_cursor(Images, vim.api.nvim_win_get_cursor(0)[1] - 1)
+        module.private.image.render(Images)
+        module.private.image.clear_at_cursor(Images, vim.api.nvim_win_get_cursor(0)[1] - 1)
     end
 end
 
