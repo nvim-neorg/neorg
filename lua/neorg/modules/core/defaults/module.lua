@@ -34,6 +34,7 @@ return modules.create_meta(
     "core.esupports.indent",
     "core.esupports.metagen",
     "core.integrations.treesitter",
+    "core.integrations.image",
     "core.itero",
     "core.journal",
     "core.keybinds",
@@ -46,5 +47,6 @@ return modules.create_meta(
     "core.qol.todo_items",
     "core.storage",
     "core.tangle",
-    "core.upgrade"
+    "core.upgrade",
+    "core.latex.renderer"
 )
