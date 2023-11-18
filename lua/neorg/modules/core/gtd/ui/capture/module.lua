@@ -1,3 +1,5 @@
+-- TODO(vhyrro): separate the gtd.ui.capture module from the logic module (gtd.capture)
+
 local modules = require("neorg").modules
 
 local module = modules.create("core.gtd.ui.capture")
@@ -68,15 +70,23 @@ function module.public.capture()
         }, { dir = "col" })
     )
 
-    module.private.help_selection(help_ui.bufnr)
+    layout:mount()
+
+    vim.api.nvim_win_call(main_capture_element.winid, function()
+        vim.cmd.syntax([[match @neorg.gtd.context /#\S\+/]])
+        vim.cmd.syntax([[match @neorg.gtd.association /@\S\+/]])
+        vim.cmd.syntax([[match @neorg.gtd.urgence /!\d\+/]])
+        vim.cmd.syntax([[match @neorg.gtd.ontology /&\S\+/]])
+        vim.cmd.syntax([[match @neorg.gtd.timeframe /\~\d\+\S\+/]])
+    end)
+
+    module.private.help_selection(main_capture_element.bufnr, help_ui.bufnr)
 
     vim.api.nvim_create_autocmd("VimResized", {
         callback = function()
             layout:update()
         end,
     })
-
-    layout:mount()
 end
 
 function module.public.create_capture_ui()
@@ -131,10 +141,28 @@ function module.public.create_help_ui()
     return popup
 end
 
-function module.private.help_selection(bufnr)
-    module.required["core.ui.selection_popup"].begin_selection(bufnr):flag("a", "A very cool flag", function()
-        vim.print("A was pressed!")
-    end)
+function module.private.help_selection(keybind_bufnr, display_bufnr)
+    module.required["core.ui.selection_popup"].begin_selection(display_bufnr, keybind_bufnr)
+        :options({
+            text = {
+                highlight = "@text.reference"
+            },
+        })
+        :title("Add Category To Note")
+        :raw({ "Tell Jim to contact Susan " }, { "#work", "@neorg.gtd.context" }, { " " },  { "#meeting", "@neorg.gtd.context" })
+        :blank(2)
+        :title("Associate a Task with an Entity")
+        :raw({ "Tell Jim to contact Susan " }, { "@jim", "@neorg.gtd.association" })
+        :blank(2)
+        :title("Associate a Task with an Entity")
+        :raw({ "Tell Jim to contact Susan " }, { "@jim", "@neorg.gtd.association" })
+
+        -- :flag("<LocalLeader>c", "Modify Contexts", function()
+        --     vim.print("Contexts were modified.")
+        -- end)
+        -- :flag("<LocalLeader>c", "Modify Contexts", function()
+        --     vim.print("Contexts were modified.")
+        -- end)
 end
 
 return module
