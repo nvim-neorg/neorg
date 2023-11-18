@@ -229,15 +229,14 @@ module.public = {
             ---@return core.ui.selection
             blank = function(self, count)
                 count = count or 1
-                renderer:render()
 
                 self:add("blank", count)
 
-                if count <= 1 then
-                    return self
-                else
-                    return self:blank(count - 1)
+                for _ = 1, count do
+                    renderer:render()
                 end
+
+                return self
             end,
 
             --- Creates a pressable flag
