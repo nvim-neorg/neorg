@@ -210,9 +210,9 @@ module.public = {
             ---@vararg { [0]: string, [1]: string }
             ---@return core.ui.selection
             raw = function(self, ...)
-                self:add("complex", ...)
-
                 renderer:render(...)
+
+                self:add("raw", ...)
 
                 return self
             end,
