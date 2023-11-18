@@ -206,7 +206,7 @@ module.public = {
 
         local selection = module.required["core.ui"]
             .begin_selection(module.required["core.ui"].create_split("link-not-found"))
-            :listener("delete-buffer", {
+            :listener({
                 "<Esc>",
             }, function(self)
                 self:destroy()
