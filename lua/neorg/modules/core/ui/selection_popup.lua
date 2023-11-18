@@ -12,8 +12,9 @@ local module = modules.create("core.ui.selection_popup")
 module.public = {
     --- Constructs a new selection
     ---@param buffer number #The number of the buffer the selection should attach to
+    ---@param keybind_buffer number? #An alternate buffer from which the keybinds for the selection popup are entered.
     ---@return table #A selection object
-    begin_selection = function(buffer)
+    begin_selection = function(buffer, keybind_buffer)
         -- Data that is gathered up over the lifetime of the selection popup
         local data = {}
 
@@ -105,7 +106,7 @@ module.public = {
                 -- Go through all keys that the user has bound a listener to and bind them!
                 for _, key in ipairs(keys) do
                     vim.keymap.set(mode or "n", key, lib.wrap(func, self), {
-                        buffer = buffer,
+                        buffer = keybind_buffer or buffer,
                         silent = true,
                         nowait = true,
                     })
@@ -126,7 +127,7 @@ module.public = {
                 -- Go through all keys that the user has bound a listener to and bind them!
                 for _, key in pairs(keys) do
                     vim.keymap.set(mode or "n", key, lib.wrap(func, self), {
-                        buffer = buffer,
+                        buffer = keybind_buffer or buffer,
                         silent = true,
                         nowait = true,
                     })
