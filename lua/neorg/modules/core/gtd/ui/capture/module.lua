@@ -59,6 +59,12 @@ function module.public.capture()
         }, { dir = "col" })
     )
 
+    vim.api.nvim_create_autocmd("VimResized", {
+        callback = function()
+            layout:update()
+        end,
+    })
+
     layout:mount()
 end
 
@@ -77,10 +83,6 @@ function module.public.create_capture_ui()
             },
         },
     })
-
-    popup:on("VimResized", function()
-        popup:update_layout()
-    end)
 
     vim.keymap.set({ "n", "i", "v" }, "<CR>", function()
         vim.cmd.stopinsert()
