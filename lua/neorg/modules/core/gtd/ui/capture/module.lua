@@ -142,27 +142,44 @@ function module.public.create_help_ui()
 end
 
 function module.private.help_selection(keybind_bufnr, display_bufnr)
-    module.required["core.ui.selection_popup"].begin_selection(display_bufnr, keybind_bufnr)
+    module.required["core.ui.selection_popup"]
+        .begin_selection(display_bufnr, keybind_bufnr)
         :options({
             text = {
-                highlight = "@text.reference"
+                highlight = "@text.reference",
             },
         })
         :title("Add Category To Note")
-        :raw({ "Tell Jim to contact Susan " }, { "#work", "@neorg.gtd.context" }, { " " },  { "#meeting", "@neorg.gtd.context" })
+        :raw(
+            { "tell jim to contact susan " },
+            { "#work", "@neorg.gtd.context" },
+            { " " },
+            { "#meeting", "@neorg.gtd.context" }
+        )
         :blank(2)
         :title("Associate a Task with an Entity")
-        :raw({ "Tell Jim to contact Susan " }, { "@jim", "@neorg.gtd.association" })
+        :raw({ "tell jim to contact susan " }, { "@jim", "@neorg.gtd.association" })
         :blank(2)
-        :title("Associate a Task with an Entity")
-        :raw({ "Tell Jim to contact Susan " }, { "@jim", "@neorg.gtd.association" })
+        :title("Attach an Urgency to the Task")
+        :raw({ "notify jeremy of urgent task " }, { "!1", "@neorg.gtd.urgence" })
+        :blank(2)
+        :title("Declare an Estimated Timeframe for the Task")
+        :raw({ "clean the room " }, { "~30min", "@neorg.gtd.timeframe" })
+        :blank(2)
+        :text("Press `>` for keybind help.")
+        :locallistener({ ">", "<Right>" }, function(self)
+            self:push_page()
+            self:locallistener({ "<" }, function()
+                self:pop_page()
+            end)
+        end)
 
-        -- :flag("<LocalLeader>c", "Modify Contexts", function()
-        --     vim.print("Contexts were modified.")
-        -- end)
-        -- :flag("<LocalLeader>c", "Modify Contexts", function()
-        --     vim.print("Contexts were modified.")
-        -- end)
+    -- :flag("<LocalLeader>c", "Modify Contexts", function()
+    --     vim.print("Contexts were modified.")
+    -- end)
+    -- :flag("<LocalLeader>c", "Modify Contexts", function()
+    --     vim.print("Contexts were modified.")
+    -- end)
 end
 
 return module
