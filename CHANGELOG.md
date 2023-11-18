@@ -1,5 +1,26 @@
 # Changelog
 
+## [6.2.0](https://github.com/nvim-neorg/neorg/compare/v6.1.0...v6.2.0) (2023-11-18)
+
+
+### Features
+
+* add `traverse-link` Neorg mode ([#1170](https://github.com/nvim-neorg/neorg/issues/1170)) ([ed25267](https://github.com/nvim-neorg/neorg/commit/ed25267eec3b08a3de8bdb4b55243f869ea4b8fd))
+* add LaTex rendering for inline equations ([#1133](https://github.com/nvim-neorg/neorg/issues/1133)) ([b5393e8](https://github.com/nvim-neorg/neorg/commit/b5393e8bdcf704f660fa86cace89033c5fc95504))
+* allow arguments for `:Neorg generate-workspace-summary` ([#1156](https://github.com/nvim-neorg/neorg/issues/1156)) ([46741ed](https://github.com/nvim-neorg/neorg/commit/46741ede577392f36cad1cb8c8e6029fabb729f6))
+* allow nested workspace summaries ([#1144](https://github.com/nvim-neorg/neorg/issues/1144)) ([a923055](https://github.com/nvim-neorg/neorg/commit/a9230559fb6871f1f62996f8e862876169432f08))
+* **hop:** feed wslview with decoded link ([c3b9653](https://github.com/nvim-neorg/neorg/commit/c3b965340f380740a12432536d2b23ee6c7564f9))
+* **metagen:** customize timezone and its format ([b458149](https://github.com/nvim-neorg/neorg/commit/b4581496328d47ab7912148ec030dcb3ec1951c4))
+* option to inject specific metadata instead of defaults ([#1128](https://github.com/nvim-neorg/neorg/issues/1128)) ([5509079](https://github.com/nvim-neorg/neorg/commit/55090798a2eed2dd00fc1b2774bc6bf309a3bd0b))
+
+
+### Bug Fixes
+
+* **dirman:** add `raw_path` option to work with arbitrary filetype ([#1143](https://github.com/nvim-neorg/neorg/issues/1143)) ([0c9f5de](https://github.com/nvim-neorg/neorg/commit/0c9f5dea0cfe8b7c3d38f26651d82624079774ed))
+* **journal:** toc reset month & add link indent ([#1165](https://github.com/nvim-neorg/neorg/issues/1165)) ([16af444](https://github.com/nvim-neorg/neorg/commit/16af444ef804aa7f099c7a5ae03640dfc2b60303))
+* remove LaTeX renderer and image.nvim integration from `core.defaults` ([5a88bcb](https://github.com/nvim-neorg/neorg/commit/5a88bcbf60590348e4196493c9c7642f23ba21d7))
+* workspace summary ignore closed files and title field of metadata tag ([#1139](https://github.com/nvim-neorg/neorg/issues/1139)) ([d081937](https://github.com/nvim-neorg/neorg/commit/d081937a00e0f0c6966116428117e159a785abb5))
+
 ## [6.1.0](https://github.com/nvim-neorg/neorg/compare/v6.0.0...v6.1.0) (2023-10-29)
 
 
