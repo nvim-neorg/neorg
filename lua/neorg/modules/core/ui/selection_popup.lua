@@ -124,6 +124,8 @@ module.public = {
                 -- Extend the page-local keys too
                 self.localkeys = vim.list_extend(self.localkeys, keys)
 
+                self:add("locallistener", keys, func, mode)
+
                 -- Go through all keys that the user has bound a listener to and bind them!
                 for _, key in pairs(keys) do
                     vim.keymap.set(mode or "n", key, lib.wrap(func, self), {
