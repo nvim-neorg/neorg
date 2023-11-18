@@ -368,7 +368,7 @@ module.public = {
                 -- Go through every locally bound key and unbind it
                 -- We don't want page-local keys to continue being bound
                 for _, key in ipairs(self.localkeys) do
-                    vim.api.nvim_buf_del_keymap(buffer, "", key)
+                    vim.keymap.del("n", key, { buffer = keybind_buffer or buffer })
                 end
 
                 self.localkeys = {}
@@ -388,7 +388,7 @@ module.public = {
                 end
 
                 for _, key in ipairs(self.localkeys) do
-                    vim.api.nvim_buf_del_keymap(buffer, "", key)
+                    vim.keymap.del("n", key, { buffer = keybind_buffer or buffer })
                 end
 
                 self.localkeys = {}
