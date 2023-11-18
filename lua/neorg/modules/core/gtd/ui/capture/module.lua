@@ -28,27 +28,46 @@ module.private = {
 }
 
 function module.public.capture()
-    module.public.create_capture_ui()
+    -- TODO: When the help is displayed remove the `? - help` at
+    -- the bottom of the top window.
+    -- TODO: Make the selection popup permit taking keys from a different
+    -- window.
+
+    local layout = module.private.nui.layout(
+        {
+            position = "50%",
+            size = {
+                width = "50%",
+                height = "50%",
+            },
+        },
+        module.private.nui.layout.Box({
+            module.private.nui.layout.Box(
+                module.public.create_capture_ui(),
+                { size = {
+                    width = "100%",
+                    height = 3,
+                } }
+            ),
+            module.private.nui.layout.Box(
+                module.public.create_help_ui(),
+                { size = {
+                    width = "100%",
+                    height = "100%",
+                } }
+            ),
+        }, { dir = "col" })
+    )
+
+    layout:mount()
 end
 
 function module.public.create_capture_ui()
     local popup = module.private.nui.popup({
-        position = "50%",
-        size = {
-            width = "50%",
-            height = 1,
-        },
         enter = true,
         focusable = true,
         zindex = 50,
-        relative = "editor",
         border = {
-            padding = {
-                top = 1,
-                bottom = 1,
-                left = 1,
-                right = 1,
-            },
             style = "rounded",
             text = {
                 top = " Capture ",
@@ -59,9 +78,32 @@ function module.public.create_capture_ui()
         },
     })
 
-    popup:mount()
+    popup:on("VimResized", function()
+        popup:update_layout()
+    end)
 
-    vim.cmd.startinsert()
+    vim.keymap.set({ "n", "i", "v" }, "<CR>", function()
+        vim.cmd.stopinsert()
+        pcall(vim.api.nvim_buf_delete, popup.bufnr, { force = true })
+        pcall(vim.api.nvim_win_close, popup.winid, true)
+    end, { buffer = popup.bufnr })
+
+    return popup
+end
+
+function module.public.create_help_ui()
+    local popup = module.private.nui.popup({
+        enter = false,
+        focusable = false,
+        zindex = 50,
+        border = {
+            style = "single",
+            text = {
+                top = " Help ",
+                top_align = "center",
+            },
+        },
+    })
 
     popup:on("VimResized", function()
         popup:update_layout()
@@ -72,6 +114,8 @@ function module.public.create_capture_ui()
         pcall(vim.api.nvim_buf_delete, popup.bufnr, { force = true })
         pcall(vim.api.nvim_win_close, popup.winid, true)
     end, { buffer = popup.bufnr })
+
+    return popup
 end
 
 return module
