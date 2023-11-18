@@ -18,6 +18,12 @@ module.setup = function()
         popup = nui_popup,
         layout = require("nui.layout"),
     }
+
+    return {
+        requires = {
+            "core.ui.selection_popup",
+        },
+    }
 end
 
 module.private = {
@@ -33,6 +39,9 @@ function module.public.capture()
     -- TODO: Make the selection popup permit taking keys from a different
     -- window.
 
+    local main_capture_element = module.public.create_capture_ui()
+    local help_ui = module.public.create_help_ui()
+
     local layout = module.private.nui.layout(
         {
             position = "50%",
@@ -43,14 +52,14 @@ function module.public.capture()
         },
         module.private.nui.layout.Box({
             module.private.nui.layout.Box(
-                module.public.create_capture_ui(),
+                main_capture_element,
                 { size = {
                     width = "100%",
                     height = 3,
                 } }
             ),
             module.private.nui.layout.Box(
-                module.public.create_help_ui(),
+                help_ui,
                 { size = {
                     width = "100%",
                     height = "100%",
@@ -58,6 +67,8 @@ function module.public.capture()
             ),
         }, { dir = "col" })
     )
+
+    module.private.help_selection(help_ui.bufnr)
 
     vim.api.nvim_create_autocmd("VimResized", {
         callback = function()
@@ -118,6 +129,12 @@ function module.public.create_help_ui()
     end, { buffer = popup.bufnr })
 
     return popup
+end
+
+function module.private.help_selection(bufnr)
+    module.required["core.ui.selection_popup"].begin_selection(bufnr):flag("a", "A very cool flag", function()
+        vim.print("A was pressed!")
+    end)
 end
 
 return module
