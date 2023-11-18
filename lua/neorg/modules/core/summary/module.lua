@@ -114,15 +114,46 @@ module.load = function()
                                 metadata.title = vim.fs.basename(norgname)
                             end
                         end
+
                         if metadata.description == vim.NIL then
                             metadata.description = nil
                         end
+
                         if not include_categories or vim.tbl_contains(include_categories, category:lower()) then
                             table.insert(categories[lib.title(category)], {
                                 title = tostring(metadata.title),
                                 norgname = norgname,
                                 description = metadata.description,
                             })
+                        end
+
+                        local leaf_categories = categories
+                        local categories_path = vim.split(category, ".", { plain = true })
+                        for i, path in ipairs(categories_path) do
+                            local titled_path = lib.title(path)
+                            if i == #categories_path then
+                                table.insert(leaf_categories[titled_path], {
+                                    title = tostring(metadata.title),
+                                    norgname = norgname,
+                                    description = metadata.description,
+                                })
+                                break
+                            end
+                            local sub_categories = vim.defaulttable()
+                            if leaf_categories[titled_path] then
+                                for _, item in ipairs(leaf_categories[titled_path]) do
+                                    if item.sub_categories then
+                                        leaf_categories = item.sub_categories
+                                        goto continue
+                                    end
+                                end
+                            end
+                            table.insert(leaf_categories[titled_path], {
+                                title = titled_path,
+                                sub_categories = sub_categories,
+                            })
+                            leaf_categories = sub_categories
+                            ::continue::
                         end
                     end
                 end)
