@@ -102,6 +102,7 @@ module.load = function()
     module.private.ts_utils = ts_utils
 
     module.required["core.mode"].add_mode("traverse-heading")
+    module.required["core.mode"].add_mode("traverse-link")
     modules.await("core.keybinds", function(keybinds)
         keybinds.register_keybinds(module.name, { "next.heading", "previous.heading", "next.link", "previous.link" })
     end)

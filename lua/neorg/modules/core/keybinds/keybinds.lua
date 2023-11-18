@@ -124,6 +124,24 @@ module.config.public = {
                 noremap = true,
             })
 
+            -- Map the below keys only when traverse-link mode is active
+            keybinds.map_event_to_mode("traverse-link", {
+                n = {
+                    -- Move to the next link in the document
+                    { "j", "core.integrations.treesitter.next.link", opts = { desc = "Move to Next Link" } },
+
+                    -- Move to the previous link in the document
+                    {
+                        "k",
+                        "core.integrations.treesitter.previous.link",
+                        opts = { desc = "Move to Previous Link" },
+                    },
+                },
+            }, {
+                silent = true,
+                noremap = true,
+            })
+
             -- Map the below keys on presenter mode
             keybinds.map_event_to_mode("presenter", {
                 n = {
