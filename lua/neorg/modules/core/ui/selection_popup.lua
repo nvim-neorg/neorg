@@ -91,7 +91,7 @@ module.public = {
             end,
 
             --- Adds a new element to the current page
-            ---@param element function #A pointer to the function that created the item
+            ---@param element string #A pointer to the function that created the item
             --- @vararg any #The arguments that were used to construct the element
             add = function(self, element, ...)
                 table.insert(self.pages[self.page], { self[element], { ... } })
@@ -199,6 +199,18 @@ module.public = {
                     text,
                     highlight or custom_highlight or "Normal",
                 })
+
+                return self
+            end,
+
+            --- Allows one to render complex highlights
+            ---@param self core.ui.selection
+            ---@vararg { [0]: string, [1]: string }
+            ---@return core.ui.selection
+            raw = function(self, ...)
+                self:add("complex", ...)
+
+                renderer:render(...)
 
                 return self
             end,
