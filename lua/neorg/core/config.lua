@@ -78,7 +78,7 @@ local config = {
     arguments = {},
 
     norg_version = "1.1.1",
-    version = "6.1.0",
+    version = "6.2.0",
 
     neovim_version = neovim_version(),
     os_info = os_info(),
