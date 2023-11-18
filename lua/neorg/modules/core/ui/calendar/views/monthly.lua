@@ -349,21 +349,15 @@ module.private = {
                     }, "center"),
 
                     -- Help text at the bottom left of the screen
-                    help_and_custom_input = module.private.set_decorational_extmark(
-                        ui_info,
-                        ui_info.height - 1,
-                        0,
-                        0,
-                        {
-                            { "?", "@character" },
-                            { " - " },
-                            { "help", "@text.strong" },
-                            { "    " },
-                            { "i", "@character" },
-                            { " - " },
-                            { "custom input", "@text.strong" },
-                        }
-                    ),
+                    help_and_custom_input = module.private.set_decorational_extmark(ui_info, ui_info.height - 1, 0, 0, {
+                        { "?", "@character" },
+                        { " - " },
+                        { "help", "@text.strong" },
+                        { "    " },
+                        { "i", "@character" },
+                        { " - " },
+                        { "custom input", "@text.strong" },
+                    }),
 
                     -- The current view (bottom right of the screen)
                     current_view = module.private.set_decorational_extmark(

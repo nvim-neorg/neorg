@@ -377,10 +377,10 @@ module.examples = {
                     return self:text(text, "@text.title")
                 end,
             })
-            :listener("destroy", { "<Esc>" }, function(self)
+            :listener({ "<Esc>" }, function(self)
                 self:destroy()
             end)
-            :listener("go-back", { "<BS>" }, function(self)
+            :listener({ "<BS>" }, function(self)
                 self:pop_page()
             end)
 
@@ -418,7 +418,7 @@ module.examples = {
                             :text("Also, psst, pressing `g` will give you a small surprise")
                             :blank()
                             :flag("a", "does nothing too")
-                            :listener("print-message", { "g" }, function()
+                            :listener({ "g" }, function()
                                 log.warn("You are awesome :)")
                             end)
                     end)

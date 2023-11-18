@@ -4,37 +4,12 @@
 
 local neorg = require("neorg.core")
 local modules = neorg.modules
+local lib = neorg.lib
 
 local module = modules.create("core.ui.selection_popup")
 
-module.private = {
-    -- Stores all currently open selection popups
-    callbacks = {},
-}
-
 ---@class core.ui
 module.public = {
-    --- Invokes a key callback in a certain selection
-    ---@param name string #The name of the selection
-    ---@param key string #The key that was pressed
-    ---@param type string #The type of element the callback belongs to (could be "flag", "switch" etc.)
-    invoke_key_in_selection = function(name, key, type)
-        local self = module.private.callbacks[name]
-        local real_type = ({ type:gsub("<(.+)>", "%1") })[1]
-
-        if self.localcallbacks[real_type] then
-            self.localcallbacks[real_type](self, key)
-            return
-        end
-
-        for _, callbacks in ipairs(self.callbacks) do
-            if callbacks[real_type] then
-                callbacks[real_type](self, key)
-                return
-            end
-        end
-    end,
-
     --- Constructs a new selection
     ---@param buffer number #The number of the buffer the selection should attach to
     ---@return table #A selection object
@@ -93,12 +68,9 @@ module.public = {
 
         ---@class core.ui.selection
         local selection = {
-            callbacks = {},
-            localcallbacks = {},
             page = 1,
             pages = { {} },
             opts = {},
-            keys = {},
             localkeys = {},
             states = {},
 
@@ -125,31 +97,14 @@ module.public = {
             end,
 
             --- Attaches a key listener to the current buffer
-            ---@param type string #The type of element to attach to (can be "flag" or "switch" or something)
             ---@param keys table #An array of keys to bind
             ---@param func function #A callback to invoke whenever the key has been pressed
             ---@param mode string #Optional, default "n": the mode to create the listener for
             ---@return core.ui.selection
-            listener = function(self, type, keys, func, mode)
-                -- Remove the <> characters from the string because that causes issues with Lua internally
-                type = ({ type:gsub("<(.+)>", "%1") })[1]
-
-                -- Extend ourself with the new callbacks. This allows us to give the callbacks value a "scope"
-                self.callbacks[self.page] = self.callbacks[self.page] or {}
-                self.callbacks[self.page][type] = func
-
-                self.keys[self.page] = self.keys[self.page] or {}
-                self.keys[self.page] = vim.list_extend(self.keys[self.page], keys)
-
+            listener = function(self, keys, func, mode)
                 -- Go through all keys that the user has bound a listener to and bind them!
                 for _, key in ipairs(keys) do
-                    -- TODO: Docs
-                    local callback = function()
-                        modules
-                            .get_module(module.name)
-                            .invoke_key_in_selection(name, ({ key:gsub("<(.+)>", "|%1|") })[1], type)
-                    end
-                    vim.keymap.set(mode or "n", key, callback, {
+                    vim.keymap.set(mode or "n", key, lib.wrap(func, self), {
                         buffer = buffer,
                         silent = true,
                         nowait = true,
@@ -160,32 +115,17 @@ module.public = {
             end,
 
             --- Attaches a key listener to the current page
-            ---@param type string #The type of element to attach to (can be "flag" or "switch" or something)
             ---@param keys table #An array of keys to bind
             ---@param func function #A callback to invoke whenever the key has been pressed
             ---@param mode string #Optional, default "n": the mode to create the listener for
             ---@return core.ui.selection
-            locallistener = function(self, type, keys, func, mode)
-                -- Remove the <> characters from the string because that causes issues with Lua internally
-                type = ({ type:gsub("<(.+)>", "%1") })[1]
-
-                -- Extend ourself with the new callbacks. This allows us to give the callbacks value a "scope"
-                self.localcallbacks = vim.tbl_deep_extend("force", self.localcallbacks or {}, {
-                    [type] = func,
-                })
-
+            locallistener = function(self, keys, func, mode)
                 -- Extend the page-local keys too
                 self.localkeys = vim.list_extend(self.localkeys, keys)
 
                 -- Go through all keys that the user has bound a listener to and bind them!
                 for _, key in pairs(keys) do
-                    -- TODO: Docs
-                    local callback = function()
-                        modules
-                            .get_module(module.name)
-                            .invoke_key_in_selection(name, ({ key:gsub("<(.+)>", "|%1|") })[1], type)
-                    end
-                    vim.keymap.set(mode or "n", key, callback, {
+                    vim.keymap.set(mode or "n", key, lib.wrap(func, self), {
                         buffer = buffer,
                         silent = true,
                         nowait = true,
@@ -214,6 +154,7 @@ module.public = {
             set_data = function(_, key, value)
                 data[key] = value
             end,
+
             --- Detaches the selection popup from the current buffer
             --- Does *not* close the buffer
             detach = function(self)
@@ -316,7 +257,7 @@ module.public = {
                 self:add("flag", flag, description, callback)
 
                 -- Attach a locallistener to this flag
-                self = self:locallistener("flag_" .. flag, configuration.keys, function()
+                self = self:locallistener(configuration.keys, function()
                     -- Delete the selection before any action
                     -- We assume pressing a flag does quit the popup
                     if configuration.destroy then
@@ -332,8 +273,6 @@ module.public = {
                         end
                     end)()(data) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 end)
-
-                module.private.callbacks[name] = self
 
                 -- Actually render the flag
                 renderer:render({
@@ -380,7 +319,7 @@ module.public = {
                 self:add("rflag", flag, description, callback)
 
                 -- Attach a locallistener to this flag
-                self = self:locallistener("flag_" .. flag, configuration.keys, function()
+                self = self:locallistener(configuration.keys, function()
                     -- Create a new page to allow the renderer to start fresh
                     self:push_page();
 
@@ -393,8 +332,6 @@ module.public = {
                         end
                     end)()
                 end)
-
-                module.private.callbacks[name] = self
 
                 -- Actually render the flag
                 renderer:render({
@@ -414,8 +351,6 @@ module.public = {
             --- Pushes a new page onto the stack, clearing the buffer
             --- and starting fresh
             push_page = function(self)
-                self.localcallbacks = {}
-
                 -- Go through every locally bound key and unbind it
                 -- We don't want page-local keys to continue being bound
                 for _, key in ipairs(self.localkeys) do
@@ -426,8 +361,6 @@ module.public = {
 
                 self.page = self.page + 1
                 self.pages[self.page] = {}
-                self.callbacks[self.page] = {}
-                self.keys[self.page] = {}
 
                 renderer:reset()
             end,
@@ -440,21 +373,13 @@ module.public = {
                     return
                 end
 
-                self.localcallbacks = {}
-
                 for _, key in ipairs(self.localkeys) do
                     vim.api.nvim_buf_del_keymap(buffer, "", key)
                 end
 
                 self.localkeys = {}
-
-                for _, key in ipairs(self.keys[self.page]) do
-                    vim.api.nvim_buf_del_keymap(buffer, "", key)
-                end
-
                 -- Delete the current page from existence
                 self.pages[self.page] = {}
-                self.callbacks[self.page] = {}
 
                 -- Decrement the page counter
                 self.page = self.page - 1
@@ -500,8 +425,6 @@ module.public = {
                 )
                 self:add("prompt", text, callback)
                 self = self:blank()
-
-                module.private.callbacks[name] = self
 
                 -- Create prompt text
                 vim.fn.prompt_setprompt(buffer, configuration.text .. configuration.delimiter)
@@ -562,7 +485,6 @@ module.public = {
             setstate = function(self, key, value, rerender)
                 self.states[key] = {
                     value = value,
-                    callbacks = {},
                 }
 
                 -- Reset the renderer to make sure we're starting afresh
@@ -607,9 +529,6 @@ module.public = {
                 return self
             end,
         }
-
-        -- Attach the selection to a list of callbacks
-        module.private.callbacks[name] = selection
 
         return selection
     end,
