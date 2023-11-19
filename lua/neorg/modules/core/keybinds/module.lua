@@ -74,9 +74,9 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufLeave")
 
     if module.config.public.hook then
-        neorg.callbacks.on_event(
+        neorg.callbacks.on_event( ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             "core.keybinds.events.enable_keybinds",
-            function(_, keybinds) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            function(_, keybinds)
                 module.config.public.hook(keybinds)
             end
         )
