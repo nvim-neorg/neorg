@@ -12,7 +12,7 @@ local function neovim_version()
         end
 
         if not key then
-            key, value = line:match("(LUAJIT)%s+(.+)")
+            key, value = line:match("(LuaJIT)%s+(.+)")
         end
 
         if key then
