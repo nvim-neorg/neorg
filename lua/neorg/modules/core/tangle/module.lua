@@ -430,18 +430,18 @@ module.on_event = function(event)
 
         for file, content in pairs(tangles) do
             vim.loop.fs_open(
-                vim.fn.expand(file),
+                vim.fn.expand(file), ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                 "w",
                 438,
-                function(err, fd) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                function(err, fd)
                     file_count = file_count - 1
                     assert(not err, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
                     vim.loop.fs_write(
-                        fd,
+                        fd, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                         table.concat(content, "\n"),
                         0,
-                        function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                        function(werr)
                             assert(
                                 not werr,
                                 lib.lazy_string_concat("Failed to write to file '", file, "' for tangling: ", werr)

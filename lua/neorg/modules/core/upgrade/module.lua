@@ -254,10 +254,10 @@ module.on_event = function(event)
                 assert(not err, lib.lazy_string_concat("Failed to open file '", path, "' for upgrade: ", err))
 
                 vim.loop.fs_write(
-                    fd,
+                    fd, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     output,
                     0,
-                    function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                    function(werr)
                         assert(
                             not werr,
                             lib.lazy_string_concat("Failed to write to file '", path, "' for upgrade: ", werr)
@@ -372,10 +372,10 @@ module.on_event = function(event)
                         )
 
                         vim.loop.fs_write(
-                            fd,
+                            fd, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                             output,
                             0,
-                            function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                            function(werr)
                                 assert(
                                     not werr,
                                     lib.lazy_string_concat(

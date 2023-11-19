@@ -224,17 +224,17 @@ module.on_event = function(event)
         local exported = module.public.export(event.buffer, filetype) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         vim.loop.fs_open(
-            filepath,
+            filepath, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             "w",
             438,
-            function(err, fd) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            function(err, fd)
                 assert(not err, lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err))
 
                 vim.loop.fs_write(
-                    fd,
-                    exported,
+                    fd, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                    exported, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                     0,
-                    function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                    function(werr)
                         assert(
                             not werr,
                             lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr)
@@ -310,10 +310,10 @@ module.on_event = function(event)
                             )
 
                             vim.loop.fs_write(
-                                fd,
+                                fd, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
                                 exported,
                                 0,
-                                function(werr) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                                function(werr)
                                     assert(
                                         not werr,
                                         lib.lazy_string_concat(
