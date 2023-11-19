@@ -41,7 +41,7 @@ end
 
 module.public = {
     latex_renderer = function()
-        Ranges = {}
+        module.private.ranges = {}
         module.required["core.integrations.treesitter"].execute_query(
             [[
                 (
@@ -68,10 +68,10 @@ module.public = {
                     not module.config.public.conceal
                 )
 
-                table.insert(Ranges, { node:range() })
+                table.insert(module.private.ranges, { node:range() })
             end
         )
-        Images = module.private.image.get_images()
+        module.private.images = module.private.image.get_images()
     end,
     create_latex_document = function(snippet)
         local tempname = vim.fn.tempname()
@@ -140,7 +140,7 @@ module.public = {
                 return a.internal_id < b.internal_id
             end)
 
-            for i, range in ipairs(Ranges) do
+            for i, range in ipairs(module.private.ranges) do
                 vim.api.nvim_buf_set_extmark(
                     vim.api.nvim_get_current_buf(),
                     vim.api.nvim_create_namespace("concealer"),
@@ -169,19 +169,19 @@ module.config.public = {
 }
 
 local function render_latex()
-    module.private.image.clear(Images)
+    module.private.image.clear(module.private.images)
     neorg.modules.get_module("core.latex.renderer").latex_renderer()
-    neorg.modules.get_module("core.latex.renderer").render_inline_math(Images)
+    neorg.modules.get_module("core.latex.renderer").render_inline_math(module.private.images)
 end
 
 local function clear_latex()
-    module.private.image.clear(Images)
+    module.private.image.clear(module.private.images)
 end
 
 local function clear_at_cursor()
-    if Images ~= nil then
-        module.private.image.render(Images)
-        module.private.image.clear_at_cursor(Images, vim.api.nvim_win_get_cursor(0)[1] - 1)
+    if module.private.images ~= nil then
+        module.private.image.render(module.private.images)
+        module.private.image.clear_at_cursor(module.private.images, vim.api.nvim_win_get_cursor(0)[1] - 1)
     end
 end
 
