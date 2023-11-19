@@ -60,13 +60,6 @@ function module.public.capture()
                     height = 3,
                 } }
             ),
-            module.private.nui.layout.Box(
-                help_ui,
-                { size = {
-                    width = "100%",
-                    height = "100%",
-                } }
-            ),
         }, { dir = "col" })
     )
 
@@ -81,6 +74,40 @@ function module.public.capture()
     end)
 
     module.private.help_selection(main_capture_element.bufnr, help_ui.bufnr)
+
+    do
+        local help_enabled = false
+
+        vim.keymap.set("n", "?", function()
+            if not help_enabled then
+                layout:update(module.private.nui.layout.Box({
+                    module.private.nui.layout.Box(main_capture_element, {
+                        size = {
+                            width = "100%",
+                            height = 3,
+                        },
+                    }),
+                    module.private.nui.layout.Box(help_ui, {
+                        size = {
+                            width = "100%",
+                            height = "100%",
+                        },
+                    }),
+                }, { dir = "col" }))
+            else
+                layout:update(module.private.nui.layout.Box({
+                    module.private.nui.layout.Box(main_capture_element, {
+                        size = {
+                            width = "100%",
+                            height = 3,
+                        },
+                    }),
+                }, { dir = "col" }))
+            end
+
+            help_enabled = not help_enabled
+        end, { buffer = main_capture_element.bufnr })
+    end
 
     vim.api.nvim_create_autocmd("VimResized", {
         callback = function()
