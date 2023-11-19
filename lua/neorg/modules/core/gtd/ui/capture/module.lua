@@ -73,7 +73,7 @@ function module.public.capture()
         vim.cmd.syntax([[match @neorg.gtd.timeframe /\~\d\+\S\+/]])
     end)
 
-    module.private.help_selection(main_capture_element.bufnr, help_ui.bufnr)
+    module.private.help_selection(main_capture_element, help_ui)
 
     do
         local help_enabled = false
@@ -155,6 +155,8 @@ function module.public.create_help_ui()
             text = {
                 top = " Help ",
                 top_align = "center",
+                bottom = "[1/2]",
+                bottom_align = "center",
             },
         },
     })
@@ -172,9 +174,9 @@ function module.public.create_help_ui()
     return popup
 end
 
-function module.private.help_selection(keybind_bufnr, display_bufnr)
+function module.private.help_selection(keybind_display, main_display)
     module.required["core.ui.selection_popup"]
-        .begin_selection(display_bufnr, keybind_bufnr)
+        .begin_selection(main_display.bufnr, keybind_display.bufnr)
         :options({
             text = {
                 highlight = "@text.reference",
@@ -200,7 +202,10 @@ function module.private.help_selection(keybind_bufnr, display_bufnr)
         :text("Press `>` for keybind help.")
         :locallistener({ ">" }, function(self)
             self:push_page()
+            main_display.border:set_text("bottom", "[2/2]", "center")
+
             self:locallistener({ "<" }, function()
+                main_display.border:set_text("bottom", "[1/2]", "center")
                 self:pop_page()
             end)
         end)
