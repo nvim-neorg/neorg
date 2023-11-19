@@ -47,7 +47,6 @@ module.examples = {
                                 if not current_year or current_year < entry[1] then
                                     current_year = entry[1]
                                     current_month = nil
-                                    current_quarter = nil
                                     table.insert(output, "* " .. current_year)
                                 end
 
