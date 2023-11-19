@@ -80,6 +80,8 @@ function module.public.capture()
 
         vim.keymap.set("n", "?", function()
             if not help_enabled then
+                main_capture_element.border:set_text("bottom", nil, nil)
+
                 layout:update(module.private.nui.layout.Box({
                     module.private.nui.layout.Box(main_capture_element, {
                         size = {
@@ -95,6 +97,8 @@ function module.public.capture()
                     }),
                 }, { dir = "col" }))
             else
+                main_capture_element.border:set_text("bottom", " ? - help ", "center")
+
                 layout:update(module.private.nui.layout.Box({
                     module.private.nui.layout.Box(main_capture_element, {
                         size = {
