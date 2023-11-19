@@ -168,6 +168,11 @@ module.config.public = {
                         ":Neorg mode traverse-heading<CR>",
                         opts = { desc = "Enter Heading Traversal Mode" },
                     },
+                    {
+                        leader .. "ml",
+                        ":Neorg mode traverse-link<CR>",
+                        opts = { desc = "Enter Link Traversal Mode" },
+                    },
                     { "gO", ":Neorg toc split<CR>", opts = { desc = "Open a Table of Contents" } },
                 },
             }, {
