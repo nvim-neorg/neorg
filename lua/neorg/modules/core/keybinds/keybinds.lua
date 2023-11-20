@@ -162,18 +162,18 @@ module.config.public = {
             -- Apply the below keys to all modes
             keybinds.map_to_mode("all", {
                 n = {
-                    { leader .. "mn", ":Neorg mode norg<CR>", opts = { desc = "Enter Norg Mode" } },
+                    { leader .. "mn", "<cmd>Neorg mode norg<CR>", opts = { desc = "Enter Norg Mode" } },
                     {
                         leader .. "mh",
-                        ":Neorg mode traverse-heading<CR>",
+                        "<cmd>Neorg mode traverse-heading<CR>",
                         opts = { desc = "Enter Heading Traversal Mode" },
                     },
                     {
                         leader .. "ml",
-                        ":Neorg mode traverse-link<CR>",
+                        "<cmd>Neorg mode traverse-link<CR>",
                         opts = { desc = "Enter Link Traversal Mode" },
                     },
-                    { "gO", ":Neorg toc split<CR>", opts = { desc = "Open a Table of Contents" } },
+                    { "gO", "<cmd>Neorg toc split<CR>", opts = { desc = "Open a Table of Contents" } },
                 },
             }, {
                 silent = true,
