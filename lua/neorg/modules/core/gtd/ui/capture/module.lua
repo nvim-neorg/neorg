@@ -6,6 +6,28 @@ local module = modules.create("core.gtd.ui.capture")
 
 local log = require("neorg.core.log")
 
+-- TODO: Extend to all locales
+-- Localization is not a problem thanks to `-> "year"` etc.
+local compiled = vim.re.compile([[
+    captured <- ({| context / association / urgency / ontology / timeframe |} / { word / whitespace })+
+
+    word <- ([%w%p])+
+    whitespace <- %s+
+
+    context <- "#" {:context: word :}
+    association <- "@" {:association: word :}
+    urgency <- "!" {:urgency: %d+ :}
+    ontology <- "&" {:ontology: word :}
+    timeframe <- "~" {:duration: %d+ :} {:unit: year / month / week / day / hour / minute :}
+
+    year <- "y" "ear"? "s"? -> "year"
+    month <- "mo" "nth"? "s"? -> "month"
+    week <- "w" "eek"? "s"? -> "week"
+    day <- "d" "ay"? "s"? -> "day"
+    hour <- "h" "our"? "s"? -> "hour"
+    minute <- "m" ("in" "ute"?)? "s"? -> "minute"
+]])
+
 module.setup = function()
     local ok, nui_popup = pcall(require, "nui.popup")
 
@@ -36,11 +58,6 @@ module.private = {
 }
 
 function module.public.capture()
-    -- TODO: When the help is displayed remove the `? - help` at
-    -- the bottom of the top window.
-    -- TODO: Make the selection popup permit taking keys from a different
-    -- window.
-
     local main_capture_element = module.public.create_capture_ui()
     local help_ui = module.public.create_help_ui()
 
@@ -137,6 +154,10 @@ function module.public.create_capture_ui()
     })
 
     vim.keymap.set({ "n", "i", "v" }, "<CR>", function()
+        local captured_note = vim.api.nvim_buf_get_lines(popup.bufnr, 0, -1, true)[1]
+
+        vim.print({ vim.re.match(captured_note, compiled) })
+
         vim.cmd.stopinsert()
         pcall(vim.api.nvim_buf_delete, popup.bufnr, { force = true })
         pcall(vim.api.nvim_win_close, popup.winid, true)
