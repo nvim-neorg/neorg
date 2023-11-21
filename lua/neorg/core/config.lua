@@ -1,46 +1,5 @@
-local lib = require("neorg.core.lib")
-
-local function neovim_version()
-    local data = {}
-    local parsed_output = vim.api.nvim_exec("version", true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-
-    for _, line in ipairs(vim.split(parsed_output, "\n")) do
-        local key, value = line:match("^%s*(.+[^%s]):%s+(.+)$")
-
-        if not key then
-            key, value = line:match("^(NVIM)%s+v%d+%.%d+%.%d+%-%w+%-(%d+).+")
-        end
-
-        if not key then
-            key, value = line:match("(LUAJIT)%s+(.+)")
-        end
-
-        if key then
-            key = key:lower():gsub("%p", ""):gsub("%s", "-")
-
-            value = lib.match(key)({
-                compilation = function()
-                    local split = vim.split(value, "%s+")
-
-                    split.compiler = table.remove(split, 1) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                    return split
-                end,
-                features = lib.wrap(vim.split, value, "%s*%+", {
-                    trimempty = true,
-                }),
-                nvim = tonumber(value),
-                _ = value:gsub('^"?', ""):gsub('"?$', ""),
-            })
-
-            data[key] = value
-        end
-    end
-
-    return data
-end
-
 -- Grab OS info on startup
-local function os_info()
+local function get_os_info()
     local os = vim.loop.os_uname().sysname:lower()
 
     if os:find("windows_nt") then
@@ -62,6 +21,8 @@ local function os_info()
     end
 end
 
+local os_info = get_os_info()
+
 -- Configuration template
 local config = {
     user_config = {
@@ -80,11 +41,8 @@ local config = {
     norg_version = "1.1.1",
     version = "6.2.0",
 
-    neovim_version = neovim_version(),
-    os_info = os_info(),
+    os_info = os_info,
+    pathsep = os_info == "windows" and "\\" or "/",
 }
-
--- TODO: Is there a better way to define this inside the body of `config'?
-config.pathsep = config.os_info == "windows" and "\\" or "/"
 
 return config
