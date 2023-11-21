@@ -77,6 +77,13 @@ module.config.public = {
                         opts = { desc = "Jump to Link (Vertical Split)" },
                     },
 
+                    -- Traverse through link in the file
+                    { "<Tab>", "core.integrations.treesitter.next.link", opts = { desc = "Move to Next Link" } },
+                    { "<S-Tab>",
+                      "core.integrations.treesitter.previous.link",
+                       opts = { desc = "Move to Previous Link" }
+                    },
+
                     { ">.", "core.promo.promote", opts = { desc = "Promote Object (Non-Recursively)" } },
                     { "<,", "core.promo.demote", opts = { desc = "Demote Object (Non-Recursively)" } },
 
