@@ -119,12 +119,24 @@ module.public = {
             ---@param keys table #An array of keys to bind
             ---@param func function #A callback to invoke whenever the key has been pressed
             ---@param mode string #Optional, default "n": the mode to create the listener for
+            ---@param silent boolean? #Internal flag, should not be modified by the user.
             ---@return core.ui.selection
-            locallistener = function(self, keys, func, mode)
+            locallistener = function(self, keys, func, mode, silent)
+                if silent == nil then
+                    silent = true
+                end
+
                 -- Extend the page-local keys too
                 self.localkeys = vim.list_extend(self.localkeys, keys)
 
-                self:add("locallistener", keys, func, mode)
+                -- When a user is calling locallistener from their own code,
+                -- they want the local listener to rebind the keys whenever the
+                -- page is rerendered. For something like a `flag()` or `rflag()` function,
+                -- which already `:add`s itself to the list, we do not want to store the
+                -- invocation of the local listener in memory.
+                if silent then
+                    self:add("locallistener", keys, func, mode)
+                end
 
                 -- Go through all keys that the user has bound a listener to and bind them!
                 for _, key in pairs(keys) do
@@ -268,7 +280,7 @@ module.public = {
                     type(callback) == "table" and callback or {} -- Then optionally merge the flag-specific options
                 )
 
-                self:add("flag", flag, description, callback)
+                self:add("flag", flag, description, lib.wrap(callback --[[@as function]], self))
 
                 -- Attach a locallistener to this flag
                 self = self:locallistener(configuration.keys, function()
@@ -285,8 +297,8 @@ module.public = {
                         else
                             return callback and callback.callback or function() end
                         end
-                    end)()(data) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                end)
+                    end)()(self) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                end, nil, false)
 
                 -- Actually render the flag
                 renderer:render({
@@ -330,7 +342,7 @@ module.public = {
                     type(callback) == "table" and callback or {} -- Then optionally merge the rflag-specific options
                 )
 
-                self:add("rflag", flag, description, callback)
+                self:add("rflag", flag, description, lib.wrap(callback --[[@as function]], self))
 
                 -- Attach a locallistener to this flag
                 self = self:locallistener(configuration.keys, function()
@@ -340,12 +352,12 @@ module.public = {
                     -- Invoke the user-defined callback
                     (function()
                         if type(callback) == "function" then
-                            return callback()
+                            return callback(self)
                         elseif callback.callback then
-                            return callback.callback()
+                            return callback.callback(self)
                         end
                     end)()
-                end)
+                end, nil, false)
 
                 -- Actually render the flag
                 renderer:render({
