@@ -209,6 +209,42 @@ function module.private.help_selection(keybind_display, main_display)
                 destroy = false,
             },
         })
+        :apply({
+            keybind = function(self, flag, description)
+                -- Set up the configuration by properly merging everything
+                local configuration = vim.tbl_deep_extend(
+                    "force",
+                    {
+                        keys = {
+                            flag,
+                        },
+                        highlights = {
+                            -- TODO: Change highlight group names
+                            key = "@neorg.selection_window.key",
+                            description = "@neorg.selection_window.keyname",
+                            delimiter = "@neorg.selection_window.arrow",
+                        },
+                        delimiter = " -> ",
+                        -- Whether to destroy the selection popup when this flag is pressed
+                        destroy = true,
+                    },
+                    self:options_for( -- First merge the global options
+                        "flag"
+                    )
+                )
+
+                return self:raw({
+                    flag,
+                    configuration.highlights.key,
+                }, {
+                    configuration.delimiter,
+                    configuration.highlights.delimiter,
+                }, {
+                    description or "no description",
+                    configuration.highlights.description,
+                })
+            end,
+        })
         :title("Add Category To Note")
         :raw(
             { "tell jim to contact susan " },
@@ -229,10 +265,17 @@ function module.private.help_selection(keybind_display, main_display)
         :rflag(">", "keybind help", function(self)
             main_display.border:set_text("bottom", "[2/2]", "center")
 
-            self:flag("<", "syntax help", function()
-                main_display.border:set_text("bottom", "[1/2]", "center")
-                self:pop_page()
-            end)
+            self:keybind("<LocalLeader>c", "Modify Contexts")
+                :blank()
+                :keybind("<LocalLeader>a", "Modify Associations")
+                :blank()
+                :keybind("<LocalLeader>ed", "Modify Estimated Due Date")
+                :keybind("<LocalLeader>es", "Modify Estimated Start Date")
+                :blank(2)
+                :flag("<", "syntax help", function()
+                    main_display.border:set_text("bottom", "[1/2]", "center")
+                    self:pop_page()
+                end)
         end)
 
     -- :flag("<LocalLeader>c", "Modify Contexts", function()
