@@ -205,6 +205,7 @@ function module.private.help_selection(keybind_display, main_display)
             title = {
                 -- highlight = "@neorg.gtd.help.title",
             },
+            -- Do not close the window when a flag is pressed.
             flag = {
                 destroy = false,
             },
@@ -225,8 +226,6 @@ function module.private.help_selection(keybind_display, main_display)
                             delimiter = "@neorg.selection_window.arrow",
                         },
                         delimiter = " -> ",
-                        -- Whether to destroy the selection popup when this flag is pressed
-                        destroy = true,
                     },
                     self:options_for( -- First merge the global options
                         "flag"
@@ -277,13 +276,6 @@ function module.private.help_selection(keybind_display, main_display)
                     self:pop_page()
                 end)
         end)
-
-    -- :flag("<LocalLeader>c", "Modify Contexts", function()
-    --     vim.print("Contexts were modified.")
-    -- end)
-    -- :flag("<LocalLeader>c", "Modify Contexts", function()
-    --     vim.print("Contexts were modified.")
-    -- end)
 end
 
 return module
