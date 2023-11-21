@@ -221,7 +221,7 @@ module.public = {
             ---@param text string #The text to display
             ---@return core.ui.selection
             title = function(self, text)
-                return self:text(text, "@text.title")
+                return self:text(text, self:options_for("title").highlight or "@text.title")
             end,
 
             --- Simply enters a blank line
