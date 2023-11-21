@@ -203,7 +203,10 @@ function module.private.help_selection(keybind_display, main_display)
                 highlight = "@text.reference",
             },
             title = {
-                highlight = "@neorg.gtd.help.title",
+                -- highlight = "@neorg.gtd.help.title",
+            },
+            flag = {
+                destroy = false,
             },
         })
         :title("Add Category To Note")
@@ -223,12 +226,10 @@ function module.private.help_selection(keybind_display, main_display)
         :title("Declare an Estimated Timeframe for the Task")
         :raw({ "clean the room " }, { "~30min", "@neorg.gtd.timeframe" })
         :blank()
-        :text("`>` for keybind help.")
-        :locallistener({ ">" }, function(self)
-            self:push_page()
+        :rflag(">", "keybind help", function(self)
             main_display.border:set_text("bottom", "[2/2]", "center")
 
-            self:locallistener({ "<" }, function()
+            self:flag("<", "syntax help", function()
                 main_display.border:set_text("bottom", "[1/2]", "center")
                 self:pop_page()
             end)
