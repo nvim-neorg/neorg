@@ -408,10 +408,9 @@ local function format_ordered_icon(pattern, index)
         return gen(index)
     end
 
-    for k,v in pairs(ordered_icon_table) do
-        local l,r = pattern:find(k:find("%w") and "%f[%w]" .. k .. "%f[%W]" or k)
+    for char_one,number_table in pairs(ordered_icon_table) do
+        local l,r = pattern:find(char_one:find("%w") and "%f[%w]" .. char_one .. "%f[%W]" or char_one)
         if l then
-            local number_table = ordered_icon_table[k]
             gen = function(index_)
                 local icon = type(number_table)=='function' and number_table(index_) or number_table[index_]
                 return icon and pattern:sub(1,l-1) .. icon .. pattern:sub(r+1)
