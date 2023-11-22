@@ -147,18 +147,6 @@ local function table_get_default_last(tbl, index)
     return tbl[index] or tbl[#tbl]
 end
 
-local prettify_icon_table = {
-}
-
-local function get_number_table(initial_number)
-    -- TODO: error handling
-    for _, number_table in pairs(prettify_icon_table) do
-        if number_table[1] == initial_number then
-            return number_table
-        end
-    end
-end
-
 local function get_ordered_index(bufid, prefix_node)
     -- TODO: calculate levels in one pass, since treesitter API implementation seems to have ridiculously high complexity
     local _, _, level = get_node_position_and_text_length(bufid, prefix_node)
@@ -515,11 +503,12 @@ module.public = {
                 return
             end
 
+            local _, first_unicode_end = text:find("[%z\1-\127\194-\244][\128-\191]*", len)
             local highlight = config.highlights and table_get_default_last(config.highlights, len)
-            set_mark(bufid, row_0b, col_0b, text:sub(1, len), highlight)
+            set_mark(bufid, row_0b, col_0b, text:sub(1, first_unicode_end), highlight)
             if #text > len then
                 assert(has_anticonceal)
-                set_mark(bufid, row_0b, col_0b + len, text:sub(len + 1), highlight, {
+                set_mark(bufid, row_0b, col_0b + len, text:sub(first_unicode_end + 1), highlight, {
                     virt_text_pos = "inline",
                 })
             end
@@ -736,7 +725,7 @@ module.config.public = {
             render = module.public.icon_renderers.multilevel_on_right,
         },
         ordered = {
-            icons = has_anticonceal and { "1.", "A.", "a.", "1)", "I.", "i." } or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
+            icons = has_anticonceal and { "1.", "A.", "a.", "§ 1)", "I.", "i." } or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
             nodes = {
                 "ordered_list1_prefix",
                 "ordered_list2_prefix",
