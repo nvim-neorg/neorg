@@ -401,6 +401,10 @@ local ordered_icon_table = {
 local memoized_ordered_icon_generator = {}
 
 local function format_ordered_icon(pattern, index)
+    if type(pattern) == 'function' then
+        return pattern(index)
+    end
+
     local gen = memoized_ordered_icon_generator[pattern]
     if gen then
         return gen(index)
