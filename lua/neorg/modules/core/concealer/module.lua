@@ -1251,6 +1251,11 @@ local function handle_init_event(event)
         _n_byte_prev ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     )
         assert(tag == "lines")
+
+        if not module.private.enabled then
+            return
+        end
+
         mark_line_range_changed(bufid, row_start_0b, row_updated_0bex)
     end
 
