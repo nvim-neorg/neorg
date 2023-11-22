@@ -409,7 +409,7 @@ local function format_ordered_icon(pattern, index)
     end
 
     for k,v in pairs(ordered_icon_table) do
-        local l,r = pattern:find(k)
+        local l,r = pattern:find(k:find("%w") and "%f[%w]" .. k .. "%f[%W]" or k)
         if l then
             local number_table = ordered_icon_table[k]
             gen = function(index_)
@@ -779,7 +779,7 @@ module.config.public = {
                     "link_target_heading6",
                 },
             },
-            render = module.public.icon_renderers.multilevel_on_right,
+            render = module.public.icon_renderers.multilevel_on_right(false),
         },
         definition = {
             single = {
