@@ -148,213 +148,6 @@ local function table_get_default_last(tbl, index)
 end
 
 local prettify_icon_table = {
-    numeric = { "1", "2", "3", "4", "5", "6", "7", "8", "9" },
-    numeric_dot = {
-        "⒈",
-        "⒉",
-        "⒊",
-        "⒋",
-        "⒌",
-        "⒍",
-        "⒎",
-        "⒏",
-        "⒐",
-        "⒑",
-        "⒒",
-        "⒓",
-        "⒔",
-        "⒕",
-        "⒖",
-        "⒗",
-        "⒘",
-        "⒙",
-        "⒚",
-        "⒛",
-    },
-    numeric_pareneses = {
-        "⑴",
-        "⑵",
-        "⑶",
-        "⑷",
-        "⑸",
-        "⑹",
-        "⑺",
-        "⑻",
-        "⑼",
-        "⑽",
-        "⑾",
-        "⑿",
-        "⒀",
-        "⒁",
-        "⒂",
-        "⒃",
-        "⒄",
-        "⒅",
-        "⒆",
-        "⒇",
-    },
-    numeric_circled = {
-        "①",
-        "②",
-        "③",
-        "④",
-        "⑤",
-        "⑥",
-        "⑦",
-        "⑧",
-        "⑨",
-        "⑩",
-        "⑪",
-        "⑫",
-        "⑬",
-        "⑭",
-        "⑮",
-        "⑯",
-        "⑰",
-        "⑱",
-        "⑲",
-        "⑳",
-    },
-    latin_lowercase = {
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h",
-        "i",
-        "j",
-        "k",
-        "l",
-        "m",
-        "n",
-        "o",
-        "p",
-        "q",
-        "r",
-        "s",
-        "t",
-        "u",
-        "v",
-        "w",
-        "x",
-        "y",
-        "z",
-    },
-    latin_uppercase = {
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "J",
-        "K",
-        "L",
-        "M",
-        "N",
-        "O",
-        "P",
-        "Q",
-        "R",
-        "S",
-        "T",
-        "U",
-        "V",
-        "W",
-        "X",
-        "Y",
-        "Z",
-    },
-    latin_lowercase_parentheses = {
-        "⒜",
-        "⒝",
-        "⒞",
-        "⒟",
-        "⒠",
-        "⒡",
-        "⒢",
-        "⒣",
-        "⒤",
-        "⒥",
-        "⒦",
-        "⒧",
-        "⒨",
-        "⒩",
-        "⒪",
-        "⒫",
-        "⒬",
-        "⒭",
-        "⒮",
-        "⒯",
-        "⒰",
-        "⒱",
-        "⒲",
-        "⒳",
-        "⒴",
-        "⒵",
-    },
-    latin_uppercase_circled = {
-        "Ⓐ",
-        "Ⓑ",
-        "Ⓒ",
-        "Ⓓ",
-        "Ⓔ",
-        "Ⓕ",
-        "Ⓖ",
-        "Ⓗ",
-        "Ⓘ",
-        "Ⓙ",
-        "Ⓚ",
-        "Ⓛ",
-        "Ⓜ",
-        "Ⓝ",
-        "Ⓞ",
-        "Ⓟ",
-        "Ⓠ",
-        "Ⓡ",
-        "Ⓢ",
-        "Ⓣ",
-        "Ⓤ",
-        "Ⓥ",
-        "Ⓦ",
-        "Ⓧ",
-        "Ⓨ",
-        "Ⓩ",
-    },
-    latin_lowercase_circled = {
-        "ⓐ",
-        "ⓑ",
-        "ⓒ",
-        "ⓓ",
-        "ⓔ",
-        "ⓕ",
-        "ⓖ",
-        "ⓗ",
-        "ⓘ",
-        "ⓙ",
-        "ⓚ",
-        "ⓛ",
-        "ⓜ",
-        "ⓝ",
-        "ⓞ",
-        "ⓟ",
-        "ⓠ",
-        "ⓡ",
-        "ⓢ",
-        "ⓣ",
-        "ⓤ",
-        "ⓥ",
-        "ⓦ",
-        "ⓧ",
-        "ⓨ",
-        "ⓩ",
-    },
 }
 
 local function get_number_table(initial_number)
@@ -386,6 +179,255 @@ local function get_ordered_index(bufid, prefix_node)
     end
 
     return count, (sibling or header_node:parent())
+end
+
+local function tbl_reverse(tbl)
+    local result = {}
+    for i = 1, #tbl do
+        result[i] = tbl[#tbl-i+1]
+    end
+    return result
+end
+
+local function tostring_lowercase(n)
+    local v = 26
+    local i = 1
+    local k = 1
+    while n >= v do
+        n = n - v
+        v = v * 26
+        k = k + 1
+    end
+
+    local t = {}
+    for i = 1, k do
+        t[#t+1] = string.char(0x61 + n%26)
+        n = math.floor(n/26)
+    end
+    return table.concat(t):reverse()
+end
+
+local roman_numerals = {
+    { "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix" },
+    { "x", "xx", "xxx", "xl", "l", "lx", "lxx", "lxxx", "xc" },
+    { "c", "cc", "ccc", "cd", "d", "dc", "dcc", "dccc", "cm" },
+    { "m", "mm", "mmm" },
+}
+
+local function tostring_roman_lowercase(n)
+    if n >= 4000 then
+        -- too large to render
+        return ("RomanOf(%d)"):format(n)
+    end
+    local result = {}
+    local i = 1
+    while n > 0 do
+        result[#result+1] = roman_numerals[i][n % 10]
+        n = math.floor(n/10)
+        i = i + 1
+    end
+    return table.concat(tbl_reverse(result))
+end
+
+local ordered_icon_generator = {
+    ["0"] = function(i) return tostring(i) - 1 end,
+    ["1"] = function(i) return tostring(i) end,
+    ["a"] = function(i) return tostring_lowercase(i-1) end,
+    ["A"] = function(i) return tostring_lowercase(i-1):upper() end,
+    ["i"] = function(i) return tostring_roman_lowercase(i) end,
+    ["I"] = function(i) return tostring_roman_lowercase(i):upper() end,
+}
+
+local ordered_icon_table = {
+    ["⒈"] = {
+        "⒈",
+        "⒉",
+        "⒊",
+        "⒋",
+        "⒌",
+        "⒍",
+        "⒎",
+        "⒏",
+        "⒐",
+        "⒑",
+        "⒒",
+        "⒓",
+        "⒔",
+        "⒕",
+        "⒖",
+        "⒗",
+        "⒘",
+        "⒙",
+        "⒚",
+        "⒛",
+    },
+    ["⑴"] = {
+        "⑴",
+        "⑵",
+        "⑶",
+        "⑷",
+        "⑸",
+        "⑹",
+        "⑺",
+        "⑻",
+        "⑼",
+        "⑽",
+        "⑾",
+        "⑿",
+        "⒀",
+        "⒁",
+        "⒂",
+        "⒃",
+        "⒄",
+        "⒅",
+        "⒆",
+        "⒇",
+    },
+    ["①"] = {
+        "①",
+        "②",
+        "③",
+        "④",
+        "⑤",
+        "⑥",
+        "⑦",
+        "⑧",
+        "⑨",
+        "⑩",
+        "⑪",
+        "⑫",
+        "⑬",
+        "⑭",
+        "⑮",
+        "⑯",
+        "⑰",
+        "⑱",
+        "⑲",
+        "⑳",
+    },
+    ["⒜"] = {
+        "⒜",
+        "⒝",
+        "⒞",
+        "⒟",
+        "⒠",
+        "⒡",
+        "⒢",
+        "⒣",
+        "⒤",
+        "⒥",
+        "⒦",
+        "⒧",
+        "⒨",
+        "⒩",
+        "⒪",
+        "⒫",
+        "⒬",
+        "⒭",
+        "⒮",
+        "⒯",
+        "⒰",
+        "⒱",
+        "⒲",
+        "⒳",
+        "⒴",
+        "⒵",
+    },
+    ["Ⓐ"] = {
+        "Ⓐ",
+        "Ⓑ",
+        "Ⓒ",
+        "Ⓓ",
+        "Ⓔ",
+        "Ⓕ",
+        "Ⓖ",
+        "Ⓗ",
+        "Ⓘ",
+        "Ⓙ",
+        "Ⓚ",
+        "Ⓛ",
+        "Ⓜ",
+        "Ⓝ",
+        "Ⓞ",
+        "Ⓟ",
+        "Ⓠ",
+        "Ⓡ",
+        "Ⓢ",
+        "Ⓣ",
+        "Ⓤ",
+        "Ⓥ",
+        "Ⓦ",
+        "Ⓧ",
+        "Ⓨ",
+        "Ⓩ",
+    },
+    ["ⓐ"] = {
+        "ⓐ",
+        "ⓑ",
+        "ⓒ",
+        "ⓓ",
+        "ⓔ",
+        "ⓕ",
+        "ⓖ",
+        "ⓗ",
+        "ⓘ",
+        "ⓙ",
+        "ⓚ",
+        "ⓛ",
+        "ⓜ",
+        "ⓝ",
+        "ⓞ",
+        "ⓟ",
+        "ⓠ",
+        "ⓡ",
+        "ⓢ",
+        "ⓣ",
+        "ⓤ",
+        "ⓥ",
+        "ⓦ",
+        "ⓧ",
+        "ⓨ",
+        "ⓩ",
+    },
+}
+
+local memoized_ordered_icon_generator = {}
+
+local function format_ordered_icon(pattern, index)
+    local gen = memoized_ordered_icon_generator[pattern]
+    if gen then
+        return gen(index)
+    end
+
+    -- try unicode number
+    for k,v in pairs(ordered_icon_table) do
+        local l,r = pattern:find(k)
+        if l then
+            local number_table = ordered_icon_table[k]
+            gen = function(index_)
+                local icon = number_table[index_]
+                return icon and pattern:sub(1,l-1) .. icon .. pattern:sub(r+1)
+            end
+            break
+        end
+    end
+
+    -- try ascii number
+    if not gen then
+        local i = pattern:find("%f[%w][01aAiI]%f[%W]")
+        if i then
+            local number_gen = ordered_icon_generator[pattern:sub(i,i)]
+            gen = function(index_)
+                local icon = number_gen(index_)
+                return icon and pattern:sub(1,i-1) .. icon .. pattern:sub(i+1)
+            end
+        end
+    end
+
+    gen = gen or function(index_) return end
+    memoized_ordered_icon_generator[pattern] = gen
+    return gen(index)
+
 end
 
 ---@class core.concealer
@@ -452,45 +494,35 @@ module.public = {
             set_mark(bufid, row_0b, col_0b, text, highlight)
         end,
 
-        multilevel_ordered_inline_on_right = function(config, bufid, node)
-            if not config.generators then
-                return
-            end
-
-            local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
-
-            local index = get_ordered_index(bufid, node)
-            local generator = table_get_default_last(config.generators, len)
-            local format = table_get_default_last(config.formatters, len)
-
-            local text = (" "):rep(len - 1) .. string.format(format, generator(index))
-
-            local highlight = config.highlights and table_get_default_last(config.highlights, len)
-
-            set_mark(bufid, row_0b, col_0b, text:sub(1, len), highlight)
-            set_mark(bufid, row_0b, col_0b + len, text:sub(len + 1), highlight, {
-                virt_text_pos = "inline",
-            })
-        end,
-
         multilevel_ordered_on_right = function(config, bufid, node)
             if not config.icons then
                 return
             end
+
             local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
-            local initial_number = table_get_default_last(config.icons, len)
-            if not initial_number then
+
+            local index = get_ordered_index(bufid, node)
+            local icon_pattern = table_get_default_last(config.icons, len)
+
+            local icon = format_ordered_icon(icon_pattern, index)
+            if not icon then
                 return
             end
-            local number_table = get_number_table(initial_number)
-            if not number_table then
-                return
-            end -- TODO: warning
-            local index = get_ordered_index(bufid, node)
-            local text = (" "):rep(len - 1) .. (number_table[index] or "~")
-            local highlight = config.highlights and table_get_default_last(config.highlights, len)
 
-            set_mark(bufid, row_0b, col_0b, text, highlight)
+            local text = (" "):rep(len - 1) .. icon
+            if #text > len and not has_anticonceal then
+                -- TODO warn neovim version
+                return
+            end
+
+            local highlight = config.highlights and table_get_default_last(config.highlights, len)
+            set_mark(bufid, row_0b, col_0b, text:sub(1, len), highlight)
+            if #text > len then
+                assert(has_anticonceal)
+                set_mark(bufid, row_0b, col_0b + len, text:sub(len + 1), highlight, {
+                    virt_text_pos = "inline",
+                })
+            end
         end,
 
         multilevel_copied = function(config, bufid, node)
@@ -612,33 +644,6 @@ module.public = {
             end
         end,
     },
-
-    icon_generators = {
-        numeric = function(index)
-            return tostring(index)
-        end,
-
-        convert_to_base_n = function(vocabulary, number)
-            local result = {}
-
-            while number > 0 do
-                local remainder = ((number - 1) % #vocabulary) + 1
-
-                table.insert(result, 1, string.sub(vocabulary, remainder, remainder))
-                number = math.floor((number - 1) / #vocabulary)
-            end
-
-            return table.concat(result)
-        end,
-
-        alphanumeric_uppercase = function(index)
-            return module.public.icon_generators.convert_to_base_n("ABCDEFGHIJKLMNOPQRSTUVWXYZ", index)
-        end,
-
-        alphanumeric_lowercase = function(index)
-            return module.public.icon_generators.convert_to_base_n("abcdefghijklmnopqrstuvwxyz", index)
-        end,
-    },
 }
 
 module.config.public = {
@@ -731,7 +736,7 @@ module.config.public = {
             render = module.public.icon_renderers.multilevel_on_right,
         },
         ordered = {
-            icons = (not has_anticonceal) and { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" } or nil,
+            icons = has_anticonceal and { "1.", "A.", "a.", "1)", "I.", "i." } or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
             nodes = {
                 "ordered_list1_prefix",
                 "ordered_list2_prefix",
@@ -740,27 +745,7 @@ module.config.public = {
                 "ordered_list5_prefix",
                 "ordered_list6_prefix",
             },
-
-            --- A list of icon generators.
-            ---
-            --- Icon generators live in the `icon_generators` namespace. They create
-            --- a unique ID for each index in the list. This can be as simple as `1, 2, 3, 4...`
-            --- or `A, B, C, D...`, but one could opt for more complex generators.
-            generators = {
-                module.public.icon_generators.numeric,
-                module.public.icon_generators.alphanumeric_uppercase,
-                module.public.icon_generators.alphanumeric_lowercase,
-                module.public.icon_generators.numeric,
-            },
-
-            --- A list of lua patterns specifying how to format each
-            --- nesting level of an ordered list.
-            ---
-            --- `%s` is substituted with the string returned by the `generator`.
-            formatters = { "%s.", "%s.", "%s.", "(%s)" },
-
-            render = has_anticonceal and module.public.icon_renderers.multilevel_ordered_inline_on_right
-                or module.public.icon_renderers.multilevel_ordered_on_right,
+            render = module.public.icon_renderers.multilevel_ordered_on_right
         },
         quote = {
             icons = { "│" },
