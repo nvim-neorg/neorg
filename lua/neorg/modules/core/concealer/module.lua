@@ -196,8 +196,9 @@ local roman_numerals = {
 local function tostring_roman_lowercase(n)
     if n >= 4000 then
         -- too large to render
-        return ("RomanOf(%d)"):format(n)
+        return
     end
+
     local result = {}
     local i = 1
     while n > 0 do
