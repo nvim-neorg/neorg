@@ -748,7 +748,7 @@ module.config.public = {
             render = module.public.icon_renderers.multilevel_on_right,
         },
         ordered = {
-            icons = has_anticonceal and { "1.", "A.", "a.", "§ 1)", "I.", "i." } or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
+            icons = has_anticonceal and { "1.", "A.", "a.", "(1)", "I.", "i." } or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
             nodes = {
                 "ordered_list1_prefix",
                 "ordered_list2_prefix",
