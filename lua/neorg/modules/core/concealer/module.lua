@@ -210,7 +210,7 @@ local function tostring_roman_lowercase(n)
 end
 
 local ordered_icon_table = {
-    ["0"] = function(i) return tostring(i) - 1 end,
+    ["0"] = function(i) return tostring(i-1) end,
     ["1"] = function(i) return tostring(i) end,
     ["a"] = function(i) return tostring_lowercase(i) end,
     ["A"] = function(i) return tostring_lowercase(i):upper() end,
