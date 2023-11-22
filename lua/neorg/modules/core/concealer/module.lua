@@ -492,49 +492,38 @@ module.public = {
             set_mark(bufid, row_0b, col_0b, text, config.highlight)
         end,
 
-        multilevel_on_right = function(config, bufid, node)
-            if not config.icons then
-                return
-            end
-            local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
-            local icon = table_get_default_last(config.icons, len)
-            if not icon then
-                return
-            end
-            local text = (" "):rep(len - 1) .. icon
-            local highlight = config.highlights and table_get_default_last(config.highlights, len)
-            set_mark(bufid, row_0b, col_0b, text, highlight)
-        end,
+        multilevel_on_right = function(is_ordered)
+            return function(config, bufid, node)
+                if not config.icons then
+                    return
+                end
 
-        multilevel_ordered_on_right = function(config, bufid, node)
-            if not config.icons then
-                return
-            end
+                local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
+                local icon_pattern = table_get_default_last(config.icons, len)
+                if not icon_pattern then
+                    return
+                end
 
-            local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
+                local icon = not is_ordered and icon_pattern or format_ordered_icon(icon_pattern, get_ordered_index(bufid, node))
+                if not icon then
+                    return
+                end
 
-            local index = get_ordered_index(bufid, node)
-            local icon_pattern = table_get_default_last(config.icons, len)
+                local text = (" "):rep(len - 1) .. icon
+                if #text > len and not has_anticonceal then
+                    -- TODO warn neovim version
+                    return
+                end
 
-            local icon = format_ordered_icon(icon_pattern, index)
-            if not icon then
-                return
-            end
-
-            local text = (" "):rep(len - 1) .. icon
-            if #text > len and not has_anticonceal then
-                -- TODO warn neovim version
-                return
-            end
-
-            local _, first_unicode_end = text:find("[%z\1-\127\194-\244][\128-\191]*", len)
-            local highlight = config.highlights and table_get_default_last(config.highlights, len)
-            set_mark(bufid, row_0b, col_0b, text:sub(1, first_unicode_end), highlight)
-            if #text > len then
-                assert(has_anticonceal)
-                set_mark(bufid, row_0b, col_0b + len, text:sub(first_unicode_end + 1), highlight, {
-                    virt_text_pos = "inline",
-                })
+                local _, first_unicode_end = text:find("[%z\1-\127\194-\244][\128-\191]*", len)
+                local highlight = config.highlights and table_get_default_last(config.highlights, len)
+                set_mark(bufid, row_0b, col_0b, text:sub(1, first_unicode_end), highlight)
+                if #text > len then
+                    assert(has_anticonceal)
+                    set_mark(bufid, row_0b, col_0b + len, text:sub(first_unicode_end + 1), highlight, {
+                        virt_text_pos = "inline",
+                    })
+                end
             end
         end,
 
@@ -746,7 +735,7 @@ module.config.public = {
                 "unordered_list5_prefix",
                 "unordered_list6_prefix",
             },
-            render = module.public.icon_renderers.multilevel_on_right,
+            render = module.public.icon_renderers.multilevel_on_right(false),
         },
         ordered = {
             icons = has_anticonceal and { "1.", "A.", "a.", "(1)", "I.", "i." } or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
@@ -758,7 +747,7 @@ module.config.public = {
                 "ordered_list5_prefix",
                 "ordered_list6_prefix",
             },
-            render = module.public.icon_renderers.multilevel_ordered_on_right
+            render = module.public.icon_renderers.multilevel_on_right(true),
         },
         quote = {
             icons = { "│" },
