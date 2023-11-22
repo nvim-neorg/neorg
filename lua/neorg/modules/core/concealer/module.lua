@@ -178,19 +178,10 @@ local function tbl_reverse(tbl)
 end
 
 local function tostring_lowercase(n)
-    local v = 26
-    local i = 1
-    local k = 1
-    while n >= v do
-        n = n - v
-        v = v * 26
-        k = k + 1
-    end
-
     local t = {}
-    for i = 1, k do
-        t[#t+1] = string.char(0x61 + n%26)
-        n = math.floor(n/26)
+    while n > 0 do
+        t[#t+1] = string.char(0x61 + (n-1)%26)
+        n = math.floor((n-1)/26)
     end
     return table.concat(t):reverse()
 end
@@ -220,8 +211,8 @@ end
 local ordered_icon_generator = {
     ["0"] = function(i) return tostring(i) - 1 end,
     ["1"] = function(i) return tostring(i) end,
-    ["a"] = function(i) return tostring_lowercase(i-1) end,
-    ["A"] = function(i) return tostring_lowercase(i-1):upper() end,
+    ["a"] = function(i) return tostring_lowercase(i) end,
+    ["A"] = function(i) return tostring_lowercase(i):upper() end,
     ["i"] = function(i) return tostring_roman_lowercase(i) end,
     ["I"] = function(i) return tostring_roman_lowercase(i):upper() end,
 }
