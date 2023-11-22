@@ -209,16 +209,13 @@ local function tostring_roman_lowercase(n)
     return table.concat(tbl_reverse(result))
 end
 
-local ordered_icon_generator = {
+local ordered_icon_table = {
     ["0"] = function(i) return tostring(i) - 1 end,
     ["1"] = function(i) return tostring(i) end,
     ["a"] = function(i) return tostring_lowercase(i) end,
     ["A"] = function(i) return tostring_lowercase(i):upper() end,
     ["i"] = function(i) return tostring_roman_lowercase(i) end,
     ["I"] = function(i) return tostring_roman_lowercase(i):upper() end,
-}
-
-local ordered_icon_table = {
     ["Ⅰ"] = {
         "Ⅰ",
         "Ⅱ",
@@ -411,28 +408,15 @@ local function format_ordered_icon(pattern, index)
         return gen(index)
     end
 
-    -- try unicode number
     for k,v in pairs(ordered_icon_table) do
         local l,r = pattern:find(k)
         if l then
             local number_table = ordered_icon_table[k]
             gen = function(index_)
-                local icon = number_table[index_]
+                local icon = type(number_table)=='function' and number_table(index_) or number_table[index_]
                 return icon and pattern:sub(1,l-1) .. icon .. pattern:sub(r+1)
             end
             break
-        end
-    end
-
-    -- try ascii number
-    if not gen then
-        local i = pattern:find("%f[%w][01aAiI]%f[%W]")
-        if i then
-            local number_gen = ordered_icon_generator[pattern:sub(i,i)]
-            gen = function(index_)
-                local icon = number_gen(index_)
-                return icon and pattern:sub(1,i-1) .. icon .. pattern:sub(i+1)
-            end
         end
     end
 
