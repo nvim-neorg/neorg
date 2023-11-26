@@ -1110,10 +1110,12 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
     remove_prettify_flag_range(bufid, pos_start_0b_0b.x, pos_end_0bin_0bex.x + 1)
     add_prettify_flag_range(bufid, pos_start_0b_0b.x, pos_end_0bin_0bex.x + 1)
 
-    local current_row_0b = vim.api.nvim_win_get_cursor(0)[1] - 1
+    local winid = vim.fn.bufwinid(bufid)
+    assert(winid > 0)
+    local current_row_0b = vim.api.nvim_win_get_cursor(winid)[1] - 1
     local current_mode = vim.api.nvim_get_mode().mode
-    local conceallevel = vim.wo.conceallevel
-    local concealcursor = vim.wo.concealcursor
+    local conceallevel = vim.wo[winid].conceallevel
+    local concealcursor = vim.wo[winid].concealcursor
 
     assert(document_root)
 
@@ -1238,6 +1240,8 @@ local function update_cursor(event)
 end
 
 local function handle_init_event(event)
+    -- TODO: make sure only init once
+
     assert(vim.api.nvim_win_is_valid(event.window))
     update_cursor(event)
 
@@ -1374,9 +1378,14 @@ local function handle_winscrolled(event)
     schedule_rendering(event.buffer)
 end
 
+local function handle_filetype(event)
+    handle_init_event(event)
+end
+
 local event_handlers = {
     ["core.neorgcmd.events.core.concealer.toggle"] = handle_toggle_prettifier,
-    ["core.autocommands.events.bufnewfile"] = handle_init_event,
+    -- ["core.autocommands.events.bufnewfile"] = handle_init_event,
+    ["core.autocommands.events.filetype"] = handle_filetype,
     ["core.autocommands.events.bufreadpost"] = handle_init_event,
     ["core.autocommands.events.insertenter"] = handle_insertenter,
     ["core.autocommands.events.insertleave"] = handle_insertleave,
@@ -1409,7 +1418,8 @@ module.load = function()
     module.config.public =
         vim.tbl_deep_extend("force", module.config.public, { icons = icon_preset }, module.config.custom or {})
 
-    module.required["core.autocommands"].enable_autocommand("BufNewFile")
+    -- module.required["core.autocommands"].enable_autocommand("BufNewFile")
+    module.required["core.autocommands"].enable_autocommand("FileType", true)
     module.required["core.autocommands"].enable_autocommand("BufReadPost")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
@@ -1467,7 +1477,8 @@ end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
-        bufnewfile = true,
+        -- bufnewfile = true,
+        filetype = true,
         bufreadpost = true,
         insertenter = true,
         insertleave = true,
