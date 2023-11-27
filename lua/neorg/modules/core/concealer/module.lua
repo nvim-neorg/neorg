@@ -461,7 +461,7 @@ module.public = {
                     table.insert(t, superscript_digits[d + 1])
                 end
                 local superscripted_title = table.concat(t)
-                local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = link_title_node:range()
+                local row_start_0b, col_start_0b, _, _ = link_title_node:range()
                 local highlight = config.title_highlight
                 set_mark(bufid, row_start_0b, col_start_0b, superscripted_title, highlight)
             end
@@ -567,7 +567,7 @@ module.public = {
                 return
             end
 
-            local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
+            local row_start_0b, col_start_0b, _, col_end_0bex = node:range()
             local render_col_start_0b = config.left == "here" and col_start_0b or 0
             local opt_textwidth = vim.bo[bufid].textwidth
             local render_col_end_0bex = config.right == "textwidth" and (opt_textwidth > 0 and opt_textwidth or 79)
