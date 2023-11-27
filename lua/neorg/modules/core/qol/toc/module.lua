@@ -57,7 +57,32 @@ module.config.public = {
     toc_filter = function(node_type)
         return node_type:match("^heading")
     end,
+
+    -- If `true`, `cursurline` will be enabled (highlighted) in the ToC window,
+    -- and the cursor position between ToC and content window will be synchronized.
+    sync_cursorline = true,
 }
+
+local start_lines_of_toc_buf = {}
+local last_row_of_norg_win = {}
+
+local function upper_bound(array, v)
+    -- assume array is sorted
+    -- find index of first element in array that is > v
+    local l = 1
+    local r = #array
+
+    while l <= r do
+        local m = math.floor((l+r)/2)
+        if v >= array[m] then
+            l = m + 1
+        else
+            r = m - 1
+        end
+    end
+
+    return l
+end
 
 module.public = {
     parse_toc_macro = function(buffer)
@@ -146,6 +171,23 @@ module.public = {
         return qflist_data
     end,
 
+    update_cursor = function(_original_buffer, original_window, ui_buffer, ui_window)
+        local current_row_1b = vim.fn.line('.', original_window)
+        if last_row_of_norg_win[original_window] == current_row_1b then
+            return
+        end
+        last_row_of_norg_win[original_window] = current_row_1b
+
+        local start_lines = start_lines_of_toc_buf[ui_buffer]
+        assert(start_lines)
+
+        local current_toc_item_idx = upper_bound(start_lines, current_row_1b-1) - 1
+        local current_toc_row = (current_toc_item_idx == 0
+            and math.max(1, start_lines.offset)
+            or current_toc_item_idx + start_lines.offset)
+        vim.api.nvim_win_set_cursor(ui_window, { current_toc_row, 0 })
+    end,
+
     update_toc = function(namespace, toc_title, original_buffer, original_window, ui_buffer, ui_window)
         vim.api.nvim_buf_clear_namespace(original_buffer, namespace, 0, -1)
 
@@ -155,6 +197,8 @@ module.public = {
 
         local prefix, title
         local extmarks = {}
+        local start_lines = { offset = offset }
+        start_lines_of_toc_buf[ui_buffer] = start_lines
         local toc_filter = module.config.public.toc_filter
 
         local success = module.required["core.integrations.treesitter"].execute_query(
@@ -185,10 +229,14 @@ module.public = {
 
                 if prefix and title then
                     local _, column = title:start()
+
                     table.insert(
                         extmarks,
                         vim.api.nvim_buf_set_extmark(original_buffer, namespace, (prefix:start()), column, {})
                     )
+
+                    local row_0b, _, _, _ = node:range()
+                    table.insert(start_lines, row_0b)
 
                     local prefix_text =
                         module.required["core.integrations.treesitter"].get_node_text(prefix, original_buffer)
@@ -280,6 +328,10 @@ module.on_event = function(event)
 
     vim.api.nvim_win_set_option(window, "scrolloff", 999)
     vim.api.nvim_win_set_option(window, "conceallevel", 0)
+    if module.config.public.sync_cursorline then
+        vim.api.nvim_win_set_option(window, "cursorline", true)
+    end
+
     module.public.update_toc(namespace, toc_title, event.buffer, event.window, buffer, window)
 
     if module.config.public.fit_width then
@@ -318,6 +370,10 @@ module.on_event = function(event)
 
                 toc_title = vim.split(module.public.parse_toc_macro(previous_buffer) or "Table of Contents", "\n")
                 module.public.update_toc(namespace, toc_title, previous_buffer, previous_window, buffer, window)
+                if module.config.public.sync_cursorline then
+                    last_row_of_norg_win[previous_window] = nil
+                    module.public.update_cursor(previous_buffer, previous_window, buffer, window)
+                end
             end,
         })
 
@@ -338,8 +394,25 @@ module.on_event = function(event)
 
                 toc_title = vim.split(module.public.parse_toc_macro(buf) or "Table of Contents", "\n")
                 module.public.update_toc(namespace, toc_title, buf, previous_window, buffer, window)
+                if module.config.public.sync_cursorline then
+                    module.public.update_cursor(previous_buffer, previous_window, buffer, window)
+                end
             end,
         })
+
+        if module.config.public.sync_cursorline then
+            vim.api.nvim_create_autocmd({"CursorMoved", "CursorMovedI"}, {
+                buffer = previous_buffer,
+                callback = function(ev)
+                    assert(ev.buf == previous_buffer)
+                    if not vim.api.nvim_buf_is_valid(buffer) or not vim.api.nvim_buf_is_loaded(buffer) then
+                        return true
+                    end
+
+                    module.public.update_cursor(ev.buf, vim.fn.bufwinid(ev.buf), buffer, window)
+                end,
+            })
+        end
     end
 end
 
