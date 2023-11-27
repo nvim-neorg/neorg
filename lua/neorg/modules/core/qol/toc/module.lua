@@ -54,7 +54,9 @@ module.config.public = {
 
     -- A function that takes node type as argument and returns true if this
     -- type of node should appear in the Table of Contents
-    toc_filter = function(node_type) return node_type:match("^heading") end,
+    toc_filter = function(node_type)
+        return node_type:match("^heading")
+    end,
 }
 
 module.public = {
@@ -168,7 +170,9 @@ module.public = {
                 local capture = query.captures[id]
 
                 if capture == "prefix" then
-                    if node:type():match("_prefix$") and (type(toc_filter) ~= 'function' or toc_filter(node:type())) then
+                    if
+                        node:type():match("_prefix$") and (type(toc_filter) ~= "function" or toc_filter(node:type()))
+                    then
                         prefix = node
                     else
                         prefix = nil
