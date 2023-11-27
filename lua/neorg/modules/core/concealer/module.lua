@@ -533,13 +533,17 @@ module.public = {
             end
         end,
 
-        fill_width = function(config, bufid, node)
+        render_horizontal_line = function(config, bufid, node)
             if not config.icon then
                 return
             end
-            local row_start_0b, col_start_0b = node:range()
-            local line_len = vim.api.nvim_win_get_width(0)
-            set_mark(bufid, row_start_0b, col_start_0b, config.icon:rep(line_len - col_start_0b), config.highlight)
+
+            local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
+            local render_col_start_0b = config.left == "here" and col_start_0b or 0
+            local opt_textwidth = vim.bo[bufid].textwidth
+            local render_col_end_0bex = config.right == "textwidth" and (opt_textwidth>0 and opt_textwidth or 79) or vim.api.nvim_win_get_width(vim.fn.bufwinid(bufid))
+            local len = math.max(col_end_0bex - col_start_0b, render_col_end_0bex - render_col_start_0b)
+            set_mark(bufid, row_start_0b, render_col_start_0b, config.icon:rep(len), config.highlight)
         end,
 
         render_code_block = function(config, bufid, node)
@@ -863,7 +867,15 @@ module.config.public = {
                 icon = "─",
                 highlight = "@neorg.delimiters.horizontal_line",
                 nodes = { "horizontal_line" },
-                render = module.public.icon_renderers.fill_width,
+                -- The starting position of horizontal lines:
+                -- - "window": the horizontal line starts from the first column, reaching the left of the window
+                -- - "here": the horizontal line starts from the node column
+                left = "here",
+                -- The ending position of horizontal lines:
+                -- - "window": the horizontal line ends at the last column, reaching the right of the window
+                -- - "textwidth": the horizontal line ends at column `textwidth` or 79 when it's set to zero
+                right = "window",
+                render = module.public.icon_renderers.render_horizontal_line,
             },
         },
 
