@@ -388,6 +388,19 @@ local function get_ordered_index(bufid, prefix_node)
     return count, (sibling or header_node:parent())
 end
 
+local superscript_digits = {
+    "⁰",
+    "¹",
+    "²",
+    "³",
+    "⁴",
+    "⁵",
+    "⁶",
+    "⁷",
+    "⁸",
+    "⁹",
+}
+
 ---@class core.concealer
 module.public = {
     foldtext = function()
@@ -436,6 +449,22 @@ module.public = {
             local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
             local text = (" "):rep(len - 1) .. config.icon
             set_mark(bufid, row_0b, col_0b, text, config.highlight)
+        end,
+
+        footnote_concealed = function(config, bufid, node)
+            local link_title_node = node:next_named_sibling()
+            local link_title = vim.treesitter.get_node_text(link_title_node, bufid)
+            if config.numeric_superscript and link_title:match("%d+") then
+                local t = {}
+                for i = 1, #link_title do
+                    local d = link_title:sub(i,i):byte() - 0x30
+                    table.insert(t, superscript_digits[d+1])
+                end
+                local superscripted_title = table.concat(t)
+                local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = link_title_node:range()
+                local highlight = config.title_highlight
+                set_mark(bufid, row_start_0b, col_start_0b, superscripted_title, highlight)
+            end
         end,
 
         multilevel_on_right = function(config, bufid, node)
@@ -836,8 +865,13 @@ module.config.public = {
         footnote = {
             single = {
                 icon = "⁎",
+                -- When set to true, footnote link with numeric title will be
+                -- concealed to superscripts.
+                numeric_superscript = true,
+                title_highlight = "@neorg.footnotes.title",
                 nodes = { "single_footnote_prefix", concealed = { "link_target_footnote" } },
                 render = module.public.icon_renderers.on_left,
+                render_concealed = module.public.icon_renderers.footnote_concealed,
             },
             multi_prefix = {
                 icon = "⁑ ",
@@ -1153,11 +1187,15 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
                 node_row_end_0bex
             )
         )
+
         if has_conceal then
-            goto continue
+            if config.render_concealed then
+                config:render_concealed(bufid, node)
+            end
+        else
+            config:render(bufid, node)
         end
 
-        config:render(bufid, node)
         ::continue::
     end
 end
