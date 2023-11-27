@@ -457,8 +457,8 @@ module.public = {
             if config.numeric_superscript and link_title:match("%d+") then
                 local t = {}
                 for i = 1, #link_title do
-                    local d = link_title:sub(i,i):byte() - 0x30
-                    table.insert(t, superscript_digits[d+1])
+                    local d = link_title:sub(i, i):byte() - 0x30
+                    table.insert(t, superscript_digits[d + 1])
                 end
                 local superscripted_title = table.concat(t)
                 local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = link_title_node:range()
