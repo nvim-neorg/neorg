@@ -6,6 +6,9 @@ assert(vim.re ~= nil, "Neovim 0.10.0+ is required to run the `core.renderer.late
 
 module.setup = function()
     return {
+        wants = {
+            "core.integrations.image",
+        },
         requires = {
             "core.integrations.treesitter",
             "core.autocommands",
