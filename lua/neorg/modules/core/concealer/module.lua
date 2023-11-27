@@ -533,13 +533,18 @@ module.public = {
             end
         end,
 
-        fill_width = function(config, bufid, node)
+        render_horizontal_line = function(config, bufid, node)
             if not config.icon then
                 return
             end
-            local row_start_0b, col_start_0b = node:range()
-            local line_len = vim.api.nvim_win_get_width(0)
-            set_mark(bufid, row_start_0b, col_start_0b, config.icon:rep(line_len - col_start_0b), config.highlight)
+
+            local row_start_0b, col_start_0b, row_end_0bin, col_end_0bex = node:range()
+            local render_col_start_0b = config.left == "here" and col_start_0b or 0
+            local opt_textwidth = vim.bo[bufid].textwidth
+            local render_col_end_0bex = config.right == "textwidth" and (opt_textwidth > 0 and opt_textwidth or 79)
+                or vim.api.nvim_win_get_width(vim.fn.bufwinid(bufid))
+            local len = math.max(col_end_0bex - col_start_0b, render_col_end_0bex - render_col_start_0b)
+            set_mark(bufid, row_start_0b, render_col_start_0b, config.icon:rep(len), config.highlight)
         end,
 
         render_code_block = function(config, bufid, node)
@@ -863,7 +868,15 @@ module.config.public = {
                 icon = "─",
                 highlight = "@neorg.delimiters.horizontal_line",
                 nodes = { "horizontal_line" },
-                render = module.public.icon_renderers.fill_width,
+                -- The starting position of horizontal lines:
+                -- - "window": the horizontal line starts from the first column, reaching the left of the window
+                -- - "here": the horizontal line starts from the node column
+                left = "here",
+                -- The ending position of horizontal lines:
+                -- - "window": the horizontal line ends at the last column, reaching the right of the window
+                -- - "textwidth": the horizontal line ends at column `textwidth` or 79 when it's set to zero
+                right = "window",
+                render = module.public.icon_renderers.render_horizontal_line,
             },
         },
 
@@ -1110,10 +1123,12 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
     remove_prettify_flag_range(bufid, pos_start_0b_0b.x, pos_end_0bin_0bex.x + 1)
     add_prettify_flag_range(bufid, pos_start_0b_0b.x, pos_end_0bin_0bex.x + 1)
 
-    local current_row_0b = vim.api.nvim_win_get_cursor(0)[1] - 1
+    local winid = vim.fn.bufwinid(bufid)
+    assert(winid > 0)
+    local current_row_0b = vim.api.nvim_win_get_cursor(winid)[1] - 1
     local current_mode = vim.api.nvim_get_mode().mode
-    local conceallevel = vim.wo.conceallevel
-    local concealcursor = vim.wo.concealcursor
+    local conceallevel = vim.wo[winid].conceallevel
+    local concealcursor = vim.wo[winid].concealcursor
 
     assert(document_root)
 
@@ -1238,6 +1253,8 @@ local function update_cursor(event)
 end
 
 local function handle_init_event(event)
+    -- TODO: make sure only init once
+
     assert(vim.api.nvim_win_is_valid(event.window))
     update_cursor(event)
 
@@ -1374,9 +1391,14 @@ local function handle_winscrolled(event)
     schedule_rendering(event.buffer)
 end
 
+local function handle_filetype(event)
+    handle_init_event(event)
+end
+
 local event_handlers = {
     ["core.neorgcmd.events.core.concealer.toggle"] = handle_toggle_prettifier,
-    ["core.autocommands.events.bufnewfile"] = handle_init_event,
+    -- ["core.autocommands.events.bufnewfile"] = handle_init_event,
+    ["core.autocommands.events.filetype"] = handle_filetype,
     ["core.autocommands.events.bufreadpost"] = handle_init_event,
     ["core.autocommands.events.insertenter"] = handle_insertenter,
     ["core.autocommands.events.insertleave"] = handle_insertleave,
@@ -1409,7 +1431,8 @@ module.load = function()
     module.config.public =
         vim.tbl_deep_extend("force", module.config.public, { icons = icon_preset }, module.config.custom or {})
 
-    module.required["core.autocommands"].enable_autocommand("BufNewFile")
+    -- module.required["core.autocommands"].enable_autocommand("BufNewFile")
+    module.required["core.autocommands"].enable_autocommand("FileType", true)
     module.required["core.autocommands"].enable_autocommand("BufReadPost")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
@@ -1467,7 +1490,8 @@ end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
-        bufnewfile = true,
+        -- bufnewfile = true,
+        filetype = true,
         bufreadpost = true,
         insertenter = true,
         insertleave = true,

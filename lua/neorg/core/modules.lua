@@ -279,7 +279,7 @@ function modules.load_module_from_table(module)
 
             -- This would've always returned false had we not added the current module to the loaded module list earlier above
             if not modules.is_module_loaded(required_module) then
-                if config.user_config[required_module] then
+                if config.user_config.load[required_module] then
                     log.trace(
                         "Wanted module",
                         required_module,
