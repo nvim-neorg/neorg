@@ -47,6 +47,10 @@ module.config.public = {
     -- If `true`, will close the Table of Contents after an entry in the table
     -- is picked.
     close_after_use = false,
+
+    -- If `true`, the width of the Table of Contents window will automatically
+    -- fit its longest line
+    fit_width = true,
 }
 
 module.public = {
@@ -227,6 +231,16 @@ module.public = {
     end,
 }
 
+local function get_max_virtcol()
+    local n_line = vim.fn.line('$')
+    local result = 1
+    for i = 1, n_line do
+        -- FIXME: for neovim <=0.9.*, virtcol() doesn't accept winid argument
+        result = math.max(result, vim.fn.virtcol({i, '$'}))
+    end
+    return result
+end
+
 module.on_event = function(event)
     if event.split_type[2] ~= module.name then
         return
@@ -258,6 +272,13 @@ module.on_event = function(event)
     vim.api.nvim_win_set_option(window, "scrolloff", 999)
     vim.api.nvim_win_set_option(window, "conceallevel", 0)
     module.public.update_toc(namespace, toc_title, event.buffer, event.window, buffer, window)
+
+    if module.config.public.fit_width then
+        local max_virtcol_1bex = get_max_virtcol()
+        local current_winwidth = vim.fn.winwidth(window)
+        local new_winwidth = math.min(current_winwidth, math.max(30, max_virtcol_1bex-1))
+        vim.cmd(("vertical resize %d"):format(new_winwidth + 1))  -- +1 for margin
+    end
 
     local close_buffer_callback = function()
         -- Check if buffer exists before deleting it
