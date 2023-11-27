@@ -232,11 +232,11 @@ module.public = {
 }
 
 local function get_max_virtcol()
-    local n_line = vim.fn.line('$')
+    local n_line = vim.fn.line("$")
     local result = 1
     for i = 1, n_line do
         -- FIXME: for neovim <=0.9.*, virtcol() doesn't accept winid argument
-        result = math.max(result, vim.fn.virtcol({i, '$'}))
+        result = math.max(result, vim.fn.virtcol({ i, "$" }))
     end
     return result
 end
@@ -276,8 +276,8 @@ module.on_event = function(event)
     if module.config.public.fit_width then
         local max_virtcol_1bex = get_max_virtcol()
         local current_winwidth = vim.fn.winwidth(window)
-        local new_winwidth = math.min(current_winwidth, math.max(30, max_virtcol_1bex-1))
-        vim.cmd(("vertical resize %d"):format(new_winwidth + 1))  -- +1 for margin
+        local new_winwidth = math.min(current_winwidth, math.max(30, max_virtcol_1bex - 1))
+        vim.cmd(("vertical resize %d"):format(new_winwidth + 1)) -- +1 for margin
     end
 
     local close_buffer_callback = function()
