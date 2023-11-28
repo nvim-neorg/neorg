@@ -44,8 +44,9 @@ local module = modules.create("core.autocommands")
 --- This function gets invoked whenever a core.autocommands enabled autocommand is triggered. Note that this function should be only used internally
 ---@param name string #The name of the autocommand that was just triggered
 ---@param triggered_from_norg boolean #If true, that means we have received this event as part of a *.norg autocommand
-function _neorg_module_autocommand_triggered(name, triggered_from_norg)
-    local event = modules.create_event(module, name, { norg = triggered_from_norg })
+---@param ev? table the original event data
+function _neorg_module_autocommand_triggered(name, triggered_from_norg, ev)
+    local event = modules.create_event(module, name, { norg = triggered_from_norg }, ev)
     assert(event)
     modules.broadcast_event(event)
 end
@@ -71,21 +72,18 @@ module.public = {
             vim.cmd("augroup Neorg")
 
             if dont_isolate and vim.fn.exists("#Neorg#" .. autocmd .. "#*") == 0 then
-                vim.cmd(
-                    "autocmd "
-                        .. autocmd
-                        .. ' * :lua _neorg_module_autocommand_triggered("core.autocommands.events.'
-                        .. autocmd
-                        .. '", false)'
-                )
+                vim.api.nvim_create_autocmd(autocmd, {
+                    callback = function(ev)
+                        _neorg_module_autocommand_triggered("core.autocommands.events."..autocmd, false, ev)
+                    end
+                })
             elseif vim.fn.exists("#Neorg#" .. autocmd .. "#*.norg") == 0 then
-                vim.cmd(
-                    "autocmd "
-                        .. autocmd
-                        .. ' *.norg :lua _neorg_module_autocommand_triggered("core.autocommands.events.'
-                        .. autocmd
-                        .. '", true)'
-                )
+                vim.api.nvim_create_autocmd(autocmd, {
+                    pattern = "*.norg",
+                    callback = function(ev)
+                        _neorg_module_autocommand_triggered("core.autocommands.events."..autocmd, true, ev)
+                    end
+                })
             end
             vim.cmd("augroup END")
             module.events.subscribed["core.autocommands"][autocmd] = true
