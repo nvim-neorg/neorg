@@ -177,6 +177,7 @@ module.public = {
                     else
                         prefix = nil
                     end
+                    title = nil
                 elseif capture == "title" then
                     title = node
                 elseif capture == "cancelled" then
