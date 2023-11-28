@@ -372,7 +372,7 @@ module.on_event = function(event)
                 toc_title = vim.split(module.public.parse_toc_macro(previous_buffer) or "Table of Contents", "\n")
                 module.public.update_toc(namespace, toc_title, previous_buffer, previous_window, buffer, window)
                 if module.config.public.sync_cursorline then
-                    last_row_of_norg_win[previous_window] = nil
+                    last_row_of_norg_win[previous_window] = nil  -- invalidate cursor cache
                     module.public.update_cursor(previous_buffer, previous_window, buffer, window)
                 end
             end,
