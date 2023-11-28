@@ -649,8 +649,9 @@ end
 ---@param module table #A reference to the module invoking the function
 ---@param type string #A full path to a valid event type (e.g. 'core.module.events.some_event')
 ---@param content any #The content of the event, can be anything from a string to a table to whatever you please
+---@param ev? table the original event data
 ---@return table #New event
-function modules.create_event(module, type, content)
+function modules.create_event(module, type, content, ev)
     -- Get the module that contains the event
     local module_name = modules.split_event_type(type)[1]
 
@@ -673,12 +674,15 @@ function modules.create_event(module, type, content)
     new_event.split_type = modules.split_event_type(type)
     new_event.filename = vim.fn.expand("%:t")
     new_event.filehead = vim.fn.expand("%:p:h")
-    new_event.cursor_position = vim.api.nvim_win_get_cursor(0)
-    new_event.line_content = vim.api.nvim_get_current_line()
+    local bufid = ev and ev.buf or vim.api.nvim_get_current_buf()
+    local winid = vim.fn.bufwinid(bufid)
+    new_event.cursor_position = vim.api.nvim_win_get_cursor(winid)
+    local row_1b = new_event.cursor_position[1]
+    new_event.line_content = vim.api.nvim_buf_get_lines(bufid, row_1b-1, row_1b, true)[1]
     new_event.referrer = module.name
     new_event.broadcast = true
-    new_event.buffer = vim.api.nvim_get_current_buf()
-    new_event.window = vim.api.nvim_get_current_win()
+    new_event.buffer = bufid
+    new_event.window = winid
     new_event.mode = vim.api.nvim_get_mode().mode
 
     return new_event
