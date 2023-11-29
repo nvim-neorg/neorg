@@ -403,11 +403,14 @@ module.on_event = function(event)
 
         if module.config.public.sync_cursorline then
             vim.api.nvim_create_autocmd({"CursorMoved", "CursorMovedI"}, {
-                buffer = previous_buffer,
+                pattern = "*.norg",
                 callback = function(ev)
-                    assert(ev.buf == previous_buffer)
                     if not vim.api.nvim_buf_is_valid(buffer) or not vim.api.nvim_buf_is_loaded(buffer) then
                         return true
+                    end
+
+                    if ev.buf ~= previous_buffer then
+                        return
                     end
 
                     module.public.update_cursor(ev.buf, vim.fn.bufwinid(ev.buf), buffer, window)
