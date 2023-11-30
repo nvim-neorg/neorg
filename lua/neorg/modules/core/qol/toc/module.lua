@@ -201,6 +201,17 @@ module.public = {
         start_lines_of_toc_buf[ui_buffer] = start_lines
         local toc_filter = module.config.public.toc_filter
 
+        function get_target_location_under_cursor(ui_window, original_buffer)
+            local curline = vim.api.nvim_win_get_cursor(ui_window)[1]
+            local extmark_lookup = extmarks[curline - offset]
+
+            if not extmark_lookup then
+                return
+            end
+
+            return vim.api.nvim_buf_get_extmark_by_id(original_buffer, namespace, extmark_lookup, {})
+        end
+
         local success = module.required["core.integrations.treesitter"].execute_query(
             [[
             (_
@@ -235,8 +246,7 @@ module.public = {
                         vim.api.nvim_buf_set_extmark(original_buffer, namespace, (prefix:start()), column, {})
                     )
 
-                    local row_0b, _, _, _ = node:range()
-                    table.insert(start_lines, row_0b)
+                    table.insert(start_lines, (prefix:start()))
 
                     local prefix_text =
                         module.required["core.integrations.treesitter"].get_node_text(prefix, original_buffer)
@@ -267,14 +277,10 @@ module.public = {
 
         vim.api.nvim_buf_set_keymap(ui_buffer, "n", "<CR>", "", {
             callback = function()
-                local curline = vim.api.nvim_win_get_cursor(ui_window)[1]
-                local extmark_lookup = extmarks[curline - offset]
-
-                if not extmark_lookup then
+                local location = get_target_location_under_cursor(ui_window, original_buffer)
+                if not location then
                     return
                 end
-
-                local location = vim.api.nvim_buf_get_extmark_by_id(original_buffer, namespace, extmark_lookup, {})
 
                 vim.api.nvim_set_current_win(original_window)
                 vim.api.nvim_set_current_buf(original_buffer)
@@ -360,6 +366,7 @@ module.on_event = function(event)
 
     do
         local previous_buffer, previous_window = event.buffer, event.window
+        local ui_cursor_start_moving = false
 
         vim.api.nvim_create_autocmd("BufWritePost", {
             pattern = "*.norg",
@@ -400,7 +407,23 @@ module.on_event = function(event)
             end,
         })
 
+        -- Sync cursor: ToC -> content
         if module.config.public.sync_cursorline then
+            vim.api.nvim_create_autocmd({"CursorMoved", "CursorMovedI"}, {
+                buffer = buffer,
+                callback = function(ev)
+                    -- Ignore the first (fake) CursorMoved coming together with BufEnter of the ToC buffer
+                    if ui_cursor_start_moving then
+                        local location = get_target_location_under_cursor(window, previous_buffer)
+                        if location then
+                            vim.api.nvim_win_set_cursor(previous_window, { location[1] + 1, location[2] })
+                        end
+                    end
+                    ui_cursor_start_moving = true
+                end,
+            })
+
+            -- Sync cursor: content -> ToC
             vim.api.nvim_create_autocmd({"CursorMoved", "CursorMovedI"}, {
                 pattern = "*.norg",
                 callback = function(ev)
@@ -413,6 +436,22 @@ module.on_event = function(event)
                     end
 
                     module.public.update_cursor(ev.buf, vim.fn.bufwinid(ev.buf), buffer, window)
+                end,
+            })
+
+            -- Ignore the first (fake) CursorMoved coming together with BufEnter of the ToC buffer
+            vim.api.nvim_create_autocmd("BufEnter", {
+                buffer = buffer,
+                callback = function(ev)
+                    ui_cursor_start_moving = false
+                end,
+            })
+
+            -- When leaving the content buffer, add its last cursor position to jump list
+            vim.api.nvim_create_autocmd("BufLeave", {
+                pattern = "*.norg",
+                callback = function(ev)
+                    vim.cmd("normal! m'")
                 end,
             })
         end
