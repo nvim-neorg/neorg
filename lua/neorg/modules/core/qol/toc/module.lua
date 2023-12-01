@@ -73,7 +73,7 @@ local function upper_bound(array, v)
     local r = #array
 
     while l <= r do
-        local m = math.floor((l+r)/2)
+        local m = math.floor((l + r) / 2)
         if v >= array[m] then
             l = m + 1
         else
@@ -172,7 +172,7 @@ module.public = {
     end,
 
     update_cursor = function(_original_buffer, original_window, ui_buffer, ui_window)
-        local current_row_1b = vim.fn.line('.', original_window)
+        local current_row_1b = vim.fn.line(".", original_window)
         if last_row_of_norg_win[original_window] == current_row_1b then
             return
         end
@@ -181,10 +181,11 @@ module.public = {
         local start_lines = start_lines_of_toc_buf[ui_buffer]
         assert(start_lines)
 
-        local current_toc_item_idx = upper_bound(start_lines, current_row_1b-1) - 1
-        local current_toc_row = (current_toc_item_idx == 0
-            and math.max(1, start_lines.offset)
-            or current_toc_item_idx + start_lines.offset)
+        local current_toc_item_idx = upper_bound(start_lines, current_row_1b - 1) - 1
+        local current_toc_row = (
+            current_toc_item_idx == 0 and math.max(1, start_lines.offset)
+            or current_toc_item_idx + start_lines.offset
+        )
         vim.api.nvim_win_set_cursor(ui_window, { current_toc_row, 0 })
     end,
 
@@ -385,7 +386,7 @@ module.on_event = function(event)
                 toc_title = vim.split(module.public.parse_toc_macro(previous_buffer) or "Table of Contents", "\n")
                 module.public.update_toc(namespace, toc_title, previous_buffer, previous_window, buffer, window)
                 if module.config.public.sync_cursorline then
-                    last_row_of_norg_win[previous_window] = nil  -- invalidate cursor cache
+                    last_row_of_norg_win[previous_window] = nil -- invalidate cursor cache
                     module.public.update_cursor(previous_buffer, previous_window, buffer, window)
                 end
             end),
@@ -412,7 +413,7 @@ module.on_event = function(event)
 
         -- Sync cursor: ToC -> content
         if module.config.public.sync_cursorline then
-            vim.api.nvim_create_autocmd({"CursorMoved", "CursorMovedI"}, {
+            vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
                 buffer = buffer,
                 callback = function(ev)
                     if not previous_buffer then
@@ -431,7 +432,7 @@ module.on_event = function(event)
             })
 
             -- Sync cursor: content -> ToC
-            vim.api.nvim_create_autocmd({"CursorMoved", "CursorMovedI"}, {
+            vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
                 pattern = "*.norg",
                 callback = unlisten_if_closed(buffer, function(ev)
                     if ev.buf ~= previous_buffer then
