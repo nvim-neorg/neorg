@@ -628,6 +628,7 @@ module.public = {
                         virt_text = not to_eol and { { (" "):rep(mark_col_end_0bex - len), config.highlight } } or nil,
                         virt_text_pos = "overlay",
                         virt_text_win_col = len,
+                        spell = config.spell_check,
                     })
                 else
                     vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, len, {
@@ -641,6 +642,7 @@ module.public = {
                         },
                         virt_text_pos = "overlay",
                         virt_text_win_col = len,
+                        spell = config.spell_check,
                     })
                 end
             end
@@ -950,6 +952,9 @@ module.config.public = {
             -- If `true` will conceal (hide) the `@code` and `@end` portion of the code
             -- block.
             conceal = false,
+
+            -- If `false` will disable spell check on code blocks when 'spell' option is switched on.
+            spell_check = true,
 
             nodes = { "ranged_verbatim_tag" },
             highlight = "@neorg.tags.ranged_verbatim.code_block",
