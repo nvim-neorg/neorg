@@ -1336,17 +1336,10 @@ local function handle_init_event(event)
     mark_all_lines_changed(event.buffer)
 
     if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
-        local opts = {
-            scope = "local",
-            win = event.window,
-        }
-        vim.api.nvim_set_option_value("foldmethod", "expr", opts)
-        vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
-        vim.api.nvim_set_option_value(
-            "foldtext",
-            "v:lua.require'neorg'.modules.get_module('core.concealer').foldtext()",
-            opts
-        )
+        local wo = vim.wo[event.window]
+        wo.foldmethod = "expr"
+        wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+        wo.foldtext = "v:lua.require'neorg'.modules.get_module('core.concealer').foldtext()"
 
         local init_open_folds = module.config.public.init_open_folds
         local function open_folds()
@@ -1362,8 +1355,7 @@ local function handle_init_event(event)
                 log.warn('"init_open_folds" must be "auto", "always", or "never"')
             end
 
-            local foldlevel = vim.api.nvim_get_option_value("foldlevel", opts)
-            if foldlevel == 0 then
+            if wo.foldlevel == 0 then
                 open_folds()
             end
         end
