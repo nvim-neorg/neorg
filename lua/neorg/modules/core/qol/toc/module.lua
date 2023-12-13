@@ -472,7 +472,7 @@ module.on_event = function(event)
             -- Ignore the first (fake) CursorMoved coming together with BufEnter of the ToC buffer
             vim.api.nvim_create_autocmd("BufEnter", {
                 buffer = buffer,
-                callback = function(ev)
+                callback = function(_ev)
                     ui_cursor_start_moving = false
                 end,
             })
@@ -480,7 +480,7 @@ module.on_event = function(event)
             -- When leaving the content buffer, add its last cursor position to jump list
             vim.api.nvim_create_autocmd("BufLeave", {
                 pattern = "*.norg",
-                callback = unlisten_if_closed(buffer, function(ev)
+                callback = unlisten_if_closed(buffer, function(_ev)
                     vim.cmd("normal! m'")
                 end),
             })
