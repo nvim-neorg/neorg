@@ -85,9 +85,9 @@ local function upper_bound(array, v)
     return l
 end
 
-local function get_target_location_under_cursor(ui_buffer, ui_window, original_buffer, original_window)
-    assert(ui_window == vim.fn.bufwinid(ui_buffer))
-    assert(original_window == vim.fn.bufwinid(original_buffer))
+local function get_target_location_under_cursor(ui_buffer, original_buffer)
+    local ui_window = vim.fn.bufwinid(ui_buffer)
+    local original_window = vim.fn.bufwinid(original_buffer)
 
     local curline = vim.api.nvim_win_get_cursor(ui_window)[1]
     local offset = data_of_ui_buf[ui_buffer].start_lines.offset
@@ -187,7 +187,10 @@ module.public = {
         return qflist_data
     end,
 
-    update_cursor = function(_original_buffer, original_window, ui_buffer, ui_window)
+    update_cursor = function(original_buffer, ui_buffer)
+        local original_window = vim.fn.bufwinid(original_buffer)
+        local ui_window = vim.fn.bufwinid(ui_buffer)
+
         local current_row_1b = vim.fn.line(".", original_window)
         if data_of_norg_win[original_window].last_row == current_row_1b then
             return
@@ -206,6 +209,7 @@ module.public = {
     end,
 
     update_toc = function(toc_title, original_buffer, original_window, ui_buffer, ui_window)
+        vim.bo[ui_buffer].modifiable = true
         vim.api.nvim_buf_clear_namespace(original_buffer, toc_namespace, 0, -1)
 
         table.insert(toc_title, "")
@@ -277,7 +281,7 @@ module.public = {
                         -1,
                         -1,
                         true,
-                        { table.concat({ "• {", prefix_text, title_text, "}" }) }
+                        { table.concat({ prefix_text, title_text }) }
                     )
 
                     prefix, title = nil, nil
@@ -286,13 +290,15 @@ module.public = {
             original_buffer
         )
 
+        vim.bo[ui_buffer].modifiable = false
+
         if not success then
             return
         end
 
         vim.api.nvim_buf_set_keymap(ui_buffer, "n", "<CR>", "", {
             callback = function()
-                local location = get_target_location_under_cursor(ui_buffer, ui_window, original_buffer, original_window)
+                local location = get_target_location_under_cursor(ui_buffer, original_buffer)
                 if not location then
                     return
                 end
@@ -357,15 +363,19 @@ module.on_event = function(event)
     local buffer, window =
         module.required["core.ui"].create_vsplit("toc", { ft = "norg" }, (event.content[1] or "left") == "left")
 
-    vim.api.nvim_win_set_option(window, "scrolloff", 999)
-    vim.api.nvim_win_set_option(window, "conceallevel", 0)
+    vim.wo[window].scrolloff = 999
+    vim.wo[window].conceallevel = 0
+    vim.wo[window].foldmethod = "expr"
+    vim.wo[window].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+    vim.wo[window].foldlevel = 99
+
     if module.config.public.sync_cursorline then
         vim.api.nvim_win_set_option(window, "cursorline", true)
     end
 
     module.public.update_toc(toc_title, event.buffer, event.window, buffer, window)
     if module.config.public.sync_cursorline then
-        module.public.update_cursor(event.buffer, event.window, buffer, window)
+        module.public.update_cursor(event.buffer, buffer)
     end
 
     if module.config.public.fit_width then
@@ -403,7 +413,7 @@ module.on_event = function(event)
                 module.public.update_toc(toc_title, previous_buffer, previous_window, buffer, window)
                 if module.config.public.sync_cursorline then
                     data_of_norg_win[previous_window].last_row = nil -- invalidate cursor cache
-                    module.public.update_cursor(previous_buffer, previous_window, buffer, window)
+                    module.public.update_cursor(previous_buffer, buffer)
                 end
             end),
         })
@@ -422,7 +432,7 @@ module.on_event = function(event)
                 toc_title = vim.split(module.public.parse_toc_macro(buf) or "Table of Contents", "\n")
                 module.public.update_toc(toc_title, buf, previous_window, buffer, window)
                 if module.config.public.sync_cursorline then
-                    module.public.update_cursor(previous_buffer, previous_window, buffer, window)
+                    module.public.update_cursor(previous_buffer, buffer)
                 end
             end),
         })
@@ -440,7 +450,7 @@ module.on_event = function(event)
 
                     -- Ignore the first (fake) CursorMoved coming together with BufEnter of the ToC buffer
                     if ui_cursor_start_moving then
-                        local location = get_target_location_under_cursor(buffer, window, previous_buffer, previous_window)
+                        local location = get_target_location_under_cursor(buffer, previous_buffer)
                         if location then
                             vim.api.nvim_win_set_cursor(previous_window, { location[1] + 1, location[2] })
                             vim.api.nvim_set_current_win(previous_window)
@@ -465,7 +475,7 @@ module.on_event = function(event)
                         return
                     end
 
-                    module.public.update_cursor(previous_buffer, vim.fn.bufwinid(previous_buffer), buffer, window)
+                    module.public.update_cursor(previous_buffer, buffer)
                 end),
             })
 
