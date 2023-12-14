@@ -69,6 +69,14 @@ module.config.public = {
                     { "gf", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
                     { "gF", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
 
+                    -- Same as `<CR>`, except opens the destination in a new tab
+                    {
+                        leader .. "gt",
+                        "core.esupports.hop.hop-link",
+                        "tab",
+                        opts = { desc = "Jump to Link (new tab)" },
+                    },
+
                     -- Same as `<CR>`, except opens the destination in a vertical split
                     {
                         "<M-CR>",
