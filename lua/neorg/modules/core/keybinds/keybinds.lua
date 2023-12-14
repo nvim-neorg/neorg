@@ -65,9 +65,9 @@ module.config.public = {
 
                     -- Hop to the destination of the link under the cursor
                     { "<CR>", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
-                    { "gd", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
-                    { "gf", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
-                    { "gF", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
+                    { leader .. "gd", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
+                    { leader .. "gf", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
+                    { leader .. "gF", "core.esupports.hop.hop-link", opts = { desc = "Jump to Link" } },
 
                     -- Same as `<CR>`, except opens the destination in a new tab
                     {
