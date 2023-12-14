@@ -77,6 +77,14 @@ module.config.public = {
                         opts = { desc = "Jump to Link (new tab)" },
                     },
 
+                    -- Same as `<CR>`, except opens the destination with external applications
+                    {
+                        leader .. "ge",
+                        "core.esupports.hop.hop-link",
+                        "external",
+                        opts = { desc = "Jump to Link (external)" },
+                    },
+
                     -- Same as `<CR>`, except opens the destination in a vertical split
                     {
                         "<M-CR>",
