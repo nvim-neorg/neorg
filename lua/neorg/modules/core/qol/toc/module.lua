@@ -360,79 +360,80 @@ module.on_event = function(event)
     -- FIXME(vhyrro): When the buffer already exists then simply refresh the buffer
     -- instead of erroring out.
     toc_namespace = toc_namespace or vim.api.nvim_create_namespace("neorg/toc")
-    local buffer, window =
+    local ui_buffer, ui_window =
         module.required["core.ui"].create_vsplit("toc", { ft = "norg" }, (event.content[1] or "left") == "left")
 
-    vim.wo[window].scrolloff = 999
-    vim.wo[window].conceallevel = 0
-    vim.wo[window].foldmethod = "expr"
-    vim.wo[window].foldexpr = "v:lua.vim.treesitter.foldexpr()"
-    vim.wo[window].foldlevel = 99
+    vim.wo[ui_window].scrolloff = 999
+    vim.wo[ui_window].conceallevel = 0
+    vim.wo[ui_window].foldmethod = "expr"
+    vim.wo[ui_window].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+    vim.wo[ui_window].foldlevel = 99
 
     if module.config.public.sync_cursorline then
-        vim.api.nvim_win_set_option(window, "cursorline", true)
+        vim.api.nvim_win_set_option(ui_window, "cursorline", true)
     end
 
-    module.public.update_toc(toc_title, event.buffer, event.window, buffer, window)
+    module.public.update_toc(toc_title, event.buffer, event.window, ui_buffer, ui_window)
     if module.config.public.sync_cursorline then
-        module.public.update_cursor(event.buffer, buffer)
+        module.public.update_cursor(event.buffer, ui_buffer)
     end
 
     if module.config.public.fit_width then
         local max_virtcol_1bex = get_max_virtcol()
-        local current_winwidth = vim.fn.winwidth(window)
+        local current_winwidth = vim.fn.winwidth(ui_window)
         local new_winwidth = math.min(current_winwidth, math.max(30, max_virtcol_1bex - 1))
         vim.cmd(("vertical resize %d"):format(new_winwidth + 1)) -- +1 for margin
     end
 
     local close_buffer_callback = function()
-        -- Check if buffer exists before deleting it
-        if vim.api.nvim_buf_is_loaded(buffer) then
-            vim.api.nvim_buf_delete(buffer, { force = true })
+        -- Check if ui_buffer exists before deleting it
+        if vim.api.nvim_buf_is_loaded(ui_buffer) then
+            vim.api.nvim_buf_delete(ui_buffer, { force = true })
         end
     end
 
-    vim.api.nvim_buf_set_keymap(buffer, "n", "q", "", {
+    vim.api.nvim_buf_set_keymap(ui_buffer, "n", "q", "", {
         callback = close_buffer_callback,
     })
 
     vim.api.nvim_create_autocmd("WinClosed", {
-        buffer = buffer,
+        buffer = ui_buffer,
         once = true,
         callback = close_buffer_callback,
     })
 
     do
-        local previous_buffer, previous_window = event.buffer, event.window
+        local norg_buffer, norg_window = event.buffer, event.window
         local ui_cursor_start_moving = false
 
         vim.api.nvim_create_autocmd("BufWritePost", {
             pattern = "*.norg",
-            callback = unlisten_if_closed(buffer, function(_ev)
-                toc_title = vim.split(module.public.parse_toc_macro(previous_buffer) or "Table of Contents", "\n")
-                module.public.update_toc(toc_title, previous_buffer, previous_window, buffer, window)
+            callback = unlisten_if_closed(ui_buffer, function(_ev)
+                toc_title = vim.split(module.public.parse_toc_macro(norg_buffer) or "Table of Contents", "\n")
+                module.public.update_toc(toc_title, norg_buffer, norg_window, ui_buffer, ui_window)
                 if module.config.public.sync_cursorline then
-                    data_of_norg_win[previous_window].last_row = nil -- invalidate cursor cache
-                    module.public.update_cursor(previous_buffer, buffer)
+                    data_of_norg_win[norg_window].last_row = nil -- invalidate cursor cache
+                    module.public.update_cursor(norg_buffer, ui_buffer)
                 end
             end),
         })
 
         vim.api.nvim_create_autocmd("BufEnter", {
             pattern = "*.norg",
-            callback = unlisten_if_closed(buffer, function(_ev)
+            callback = unlisten_if_closed(ui_buffer, function(_ev)
                 local buf = vim.api.nvim_get_current_buf()
 
-                if buf == buffer or previous_buffer == buf then
+                if buf == ui_buffer or norg_buffer == buf then
                     return
                 end
 
-                previous_buffer, previous_window = buf, vim.api.nvim_get_current_win()
+                norg_buffer = buf
+                local norg_window = vim.fn.bufwinid(norg_buffer)
 
                 toc_title = vim.split(module.public.parse_toc_macro(buf) or "Table of Contents", "\n")
-                module.public.update_toc(toc_title, buf, previous_window, buffer, window)
+                module.public.update_toc(toc_title, norg_buffer, norg_window, ui_buffer, ui_window)
                 if module.config.public.sync_cursorline then
-                    module.public.update_cursor(previous_buffer, buffer)
+                    module.public.update_cursor(norg_buffer, ui_buffer)
                 end
             end),
         })
@@ -440,22 +441,24 @@ module.on_event = function(event)
         -- Sync cursor: ToC -> content
         if module.config.public.sync_cursorline then
             vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-                buffer = buffer,
+                buffer = ui_buffer,
                 callback = function(ev)
-                    assert(ev.buf == buffer)
+                    assert(ev.buf == ui_buffer)
 
-                    if not previous_buffer then
+                    if not norg_buffer then
                         return
                     end
 
                     -- Ignore the first (fake) CursorMoved coming together with BufEnter of the ToC buffer
                     if ui_cursor_start_moving then
-                        local location = get_target_location_under_cursor(buffer, previous_buffer)
+                        local location = get_target_location_under_cursor(ui_buffer, norg_buffer)
                         if location then
-                            vim.api.nvim_win_set_cursor(previous_window, { location[1] + 1, location[2] })
-                            vim.api.nvim_set_current_win(previous_window)
+                            local ui_window = vim.fn.bufwinid(ui_buffer)
+                            local norg_window = vim.fn.bufwinid(norg_buffer)
+                            vim.api.nvim_win_set_cursor(norg_window, { location[1] + 1, location[2] })
+                            vim.api.nvim_set_current_win(norg_window)
                             vim.cmd("normal! zz")
-                            vim.api.nvim_set_current_win(window)
+                            vim.api.nvim_set_current_win(ui_window)
                         end
                     end
                     ui_cursor_start_moving = true
@@ -465,23 +468,23 @@ module.on_event = function(event)
             -- Sync cursor: content -> ToC
             vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
                 pattern = "*.norg",
-                callback = unlisten_if_closed(buffer, function(ev)
-                    if ev.buf ~= previous_buffer then
+                callback = unlisten_if_closed(ui_buffer, function(ev)
+                    if ev.buf ~= norg_buffer then
                         return
                     end
 
-                    if not data_of_norg_win[vim.fn.bufwinid(previous_buffer)] then
+                    if not data_of_norg_win[vim.fn.bufwinid(norg_buffer)] then
                         -- toc not yet created because BufEnter is not yet triggered
                         return
                     end
 
-                    module.public.update_cursor(previous_buffer, buffer)
+                    module.public.update_cursor(norg_buffer, ui_buffer)
                 end),
             })
 
             -- Ignore the first (fake) CursorMoved coming together with BufEnter of the ToC buffer
             vim.api.nvim_create_autocmd("BufEnter", {
-                buffer = buffer,
+                buffer = ui_buffer,
                 callback = function(_ev)
                     ui_cursor_start_moving = false
                 end,
@@ -490,17 +493,17 @@ module.on_event = function(event)
             -- When leaving the content buffer, add its last cursor position to jump list
             vim.api.nvim_create_autocmd("BufLeave", {
                 pattern = "*.norg",
-                callback = unlisten_if_closed(buffer, function(_ev)
+                callback = unlisten_if_closed(ui_buffer, function(_ev)
                     vim.cmd("normal! m'")
                 end),
             })
 
             vim.api.nvim_create_autocmd("BufHidden", {
                 pattern = "*.norg",
-                callback = unlisten_if_closed(buffer, function(ev)
-                    if ev.buf == previous_buffer then
-                        previous_buffer = nil
-                        previous_window = nil
+                callback = unlisten_if_closed(ui_buffer, function(ev)
+                    if ev.buf == norg_buffer then
+                        norg_buffer = nil
+                        norg_window = nil
                         return
                     end
                 end),
