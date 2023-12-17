@@ -136,7 +136,7 @@ version: 0.1
 
 ** Horizontal Lines
 
-   You can also place horizontal lines using two or more underscores like so:
+   You can also place horizontal lines using three or more underscores like so:
    ___
    This will never affect the indentation level of the following text, but it will immediately
    terminate the paragraph which is why this is a new paragraph despite the absence of two (or more)
