@@ -280,16 +280,17 @@ module.public = {
 
         for _, tree in pairs(languagetree:children()) do
             if tree:lang() ~= "norg_meta" or meta_root then
-                return
+                goto continue
             end
 
             local meta_tree = tree:parse()[1]
 
             if not meta_tree then
-                return
+                goto continue
             end
 
             meta_root = meta_tree:root()
+            ::continue::
         end
 
         if not meta_root then
