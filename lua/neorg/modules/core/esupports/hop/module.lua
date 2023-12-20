@@ -49,6 +49,16 @@ module.config.public = {
     external_filetypes = {},
 }
 
+local function xy_le(x0, y0, x1, y1)
+    return x0 < x1 or (x0 == x1 and y0 <= y1)
+end
+
+local function range_contains(r_out, r_in)
+    return
+       xy_le(r_out.row_start, r_out.column_start, r_in.row_start, r_in.column_start)
+       and xy_le(r_in.row_end, r_in.column_end, r_out.row_end, r_out.column_end)
+end
+
 ---@class core.esupports.hop
 module.public = {
     --- Follow link from a specific node
@@ -455,11 +465,7 @@ module.public = {
 
             -- Check whether the node captured node is in bounds.
             -- There are certain rare cases where incorrect nodes would be parsed.
-            if
-                capture_node_range.row_start >= range.row_start
-                and capture_node_range.row_end <= capture_node_range.row_end
-                and capture_node_range.column_start >= range.column_start
-                and capture_node_range.column_end <= range.column_end
+            if range_contains(range, capture_node_range)
             then
                 local extract_node_text = lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
 
