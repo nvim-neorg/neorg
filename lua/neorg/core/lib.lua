@@ -386,6 +386,18 @@ function lib.number_wrap(value, min, max)
     return wrapped_value
 end
 
+--- Split a path into its components
+--- example: /my/cool/path/file.txt --> { my, cool, path, file.txt }
+---@param path string #The path to split
+---@return table #The path components
+function lib.tokenize_path(path)
+    local tokens = {}
+    for capture in path:gmatch("[^/\\]+") do
+        table.insert(tokens, capture)
+    end
+    return tokens
+end
+
 --- Lazily copy a table-like object.
 ---@param to_copy table|any #The table to copy. If any other type is provided it will be copied immediately.
 ---@return table #The copied table
