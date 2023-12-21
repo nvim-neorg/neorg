@@ -429,6 +429,15 @@ module.on_event = function(event)
         callback = close_buffer_callback,
     })
 
+    vim.api.nvim_create_autocmd("WinClosed", {
+        pattern = "*",
+        callback = function(ev)
+            if ev.buf == ui_data.buffer then
+                close_buffer_callback()
+            end
+        end,
+    })
+
     do
         vim.api.nvim_create_autocmd("BufWritePost", {
             pattern = "*.norg",
