@@ -167,7 +167,8 @@ module.load = function()
                         table.insert(
                             result,
                             table.concat({
-                                "   - {:$",
+                                string.rep(" ", heading_level),
+                                " - {:$",
                                 datapoint.norgname,
                                 ":}[",
                                 lib.title(datapoint.title),
