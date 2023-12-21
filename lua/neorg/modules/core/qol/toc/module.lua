@@ -370,6 +370,7 @@ local function create_ui(tabpage, mode)
 
     ui_data = {
         buffer = ui_buffer,
+        tabpage = tabpage,
     }
 
     ui_data_of_tabpage[tabpage] = ui_data
@@ -421,15 +422,10 @@ module.on_event = function(event)
         if vim.api.nvim_buf_is_loaded(ui_data.buffer) then
             vim.api.nvim_buf_delete(ui_data.buffer, { force = true })
         end
+        ui_data_of_tabpage[tabpage] = nil
     end
 
     vim.api.nvim_buf_set_keymap(ui_data.buffer, "n", "q", "", {
-        callback = close_buffer_callback,
-    })
-
-    vim.api.nvim_create_autocmd("WinClosed", {
-        buffer = ui_data.buffer,
-        once = true,
         callback = close_buffer_callback,
     })
 
@@ -461,6 +457,10 @@ module.on_event = function(event)
                 buffer = ui_data.buffer,
                 callback = function(ev)
                     assert(ev.buf == ui_data.buffer)
+
+                    if vim.fn.bufwinid(ui_data.norg_buffer) == -1 then
+                        return
+                    end
 
                     -- Ignore the first (fake) CursorMoved coming together with BufEnter of the ToC buffer
                     if ui_data.cursor_start_moving then
