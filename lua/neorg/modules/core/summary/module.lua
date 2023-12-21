@@ -45,16 +45,14 @@ module.load = function()
     end)
     local ts = module.required["core.integrations.treesitter"]
 
-    module.config.public.strategy = lib.match(module.config.public.strategy)({
-        default = function()
-            -- declare query on load so that it's parsed once, on first use
-            local heading_query
+    -- declare query on load so that it's parsed once, on first use
+    local heading_query
 
-            local get_first_heading_title = function(bufnr)
-                local document_root = ts.get_document_root(bufnr)
-                if not heading_query then
-                    -- allow second level headings, just in case
-                    local heading_query_string = [[
+    local get_first_heading_title = function(bufnr)
+        local document_root = ts.get_document_root(bufnr)
+        if not heading_query then
+            -- allow second level headings, just in case
+            local heading_query_string = [[
                          [
                              (heading1
                                  title: (paragraph_segment) @next-segment
@@ -64,23 +62,25 @@ module.load = function()
                              )
                          ]
                      ]]
-                    heading_query = utils.ts_parse_query("norg", heading_query_string)
-                end
-                -- search up to 20 lines (a doc could potentially have metadata without metadata.title)
-                local _, heading = heading_query:iter_captures(document_root, bufnr)()
-                if not heading then
-                    return nil
-                end
-                local start_line, _ = heading:start()
-                local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, start_line + 1, false)
-                if #lines > 0 then
-                    local title = lines[1]:gsub("^%s*%*+%s*", "") -- strip out '*' prefix (handle '* title', ' **title', etc)
-                    if title ~= "" then -- exclude an empty heading like `*` (although the query should have excluded)
-                        return title
-                    end
-                end
+            heading_query = utils.ts_parse_query("norg", heading_query_string)
+        end
+        -- search up to 20 lines (a doc could potentially have metadata without metadata.title)
+        local _, heading = heading_query:iter_captures(document_root, bufnr)()
+        if not heading then
+            return nil
+        end
+        local start_line, _ = heading:start()
+        local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, start_line + 1, false)
+        if #lines > 0 then
+            local title = lines[1]:gsub("^%s*%*+%s*", "") -- strip out '*' prefix (handle '* title', ' **title', etc)
+            if title ~= "" then -- exclude an empty heading like `*` (although the query should have excluded)
+                return title
             end
+        end
+    end
 
+    module.config.public.strategy = lib.match(module.config.public.strategy)({
+        default = function()
             return function(files, ws_root, heading_level, include_categories)
                 local categories = vim.defaulttable()
 
@@ -185,6 +185,64 @@ module.load = function()
         headings = function()
             return function() end
         end,
+        by_path = function()
+            return function(files, ws_root, heading_level, include_categories)
+                local categories = vim.defaulttable()
+
+                if vim.tbl_isempty(include_categories) then
+                    include_categories = nil
+                end
+
+                utils.read_files(files, function(bufnr, filename)
+                    local metadata = ts.get_document_metadata(bufnr) or {}
+
+                    local path_tokens = lib.tokenize_path(filename)
+                    local category = path_tokens[#path_tokens - 1] or "Uncategorised"
+
+                    local norgname = filename:match("(.+)%.norg$") or filename -- strip extension for link destinations
+                    norgname = string.sub(norgname, string.len(ws_root) + 1)
+
+                    if not metadata.title then
+                        metadata.title = get_first_heading_title(bufnr) or vim.fs.basename(norgname)
+                    end
+
+                    if metadata.description == vim.NIL then
+                        metadata.description = nil
+                    end
+
+                    if not include_categories or vim.tbl_contains(include_categories, category:lower()) then
+                        table.insert(categories[lib.title(category)], {
+                            title = tostring(metadata.title),
+                            norgname = norgname,
+                            description = metadata.description,
+                        })
+                    end
+                end)
+                local result = {}
+                local prefix = string.rep("*", heading_level)
+
+                for category, data in vim.spairs(categories) do
+                    table.insert(result, prefix .. " " .. category)
+
+                    for _, datapoint in ipairs(data) do
+                        table.insert(
+                            result,
+                            table.concat({
+                                string.rep(" ", heading_level),
+                                " - {:$",
+                                datapoint.norgname,
+                                ":}[",
+                                lib.title(datapoint.title),
+                                "]",
+                            })
+                                .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
+                        )
+                    end
+                end
+
+                return result
+            end
+        end,
     }) or module.config.public.strategy
 end
 
@@ -194,7 +252,8 @@ module.config.public = {
     -- Possible options are:
     -- - "default" - read the metadata to categorize and annotate files. Files
     --   without metadata will use the top level heading as the title. If no headings are present, the filename will be used.
-    ---@type string|fun(files: string[], ws_root: string, heading_level: number?, include_categories: string[]?): string[]?
+    -- - "by_path" - Similar to "default" but uses the capitalized name of the folder containing a *.norg file as category.
+    -- ---@type string|fun(files: string[], ws_root: string, heading_level: number?, include_categories: string[]?): string[]?
     strategy = "default",
 }
 
