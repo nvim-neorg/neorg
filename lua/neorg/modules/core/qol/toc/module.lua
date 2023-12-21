@@ -151,6 +151,7 @@ module.public = {
                     else
                         prefix = nil
                     end
+                    title = nil
                 elseif capture == "title" then
                     title = node
                 end
@@ -270,21 +271,16 @@ module.public = {
 
                     table.insert(start_lines, (prefix:start()))
 
-                    local prefix_text =
-                        module.required["core.integrations.treesitter"].get_node_text(prefix, norg_buffer)
-                    local title_text =
-                        vim.trim(module.required["core.integrations.treesitter"].get_node_text(title, norg_buffer))
-
-                    if prefix_text:sub(1, 1) ~= "*" and prefix_text:match("^%W%W") then
-                        prefix_text = table.concat({ prefix_text:sub(1, 1), " " })
-                    end
+                    local row_start_0b, col_start_0b, _, _ = prefix:range()
+                    local _, _, row_end_0bin, col_end_0bex = title:range()
+                    local heading_text = vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})
 
                     vim.api.nvim_buf_set_lines(
                         ui_buffer,
                         -1,
                         -1,
                         true,
-                        { table.concat({ prefix_text, title_text }) }
+                        heading_text
                     )
 
                     prefix, title = nil, nil
