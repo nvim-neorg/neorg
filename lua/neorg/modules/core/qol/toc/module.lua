@@ -51,12 +51,6 @@ module.config.public = {
     -- fit its longest line
     fit_width = true,
 
-    -- A function that takes node type as argument and returns true if this
-    -- type of node should appear in the Table of Contents
-    toc_filter = function(node_type)
-        return node_type:match("^heading")
-    end,
-
     -- If `true`, `cursurline` will be enabled (highlighted) in the ToC window,
     -- and the cursor position between ToC and content window will be synchronized.
     sync_cursorline = true,
@@ -96,6 +90,8 @@ local function get_target_location_under_cursor(ui_data)
 
     return vim.api.nvim_buf_get_extmark_by_id(ui_data.norg_buffer, toc_namespace, extmark_lookup, {})
 end
+
+local toc_query
 
 module.public = {
     parse_toc_macro = function(buffer)
@@ -232,68 +228,62 @@ module.public = {
         local start_lines = { offset = offset }
         ui_data.start_lines = start_lines
 
-        local toc_filter = module.config.public.toc_filter
+        toc_query = toc_query or utils.ts_parse_query("norg", [[
+        (
+            [(heading1_prefix)(heading2_prefix)(heading3_prefix)(heading4_prefix)(heading5_prefix)(heading6_prefix)]@prefix
+            .
+            state: (detached_modifier_extension (_)@modifier)?
+            .
+            title: (paragraph_segment)@title
+        )]])
 
-        local success = module.required["core.integrations.treesitter"].execute_query(
-            [[
-            (_
-              .
-              (_) @prefix
-              (detached_modifier_extension
-                (todo_item_cancelled))? @cancelled
-              title: (paragraph_segment) @title)
-            ]],
-            function(query, id, node)
-                local capture = query.captures[id]
+        local norg_root = module.required["core.integrations.treesitter"].get_document_root(norg_buffer)
+        if not norg_root then
+            return
+        end
 
-                if capture == "prefix" then
-                    if
-                        node:type():match("_prefix$") and (type(toc_filter) ~= "function" or toc_filter(node:type()))
-                    then
-                        prefix = node
-                    else
-                        prefix = nil
-                    end
-                    title = nil
-                elseif capture == "title" then
-                    title = node
-                elseif capture == "cancelled" then
-                    prefix = nil
-                end
+        local current_capture
+        local heading_nodes = {}
+        for id, node, metadata in toc_query:iter_captures(norg_root, norg_buffer) do
+            local type = toc_query.captures[id]
+            if type == "prefix" then
+                current_capture = {}
+                table.insert(heading_nodes, current_capture)
+            end
+            current_capture[type] = node
+        end
 
-                if prefix and title then
-                    local _, column = title:start()
+        local heading_texts = {}
+        for _, capture in ipairs(heading_nodes) do
+            if capture.modifier and capture.modifier:type() == "todo_item_cancelled" then
+                goto continue
+            end
 
-                    table.insert(
-                        extmarks,
-                        vim.api.nvim_buf_set_extmark(norg_buffer, toc_namespace, (prefix:start()), column, {})
-                    )
+            local row_start_0b, col_start_0b, _, _ = capture.prefix:range()
+            local _, _, row_end_0bin, col_end_0bex = capture.title:range()
 
-                    table.insert(start_lines, (prefix:start()))
+            table.insert(start_lines, row_start_0b)
+            table.insert(
+                extmarks,
+                vim.api.nvim_buf_set_extmark(norg_buffer, toc_namespace, row_start_0b, col_start_0b, {})
+            )
 
-                    local row_start_0b, col_start_0b, _, _ = prefix:range()
-                    local _, _, row_end_0bin, col_end_0bex = title:range()
-                    local heading_text = vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})
+            for _, line in ipairs(vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})) do
+                table.insert(heading_texts, line)
+            end
 
-                    vim.api.nvim_buf_set_lines(
-                        ui_buffer,
-                        -1,
-                        -1,
-                        true,
-                        heading_text
-                    )
+            ::continue::
+        end
 
-                    prefix, title = nil, nil
-                end
-            end,
-            norg_buffer
+        vim.api.nvim_buf_set_lines(
+            ui_buffer,
+            -1,
+            -1,
+            true,
+            heading_texts
         )
 
         vim.bo[ui_buffer].modifiable = false
-
-        if not success then
-            return
-        end
 
         vim.api.nvim_buf_set_keymap(ui_buffer, "n", "<CR>", "", {
             callback = function()
@@ -438,78 +428,76 @@ module.on_event = function(event)
         end,
     })
 
-    do
-        vim.api.nvim_create_autocmd("BufWritePost", {
-            pattern = "*.norg",
-            callback = unlisten_if_closed(function(norg_buffer, ui_data)
-                toc_title = vim.split(module.public.parse_toc_macro(norg_buffer) or "Table of Contents", "\n")
-                data_of_norg_buf[norg_buffer].last_row = nil -- invalidate cursor cache
-                module.public.update_toc(toc_title, ui_data, norg_buffer)
-            end),
-        })
+    vim.api.nvim_create_autocmd("BufWritePost", {
+        pattern = "*.norg",
+        callback = unlisten_if_closed(function(norg_buffer, ui_data)
+            toc_title = vim.split(module.public.parse_toc_macro(norg_buffer) or "Table of Contents", "\n")
+            data_of_norg_buf[norg_buffer].last_row = nil -- invalidate cursor cache
+            module.public.update_toc(toc_title, ui_data, norg_buffer)
+        end),
+    })
 
-        vim.api.nvim_create_autocmd("BufEnter", {
-            pattern = "*.norg",
-            callback = unlisten_if_closed(function(norg_buffer, ui_data)
-                if norg_buffer == ui_data.buffer or norg_buffer == ui_data.norg_buffer then
+    vim.api.nvim_create_autocmd("BufEnter", {
+        pattern = "*.norg",
+        callback = unlisten_if_closed(function(norg_buffer, ui_data)
+            if norg_buffer == ui_data.buffer or norg_buffer == ui_data.norg_buffer then
+                return
+            end
+
+            toc_title = vim.split(module.public.parse_toc_macro(buf) or "Table of Contents", "\n")
+            module.public.update_toc(toc_title, ui_data, norg_buffer)
+        end),
+    })
+
+    -- Sync cursor: ToC -> content
+    if module.config.public.sync_cursorline then
+        vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+            buffer = ui_data.buffer,
+            callback = function(ev)
+                assert(ev.buf == ui_data.buffer)
+
+                if vim.fn.bufwinid(ui_data.norg_buffer) == -1 then
                     return
                 end
 
-                toc_title = vim.split(module.public.parse_toc_macro(buf) or "Table of Contents", "\n")
-                module.public.update_toc(toc_title, ui_data, norg_buffer)
+                -- Ignore the first (fake) CursorMoved coming together with BufEnter of the ToC buffer
+                if ui_data.cursor_start_moving then
+                    local location = get_target_location_under_cursor(ui_data)
+                    if location then
+                        local ui_window = vim.fn.bufwinid(ui_data.buffer)
+                        local norg_window = vim.fn.bufwinid(ui_data.norg_buffer)
+                        vim.api.nvim_win_set_cursor(norg_window, { location[1] + 1, location[2] })
+                        vim.api.nvim_buf_call(ui_data.norg_buffer, function() vim.cmd("normal! zz") end)
+                    end
+                end
+                ui_data.cursor_start_moving = true
+            end,
+        })
+
+        -- Sync cursor: content -> ToC
+        vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+            pattern = "*.norg",
+            callback = unlisten_if_closed(function(norg_buffer, ui_data)
+                if norg_buffer ~= ui_data.norg_buffer then
+                    return
+                end
+
+                if not data_of_norg_buf[norg_buffer] then
+                    -- toc not yet created because BufEnter is not yet triggered
+                    return
+                end
+
+                module.public.update_cursor(ui_data)
             end),
         })
 
-        -- Sync cursor: ToC -> content
-        if module.config.public.sync_cursorline then
-            vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-                buffer = ui_data.buffer,
-                callback = function(ev)
-                    assert(ev.buf == ui_data.buffer)
-
-                    if vim.fn.bufwinid(ui_data.norg_buffer) == -1 then
-                        return
-                    end
-
-                    -- Ignore the first (fake) CursorMoved coming together with BufEnter of the ToC buffer
-                    if ui_data.cursor_start_moving then
-                        local location = get_target_location_under_cursor(ui_data)
-                        if location then
-                            local ui_window = vim.fn.bufwinid(ui_data.buffer)
-                            local norg_window = vim.fn.bufwinid(ui_data.norg_buffer)
-                            vim.api.nvim_win_set_cursor(norg_window, { location[1] + 1, location[2] })
-                            vim.api.nvim_buf_call(ui_data.norg_buffer, function() vim.cmd("normal! zz") end)
-                        end
-                    end
-                    ui_data.cursor_start_moving = true
-                end,
-            })
-
-            -- Sync cursor: content -> ToC
-            vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-                pattern = "*.norg",
-                callback = unlisten_if_closed(function(norg_buffer, ui_data)
-                    if norg_buffer ~= ui_data.norg_buffer then
-                        return
-                    end
-
-                    if not data_of_norg_buf[norg_buffer] then
-                        -- toc not yet created because BufEnter is not yet triggered
-                        return
-                    end
-
-                    module.public.update_cursor(ui_data)
-                end),
-            })
-
-            -- When leaving the content buffer, add its last cursor position to jump list
-            vim.api.nvim_create_autocmd("BufLeave", {
-                pattern = "*.norg",
-                callback = unlisten_if_closed(function(_norg_buffer, _ui_data)
-                    vim.cmd("normal! m'")
-                end),
-            })
-        end
+        -- When leaving the content buffer, add its last cursor position to jump list
+        vim.api.nvim_create_autocmd("BufLeave", {
+            pattern = "*.norg",
+            callback = unlisten_if_closed(function(_norg_buffer, _ui_data)
+                vim.cmd("normal! m'")
+            end),
+        })
     end
 end
 
