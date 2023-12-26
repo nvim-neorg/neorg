@@ -54,9 +54,8 @@ local function xy_le(x0, y0, x1, y1)
 end
 
 local function range_contains(r_out, r_in)
-    return
-       xy_le(r_out.row_start, r_out.column_start, r_in.row_start, r_in.column_start)
-       and xy_le(r_in.row_end, r_in.column_end, r_out.row_end, r_out.column_end)
+    return xy_le(r_out.row_start, r_out.column_start, r_in.row_start, r_in.column_start)
+        and xy_le(r_in.row_end, r_in.column_end, r_out.row_end, r_out.column_end)
 end
 
 ---@class core.esupports.hop
@@ -465,8 +464,7 @@ module.public = {
 
             -- Check whether the node captured node is in bounds.
             -- There are certain rare cases where incorrect nodes would be parsed.
-            if range_contains(range, capture_node_range)
-            then
+            if range_contains(range, capture_node_range) then
                 local extract_node_text = lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
 
                 parsed_link_information[capture] = parsed_link_information[capture]
