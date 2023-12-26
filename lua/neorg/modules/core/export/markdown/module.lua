@@ -76,6 +76,24 @@ local function todo_item_extended(replace_text)
     end
 end
 
+local function handle_metadata_literal(text, node, state)
+    if node:parent():type() == "array" then
+        return "\n" .. string.rep(" ", state.indent) .. "- " .. text
+    end
+
+    return text
+end
+
+local function update_indent(value)
+    return function(_, _, state)
+        return {
+            state = {
+                indent = state.indent + value,
+            },
+        }
+    end
+end
+
 --> Recollector Utility Functions
 
 local function todo_item_recollector()
@@ -534,33 +552,19 @@ module.public = {
             ["strong_carryover"] = "",
             ["weak_carryover"] = "",
 
-            ["key"] = true,
+            ["key"] = function(text, _, state)
+                return string.rep(" ", state.indent) .. text
+            end,
 
             [":"] = ": ",
 
-            ["["] = function(_, _, state)
-                return {
-                    state = {
-                        indent = state.indent + 2,
-                    },
-                }
-            end,
-            ["]"] = function(_, _, state)
-                return {
-                    state = {
-                        indent = state.indent - 2,
-                    },
-                }
-            end,
+            ["["] = update_indent(2),
+            ["]"] = update_indent(-2),
+            ["{"] = update_indent(2),
+            ["}"] = update_indent(-2),
 
-            ["value"] = function(text, node, state)
-                if node:parent():type() == "array" then
-                    return "\n" .. string.rep(" ", state.indent) .. "- " .. text
-                end
-
-                return text
-            end,
-
+            ["string"] = handle_metadata_literal,
+            ["number"] = handle_metadata_literal,
             ["horizontal_line"] = "___",
         },
 
@@ -639,6 +643,29 @@ module.public = {
 
             ["pair"] = function(output)
                 table.insert(output, "\n")
+                return output
+            end,
+
+            ["object"] = function(output, state, node)
+                if vim.tbl_isempty(output) then
+                    -- TODO: Handle empty value
+                    return
+                end
+                if node:parent():type() == "array" then
+                    output[1] = output[1]:sub(1, state.indent) .. "-" .. output[1]:sub(state.indent + 2)
+                end
+                output[1] = "\n" .. output[1]
+                return output
+            end,
+            ["array"] = function(output, state, node)
+                if vim.tbl_isempty(output) then
+                    -- TODO: Handle empty value
+                    return
+                end
+                if node:parent():type() == "array" then
+                    local indent = state.indent + 1
+                    output[1] = output[1]:sub(1, indent) .. "-" .. output[1]:sub(indent + 2)
+                end
                 return output
             end,
         },
