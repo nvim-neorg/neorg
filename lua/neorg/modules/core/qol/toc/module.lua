@@ -206,9 +206,7 @@ module.public = {
     end,
 
     update_toc = function(toc_title, ui_data, norg_buffer)
-        local norg_window = vim.fn.bufwinid(norg_buffer)
         local ui_buffer = ui_data.buffer
-        local ui_window = vim.fn.bufwinid(ui_buffer)
         ui_data.norg_buffer = norg_buffer
 
         vim.bo[ui_buffer].modifiable = true
@@ -220,7 +218,6 @@ module.public = {
         local norg_data = {}
         data_of_norg_buf[norg_buffer] = norg_data
 
-        local prefix, title
         local extmarks = {}
         norg_data.extmarks = extmarks
 
@@ -248,7 +245,7 @@ module.public = {
 
         local current_capture
         local heading_nodes = {}
-        for id, node, metadata in toc_query:iter_captures(norg_root, norg_buffer) do
+        for id, node in toc_query:iter_captures(norg_root, norg_buffer) do
             local type = toc_query.captures[id]
             if type == "prefix" then
                 current_capture = {}
@@ -360,12 +357,13 @@ local function create_ui(tabpage, mode)
         ui_wo.cursorline = true
     end
 
-    ui_data = {
+    local ui_data = {
         buffer = ui_buffer,
         tabpage = tabpage,
     }
 
     ui_data_of_tabpage[tabpage] = ui_data
+
     return ui_data
 end
 
@@ -432,22 +430,22 @@ module.on_event = function(event)
 
     vim.api.nvim_create_autocmd("BufWritePost", {
         pattern = "*.norg",
-        callback = unlisten_if_closed(function(norg_buffer, ui_data)
-            toc_title = vim.split(module.public.parse_toc_macro(norg_buffer) or "Table of Contents", "\n")
-            data_of_norg_buf[norg_buffer].last_row = nil -- invalidate cursor cache
-            module.public.update_toc(toc_title, ui_data, norg_buffer)
+        callback = unlisten_if_closed(function(buf, ui)
+            toc_title = vim.split(module.public.parse_toc_macro(buf) or "Table of Contents", "\n")
+            data_of_norg_buf[buf].last_row = nil -- invalidate cursor cache
+            module.public.update_toc(toc_title, ui, buf)
         end),
     })
 
     vim.api.nvim_create_autocmd("BufEnter", {
         pattern = "*.norg",
-        callback = unlisten_if_closed(function(norg_buffer, ui_data)
-            if norg_buffer == ui_data.buffer or norg_buffer == ui_data.norg_buffer then
+        callback = unlisten_if_closed(function(buf, ui)
+            if buf == ui.buffer or buf == ui.norg_buffer then
                 return
             end
 
             toc_title = vim.split(module.public.parse_toc_macro(buf) or "Table of Contents", "\n")
-            module.public.update_toc(toc_title, ui_data, norg_buffer)
+            module.public.update_toc(toc_title, ui, buf)
         end),
     })
 
@@ -466,7 +464,6 @@ module.on_event = function(event)
                 if ui_data.cursor_start_moving then
                     local location = get_target_location_under_cursor(ui_data)
                     if location then
-                        local ui_window = vim.fn.bufwinid(ui_data.buffer)
                         local norg_window = vim.fn.bufwinid(ui_data.norg_buffer)
                         vim.api.nvim_win_set_cursor(norg_window, { location[1] + 1, location[2] })
                         vim.api.nvim_buf_call(ui_data.norg_buffer, function()
@@ -481,17 +478,17 @@ module.on_event = function(event)
         -- Sync cursor: content -> ToC
         vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
             pattern = "*.norg",
-            callback = unlisten_if_closed(function(norg_buffer, ui_data)
-                if norg_buffer ~= ui_data.norg_buffer then
+            callback = unlisten_if_closed(function(buf, ui)
+                if buf ~= ui.norg_buffer then
                     return
                 end
 
-                if not data_of_norg_buf[norg_buffer] then
+                if not data_of_norg_buf[buf] then
                     -- toc not yet created because BufEnter is not yet triggered
                     return
                 end
 
-                module.public.update_cursor(ui_data)
+                module.public.update_cursor(ui)
             end),
         })
 
