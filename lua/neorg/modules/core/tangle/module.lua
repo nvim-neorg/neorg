@@ -416,12 +416,19 @@ module.public = {
     end,
 }
 
+module.config.public = {
+    -- Notify when there is nothing to tangle (INFO) or when the content is empty (WARN).
+    report_on_empty = true,
+}
+
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.core.tangle.current-file" then
         local tangles = module.public.tangle(event.buffer)
 
         if not tangles or vim.tbl_isempty(tangles) then
-            utils.notify("Nothing to tangle!", vim.log.levels.WARN)
+            if module.config.public.report_on_empty then
+                utils.notify("Nothing to tangle!", vim.log.levels.INFO)
+            end
             return
         end
 
@@ -429,41 +436,41 @@ module.on_event = function(event)
         local tangled_count = 0
 
         for file, content in pairs(tangles) do
-            vim.loop.fs_open(
-                vim.fn.expand(file), ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                "w",
-                438,
-                function(err, fd)
-                    file_count = file_count - 1
-                    assert(not err, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
+            vim.loop.fs_open(vim.fn.expand(file) --[[@as string]], "w", 438, function(err, fd)
+                file_count = file_count - 1
+                assert(not err and fd, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
-                    vim.loop.fs_write(
-                        fd, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                        table.concat(content, "\n"),
-                        0,
-                        function(werr)
-                            assert(
-                                not werr,
-                                lib.lazy_string_concat("Failed to write to file '", file, "' for tangling: ", werr)
-                            )
-                        end
+                local write_content = table.concat(content, "\n")
+                if module.config.public.report_on_empty and write_content:len() == 0 then
+                    vim.schedule(
+                        lib.wrap(
+                            utils.notify,
+                            string.format("Tangled content for %s is empty.", file),
+                            vim.log.levels.WARN
+                        )
                     )
+                end
+                vim.loop.fs_write(fd, write_content, 0, function(werr)
+                    assert(
+                        not werr,
+                        lib.lazy_string_concat("Failed to write to file '", file, "' for tangling: ", werr)
+                    )
+                end)
 
-                    tangled_count = tangled_count + 1
-                    if file_count == 0 then
-                        vim.schedule(
-                            lib.wrap(
-                                utils.notify,
-                                string.format(
-                                    "Successfully tangled %d file%s!",
-                                    tangled_count,
-                                    tangled_count == 1 and "" or "s"
-                                )
+                tangled_count = tangled_count + 1
+                if file_count == 0 then
+                    vim.schedule(
+                        lib.wrap(
+                            utils.notify,
+                            string.format(
+                                "Successfully tangled %d file%s!",
+                                tangled_count,
+                                tangled_count == 1 and "" or "s"
                             )
                         )
-                    end
+                    )
                 end
-            )
+            end)
         end
     end
 end
