@@ -678,7 +678,7 @@ function modules.create_event(module, type, content, ev)
     local winid = vim.fn.bufwinid(bufid)
     new_event.cursor_position = vim.api.nvim_win_get_cursor(winid)
     local row_1b = new_event.cursor_position[1]
-    new_event.line_content = vim.api.nvim_buf_get_lines(bufid, row_1b-1, row_1b, true)[1]
+    new_event.line_content = vim.api.nvim_buf_get_lines(bufid, row_1b - 1, row_1b, true)[1]
     new_event.referrer = module.name
     new_event.broadcast = true
     new_event.buffer = bufid

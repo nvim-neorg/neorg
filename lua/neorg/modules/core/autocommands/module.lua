@@ -74,15 +74,15 @@ module.public = {
             if dont_isolate and vim.fn.exists("#Neorg#" .. autocmd .. "#*") == 0 then
                 vim.api.nvim_create_autocmd(autocmd, {
                     callback = function(ev)
-                        _neorg_module_autocommand_triggered("core.autocommands.events."..autocmd, false, ev)
-                    end
+                        _neorg_module_autocommand_triggered("core.autocommands.events." .. autocmd, false, ev)
+                    end,
                 })
             elseif vim.fn.exists("#Neorg#" .. autocmd .. "#*.norg") == 0 then
                 vim.api.nvim_create_autocmd(autocmd, {
                     pattern = "*.norg",
                     callback = function(ev)
-                        _neorg_module_autocommand_triggered("core.autocommands.events."..autocmd, true, ev)
-                    end
+                        _neorg_module_autocommand_triggered("core.autocommands.events." .. autocmd, true, ev)
+                    end,
                 })
             end
             vim.cmd("augroup END")
