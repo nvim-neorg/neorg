@@ -228,14 +228,18 @@ module.public = {
         local start_lines = { offset = offset }
         ui_data.start_lines = start_lines
 
-        toc_query = toc_query or utils.ts_parse_query("norg", [[
+        toc_query = toc_query
+            or utils.ts_parse_query(
+                "norg",
+                [[
         (
             [(heading1_prefix)(heading2_prefix)(heading3_prefix)(heading4_prefix)(heading5_prefix)(heading6_prefix)]@prefix
             .
             state: (detached_modifier_extension (_)@modifier)?
             .
             title: (paragraph_segment)@title
-        )]])
+        )]]
+            )
 
         local norg_root = module.required["core.integrations.treesitter"].get_document_root(norg_buffer)
         if not norg_root then
@@ -268,20 +272,18 @@ module.public = {
                 vim.api.nvim_buf_set_extmark(norg_buffer, toc_namespace, row_start_0b, col_start_0b, {})
             )
 
-            for _, line in ipairs(vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})) do
+            for _, line in
+                ipairs(
+                    vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})
+                )
+            do
                 table.insert(heading_texts, line)
             end
 
             ::continue::
         end
 
-        vim.api.nvim_buf_set_lines(
-            ui_buffer,
-            -1,
-            -1,
-            true,
-            heading_texts
-        )
+        vim.api.nvim_buf_set_lines(ui_buffer, -1, -1, true, heading_texts)
 
         vim.bo[ui_buffer].modifiable = false
 
@@ -467,7 +469,9 @@ module.on_event = function(event)
                         local ui_window = vim.fn.bufwinid(ui_data.buffer)
                         local norg_window = vim.fn.bufwinid(ui_data.norg_buffer)
                         vim.api.nvim_win_set_cursor(norg_window, { location[1] + 1, location[2] })
-                        vim.api.nvim_buf_call(ui_data.norg_buffer, function() vim.cmd("normal! zz") end)
+                        vim.api.nvim_buf_call(ui_data.norg_buffer, function()
+                            vim.cmd("normal! zz")
+                        end)
                     end
                 end
                 ui_data.cursor_start_moving = true
