@@ -246,21 +246,23 @@ function module.private.help_selection(keybind_display, main_display)
         })
         :title("Add Category To Note")
         :raw(
-            { "tell jim to contact susan " },
+            { 'tell jim to contact susan ', "@text.emphasis" },
             { "#work", "@neorg.gtd.context" },
             { " " },
             { "#meeting", "@neorg.gtd.context" }
         )
         :blank()
         :title("Associate a Task with an Entity")
-        :raw({ "tell jim to contact susan " }, { "@jim", "@neorg.gtd.association" })
+        :raw({ 'tell jim to contact susan ', "@text.emphasis" }, { "@jim", "@neorg.gtd.association" })
         :blank()
         :title("Attach an Urgency to the Task")
-        :raw({ "notify jeremy of urgent task " }, { "!1", "@neorg.gtd.urgency" })
+        :raw({ 'notify jeremy of urgent task ', "@text.emphasis" }, { "!1", "@neorg.gtd.urgency" })
         :blank()
         :title("Declare an Estimated Timeframe for the Task")
-        :raw({ "clean the room " }, { "~30min", "@neorg.gtd.timeframe" })
-        :blank()
+        :raw({ 'clean the room ', "@text.emphasis" }, { "~30min", "@neorg.gtd.timeframe" })
+        :blank(2)
+        :raw({ "For a full introduction to GTD consult " },  { ":h neorg-gtd", "@text.literal" })
+        :blank(2)
         :rflag(">>", "Keybind Help", function(self)
             main_display.border:set_text("bottom", "[2/2]", "center")
 
