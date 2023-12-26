@@ -123,11 +123,10 @@ local function handle_heading_newlines()
     end
 end
 
-local function handle_metadata_composite_element()
+local function handle_metadata_composite_element(empty_element)
     return function(output, state, node)
         if vim.tbl_isempty(output) then
-            -- TODO: Handle empty value
-            return { "\n" }
+            return { get_metadata_array_prefix(node, state), empty_element, "\n" }
         end
         local parent = node:parent():type()
         if parent == "array" then
@@ -660,8 +659,8 @@ module.public = {
             ["heading5"] = handle_heading_newlines(),
             ["heading6"] = handle_heading_newlines(),
 
-            ["object"] = handle_metadata_composite_element(),
-            ["array"] = handle_metadata_composite_element(),
+            ["object"] = handle_metadata_composite_element("{}"),
+            ["array"] = handle_metadata_composite_element("[]"),
         },
 
         cleanup = function()
