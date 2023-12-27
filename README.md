@@ -252,6 +252,7 @@ You can install it through your favorite plugin manager:
     {
       "nvim-neorg/neorg",
       build = ":Neorg sync-parsers",
+      -- tag = "*",
       dependencies = { "nvim-lua/plenary.nvim" },
       config = function()
         require("neorg").setup {
