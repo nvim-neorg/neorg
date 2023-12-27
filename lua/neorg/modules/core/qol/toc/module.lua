@@ -451,6 +451,14 @@ module.on_event = function(event)
 
     -- Sync cursor: ToC -> content
     if module.config.public.sync_cursorline then
+        -- Ignore the first (fake) CursorMoved coming together with BufEnter of the ToC buffer
+        vim.api.nvim_create_autocmd("BufEnter", {
+            buffer = ui_data.buffer,
+            callback = function(_ev)
+                ui_data.cursor_start_moving = false
+            end,
+        })
+
         vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
             buffer = ui_data.buffer,
             callback = function(ev)
