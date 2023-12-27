@@ -430,13 +430,15 @@ module.on_event = function(event)
 
         for file, content in pairs(tangles) do
             local upward_count = 0
+
             for _ in string.gmatch(file, "%.%.[\\/]") do
                 upward_count = upward_count + 1
             end
+
             if upward_count > 0 then
                 -- adding one because the filename also has to be removed
                 local base = vim.fn.fnamemodify(vim.fn.expand("%"), ":p" .. string.rep(":h", upward_count + 1))
-                local path, _count = string.gsub(file, "%.%.[\\/]", "")
+                local path = string.gsub(file, "%.%.[\\/]", "")
                 file = vim.fs.joinpath(base, path)
             end
 
