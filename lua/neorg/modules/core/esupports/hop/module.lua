@@ -213,8 +213,10 @@ module.public = {
             return
         end
 
+        local link_not_found_buf = module.required["core.ui"].create_split("link-not-found")
+
         local selection = module.required["core.ui"]
-            .begin_selection(module.required["core.ui"].create_split("link-not-found"))
+            .begin_selection(link_not_found_buf)
             :listener({
                 "<Esc>",
             }, function(self)
