@@ -1343,7 +1343,7 @@ local function handle_init_event(event)
     if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
         local wo = vim.wo[event.window]
         wo.foldmethod = "expr"
-        wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+        wo.foldexpr = vim.treesitter.foldexpr and "v:lua.vim.treesitter.foldexpr()" or "nvim_treesitter#foldexpr()"
         wo.foldtext = "v:lua.require'neorg'.modules.get_module('core.concealer').foldtext()"
 
         local init_open_folds = module.config.public.init_open_folds
