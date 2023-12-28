@@ -76,6 +76,25 @@ local function todo_item_extended(replace_text)
     end
 end
 
+local function get_metadata_array_prefix(node, state)
+    return node:parent():type() == "array" and string.rep(" ", state.indent) .. "- " or ""
+end
+
+local function handle_metadata_literal(text, node, state)
+    -- If the parent is an array, we need to indent it and add the `- ` prefix. Otherwise, there will be a key right before which will take care of indentation
+    return get_metadata_array_prefix(node, state) .. text .. "\n"
+end
+
+local function update_indent(value)
+    return function(_, _, state)
+        return {
+            state = {
+                indent = state.indent + value,
+            },
+        }
+    end
+end
+
 --> Recollector Utility Functions
 
 local function todo_item_recollector()
@@ -100,6 +119,23 @@ local function handle_heading_newlines()
             output[3] = output[3] .. "\n"
         end
 
+        return output
+    end
+end
+
+local function handle_metadata_composite_element(empty_element)
+    return function(output, state, node)
+        if vim.tbl_isempty(output) then
+            return { get_metadata_array_prefix(node, state), empty_element, "\n" }
+        end
+        local parent = node:parent():type()
+        if parent == "array" then
+            -- If the parent is an array, we need to splice an extra `-` prefix to the first element
+            output[1] = output[1]:sub(1, state.indent) .. "-" .. output[1]:sub(state.indent + 2)
+        elseif parent == "pair" then
+            -- If the parent is a pair, the first element should be on the next line
+            output[1] = "\n" .. output[1]
+        end
         return output
     end
 end
@@ -534,33 +570,19 @@ module.public = {
             ["strong_carryover"] = "",
             ["weak_carryover"] = "",
 
-            ["key"] = true,
+            ["key"] = function(text, _, state)
+                return string.rep(" ", state.indent) .. text
+            end,
 
             [":"] = ": ",
 
-            ["["] = function(_, _, state)
-                return {
-                    state = {
-                        indent = state.indent + 2,
-                    },
-                }
-            end,
-            ["]"] = function(_, _, state)
-                return {
-                    state = {
-                        indent = state.indent - 2,
-                    },
-                }
-            end,
+            ["["] = update_indent(2),
+            ["]"] = update_indent(-2),
+            ["{"] = update_indent(2),
+            ["}"] = update_indent(-2),
 
-            ["value"] = function(text, node, state)
-                if node:parent():type() == "array" then
-                    return "\n" .. string.rep(" ", state.indent) .. "- " .. text
-                end
-
-                return text
-            end,
-
+            ["string"] = handle_metadata_literal,
+            ["number"] = handle_metadata_literal,
             ["horizontal_line"] = "___",
         },
 
@@ -637,10 +659,8 @@ module.public = {
             ["heading5"] = handle_heading_newlines(),
             ["heading6"] = handle_heading_newlines(),
 
-            ["pair"] = function(output)
-                table.insert(output, "\n")
-                return output
-            end,
+            ["object"] = handle_metadata_composite_element("{}"),
+            ["array"] = handle_metadata_composite_element("[]"),
         },
 
         cleanup = function()
