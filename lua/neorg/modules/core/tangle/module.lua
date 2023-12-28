@@ -436,53 +436,40 @@ module.on_event = function(event)
         local tangled_count = 0
 
         for file, content in pairs(tangles) do
-            local upward_count = 0
-      
-            for _ in string.gmatch(file, "%.%.[\\/]") do
-                upward_count = upward_count + 1
-            end
-      
+            -- resolve upward relative path like `../../`
+            local relative_file, upward_count = string.gsub(file, "%.%.[\\/]", "")
             if upward_count > 0 then
-                -- adding one because the filename also has to be removed
-                local base = vim.fn.fnamemodify(vim.fn.expand("%"), ":p" .. string.rep(":h", upward_count + 1))
-                local path, _count = string.gsub(file, "%.%.[\\/]", "")
-                file = vim.fs.joinpath(base, path)
+                local base_dir = vim.fn.expand("%:p" .. string.rep(":h", upward_count + 1)) --[[@as string]]
+                file = vim.fs.joinpath(base_dir, relative_file)
             end
-      
+
             vim.loop.fs_open(vim.fn.expand(file) --[[@as string]], "w", 438, function(err, fd)
-                file_count = file_count - 1
                 assert(not err and fd, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
                 local write_content = table.concat(content, "\n")
                 if module.config.public.report_on_empty and write_content:len() == 0 then
-                    vim.schedule(
-                        lib.wrap(
-                            utils.notify,
-                            string.format("Tangled content for %s is empty.", file),
-                            vim.log.levels.WARN
-                        )
-                    )
+                    vim.schedule(function()
+                        utils.notify(string.format("Tangled content for %s is empty.", file), vim.log.levels.WARN)
+                    end)
                 end
-                vim.loop.fs_write(fd, write_content, 0, function(werr)
-                    assert(
-                        not werr,
-                        lib.lazy_string_concat("Failed to write to file '", file, "' for tangling: ", werr)
-                    )
-                end)
 
-                tangled_count = tangled_count + 1
-                if file_count == 0 then
-                    vim.schedule(
-                        lib.wrap(
-                            utils.notify,
-                            string.format(
-                                "Successfully tangled %d file%s!",
-                                tangled_count,
-                                tangled_count == 1 and "" or "s"
+                vim.loop.fs_write(fd, write_content, 0, function(werr)
+                    assert(not werr, lib.lazy_string_concat("Failed to write to '", file, "' for tangling: ", werr))
+                    tangled_count = tangled_count + 1
+                    file_count = file_count - 1
+                    if file_count == 0 then
+                        vim.schedule(
+                            lib.wrap(
+                                utils.notify,
+                                string.format(
+                                    "Successfully tangled %d file%s!",
+                                    tangled_count,
+                                    tangled_count == 1 and "" or "s"
+                                )
                             )
                         )
-                    )
-                end
+                    end
+                end)
             end)
         end
     end
