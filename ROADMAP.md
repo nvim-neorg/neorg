@@ -123,10 +123,10 @@ embeddable-anywhere tools. These include:
       logic, including the database, for the multithreaded Treesitter parser, as well as for
       managing active workspaces. Many clients may connect to this server, establishing a single
       source of truth for any `n` amount of clients.
-- [ ] Sqlite - having an sqlite database as a centralized data store will be super
-      useful when dealing with both local and remote servers for data synchronization
-      across devices. Such a server would store things like backlinks (for zettelkasten) or notes
-      (for GTD).
+- [x] SurrealDB - Neorg's preferred backend for execution is SurrealDB, a modern multi-model
+      database. It was specifically chosen because, apart from just being able to store data in a relational
+      format (like sqlite), it also has the ability of creating and operating on nodes like a graph database.
+      This allows for lighting fast lookups of e.g. links, tasks and/or inline metadata in the file.
 - [ ] GTD - this library would form the backend for the "Getting Things Done" methodology.
       It would do all the heavy lifting, including managing notes, contexts and a bit more.
       Afterwards all it takes is to write a frontend (the UI) in the application of your choice to
