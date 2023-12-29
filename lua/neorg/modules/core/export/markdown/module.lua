@@ -415,8 +415,8 @@ module.public = {
                     }
                 elseif
                     text == "embed"
-                    and node:next_sibling()
-                    and module.required["core.integrations.treesitter"].get_node_text(node:next_sibling())
+                    and node:next_named_sibling()
+                    and module.required["core.integrations.treesitter"].get_node_text(node:next_named_sibling())
                         == "markdown"
                 then
                     return {
