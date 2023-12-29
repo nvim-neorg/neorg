@@ -162,7 +162,7 @@ module.config.public = {
     -- default no extensions are loaded (the exporter is commonmark compliant).
     -- You can also set this value to `"all"` to enable all extensions.
     -- The full extension list is: `todo-items-basic`, `todo-items-pending`, `todo-items-extended`,
-    -- `definition-lists`, `mathematics` and 'metadata'.
+    -- `definition-lists`, `mathematics` and `metadata`.
     extensions = {},
 
     -- Data about how to render mathematics.
