@@ -416,8 +416,10 @@ module.public = {
                 elseif
                     text == "embed"
                     and node:next_named_sibling()
-                    and module.required["core.integrations.treesitter"].get_node_text(node:next_named_sibling())
-                        == "markdown"
+                    and vim.tbl_contains(
+                        { "markdown", "html" },
+                        module.required["core.integrations.treesitter"].get_node_text(node:next_named_sibling())
+                    )
                 then
                     return {
                         state = {
