@@ -151,6 +151,7 @@ module.load = function()
             "definition-lists",
             "mathematics",
             "metadata",
+            "latex",
         }
     end
 
@@ -162,7 +163,7 @@ module.config.public = {
     -- default no extensions are loaded (the exporter is commonmark compliant).
     -- You can also set this value to `"all"` to enable all extensions.
     -- The full extension list is: `todo-items-basic`, `todo-items-pending`, `todo-items-extended`,
-    -- `definition-lists`, `mathematics` and `metadata`.
+    -- `definition-lists`, `mathematics`, `metadata` and `latex`.
     extensions = {},
 
     -- Data about how to render mathematics.
@@ -417,7 +418,7 @@ module.public = {
                     text == "embed"
                     and node:next_named_sibling()
                     and vim.tbl_contains(
-                        { "markdown", "html" },
+                        { "markdown", "html", module.config.public.extensions["latex"] and "latex" or nil },
                         module.required["core.integrations.treesitter"].get_node_text(node:next_named_sibling())
                     )
                 then
