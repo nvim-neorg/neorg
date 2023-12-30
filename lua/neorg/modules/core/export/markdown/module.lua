@@ -217,7 +217,7 @@ module.public = {
                     0,
                 },
                 tag_indent = 0,
-                tag_close = "",
+                tag_close = nil,
                 ranged_tag_indentation_level = 0,
                 is_url = false,
             }
