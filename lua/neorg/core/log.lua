@@ -9,15 +9,33 @@
 
 local lib = require("neorg.core.lib")
 
--- User configuration section
+--- @alias LogLevel
+--- | "trace"
+--- | "debug"
+--- | "info"
+--- | "warn"
+--- | "error"
+--- | "fatal"
+
+--- @class (exact) neorg.log.configuration
+--- @field plugin string                                           Name of the plugin. Prepended to log messages.
+--- @field use_console boolean                                     Whether to print the output to Neovim while running.
+--- @field highlights boolean                                      Whether highlighting should be used in console (using `:echohl`).
+--- @field use_file boolean                                        Whether to write output to a file.
+--- @field level LogLevel                                          Any messages above this level will be logged.
+--- @field modes ({ name: LogLevel, hl: string, level: number })[] Level configuration.
+--- @field float_precision float                                   Can limit the number of decimals displayed for floats.
+
+--- User configuration section
+--- @type neorg.log.configuration
 local default_config = {
-    -- Name of the plugin. Prepended to log messages
+    -- 
     plugin = "neorg",
 
-    -- Should print the output to neovim while running
+    -- 
     use_console = true,
 
-    -- Should highlighting be used in console (using echohl)
+    -- 
     highlights = true,
 
     -- Should write to a file
@@ -47,8 +65,10 @@ log.get_default_config = function()
     return default_config
 end
 
-local unpack = unpack or table.unpack ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+local unpack = unpack or table.unpack
 
+--- @param config neorg.log.configuration
+--- @param standalone boolean
 log.new = function(config, standalone)
     config = vim.tbl_deep_extend("force", default_config, config)
     config.plugin = "neorg" -- Force the plugin name to be neorg
