@@ -14,18 +14,21 @@
 --- @alias neorg.configuration.module { config?: table }
 
 --- @class (exact) neorg.configuration.user
---- @field lazy_loading boolean                              Whether to defer loading the Neorg core until after the user has entered a `.norg` file.
+--- @field hook? fun(manual: boolean, arguments?: string)    A user-defined function that is invoked whenever Neorg starts up. May be used to e.g. set custom keybindings.
+--- @field lazy_loading? boolean                             Whether to defer loading the Neorg core until after the user has entered a `.norg` file.
 --- @field load table<string, neorg.configuration.module>    A list of modules to load, alongside their configurations.
+--- @field logger? neorg.log.configuration                   A configuration table for the logger.
 
 --- @class (exact) neorg.configuration
---- @field user_config neorg.configuration.user              Stores the configuration provided by the user.
---- @field modules table<string, neorg.configuration.module> Acts as a copy of the user's configuration that may be modified at runtime.
---- @field manual boolean?                                   Used if Neorg was manually loaded via `:NeorgStart`. Only applicable when `user_config.lazy_loading` is `true`.
 --- @field arguments table<string, string>                   A list of arguments provided to the `:NeorgStart` function in the form of `key=value` pairs. Only applicable when `user_config.lazy_loading` is `true`.
+--- @field manual boolean?                                   Used if Neorg was manually loaded via `:NeorgStart`. Only applicable when `user_config.lazy_loading` is `true`.
+--- @field modules table<string, neorg.configuration.module> Acts as a copy of the user's configuration that may be modified at runtime.
 --- @field norg_version string                               The version of the file format to be used throughout Neorg. Used internally.
---- @field version string                                    The version of Neorg that is currently active. Automatically updated by CI on every release.
 --- @field os_info OperatingSystem                           The operating system that Neorg is currently running under.
 --- @field pathsep "\\"|"/"                                  The operating system that Neorg is currently running under.
+--- @field started boolean                                   Set to `true` when Neorg is fully initialized.
+--- @field user_config neorg.configuration.user              Stores the configuration provided by the user.
+--- @field version string                                    The version of Neorg that is currently active. Automatically updated by CI on every release.
 
 --- Gets the current operating system.
 --- @return OperatingSystem
@@ -80,6 +83,9 @@ local config = {
 
     os_info = os_info,
     pathsep = os_info == "windows" and "\\" or "/",
+
+    hook = nil,
+    started = false,
 }
 
 return config
