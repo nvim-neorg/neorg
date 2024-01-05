@@ -29,22 +29,16 @@ local lib = require("neorg.core.lib")
 --- User configuration section
 --- @type neorg.log.configuration
 local default_config = {
-    -- 
     plugin = "neorg",
 
-    -- 
     use_console = true,
 
-    -- 
     highlights = true,
 
-    -- Should write to a file
     use_file = true,
 
-    -- Any messages above this level will be logged.
     level = "warn",
 
-    -- Level configuration
     modes = {
         { name = "trace", hl = "Comment", level = vim.log.levels.TRACE },
         { name = "debug", hl = "Comment", level = vim.log.levels.DEBUG },
@@ -54,7 +48,6 @@ local default_config = {
         { name = "fatal", hl = "ErrorMsg", level = 5 },
     },
 
-    -- Can limit the number of decimals displayed for floats
     float_precision = 0.01,
 }
 
