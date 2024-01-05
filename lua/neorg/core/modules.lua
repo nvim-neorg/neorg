@@ -1,61 +1,82 @@
+--- @brief [[
+--- Base file for modules.
+--- This file contains the base implementation for "modules", building blocks of the Neorg environment.
+--- @brief ]]
+
 -- TODO: What goes below this line until the next notice used to belong to modules.base
 -- We need to find a way to make these constructors easier to maintain and more efficient
-
---[[
---    BASE FILE FOR MODULES
---    This file contains the base module implementation
---]]
 
 local callbacks = require("neorg.core.callbacks")
 local config = require("neorg.core.config")
 local log = require("neorg.core.log")
 local utils = require("neorg.core.utils")
 
+--- @class neorg.module.public
+--- @field version string Current Norg version that this module supports.
+
+--- @class (exact) neorg.module.configuration
+--- Defines both a public and private configuration for a Neorg module.
+--- Public configurations may be tweaked by the user from the `neorg.setup()` function,
+--- whereas private configurations are for internal use only.
+---
+--- @field custom? table         Internal table that tracks the differences (changes) between the default `public` table and the new (altered) `public` table. It contains only the tables that the user has altered in their own configuration.
+--- @field public private? table Internal configuration variables that may be tweaked by the developer.
+--- @field public public? table  Configuration variables that may be tweaked by the user.
+
+--- @class (exact) neorg.module.events
+--- @field defined? { [string]: neorg.event }              Lists all events defined by this module.
+--- @field subscribed? { [string]: { [string]: boolean } } Lists the events that the module is subscribed to.
+
+--- @class (exact) neorg.module
+--- Defines a module.
+--- A module is an object that contains a set of hooks which are invoked by Neorg whenever something in the
+--- environment occurs. This can be an event, a simple act of the module being loaded or anything else.
+--- @field config? neorg.module.configuration The configuration for the module.
+--- @field events? neorg.module.events Describes all information related to events for this module.
+--- @field examples? table<string, function> Contains examples of how to use the modules that users or developers may sift through.
+--- @field imported? table<string, neorg.module> Imported submodules of the given module. Contrary to `required`, which only exposes the public API of a module, imported modules can be accessed in their entirety.
+--- @field load? fun() Function that is invoked once the module is considered "stable", i.e. after all dependencies are loaded. Perform your main loading routine here.
+--- @field name string The name of the module.
+--- @field neorg_post_load? fun() Function that is invoked after all modules are loaded. Useful if you want the Neorg environment to be fully set up before performing some task.
+--- @field path string The full path to the module (a more verbose version of `name`). May be used in lua's `require()` statements.
+--- @field public private? table A convenience table to place all of your private variables that you don't want to expose.
+--- @field public public? neorg.module.public Every module can expose any set of information it sees fit through this field. All functions and variables declared in this table will be visiable to any other module loaded.
+--- @field required? table<string, neorg.module.public> Contains the public tables of all modules that were required via the `requires` array provided in the `setup()` function of this module.
+--- @field setup? fun(): { success: boolean, requires?: string[], replaces?: string, replace_merge?: boolean, wants?: string[] } Function that is invoked before any other loading occurs. Should perform preliminary startup tasks.
+--- @field replaced? boolean If `true`, this means the module is a replacement for a core module. This flag is set automatically whenever `setup().replaces` is set to a value.
+--- @field on_event fun(event: neorg.event) A callback that is invoked any time an event the module has subscribed to has fired.
+
 local modules = {}
 
---- Returns a new Neorg module, exposing all the necessary function and variables
----@param name string #The name of the new module. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
----@param imports? string[] #A list of imports to attach to the module. Import data is requestable via `module.required`. Use paths relative to the current module.
+--- Returns a new Neorg module, exposing all the necessary function and variables.
+--- @param name string The name of the new module. Make sure this is unique. The recommended naming convention is `category.module_name` or `category.subcategory.module_name`.
+--- @param imports? string[] A list of imports to attach to the module. Import data is requestable via `module.required`. Use paths relative to the current module.
+--- @return neorg.module
 function modules.create(name, imports)
+    ---@type neorg.module
     local new_module = {
-
-        -- Invoked before any initial loading happens
         setup = function()
             return { success = true, requires = {}, replaces = nil, replace_merge = false }
         end,
 
-        -- Invoked after the module has been configured
         load = function() end,
 
-        -- Invoked whenever an event that the module has subscribed to triggers
-        -- callback function with a "event" parameter
         on_event = function() end,
 
-        -- Invoked after all plugins are loaded
         neorg_post_load = function() end,
 
-        -- The name of the module, note that modules beginning with core are neorg's inbuilt modules
         name = "core.default",
 
-        -- The path of the module, can be used in require() statements
         path = "modules.core.default.module",
 
-        -- A convenience table to place all of your private variables that you don't want to expose here.
         private = {},
 
-        -- Every module can expose any set of information it sees fit through the public field
-        -- All functions and variables declared in this table will be visible to any other module loaded
         public = {
-            -- Current Norg version that this module supports.
-            -- Your module will use this version if not specified, but you can override it.
-            -- Overriding it will mean that your module is only compatible with the overriden Norg revision.
-            -- E.g: setting version = "1.0.0" will mean that your module requires Norg 1.0.0+ to operate
             version = config.norg_version,
         },
 
-        -- Configuration for the module
         config = {
-            private = { -- Private module config, cannot be changed by other modules or by the user
+            private = {
                 --[[
                 config_option = false,
 
@@ -65,7 +86,7 @@ function modules.create(name, imports)
                 --]]
             },
 
-            public = { -- Public config, can be changed by modules and the user
+            public = {
                 --[[
                 config_option = false,
 
@@ -75,13 +96,9 @@ function modules.create(name, imports)
                 --]]
             },
 
-            -- This table houses all the changes the user made to the public table,
-            -- useful for when you want to know exactly what the user tinkered with.
-            -- Shouldn't be commonly used.
             custom = {},
         },
 
-        -- Event data regarding the current module
         events = {
             subscribed = { -- The events that the module is subscribed to
                 --[[
@@ -99,8 +116,6 @@ function modules.create(name, imports)
             },
         },
 
-        -- If you ever require a module through the return value of the setup() function,
-        -- All of the modules' public APIs will become available here
         required = {
             --[[
             ["core.test"] = {
@@ -114,7 +129,6 @@ function modules.create(name, imports)
             --]]
         },
 
-        -- Example bits of code that the user can look through
         examples = {
             --[[
             a_cool_test = function()
@@ -123,12 +137,9 @@ function modules.create(name, imports)
             --]]
         },
 
-        -- Imported submodules of the given module.
-        -- Contrary to `required`, which only exposes the public API of a module,
-        -- imported modules can be accessed in their entirety.
         imported = {
             --[[
-            ["my.module.submodule"] = { ... },
+                ["my.module.submodule"] = { ... },
             --]]
         },
     }
@@ -155,8 +166,8 @@ function modules.create(name, imports)
 end
 
 --- Constructs a metamodule from a list of submodules. Metamodules are modules that can autoload batches of modules at once.
----@param name string #The name of the new metamodule. Make sure this is unique. The recommended naming convention is category.module_name or category.subcategory.module_name
--- @Param  ... (varargs) - a list of module names to load.
+--- @param name string The name of the new metamodule. Make sure this is unique. The recommended naming convention is `category.module_name` or `category.subcategory.module_name`.
+--- @param ... string A list of module names to load.
 function modules.create_meta(name, ...)
     local module = modules.create(name)
 
@@ -212,12 +223,13 @@ end
 modules.loaded_module_count = 0
 
 --- The table of currently loaded modules
+--- @type { [string]: neorg.module }
 modules.loaded_modules = {}
 
 --- Loads and enables a module
--- Loads a specified module. If the module subscribes to any events then they will be activated too.
----@param module table #The actual module to load
----@return boolean #Whether the module successfully loaded
+--- Loads a specified module. If the module subscribes to any events then they will be activated too.
+--- @param module neorg.module The actual module to load.
+--- @return boolean # Whether the module successfully loaded.
 function modules.load_module_from_table(module)
     log.info("Loading module with name", module.name)
 
@@ -289,7 +301,7 @@ function modules.load_module_from_table(module)
                     if not modules.load_module(required_module) then
                         log.error(
                             "Unable to load wanted module for",
-                            loaded_module.name,
+                            module.name,
                             "- the module didn't load successfully"
                         )
 
@@ -418,9 +430,9 @@ end
 --- Unlike `load_module_from_table()`, which loads a module from memory, `load_module()` tries to find the corresponding module file on disk and loads it into memory.
 -- If the module cannot not be found, attempt to load it off of github (unimplemented). This function also applies user-defined config and keymaps to the modules themselves.
 -- This is the recommended way of loading modules - `load_module_from_table()` should only really be used by neorg itself.
----@param module_name string #A path to a module on disk. A path seperator in neorg is '.', not '/'
----@param cfg table? #A config that reflects the structure of `neorg.config.user_config.load["module.name"].config`
----@return boolean #Whether the module was successfully loaded
+--- @param module_name string A path to a module on disk. A path seperator in neorg is '.', not '/'
+--- @param cfg table? A config that reflects the structure of `neorg.config.user_config.load["module.name"].config`
+--- @return boolean #Whether the module was successfully loaded
 function modules.load_module(module_name, cfg)
     -- Don't bother loading the module from disk if it's already loaded
     if modules.is_module_loaded(module_name) then
@@ -477,8 +489,8 @@ function modules.load_module(module_name, cfg)
 end
 
 --- Has the same principle of operation as load_module_from_table(), except it then sets up the parent module's "required" table, allowing the parent to access the child as if it were a dependency.
----@param module table #A valid table as returned by modules.create()
----@param parent_module string|table #If a string, then the parent is searched for in the loaded modules. If a table, then the module is treated as a valid module as returned by modules.create()
+--- @param module table A valid table as returned by modules.create()
+--- @param parent_module string|table If a string, then the parent is searched for in the loaded modules. If a table, then the module is treated as a valid module as returned by modules.create()
 function modules.load_module_as_dependency_from_table(module, parent_module)
     if modules.load_module_from_table(module) then
         if type(parent_module) == "string" then
@@ -490,9 +502,9 @@ function modules.load_module_as_dependency_from_table(module, parent_module)
 end
 
 --- Normally loads a module, but then sets up the parent module's "required" table, allowing the parent module to access the child as if it were a dependency.
----@param module_name string #A path to a module on disk. A path seperator in neorg is '.', not '/'
----@param parent_module string #The name of the parent module. This is the module which the dependency will be attached to.
----@param cfg table #A config that reflects the structure of neorg.config.user_config.load["module.name"].config
+--- @param module_name string A path to a module on disk. A path seperator in neorg is '.', not '/'
+--- @param parent_module string The name of the parent module. This is the module which the dependency will be attached to.
+--- @param cfg table A config that reflects the structure of neorg.config.user_config.load["module.name"].config
 function modules.load_module_as_dependency(module_name, parent_module, cfg)
     if modules.load_module(module_name, cfg) and modules.is_module_loaded(parent_module) then
         modules.loaded_modules[parent_module].required[module_name] = modules.get_module_config(module_name)
@@ -500,7 +512,7 @@ function modules.load_module_as_dependency(module_name, parent_module, cfg)
 end
 
 --- Retrieves the public API exposed by the module
----@param module_name string #The name of the module to retrieve
+--- @param module_name string The name of the module to retrieve
 function modules.get_module(module_name)
     if not modules.is_module_loaded(module_name) then
         log.trace("Attempt to get module with name", module_name, "failed - module is not loaded.")
@@ -511,7 +523,7 @@ function modules.get_module(module_name)
 end
 
 --- Returns the module.config.public table if the module is loaded
----@param module_name string #The name of the module to retrieve (module must be loaded)
+--- @param module_name string The name of the module to retrieve (module must be loaded)
 function modules.get_module_config(module_name)
     if not modules.is_module_loaded(module_name) then
         log.trace("Attempt to get module config with name", module_name, "failed - module is not loaded.")
@@ -522,13 +534,13 @@ function modules.get_module_config(module_name)
 end
 
 --- Returns true if module with name module_name is loaded, false otherwise
----@param module_name string #The name of an arbitrary module
+--- @param module_name string The name of an arbitrary module
 function modules.is_module_loaded(module_name)
     return modules.loaded_modules[module_name] ~= nil
 end
 
 --- Reads the module's public table and looks for a version variable, then converts it from a string into a table, like so: { major = <number>, minor = <number>, patch = <number> }
----@param module_name string #The name of a valid, loaded module.
+--- @param module_name string The name of a valid, loaded module.
 -- @Return struct | nil (if any error occurs)
 function modules.get_module_version(module_name)
     -- If the module isn't loaded then don't bother retrieving its version
@@ -550,8 +562,8 @@ function modules.get_module_version(module_name)
 end
 
 --- Executes `callback` once `module` is a valid and loaded module, else the callback gets instantly executed.
----@param module_name string #The name of the module to listen for.
----@param callback fun(module_public_table: table) #The callback to execute.
+--- @param module_name string The name of the module to listen for.
+--- @param callback fun(module_public_table: table) The callback to execute.
 function modules.await(module_name, callback)
     if modules.is_module_loaded(module_name) then
         callback(assert(modules.get_module(module_name)))
@@ -576,7 +588,7 @@ end
 
 --- The working of this function is best illustrated with an example:
 --        If type == 'core.some_plugin.events.my_event', this function will return { 'core.some_plugin', 'my_event' }
----@param type string #The full path of a module event
+--- @param type string The full path of a module event
 function modules.split_event_type(type)
     local start_str, end_str = type:find("%.events%.")
 
@@ -591,8 +603,8 @@ function modules.split_event_type(type)
 end
 
 --- Returns an event template defined in module.events.defined
----@param module table #A reference to the module invoking the function
----@param type string #A full path to a valid event type (e.g. 'core.module.events.some_event')
+--- @param module table A reference to the module invoking the function
+--- @param type string A full path to a valid event type (e.g. 'core.module.events.some_event')
 function modules.get_event_template(module, type)
     -- You can't get the event template of a type if the type isn't loaded
     if not modules.is_module_loaded(module.name) then
@@ -615,8 +627,8 @@ function modules.get_event_template(module, type)
 end
 
 --- Creates a deep copy of the modules.base_event event and returns it with a custom type and referrer
----@param module table #A reference to the module invoking the function
----@param name string #A relative path to a valid event template
+--- @param module table A reference to the module invoking the function
+--- @param name string A relative path to a valid event template
 function modules.define_event(module, name)
     -- Create a copy of the base event and override the values with ones specified by the user
 
@@ -646,11 +658,11 @@ function modules.define_event(module, name)
 end
 
 --- Returns a copy of the event template provided by a module
----@param module table #A reference to the module invoking the function
----@param type string #A full path to a valid event type (e.g. 'core.module.events.some_event')
----@param content any #The content of the event, can be anything from a string to a table to whatever you please
----@param ev? table the original event data
----@return table #New event
+--- @param module table A reference to the module invoking the function
+--- @param type string A full path to a valid event type (e.g. 'core.module.events.some_event')
+--- @param content any The content of the event, can be anything from a string to a table to whatever you please
+--- @param ev? table the original event data
+--- @return table #New event
 function modules.create_event(module, type, content, ev)
     -- Get the module that contains the event
     local module_name = modules.split_event_type(type)[1]
@@ -689,8 +701,8 @@ function modules.create_event(module, type, content, ev)
 end
 
 --- Sends an event to all subscribed modules. The event contains the filename, filehead, cursor position and line content as a bonus.
----@param event table #An event, usually created by modules.create_event()
----@param callback function? #A callback to be invoked after all events have been asynchronously broadcast
+--- @param event table An event, usually created by modules.create_event()
+--- @param callback function? A callback to be invoked after all events have been asynchronously broadcast
 function modules.broadcast_event(event, callback)
     -- Broadcast the event to all modules
     if not event.split_type then
@@ -723,8 +735,8 @@ function modules.broadcast_event(event, callback)
 end
 
 --- Instead of broadcasting to all loaded modules, send_event() only sends to one module
----@param recipient string #The name of a loaded module that will be the recipient of the event
----@param event table #An event, usually created by modules.create_event()
+--- @param recipient string The name of a loaded module that will be the recipient of the event
+--- @param event table An event, usually created by modules.create_event()
 function modules.send_event(recipient, event)
     -- If the recipient is not loaded then there's no reason to send an event to it
     if not modules.is_module_loaded(recipient) then
