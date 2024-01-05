@@ -467,6 +467,8 @@ function lib.lazy_copy(to_copy)
     })
 end
 
+lib.mod = {}
+
 --- Wrapper function to add two values.
 --- This function only takes in one argument because the second value to add is provided as a parameter in the callback.
 --- @param amount number The number to add.
@@ -486,6 +488,8 @@ function lib.mod.modify(to)
         return to
     end
 end
+
+lib.mod.exclude = {}
 
 function lib.mod.exclude.first(func, alt)
     return function(i, val)
