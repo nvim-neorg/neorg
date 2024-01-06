@@ -203,7 +203,7 @@ module.on_event = function(event)
         return
     end
 
-    return event_handlers[event.type](event)
+    return event_handlers[event.type]()
 end
 
 module.events.subscribed = {
