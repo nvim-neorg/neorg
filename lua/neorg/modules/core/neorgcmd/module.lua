@@ -284,11 +284,13 @@ module.private = {
         end
 
         modules.broadcast_event(
-            assert(modules.create_event(
-                module,
-                table.concat({ "core.neorgcmd.events.", ref.name }),
-                vim.list_slice(args, argument_index + 1)
-            ))
+            assert(
+                modules.create_event(
+                    module,
+                    table.concat({ "core.neorgcmd.events.", ref.name }),
+                    vim.list_slice(args, argument_index + 1)
+                )
+            )
         )
     end,
 

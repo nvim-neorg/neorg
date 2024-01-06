@@ -67,11 +67,13 @@ module.public = {
 
         -- Broadcast the mode_created event
         modules.broadcast_event(
-            assert(modules.create_event(
-                module,
-                "core.mode.events.mode_created",
-                { current = module.config.public.current_mode, new = mode_name }
-            ))
+            assert(
+                modules.create_event(
+                    module,
+                    "core.mode.events.mode_created",
+                    { current = module.config.public.current_mode, new = mode_name }
+                )
+            )
         )
 
         -- Define the autocompletion tables and make them include the current mode
@@ -105,11 +107,13 @@ module.public = {
 
         -- Broadcast the mode_set event to all subscribed modules
         modules.broadcast_event(
-            assert(modules.create_event(
-                module,
-                "core.mode.events.mode_set",
-                { current = module.config.public.previous_mode, new = mode_name }
-            ))
+            assert(
+                modules.create_event(
+                    module,
+                    "core.mode.events.mode_set",
+                    { current = module.config.public.previous_mode, new = mode_name }
+                )
+            )
         )
     end,
 
