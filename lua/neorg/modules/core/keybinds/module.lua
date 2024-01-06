@@ -228,7 +228,13 @@ module.public = {
                 bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] and nil
             end,
 
-            remap = function(neorg_mode, mode, key, new_rhs)
+            --- Remaps a key to a specific Neorg mode
+            ---@param neorg_mode string #The Neorg mode to bind to
+            ---@param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
+            ---@param key string #The lhs value from `:h vim.keymap.set`
+            ---@param new_rhs string|function #The rhs value from `:h vim.keymap.set`
+            ---@param opts table #The table value from `:h vim.keymap.set`
+            remap = function(neorg_mode, mode, key, new_rhs, opts)
                 if neorg_mode ~= "all" and current_mode ~= neorg_mode then
                     return
                 end
@@ -237,12 +243,24 @@ module.public = {
                 bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
                 bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] or {}
 
-                local opts = bound_keys[neorg_mode][mode][key].opts
-
-                payload.map(neorg_mode, mode, key, new_rhs, opts)
+                payload.map(
+                    neorg_mode,
+                    mode,
+                    key,
+                    new_rhs,
+                    vim.tbl_deep_extend("force", bound_keys[neorg_mode][mode][key].opts or {}, opts or {})
+                )
             end,
 
-            remap_event = function(neorg_mode, mode, key, new_event)
+            --- Remaps a key to a specific Neorg keybind.
+            --  `remap()` binds to any rhs value, whilst `remap_event()` is essentially a wrapper
+            --  for <cmd>Neorg keybind `neorg_mode` `expr`<CR>
+            ---@param neorg_mode string #The Neorg mode to bind to
+            ---@param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
+            ---@param key string #The lhs value from `:h vim.keymap.set`
+            ---@param new_event string #The Neorg event to bind to (e.g. `core.dirman.new.note`)
+            ---@param opts table #The table value from `:h vim.keymap.set`
+            remap_event = function(neorg_mode, mode, key, new_event, opts)
                 if neorg_mode ~= "all" and current_mode ~= neorg_mode then
                     return
                 end
@@ -250,15 +268,13 @@ module.public = {
                 bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
                 bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
                 bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] or {}
-
-                local opts = bound_keys[neorg_mode][mode][key].opts
 
                 payload.map(
                     neorg_mode,
                     mode,
                     key,
                     "<cmd>Neorg keybind " .. neorg_mode .. " " .. new_event .. "<CR>",
-                    opts
+                    vim.tbl_deep_extend("force", bound_keys[neorg_mode][mode][key].opts or {}, opts or {})
                 )
             end,
 
