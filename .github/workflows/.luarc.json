@@ -6,7 +6,7 @@
     "lua/?/init.lua"
   ],
   "workspace.library": [
-    "/github/workspace/deps/neodev.nvim/types/stable"
+    "/home/runner/work/neorg/neorg/deps/neodev.nvim/types/stable"
   ],
   "diagnostics.libraryFiles": "Disable",
   "workspace.checkThirdParty": "Disable"
