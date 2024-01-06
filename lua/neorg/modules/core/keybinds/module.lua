@@ -384,7 +384,7 @@ module.public = {
 
         -- Broadcast our event with the desired payload!
         modules.broadcast_event(
-            modules.create_event(module, "core.keybinds.events.enable_keybinds", payload),
+            assert(modules.create_event(module, "core.keybinds.events.enable_keybinds", payload)),
             function()
                 for neorg_mode, neovim_modes in pairs(bound_keys) do
                     if neorg_mode == "all" or neorg_mode == current_mode then
@@ -460,12 +460,12 @@ module.on_event = function(event)
             -- If it is defined then broadcast the event
             if module.events.defined[keybind_event_path] then
                 modules.broadcast_event(
-                    modules.create_event(
+                    assert(modules.create_event(
                         module,
                         "core.keybinds.events." .. keybind_event_path,
                         vim.list_slice(event.content, 3)
                     )
-                )
+                ))
             else -- Otherwise throw an error
                 log.error("Unable to trigger keybind", keybind_event_path, "- the keybind does not exist")
             end
