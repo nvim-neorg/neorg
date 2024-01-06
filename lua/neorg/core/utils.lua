@@ -7,12 +7,11 @@ local version = vim.version() -- TODO: Move to a more local scope
 --- A version agnostic way to call the neovim treesitter query parser
 --- @param language string # Language to use for the query
 --- @param query_string string # Query in s-expr syntax
---- @return Query # Parsed query
+--- @return table # Parsed query
 function utils.ts_parse_query(language, query_string)
     if vim.treesitter.query.parse then
         return vim.treesitter.query.parse(language, query_string)
     else
-        ---@diagnostic disable-next-line
         return vim.treesitter.parse_query(language, query_string)
     end
 end
