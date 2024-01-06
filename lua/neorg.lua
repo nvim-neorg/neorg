@@ -5,6 +5,8 @@
 local neorg = require("neorg.core")
 local config, log, modules = neorg.config, neorg.log, neorg.modules
 
+--- @module "neorg.core.config"
+
 --- Initializes Neorg. Parses the supplied user configuration, initializes all selected modules and adds filetype checking for `.norg`.
 --- @param cfg neorg.configuration.user A table that reflects the structure of `config.user_config`.
 --- @see config.user_config
