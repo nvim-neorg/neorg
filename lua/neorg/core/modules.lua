@@ -576,6 +576,61 @@ function modules.await(module_name, callback)
     end)
 end
 
+--- @alias Mode
+--- | "n"
+--- | "no"
+--- | "nov"
+--- | "noV"
+--- | "noCTRL-V"
+--- | "CTRL-V"
+--- | "niI"
+--- | "niR"
+--- | "niV"
+--- | "nt"
+--- | "Terminal"
+--- | "ntT"
+--- | "v"
+--- | "vs"
+--- | "V"
+--- | "Vs"
+--- | "CTRL-V"
+--- | "CTRL-Vs"
+--- | "s"
+--- | "S"
+--- | "CTRL-S"
+--- | "i"
+--- | "ic"
+--- | "ix"
+--- | "R"
+--- | "Rc"
+--- | "Rx"
+--- | "Rv"
+--- | "Rvc"
+--- | "Rvx"
+--- | "c"
+--- | "cr"
+--- | "cv"
+--- | "cvr"
+--- | "r"
+--- | "rm"
+--- | "r?"
+--- | "!"
+--- | "t"
+
+--- @class (exact) neorg.event
+--- @field type string The type of the event. Exists in the format of `category.name`.
+--- @field split_type string[] The event type, just split on every `.` character, e.g. `{ "category", "name" }`.
+--- @field content? table|any The content of the event. The data found here is specific to each individual event. Can be thought of as the payload.
+--- @field referrer string The name of the module that triggered the event.
+--- @field broadcast boolean Whether the event was broadcast to all modules. `true` is so, `false` if the event was specifically sent to a single recipient.
+--- @field cursor_position { [1]: number, [2]: number } The position of the cursor at the moment of broadcasting the event.
+--- @field filename string The name of the file that the user was in at the moment of broadcasting the event.
+--- @field filehead string The directory the user was in at the moment of broadcasting the event.
+--- @field line_content string The content of the line the user was editing at the moment of broadcasting the event.
+--- @field buffer number The buffer ID of the buffer the user was in at the moment of broadcasting the event.
+--- @field window number The window ID of the window the user was in at the moment of broadcasting the event.
+--- @field mode Mode The mode Neovim was in at the moment of broadcasting the event.
+
 -- TODO: What goes below this line until the next notice used to belong to modules
 -- We need to find a way to make these functions easier to maintain
 
@@ -588,6 +643,7 @@ end
 --- The working of this function is best illustrated with an example:
 --        If type == 'core.some_plugin.events.my_event', this function will return { 'core.some_plugin', 'my_event' }
 --- @param type string The full path of a module event
+--- @return string[]?
 function modules.split_event_type(type)
     local start_str, end_str = type:find("%.events%.")
 
@@ -601,9 +657,10 @@ function modules.split_event_type(type)
     return split_event_type
 end
 
---- Returns an event template defined in module.events.defined
---- @param module table A reference to the module invoking the function
---- @param type string A full path to a valid event type (e.g. 'core.module.events.some_event')
+--- Returns an event template defined in `module.events.defined`.
+--- @param module neorg.module A reference to the module invoking the function
+--- @param type string A full path to a valid event type (e.g. `core.module.events.some_event`)
+--- @return neorg.event?
 function modules.get_event_template(module, type)
     -- You can't get the event template of a type if the type isn't loaded
     if not modules.is_module_loaded(module.name) then
@@ -625,9 +682,10 @@ function modules.get_event_template(module, type)
     return modules.loaded_modules[module.name].events.defined[split_type[2]]
 end
 
---- Creates a deep copy of the modules.base_event event and returns it with a custom type and referrer
---- @param module table A reference to the module invoking the function
---- @param name string A relative path to a valid event template
+--- Creates a deep copy of the `modules.base_event` event and returns it with a custom type and referrer.
+--- @param module neorg.module A reference to the module invoking the function.
+--- @param name string A relative path to a valid event template.
+--- @return neorg.event
 function modules.define_event(module, name)
     -- Create a copy of the base event and override the values with ones specified by the user
 
@@ -656,12 +714,12 @@ function modules.define_event(module, name)
     return new_event
 end
 
---- Returns a copy of the event template provided by a module
---- @param module table A reference to the module invoking the function
---- @param type string A full path to a valid event type (e.g. 'core.module.events.some_event')
---- @param content any The content of the event, can be anything from a string to a table to whatever you please
---- @param ev? table the original event data
---- @return table #New event
+--- Returns a copy of the event template provided by a module.
+--- @param module neorg.module A reference to the module invoking the function
+--- @param type string A full path to a valid event type (e.g. `core.module.events.some_event`)
+--- @param content table|any? The content of the event, can be anything from a string to a table to whatever you please.
+--- @param ev? table The original event data.
+--- @return neorg.event? # New event.
 function modules.create_event(module, type, content, ev)
     -- Get the module that contains the event
     local module_name = modules.split_event_type(type)[1]
@@ -671,7 +729,7 @@ function modules.create_event(module, type, content, ev)
 
     if not event_template then
         log.warn("Unable to create event of type", type, ". Returning nil...")
-        return ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+        return
     end
 
     -- Make a deep copy here - we don't want to override the actual base table!
@@ -682,12 +740,14 @@ function modules.create_event(module, type, content, ev)
     new_event.referrer = module.name
 
     -- Override all the important values
-    new_event.split_type = modules.split_event_type(type)
-    new_event.filename = vim.fn.expand("%:t")
-    new_event.filehead = vim.fn.expand("%:p:h")
+    new_event.split_type = assert(modules.split_event_type(type))
+    new_event.filename = vim.fn.expand("%:t") --[[@as string]]
+    new_event.filehead = vim.fn.expand("%:p:h") --[[@as string]]
+
     local bufid = ev and ev.buf or vim.api.nvim_get_current_buf()
-    local winid = vim.fn.bufwinid(bufid)
+    local winid = assert(vim.fn.bufwinid(bufid))
     new_event.cursor_position = vim.api.nvim_win_get_cursor(winid)
+
     local row_1b = new_event.cursor_position[1]
     new_event.line_content = vim.api.nvim_buf_get_lines(bufid, row_1b - 1, row_1b, true)[1]
     new_event.referrer = module.name
@@ -700,7 +760,7 @@ function modules.create_event(module, type, content, ev)
 end
 
 --- Sends an event to all subscribed modules. The event contains the filename, filehead, cursor position and line content as a bonus.
---- @param event table An event, usually created by modules.create_event()
+--- @param event neorg.event An event, usually created by `modules.create_event()`.
 --- @param callback function? A callback to be invoked after all events have been asynchronously broadcast
 function modules.broadcast_event(event, callback)
     -- Broadcast the event to all modules
@@ -733,9 +793,9 @@ function modules.broadcast_event(event, callback)
     end
 end
 
---- Instead of broadcasting to all loaded modules, send_event() only sends to one module
---- @param recipient string The name of a loaded module that will be the recipient of the event
---- @param event table An event, usually created by modules.create_event()
+--- Instead of broadcasting to all loaded modules, `send_event()` only sends to one module.
+--- @param recipient string The name of a loaded module that will be the recipient of the event.
+--- @param event neorg.event An event, usually created by `modules.create_event()`.
 function modules.send_event(recipient, event)
     -- If the recipient is not loaded then there's no reason to send an event to it
     if not modules.is_module_loaded(recipient) then
