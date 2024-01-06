@@ -11,8 +11,7 @@ local config = require("neorg.core.config")
 local log = require("neorg.core.log")
 local utils = require("neorg.core.utils")
 
---- @class neorg.module.public
---- @field version string Current Norg version that this module supports.
+--- @alias neorg.module.public { version: string, [any]: any }
 
 --- @class (exact) neorg.module.configuration
 --- Defines both a public and private configuration for a Neorg module.
@@ -418,6 +417,9 @@ function modules.load_module_from_table(module)
         line_content = "",
         content = module,
         broadcast = true,
+        buffer = vim.api.nvim_get_current_buf(),
+        window = vim.api.nvim_get_current_win(),
+        mode = vim.fn.mode(),
     })
 
     return true
