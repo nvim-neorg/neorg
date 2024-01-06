@@ -324,11 +324,11 @@ module.on_event = neorg.utils.wrap_dotrepeat(function(event)
 
         if modules.loaded_modules["core.concealer"] then
             modules.broadcast_event(
-                modules.create_event(
+                assert(modules.create_event(
                     modules.loaded_modules["core.concealer"],
                     "core.concealer.events.update_region",
                     { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
-                )
+                ))
             )
         end
     elseif event.split_type[2] == "core.promo.demote_range" then
@@ -341,11 +341,11 @@ module.on_event = neorg.utils.wrap_dotrepeat(function(event)
 
         if modules.loaded_modules["core.concealer"] then
             modules.broadcast_event(
-                modules.create_event(
+                assert(modules.create_event(
                     modules.loaded_modules["core.concealer"],
                     "core.concealer.events.update_region",
                     { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
-                )
+                ))
             )
         end
     end
