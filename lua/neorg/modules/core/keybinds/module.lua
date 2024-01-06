@@ -8,10 +8,6 @@ The keybind module acts as both an interface to the user and as an interface to 
 External modules can ask `core.keybinds` to reserve a specific keybind name, after which
 `core.keybinds` passes control to you (the user) to specify what key this should be bound to.
 
-Because of this client/server model, you must define your own `hook` function, which can
-set/overwrite several keybindings to your personal preference. Below is some information
-on how to disable keybinds and how to set up a keybind hook.
-
 ### Disabling Default Keybinds
 By default when you load the `core.keybinds` module all keybinds will be enabled.
 If you would like to change this, be sure to set `default_keybinds` to `false`:
@@ -23,35 +19,35 @@ If you would like to change this, be sure to set `default_keybinds` to `false`:
 }
 ```
 
-### Setting Up a Keybind Hook
-To change some keybinds, you must set up a keybind hook. Below is an example
-on how to do so, alongside a bunch of functions exposed to you that you can invoke
-to finely control what gets set and where:
+### Changing keybinds
+To change keybinds you can use the `overwrite` field in the config which is a table.
+To look at the default keybinds and also the structure of this table you should refer to
+[this file](https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/keybinds.lua).
+To disable a keybinding set it's value in the table to `nil` or an empty table (`{}`).
+To add a new keybinding provide a function. This can either be the first value in a table
+where you can also provide an `opts` field or just the value of the field directly.
+
+If you use a string that will be interpreted as an argument to the neorg keybind command
+`:Neorg keybind <mode> <the command string><CR>`.
 ```lua
 ["core.keybinds"] = {
     config = {
-        hook = function(keybinds)
-            -- Unmaps any Neorg key from the `norg` mode
-            keybinds.unmap("norg", "n", "gtd")
-            keybinds.unmap("norg", "n", keybinds.leader .. "nn")
+        overwrite = {
+            norg = {
+                n = {
+                    -- Disable <M-CR> keybinding
+                    ["<M-CR>"] = nil,
 
-            -- Binds the `gtd` key in `norg` mode to execute `:echo 'Hello'`
-            keybinds.map("norg", "n", "gtd", "<cmd>echo 'Hello!'<CR>")
-
-            -- Remap unbinds the current key then rebinds it to have a different action
-            -- associated with it.
-            -- The following is the equivalent of the `unmap` and `map` calls you saw above:
-            keybinds.remap("norg", "n", "gtd", "<cmd>echo 'Hello!'<CR>")
-
-            -- Sometimes you may simply want to rebind the Neorg action something is bound to
-            -- versus remapping the entire keybind. This remap is essentially the same as if you
-            -- did `keybinds.remap("norg", "n", "<C-Space>, "<cmd>Neorg keybind norg core.qol.todo_items.todo.task_done<CR>")
-            keybinds.remap_event("norg", "n", "<C-Space>", "core.qol.todo_items.todo.task_done")
-
-            -- Want to move one keybind into the other? `remap_key` moves the data of the
-            -- first keybind to the second keybind, then unbinds the first keybind.
-            keybinds.remap_key("norg", "n", "<C-Space>", "<Leader>t")
-        end,
+                    -- Create a new keybinding to tangle the current file
+                    [",TC"] = {
+                        function()
+                            vim.cmd.Neorg({ args = { "tangle", "current-file" } })
+                        end,
+                        opts = { desc = "Tangle current file" },
+                    },
+                }
+            }
+        }
     }
 }
 ```
@@ -93,6 +89,7 @@ module.config.public = {
     -- By default, this is the local leader key, which you must bind manually.
     neorg_leader = "<LocalLeader>",
 
+    -- Keybinds which will be overwritten
     overwrite = {},
 
     -- The keybind preset to use.
@@ -178,6 +175,9 @@ module.public = {
                     for mode, keys in pairs(neovim_modes) do
                         for key, data in pairs(keys) do
                             local ok, error = pcall(function()
+                                if data == nil or #data == 0 then
+                                    return
+                                end
                                 local rhs
                                 if type(data) == "function" then
                                     rhs = data

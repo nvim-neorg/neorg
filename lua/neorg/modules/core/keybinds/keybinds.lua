@@ -15,7 +15,6 @@ module.config.public = {
                         -- Marks the task under the cursor as "undone"
                         -- ^mark Task as Undone
                         [leader .. "tu"] = {
-
                             "core.qol.todo_items.todo.task_undone",
                             opts = { desc = "Mark as Undone" },
                         },
@@ -23,7 +22,6 @@ module.config.public = {
                         -- Marks the task under the cursor as "pending"
                         -- ^mark Task as Pending
                         [leader .. "tp"] = {
-
                             "core.qol.todo_items.todo.task_pending",
                             opts = { desc = "Mark as Pending" },
                         },
@@ -35,7 +33,6 @@ module.config.public = {
                         -- Marks the task under the cursor as "on_hold"
                         -- ^mark Task as on Hold
                         [leader .. "th"] = {
-
                             "core.qol.todo_items.todo.task_on_hold",
                             opts = { desc = "Mark as On Hold" },
                         },
@@ -43,7 +40,6 @@ module.config.public = {
                         -- Marks the task under the cursor as "cancelled"
                         -- ^mark Task as Cancelled
                         [leader .. "tc"] = {
-
                             "core.qol.todo_items.todo.task_cancelled",
                             opts = { desc = "Mark as Cancelled" },
                         },
@@ -51,7 +47,6 @@ module.config.public = {
                         -- Marks the task under the cursor as "recurring"
                         -- ^mark Task as Recurring
                         [leader .. "tr"] = {
-
                             "core.qol.todo_items.todo.task_recurring",
                             opts = { desc = "Mark as Recurring" },
                         },
@@ -59,7 +54,6 @@ module.config.public = {
                         -- Marks the task under the cursor as "important"
                         -- ^mark Task as Important
                         [leader .. "ti"] = {
-
                             "core.qol.todo_items.todo.task_important",
                             opts = { desc = "Mark as Important" },
                         },
@@ -67,7 +61,6 @@ module.config.public = {
                         -- Marks the task under the cursor as "ambiguous"
                         -- ^mark Task as ambiguous
                         [leader .. "ta"] = {
-
                             "core.qol.todo_items.todo.task_ambiguous",
                             opts = { desc = "Mark as Ambigous" },
                         },
@@ -87,7 +80,6 @@ module.config.public = {
 
                         -- Same as `<CR>`, except opens the destination in a vertical split
                         ["<M-CR>"] = {
-
                             "core.esupports.hop.hop-link",
                             "vsplit",
                             opts = { desc = "Jump to Link (Vertical Split)" },
@@ -100,12 +92,10 @@ module.config.public = {
                         ["<<"] = { "core.promo.demote", "nested", opts = { desc = "Demote Object (Recursively)" } },
 
                         [leader .. "lt"] = {
-
                             "core.pivot.toggle-list-type",
                             opts = { desc = "Toggle (Un)ordered List" },
                         },
                         [leader .. "li"] = {
-
                             "core.pivot.invert-list-type",
                             opts = { desc = "Invert (Un)ordered List" },
                         },
