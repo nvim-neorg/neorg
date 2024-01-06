@@ -2,6 +2,8 @@
 --- Defines user callbacks - ways for the user to directly interact with Neorg and respon on certain events.
 --- @brief ]]
 
+--- @module "neorg.core.modules"
+
 --- @class neorg.callbacks
 local callbacks = {
     ---@type table<string, { [1]: fun(event: neorg.event, content: table|any), [2]?: fun(event: neorg.event): boolean }>
