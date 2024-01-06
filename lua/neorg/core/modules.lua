@@ -43,7 +43,7 @@ local utils = require("neorg.core.utils")
 --- @field public private? table A convenience table to place all of your private variables that you don't want to expose.
 --- @field public public? neorg.module.public Every module can expose any set of information it sees fit through this field. All functions and variables declared in this table will be visiable to any other module loaded.
 --- @field required? table<string, neorg.module.public> Contains the public tables of all modules that were required via the `requires` array provided in the `setup()` function of this module.
---- @field setup? fun(): neorg.module.setup Function that is invoked before any other loading occurs. Should perform preliminary startup tasks.
+--- @field setup? fun(): neorg.module.setup? Function that is invoked before any other loading occurs. Should perform preliminary startup tasks.
 --- @field replaced? boolean If `true`, this means the module is a replacement for a core module. This flag is set automatically whenever `setup().replaces` is set to a value.
 --- @field on_event fun(event: neorg.event) A callback that is invoked any time an event the module has subscribed to has fired.
 
