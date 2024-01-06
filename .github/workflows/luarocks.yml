@@ -25,3 +25,7 @@ jobs:
         with:
           version: ${{ env.LUAROCKS_VERSION }}
           test_interpreters: null
+          dependencies: |
+            nvim-nio
+            norgopolis-client.lua
+            norgopolis-server.lua
