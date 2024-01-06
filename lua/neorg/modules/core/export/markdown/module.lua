@@ -155,7 +155,7 @@ module.load = function()
         }
     end
 
-    module.config.public.extensions = lib.to_keys(module.config.public.extensions)
+    module.config.public.extensions = lib.to_keys(module.config.public.extensions, {})
 end
 
 module.config.public = {
