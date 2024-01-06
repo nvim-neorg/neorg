@@ -381,6 +381,10 @@ module.public = {
                                         local opts = data.opts or {}
                                         opts.buffer = buf
 
+                                        if opts.desc and not vim.startswith(opts.desc, "[neorg]") then
+                                            opts.desc = "[neorg] " .. opts.desc
+                                        end
+
                                         vim.keymap.set(mode, key, data.command, opts)
                                     end
                                 end)
