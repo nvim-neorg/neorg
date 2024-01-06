@@ -181,11 +181,13 @@ module.public = {
 
         -- Broadcast the workspace_changed event with all the necessary information
         modules.broadcast_event(
-            assert(modules.create_event(
-                module,
-                "core.dirman.events.workspace_changed",
-                { old = current_ws, new = new_workspace }
-            ))
+            assert(
+                modules.create_event(
+                    module,
+                    "core.dirman.events.workspace_changed",
+                    { old = current_ws, new = new_workspace }
+                )
+            )
         )
 
         return true
@@ -204,7 +206,9 @@ module.public = {
         module.config.public.workspaces[workspace_name] = workspace_path
         -- Broadcast the workspace_added event with the newly added workspace as the content
         modules.broadcast_event(
-            assert(modules.create_event(module, "core.dirman.events.workspace_added", { workspace_name, workspace_path }))
+            assert(
+                modules.create_event(module, "core.dirman.events.workspace_added", { workspace_name, workspace_path })
+            )
         )
 
         -- Sync autocompletions so the user can see the new workspace
