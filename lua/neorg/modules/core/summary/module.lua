@@ -185,6 +185,105 @@ module.load = function()
         headings = function()
             return function() end
         end,
+        current_dir = function()
+            return function(_, ws_root, heading_level, include_categories)
+                local categories = vim.defaulttable()
+
+                if vim.tbl_isempty(include_categories) then
+                    include_categories = nil
+                end
+
+                -- get current directory path
+                local file_path = vim.api.nvim_buf_get_name(0)
+                local path = vim.fs.dirname(file_path)
+
+                local scanned_dir = vim.fs.dir(path, { depth = 1 })
+                local files = {}
+
+                -- get files in current directory
+                for name, type in scanned_dir do
+                    if type == "file" and vim.endswith(name, ".norg") then
+                        table.insert(files, path .. "/" .. name)
+                    end
+                    -- if directory, add it straight to categories
+                    if type == "directory" then
+                        local child = path .. "/" .. name .. "/" .. "index.norg"
+                        local f = io.open(child, "r")
+                        if f ~= nil then
+                            f:close()
+                            table.insert(categories["Directories"], {
+                                title = tostring(name),
+                                norgname = name .. "/index",
+                            })
+                        end
+                    end
+                end
+
+                utils.read_files(files, function(bufnr, filename)
+                    local metadata = ts.get_document_metadata(bufnr)
+
+                    if not metadata then
+                        metadata = {}
+                    end
+
+                    local norgname = filename:match("(.+)%.norg$") -- strip extension for link destinations
+                    if not norgname then
+                        norgname = filename
+                    end
+                    norgname = string.sub(norgname, string.len(ws_root) + 1)
+
+                    -- normalise categories into a list. Could be vim.NIL, a number, a string or a list ...
+                    if not metadata.categories or metadata.categories == vim.NIL then
+                        metadata.categories = { "Uncategorised" }
+                    elseif not vim.tbl_islist(metadata.categories) then
+                        metadata.categories = { tostring(metadata.categories) }
+                    end
+                    for _, category in ipairs(metadata.categories) do
+                        if not metadata.title then
+                            metadata.title = get_first_heading_title(bufnr)
+                            if not metadata.title then
+                                metadata.title = vim.fs.basename(norgname)
+                            end
+                        end
+
+                        if metadata.description == vim.NIL then
+                            metadata.description = nil
+                        end
+
+                        if not include_categories or vim.tbl_contains(include_categories, category:lower()) then
+                            table.insert(categories[lib.title(category)], {
+                                title = tostring(metadata.title),
+                                norgname = norgname,
+                                description = metadata.description,
+                            })
+                        end
+                    end
+                end)
+                local result = {}
+                local prefix = string.rep("*", heading_level)
+
+                for category, data in vim.spairs(categories) do
+                    table.insert(result, prefix .. " " .. category)
+
+                    for _, datapoint in ipairs(data) do
+                        table.insert(
+                            result,
+                            table.concat({
+                                string.rep(" ", heading_level),
+                                " - {:$",
+                                datapoint.norgname,
+                                ":}[",
+                                lib.title(datapoint.title),
+                                "]",
+                            })
+                            .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
+                        )
+                    end
+                end
+
+                return result
+            end
+        end,
         by_path = function()
             return function(files, ws_root, heading_level, include_categories)
                 local categories = vim.defaulttable()
