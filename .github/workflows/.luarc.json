@@ -1,12 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
-  "runtime.version": "LuaJIT",
-  "runtime.path": [
+  "Lua.runtime.version": "LuaJIT",
+  "Lua.runtime.path": [
     "lua/?.lua",
     "lua/?/init.lua"
   ],
   "Lua.workspace.library": [
-    "/github/workspace/deps/neodev.nvim/types/stable"
+    "/home/runner/work/neorg/neorg/deps/neodev.nvim/types/stable"
   ],
   "Lua.diagnostics.libraryFiles": "Disable",
   "Lua.workspace.checkThirdParty": "Disable"
