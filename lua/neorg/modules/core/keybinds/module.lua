@@ -8,10 +8,6 @@ The keybind module acts as both an interface to the user and as an interface to 
 External modules can ask `core.keybinds` to reserve a specific keybind name, after which
 `core.keybinds` passes control to you (the user) to specify what key this should be bound to.
 
-Because of this client/server model, you must define your own `hook` function, which can
-set/overwrite several keybindings to your personal preference. Below is some information
-on how to disable keybinds and how to set up a keybind hook.
-
 ### Disabling Default Keybinds
 By default when you load the `core.keybinds` module all keybinds will be enabled.
 If you would like to change this, be sure to set `default_keybinds` to `false`:
@@ -23,35 +19,35 @@ If you would like to change this, be sure to set `default_keybinds` to `false`:
 }
 ```
 
-### Setting Up a Keybind Hook
-To change some keybinds, you must set up a keybind hook. Below is an example
-on how to do so, alongside a bunch of functions exposed to you that you can invoke
-to finely control what gets set and where:
+### Changing keybinds
+To change keybinds you can use the `overwrite` field in the config which is a table.
+To look at the default keybinds and also the structure of this table you should refer to
+[this file](https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/keybinds.lua).
+To disable a keybinding set it's value in the table to `nil` or an empty table (`{}`).
+To add a new keybinding provide a function. This can either be the first value in a table
+where you can also provide an `opts` field or just the value of the field directly.
+
+If you use a string that will be interpreted as an argument to the neorg keybind command
+`:Neorg keybind <mode> <the command string><CR>`.
 ```lua
 ["core.keybinds"] = {
     config = {
-        hook = function(keybinds)
-            -- Unmaps any Neorg key from the `norg` mode
-            keybinds.unmap("norg", "n", "gtd")
-            keybinds.unmap("norg", "n", keybinds.leader .. "nn")
+        overwrite = {
+            norg = {
+                n = {
+                    -- Disable <M-CR> keybinding
+                    ["<M-CR>"] = nil,
 
-            -- Binds the `gtd` key in `norg` mode to execute `:echo 'Hello'`
-            keybinds.map("norg", "n", "gtd", "<cmd>echo 'Hello!'<CR>")
-
-            -- Remap unbinds the current key then rebinds it to have a different action
-            -- associated with it.
-            -- The following is the equivalent of the `unmap` and `map` calls you saw above:
-            keybinds.remap("norg", "n", "gtd", "<cmd>echo 'Hello!'<CR>")
-
-            -- Sometimes you may simply want to rebind the Neorg action something is bound to
-            -- versus remapping the entire keybind. This remap is essentially the same as if you
-            -- did `keybinds.remap("norg", "n", "<C-Space>, "<cmd>Neorg keybind norg core.qol.todo_items.todo.task_done<CR>")
-            keybinds.remap_event("norg", "n", "<C-Space>", "core.qol.todo_items.todo.task_done")
-
-            -- Want to move one keybind into the other? `remap_key` moves the data of the
-            -- first keybind to the second keybind, then unbinds the first keybind.
-            keybinds.remap_key("norg", "n", "<C-Space>", "<Leader>t")
-        end,
+                    -- Create a new keybinding to tangle the current file
+                    [",TC"] = {
+                        function()
+                            vim.cmd.Neorg({ args = { "tangle", "current-file" } })
+                        end,
+                        opts = { desc = "Tangle current file" },
+                    },
+                }
+            }
+        }
     }
 }
 ```
@@ -72,14 +68,15 @@ end
 module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufEnter")
     module.required["core.autocommands"].enable_autocommand("BufLeave")
-
-    if module.config.public.hook then
-        neorg.callbacks.on_event( ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-            "core.keybinds.events.enable_keybinds",
-            function(_, keybinds)
-                module.config.public.hook(keybinds)
-            end
-        )
+    if
+        module.config.public.default_keybinds
+        and module.imported["core.keybinds.keybinds"].config.public.keybind_presets[module.config.public.keybind_preset]
+    then
+        module.private.keybinds =
+            module.imported["core.keybinds.keybinds"].config.public.keybind_presets[module.config.public.keybind_preset]({
+                leader = module.config.public.neorg_leader,
+                overwrite = module.config.public.overwrite,
+            })
     end
 end
 
@@ -92,9 +89,8 @@ module.config.public = {
     -- By default, this is the local leader key, which you must bind manually.
     neorg_leader = "<LocalLeader>",
 
-    -- Function to be invoked that allows the user to change their keybinds.
-    -- See the [section on setting up a keybind hook](#setting-up-a-keybind-hook) for more details.
-    hook = nil,
+    -- Keybinds which will be overwritten
+    overwrite = {},
 
     -- The keybind preset to use.
     --
@@ -170,238 +166,67 @@ module.public = {
     bind_all = function(buf, action, for_mode)
         local current_mode = for_mode or module.required["core.mode"].get_mode()
 
-        -- Keep track of the keys the user may want to bind
-        local bound_keys = {}
-
-        -- Broadcast the enable_keybinds event to any user that might have registered a User Callback for it
-        local payload
-
-        payload = {
-
-            --- Maps a key to a specific Neorg mode
-            ---@param neorg_mode string #The Neorg mode to bind to
-            ---@param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
-            ---@param key string #The lhs value from `:h vim.keymap.set`
-            ---@param command string|function #The rhs value from `:h vim.keymap.set`
-            ---@param opts table #The table value from `:h vim.keymap.set`
-            map = function(neorg_mode, mode, key, command, opts)
-                if neorg_mode ~= "all" and current_mode ~= neorg_mode then
-                    return
-                end
-
-                bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
-                bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
-                bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] or {}
-
-                bound_keys[neorg_mode][mode][key] = {
-                    command = command,
-                    opts = opts,
-                }
-            end,
-
-            --- Maps a key to a specific Neorg keybind.
-            --  `map()` binds to any rhs value, whilst `map_event()` is essentially a wrapper
-            --  for <cmd>Neorg keybind `neorg_mode` `expr`<CR>
-            ---@param neorg_mode string #The Neorg mode to bind to
-            ---@param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
-            ---@param key string #The lhs value from `:h vim.keymap.set`
-            ---@param expr string #The Neorg event to bind to (e.g. `core.dirman.new.note`)
-            ---@param opts table #The table value from `:h vim.keymap.set`
-            map_event = function(neorg_mode, mode, key, expr, opts)
-                payload.map(neorg_mode, mode, key, "<cmd>Neorg keybind " .. neorg_mode .. " " .. expr .. "<CR>", opts)
-            end,
-
-            --- Unmaps any keybind from any Neorg mode
-            ---@param neorg_mode string #The Neorg mode to remove the key from
-            ---@param mode string #The target Neovim mode
-            ---@param key string #The key itself to unmap
-            unmap = function(neorg_mode, mode, key)
-                if neorg_mode == "all" then
-                    for _, norg_mode in ipairs(module.required["core.mode"].get_modes()) do
-                        payload.unmap(norg_mode, mode, key)
-                    end
-                end
-
-                bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
-                bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
-
-                bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] and nil
-            end,
-
-            remap = function(neorg_mode, mode, key, new_rhs)
-                if neorg_mode ~= "all" and current_mode ~= neorg_mode then
-                    return
-                end
-
-                bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
-                bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
-                bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] or {}
-
-                local opts = bound_keys[neorg_mode][mode][key].opts
-
-                payload.map(neorg_mode, mode, key, new_rhs, opts)
-            end,
-
-            remap_event = function(neorg_mode, mode, key, new_event)
-                if neorg_mode ~= "all" and current_mode ~= neorg_mode then
-                    return
-                end
-
-                bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
-                bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
-                bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] or {}
-
-                local opts = bound_keys[neorg_mode][mode][key].opts
-
-                payload.map(
-                    neorg_mode,
-                    mode,
-                    key,
-                    "<cmd>Neorg keybind " .. neorg_mode .. " " .. new_event .. "<CR>",
-                    opts
-                )
-            end,
-
-            remap_key = function(neorg_mode, mode, old_key, new_key)
-                if neorg_mode ~= "all" and current_mode ~= neorg_mode then
-                    return
-                end
-
-                bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
-                bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
-                bound_keys[neorg_mode][mode][old_key] = bound_keys[neorg_mode][mode][old_key] or {}
-
-                local command = bound_keys[neorg_mode][mode][old_key].command
-                local opts = bound_keys[neorg_mode][mode][old_key].opts
-
-                payload.unmap(neorg_mode, mode, old_key)
-                payload.map(neorg_mode, mode, new_key, command, opts)
-            end,
-
-            --- An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
-            ---@param mode string #The neorg mode to bind the keys on
-            ---@param keys any #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-            ---@param opts any #table) - the same parameters that should be passed into vim.keymap.set('s opts parameter ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-            map_to_mode = function(mode, keys, opts)
-                -- If the keys table is empty then don't bother doing any parsing
-                if vim.tbl_isempty(keys) then
-                    return
-                end
-
-                -- If the current mode matches the desired mode then
-                if mode == "all" or (for_mode or module.required["core.mode"].get_mode()) == mode then
-                    -- Loop through all the keybinds for a certain mode
-                    for neovim_mode, keymaps in pairs(keys) do
-                        -- Loop though all the keymaps in that mode
-                        for _, keymap in ipairs(keymaps) do
-                            -- Map the keybind and keep track of it using the map() function
-                            payload.map(mode, neovim_mode, keymap[1], keymap[2], keymap[3] or opts)
-                        end
-                    end
-                end
-            end,
-
-            --- An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
-            ---@param mode string #The neorg mode to bind the keys on
-            ---@param keys any #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-            ---@param opts any #table) - the same parameters that should be passed into vim.keymap.set('s opts parameter ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-            map_event_to_mode = function(mode, keys, opts)
-                -- If the keys table is empty then don't bother doing any parsing
-                if vim.tbl_isempty(keys) then
-                    return
-                end
-
-                -- If the current mode matches the desired mode then
-                if mode == "all" or (for_mode or module.required["core.mode"].get_mode()) == mode then
-                    -- Loop through all the keybinds for a certain mode
-                    for neovim_mode, keymaps in pairs(keys) do
-                        -- Loop though all the keymaps in that mode
-                        for _, keymap in ipairs(keymaps) do
-                            -- Map the keybind and keep track of it using the map() function
-                            payload.map(mode, neovim_mode, keymap[1], function()
-                                vim.api.nvim_cmd({
-                                    cmd = "Neorg",
-                                    args = vim.list_extend({
-                                        "keybind",
-                                        mode,
-                                    }, vim.list_slice(keymap, 2)),
-                                }, {})
-                            end, vim.tbl_deep_extend("force", opts, keymap.opts or {}))
-                        end
-                    end
-                end
-            end,
-
-            -- Include the current Neorg mode and leader in the contents
-            mode = current_mode,
-            leader = module.config.public.neorg_leader,
-        }
-
-        local function generate_default_functions(cb, ...)
-            local funcs = { ... }
-
-            for _, func in ipairs(funcs) do
-                local name, to_exec = cb(func, payload[func])
-
-                payload[name] = to_exec
-            end
-        end
-
-        generate_default_functions(function(name, func)
-            return name .. "d", function(...)
-                func("norg", ...)
-            end
-        end, "map", "map_event", "unmap", "remap", "remap_key", "remap_event")
-
         if
             module.config.public.default_keybinds
             and module.imported["core.keybinds.keybinds"].config.public.keybind_presets[module.config.public.keybind_preset]
         then
-            module.imported["core.keybinds.keybinds"].config.public.keybind_presets[module.config.public.keybind_preset](
-                payload
-            )
-        end
-
-        for _, callback in pairs(module.private.requested_keys) do
-            callback(payload)
-        end
-
-        -- Broadcast our event with the desired payload!
-        modules.broadcast_event(
-            modules.create_event(module, "core.keybinds.events.enable_keybinds", payload),
-            function()
-                for neorg_mode, neovim_modes in pairs(bound_keys) do
-                    if neorg_mode == "all" or neorg_mode == current_mode then
-                        for mode, keys in pairs(neovim_modes) do
-                            for key, data in pairs(keys) do
-                                local ok, error = pcall(function()
-                                    if action then
-                                        action(buf, mode, key, data.command, data.opts or {})
-                                    else
-                                        local opts = data.opts or {}
-                                        opts.buffer = buf
-
-                                        vim.keymap.set(mode, key, data.command, opts)
-                                    end
-                                end)
-
-                                if not ok then
-                                    log.trace(
-                                        string.format(
-                                            "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s",
-                                            key,
-                                            mode,
-                                            current_mode,
-                                            error
-                                        )
-                                    )
+            for neorg_mode, neovim_modes in pairs(module.private.keybinds) do
+                if neorg_mode == "all" or neorg_mode == current_mode then
+                    for mode, keys in pairs(neovim_modes) do
+                        for key, data in pairs(keys) do
+                            local ok, error = pcall(function()
+                                if data == nil or #data == 0 then
+                                    return
                                 end
+                                local rhs
+                                if type(data) == "function" then
+                                    rhs = data
+                                elseif type(data) == "string" then
+                                    rhs = data
+                                elseif type(data) == "table" then
+                                    rhs = data[1]
+                                end
+                                if type(rhs) == "string" and type(data) == "table" then
+                                    rhs = function()
+                                        vim.api.nvim_cmd({
+                                            cmd = "Neorg",
+                                            args = vim.list_extend({
+                                                "keybind",
+                                                neorg_mode,
+                                            }, vim.list_slice(data, 1)),
+                                        }, {})
+                                    end
+                                end
+                                if action then
+                                    action(buf, mode, key, rhs, data.opts or {})
+                                else
+                                    local opts = data.opts or {}
+                                    opts.buffer = buf
+
+                                    if opts.desc and not vim.startswith(opts.desc, "[neorg]") then
+                                        opts.desc = "[neorg] " .. opts.desc
+                                    end
+
+                                    vim.keymap.set(mode, key, rhs, opts)
+                                end
+                            end)
+
+                            if not ok then
+                                log.trace(
+                                    string.format(
+                                        "An error occurred when trying to bind key '%s' in mode '%s' in neorg mode '%s' - %s",
+                                        key,
+                                        mode,
+                                        current_mode,
+                                        error
+                                    )
+                                )
                             end
                         end
                     end
                 end
             end
-        )
+        end
     end,
 
     --- Updates the list of known modes and keybinds for easy autocompletion. Invoked automatically during neorg_post_load().
@@ -414,14 +239,10 @@ module.public = {
         -- Update core.neorgcmd's internal tables
         module.required["core.neorgcmd"].add_commands_from_table(module.public.neorg_commands)
     end,
-
-    request_keys = function(module_name, callback)
-        module.private.requested_keys[module_name] = callback
-    end,
 }
 
 module.private = {
-    requested_keys = {},
+    keybinds = {},
 }
 
 module.neorg_post_load = module.public.sync
