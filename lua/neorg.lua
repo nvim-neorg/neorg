@@ -6,8 +6,9 @@ local neorg = require("neorg.core")
 local config, log, modules = neorg.config, neorg.log, neorg.modules
 
 --- Initializes Neorg. Parses the supplied user configuration, initializes all selected modules and adds filetype checking for `.norg`.
---- @param cfg table A table that reflects the structure of `config.user_config`.
+--- @param cfg neorg.configuration.user A table that reflects the structure of `config.user_config`.
 --- @see config.user_config
+--- @see neorg.configuration.user
 function neorg.setup(cfg)
     config.user_config = vim.tbl_deep_extend("force", config.user_config, cfg or {})
 
@@ -113,6 +114,9 @@ function neorg.org_file_entered(manual, arguments)
         referrer = "core",
         line_content = "",
         broadcast = true,
+        buffer = vim.api.nvim_get_current_buf(),
+        window = vim.api.nvim_get_current_win(),
+        mode = vim.fn.mode(),
     })
 
     -- Sometimes external plugins prefer hooking in to an autocommand
