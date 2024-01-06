@@ -203,7 +203,7 @@ module.load = function()
                 -- get files in current directory
                 for name, type in scanned_dir do
                     if type == "file" and vim.endswith(name, ".norg") then
-                        table.insert(files, path .. "/" .. name)
+                        table.insert(files, "/" .. path .. "/" .. name)
                     end
                     -- if directory, add it straight to categories
                     if type == "directory" then
@@ -213,7 +213,7 @@ module.load = function()
                             f:close()
                             table.insert(categories["Directories"], {
                                 title = tostring(name),
-                                norgname = name .. "/index",
+                                norgname = "/" .. name .. "/index",
                             })
                         end
                     end
