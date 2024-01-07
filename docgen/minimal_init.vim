@@ -26,6 +26,6 @@ package.path = "../nvim-treesitter/lua/?.lua;" .. package.path
 
 vim.cmd.TSInstallSync({
     bang = true,
-    args = { "lua" },
+    args = { "lua", "norg" },
 })
 EOF

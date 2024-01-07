@@ -66,21 +66,28 @@ for _, file in ipairs(docgen.aggregate_module_files()) do
     local ok, parsed_module = pcall(dofile, fullpath)
 
     if not ok then
-        vim.notify("Error when sourcing module '" .. file .. ": " .. parsed_module)
+        vim.notify("Error when sourcing module '" .. file .. "': " .. parsed_module)
         goto continue
     end
 
     -- Make Neorg load the module, which also evaluates dependencies
-    modules.load_module(parsed_module.name)
+    local _ok, err = pcall(modules.load_module, parsed_module.name)
+
+    if not _ok then
+        vim.notify("Error when loading module '" .. file .. "': " .. err)
+        goto continue
+    end
 
     -- Retrieve the module from the `loaded_modules` table.
     parsed_module = modules.loaded_modules[parsed_module.name]
 
-    doc_modules[parsed_module.name] = {
-        top_comment_data = top_comment_data,
-        buffer = buffer,
-        parsed = parsed_module,
-    }
+    if parsed_module then
+        doc_modules[parsed_module.name] = {
+            top_comment_data = top_comment_data,
+            buffer = buffer,
+            parsed = parsed_module,
+        }
+    end
 
     ::continue::
 end
