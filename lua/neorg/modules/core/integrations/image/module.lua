@@ -1,3 +1,10 @@
+--[[
+    file: Image
+    title: Images Directly within Neovim.
+    description: The `image` module uses various terminal backends to display images within your Neovim instance.
+    summary: Module for interacting with and managing images in the terminal.
+--]]
+
 local neorg = require("neorg.core")
 local module = neorg.modules.create("core.integrations.image")
 
