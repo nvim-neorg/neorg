@@ -1,16 +1,19 @@
---[[
-    Neorg User Callbacks File
-    User callbacks are ways for the user to directly interact with Neorg and respond on certain events.
---]]
+--- @brief [[
+--- Defines user callbacks - ways for the user to directly interact with Neorg and respon on certain events.
+--- @brief ]]
 
+--- @module "neorg.core.modules"
+
+--- @class neorg.callbacks
 local callbacks = {
+    ---@type table<string, { [1]: fun(event: neorg.event, content: table|any), [2]?: fun(event: neorg.event): boolean }>
     callback_list = {},
 }
 
---- Triggers a new callback to execute whenever an event of the requested type is executed
----@param event_name string #The full path to the event we want to listen on
----@param callback fun(event, content) #The function to call whenever our event gets triggered
----@param content_filter fun(event) #A filtering function to test if a certain event meets our expectations
+--- Triggers a new callback to execute whenever an event of the requested type is executed.
+--- @param event_name string The full path to the event we want to listen on.
+--- @param callback fun(event: neorg.event, content: table|any) The function to call whenever our event gets triggered.
+--- @param content_filter fun(event: neorg.event): boolean # A filtering function to test if a certain event meets our expectations.
 function callbacks.on_event(event_name, callback, content_filter)
     -- If the table doesn't exist then create it
     callbacks.callback_list[event_name] = callbacks.callback_list[event_name] or {}
@@ -18,8 +21,9 @@ function callbacks.on_event(event_name, callback, content_filter)
     table.insert(callbacks.callback_list[event_name], { callback, content_filter })
 end
 
---- Used internally by Neorg to call all callbacks with an event
----@param event table #An event as returned by modules.create_event()
+--- Used internally by Neorg to call all callbacks with an event.
+--- @param event neorg.event An event as returned by `modules.create_event()`
+--- @see modules.create_event
 function callbacks.handle_callbacks(event)
     -- Query the list of registered callbacks
     local callback_entry = callbacks.callback_list[event.type]

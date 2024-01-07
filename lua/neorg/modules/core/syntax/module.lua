@@ -225,7 +225,11 @@ module.public = {
                     module.public.remove_syntax(group, snip)
                 end
 
-                local ok, result = pcall(vim.api.nvim_exec, has_syntax, true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>: `nvim_exec` not found
+                --- @type boolean, string|{ output: string }
+                local ok, result = pcall(vim.api.nvim_exec2, has_syntax, { output = true })
+
+                result = result.output or result
+
                 local count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
                 local empty_result = 0
                 -- look to see if the textGroup is actually empty
@@ -250,7 +254,7 @@ module.public = {
                 then
                     -- absorb all syntax stuff
                     -- potentially needs to be expanded upon as bad values come in
-                    local is_keyword = vim.api.nvim_buf_get_option(buf, "iskeyword")
+                    local is_keyword = vim.bo[buf].iskeyword
                     local current_syntax = ""
                     local foldmethod = vim.o.foldmethod
                     local foldexpr = vim.o.foldexpr
@@ -272,6 +276,7 @@ module.public = {
                             if lang_name == syntax then
                                 if empty_result == 0 then
                                     -- get the file name for the syntax file
+                                    --- @type string|string[]
                                     local file =
                                         vim.api.nvim_get_runtime_file(string.format("syntax/%s.vim", syntax), false)
                                     if file == nil then
@@ -280,14 +285,23 @@ module.public = {
                                             false
                                         )
                                     end
-                                    file = file[1] ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+
+                                    file = file[1]
+
                                     local command = string.format("syntax include @%s %s", group, file)
                                     vim.cmd(command)
 
                                     -- make sure that group has things when needed
                                     local regex = group .. "%s+cluster=(.+)"
-                                    local _, found_cluster =
-                                        pcall(vim.api.nvim_exec, string.format("syntax list @%s", group), true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>: `nvim_exec` not found
+                                    --- @type boolean, string|{ output: string }
+                                    local _, found_cluster = pcall(
+                                        vim.api.nvim_exec2,
+                                        string.format("syntax list @%s", group),
+                                        { output = true }
+                                    )
+
+                                    found_cluster = found_cluster.output or found_cluster
+
                                     local actual_cluster
                                     for match in found_cluster:gmatch(regex) do
                                         actual_cluster = match
@@ -311,7 +325,7 @@ module.public = {
                     end
 
                     -- reset some values after including
-                    vim.api.nvim_buf_set_option(buf, "iskeyword", is_keyword)
+                    vim.bo[buf].iskeyword = is_keyword
                     if current_syntax ~= "" or current_syntax ~= nil then
                         vim.b.current_syntax = current_syntax
                     else
@@ -319,7 +333,9 @@ module.public = {
                     end
 
                     has_syntax = string.format("syntax list %s", snip)
-                    _, result = pcall(vim.api.nvim_exec, has_syntax, true) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>: `nvim_exec` not found
+                    --- @type boolean, string|{ output: string }
+                    _, result = pcall(vim.api.nvim_exec2, has_syntax, { output = true })
+                    result = result.output or result
                     count = select(2, result:gsub("\n", "\n")) -- get length of result from syn list
 
                     --[[
@@ -533,7 +549,7 @@ module.on_event = function(event)
 
             local timer = vim.loop.new_timer()
 
-            timer:start( ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            timer:start(
                 module.config.public.performance.timeout,
                 module.config.public.performance.interval,
                 vim.schedule_wrap(function()
@@ -542,7 +558,7 @@ module.on_event = function(event)
                     local block_top_valid = block_top * module.config.public.performance.increment - 1 < line_count
 
                     if not vim.api.nvim_buf_is_loaded(buf) or (not block_bottom_valid and not block_top_valid) then
-                        timer:stop() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                        timer:stop()
                         return
                     end
 

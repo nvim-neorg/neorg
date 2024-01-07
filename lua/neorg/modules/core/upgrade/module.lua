@@ -45,6 +45,8 @@ module.load = function()
     modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             upgrade = {
+                min_args = 1,
+                max_args = 1,
                 subcommands = {
                     ["current-file"] = {
                         name = "core.upgrade.current-file",

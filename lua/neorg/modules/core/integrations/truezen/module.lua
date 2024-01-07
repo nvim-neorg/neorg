@@ -12,7 +12,7 @@ local modules = neorg.modules
 
 local module = modules.create("core.integrations.truezen")
 
-module.load = function()
+module.setup = function()
     local success, truezen = pcall(require, "true-zen.main")
 
     if not success then

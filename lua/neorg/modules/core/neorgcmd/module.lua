@@ -91,7 +91,7 @@ module.examples = {
     end,
 }
 
-module.load = function() ---@diagnostic disable-line -- TODO: type error workaround <pysan3> Duplicate field `load` (L26)
+module.load = function()
     -- Define the :Neorg command with autocompletion taking any number of arguments (-nargs=*)
     -- If the user passes no arguments or too few, we'll query them for the remainder using select_next_cmd_arg.
     vim.api.nvim_create_user_command("Neorg", module.private.command_callback, {
@@ -284,10 +284,12 @@ module.private = {
         end
 
         modules.broadcast_event(
-            modules.create_event(
-                module,
-                table.concat({ "core.neorgcmd.events.", ref.name }),
-                vim.list_slice(args, argument_index + 1)
+            assert(
+                modules.create_event(
+                    module,
+                    table.concat({ "core.neorgcmd.events.", ref.name }),
+                    vim.list_slice(args, argument_index + 1)
+                )
             )
         )
     end,

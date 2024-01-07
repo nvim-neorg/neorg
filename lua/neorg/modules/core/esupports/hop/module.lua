@@ -49,6 +49,15 @@ module.config.public = {
     external_filetypes = {},
 }
 
+local function xy_le(x0, y0, x1, y1)
+    return x0 < x1 or (x0 == x1 and y0 <= y1)
+end
+
+local function range_contains(r_out, r_in)
+    return xy_le(r_out.row_start, r_out.column_start, r_in.row_start, r_in.column_start)
+        and xy_le(r_in.row_end, r_in.column_end, r_out.row_end, r_out.column_end)
+end
+
 ---@class core.esupports.hop
 module.public = {
     --- Follow link from a specific node
@@ -204,8 +213,10 @@ module.public = {
             return
         end
 
+        local link_not_found_buf = module.required["core.ui"].create_split("link-not-found")
+
         local selection = module.required["core.ui"]
-            .begin_selection(module.required["core.ui"].create_split("link-not-found"))
+            .begin_selection(link_not_found_buf)
             :listener({
                 "<Esc>",
             }, function(self)
@@ -455,12 +466,7 @@ module.public = {
 
             -- Check whether the node captured node is in bounds.
             -- There are certain rare cases where incorrect nodes would be parsed.
-            if
-                capture_node_range.row_start >= range.row_start
-                and capture_node_range.row_end <= capture_node_range.row_end
-                and capture_node_range.column_start >= range.column_start
-                and capture_node_range.column_end <= range.column_end
-            then
+            if range_contains(range, capture_node_range) then
                 local extract_node_text = lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
 
                 parsed_link_information[capture] = parsed_link_information[capture]

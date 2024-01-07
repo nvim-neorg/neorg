@@ -1,35 +1,36 @@
---[[
---    ROOT NEORG FILE
---    This file is the beginning of the entire plugin. It's here that everything fires up and starts pumping.
---]]
+--- @brief [[
+--- This file marks the beginning of the entire plugin. It's here that everything fires up and starts pumping.
+--- @brief ]]
 
--- Require the most important modules
 local neorg = require("neorg.core")
 local config, log, modules = neorg.config, neorg.log, neorg.modules
 
---- This function takes in a user config, parses it, initializes everything and launches neorg if inside a .norg or .org file
----@param cfg table #A table that reflects the structure of config.user_config
+--- @module "neorg.core.config"
+
+--- Initializes Neorg. Parses the supplied user configuration, initializes all selected modules and adds filetype checking for `.norg`.
+--- @param cfg neorg.configuration.user A table that reflects the structure of `config.user_config`.
+--- @see config.user_config
+--- @see neorg.configuration.user
 function neorg.setup(cfg)
     config.user_config = vim.tbl_deep_extend("force", config.user_config, cfg or {})
 
-    -- Create a new global instance of the neorg logger
+    -- Create a new global instance of the neorg logger.
     log.new(config.user_config.logger or log.get_default_config(), true)
 
-    -- Make the Neorg filetype detectable through `vim.filetype`.
-    -- TODO: Make a PR to Neovim to natively support the org and norg
-    -- filetypes.
+    -- TODO(vhyrro): Remove this after Neovim 0.10, where `norg` files will be
+    -- detected automatically.
     vim.filetype.add({
         extension = {
             norg = "norg",
         },
     })
 
-    -- If the file we have entered has a .norg extension
+    -- If the file we have entered has a `.norg` extension:
     if vim.fn.expand("%:e") == "norg" or not config.user_config.lazy_loading then
-        -- Then boot up the environment
+        -- Then boot up the environment.
         neorg.org_file_entered(false)
     else
-        -- Else listen for a BufReadPost event and fire up the Neorg environment
+        -- Else listen for a BufReadPost event for `.norg` files and fire up the Neorg environment.
         vim.cmd([[
             autocmd BufAdd *.norg ++once :lua require('neorg').org_file_entered(false)
             command! -nargs=* NeorgStart delcommand NeorgStart | lua require('neorg').org_file_entered(true, <q-args>)
@@ -45,8 +46,8 @@ function neorg.setup(cfg)
 end
 
 --- This function gets called upon entering a .norg file and loads all of the user-defined modules.
----@param manual boolean #If true then the environment was kickstarted manually by the user
----@param arguments string? #A list of arguments in the format of "key=value other_key=other_value"
+--- @param manual boolean If true then the environment was kickstarted manually by the user.
+--- @param arguments string? A list of arguments in the format of "key=value other_key=other_value".
 function neorg.org_file_entered(manual, arguments)
     -- Extract the module list from the user config
     local module_list = config.user_config and config.user_config.load or {}
@@ -115,6 +116,9 @@ function neorg.org_file_entered(manual, arguments)
         referrer = "core",
         line_content = "",
         broadcast = true,
+        buffer = vim.api.nvim_get_current_buf(),
+        window = vim.api.nvim_get_current_win(),
+        mode = vim.fn.mode(),
     })
 
     -- Sometimes external plugins prefer hooking in to an autocommand
@@ -124,7 +128,7 @@ function neorg.org_file_entered(manual, arguments)
 end
 
 --- Returns whether or not Neorg is loaded
----@return boolean
+--- @return boolean
 function neorg.is_loaded()
     return config.started
 end

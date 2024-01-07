@@ -75,8 +75,8 @@ To learn more about the philosophy of the project check the [philosophy](#-philo
 
 For neovim beginners who don't want to tinker with the configurations:
 
-1. Install [Meslo Nerd Font](https://github.com/ryanoasis/nerd-fonts/).
-2. Set your terminal font to "MesloLGM Nerd Font Mono".
+1. Install one of the Nerd fonts, for example Meslo Nerd Font from  [Nerd Fonts](https://www.nerdfonts.com/font-downloads).
+2. Set your terminal font to the installed Nerd Font.
 3. Make sure you have git by running `git --version`
 4. Paste the sample init.lua below to `~/.config/nvim/init.lua`
 5. Start taking notes by `nvim test.norg`
@@ -252,6 +252,7 @@ You can install it through your favorite plugin manager:
     {
       "nvim-neorg/neorg",
       build = ":Neorg sync-parsers",
+      -- tag = "*",
       dependencies = { "nvim-lua/plenary.nvim" },
       config = function()
         require("neorg").setup {
@@ -492,6 +493,6 @@ Immense thank you to all of the sponsors of my work!
 
 <div align="center">
 
-<!-- sponsors --><a href="https://github.com/vsedov"><img src="https://github.com/vsedov.png" width="60px" alt="vsedov" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/bR3iN"><img src="https://github.com/bR3iN.png" width="60px" alt="bR3iN" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/skbolton"><img src="https://github.com/skbolton.png" width="60px" alt="skbolton" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/dimas-cyriaco"><img src="https://github.com/dimas-cyriaco.png" width="60px" alt="dimas-cyriaco" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/molleweide"><img src="https://github.com/molleweide.png" width="60px" alt="molleweide" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/theherk"><img src="https://github.com/theherk.png" width="60px" alt="theherk" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/Gwenillia"><img src="https://github.com/Gwenillia.png" width="60px" alt="Gwenillia" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/purepani"><img src="https://github.com/purepani.png" width="60px" alt="purepani" /></a>&nbsp;&nbsp;&nbsp;<!-- sponsors -->
+<!-- sponsors --><a href="https://github.com/vsedov"><img src="https://github.com/vsedov.png" width="60px" alt="vsedov" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/bR3iN"><img src="https://github.com/bR3iN.png" width="60px" alt="bR3iN" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/skbolton"><img src="https://github.com/skbolton.png" width="60px" alt="skbolton" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/dimas-cyriaco"><img src="https://github.com/dimas-cyriaco.png" width="60px" alt="dimas-cyriaco" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/molleweide"><img src="https://github.com/molleweide.png" width="60px" alt="molleweide" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/theherk"><img src="https://github.com/theherk.png" width="60px" alt="theherk" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/Gwenillia"><img src="https://github.com/Gwenillia.png" width="60px" alt="Gwenillia" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/purepani"><img src="https://github.com/purepani.png" width="60px" alt="purepani" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/SNesbakk"><img src="https://github.com/SNesbakk.png" width="60px" alt="SNesbakk" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/mackieem"><img src="https://github.com/mackieem.png" width="60px" alt="mackieem" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/bmillemathias"><img src="https://github.com/bmillemathias.png" width="60px" alt="bmillemathias" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/refaelsh"><img src="https://github.com/refaelsh.png" width="60px" alt="refaelsh" /></a>&nbsp;&nbsp;&nbsp;<!-- sponsors -->
 
 </div>

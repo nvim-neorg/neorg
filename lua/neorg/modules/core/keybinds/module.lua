@@ -228,7 +228,13 @@ module.public = {
                 bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] and nil
             end,
 
-            remap = function(neorg_mode, mode, key, new_rhs)
+            --- Remaps a key to a specific Neorg mode
+            ---@param neorg_mode string #The Neorg mode to bind to
+            ---@param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
+            ---@param key string #The lhs value from `:h vim.keymap.set`
+            ---@param new_rhs string|function #The rhs value from `:h vim.keymap.set`
+            ---@param opts table #The table value from `:h vim.keymap.set`
+            remap = function(neorg_mode, mode, key, new_rhs, opts)
                 if neorg_mode ~= "all" and current_mode ~= neorg_mode then
                     return
                 end
@@ -237,12 +243,24 @@ module.public = {
                 bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
                 bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] or {}
 
-                local opts = bound_keys[neorg_mode][mode][key].opts
-
-                payload.map(neorg_mode, mode, key, new_rhs, opts)
+                payload.map(
+                    neorg_mode,
+                    mode,
+                    key,
+                    new_rhs,
+                    vim.tbl_deep_extend("force", bound_keys[neorg_mode][mode][key].opts or {}, opts or {})
+                )
             end,
 
-            remap_event = function(neorg_mode, mode, key, new_event)
+            --- Remaps a key to a specific Neorg keybind.
+            --  `remap()` binds to any rhs value, whilst `remap_event()` is essentially a wrapper
+            --  for <cmd>Neorg keybind `neorg_mode` `expr`<CR>
+            ---@param neorg_mode string #The Neorg mode to bind to
+            ---@param mode string #The Neovim mode to bind to, e.g. `n` or `i` etc.
+            ---@param key string #The lhs value from `:h vim.keymap.set`
+            ---@param new_event string #The Neorg event to bind to (e.g. `core.dirman.new.note`)
+            ---@param opts table #The table value from `:h vim.keymap.set`
+            remap_event = function(neorg_mode, mode, key, new_event, opts)
                 if neorg_mode ~= "all" and current_mode ~= neorg_mode then
                     return
                 end
@@ -250,15 +268,13 @@ module.public = {
                 bound_keys[neorg_mode] = bound_keys[neorg_mode] or {}
                 bound_keys[neorg_mode][mode] = bound_keys[neorg_mode][mode] or {}
                 bound_keys[neorg_mode][mode][key] = bound_keys[neorg_mode][mode][key] or {}
-
-                local opts = bound_keys[neorg_mode][mode][key].opts
 
                 payload.map(
                     neorg_mode,
                     mode,
                     key,
                     "<cmd>Neorg keybind " .. neorg_mode .. " " .. new_event .. "<CR>",
-                    opts
+                    vim.tbl_deep_extend("force", bound_keys[neorg_mode][mode][key].opts or {}, opts or {})
                 )
             end,
 
@@ -368,7 +384,7 @@ module.public = {
 
         -- Broadcast our event with the desired payload!
         modules.broadcast_event(
-            modules.create_event(module, "core.keybinds.events.enable_keybinds", payload),
+            assert(modules.create_event(module, "core.keybinds.events.enable_keybinds", payload)),
             function()
                 for neorg_mode, neovim_modes in pairs(bound_keys) do
                     if neorg_mode == "all" or neorg_mode == current_mode then
@@ -444,10 +460,12 @@ module.on_event = function(event)
             -- If it is defined then broadcast the event
             if module.events.defined[keybind_event_path] then
                 modules.broadcast_event(
-                    modules.create_event(
-                        module,
-                        "core.keybinds.events." .. keybind_event_path,
-                        vim.list_slice(event.content, 3)
+                    assert(
+                        modules.create_event(
+                            module,
+                            "core.keybinds.events." .. keybind_event_path,
+                            vim.list_slice(event.content, 3)
+                        )
                     )
                 )
             else -- Otherwise throw an error

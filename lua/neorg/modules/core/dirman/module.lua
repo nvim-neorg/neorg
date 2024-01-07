@@ -181,10 +181,12 @@ module.public = {
 
         -- Broadcast the workspace_changed event with all the necessary information
         modules.broadcast_event(
-            modules.create_event(
-                module,
-                "core.dirman.events.workspace_changed",
-                { old = current_ws, new = new_workspace }
+            assert(
+                modules.create_event(
+                    module,
+                    "core.dirman.events.workspace_changed",
+                    { old = current_ws, new = new_workspace }
+                )
             )
         )
 
@@ -204,7 +206,9 @@ module.public = {
         module.config.public.workspaces[workspace_name] = workspace_path
         -- Broadcast the workspace_added event with the newly added workspace as the content
         modules.broadcast_event(
-            modules.create_event(module, "core.dirman.events.workspace_added", { workspace_name, workspace_path })
+            assert(
+                modules.create_event(module, "core.dirman.events.workspace_added", { workspace_name, workspace_path })
+            )
         )
 
         -- Sync autocompletions so the user can see the new workspace
@@ -333,7 +337,7 @@ module.public = {
 
         local bufnr = module.public.get_file_bufnr(fname)
         modules.broadcast_event(
-            modules.create_event(module, "core.dirman.events.file_created", { buffer = bufnr, opts = opts })
+            assert(modules.create_event(module, "core.dirman.events.file_created", { buffer = bufnr, opts = opts }))
         )
 
         if not opts.no_open then

@@ -425,6 +425,19 @@ local function format_ordered_icon(pattern, index)
 
 end
 
+local superscript_digits = {
+    "⁰",
+    "¹",
+    "²",
+    "³",
+    "⁴",
+    "⁵",
+    "⁶",
+    "⁷",
+    "⁸",
+    "⁹",
+}
+
 ---@class core.concealer
 module.public = {
     foldtext = function()
@@ -493,7 +506,7 @@ module.public = {
                 end
 
                 local text = (" "):rep(len - 1) .. icon
-                if #text > len and not has_anticonceal then
+                if vim.fn.strcharlen(text) > len and not has_anticonceal then
                     -- TODO warn neovim version
                     return
                 end
@@ -501,12 +514,28 @@ module.public = {
                 local _, first_unicode_end = text:find("[%z\1-\127\194-\244][\128-\191]*", len)
                 local highlight = config.highlights and table_get_default_last(config.highlights, len)
                 set_mark(bufid, row_0b, col_0b, text:sub(1, first_unicode_end), highlight)
-                if #text > len then
+                if vim.fn.strcharlen(text) > len then
                     assert(has_anticonceal)
                     set_mark(bufid, row_0b, col_0b + len, text:sub(first_unicode_end + 1), highlight, {
                         virt_text_pos = "inline",
                     })
                 end
+            end
+        end,
+
+        footnote_concealed = function(config, bufid, node)
+            local link_title_node = node:next_named_sibling()
+            local link_title = vim.treesitter.get_node_text(link_title_node, bufid)
+            if config.numeric_superscript and link_title:match("%d+") then
+                local t = {}
+                for i = 1, #link_title do
+                    local d = link_title:sub(i, i):byte() - 0x30
+                    table.insert(t, superscript_digits[d + 1])
+                end
+                local superscripted_title = table.concat(t)
+                local row_start_0b, col_start_0b, _, _ = link_title_node:range()
+                local highlight = config.title_highlight
+                set_mark(bufid, row_start_0b, col_start_0b, superscripted_title, highlight)
             end
         end,
 
@@ -550,13 +579,18 @@ module.public = {
             end
         end,
 
-        fill_width = function(config, bufid, node)
+        render_horizontal_line = function(config, bufid, node)
             if not config.icon then
                 return
             end
-            local row_start_0b, col_start_0b = node:range()
-            local line_len = vim.api.nvim_win_get_width(0)
-            set_mark(bufid, row_start_0b, col_start_0b, config.icon:rep(line_len - col_start_0b), config.highlight)
+
+            local row_start_0b, col_start_0b, _, col_end_0bex = node:range()
+            local render_col_start_0b = config.left == "here" and col_start_0b or 0
+            local opt_textwidth = vim.bo[bufid].textwidth
+            local render_col_end_0bex = config.right == "textwidth" and (opt_textwidth > 0 and opt_textwidth or 79)
+                or vim.api.nvim_win_get_width(vim.fn.bufwinid(bufid))
+            local len = math.max(col_end_0bex - col_start_0b, render_col_end_0bex - render_col_start_0b)
+            set_mark(bufid, row_start_0b, render_col_start_0b, config.icon:rep(len), config.highlight)
         end,
 
         render_code_block = function(config, bufid, node)
@@ -611,6 +645,7 @@ module.public = {
                         virt_text = not to_eol and { { (" "):rep(mark_col_end_0bex - len), config.highlight } } or nil,
                         virt_text_pos = "overlay",
                         virt_text_win_col = len,
+                        spell = config.spell_check,
                     })
                 else
                     vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, len, {
@@ -624,6 +659,7 @@ module.public = {
                         },
                         virt_text_pos = "overlay",
                         virt_text_win_col = len,
+                        spell = config.spell_check,
                     })
                 end
             end
@@ -801,8 +837,13 @@ module.config.public = {
         footnote = {
             single = {
                 icon = "⁎",
+                -- When set to true, footnote link with numeric title will be
+                -- concealed to superscripts.
+                numeric_superscript = true,
+                title_highlight = "@neorg.footnotes.title",
                 nodes = { "single_footnote_prefix", concealed = { "link_target_footnote" } },
                 render = module.public.icon_renderers.on_left,
+                render_concealed = module.public.icon_renderers.footnote_concealed,
             },
             multi_prefix = {
                 icon = "⁑ ",
@@ -833,7 +874,15 @@ module.config.public = {
                 icon = "─",
                 highlight = "@neorg.delimiters.horizontal_line",
                 nodes = { "horizontal_line" },
-                render = module.public.icon_renderers.fill_width,
+                -- The starting position of horizontal lines:
+                -- - "window": the horizontal line starts from the first column, reaching the left of the window
+                -- - "here": the horizontal line starts from the node column
+                left = "here",
+                -- The ending position of horizontal lines:
+                -- - "window": the horizontal line ends at the last column, reaching the right of the window
+                -- - "textwidth": the horizontal line ends at column `textwidth` or 79 when it's set to zero
+                right = "window",
+                render = module.public.icon_renderers.render_horizontal_line,
             },
         },
 
@@ -873,6 +922,9 @@ module.config.public = {
             -- If `true` will conceal (hide) the `@code` and `@end` portion of the code
             -- block.
             conceal = false,
+
+            -- If `false` will disable spell check on code blocks when 'spell' option is switched on.
+            spell_check = true,
 
             nodes = { "ranged_verbatim_tag" },
             highlight = "@neorg.tags.ranged_verbatim.code_block",
@@ -1080,10 +1132,12 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
     remove_prettify_flag_range(bufid, pos_start_0b_0b.x, pos_end_0bin_0bex.x + 1)
     add_prettify_flag_range(bufid, pos_start_0b_0b.x, pos_end_0bin_0bex.x + 1)
 
-    local current_row_0b = vim.api.nvim_win_get_cursor(0)[1] - 1
+    local winid = vim.fn.bufwinid(bufid)
+    assert(winid > 0)
+    local current_row_0b = vim.api.nvim_win_get_cursor(winid)[1] - 1
     local current_mode = vim.api.nvim_get_mode().mode
-    local conceallevel = vim.wo.conceallevel
-    local concealcursor = vim.wo.concealcursor
+    local conceallevel = vim.wo[winid].conceallevel
+    local concealcursor = vim.wo[winid].concealcursor
 
     assert(document_root)
 
@@ -1108,11 +1162,15 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
                 node_row_end_0bex
             )
         )
+
         if has_conceal then
-            goto continue
+            if config.render_concealed then
+                config:render_concealed(bufid, node)
+            end
+        else
+            config:render(bufid, node)
         end
 
-        config:render(bufid, node)
         ::continue::
     end
 end
@@ -1208,6 +1266,8 @@ local function update_cursor(event)
 end
 
 local function handle_init_event(event)
+    -- TODO: make sure only init once
+
     assert(vim.api.nvim_win_is_valid(event.window))
     update_cursor(event)
 
@@ -1251,17 +1311,10 @@ local function handle_init_event(event)
     mark_all_lines_changed(event.buffer)
 
     if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
-        local opts = {
-            scope = "local",
-            win = event.window,
-        }
-        vim.api.nvim_set_option_value("foldmethod", "expr", opts)
-        vim.api.nvim_set_option_value("foldexpr", "nvim_treesitter#foldexpr()", opts)
-        vim.api.nvim_set_option_value(
-            "foldtext",
-            "v:lua.require'neorg'.modules.get_module('core.concealer').foldtext()",
-            opts
-        )
+        local wo = vim.wo[event.window]
+        wo.foldmethod = "expr"
+        wo.foldexpr = vim.treesitter.foldexpr and "v:lua.vim.treesitter.foldexpr()" or "nvim_treesitter#foldexpr()"
+        wo.foldtext = "v:lua.require'neorg'.modules.get_module('core.concealer').foldtext()"
 
         local init_open_folds = module.config.public.init_open_folds
         local function open_folds()
@@ -1277,8 +1330,7 @@ local function handle_init_event(event)
                 log.warn('"init_open_folds" must be "auto", "always", or "never"')
             end
 
-            local foldlevel = vim.api.nvim_get_option_value("foldlevel", opts)
-            if foldlevel == 0 then
+            if wo.foldlevel == 0 then
                 open_folds()
             end
         end
@@ -1344,9 +1396,14 @@ local function handle_winscrolled(event)
     schedule_rendering(event.buffer)
 end
 
+local function handle_filetype(event)
+    handle_init_event(event)
+end
+
 local event_handlers = {
     ["core.neorgcmd.events.core.concealer.toggle"] = handle_toggle_prettifier,
-    ["core.autocommands.events.bufnewfile"] = handle_init_event,
+    -- ["core.autocommands.events.bufnewfile"] = handle_init_event,
+    ["core.autocommands.events.filetype"] = handle_filetype,
     ["core.autocommands.events.bufreadpost"] = handle_init_event,
     ["core.autocommands.events.insertenter"] = handle_insertenter,
     ["core.autocommands.events.insertleave"] = handle_insertleave,
@@ -1379,7 +1436,8 @@ module.load = function()
     module.config.public =
         vim.tbl_deep_extend("force", module.config.public, { icons = icon_preset }, module.config.custom or {})
 
-    module.required["core.autocommands"].enable_autocommand("BufNewFile")
+    -- module.required["core.autocommands"].enable_autocommand("BufNewFile")
+    module.required["core.autocommands"].enable_autocommand("FileType", true)
     module.required["core.autocommands"].enable_autocommand("BufReadPost")
     module.required["core.autocommands"].enable_autocommand("InsertEnter")
     module.required["core.autocommands"].enable_autocommand("InsertLeave")
@@ -1412,7 +1470,8 @@ end
 
 module.events.subscribed = {
     ["core.autocommands"] = {
-        bufnewfile = true,
+        -- bufnewfile = true,
+        filetype = true,
         bufreadpost = true,
         insertenter = true,
         insertleave = true,

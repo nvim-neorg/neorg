@@ -1,5 +1,72 @@
 # Changelog
 
+## [7.0.0](https://github.com/nvim-neorg/neorg/compare/v6.2.0...v7.0.0) (2023-12-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* **selection_popup:** modernize code of selection popup
+
+### ref
+
+* **selection_popup:** modernize code of selection popup ([310f3a4](https://github.com/nvim-neorg/neorg/commit/310f3a484d3d98b0d05650a38407dcaa7f090b96))
+
+
+### Features
+
+* allow upward paths in tangle ([265e6af](https://github.com/nvim-neorg/neorg/commit/265e6af8decbb30b0ee14aee373b1bfe9a78b858))
+* **concealer:** add ability to disable spell checking in code blocks ([316403a](https://github.com/nvim-neorg/neorg/commit/316403ad1cbb665e7838f596384d44b1649f6c1b))
+* **concealer:** add config for concealing numeric footnote title to superscript ([2a6fc9c](https://github.com/nvim-neorg/neorg/commit/2a6fc9c808f6d643bf7c2f911a767e4aac500560))
+* **concealer:** add configuration for hrule start and end position ([3db316a](https://github.com/nvim-neorg/neorg/commit/3db316a33838eb0875eacd659af9d49bbd4aef39))
+* **keyinds:** add keybind for entering link traversal mode ([#1177](https://github.com/nvim-neorg/neorg/issues/1177)) ([8cf5205](https://github.com/nvim-neorg/neorg/commit/8cf52058fb7e9c3057882430ade90be5bdfb3a94))
+* prefix all keybind descriptions with "neorg" for discoverability ([15c24cd](https://github.com/nvim-neorg/neorg/commit/15c24cdb264807b09e9281e2d72b324145da1d57))
+* **selection_popup:** allow keybinds to be processed from another buffer ([603b633](https://github.com/nvim-neorg/neorg/commit/603b633b8df231fe37a338856b1dea7cd955a969))
+* **summary:** add strategy which uses workspace subfolders as category ([aa8e66d](https://github.com/nvim-neorg/neorg/commit/aa8e66dd40c07a4de58f9ed93f27ab4dac9a241c))
+* **tangle:** add `report_on_empty` option in `core.tangle` ([#1250](https://github.com/nvim-neorg/neorg/issues/1250)) ([cc6d8b1](https://github.com/nvim-neorg/neorg/commit/cc6d8b150de7bf806f3a191867a7f143970b5112))
+* **toc:** add config for enabling synchronized cursorline in toc window ([d3cbb45](https://github.com/nvim-neorg/neorg/commit/d3cbb45b66c865b1b92b5f8b2dbd5a5fff7f1a2f))
+* **toc:** add toc item filter ([#1195](https://github.com/nvim-neorg/neorg/issues/1195)) ([5c42084](https://github.com/nvim-neorg/neorg/commit/5c420844227c75390cc9fdf6047bfc49466169d9))
+* **toc:** auto adjust toc vsplit width upon creation ([81f6330](https://github.com/nvim-neorg/neorg/commit/81f6330af951e89f98e8468d23a648fc32acdd2f))
+* **toc:** don't scroll content window when switching to toc ([c4fc7e6](https://github.com/nvim-neorg/neorg/commit/c4fc7e629e8ea7ecc9610107622f46e888764534))
+* **toc:** enable folding in toc ([218e7eb](https://github.com/nvim-neorg/neorg/commit/218e7ebbce010846c5ed6da647264c556c6a7ad4))
+* **toc:** faster toc generation ([0171df1](https://github.com/nvim-neorg/neorg/commit/0171df1d0f8a6db254020e8b02ac576188ffad23))
+* **toc:** support one ToC per tabpage ([d8a456b](https://github.com/nvim-neorg/neorg/commit/d8a456b7fa1b9d860fc36750b6e9a200a8eff5f3))
+* **toc:** support todo status ([4ac077b](https://github.com/nvim-neorg/neorg/commit/4ac077b1f19efe63fcec4e6c744bc6a68dfc7f6a))
+* **toc:** sync cursor from ToC to content buffer ([47e7c86](https://github.com/nvim-neorg/neorg/commit/47e7c86877aaae4d85c1a2add166ad6c15b8add4))
+* **toc:** sync toc cursor after creating toc, scroll content to center when previewing ([cfcb51e](https://github.com/nvim-neorg/neorg/commit/cfcb51ea9a403ee7223e49d4afb0142d6d5e1659))
+
+
+### Bug Fixes
+
+* "Keybind not found" display causing errors ([#1215](https://github.com/nvim-neorg/neorg/issues/1215)) ([a51abd5](https://github.com/nvim-neorg/neorg/commit/a51abd53d8afc7de81e35d0a4247c3aa6ccfc76a))
+* `update-metadata` would fail to work with several parse trees in the document ([#1234](https://github.com/nvim-neorg/neorg/issues/1234)) ([5a44d3f](https://github.com/nvim-neorg/neorg/commit/5a44d3ffbd3b4fff762f8b2712ab1cfd16cff016))
+* **action:** run lint action against pr head ([f367396](https://github.com/nvim-neorg/neorg/commit/f36739620410917a3119ee4299894c353a0d88af))
+* **autocommands:** pass correct buffer id ([941119d](https://github.com/nvim-neorg/neorg/commit/941119d48a5e354cfbed24a4b314bb4eb401a75b))
+* **concealer:** BufNewFile-&gt;FileType, get winid of bufid when rendering ([c0983ca](https://github.com/nvim-neorg/neorg/commit/c0983ca60f02e1a65e5990593726e57678e03c4a))
+* **concealer:** do not render on range change if concealer is disabled ([9b0c31a](https://github.com/nvim-neorg/neorg/commit/9b0c31a5179f3881f9ff2350da22c9a5a11f32ab))
+* **concealer:** ensure backwards compatibility for `vim.treesitter.foldexpr` ([5921cc4](https://github.com/nvim-neorg/neorg/commit/5921cc48cb3be616db0071fa058cfa4d6633c8a6))
+* **concealer:** use vim.treesitter.foldexpr for stabler folding ([53cbffb](https://github.com/nvim-neorg/neorg/commit/53cbffb7ecfcb60f19c10c72c4162978e8021959))
+* **config:** delete `neovim_version` as it is no longer in use ([00f9a62](https://github.com/nvim-neorg/neorg/commit/00f9a628683b7b3f738e1d1d1a79d517c26b6ff5))
+* **config:** fix luajit version detection ([237abac](https://github.com/nvim-neorg/neorg/commit/237abac43a38e4aa770bb5819f30b3d38ae5f392))
+* **export:** better handling of new lines in markdown metadata ([d56cc3c](https://github.com/nvim-neorg/neorg/commit/d56cc3c9a9cd10bfac5eac2514a9457a3e9e848d))
+* **export:** fix metadata values being ignored when converting to markdown ([6f9b66c](https://github.com/nvim-neorg/neorg/commit/6f9b66cfa75241d4b8c0890a312872104a2d96a1))
+* **export:** handle empty `object`/`array` nodes in markdown metadata ([3afbadb](https://github.com/nvim-neorg/neorg/commit/3afbadb3d116d6f8a5fb0aa3af1c06563c4a038e))
+* **hop:** fix range check across lines ([1038016](https://github.com/nvim-neorg/neorg/commit/10380167975732444f21c882e522d15b0ec55b34))
+* **journal:** value assigned to variable current_quarter is unused ([0e88151](https://github.com/nvim-neorg/neorg/commit/0e8815116b08bfbceb2b36a8c82d81005e2596e0))
+* **latex:** Want image integration ([a80c025](https://github.com/nvim-neorg/neorg/commit/a80c025b231a6acd925d625d6d9ea302bc20bd49))
+* **luacheck:** setting non-standard global variables in latex renderer module ([#1176](https://github.com/nvim-neorg/neorg/issues/1176)) ([3f4b279](https://github.com/nvim-neorg/neorg/commit/3f4b279d7505ac854fcd31d1aad24991542ea5d8))
+* **modules:** Check the right config key in module.wants ([8b25435](https://github.com/nvim-neorg/neorg/commit/8b25435e8bc60f9e6f665b3a28870d64d20f2b59))
+* **neorg.norg:** clarify horizontal line syntax ([#1230](https://github.com/nvim-neorg/neorg/issues/1230)) ([e35bf90](https://github.com/nvim-neorg/neorg/commit/e35bf907533281a6c641505eae3bb42100d7b5a0))
+* record that module `upgrade` requires at least 1 arg ([#1207](https://github.com/nvim-neorg/neorg/issues/1207)) ([51f55f5](https://github.com/nvim-neorg/neorg/commit/51f55f5c6d54fa86fdaae805b55ca88aa9607c37))
+* **summary:** set correct indentation for list items ([120fb52](https://github.com/nvim-neorg/neorg/commit/120fb52f5fe21c43fcc7285bac4a9bce8a54a6ec))
+* **toc:** clear title after assigning prefix ([f446645](https://github.com/nvim-neorg/neorg/commit/f4466457396717d10d2d235d019e0a80e1770087))
+* **toc:** fix all stylua errors ([ae38baf](https://github.com/nvim-neorg/neorg/commit/ae38baf90a319488b726ed25166fc00641b3e0ce))
+* **toc:** get window id on the fly to avoid assertion errors ([1b0ab75](https://github.com/nvim-neorg/neorg/commit/1b0ab75e8e57b08bc981e0d72fe928b0fff34fe2))
+* **toc:** handle buf close ([985364f](https://github.com/nvim-neorg/neorg/commit/985364f561518502cc002494db4d48ec92b00d80))
+* **toc:** handle buf close ([2d65f6c](https://github.com/nvim-neorg/neorg/commit/2d65f6cf7a0f40b9a474e17bc347255514dbde0e))
+* **toc:** listen cursormoved for all norg files ([19bff13](https://github.com/nvim-neorg/neorg/commit/19bff133659c16973e52546f54a13469bfecb1b6))
+* **toc:** stop synching cursor when content window is hidden ([15ed981](https://github.com/nvim-neorg/neorg/commit/15ed981858658796b698f6fc204f1378eef4b01d))
+* **typecheck:** fix type errors caused by autoformat ([3f531c3](https://github.com/nvim-neorg/neorg/commit/3f531c362d07d52c4956520e3798e9cfb5aeabdf))
+
 ## [6.2.0](https://github.com/nvim-neorg/neorg/compare/v6.1.0...v6.2.0) (2023-11-18)
 
 
