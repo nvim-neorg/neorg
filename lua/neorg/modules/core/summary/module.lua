@@ -79,6 +79,57 @@ module.load = function()
         end
     end
 
+    -- Return true if catagories_path is or is a subcategory of an entry in included_categories
+    local is_included_category = function (included_categories, category_path)
+      local found_match = false
+      for _, included in ipairs(included_categories) do
+        local included_path = vim.split(included, ".", { plain = true })
+        for i, path in ipairs(included_path) do
+          if path == category_path[i] and i == #included_path then
+            found_match = true
+            break
+          elseif path ~= category_path[i] then
+            break
+          end
+        end
+      end
+      return found_match
+    end
+
+    -- Insert a categorized record for the given file into the categories table
+    local insert_categorized = function (categories, category_path, norgname, metadata)
+      local leaf_categories = categories
+      for i, path in ipairs(category_path) do
+          local titled_path = lib.title(path)
+          if i == #category_path then
+          -- There are no more sub catergories so insert the record
+              table.insert(leaf_categories[titled_path], {
+                  title = tostring(metadata.title),
+                  norgname = norgname,
+                  description = metadata.description,
+              })
+              break
+          end
+          local sub_categories = vim.defaulttable()
+          if leaf_categories[titled_path] then
+          -- This category already been added so find it's sub_categories table
+              for _, item in ipairs(leaf_categories[titled_path]) do
+                  if item.sub_categories then
+                      leaf_categories = item.sub_categories
+                      goto continue
+                  end
+              end
+          end
+          -- This is a new sub category
+          table.insert(leaf_categories[titled_path], {
+              title = titled_path,
+              sub_categories = sub_categories,
+          })
+          leaf_categories = sub_categories
+          ::continue::
+      end
+    end
+
     module.config.public.strategy = lib.match(module.config.public.strategy)({
         default = function()
             return function(files, ws_root, heading_level, include_categories)
@@ -107,78 +158,60 @@ module.load = function()
                     elseif not vim.tbl_islist(metadata.categories) then
                         metadata.categories = { tostring(metadata.categories) }
                     end
-                    for _, category in ipairs(metadata.categories) do
+
+                    if not metadata.title then
+                        metadata.title = get_first_heading_title(bufnr)
                         if not metadata.title then
-                            metadata.title = get_first_heading_title(bufnr)
-                            if not metadata.title then
-                                metadata.title = vim.fs.basename(norgname)
-                            end
+                            metadata.title = vim.fs.basename(norgname)
                         end
+                    end
 
-                        if metadata.description == vim.NIL then
-                            metadata.description = nil
+                    if metadata.description == vim.NIL then
+                        metadata.description = nil
+                    end
+
+                    for _, category in ipairs(metadata.categories) do
+                        local category_path = vim.split(category, ".", { plain = true })
+
+                        if include_categories then
+                          if is_included_category(include_categories, category_path) then
+                            insert_categorized(categories, category_path, norgname, metadata)
+                          end
+                        else
+                          insert_categorized(categories, category_path, norgname, metadata)
                         end
-
-                        if not include_categories or vim.tbl_contains(include_categories, category:lower()) then
-                            table.insert(categories[lib.title(category)], {
-                                title = tostring(metadata.title),
-                                norgname = norgname,
-                                description = metadata.description,
-                            })
-                        end
-
-                        -- local leaf_categories = categories
-                        -- local categories_path = vim.split(category, ".", { plain = true })
-                        -- for i, path in ipairs(categories_path) do
-                        --     local titled_path = lib.title(path)
-                        --     if i == #categories_path then
-                        --         table.insert(leaf_categories[titled_path], {
-                        --             title = tostring(metadata.title),
-                        --             norgname = norgname,
-                        --             description = metadata.description,
-                        --         })
-                        --         break
-                        --     end
-                        --     local sub_categories = vim.defaulttable()
-                        --     if leaf_categories[titled_path] then
-                        --         for _, item in ipairs(leaf_categories[titled_path]) do
-                        --             if item.sub_categories then
-                        --                 leaf_categories = item.sub_categories
-                        --                 goto continue
-                        --             end
-                        --         end
-                        --     end
-                        --     table.insert(leaf_categories[titled_path], {
-                        --         title = titled_path,
-                        --         sub_categories = sub_categories,
-                        --     })
-                        --     leaf_categories = sub_categories
-                        --     ::continue::
-                        -- end
                     end
                 end)
+
                 local result = {}
-                local prefix = string.rep("*", heading_level)
+                local starting_prefix = string.rep("*", heading_level)
 
-                for category, data in vim.spairs(categories) do
-                    table.insert(result, prefix .. " " .. category)
-
+                local function add_category(category, data, level)
+                    local new_prefix = starting_prefix .. string.rep("*", level)
+                    table.insert(result, new_prefix .. " " .. category)
                     for _, datapoint in ipairs(data) do
-                        table.insert(
-                            result,
-                            table.concat({
-                                string.rep(" ", heading_level),
+                        if datapoint.sub_categories then
+                            level = level + 1
+                            for sub_category, sub_data in vim.spairs(datapoint.sub_categories) do
+                                add_category(sub_category, sub_data, level)
+                            end
+                        else
+                            table.insert(result, table.concat({
+                                string.rep(" ", level + 1),
                                 " - {:$",
                                 datapoint.norgname,
                                 ":}[",
                                 lib.title(datapoint.title),
                                 "]",
-                            })
-                                .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
-                        )
+                              })
+                              .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
+                            )
+                        end
                     end
                 end
-
+                for category, data in vim.spairs(categories) do
+                    add_category(category, data, 0)
+                end
                 return result
             end
         end,
