@@ -264,9 +264,8 @@ module.public = {
                     local foldenable = vim.o.foldenable
                     local foldminlines = vim.o.foldminlines
                     if vim.b.current_syntax ~= "" or vim.b.current_syntax ~= nil then
-                        vim.b.current_syntax = lang_name
-                        current_syntax = vim.b.current_syntax
-                        vim.b.current_syntax = nil
+                        current_syntax = lang_name
+                        vim.b.current_syntax = nil ---@diagnostic disable-line
                     end
 
                     -- include the cluster that will put inside the region
@@ -326,11 +325,7 @@ module.public = {
 
                     -- reset some values after including
                     vim.bo[buf].iskeyword = is_keyword
-                    if current_syntax ~= "" or current_syntax ~= nil then
-                        vim.b.current_syntax = current_syntax
-                    else
-                        vim.b.current_syntax = ""
-                    end
+                    vim.b.current_syntax = current_syntax or "" ---@diagnostic disable-line
 
                     has_syntax = string.format("syntax list %s", snip)
                     --- @type boolean, string|{ output: string }
@@ -372,7 +367,7 @@ module.public = {
                     vim.o.foldminlines = foldminlines
                 end
 
-                vim.b.current_syntax = ""
+                vim.b.current_syntax = "" ---@diagnostic disable-line
                 module.private.last_buffer = vim.api.nvim_buf_get_name(buf)
             end
         end
