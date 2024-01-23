@@ -392,16 +392,17 @@ local function get_ordered_index(bufid, prefix_node)
 end
 
 local superscript_digits = {
-    "⁰",
-    "¹",
-    "²",
-    "³",
-    "⁴",
-    "⁵",
-    "⁶",
-    "⁷",
-    "⁸",
-    "⁹",
+    ["0"] = "⁰",
+    ["1"] = "¹",
+    ["2"] = "²",
+    ["3"] = "³",
+    ["4"] = "⁴",
+    ["5"] = "⁵",
+    ["6"] = "⁶",
+    ["7"] = "⁷",
+    ["8"] = "⁸",
+    ["9"] = "⁹",
+    ["-"] = "⁻",
 }
 
 ---@class core.concealer
@@ -457,11 +458,12 @@ module.public = {
         footnote_concealed = function(config, bufid, node)
             local link_title_node = node:next_named_sibling()
             local link_title = vim.treesitter.get_node_text(link_title_node, bufid)
-            if config.numeric_superscript and link_title:match("%d+") then
+            if config.numeric_superscript and link_title:match("^[-0-9]+$") then
+                vim.print(link_title)
                 local t = {}
                 for i = 1, #link_title do
-                    local d = link_title:sub(i, i):byte() - 0x30
-                    table.insert(t, superscript_digits[d + 1])
+                    local d = link_title:sub(i, i)
+                    table.insert(t, superscript_digits[d])
                 end
                 local superscripted_title = table.concat(t)
                 local row_start_0b, col_start_0b, _, _ = link_title_node:range()
