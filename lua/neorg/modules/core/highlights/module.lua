@@ -45,7 +45,7 @@ module.config.public = {
         selection_window = {
             heading = "+@annotation",
             arrow = "+@none",
-            key = "+@namespace",
+            key = "+@module",
             keyname = "+@constant",
             nestedkeyname = "+@string",
         },
@@ -69,17 +69,17 @@ module.config.public = {
                 parameters = "+@type",
 
                 document_meta = {
-                    key = "+@field",
+                    key = "+@variable.member",
                     value = "+@string",
                     number = "+@number",
-                    trailing = "+@repeat",
-                    title = "+@text.title",
+                    trailing = "+@keyword.repeat",
+                    title = "+@markup.heading",
                     description = "+@label",
                     authors = "+@annotation",
                     categories = "+@keyword",
-                    created = "+@float",
-                    updated = "+@float",
-                    version = "+@float",
+                    created = "+@number.float",
+                    updated = "+@number.float",
+                    version = "+@number.float",
 
                     object = {
                         bracket = "+@punctuation.bracket",
@@ -142,22 +142,22 @@ module.config.public = {
         },
 
         -- In case of errors in the syntax tree, use the following highlight.
-        error = "+@error",
+        error = "+Error",
 
         -- Highlights for definitions (`$ Definition`).
         definitions = {
             prefix = "+@punctuation.delimiter",
             suffix = "+@punctuation.delimiter",
-            title = "+@text.strong",
-            content = "+@text.emphasis",
+            title = "+@markup.strong",
+            content = "+@markup.italic",
         },
 
         -- Highlights for footnotes (`^ My Footnote`).
         footnotes = {
             prefix = "+@punctuation.delimiter",
             suffix = "+@punctuation.delimiter",
-            title = "+@text.strong",
-            content = "+@text.emphasis",
+            title = "+@markup.strong",
+            content = "+@markup.italic",
         },
 
         -- Highlights for TODO items.
@@ -167,20 +167,20 @@ module.config.public = {
         -- object containing the TODO item itself.
         todo_items = {
             undone = "+@punctuation.delimiter",
-            pending = "+@namespace",
+            pending = "+@module",
             done = "+@string",
-            on_hold = "+@text.note",
+            on_hold = "+@comment.note",
             cancelled = "+NonText",
-            urgent = "+@text.danger",
+            urgent = "+@comment.error",
             uncertain = "+@boolean",
-            recurring = "+@repeat",
+            recurring = "+@keyword.repeat",
         },
 
         -- Highlights for all the possible levels of ordered and unordered lists.
         lists = {
             unordered = { prefix = "+@punctuation.delimiter" },
 
-            ordered = { prefix = "+@repeat" },
+            ordered = { prefix = "+@keyword.repeat" },
         },
 
         -- Highlights for all the possible levels of quotes.
@@ -214,7 +214,7 @@ module.config.public = {
         -- Highlights for the anchor syntax: `[name]{location}`.
         anchors = {
             declaration = {
-                [""] = "+@text.reference",
+                [""] = "+@markup.link.label",
                 delimiter = "+NonText",
             },
             definition = {
@@ -224,7 +224,7 @@ module.config.public = {
 
         links = {
             description = {
-                [""] = "+@text.uri",
+                [""] = "+@markup.link.url",
                 delimiter = "+NonText",
             },
 
@@ -236,7 +236,7 @@ module.config.public = {
             location = {
                 delimiter = "+NonText",
 
-                url = "+@text.uri",
+                url = "+@markup.link.url",
 
                 generic = {
                     [""] = "+@type",
@@ -302,11 +302,11 @@ module.config.public = {
         -- This is all the highlights like `bold`, `italic` and so on.
         markup = {
             bold = {
-                [""] = "+@text.strong",
+                [""] = "+@markup.strong",
                 delimiter = "+NonText",
             },
             italic = {
-                [""] = "+@text.emphasis",
+                [""] = "+@markup.italic",
                 delimiter = "+NonText",
             },
             underline = {
@@ -318,7 +318,7 @@ module.config.public = {
                 delimiter = "+NonText",
             },
             spoiler = {
-                [""] = "+@text.danger",
+                [""] = "+@comment.error",
                 delimiter = "+NonText",
             },
             subscript = {
@@ -340,7 +340,7 @@ module.config.public = {
                 delimiter = "+NonText",
             },
             inline_math = {
-                [""] = "+@text.math",
+                [""] = "+@markup.math",
                 delimiter = "+NonText",
             },
 
