@@ -23,7 +23,8 @@ module.load = function()
     assert(success, "Unable to load image module")
 
     module.private.image = image
-
+    module.private.was_cleared = false
+    module.private.extmarks = {}
     module.required["core.autocommands"].enable_autocommand("BufWinEnter")
     module.required["core.autocommands"].enable_autocommand("CursorMoved")
     module.required["core.autocommands"].enable_autocommand("TextChanged")
@@ -35,6 +36,11 @@ module.load = function()
         neorgcmd.add_commands_from_table({
             ["render-latex"] = {
                 name = "core.latex.renderer.render",
+                args = 0,
+                condition = "norg",
+            },
+            ["clear-latex"] = {
+                name = "core.latex.renderer.clear",
                 args = 0,
                 condition = "norg",
             },
@@ -144,18 +150,21 @@ module.public = {
             end)
 
             for i, range in ipairs(module.private.ranges) do
-                vim.api.nvim_buf_set_extmark(
-                    vim.api.nvim_get_current_buf(),
-                    vim.api.nvim_create_namespace("concealer"),
-                    range[1],
-                    range[2],
-                    {
-                        id = i,
-                        end_col = range[4],
-                        conceal = "",
-                        virt_text = { { (" "):rep(images[i].rendered_geometry.width) } },
-                        virt_text_pos = "inline",
-                    }
+                table.insert(
+                    module.private.extmarks,
+                    vim.api.nvim_buf_set_extmark(
+                        vim.api.nvim_get_current_buf(),
+                        vim.api.nvim_create_namespace("concealer"),
+                        range[1],
+                        range[2],
+                        {
+                            id = i,
+                            end_col = range[4],
+                            conceal = "",
+                            virt_text = { { (" "):rep(images[i].rendered_geometry.width) } },
+                            virt_text_pos = "inline",
+                        }
+                    )
                 )
             end
         end
@@ -172,16 +181,31 @@ module.config.public = {
 }
 
 local function render_latex()
+    if module.private.was_cleared then
+        return
+    end
     module.private.image.clear(module.private.images)
     neorg.modules.get_module("core.latex.renderer").latex_renderer()
     neorg.modules.get_module("core.latex.renderer").render_inline_math(module.private.images)
 end
-
+local function enter_latex()
+    module.private.was_cleared = false
+    render_latex()
+end
 local function clear_latex()
     module.private.image.clear(module.private.images)
 end
-
+local function exit_latex()
+    module.private.was_cleared = true
+    for _, id in ipairs(module.private.extmarks) do
+        vim.api.nvim_buf_del_extmark(vim.api.nvim_get_current_buf(), vim.api.nvim_create_namespace("concealer"), id)
+    end
+    clear_latex()
+end
 local function clear_at_cursor()
+    if module.private.was_cleared then
+        return
+    end
     if module.private.images ~= nil then
         module.private.image.render(module.private.images)
         module.private.image.clear_at_cursor(module.private.images, vim.api.nvim_win_get_cursor(0)[1] - 1)
@@ -189,7 +213,8 @@ local function clear_at_cursor()
 end
 
 local event_handlers = {
-    ["core.neorgcmd.events.core.latex.renderer.render"] = render_latex,
+    ["core.neorgcmd.events.core.latex.renderer.render"] = enter_latex,
+    ["core.neorgcmd.events.core.latex.renderer.clear"] = exit_latex,
     ["core.autocommands.events.bufwinenter"] = render_latex,
     ["core.autocommands.events.cursormoved"] = clear_at_cursor,
     ["core.autocommands.events.textchanged"] = clear_latex,
@@ -217,6 +242,7 @@ module.events.subscribed = {
     },
     ["core.neorgcmd"] = {
         ["core.latex.renderer.render"] = true,
+        ["core.latex.renderer.clear"] = true,
     },
 }
 return module
