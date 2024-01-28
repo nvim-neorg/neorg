@@ -51,6 +51,8 @@ local function get_os_info()
             end
         end
         return "linux"
+    elseif os:find("bsd") then
+        return "bsd"
     end
 
     error("[neorg]: Unable to determine the currently active operating system!")
