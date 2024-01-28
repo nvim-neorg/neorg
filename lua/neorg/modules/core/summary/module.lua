@@ -80,54 +80,54 @@ module.load = function()
     end
 
     -- Return true if catagories_path is or is a subcategory of an entry in included_categories
-    local is_included_category = function (included_categories, category_path)
-      local found_match = false
-      for _, included in ipairs(included_categories) do
-        local included_path = vim.split(included, ".", { plain = true })
-        for i, path in ipairs(included_path) do
-          if path == category_path[i] and i == #included_path then
-            found_match = true
-            break
-          elseif path ~= category_path[i] then
-            break
-          end
+    local is_included_category = function(included_categories, category_path)
+        local found_match = false
+        for _, included in ipairs(included_categories) do
+            local included_path = vim.split(included, ".", { plain = true })
+            for i, path in ipairs(included_path) do
+                if path == category_path[i] and i == #included_path then
+                    found_match = true
+                    break
+                elseif path ~= category_path[i] then
+                    break
+                end
+            end
         end
-      end
-      return found_match
+        return found_match
     end
 
     -- Insert a categorized record for the given file into the categories table
-    local insert_categorized = function (categories, category_path, norgname, metadata)
-      local leaf_categories = categories
-      for i, path in ipairs(category_path) do
-          local titled_path = lib.title(path)
-          if i == #category_path then
-          -- There are no more sub catergories so insert the record
-              table.insert(leaf_categories[titled_path], {
-                  title = tostring(metadata.title),
-                  norgname = norgname,
-                  description = metadata.description,
-              })
-              break
-          end
-          local sub_categories = vim.defaulttable()
-          if leaf_categories[titled_path] then
-          -- This category already been added so find it's sub_categories table
-              for _, item in ipairs(leaf_categories[titled_path]) do
-                  if item.sub_categories then
-                      leaf_categories = item.sub_categories
-                      goto continue
-                  end
-              end
-          end
-          -- This is a new sub category
-          table.insert(leaf_categories[titled_path], {
-              title = titled_path,
-              sub_categories = sub_categories,
-          })
-          leaf_categories = sub_categories
-          ::continue::
-      end
+    local insert_categorized = function(categories, category_path, norgname, metadata)
+        local leaf_categories = categories
+        for i, path in ipairs(category_path) do
+            local titled_path = lib.title(path)
+            if i == #category_path then
+                -- There are no more sub catergories so insert the record
+                table.insert(leaf_categories[titled_path], {
+                    title = tostring(metadata.title),
+                    norgname = norgname,
+                    description = metadata.description,
+                })
+                break
+            end
+            local sub_categories = vim.defaulttable()
+            if leaf_categories[titled_path] then
+                -- This category already been added so find it's sub_categories table
+                for _, item in ipairs(leaf_categories[titled_path]) do
+                    if item.sub_categories then
+                        leaf_categories = item.sub_categories
+                        goto continue
+                    end
+                end
+            end
+            -- This is a new sub category
+            table.insert(leaf_categories[titled_path], {
+                title = titled_path,
+                sub_categories = sub_categories,
+            })
+            leaf_categories = sub_categories
+            ::continue::
+        end
     end
 
     module.config.public.strategy = lib.match(module.config.public.strategy)({
@@ -174,11 +174,11 @@ module.load = function()
                         local category_path = vim.split(category, ".", { plain = true })
 
                         if include_categories then
-                          if is_included_category(include_categories, category_path) then
-                            insert_categorized(categories, category_path, norgname, metadata)
-                          end
+                            if is_included_category(include_categories, category_path) then
+                                insert_categorized(categories, category_path, norgname, metadata)
+                            end
                         else
-                          insert_categorized(categories, category_path, norgname, metadata)
+                            insert_categorized(categories, category_path, norgname, metadata)
                         end
                     end
                 end)
@@ -196,15 +196,19 @@ module.load = function()
                                 add_category(sub_category, sub_data, level)
                             end
                         else
-                            table.insert(result, table.concat({
-                                string.rep(" ", level + 1),
-                                " - {:$",
-                                datapoint.norgname,
-                                ":}[",
-                                lib.title(datapoint.title),
-                                "]",
-                              })
-                              .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
+                            table.insert(
+                                result,
+                                table.concat({
+                                    string.rep(" ", level + 1),
+                                    " - {:$",
+                                    datapoint.norgname,
+                                    ":}[",
+                                    lib.title(datapoint.title),
+                                    "]",
+                                })
+                                    .. (
+                                        datapoint.description and (table.concat({ " - ", datapoint.description })) or ""
+                                    )
                             )
                         end
                     end
