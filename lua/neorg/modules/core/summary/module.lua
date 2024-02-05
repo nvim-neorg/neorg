@@ -209,7 +209,7 @@ module.load = function()
                     if type == "directory" then
                         local child = path .. "/" .. name .. "/" .. "index.norg"
                         local f = io.open(child, "r")
-                        if f ~= nil then
+                        if f ~= nil and not include_categories then
                             f:close()
                             table.insert(categories["Directories"], {
                                 title = tostring(name),
