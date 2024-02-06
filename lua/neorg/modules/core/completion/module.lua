@@ -8,6 +8,21 @@ This module is an intermediary between Neorg and the completion engine of your c
 module (this usually just involves setting the `engine` field in the [configuration](#configuration) section),
 please read the corresponding wiki page for the engine you selected ([`nvim-cmp`](@core.integrations.nvim-cmp)
 or [`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
+
+Completions are provided in the following cases (examples in (), `|` represents the cursor location):
+- TODO items (`- (|`)
+- @ tags (`@|`)
+- # tags (`#|`)
+- file path links (`{:|`) provides workspace relative paths (`:$/workspace/relative/path:`)
+- header links (`{*|`)
+- fuzzy header links (`{#|`)
+- footnotes (`{^|`)
+- file path + header links (`{:path:*|`)
+- file path + fuzzy header links (`{:path:#|`)
+- file path + footnotes (`{:path:^|`)
+
+Header completions will show only valid headers at the current level in the current or specified file. All
+link completions are smart about closing `:` and `}`.
 --]]
 
 local neorg = require("neorg.core")
@@ -28,11 +43,192 @@ module.config.public = {
 }
 
 module.setup = function()
-    return { success = true, requires = { "core.integrations.treesitter" } }
+    return { success = true, requires = { "core.dirman", "core.integrations.treesitter" } }
 end
 
 module.private = {
     engine = nil,
+
+    --- Get a list of all norg files in current workspace. Returns { workspace_path, norg_files }
+    --- @return table?
+    get_norg_files = function()
+        local dirman = neorg.modules.get_module("core.dirman")
+        if not dirman then
+            return nil
+        end
+
+        local current_workspace = dirman.get_current_workspace()
+        local norg_files = dirman.get_norg_files(current_workspace[1])
+        return { current_workspace[2], norg_files }
+    end,
+
+    --- Get the closing characters for a link completion
+    --- @param context table
+    --- @param colon boolean should there be a closing colon?
+    --- @return string "", ":", or ":}" depending on what's needed
+    get_closing_chars = function(context, colon)
+        local offset = 1
+        local closing_colon = ""
+        if colon then
+            closing_colon = ":"
+            if string.sub(context.full_line, context.char + offset, context.char + offset) == ":" then
+                closing_colon = ""
+                offset = 2
+            end
+        end
+
+        local closing_brace = "}"
+        if string.sub(context.full_line, context.char + offset, context.char + offset) == "}" then
+            closing_brace = ""
+        end
+
+        return closing_colon .. closing_brace
+    end,
+
+    --- Get the lines in a given norg file path.
+    --- @param file string file path, norg syntax accepted
+    --- @return table<string>
+    get_lines = function(file)
+        local dirutils = neorg.modules.get_module("core.dirman.utils")
+        if not dirutils then
+            return {}
+        end
+        local expanded = dirutils.expand_path(file, true)
+
+        local lines
+        if expanded then
+            if not string.match(expanded, "%.norg$") then
+                expanded = expanded .. ".norg"
+            end
+            local ok
+            ok, lines = pcall(vim.fn.readfile, expanded)
+            if not ok then
+                lines = {}
+            end
+        end
+        return lines
+    end,
+
+    --- Find linkable headers in the given file
+    --- @param file string file path, norg syntax is accepted
+    --- @param context table
+    --- @param heading_level number?
+    --- @return table<string>
+    find_headers = function(file, context, heading_level)
+        local leading_whitespace = " "
+        if context.before_char == " " then
+            leading_whitespace = ""
+        end
+
+        local closing_chars = module.private.get_closing_chars(context, false)
+        leading_whitespace = leading_whitespace or ""
+        local ret = {}
+
+        local lines = module.private.get_lines(file)
+        for _, line in ipairs(lines) do
+            local heading = { line:match("^%s*(%*+)%s+(.+)$") }
+            if not vim.tbl_isempty(heading) and (not heading_level or #heading[1] == heading_level) then
+                -- remove potential GTD status from link
+                local stripped_heading = string.gsub(heading[2], "^%(.%)%s?", "")
+                table.insert(ret, leading_whitespace .. stripped_heading .. closing_chars)
+            end
+            -- local marker_or_drawer = { line:match("^%s*(%|%|?%s+(.+))$") }
+            -- if not vim.tbl_isempty(marker_or_drawer) then
+            --     -- TODO: how do you link to these things
+            --     -- what even are they?
+            --     table.insert(ret, marker_or_drawer[2])
+            -- end
+        end
+
+        return ret
+    end,
+
+    --- Find footers in the given file
+    --- @param file string file path, norg syntax is accepted
+    --- @return table<string>
+    find_footnotes = function(file, context)
+        local ret = {}
+        local leading_whitespace = " "
+        if context.before_char == " " then
+            leading_whitespace = ""
+        end
+
+        local closing_chars = module.private.get_closing_chars(context, false)
+        leading_whitespace = leading_whitespace or ""
+        local lines = module.private.get_lines(file)
+        for _, line in ipairs(lines) do
+            local footnote = { line:match("^%s*%^%^? (.+)$") }
+            if not vim.tbl_isempty(footnote) then
+                table.insert(ret, leading_whitespace .. footnote[1] .. closing_chars)
+            end
+        end
+
+        return ret
+    end,
+
+    generate_file_links = function(context, _prev, _saved, _match)
+        local res = {}
+        local dirman = neorg.modules.get_module("core.dirman")
+        if not dirman then
+            return {}
+        end
+
+        local files = module.private.get_norg_files()
+        if not files or not files[2] then
+            return {}
+        end
+
+        local closing_chars = module.private.get_closing_chars(context, true)
+        for _, file in pairs(files[2]) do
+            assert(type(file) == "string")
+            local bufnr = dirman.get_file_bufnr(file)
+
+            if vim.api.nvim_get_current_buf() ~= bufnr then
+                -- using -6 to go to the end (-1) and remove '.norg' 5 more chars
+                local link = "{:$" .. file:sub(#files[1] + 1, -6) .. closing_chars
+                table.insert(res, link)
+            end
+        end
+
+        return res
+    end,
+
+    generate_local_heading_links = function(context, _prev, _saved, match)
+        local heading_level = match[2] and #match[2]
+        return module.private.find_headers(vim.api.nvim_buf_get_name(0), context, heading_level)
+    end,
+
+    generate_foreign_heading_links = function(context, _prev, _saved, match)
+        local file = match[1]
+        local heading_level = match[2] and #match[2]
+        if file then
+            return module.private.find_headers(file, context, heading_level)
+        end
+        return {}
+    end,
+
+    generate_local_footnote_links = function(context, _prev, _saved, _match)
+        return module.private.find_footnotes(vim.api.nvim_buf_get_name(0), context)
+    end,
+
+    generate_foreign_footnote_links = function(context, _prev, _saved, match)
+        if match[2] then
+            return module.private.find_footnotes(match[2], context)
+        end
+        return {}
+    end,
+
+    --- The node context for normal norg (ie. not in a code block)
+    normal_norg = function(current, previous)
+        -- If no previous node exists then try verifying the current node instead
+        if not previous then
+            return current and (current:type() ~= "translation_unit" or current:type() == "document") or false
+        end
+
+        -- If the previous node is not tag parameters or the tag name
+        -- (i.e. we are not inside of a tag) then show auto completions
+        return previous:type() ~= "tag_parameters" and previous:type() ~= "tag_name"
+    end,
 }
 
 module.load = function()
@@ -70,21 +266,12 @@ module.public = {
 
     -- Define completions
     completions = {
-        { -- Create a new completion
+        { -- Create a new completion (for `@|tags`)
             -- Define the regex that should match in order to proceed
             regex = "^%s*@(%w*)",
 
             -- If regex can be matched, this item then gets verified via TreeSitter's AST
-            node = function(current, previous)
-                -- If no previous node exists then try verifying the current node instead
-                if not previous then
-                    return current and (current:type() ~= "translation_unit" or current:type() == "document") or false
-                end
-
-                -- If the previous node is not tag parameters or the tag name
-                -- (i.e. we are not inside of a tag) then show autocompletions
-                return previous:type() ~= "tag_parameters" and previous:type() ~= "tag_name"
-            end,
+            node = module.private.normal_norg,
 
             -- The actual elements to show if the above tests were true
             complete = {
@@ -185,7 +372,7 @@ module.public = {
                 },
             },
         },
-        {
+        { -- `#|tags`
             regex = "^%s*%#(%w*)",
 
             complete = {
@@ -203,7 +390,7 @@ module.public = {
 
             descend = {},
         },
-        {
+        { -- `@|end` tags
             regex = "^%s*@e?n?",
             node = function(_, previous)
                 if not previous then
@@ -222,7 +409,7 @@ module.public = {
                 completion_start = "@",
             },
         },
-        {
+        { -- TODO items `- (|)`
             regex = "^%s*%-+%s+%(([x%*%s]?)",
 
             complete = {
@@ -249,6 +436,92 @@ module.public = {
                 completion_start = "-",
             },
         },
+        { -- links for file paths `{:|`
+            regex = "^.*{:([^:}]*)",
+
+            node = module.private.normal_norg,
+
+            complete = module.private.generate_file_links,
+
+            options = {
+                type = "Path",
+                completion_start = "{",
+            },
+        },
+        { -- links that have a file path, suggest any heading from the file `{:...:#|}`
+            regex = "^.*{:(.*):#[^}]*",
+
+            complete = module.private.generate_foreign_heading_links,
+
+            node = module.private.normal_norg,
+
+            options = {
+                type = "Heading",
+                completion_start = "#",
+            },
+        },
+        { -- links that have a file path, suggest direct headings from the file `{:...:*|}`
+            regex = "^.*{:(.*):(%*+)[^}]*",
+
+            complete = module.private.generate_foreign_heading_links,
+
+            node = module.private.normal_norg,
+
+            options = {
+                type = "Heading",
+                completion_start = "*",
+            },
+        },
+        { -- # links to headings in the current file `{#|}`
+            regex = "^.*{#[^}]*",
+
+            complete = module.private.generate_local_heading_links,
+
+            node = module.private.normal_norg,
+
+            options = {
+                type = "Heading",
+                completion_start = "#",
+            },
+        },
+        { -- * links to headings in current file `{*|}`
+            regex = "^(.*){(%*+)[^}]*",
+            -- the first capture group is a nothing group so that match[2] is reliably the heading
+            -- level or nil if there's no heading level.
+
+            complete = module.private.generate_local_heading_links,
+
+            node = module.private.normal_norg,
+
+            options = {
+                type = "Heading",
+                completion_start = "*",
+            },
+        },
+        { -- ^ footnote links in the current file `{^|}`
+            regex = "^(.*){%^[^}]*",
+
+            complete = module.private.generate_local_footnote_links,
+
+            node = module.private.normal_norg,
+
+            options = {
+                type = "Footnote",
+                completion_start = "^",
+            },
+        },
+        { -- ^ footnote links in another file `{:path:^|}`
+            regex = "^(.*){:(.*):%^[^}]*",
+
+            complete = module.private.generate_foreign_footnote_links,
+
+            node = module.private.normal_norg,
+
+            options = {
+                type = "Footnote",
+                completion_start = "^",
+            },
+        },
     },
 
     --- Parses the public completion table and attempts to find all valid matches
@@ -267,13 +540,13 @@ module.public = {
             -- If the completion data has a regex variable
             if completion_data.regex then
                 -- Attempt to match the current line before the cursor with that regex
-                local match = context.line:match(saved .. completion_data.regex .. "$")
+                local match = { context.line:match(saved .. completion_data.regex .. "$") }
 
                 -- If our match was successful
-                if match then
+                if not vim.tbl_isempty(match) then
                     -- Construct a variable that will be returned on a successful match
                     local items = type(completion_data.complete) == "table" and completion_data.complete
-                        or completion_data.complete(context, prev, saved)
+                        or completion_data.complete(context, prev, saved, match)
                     local ret_completions = { items = items, options = completion_data.options or {} }
 
                     -- Set the match variable for the integration module
