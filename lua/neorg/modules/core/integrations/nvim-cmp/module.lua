@@ -50,6 +50,8 @@ module.public = {
             Property = module.private.cmp.lsp.CompletionItemKind.Property,
             Format = module.private.cmp.lsp.CompletionItemKind.Property,
             Embed = module.private.cmp.lsp.CompletionItemKind.Property,
+            Reference = module.private.cmp.lsp.CompletionItemKind.Reference,
+            File = module.private.cmp.lsp.CompletionItemKind.File,
         }
 
         module.private.source.new = function()

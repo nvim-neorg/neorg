@@ -444,7 +444,7 @@ module.public = {
             complete = module.private.generate_file_links,
 
             options = {
-                type = "Path",
+                type = "File",
                 completion_start = "{",
             },
         },
@@ -456,7 +456,7 @@ module.public = {
             node = module.private.normal_norg,
 
             options = {
-                type = "Heading",
+                type = "Reference",
                 completion_start = "#",
             },
         },
@@ -468,7 +468,7 @@ module.public = {
             node = module.private.normal_norg,
 
             options = {
-                type = "Heading",
+                type = "Reference",
                 completion_start = "*",
             },
         },
@@ -480,7 +480,7 @@ module.public = {
             node = module.private.normal_norg,
 
             options = {
-                type = "Heading",
+                type = "Reference",
                 completion_start = "#",
             },
         },
@@ -494,7 +494,7 @@ module.public = {
             node = module.private.normal_norg,
 
             options = {
-                type = "Heading",
+                type = "Reference",
                 completion_start = "*",
             },
         },
@@ -506,7 +506,7 @@ module.public = {
             node = module.private.normal_norg,
 
             options = {
-                type = "Footnote",
+                type = "Reference",
                 completion_start = "^",
             },
         },
@@ -518,7 +518,7 @@ module.public = {
             node = module.private.normal_norg,
 
             options = {
-                type = "Footnote",
+                type = "Reference",
                 completion_start = "^",
             },
         },
