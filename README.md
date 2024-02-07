@@ -252,6 +252,7 @@ You can install it through your favorite plugin manager:
     {
       "nvim-neorg/neorg",
       build = ":Neorg sync-parsers",
+      lazy = false, -- specify lazy = false because some lazy.nvim distributions set lazy = true by default
       -- tag = "*",
       dependencies = { "nvim-lua/plenary.nvim" },
       config = function()
@@ -271,6 +272,34 @@ You can install it through your favorite plugin manager:
       end,
     },
   })
+  ```
+
+  If you want to lazy load the plugin and split it into a separate file, here is the snippet. (be careful, you'll not get command completion the first time)
+  ```lua
+  return {
+    "nvim-neorg/neorg",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    build = ":Neorg sync-parsers",
+    -- tag = "*",
+    lazy = true, -- enable lazy load
+    ft = "norg", -- lazy load on file type
+    cmd = "Neorg", -- lazy load on command
+    config = function()
+      require("neorg").setup {
+        load = {
+          ["core.defaults"] = {}, -- Loads default behaviour
+          ["core.concealer"] = {}, -- Adds pretty icons to your documents
+          ["core.dirman"] = { -- Manages Neorg workspaces
+            config = {
+              workspaces = {
+                notes = "~/notes",
+              },
+            },
+          },
+        },
+      }
+    end,
+  }
   ```
 
   </details>
