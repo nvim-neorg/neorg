@@ -3,6 +3,10 @@
     title: Images Directly within Neovim.
     description: The `image` module uses various terminal backends to display images within your Neovim instance.
     summary: Module for interacting with and managing images in the terminal.
+    internal: true
+    ---
+
+`core.integrations.image` is an internal module that wraps image.nvim, exposing methods to display images in neovim.
 --]]
 
 local neorg = require("neorg.core")

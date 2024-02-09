@@ -1,8 +1,20 @@
+--[[
+    file: Core-Latex-Renderer
+    title: Rendering LaTeX with image.nvim
+    summary: An experimental module for inline rendering latex images
+    ---
+
+This is an experimental module that requires nvim 0.10+. It renders LaTeX snippets as images
+making use of the image.nvim plugin. By default, images are only rendered after running the
+command: `:Neorg render-latex`.
+
+Requires [image.nvim](https://github.com/3rd/image.nvim).
+--]]
 local neorg = require("neorg.core")
 local module = neorg.modules.create("core.latex.renderer")
 local modules = neorg.modules
 
-assert(vim.re ~= nil, "Neovim 0.10.0+ is required to run the `core.renderer.latex` module! ")
+assert(vim.re ~= nil, "Neovim 0.10.0+ is required to run the `core.renderer.latex` module!")
 
 module.setup = function()
     return {
@@ -163,11 +175,20 @@ module.public = {
 }
 
 module.config.public = {
-    -- TODO: Documentation
+    -- When true, images of rendered LaTeX will cover the source LaTeX they were produced from
     conceal = true,
+
+    -- "Dots Per Inch" increasing this value will result in crisper images at the expense of
+    -- performance
     dpi = 350,
+
+    -- When true, images will render when a `.norg` buffer is entered
     render_on_enter = false,
+
+    -- Module that renders the images. This is currently the only option
     renderer = "core.integrations.image",
+
+    -- make the images larger or smaller by adjusting the scale
     scale = 1,
 }
 

@@ -13,6 +13,9 @@ masks, or sometimes completely hides many categories of markup.
 
 The concealer depends on [Nerd Fonts >=v3.0.1](https://github.com/ryanoasis/nerd-fonts/releases/latest) to be
 installed on your system.
+
+This module respects `:h conceallevel` and `:h concealcursor`. Setting the wrong values for these options can
+make it look like this module isn't working.
 --]]
 
 -- utils  to be refactored
