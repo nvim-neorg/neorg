@@ -178,7 +178,7 @@ module.config.public = {
 
         -- Highlights for all the possible levels of ordered and unordered lists.
         lists = {
-            unordered = { prefix = "+@punctuation.delimiter" },
+            unordered = { prefix = "+@markup.list" },
 
             ordered = { prefix = "+@keyword.repeat" },
         },
@@ -310,11 +310,11 @@ module.config.public = {
                 delimiter = "+NonText",
             },
             underline = {
-                [""] = "cterm=underline gui=underline",
+                [""] = "+@markup.underline",
                 delimiter = "+NonText",
             },
             strikethrough = {
-                [""] = "cterm=strikethrough gui=strikethrough",
+                [""] = "+@markup.strikethrough",
                 delimiter = "+NonText",
             },
             spoiler = {
