@@ -10,6 +10,7 @@
 --- | "wsl2"
 --- | "mac"
 --- | "linux"
+--- | "bsd"
 
 --- @alias neorg.configuration.module { config?: table }
 
