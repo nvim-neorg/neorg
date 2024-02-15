@@ -256,6 +256,42 @@ module.public = {
 
         return result
     end,
+    ---  Gets all nodes of a given type from the AST
+    ---@param type string #The type of node to filter out
+    ---@param path string path to the file to parse
+    ---@param filetype string? file type of the file or `norg` if omitted
+    get_all_nodes_in_file = function(type, path, filetype)
+        -- TODO: refactor this function and the one above, abstract out the tree search code.
+        local result = {}
+        path = vim.fs.normalize(path)
+        if not filetype then filetype = "norg" end
+
+        local contents = io.open(path, "r"):read("*a")
+        local tree = vim.treesitter.get_string_parser(contents, filetype):parse()[1]
+        if not (tree or tree.root) then return {} end
+
+        local root = tree:root()
+
+        --- Recursively searches for a node of a given type
+        ---@param node userdata #The starting point for the search
+        local function descend(node)
+            -- Iterate over all children of the node and try to match their type
+            for child, _ in node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                if child:type() == type then
+                    table.insert(result, child)
+                else
+                    -- If no match is found try descending further down the syntax tree
+                    for _, child_node in ipairs(descend(child) or {}) do
+                        table.insert(result, child_node)
+                    end
+                end
+            end
+        end
+
+        descend(root)
+
+        return result
+    end,
     --- Executes function callback on each child node of the root
     ---@param callback function
     ---@param ts_tree any #Optional syntax tree ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
@@ -288,11 +324,30 @@ module.public = {
         descend(root)
     end,
     get_node_text = function(node, source)
-        source = source or 0
-
         local start_row, start_col = node:start()
         local end_row, end_col = node:end_()
 
+        -- Handle source of a file path
+        if type(source) == "string" then
+            local lines = vim.fn.readfile(source)
+            local res = {}
+            local row = start_row + 1
+            while row <= end_row + 1 do
+                local s = start_col + 1
+                if row > start_row + 1 then
+                    s = 0
+                end
+                local e = nil
+                if row == end_row + 1 then
+                    e = end_col
+                end
+                table.insert(res, lines[start_row + 1]:sub(s, e))
+                row = row + 1
+            end
+            return table.concat(res, "\n")
+        end
+
+        source = source or 0
         local eof_row = vim.api.nvim_buf_line_count(source)
 
         if end_row >= eof_row then
