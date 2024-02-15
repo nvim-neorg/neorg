@@ -12,7 +12,7 @@ or [`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
 Completions are provided in the following cases (examples in (), `|` represents the cursor location):
 - TODO items (`- (|`)
 - @ tags (`@|`)
-- # tags (`#|`)
+- \# tags (`#|`)
 - file path links (`{:|`) provides workspace relative paths (`:$/workspace/relative/path:`)
 - header links (`{*|`)
 - fuzzy header links (`{#|`)
