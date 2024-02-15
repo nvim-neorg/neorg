@@ -90,6 +90,10 @@ module.public = {
             return { "@", "-", "(", " ", ".", ":", "#", "*", "^" }
         end
 
+        function module.private.source:is_available()
+            return vim.bo.filetype == "norg"
+        end
+
         module.private.cmp.register_source("neorg", module.private.source)
     end,
 
