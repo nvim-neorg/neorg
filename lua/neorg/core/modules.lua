@@ -445,7 +445,10 @@ function modules.load_module(module_name, cfg)
         local fallback_exists, fallback_module = pcall(require, "neorg.modules." .. module_name)
 
         if not fallback_exists then
-            log.error("Unable to load module", module_name, "-", module)
+            log.error(
+                "Unable to load module '" .. module_name .. "'. The module probably does not exist! Stacktrace: ",
+                module
+            )
             return false
         end
 

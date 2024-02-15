@@ -121,8 +121,6 @@ module.config.public = {
     --
     -- This feature will soon be deprecated, so it is not recommended to touch it.
     default = {
-        "module.list",
-        "module.load",
         "return",
     },
 }
@@ -130,7 +128,21 @@ module.config.public = {
 ---@class core.neorgcmd
 module.public = {
     -- The table containing all the functions. This can get a tad complex so I recommend you read the wiki entry
-    neorg_commands = {},
+    neorg_commands = {
+        module = {
+            subcommands = {
+                load = {
+                    args = 1,
+                    name = "module.load",
+                },
+
+                list = {
+                    args = 0,
+                    name = "module.list",
+                },
+            },
+        },
+    },
 
     --- Recursively merges the contents of the module's config.public.funtions table with core.neorgcmd's module.config.public.neorg_commands table.
     ---@param module_name string #An absolute path to a loaded module with a module.config.public.neorg_commands table following a valid structure
@@ -233,7 +245,7 @@ module.private = {
                 return
             elseif not check_condition(ref.condition) then
                 log.error(
-                    ("Error when executing `:Neorg %s` - the command is currently disabled. Some commands will only become available under certain conditions!"):format(
+                    ("Error when executing `:Neorg %s` - the command is currently disabled. Some commands will only become available under certain conditions, e.g. being within a `.norg` file!"):format(
                         table.concat(vim.list_slice(args, 1, i), " ")
                     )
                 )
@@ -420,5 +432,61 @@ module.private = {
 }
 
 module.neorg_post_load = module.public.sync
+
+module.on_event = function(event)
+    if event.type == "core.neorgcmd.events.module.load" then
+        modules.load_module(event.content[1])
+    end
+
+    if event.type == "core.neorgcmd.events.module.list" then
+        if not neorg.modules.is_module_loaded("core.ui") then
+            log.error(":Neorg module list requires the `core.ui` module to be loaded!")
+            return
+        end
+
+        local lines = {
+            -- modules.get_module_config("core.concealer").icons.heading.level_1.icon
+            "*"
+                .. " "
+                .. "Loaded Neorg Modules",
+        }
+
+        for _, mod in pairs(modules.loaded_modules) do
+            table.insert(lines, "  - `" .. mod.name .. "`")
+        end
+
+        -- FIXME(vhyrro): This creates a listed buffer which makes things very ugly.
+        -- Also make sure to disable folds in this view.
+        local buf = neorg.modules.get_module("core.ui").create_norg_buffer("module_list", "nosplit")
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+        vim.keymap.set("n", "q", vim.cmd.quit, { buffer = buf, silent = true, nowait = true })
+
+        local width = vim.api.nvim_win_get_width(0)
+        local height = vim.api.nvim_win_get_height(0)
+
+        vim.api.nvim_open_win(buf, true, {
+            relative = "win",
+            win = 0,
+            width = math.floor(width * 0.7),
+            height = math.floor(height * 0.9),
+            col = math.floor(width * 0.15),
+            row = math.floor(height * 0.05),
+            border = "single",
+            style = "minimal",
+        })
+
+        vim.bo[buf].modifiable = false
+        vim.bo[buf].filetype = "norg"
+
+        vim.api.nvim_buf_set_name(buf, "loaded_modules.norg")
+    end
+end
+
+module.events.subscribed = {
+    ["core.neorgcmd"] = {
+        ["module.load"] = true,
+        ["module.list"] = true,
+    },
+}
 
 return module
