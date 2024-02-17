@@ -15,6 +15,7 @@ dependencies = {
     "nvim-nio",
     "norgopolis-client.lua",
     "norgopolis-server.lua >= 1.2.0",
+    "lua-utils.nvim",
 }
 
 source = {
