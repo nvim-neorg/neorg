@@ -515,7 +515,7 @@ module.on_event = function(event)
         if vim.fn.filereadable(index_path) == 0 then
             if current_ws[1] == "default" then
                 utils.notify(table.concat({
-                    "Index file will not be created in 'default' workspace to avoid confusion.",
+                    "Index file cannot be created in 'default' workspace to avoid confusion.",
                     "If this is intentional, manually create an index file beforehand to use this command.",
                 }, " "))
                 return
