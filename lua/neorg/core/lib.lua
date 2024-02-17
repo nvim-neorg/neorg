@@ -92,6 +92,7 @@ end
 --- @generic K, V
 --- @param tbl table<K, V> The table to iterate over
 --- @param callback fun(key: K, value: V, tbl: table<K, V>): any? The callback that should be invoked on every iteration
+--- @deprecated please use Neovim's `vim.iter` API instead
 --- @return table # A modified version of the original `tbl`.
 function lib.map(tbl, callback)
     local copy = vim.deepcopy(tbl)
