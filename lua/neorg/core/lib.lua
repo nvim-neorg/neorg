@@ -254,7 +254,7 @@ end
 ---
 --- To mitigate this issue directly.
 --- @param ... string An unlimited number of strings.
---- @return string The result of all the strings concatenated.
+--- @return string # The result of all the strings concatenated.
 function lib.lazy_string_concat(...)
     return table.concat({ ... })
 end
@@ -402,69 +402,6 @@ function lib.tokenize_path(path)
         table.insert(tokens, capture)
     end
     return tokens
-end
-
---- Lazily copy a table-like object.
---- @param to_copy table|any The table to copy. If any other type is provided it will be copied immediately.
---- @return table|any # The copied table.
-function lib.lazy_copy(to_copy)
-    if type(to_copy) ~= "table" then
-        return vim.deepcopy(to_copy)
-    end
-
-    local proxy = {
-        original = function()
-            return to_copy
-        end,
-
-        collect = function(self)
-            return vim.tbl_deep_extend("force", to_copy, self)
-        end,
-    }
-
-    return setmetatable(proxy, {
-        __index = function(_, key)
-            if not to_copy[key] then
-                return nil
-            end
-
-            if type(to_copy[key]) == "table" then
-                local copied = lib.lazy_copy(to_copy[key])
-
-                rawset(proxy, key, copied)
-
-                return copied
-            end
-
-            local copied = vim.deepcopy(to_copy[key])
-            rawset(proxy, key, copied)
-            return copied
-        end,
-
-        __pairs = function(tbl)
-            local function stateless_iter(_, key)
-                local value
-                key, value = next(to_copy, key)
-                if value ~= nil then
-                    return key, lib.lazy_copy(value)
-                end
-            end
-
-            return stateless_iter, tbl, nil
-        end,
-
-        __ipairs = function(tbl)
-            local function stateless_iter(_, i)
-                i = i + 1
-                local value = to_copy[i]
-                if value ~= nil then
-                    return i, lib.lazy_copy(value)
-                end
-            end
-
-            return stateless_iter, tbl, 0
-        end,
-    })
 end
 
 lib.mod = {}
