@@ -14,7 +14,7 @@ dependencies = {
 	"lua >= 5.1, < 5.4",
     "nvim-nio",
     "norgopolis-client.lua",
-    "norgopolis-server.lua",
+    "norgopolis-server.lua >= 1.2.0",
 }
 
 source = {
