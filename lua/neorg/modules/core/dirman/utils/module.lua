@@ -80,16 +80,24 @@ module.public = {
         return res and res:tostring() or nil
     end,
 
-    ---transform a relative path (a link in `file`), to a path that's relative to the workspace
-    ---@param dir string full path to the directory of `file` without the training slash
-    ---@param rel_path string path relative to `dir` which is converted to a workspace path
-    ---@param workspace_dir string full path to the current workspace
+    ---transform a path to a path that's relative to the workspace. Cleans up "/folder/.."
+    ---@param path string path relative to `dir` which is converted to a workspace path
     ---@return string ws relative link like `$/path/to/some/file`
-    to_workspace_relative = function(dir, rel_path, workspace_dir)
-        local ws_path = "$" .. string.gsub(dir .. "/" .. rel_path, "^" .. workspace_dir, "")
+    to_workspace_relative = function(path)
+        local dirman = modules.get_module("core.dirman")
+
+        if not dirman then
+            log.error(
+                "Unable to jump to link with custom workspace: `core.dirman` is not loaded. Please load the module in order to get workspace support."
+            )
+            return ""
+        end
+
+        local workspace_dir = dirman.get_current_workspace()[2]
+        local ws_path = "$" .. string.gsub(path, "^" .. workspace_dir, "")
         ws_path = string.gsub(ws_path, "/[^/]+/%.%./", "/")
         return ws_path
-    end
+    end,
 }
 
 return module
