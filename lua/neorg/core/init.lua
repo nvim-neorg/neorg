@@ -7,4 +7,12 @@ local neorg = {
     utils = require("neorg.core.utils"),
 }
 
+-- Try to connect to norgopolis
+
+local norgopolis = require("norgopolis").connect("localhost")
+
+norgopolis:invoke("hello-world", "echo", "this is a message from norgopolis!", function(ret)
+    vim.print("Hello from norgopolis: " .. ret)
+end)
+
 return neorg
