@@ -456,7 +456,6 @@ module.public = {
             local link_title_node = node:next_named_sibling()
             local link_title = vim.treesitter.get_node_text(link_title_node, bufid)
             if config.numeric_superscript and link_title:match("^[-0-9]+$") then
-                vim.print(link_title)
                 local t = {}
                 for i = 1, #link_title do
                     local d = link_title:sub(i, i)
