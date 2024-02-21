@@ -117,6 +117,7 @@ For neovim beginners who don't want to tinker with the configurations:
     },
     {
       "nvim-neorg/neorg",
+      tag = "v7.0.0",
       build = ":Neorg sync-parsers",
       dependencies = { "nvim-lua/plenary.nvim" },
       config = function()
