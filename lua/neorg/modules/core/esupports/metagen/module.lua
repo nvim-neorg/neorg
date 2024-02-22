@@ -141,14 +141,20 @@ module.config.public = {
 
     -- Timezone information in the timestamps
     -- - "utc" the timestamp is in UTC+0
-    -- - "local" the timestmap is in the local timezone
+    -- - "local" the timestamp is in the local timezone
     -- - "implicit-local" like "local", but the timezone information is omitted from the timestamp
     timezone = "local",
+
+    -- Whether or not to call :h :undojoin just before changing the timestamp in `update_metadata`
+    -- This will make your undo key undo the last change before writing the file in addition to the
+    -- timestamp change. This will move your cursor to the top of the file.
+    undojoin_updates = false,
 }
 
 module.private = {
     buffers = {},
     listen_event = "none",
+    skip_next_update = false,
 }
 
 ---@class core.esupports.metagen
@@ -201,6 +207,11 @@ module.public = {
             range = range,
             node = metadata_node,
         }
+    end,
+
+    --- Skip the next call to update_metadata
+    skip_next_update = function()
+        module.private.skip_next_update = true
     end,
 
     ---@class core.esupports.metagen.metadata
@@ -261,8 +272,12 @@ module.public = {
     end,
 
     update_metadata = function(buf)
-        local present = module.public.is_metadata_present(buf)
+        if module.private.skip_next_update then
+            module.private.skip_next_update = false
+            return
+        end
 
+        local present = module.public.is_metadata_present(buf)
         if not present then
             return
         end
@@ -324,6 +339,9 @@ module.public = {
                 if date ~= current_date then
                     local range = module.required["core.integrations.treesitter"].get_node_range(node)
 
+                    if module.config.public.undojoin_updates then
+                        vim.cmd.undojoin()
+                    end
                     vim.api.nvim_buf_set_text(
                         buf,
                         range.row_start,
