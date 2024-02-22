@@ -32,3 +32,5 @@ module.setup = function()
         success = false,
     }
 end
+
+return module
