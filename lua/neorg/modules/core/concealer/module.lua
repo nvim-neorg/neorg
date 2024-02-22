@@ -434,9 +434,8 @@ local function format_ordered_icon(pattern, index)
         end
     end
 
-    gen = gen or function(index_)
-        return
-    end
+    gen = gen or function(_) end
+
     memoized_ordered_icon_generator[pattern] = gen
     return gen(index)
 end
