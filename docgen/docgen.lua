@@ -1,5 +1,5 @@
 local neorg = require("neorg.core")
-local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
+local lib, modules, utils, log = neorg.lib, neorg.modules, neorg.utils, neorg.log
 
 local docgen = {}
 
@@ -174,7 +174,7 @@ end
 --- Recursively maps over each item in the `module.config.public` table,
 --  invoking a callback on each run. Also descends down recursive tables.
 ---@param buffer number #Buffer ID
----@param start_node userdata #The node to start parsing
+---@param start_node table #The node to start parsing
 ---@param callback fun(ConfigOptionData, table) #Invoked on each node with the corresponding data
 ---@param parents string[]? #Used internally to track nesting levels
 docgen.map_config = function(buffer, start_node, callback, parents)
@@ -184,7 +184,7 @@ docgen.map_config = function(buffer, start_node, callback, parents)
     local comments = {}
     local index = 1
 
-    for node in start_node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+    for node in start_node:iter_children() do
         if node:type() == "comment" then
             table.insert(comments, ts.get_node_text(node, buffer))
         elseif node:type() == "field" then
@@ -675,7 +675,7 @@ docgen.htmlify = function(configuration_option)
             local text = ts.get_node_text(self.data.value, self.buffer):match("^function%s*(%b())")
 
             if not text then
-                log.error(string.format("Unable to parse function, perhaps some wrong formatting?")) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                log.error(string.format("Unable to parse function, perhaps some wrong formatting?"))
                 table.insert(result, "<error: incorrect formatting>")
                 return
             end

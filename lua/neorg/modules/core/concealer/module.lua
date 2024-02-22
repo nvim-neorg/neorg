@@ -996,7 +996,7 @@ local function remove_extmarks(bufid, pos_start_0b_0b, pos_end_0bin_0bex)
     end
 end
 
-local function is_inside_example(_node) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+local function is_inside_example(_)
     -- TODO: waiting for parser fix
     return false
 end

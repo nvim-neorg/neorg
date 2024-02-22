@@ -74,7 +74,7 @@ module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufLeave")
 
     if module.config.public.hook then
-        neorg.callbacks.on_event( ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+        neorg.callbacks.on_event(
             "core.keybinds.events.enable_keybinds",
             function(_, keybinds)
                 module.config.public.hook(keybinds)
@@ -147,7 +147,7 @@ module.public = {
 
     --- Like register_keybind(), except registers a batch of them
     ---@param module_name string #The name of the module that owns the keybind. Make sure it's an absolute path.
-    ---@param names any #list of strings - a list of strings detailing names of the keybinds. The module_name will be prepended to each one to form a unique name. ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+    ---@param names string[] #A list of strings detailing names of the keybinds. The module_name will be prepended to each one to form a unique name.
     register_keybinds = function(module_name, names)
         -- Loop through each name from the names argument
         for _, name in ipairs(names) do
@@ -296,8 +296,9 @@ module.public = {
 
             --- An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
             ---@param mode string #The neorg mode to bind the keys on
-            ---@param keys any #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-            ---@param opts any #table) - the same parameters that should be passed into vim.keymap.set('s opts parameter ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            ---@param keys { [string]: { [1]: string, [2]: string, [3]: table }[] } #A table of keybinds
+            ---@param opts table #The same parameters that should be passed into vim.keymap.set()'s opts parameter
+            ---@see vim.keymap.set
             map_to_mode = function(mode, keys, opts)
                 -- If the keys table is empty then don't bother doing any parsing
                 if vim.tbl_isempty(keys) then
@@ -319,8 +320,8 @@ module.public = {
 
             --- An advanced wrapper around the map() function, maps several keys if the current neorg mode is the desired one
             ---@param mode string #The neorg mode to bind the keys on
-            ---@param keys any #table { <neovim_mode> = { { "<key>", "<name-of-keybind>", custom_opts } } } - a table of keybinds ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-            ---@param opts any #table) - the same parameters that should be passed into vim.keymap.set('s opts parameter ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            ---@param keys { [string]: { [1]: string, [2]: string, [3]: table, opts?: table }[] } #A table of keybinds
+            ---@param opts table #The same parameters that should be passed into vim.keymap.set()'s opts parameter
             map_event_to_mode = function(mode, keys, opts)
                 -- If the keys table is empty then don't bother doing any parsing
                 if vim.tbl_isempty(keys) then

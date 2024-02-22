@@ -101,7 +101,7 @@ module.public = {
 
         local bufname = "neorg://" .. name
 
-        if vim.fn.bufexists(bufname) == 1 then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>: cannot assign `string` to parameter `integer`
+        if vim.fn.bufexists(bufname) == 1 then
             log.error("Buffer '" .. name .. "' already exists")
             return
         end
@@ -243,7 +243,7 @@ module.public = {
             return vim.tbl_isempty(elem) or (elem[3] == nil and true or elem[3])
         end, content))
 
-        vim.api.nvim_buf_set_lines(buf, 0, length, false, vim.split(("\n"):rep(length), "\n", true)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+        vim.api.nvim_buf_set_lines(buf, 0, length, false, vim.split(("\n"):rep(length), "\n", { plain = true }))
 
         local line_number = 1
         local buffer = {}
@@ -370,7 +370,7 @@ module.examples = {
         -- Binds a selection to that buffer
         local selection = module
             .public
-            .begin_selection(buffer) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            .begin_selection(buffer)
             :apply({
                 -- A title will simply be text with a custom highlight
                 title = function(self, text)

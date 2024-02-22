@@ -24,7 +24,7 @@ module.examples = {
         -- In your module.setup(), make sure to require core.neorgcmd (requires = { "core.neorgcmd" })
         -- Afterwards in a function of your choice that gets called *after* core.neorgcmd gets intialized e.g. load():
 
-        module.load = function() ---@diagnostic disable-line -- TODO: type error workaround <pysan3> Duplicate field `load` (L94)
+        module.load = function()
             module.required["core.neorgcmd"].add_commands_from_table({
                 -- The name of our command
                 my_command = {
@@ -193,8 +193,8 @@ module.public = {
         end
     end,
 
-    --- Defines a custom completion function to use for core.neorgcmd.
-    ---@param callback any #(function) - the same function format as you would receive by being called by :command -completion=customlist,v:lua.callback Neorg ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+    --- Defines a custom completion function to use for `core.neorgcmd`.
+    ---@param callback function The same function format as you would receive by being called by `:command -completion=customlist,v:lua.callback Neorg`.
     set_completion_callback = function(callback)
         module.private.generate_completions = callback
     end,
@@ -206,7 +206,7 @@ module.private = {
         local args = data.fargs
 
         local current_buf = vim.api.nvim_get_current_buf()
-        local is_norg = vim.api.nvim_buf_get_option(current_buf, "filetype") == "norg"
+        local is_norg = vim.bo[current_buf].filetype == "norg"
 
         local function check_condition(condition)
             if condition == nil then

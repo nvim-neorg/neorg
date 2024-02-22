@@ -118,17 +118,17 @@ module.public = {
         local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         --- Descends down a node and its children
-        ---@param start userdata #The TS node to begin at
+        ---@param start table #The TS node to begin at
         ---@return string #The exported/converted node as a string
         local function descend(start)
             -- We do not want to parse erroneous nodes, so we skip them instead
-            if start:type() == "ERROR" then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            if start:type() == "ERROR" then
                 return ""
             end
 
             local output = {}
 
-            for node in start:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            for node in start:iter_children() do
                 -- See if there is a conversion function for the specific node type we're dealing with
                 local exporter = converter.export.functions[node:type()]
 
@@ -201,7 +201,7 @@ module.public = {
             --
             -- The recollector can encounter a `definition` node, see the nodes it is made up of ({ ": ", "Term", "Definition" })
             -- and rearrange its components to { "Term", ": ", "Definition" } to then achieve the desired result.
-            local recollector = converter.export.recollectors[start:type()] ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            local recollector = converter.export.recollectors[start:type()]
 
             return recollector and table.concat(recollector(output, state, start, ts_utils) or {})
                 or (not vim.tbl_isempty(output) and table.concat(output))
@@ -220,19 +220,20 @@ module.on_event = function(event)
         -- Example: Neorg export to-file my-custom-file markdown
 
         local filepath = vim.fn.expand(event.content[1])
-        local filetype = event.content[2] or vim.filetype.match({ filename = filepath }) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-        local exported = module.public.export(event.buffer, filetype) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+        local filetype = event.content[2] or vim.filetype.match({ filename = filepath })
+        local exported = module.public.export(event.buffer, filetype)
 
         vim.loop.fs_open(
-            filepath, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            filepath,
             "w",
             438,
             function(err, fd)
                 assert(not err, lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err))
+                assert(fd)
 
                 vim.loop.fs_write(
-                    fd, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                    exported, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                    fd,
+                    exported,
                     0,
                     function(werr)
                         assert(
@@ -259,11 +260,12 @@ module.on_event = function(event)
 
         vim.loop.fs_scandir(event.content[1], function(err, handle)
             assert(not err, lib.lazy_string_concat("Failed to scan directory '", event.content[1], "': ", err))
+            assert(handle)
 
             local file_counter, parsed_counter = 0, 0
 
             while true do
-                local name, type = vim.loop.fs_scandir_next(handle) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                local name, type = vim.loop.fs_scandir_next(handle)
 
                 if not name then
                     break
@@ -287,7 +289,7 @@ module.on_event = function(event)
 
                         vim.opt.eventignore = "BufEnter"
 
-                        local buffer = vim.fn.bufadd(filepath)
+                        local buffer = assert(vim.fn.bufadd(filepath))
                         vim.fn.bufload(buffer)
 
                         vim.opt.eventignore = old_event_ignore
@@ -308,9 +310,10 @@ module.on_event = function(event)
                                 not fs_err,
                                 lib.lazy_string_concat("Failed to open file '", write_path, "' for export: ", fs_err)
                             )
+                            assert(fd)
 
                             vim.loop.fs_write(
-                                fd, ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                                fd,
                                 exported,
                                 0,
                                 function(werr)

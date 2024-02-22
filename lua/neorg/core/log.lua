@@ -137,10 +137,10 @@ log.new = function(config, standalone)
 
         -- Output to log file
         if config.use_file then
-            local fp = io.open(outfile, "a")
+            local fp = assert(io.open(outfile, "a"))
             local str = string.format("[%-6s%s] %s: %s\n", nameupper, os.date(), lineinfo, msg)
-            fp:write(str) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-            fp:close() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            fp:write(str)
+            fp:close()
         end
     end
 

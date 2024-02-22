@@ -61,11 +61,11 @@ end
 ---@class core.esupports.hop
 module.public = {
     --- Follow link from a specific node
-    ---@param node userdata
+    ---@param node table
     ---@param open_mode string|nil if not nil, will open a new split with the split mode defined (vsplitr...) or new tab (mode="tab") or with external app (mode="external")
     ---@param parsed_link table a table of link information gathered from parse_link()
     follow_link = function(node, open_mode, parsed_link)
-        if node:type() == "anchor_declaration" then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+        if node:type() == "anchor_declaration" then
             local located_anchor_declaration = module.public.locate_anchor_declaration_target(node)
 
             if not located_anchor_declaration then
@@ -335,9 +335,9 @@ module.public = {
     end,
 
     --- Locates the node that an anchor is pointing to
-    ---@param anchor_decl_node userdata #A valid anchod declaration node
+    ---@param anchor_decl_node table #A valid anchod declaration node
     locate_anchor_declaration_target = function(anchor_decl_node)
-        if not anchor_decl_node:named_child(0) then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+        if not anchor_decl_node:named_child(0) then
             return
         end
 
