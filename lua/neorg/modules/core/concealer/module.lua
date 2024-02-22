@@ -605,7 +605,7 @@ module.public = {
             local render_col_start_0b = config.left == "here" and col_start_0b or 0
             local opt_textwidth = vim.bo[bufid].textwidth
             local render_col_end_0bex = config.right == "textwidth" and (opt_textwidth > 0 and opt_textwidth or 79)
-                or vim.api.nvim_win_get_width(vim.fn.bufwinid(bufid))
+                or vim.api.nvim_win_get_width(assert(vim.fn.bufwinid(bufid)))
             local len = math.max(col_end_0bex - col_start_0b, render_col_end_0bex - render_col_start_0b)
             set_mark(bufid, row_start_0b, render_col_start_0b, config.icon:rep(len), config.highlight)
         end,
