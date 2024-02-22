@@ -13,7 +13,7 @@ local callbacks = {
 --- Triggers a new callback to execute whenever an event of the requested type is executed.
 --- @param event_name string The full path to the event we want to listen on.
 --- @param callback fun(event: neorg.event, content: table|any) The function to call whenever our event gets triggered.
---- @param content_filter fun(event: neorg.event): boolean # A filtering function to test if a certain event meets our expectations.
+--- @param content_filter? fun(event: neorg.event): boolean # A filtering function to test if a certain event meets our expectations.
 function callbacks.on_event(event_name, callback, content_filter)
     -- If the table doesn't exist then create it
     callbacks.callback_list[event_name] = callbacks.callback_list[event_name] or {}
