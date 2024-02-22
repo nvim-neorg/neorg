@@ -150,9 +150,104 @@ local function table_get_default_last(tbl, index)
     return tbl[index] or tbl[#tbl]
 end
 
-local prettify_icon_table = {
-    numeric = { "1", "2", "3", "4", "5", "6", "7", "8", "9" },
-    numeric_dot = {
+local function get_ordered_index(bufid, prefix_node)
+    -- TODO: calculate levels in one pass, since treesitter API implementation seems to have ridiculously high complexity
+    local _, _, level = get_node_position_and_text_length(bufid, prefix_node)
+    local header_node = prefix_node:parent()
+    -- TODO: fix parser: `(ERROR)` on standalone prefix not followed by text, like `- `
+    -- assert(header_node:type() .. "_prefix" == prefix_node:type())
+    local sibling = header_node:prev_named_sibling()
+    local count = 1
+
+    while sibling and (sibling:type() == header_node:type()) do
+        local _, _, sibling_level = get_node_position_and_text_length(bufid, get_header_prefix_node(sibling))
+        if sibling_level < level then
+            break
+        elseif sibling_level == level then
+            count = count + 1
+        end
+        sibling = sibling:prev_named_sibling()
+    end
+
+    return count, (sibling or header_node:parent())
+end
+
+local function tbl_reverse(tbl)
+    local result = {}
+    for i = 1, #tbl do
+        result[i] = tbl[#tbl-i+1]
+    end
+    return result
+end
+
+local function tostring_lowercase(n)
+    local t = {}
+    while n > 0 do
+        t[#t+1] = string.char(0x61 + (n-1)%26)
+        n = math.floor((n-1)/26)
+    end
+    return table.concat(t):reverse()
+end
+
+local roman_numerals = {
+    { "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix" },
+    { "x", "xx", "xxx", "xl", "l", "lx", "lxx", "lxxx", "xc" },
+    { "c", "cc", "ccc", "cd", "d", "dc", "dcc", "dccc", "cm" },
+    { "m", "mm", "mmm" },
+}
+
+local function tostring_roman_lowercase(n)
+    if n >= 4000 then
+        -- too large to render
+        return
+    end
+
+    local result = {}
+    local i = 1
+    while n > 0 do
+        result[#result+1] = roman_numerals[i][n % 10]
+        n = math.floor(n/10)
+        i = i + 1
+    end
+    return table.concat(tbl_reverse(result))
+end
+
+local ordered_icon_table = {
+    ["0"] = function(i) return tostring(i-1) end,
+    ["1"] = function(i) return tostring(i) end,
+    ["a"] = function(i) return tostring_lowercase(i) end,
+    ["A"] = function(i) return tostring_lowercase(i):upper() end,
+    ["i"] = function(i) return tostring_roman_lowercase(i) end,
+    ["I"] = function(i) return tostring_roman_lowercase(i):upper() end,
+    ["Ⅰ"] = {
+        "Ⅰ",
+        "Ⅱ",
+        "Ⅲ",
+        "Ⅳ",
+        "Ⅴ",
+        "Ⅵ",
+        "Ⅶ",
+        "Ⅷ",
+        "Ⅸ",
+        "Ⅹ",
+        "Ⅺ",
+        "Ⅻ",
+    },
+    ["ⅰ"] = {
+        "ⅰ",
+        "ⅱ",
+        "ⅲ",
+        "ⅳ",
+        "ⅴ",
+        "ⅵ",
+        "ⅶ",
+        "ⅷ",
+        "ⅸ",
+        "ⅹ",
+        "ⅺ",
+        "ⅻ",
+    },
+    ["⒈"] = {
         "⒈",
         "⒉",
         "⒊",
@@ -174,7 +269,7 @@ local prettify_icon_table = {
         "⒚",
         "⒛",
     },
-    numeric_pareneses = {
+    ["⑴"] = {
         "⑴",
         "⑵",
         "⑶",
@@ -196,7 +291,7 @@ local prettify_icon_table = {
         "⒆",
         "⒇",
     },
-    numeric_circled = {
+    ["①"] = {
         "①",
         "②",
         "③",
@@ -218,63 +313,7 @@ local prettify_icon_table = {
         "⑲",
         "⑳",
     },
-    latin_lowercase = {
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h",
-        "i",
-        "j",
-        "k",
-        "l",
-        "m",
-        "n",
-        "o",
-        "p",
-        "q",
-        "r",
-        "s",
-        "t",
-        "u",
-        "v",
-        "w",
-        "x",
-        "y",
-        "z",
-    },
-    latin_uppercase = {
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "J",
-        "K",
-        "L",
-        "M",
-        "N",
-        "O",
-        "P",
-        "Q",
-        "R",
-        "S",
-        "T",
-        "U",
-        "V",
-        "W",
-        "X",
-        "Y",
-        "Z",
-    },
-    latin_lowercase_parentheses = {
+    ["⒜"] = {
         "⒜",
         "⒝",
         "⒞",
@@ -302,7 +341,7 @@ local prettify_icon_table = {
         "⒴",
         "⒵",
     },
-    latin_uppercase_circled = {
+    ["Ⓐ"] = {
         "Ⓐ",
         "Ⓑ",
         "Ⓒ",
@@ -330,7 +369,7 @@ local prettify_icon_table = {
         "Ⓨ",
         "Ⓩ",
     },
-    latin_lowercase_circled = {
+    ["ⓐ"] = {
         "ⓐ",
         "ⓑ",
         "ⓒ",
@@ -360,35 +399,33 @@ local prettify_icon_table = {
     },
 }
 
-local function get_number_table(initial_number)
-    -- TODO: error handling
-    for _, number_table in pairs(prettify_icon_table) do
-        if number_table[1] == initial_number then
-            return number_table
-        end
+local memoized_ordered_icon_generator = {}
+
+local function format_ordered_icon(pattern, index)
+    if type(pattern) == 'function' then
+        return pattern(index)
     end
-end
 
-local function get_ordered_index(bufid, prefix_node)
-    -- TODO: calculate levels in one pass, since treesitter API implementation seems to have ridiculously high complexity
-    local _, _, level = get_node_position_and_text_length(bufid, prefix_node)
-    local header_node = prefix_node:parent()
-    -- TODO: fix parser: `(ERROR)` on standalone prefix not followed by text, like `- `
-    -- assert(header_node:type() .. "_prefix" == prefix_node:type())
-    local sibling = header_node:prev_named_sibling()
-    local count = 1
+    local gen = memoized_ordered_icon_generator[pattern]
+    if gen then
+        return gen(index)
+    end
 
-    while sibling and (sibling:type() == header_node:type()) do
-        local _, _, sibling_level = get_node_position_and_text_length(bufid, get_header_prefix_node(sibling))
-        if sibling_level < level then
+    for char_one,number_table in pairs(ordered_icon_table) do
+        local l,r = pattern:find(char_one:find("%w") and "%f[%w]" .. char_one .. "%f[%W]" or char_one)
+        if l then
+            gen = function(index_)
+                local icon = type(number_table)=='function' and number_table(index_) or number_table[index_]
+                return icon and pattern:sub(1,l-1) .. icon .. pattern:sub(r+1)
+            end
             break
-        elseif sibling_level == level then
-            count = count + 1
         end
-        sibling = sibling:prev_named_sibling()
     end
 
-    return count, (sibling or header_node:parent())
+    gen = gen or function(index_) return end
+    memoized_ordered_icon_generator[pattern] = gen
+    return gen(index)
+
 end
 
 local superscript_digits = {
@@ -455,6 +492,41 @@ module.public = {
             set_mark(bufid, row_0b, col_0b, text, config.highlight)
         end,
 
+        multilevel_on_right = function(is_ordered)
+            return function(config, bufid, node)
+                if not config.icons then
+                    return
+                end
+
+                local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
+                local icon_pattern = table_get_default_last(config.icons, len)
+                if not icon_pattern then
+                    return
+                end
+
+                local icon = not is_ordered and icon_pattern or format_ordered_icon(icon_pattern, get_ordered_index(bufid, node))
+                if not icon then
+                    return
+                end
+
+                local text = (" "):rep(len - 1) .. icon
+                if vim.fn.strcharlen(text) > len and not has_anticonceal then
+                    -- TODO warn neovim version
+                    return
+                end
+
+                local _, first_unicode_end = text:find("[%z\1-\127\194-\244][\128-\191]*", len)
+                local highlight = config.highlights and table_get_default_last(config.highlights, len)
+                set_mark(bufid, row_0b, col_0b, text:sub(1, first_unicode_end), highlight)
+                if vim.fn.strcharlen(text) > len then
+                    assert(has_anticonceal)
+                    set_mark(bufid, row_0b, col_0b + len, text:sub(first_unicode_end + 1), highlight, {
+                        virt_text_pos = "inline",
+                    })
+                end
+            end
+        end,
+
         footnote_concealed = function(config, bufid, node)
             local link_title_node = node:next_named_sibling()
             local link_title = vim.treesitter.get_node_text(link_title_node, bufid)
@@ -469,61 +541,6 @@ module.public = {
                 local highlight = config.title_highlight
                 set_mark(bufid, row_start_0b, col_start_0b, superscripted_title, highlight)
             end
-        end,
-
-        multilevel_on_right = function(config, bufid, node)
-            if not config.icons then
-                return
-            end
-            local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
-            local icon = table_get_default_last(config.icons, len)
-            if not icon then
-                return
-            end
-            local text = (" "):rep(len - 1) .. icon
-            local highlight = config.highlights and table_get_default_last(config.highlights, len)
-            set_mark(bufid, row_0b, col_0b, text, highlight)
-        end,
-
-        multilevel_ordered_inline_on_right = function(config, bufid, node)
-            if not config.generators then
-                return
-            end
-
-            local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
-
-            local index = get_ordered_index(bufid, node)
-            local generator = table_get_default_last(config.generators, len)
-            local format = table_get_default_last(config.formatters, len)
-
-            local text = (" "):rep(len - 1) .. string.format(format, generator(index))
-
-            local highlight = config.highlights and table_get_default_last(config.highlights, len)
-
-            set_mark(bufid, row_0b, col_0b, text:sub(1, len), highlight)
-            set_mark(bufid, row_0b, col_0b + len, text:sub(len + 1), highlight, {
-                virt_text_pos = "inline",
-            })
-        end,
-
-        multilevel_ordered_on_right = function(config, bufid, node)
-            if not config.icons then
-                return
-            end
-            local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
-            local initial_number = table_get_default_last(config.icons, len)
-            if not initial_number then
-                return
-            end
-            local number_table = get_number_table(initial_number)
-            if not number_table then
-                return
-            end -- TODO: warning
-            local index = get_ordered_index(bufid, node)
-            local text = (" "):rep(len - 1) .. (number_table[index] or "~")
-            local highlight = config.highlights and table_get_default_last(config.highlights, len)
-
-            set_mark(bufid, row_0b, col_0b, text, highlight)
         end,
 
         multilevel_copied = function(config, bufid, node)
@@ -652,33 +669,6 @@ module.public = {
             end
         end,
     },
-
-    icon_generators = {
-        numeric = function(index)
-            return tostring(index)
-        end,
-
-        convert_to_base_n = function(vocabulary, number)
-            local result = {}
-
-            while number > 0 do
-                local remainder = ((number - 1) % #vocabulary) + 1
-
-                table.insert(result, 1, string.sub(vocabulary, remainder, remainder))
-                number = math.floor((number - 1) / #vocabulary)
-            end
-
-            return table.concat(result)
-        end,
-
-        alphanumeric_uppercase = function(index)
-            return module.public.icon_generators.convert_to_base_n("ABCDEFGHIJKLMNOPQRSTUVWXYZ", index)
-        end,
-
-        alphanumeric_lowercase = function(index)
-            return module.public.icon_generators.convert_to_base_n("abcdefghijklmnopqrstuvwxyz", index)
-        end,
-    },
 }
 
 module.config.public = {
@@ -768,10 +758,10 @@ module.config.public = {
                 "unordered_list5_prefix",
                 "unordered_list6_prefix",
             },
-            render = module.public.icon_renderers.multilevel_on_right,
+            render = module.public.icon_renderers.multilevel_on_right(false),
         },
         ordered = {
-            icons = (not has_anticonceal) and { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" } or nil,
+            icons = has_anticonceal and { "1.", "A.", "a.", "(1)", "I.", "i." } or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
             nodes = {
                 "ordered_list1_prefix",
                 "ordered_list2_prefix",
@@ -780,27 +770,7 @@ module.config.public = {
                 "ordered_list5_prefix",
                 "ordered_list6_prefix",
             },
-
-            --- A list of icon generators.
-            ---
-            --- Icon generators live in the `icon_generators` namespace. They create
-            --- a unique ID for each index in the list. This can be as simple as `1, 2, 3, 4...`
-            --- or `A, B, C, D...`, but one could opt for more complex generators.
-            generators = {
-                module.public.icon_generators.numeric,
-                module.public.icon_generators.alphanumeric_uppercase,
-                module.public.icon_generators.alphanumeric_lowercase,
-                module.public.icon_generators.numeric,
-            },
-
-            --- A list of lua patterns specifying how to format each
-            --- nesting level of an ordered list.
-            ---
-            --- `%s` is substituted with the string returned by the `generator`.
-            formatters = { "%s.", "%s.", "%s.", "(%s)" },
-
-            render = has_anticonceal and module.public.icon_renderers.multilevel_ordered_inline_on_right
-                or module.public.icon_renderers.multilevel_ordered_on_right,
+            render = module.public.icon_renderers.multilevel_on_right(true),
         },
         quote = {
             icons = { "│" },
@@ -848,7 +818,7 @@ module.config.public = {
                     "link_target_heading6",
                 },
             },
-            render = module.public.icon_renderers.multilevel_on_right,
+            render = module.public.icon_renderers.multilevel_on_right(false),
         },
         definition = {
             single = {
@@ -1501,31 +1471,6 @@ module.load = function()
         })
     end
 end
-
--- TODO;
--- [---------] lazyredraw, ttyfast
--- [x] no conceal on cursor line at insert mode
--- [---------] no conceal inside examples
--- [x] insert mode movement
--- [x] code, spoiler, non-local changes, languagetree (WONTFIX complicated cases)
--- [x]code config
--- [x] conceal links
--- [x] fix toggle-concealer
--- [ ] visual mode skip prettify ("ivV"):find(mode), ModeChanged
--- [+++++++] use vim.b[bufnr]
--- [x] chuncked concealing on demand for large file
--- --- (prev), current, (next): singleton record, changed when moving large steps
--- [++++++] adaptive performance tuning: instant, CursorHold
--- [++++++] multi-column ordering
--- [x] strip heading/list icon
--- number_spec: "§A.a1."
--- digit_infos: { ["A"] = ..., ["a"] = ..., ["1"] = ..., ["⑴"] = ... }
--- result: render({3,5,2,6,7}) = "§C.e2.6.7"
--- [ ] folding
--- [x] remove "enabled" and nestings from config
--- [x] fix: quote level >6
--- rerender on window size change
--- -- details like queries and highlights are closely coupled with the implementation. revealing it to the users are more noisy than helpful
 
 module.events.subscribed = {
     ["core.autocommands"] = {
