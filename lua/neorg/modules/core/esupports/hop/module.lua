@@ -582,7 +582,7 @@ module.public = {
             _ = function()
                 local query_str = lib.match(parsed_link_information.link_type)({
                     generic = [[
-                        (_
+                        [(_
                           [(strong_carryover_set
                              (strong_carryover
                                name: (tag_name) @tag_name
@@ -594,6 +594,8 @@ module.public = {
                                (tag_parameters) @title
                                (#eq? @tag_name "name")))]?
                           title: (paragraph_segment) @title)
+                         (inline_link_target
+                           (paragraph) @title)]
                     ]],
 
                     [{ "definition", "footnote" }] = string.format(
@@ -742,7 +744,7 @@ module.private = {
     ---@return table #A table of similarities (fuzzed items)
     fix_link_loose = function(parsed_link_information)
         local generic_query = [[
-            (_
+            [(_
               [(strong_carryover_set
                  (strong_carryover
                    name: (tag_name) @tag_name
@@ -753,7 +755,9 @@ module.private = {
                    name: (tag_name) @tag_name
                    (tag_parameters) @title
                    (#eq? @tag_name "name")))]?
-                title: (paragraph_segment) @title)
+               title: (paragraph_segment) @title)
+             (inline_link_target
+               (paragraph) @title)]
         ]]
 
         return module.private.fix_link(parsed_link_information, generic_query)
@@ -765,7 +769,7 @@ module.private = {
     fix_link_strict = function(parsed_link_information)
         local query = lib.match(parsed_link_information.link_type)({
             generic = [[
-                (_
+                [(_
                   [(strong_carryover_set
                      (strong_carryover
                        name: (tag_name) @tag_name
@@ -776,7 +780,9 @@ module.private = {
                        name: (tag_name) @tag_name
                        (tag_parameters) @title
                        (#eq? @tag_name "name")))]?
-                        title: (paragraph_segment) @title)
+                   title: (paragraph_segment) @title)
+                 (inline_link_target
+                   (paragraph) @title)]
             ]],
             [{ "definition", "footnote" }] = string.format(
                 [[
@@ -873,7 +879,7 @@ module.private = {
         end
 
         if vim.tbl_isempty(similarities) then
-            utils.notify("Sorry, Neorg couldn't fix that link :(", vim.log.levels.WARN)
+            utils.notify("Sorry, Neorg couldn't fix that link.", vim.log.levels.WARN)
         end
 
         table.sort(similarities, function(lhs, rhs)
