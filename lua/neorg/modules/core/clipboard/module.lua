@@ -48,17 +48,13 @@ module.load = function()
 
                                 return callback.cb(
                                     node,
-                                    vim.split(
-                                        assert(register --[[@as string]]),
-                                        "\n",
-                                        {
-                                            plain = true,
-                                            -- TODO: This causes problems in places
-                                            -- where you actually want to copy
-                                            -- newlines.
-                                            trimempty = true,
-                                        }
-                                    ),
+                                    vim.split(assert(register --[[@as string]]), "\n", {
+                                        plain = true,
+                                        -- TODO: This causes problems in places
+                                        -- where you actually want to copy
+                                        -- newlines.
+                                        trimempty = true,
+                                    }),
                                     {
                                         start = range[1],
                                         ["end"] = range[2],

@@ -368,8 +368,7 @@ module.examples = {
         local buffer = module.public.create_split("selection/Test selection")
 
         -- Binds a selection to that buffer
-        local selection = module
-            .public
+        local selection = module.public
             .begin_selection(buffer)
             :apply({
                 -- A title will simply be text with a custom highlight

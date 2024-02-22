@@ -24,7 +24,9 @@ local log, modules = neorg.log, neorg.modules
 local module = modules.create("core.upgrade")
 
 module.setup = function()
-    log.error("The `core.upgrade` module has been deprecated and is no longer in use. Please remove it from your loaded list.")
+    log.error(
+        "The `core.upgrade` module has been deprecated and is no longer in use. Please remove it from your loaded list."
+    )
 
     return {
         success = false,
