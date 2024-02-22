@@ -175,7 +175,7 @@ end
 local function tbl_reverse(tbl)
     local result = {}
     for i = 1, #tbl do
-        result[i] = tbl[#tbl-i+1]
+        result[i] = tbl[#tbl - i + 1]
     end
     return result
 end
@@ -183,8 +183,8 @@ end
 local function tostring_lowercase(n)
     local t = {}
     while n > 0 do
-        t[#t+1] = string.char(0x61 + (n-1)%26)
-        n = math.floor((n-1)/26)
+        t[#t + 1] = string.char(0x61 + (n - 1) % 26)
+        n = math.floor((n - 1) / 26)
     end
     return table.concat(t):reverse()
 end
@@ -205,20 +205,32 @@ local function tostring_roman_lowercase(n)
     local result = {}
     local i = 1
     while n > 0 do
-        result[#result+1] = roman_numerals[i][n % 10]
-        n = math.floor(n/10)
+        result[#result + 1] = roman_numerals[i][n % 10]
+        n = math.floor(n / 10)
         i = i + 1
     end
     return table.concat(tbl_reverse(result))
 end
 
 local ordered_icon_table = {
-    ["0"] = function(i) return tostring(i-1) end,
-    ["1"] = function(i) return tostring(i) end,
-    ["a"] = function(i) return tostring_lowercase(i) end,
-    ["A"] = function(i) return tostring_lowercase(i):upper() end,
-    ["i"] = function(i) return tostring_roman_lowercase(i) end,
-    ["I"] = function(i) return tostring_roman_lowercase(i):upper() end,
+    ["0"] = function(i)
+        return tostring(i - 1)
+    end,
+    ["1"] = function(i)
+        return tostring(i)
+    end,
+    ["a"] = function(i)
+        return tostring_lowercase(i)
+    end,
+    ["A"] = function(i)
+        return tostring_lowercase(i):upper()
+    end,
+    ["i"] = function(i)
+        return tostring_roman_lowercase(i)
+    end,
+    ["I"] = function(i)
+        return tostring_roman_lowercase(i):upper()
+    end,
     ["Ⅰ"] = {
         "Ⅰ",
         "Ⅱ",
@@ -402,7 +414,7 @@ local ordered_icon_table = {
 local memoized_ordered_icon_generator = {}
 
 local function format_ordered_icon(pattern, index)
-    if type(pattern) == 'function' then
+    if type(pattern) == "function" then
         return pattern(index)
     end
 
@@ -411,21 +423,22 @@ local function format_ordered_icon(pattern, index)
         return gen(index)
     end
 
-    for char_one,number_table in pairs(ordered_icon_table) do
-        local l,r = pattern:find(char_one:find("%w") and "%f[%w]" .. char_one .. "%f[%W]" or char_one)
+    for char_one, number_table in pairs(ordered_icon_table) do
+        local l, r = pattern:find(char_one:find("%w") and "%f[%w]" .. char_one .. "%f[%W]" or char_one)
         if l then
             gen = function(index_)
-                local icon = type(number_table)=='function' and number_table(index_) or number_table[index_]
-                return icon and pattern:sub(1,l-1) .. icon .. pattern:sub(r+1)
+                local icon = type(number_table) == "function" and number_table(index_) or number_table[index_]
+                return icon and pattern:sub(1, l - 1) .. icon .. pattern:sub(r + 1)
             end
             break
         end
     end
 
-    gen = gen or function(index_) return end
+    gen = gen or function(index_)
+        return
+    end
     memoized_ordered_icon_generator[pattern] = gen
     return gen(index)
-
 end
 
 local superscript_digits = {
@@ -504,7 +517,8 @@ module.public = {
                     return
                 end
 
-                local icon = not is_ordered and icon_pattern or format_ordered_icon(icon_pattern, get_ordered_index(bufid, node))
+                local icon = not is_ordered and icon_pattern
+                    or format_ordered_icon(icon_pattern, get_ordered_index(bufid, node))
                 if not icon then
                     return
                 end
@@ -761,7 +775,8 @@ module.config.public = {
             render = module.public.icon_renderers.multilevel_on_right(false),
         },
         ordered = {
-            icons = has_anticonceal and { "1.", "A.", "a.", "(1)", "I.", "i." } or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
+            icons = has_anticonceal and { "1.", "A.", "a.", "(1)", "I.", "i." }
+                or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
             nodes = {
                 "ordered_list1_prefix",
                 "ordered_list2_prefix",
