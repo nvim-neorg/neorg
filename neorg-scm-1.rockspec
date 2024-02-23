@@ -13,8 +13,8 @@ description = {
 dependencies = {
 	"lua >= 5.1, < 5.4",
     "nvim-nio",
-    "norgopolis-client.lua >= 0.2.0",
-    "norgopolis-server.lua >= 1.3.1",
+    -- "norgopolis-client.lua >= 0.2.0",
+    -- "norgopolis-server.lua >= 1.3.1",
     "lua-utils.nvim",
 }
 
