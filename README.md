@@ -53,11 +53,14 @@ Not only does this yield a low barrier for entry for new users it also ensures t
 other and speak the same underlying language. The file format is built to be expressive and easy to parse,
 which also makes `.norg` files easily usable anywhere outside of Neorg itself.
 
-To learn more about the philosophy of the project check the [philosophy](#-philosophy) section.
+A good way of thinking about Neorg is as a plaintext environment which can be adapted to a variety of use cases.
+If a problem can be represented using raw text, it can be solved using Neorg.
 
 ###### :exclamation: **IMPORTANT**: Neorg is young software. We consider it stable however be prepared for occasional breaking workflow changes. Make sure to pin the version of Neorg you'd like to use and only update when you are ready.
 
 ## 🌟 Tutorial
+
+A video tutorial may be found on Youtube:
 
 <div>
 
@@ -67,437 +70,74 @@ To learn more about the philosophy of the project check the [philosophy](#-philo
 
 </div>
 
-## 🔧 Installation/Quickstart
-
-**Neorg requires at least Neovim 0.8+ to operate.**
-
-### TL;DR
-
-For neovim beginners who don't want to tinker with the configurations:
-
-1. Install one of the Nerd fonts, for example Meslo Nerd Font from  [Nerd Fonts](https://www.nerdfonts.com/font-downloads).
-2. Set your terminal font to the monospace variant of the installed font, for example "MesloLGM Nerd Font Mono".
-3. Make sure you have git by running `git --version`
-4. Paste the sample init.lua below to `~/.config/nvim/init.lua`
-5. Start taking notes by `nvim test.norg`
-
-
-  <details>
-  <summary>sample init.lua</summary>
-
-  ```lua
-  -- adapted from https://github.com/folke/lazy.nvim#-installation
-
-  local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-  if not vim.loop.fs_stat(lazypath) then
-    print(vim.fn.system({
-      "git",
-      "clone",
-      "--filter=blob:none",
-      "https://github.com/folke/lazy.nvim.git",
-      "--branch=stable",
-      lazypath,
-    }))
-  end
-  vim.opt.rtp:prepend(lazypath)
-  
-  vim.g.mapleader = " "
-  
-  require("lazy").setup({
-    {
-        "rebelot/kanagawa.nvim",  -- neorg needs a colorscheme with treesitter support
-        commit = "7b411f9e66c6f4f6bd9771f3e5affdc468bcbbd2",  -- the last commit with legacy but supported highlight group names
-    },
-    {
-      "nvim-treesitter/nvim-treesitter",
-      build = ":TSUpdate",
-      opts = {
-        highlight = { enable = true },
-      },
-      config = function(_, opts)
-        require("nvim-treesitter.configs").setup(opts)
-      end,
-    },
-    {
-      "nvim-neorg/neorg",
-      tag = "v7.0.0",
-      build = ":Neorg sync-parsers",
-      dependencies = { "nvim-lua/plenary.nvim" },
-      config = function()
-        require("neorg").setup {
-          load = {
-            ["core.defaults"] = {},
-            ["core.concealer"] = {},
-            ["core.dirman"] = {
-              config = {
-                workspaces = {
-                  notes = "~/notes",
-                },
-                default_workspace = "notes",
-              },
-            },
-          },
-        }
-  
-        vim.wo.foldlevel = 99
-        vim.wo.conceallevel = 2
-      end,
-    }
-  })
-  
-  vim.cmd.colorscheme('kanagawa')
-  ```
-
-  </details>
-
-### Installation
-
-You can install it through your favorite plugin manager:
-
--
-  <details>
-  <summary><a href="https://github.com/wbthomason/packer.nvim">packer.nvim</a></summary>
-
-  ```lua
-  use {
-      "nvim-neorg/neorg",
-      config = function()
-          require('neorg').setup {
-              load = {
-                  ["core.defaults"] = {}, -- Loads default behaviour
-                  ["core.concealer"] = {}, -- Adds pretty icons to your documents
-                  ["core.dirman"] = { -- Manages Neorg workspaces
-                      config = {
-                          workspaces = {
-                              notes = "~/notes",
-                          },
-                      },
-                  },
-              },
-          }
-      end,
-      run = ":Neorg sync-parsers",
-      requires = "nvim-lua/plenary.nvim",
-  }
-  ```
-
-  Every time Neorg hits a new release, a new tag is created by us, so you don't have to worry about all the updates inbetween.
-  That means that adding `tag = "*"` in Packer will update to latest stable release.
-
-  You can also pin Neorg to one specific version through e.g. `tag = "2.0.0"`.
-
-  ---
-
-  Want to lazy load? You can use the `ft` key to load Neorg only upon entering a `.norg` file:
-
-  ```lua
-  use {
-      "nvim-neorg/neorg",
-      -- tag = "*",
-      ft = "norg",
-      after = "nvim-treesitter", -- You may want to specify Telescope here as well
-      config = function()
-          require('neorg').setup {
-              load = {
-                  ["core.defaults"] = {}, -- Loads default behaviour
-                  ["core.concealer"] = {}, -- Adds pretty icons to your documents
-                  ["core.dirman"] = { -- Manages Neorg workspaces
-                      config = {
-                          workspaces = {
-                              notes = "~/notes",
-                          },
-                      },
-                  },
-              },
-          }
-      end
-  }
-  ```
-
-  Although it's proven to work for a lot of people, you might need to take some
-  additional steps depending on how your lazyloading system and/or Neovim
-  config is set up.
-
-  </details>
-
-- <details>
-  <summary><a href="https://github.com/junegunn/vim-plug">vim-plug</a></summary>
-
-  ```vim
-  Plug 'nvim-neorg/neorg' | Plug 'nvim-lua/plenary.nvim'
-  ```
-
-  You can then put this initial configuration in your `init.vim` file:
-
-  ```vim
-  lua << EOF
-  require('neorg').setup {
-      load = {
-          ["core.defaults"] = {}, -- Loads default behaviour
-          ["core.concealer"] = {}, -- Adds pretty icons to your documents
-          ["core.dirman"] = { -- Manages Neorg workspaces
-              config = {
-                  workspaces = {
-                      notes = "~/notes",
-                  },
-              },
-          },
-      },
-  }
-  EOF
-  ```
-
-  </details>
-- <details>
-  <summary><a href="https://github.com/folke/lazy.nvim">lazy.nvim</a></summary>
-
-  ```lua
-  require("lazy").setup({
-    {
-      "nvim-neorg/neorg",
-      build = ":Neorg sync-parsers",
-      lazy = false, -- specify lazy = false because some lazy.nvim distributions set lazy = true by default
-      -- tag = "*",
-      dependencies = { "nvim-lua/plenary.nvim" },
-      config = function()
-        require("neorg").setup {
-          load = {
-            ["core.defaults"] = {}, -- Loads default behaviour
-            ["core.concealer"] = {}, -- Adds pretty icons to your documents
-            ["core.dirman"] = { -- Manages Neorg workspaces
-              config = {
-                workspaces = {
-                  notes = "~/notes",
-                },
-              },
-            },
-          },
-        }
-      end,
-    },
-  })
-  ```
-
-  If you want to lazy load the plugin and split it into a separate file, here is the snippet. (be careful, you'll not get command completion the first time)
-  ```lua
-  return {
-    "nvim-neorg/neorg",
-    dependencies = { "nvim-lua/plenary.nvim" },
-    build = ":Neorg sync-parsers",
-    -- tag = "*",
-    lazy = true, -- enable lazy load
-    ft = "norg", -- lazy load on file type
-    cmd = "Neorg", -- lazy load on command
-    config = function()
-      require("neorg").setup {
-        load = {
-          ["core.defaults"] = {}, -- Loads default behaviour
-          ["core.concealer"] = {}, -- Adds pretty icons to your documents
-          ["core.dirman"] = { -- Manages Neorg workspaces
-            config = {
-              workspaces = {
-                notes = "~/notes",
-              },
-            },
-          },
-        },
-      }
-    end,
-  }
-  ```
-
-  </details>
-
-### Treesitter
-
-###### _Be sure to have [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) installed on your system for this step!_
-Neorg will automatically attempt to install the parsers for you upon entering a `.norg` file if you have `core.defaults` loaded.
-A command is also exposed to reinstall and/or update these parsers: `:Neorg sync-parsers`.
-
-It is important to note that installation via this command isn't reproducible.
-There are a few ways to make it reproducible, but the recommended way is to set up an **update flag** for your plugin
-manager of choice. In packer, your configuration may look something like this:
-```lua
-use {
-    "nvim-neorg/neorg",
-    run = ":Neorg sync-parsers", -- This is the important bit!
-    config = function()
-        require("neorg").setup {
-            -- configuration here
-        }
-    end,
-}
-```
-
-With the above `run` key set, every time you update Neorg the internal parsers
-will also be updated to the correct revision.
-
 ## 📦 Setup
 
-You've got the basic stuff out the way now, but wait! That's not all. You've installed Neorg - great! Now you have to configure it.
-By default, Neorg does nothing, and gives you nothing. You must tell it what you care about!
+Neorg's setup process is slightly more complex than average, so we encourage you to be patient :)
 
-### Default modules
+### `rocks.nvim`
 
-Neorg runs on _modules_, which are discussed and explained in more depth later on.
-Each module provides a single bit of functionality - they can then be stacked together to form
-the entire Neorg environment.
+The recommended installation method is via [rocks.nvim](https://github.com/nvim-neorocks/rocks.nvim).
 
-The most common module you'll find is the `core.defaults` module, which is basically a "load all features" switch.
-It gives you the full experience out of the box.
-
-The code snippet to enable all default modules is very straightforward:
-
-```lua
-require('neorg').setup {
-    load = {
-        ["core.defaults"] = {}
-    }
-}
-```
-
-You can see [here](https://github.com/nvim-neorg/neorg/wiki#default-modules) which modules are automatically required when loading `core.defaults`.
-
-## ⚙ Usage
-
-A new and official specification is in the works, we recommend reading it [here](https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg).
-You can view a summary directly in your neovim instance by running `:h neorg` if you don't like reading a lot!
-
-Afterwards it's as simple as hopping into a `.norg` file and typing away.
-
-A good first step is to require the `core.dirman` module, it'll help you manage Neorg workspaces.
-Workspaces are basically isolated directories that you can jump between:
-
-```lua
-require('neorg').setup {
-    load = {
-        ["core.defaults"] = {},
-        ["core.dirman"] = {
-            config = {
-                workspaces = {
-                    work = "~/notes/work",
-                    home = "~/notes/home",
-                }
-            }
+- <details open>
+  <summary>Installation snippet.</summary>
+  
+  - Run `:Rocks install rocks-config.nvim` (if you don't have it already!).
+  - Run `:Rocks install neorg`.
+  - Add the following to your config's `lua/plugins/neorg.lua`:
+    ```lua
+    require("neorg").setup({
+        load = {
+            ["core.defaults"] = {},
         }
+    })
+    ```
+  
+  </details>
+
+### `lazy.nvim`
+
+In order to install Neorg via `lazy.nvim`, you must take a few extra steps - this is because `luarocks` is a critical compontent for Neorg to function.
+See [this issue](https://github.com/folke/lazy.nvim/issues/37) for more information.
+
+Dependencies:
+- `python3`
+
+- <details>
+  <summary>Click for installation snippet.</summary>
+  
+  - Ensure you have `camspiers/luarocks` installed:
+    ```lua
+    { "camspiers/luarocks", version = "*" }
+    ```
+  - Add Neorg to the plugin list:
+    ```lua
+    {
+        "nvim-neorg/neorg",
+        dependencies = { "luarocks" },
+        config = function()
+            require("neorg").setup({
+                load = {
+                    ["core.defaults"] = {},
+                },
+            })
+        end,
     }
-}
-```
+    ```
 
-Changing workspaces is easy, just do `:Neorg workspace work`, where `work` is the name of your workspace.
-Voila!
+  </details>
 
-#### It works, cool! What are the next steps?
+> [!NOTE]
+> Neorg will attempt to execute a build step. During this build step it will check for the existence
+> of all of the required dependencies.
 
-We recommend you add some core modules that can greatly improve your experience, such as:
+### Other Plugin Managers
 
-- Using the concealer module to enable icons (`core.concealer`)
-- Setting up a completion engine (`core.completion`)
+Because of the complexities of `luarocks` we are choosing not to supported other plugin managers for the time
+being. It is actively on our TODO list, however!
 
-Setting these up is discussed in the wiki, so be sure to check there!
+## Rest of README
 
-**You're now basically set**! The rest of this README will be additional information, so keep reading
-if you care about what makes Neorg tick, or you want to genuinely get good at using it.
-
-## 🥡 Modules
-
-As you saw previously, we loaded `core.defaults` and recommended that you load `core.dirman`.
-As you probably know those are modules. But what are they, exactly?
-
-Modules are basically isolated bits of code that provide a specific subset of features. They can be docked into
-the environment at any time and can be essentially stacked together like lego bricks!
-They can bind themselves to events and callbacks and communicate with each other.
-
-To require a module, just do:
-
-```lua
-require('neorg').setup {
-    load = {
-        -- Require the module with the default configurations for it
-        ["your.required.module"] = {},
-
-        -- Require the module, and override the configurations (with the "config" table)
-        ["your.required.module"] = {
-            config = {
-                some_option = true
-            }
-        }
-    }
-}
-```
-
-As always, for a little more info you can consult the wiki page [here](https://github.com/nvim-neorg/neorg/wiki/#module-naming-convention).
-To know which configurations are provided by default for a module, just click on their link: you'll go to the module page in the [wiki](https://github.com/nvim-neorg/neorg/wiki).
-
-### Core Modules
-
-[Here](https://github.com/nvim-neorg/neorg/wiki#default-modules) is a list of core modules that aren't part of `core.defaults` and can be added
-individually by you.
-
-Feel free to try by adding them to your Neorg setup.
-
-### External Modules
-
-Users can contribute and create their own modules for Neorg.
-To use them, just download the plugin with your package manager, for instance with Packer:
-
-```lua
-use {
-    "nvim-neorg/neorg",
-    requires = "john-cena/cool-neorg-plugin",
-}
-```
-
-After that it's as easy as loading the exposed module normally:
-
-```lua
-require('neorg').setup {
-    load = {
-        ["cool.module"] = {},
-    }
-}
-```
-
-A comprehesive list of community made modules can be found [in the awesome-neorg repo](https://github.com/NTBBloodbath/awesome-neorg)!
-
-## ❓ Philosophy
-
-Our goals are fairly simple:
-
-1. Revise the org format: simple, extensible, unambiguous. Will make you feel right at home. Alternate markup formats have several flaws, but the most
-   notable one is the requirement for **complex and slow parsers**.
-   What if we told you it's possible to alleviate those problems, all whilst keeping that familiar feel?
-   Enter the `.norg` file format, whose specification can be found [here](https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg).
-   The cross between all the best things from org and the best things from markdown, revised and merged into one.
-
-2. Keybinds that _make sense_: vim's keybind philosophy is unlike any other, and we want to keep that vibe.
-   Keys form a "language", one that you can speak, not one that you need to learn off by heart.
-
-3. Infinite extensibility: no, that isn't a hyperbole. We mean it. Neorg is built upon an insanely modular and
-   configurable backend - keep what you need, throw away what you don't care about. Use the defaults or change 'em.
-   You are in control of what code runs and what code doesn't run!
-
-4. Logic: everything has a reason, everything has logical meaning. If there's a feature, it's there because it's necessary, not because
-   two people asked for it.
-   If something has a more niche use case, it should be documented.
-
-## 📚 FAQ
-
-The wiki is the go-to place if you need answers to anything Neorg-related. Usage, Keybinds, User Callbacks, Modules, Events?
-It's all there, so we recommend you seriously go [read it](https://github.com/nvim-neorg/neorg/wiki)!
-
-## Troubleshooting
-
-If you feel that you're in trouble or some component like Treesitter is not working check the
-[Dependencies.md](https://github.com/nvim-neorg/neorg/wiki/Dependencies) file for many common issues
-unrelated to the Neorg core.
-
-## Contributing
-
-Have an idea? An improvement to existing functionality? Feedback in general?
-
-We seriously recommend you join our [discord](https://discord.gg/T6EgTAX7ht) to hang out and chat about your ideas,
-plus that you read the [CONTRIBUTING.md](docs/CONTRIBUTING.md) file for more info about developer-related stuff!
+TODO.
 
 ## Credits
 
