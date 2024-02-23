@@ -311,24 +311,11 @@ module.public = {
         local start_row, start_col = node:start()
         local end_row, end_col = node:end_()
 
-        -- Handle source of a file path
+        -- when source is the string contents of the file
         if type(source) == "string" then
-            local lines = vim.fn.readfile(source)
-            local res = {}
-            local row = start_row + 1
-            while row <= end_row + 1 do
-                local s = start_col + 1
-                if row > start_row + 1 then
-                    s = 0
-                end
-                local e = nil
-                if row == end_row + 1 then
-                    e = end_col
-                end
-                table.insert(res, lines[start_row + 1]:sub(s, e))
-                row = row + 1
-            end
-            return table.concat(res, "\n")
+            local _, _, start_bytes = node:start()
+            local _, _, end_bytes = node:end_()
+            return string.sub(source, start_bytes, end_bytes)
         end
 
         source = source or 0

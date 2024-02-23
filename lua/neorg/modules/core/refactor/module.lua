@@ -1,16 +1,25 @@
 --[[
     file: Refactor-Module
-    title: Move Files Fearlessly
-    summary: A module that allows for moving files around without breaking links to or from the file
+    title: Rename Things without Much Worry
+    summary: A module that allows for file and header refactors without breaking existing links
     internal: false
     ---
 
-This module provides a way to move files around without breaking existing links to or from the file.
-Originally, this module planned to implement more common refactors, but LSP is around the corner, so
-this module will likely be phased out in favor of LSP code actions.
+This module provides a way to move files around without breaking existing links to or from the
+file. It also lets you rename headers without breaking links to the header. Works on all files
+in the workspace, if a file is open, it will use the buffer contents instead of the file contents
+so unsaved changes are accounted for.
 
-Commands:
-Neorg refactor rename file [new_file_path]
+## Limitations
+
+- When renaming a file, and links inside the file will be converted to workspace relative links
+- Links that include a file path to their own file (ie. `{:path/to/blah:}` while in `blah.norg`)
+  are not supported
+
+## Commands
+
+- `Neorg refactor rename file`
+- `Neorg refactor rename header`
 --]]
 
 local neorg = require("neorg.core")
@@ -32,7 +41,7 @@ module.setup = function()
     }
 end
 
-local link_tools, dirman, dirman_utils, popup, ts
+local link_tools, dirman, dirman_utils, ts
 module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         refactor = {
@@ -51,8 +60,7 @@ module.load = function()
                             name = "refactor.rename.file",
                         },
                         heading = {
-                            min_args = 0,
-                            max_args = 1,
+                            args = 0,
                             name = "refactor.rename.heading",
                         },
                     },
@@ -64,7 +72,6 @@ module.load = function()
     link_tools = module.required["core.link-tools"]
     dirman = module.required["core.dirman"]
     dirman_utils = module.required["core.dirman.utils"]
-    popup = module.required["core.ui.text_popup"]
 end
 
 module.events.subscribed = {
@@ -92,12 +99,13 @@ module.public = {
 
         ---@type lsp.WorkspaceEdit
         local wsEdit = { changes = {} }
-        local current_file_changes = module.public.fix_links(current_path, true, function(link_text)
-            local link_path, _ = link_tools.where_does_this_link_point(current_path, link_text)
-            if link_path and not string.match(link_text, "^{:%$") then
+        ---@param link Link
+        local current_file_changes = module.public.fix_links(current_path, function(link)
+            local link_path, _ = link_tools.where_does_this_link_point(current_path, link)
+            if link_path and link.file and not link.file.text:match("^%$") then
                 link_path = link_path:gsub("%.norg$", "")
                 local ws_rel_link = dirman_utils.to_workspace_relative(link_path)
-                return string.gsub(link_text, "{:.*:(.*)}", ("{:%s:%%1}"):format(ws_rel_link))
+                return ws_rel_link, unpack(link.file.range)
             end
         end)
         if #current_file_changes > 0 then
@@ -114,11 +122,13 @@ module.public = {
         local new_ws_path = "$" .. string.gsub(new_path, "^" .. ws_path, "")
         new_ws_path = string.gsub(new_ws_path, "%.norg$", "")
         for _, file in ipairs(files) do
-            local file_changes = module.public.fix_links(file, true, function(link_text)
-                local link_path, _ = link_tools.where_does_this_link_point(file, link_text)
+            if file == current_path then goto continue end
+            ---@param link Link
+            local file_changes = module.public.fix_links(file, function(link)
+                local link_path, _ = link_tools.where_does_this_link_point(file, link)
                 if link_path == current_path then
                     link_path = link_path:gsub("%.norg$", "")
-                    return string.gsub(link_text, "{:.*:(.*)}", ("{:%s:%%1}"):format(new_ws_path))
+                    return new_ws_path, unpack(link.file.range)
                 end
             end)
             if #file_changes > 0 then
@@ -127,6 +137,8 @@ module.public = {
                 local file_uri = vim.uri_from_fname(file)
                 wsEdit.changes[file_uri] = file_changes
             end
+
+            ::continue::
         end
 
         os.rename(current_path, new_path)
@@ -148,9 +160,9 @@ module.public = {
         local buf = vim.api.nvim_get_current_buf()
         local node = ts.get_first_node_on_line(buf, line_number)
         local line = vim.api.nvim_buf_get_lines(buf, line_number, line_number + 1, false)
-        local prefix = line[1]:match("^%*+")
-        local new_prefix = new_heading:match("^%*+")
-        local new_name = new_heading:sub(#new_prefix + 2)
+        local prefix = line[1]:match("^%*+ ")
+        local new_prefix = new_heading:match("^%*+ ")
+        local new_name = new_heading:sub(#new_prefix + 1)
         if not node then
             return
         end
@@ -169,27 +181,26 @@ module.public = {
         -- headings with checkbox items have this extra white space.
         title_text = string.gsub(title_text, "^ ", "")
 
-        P(title_text)
-
         ---@type lsp.WorkspaceEdit
         local wsEdit = { changes = {} }
-        local changes = module.public.fix_links(buf, true, function(link_text)
-            local link_prefix = string.match(link_text, "([%*#]+).*}")
-            P(link_prefix, prefix, link_text)
-            if
-                (link_prefix == "#" or link_prefix == prefix)
-                and link_text:match(("{.*(%s %s)}"):format(link_prefix, title_text))
-            then
+        ---@param link Link
+        local changes = module.public.fix_links(buf, function(link)
+            local link_prefix = link.heading_type and link.heading_type.text
+            local link_heading = link.heading_text and link.heading_text.text
+            -- NOTE: This will not work for {:path/to/current/file:# heading} but who would do that..
+            if not link.file and (link_prefix == "# " or link_prefix == prefix) and link_heading == title_text then
                 local p = new_prefix
-                if link_prefix == "#" then
-                    p = "#"
+                if link_prefix == "# " then
+                    p = "# "
                 end
-                return ("{%s %s}"):format(p, new_name)
+                return ("{%s%s}"):format(p, new_name)
             end
         end)
 
         local file_uri = vim.uri_from_bufnr(buf)
         wsEdit.changes[file_uri] = changes
+
+        -- change the heading in our file too
         table.insert(wsEdit.changes[file_uri], {
             newText = new_heading .. "\n",
             range = {
@@ -203,37 +214,42 @@ module.public = {
                 },
             },
         })
-        if #changes > 0 then
+        if #changes - 1 > 0 then
             total_changed.files = total_changed.files + 1
             total_changed.links = total_changed.links + #changes - 1
         end
 
         -- loop through all the files
         local ws_name = dirman.get_current_workspace()[1]
-
         local files = dirman.get_norg_files(ws_name)
 
         local current_path = vim.api.nvim_buf_get_name(0)
         for _, file in ipairs(files) do
-            changes = module.public.fix_links(file, true, function(link_text)
-                local link_path, link_heading = link_tools.where_does_this_link_point(file, link_text)
-                local link_prefix = string.match(link_text, "([%*#]+).*}")
+            if file == current_path then goto continue end
+
+            ---@param link Link
+            changes = module.public.fix_links(file, function(link)
+                local link_path = link_tools.where_does_this_link_point(file, link)
+                local link_heading = link.heading_text and link.heading_text.text
+                local link_prefix = link.heading_type and link.heading_type.text
                 if not link_heading or not link_prefix then
                     return
                 end
-                local escaped_link_prefix = link_prefix:gsub("%*", "%*")
-                link_heading = link_heading:gsub("^" .. escaped_link_prefix .. " ", "")
+
                 if
-                    (link_prefix == "#" or link_prefix == prefix)
+                    (link_prefix == "# " or link_prefix == prefix)
                     and link_heading == title_text
                     and link_path == current_path
                 then
-                    link_path = link_path:gsub("%.norg$", "")
                     local p = new_prefix
-                    if link_prefix == "#" then
-                        p = "#"
+                    if link_prefix == "# " then
+                        p = "# "
                     end
-                    return string.gsub(link_text, "{(:.*:).*}", ("{%%1%s %s}"):format(p, new_name))
+                    return ("%s%s"):format(p, new_name),
+                        link.heading_type.range[1],
+                        link.heading_type.range[2],
+                        link.heading_text.range[3],
+                        link.heading_text.range[4]
                 end
             end)
             if #changes > 0 then
@@ -241,9 +257,9 @@ module.public = {
                 total_changed.files = total_changed.files + 1
                 total_changed.links = total_changed.links + #changes
             end
-        end
 
-        P(ws_changes)
+            ::continue::
+        end
 
         vim.lsp.util.apply_workspace_edit(wsEdit, "utf-8")
         vim.notify(
@@ -259,37 +275,27 @@ module.public = {
 
     ---Abstract function to generate TextEdits that alter matching links
     ---@param source number | string bufnr or filepath
-    ---@param with_heading boolean fill link text or just the file path?
     ---@param fix_link function takes a string, the current link, returns a string, the new link,
     ---or nil if this shouldn't be changed
-    fix_links = function(source, with_heading, fix_link)
+    fix_links = function(source, fix_link)
         local links = nil
-        if type(source) == "number" then
-            links = link_tools.get_file_links_from_buf(source, with_heading)
-        elseif type(source) == "string" then
-            links = link_tools.get_file_links_from_file(source, with_heading)
-        else
-            return {}
-        end
-
-        P(links)
+        links = link_tools.get_links(source)
 
         local edits = {}
         for _, link in ipairs(links) do
-            local link_text = link[1]
-            local new_link = fix_link(link_text)
+            local new_link, start_line, start_char, end_line, end_char = fix_link(link)
             if new_link then
                 ---@type lsp.TextEdit
                 local text_edit = {
                     newText = new_link,
                     range = {
                         start = {
-                            line = link[2],
-                            character = link[3],
+                            line = start_line or link.range[1],
+                            character = start_char or link.range[2],
                         },
                         ["end"] = {
-                            line = link[4],
-                            character = link[5],
+                            line = end_line or link.range[3],
+                            character = end_char or link.range[4],
                         },
                     },
                 }
@@ -318,24 +324,18 @@ module.private = {
 
     ["refactor.rename.heading"] = function(event)
         local line_number = event.cursor_position[1]
-        local new_name = event.content[1]
         local prefix = string.match(event.line_content, "^%s*%*+ ")
-        if not prefix then
+        if not prefix then -- this is a very very simple check that we're on a heading line. We use TS in the actual rename_heading function
             return
         end
-        if new_name then
-            module.public.rename_heading(line_number, new_name)
-        else
-            -- P(event.line_content)
-            link_tools.get_file_links_from_buf(0)
-            -- vim.schedule(function()
-            --     vim.ui.input({ prompt = "New Heading: ", default = event.line_content }, function(text)
-            --         if not text then return end
-            --
-            --         module.public.rename_heading(line_number, text)
-            --     end)
-            -- end)
-        end
+
+        vim.schedule(function()
+            vim.ui.input({ prompt = "New Heading: ", default = event.line_content }, function(text)
+                if not text then return end
+
+                module.public.rename_heading(line_number, text)
+            end)
+        end)
     end,
 }
 

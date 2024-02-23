@@ -20,111 +20,106 @@ module.setup = function()
     }
 end
 
-local dirman, dirman_utils, treesitter
+local dirman_utils, treesitter
 module.load = function()
     treesitter = module.required["core.integrations.treesitter"]
-    dirman = module.required["core.dirman"]
     dirman_utils = module.required["core.dirman.utils"]
 end
 
+---@class NodeText
+---@field range Range
+---@field text string
+
+---@class Link
+---@field file? NodeText
+---@field heading_type? NodeText
+---@field heading_text? NodeText
+---@field range Range range of the entire link
+
 module.public = {
     ---fetch all the links in the given buffer
-    ---@param bufnr number
-    ---@return table
-    get_file_links_from_buf = function(bufnr)
-        if bufnr == 0 then
-            bufnr = vim.api.nvim_get_current_buf()
-        end
-        -- local query_node = with_heading and "link_location" or "link_file_text"
-        -- local link_query_string = [[
-        --     (link (link_location) @link)
-        -- ]]
+    ---@param source number | string bufnr or full path to file
+    ---@return Link[]
+    get_links = function(source)
         local link_query_string = [[
             (link
-             (link_location
-               file: (_)* @file
-               type: (_)* @type
-               text: (_)* @text))
+              (link_location
+                file: (_)* @file
+                type: (_)* @heading_type
+                text: (_)* @heading_text) @link_location)
         ]]
 
-        local norg_parser = vim.treesitter.get_parser(bufnr, "norg")
+        local norg_parser
+        local iter_src
+        if type(source) == "string" then
+            -- check if the file is open; use the buffer contents if it is
+            ---@diagnostic disable-next-line: param-type-mismatch
+            if vim.fn.bufexists(source) then
+                source = vim.uri_to_bufnr(vim.uri_from_fname(source))
+            else
+                iter_src = io.open(source, "r"):read("*a")
+                norg_parser = vim.treesitter.get_string_parser(iter_src, "norg")
+            end
+        end
+
+        if type(source) == "number" then
+            if source == 0 then
+                source = vim.api.nvim_get_current_buf()
+            end
+            norg_parser = vim.treesitter.get_parser(source, "norg")
+            iter_src = source
+        end
+
         if not norg_parser then
             return {}
         end
-        local result = {}
 
-        local norg_tree = P(norg_parser:parse())[1]
+        local norg_tree = norg_parser:parse()[1]
         local query = vim.treesitter.query.parse("norg", link_query_string)
 
         local links = {}
 
         ---@diagnostic disable-next-line: missing-parameter
-        for pattern, match, metadata in query:iter_matches(norg_tree:root(), bufnr) do
+        for _, match in query:iter_matches(norg_tree:root(), iter_src) do
             local link = {}
             for id, node in pairs(match) do
-                link[node:type()] = {
-                    text = treesitter.get_node_text(node, bufnr),
-                    range = node:range(),
+                local name = query.captures[id]
+                link[name] = {
+                    text = treesitter.get_node_text(node, iter_src),
+                    range = { node:range() },
                 }
             end
+            link.range = link.link_location.range
+            link.link_location = nil
             table.insert(links, link)
         end
 
-        P(links)
-
-        return {}
+        return links
     end,
 
-    ---fetch all the file links in the given file
-    ---@param file_path string
-    ---@param with_heading boolean? headings or just the file the link points at
-    ---@return table
-    get_file_links_from_file = function(file_path, with_heading)
-        file_path = vim.fs.normalize(file_path)
-        local query_node = with_heading and "link_location" or "link_file_text"
-
-        local nodes = treesitter.get_all_nodes_in_file(query_node, file_path)
-        local res = {}
-
-        for _, node in ipairs(nodes) do
-            local file = treesitter.get_node_text(node:field("file")[1], file_path)
-            local heading_type = treesitter.get_node_text(node:field("type")[1], file_path)
-            local heading_text = treesitter.get_node_text(node:field("text")[1], file_path)
-            table.insert(res, {
-                file = file,
-                heading_type = heading_type,
-                heading_text = heading_text,
-                range = node:range(),
-            })
-        end
-
-        return res
-    end,
-
-    ---Return the full path and header (if applicable) that this link points at. Accounting for
-    -- workspace relative and file relative paths.
-    -- NOTE: currently only handles norg links (like: `{::}`)
-    ---@param host_file string
-    ---@param link_text string like {:file:} or {:$/tools/git:}
-    ---@return string?, string? #full file path, heading
-    where_does_this_link_point = function(host_file, link_text)
-        if not link_text:match("^{:.*:.*}$") then
-            return nil, nil
-        end
-
-        local match = { link_text:match("{:(.*):(.*)}") }
-        local file_path = match[1]
-        local heading = match[2]
-
-        if file_path:match("^[^%w]") then
+    ---Return the full path of the file this link points at. Accounting for workspace relative and
+    -- file relative paths. simplifies links
+    ---@param host_file string file the link is in (allows resolving relative paths)
+    ---@param link Link
+    ---@return string? # full file path
+    where_does_this_link_point = function(host_file, link)
+        local file_path
+        if link.file and link.file.text then
+            file_path = link.file.text
+            if file_path:match("^[^/%$~]") then -- it's a relative path
+                local host_dir = host_file:gsub("/[^/]*$", "")
+                file_path = host_dir .. "/" .. file_path
+                -- simplify /folder/../
+                file_path = string.gsub(file_path, "/[^/]+/%.%./", "/")
+                -- simplify // and /./
+                file_path = string.gsub(file_path, "/%.?/", "/")
+            end
             file_path = dirman_utils.expand_path(file_path)
-        else -- it's a relative path
-            local host_dir = host_file:gsub("/[^/]*$", "")
-            file_path = host_dir .. "/" .. file_path
-            file_path = string.gsub(file_path, "/[^/]+/%.%./", "/")
+        else
+            file_path = host_file
         end
 
-        return file_path, heading
+        return file_path
     end,
 }
 
