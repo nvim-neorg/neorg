@@ -78,48 +78,48 @@ Neorg's setup process is slightly more complex than average, so we encourage you
 
 The recommended installation method is via [rocks.nvim](https://github.com/nvim-neorocks/rocks.nvim).
 
-- <details open>
-  <summary>Installation snippet.</summary>
-  
-  - Run `:Rocks install rocks-config.nvim` (if you don't have it already!).
-  - Run `:Rocks install neorg`.
-  - Add the following to your config's `lua/plugins/neorg.lua`:
-    ```lua
-    require("neorg").setup({
-        load = {
-            ["core.defaults"] = {},
-        }
-    })
-    ```
-  
-  </details>
+<details open>
+<summary>Installation snippet.</summary>
+
+- Run `:Rocks install rocks-config.nvim` (if you don't have it already!).
+- Run `:Rocks install neorg`.
+- Add the following to your config's `lua/plugins/neorg.lua`:
+  ```lua
+  require("neorg").setup({
+      load = {
+          ["core.defaults"] = {},
+      }
+  })
+  ```
+
+</details>
 
 ### `lazy.nvim`
 
 In order to install Neorg via `lazy.nvim`, you must take a few extra steps - this is because `luarocks` is a critical compontent for Neorg to function.
 See [this issue](https://github.com/folke/lazy.nvim/issues/37) for more information.
 
-- <details>
-  <summary>Click for installation snippet.</summary>
-  
-  - Ensure you have `camspiers/luarocks` installed:
-    ```lua
-    { "camspiers/luarocks", version = "*" }
-    ```
-  - Add Neorg to the plugin list:
-    ```lua
-    {
-        "nvim-neorg/neorg",
-        dependencies = { "luarocks" },
-        config = function()
-            require("neorg").setup({
-                load = {
-                    ["core.defaults"] = {},
-                },
-            })
-        end,
-    }
-    ```
+<details>
+<summary>Click for installation snippet.</summary>
+
+- Ensure you have `camspiers/luarocks` installed:
+  ```lua
+  { "camspiers/luarocks", version = "*" }
+  ```
+- Add Neorg to the plugin list:
+  ```lua
+  {
+      "nvim-neorg/neorg",
+      dependencies = { "luarocks" },
+      config = function()
+          require("neorg").setup({
+              load = {
+                  ["core.defaults"] = {},
+              },
+          })
+      end,
+  }
+  ```
 
   </details>
 
