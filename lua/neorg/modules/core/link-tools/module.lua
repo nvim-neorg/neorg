@@ -30,9 +30,8 @@ end
 module.public = {
     ---fetch all the links in the given buffer
     ---@param bufnr number
-    ---@param with_heading boolean? headings or just the file the link points at
     ---@return table
-    get_file_links_from_buf = function(bufnr, with_heading)
+    get_file_links_from_buf = function(bufnr)
         if bufnr == 0 then
             bufnr = vim.api.nvim_get_current_buf()
         end
@@ -74,13 +73,6 @@ module.public = {
         P(links)
 
         return {}
-        -- local nodes = treesitter.get_all_nodes(query_node, { buf = bufnr, ft = "norg" })
-        -- local res = {}
-        -- for _, node in ipairs(nodes) do
-        --     table.insert(res, { treesitter.get_node_text(node), node:range() })
-        -- end
-        --
-        -- return res
     end,
 
     ---fetch all the file links in the given file
@@ -95,7 +87,15 @@ module.public = {
         local res = {}
 
         for _, node in ipairs(nodes) do
-            table.insert(res, { treesitter.get_node_text(node, file_path), node:range() })
+            local file = treesitter.get_node_text(node:field("file")[1], file_path)
+            local heading_type = treesitter.get_node_text(node:field("type")[1], file_path)
+            local heading_text = treesitter.get_node_text(node:field("text")[1], file_path)
+            table.insert(res, {
+                file = file,
+                heading_type = heading_type,
+                heading_text = heading_text,
+                range = node:range(),
+            })
         end
 
         return res

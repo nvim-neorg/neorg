@@ -143,10 +143,14 @@ module.public = {
         )
     end,
 
-    rename_heading = function(line, new_name)
-        line = line - 1
+    rename_heading = function(line_number, new_heading)
+        line_number = line_number - 1
         local buf = vim.api.nvim_get_current_buf()
-        local node = ts.get_first_node_on_line(buf, line)
+        local node = ts.get_first_node_on_line(buf, line_number)
+        local line = vim.api.nvim_buf_get_lines(buf, line_number, line_number + 1, false)
+        local prefix = line[1]:match("^%*+")
+        local new_prefix = new_heading:match("^%*+")
+        local new_name = new_heading:sub(#new_prefix + 2)
         if not node then
             return
         end
@@ -157,37 +161,100 @@ module.public = {
         end
 
         local title_text = ts.get_node_text(title)
+        local total_changed = {
+            files = 0,
+            links = 0,
+        }
 
-        -- headings with TODO items have this extra white space.
+        -- headings with checkbox items have this extra white space.
         title_text = string.gsub(title_text, "^ ", "")
 
-        local ws_changes = {
-            [vim.uri_from_bufnr(buf)] = module.public.fix_links(buf, true, function(link_text)
-                local link_prefix = link_text:match("^[#*]+")
-                if link_text:match(("{.*(%s %s)}"):format(link_prefix, title_text)) then
-                    return string.gsub(link_text, ("{(.*%s )}"):format(link_prefix), ("{%1%s}"):format(new_name))
+        P(title_text)
+
+        ---@type lsp.WorkspaceEdit
+        local wsEdit = { changes = {} }
+        local changes = module.public.fix_links(buf, true, function(link_text)
+            local link_prefix = string.match(link_text, "([%*#]+).*}")
+            P(link_prefix, prefix, link_text)
+            if
+                (link_prefix == "#" or link_prefix == prefix)
+                and link_text:match(("{.*(%s %s)}"):format(link_prefix, title_text))
+            then
+                local p = new_prefix
+                if link_prefix == "#" then
+                    p = "#"
                 end
-            end),
-        }
+                return ("{%s %s}"):format(p, new_name)
+            end
+        end)
+
+        local file_uri = vim.uri_from_bufnr(buf)
+        wsEdit.changes[file_uri] = changes
+        table.insert(wsEdit.changes[file_uri], {
+            newText = new_heading .. "\n",
+            range = {
+                start = {
+                    line = line_number,
+                    character = 0,
+                },
+                ["end"] = {
+                    line = line_number + 1,
+                    character = 0,
+                },
+            },
+        })
+        if #changes > 0 then
+            total_changed.files = total_changed.files + 1
+            total_changed.links = total_changed.links + #changes - 1
+        end
 
         -- loop through all the files
         local ws_name = dirman.get_current_workspace()[1]
-        -- local ws_path = dirman.get_current_workspace()[2]
 
         local files = dirman.get_norg_files(ws_name)
 
         local current_path = vim.api.nvim_buf_get_name(0)
         for _, file in ipairs(files) do
-            ws_changes[vim.uri_from_fname(file)] = module.public.fix_links(file, true, function(link_text)
-                local link_path, _ = link_tools.where_does_this_link_point(file, link_text)
-                if link_path == current_path then
+            changes = module.public.fix_links(file, true, function(link_text)
+                local link_path, link_heading = link_tools.where_does_this_link_point(file, link_text)
+                local link_prefix = string.match(link_text, "([%*#]+).*}")
+                if not link_heading or not link_prefix then
+                    return
+                end
+                local escaped_link_prefix = link_prefix:gsub("%*", "%*")
+                link_heading = link_heading:gsub("^" .. escaped_link_prefix .. " ", "")
+                if
+                    (link_prefix == "#" or link_prefix == prefix)
+                    and link_heading == title_text
+                    and link_path == current_path
+                then
                     link_path = link_path:gsub("%.norg$", "")
-                    return string.gsub(link_text, "{(:.*:)?.*}", ("{:%%1:%s}"):format(new_name))
+                    local p = new_prefix
+                    if link_prefix == "#" then
+                        p = "#"
+                    end
+                    return string.gsub(link_text, "{(:.*:).*}", ("{%%1%s %s}"):format(p, new_name))
                 end
             end)
+            if #changes > 0 then
+                wsEdit.changes[vim.uri_from_fname(file)] = changes
+                total_changed.files = total_changed.files + 1
+                total_changed.links = total_changed.links + #changes
+            end
         end
 
         P(ws_changes)
+
+        vim.lsp.util.apply_workspace_edit(wsEdit, "utf-8")
+        vim.notify(
+            ("[Neorg] renamed %s to %s\nChanged %d links across %d files."):format(
+                title_text,
+                new_name,
+                total_changed.links,
+                total_changed.files
+            ),
+            vim.log.levels.INFO
+        )
     end,
 
     ---Abstract function to generate TextEdits that alter matching links
@@ -201,7 +268,11 @@ module.public = {
             links = link_tools.get_file_links_from_buf(source, with_heading)
         elseif type(source) == "string" then
             links = link_tools.get_file_links_from_file(source, with_heading)
+        else
+            return {}
         end
+
+        P(links)
 
         local edits = {}
         for _, link in ipairs(links) do
@@ -237,44 +308,33 @@ module.private = {
         if new_path then
             module.public.rename_file(current, new_path)
         else
-            popup.create_prompt("RenameNeorgFile", "New Path: ", function(text, ctx)
-                ctx.close()
-                module.public.rename_file(text)
-            end, {
-                center_x = true,
-                center_y = true,
-            }, {
-                width = 50,
-                height = 1,
-                row = 10,
-                col = 0,
-            })
+            vim.schedule(function()
+                vim.ui.input({ prompt = "New Path: ", default = current }, function(text)
+                    module.public.rename_file(current, text)
+                end)
+            end)
         end
     end,
 
     ["refactor.rename.heading"] = function(event)
-        local line = event.cursor_position[1]
+        local line_number = event.cursor_position[1]
         local new_name = event.content[1]
         local prefix = string.match(event.line_content, "^%s*%*+ ")
         if not prefix then
             return
         end
         if new_name then
-            new_name = string.gsub(event.line_content, "^%s*%*+ ", "")
-            module.public.rename_heading(line, new_name)
+            module.public.rename_heading(line_number, new_name)
         else
-            popup.create_prompt("RenameNeorgHeading", "New Heading: " .. prefix, function(text, ctx)
-                ctx.close()
-                module.public.rename_heading(line, text)
-            end, {
-                center_x = true,
-                center_y = true,
-            }, {
-                width = 50,
-                height = 1,
-                row = 10,
-                col = 0,
-            })
+            -- P(event.line_content)
+            link_tools.get_file_links_from_buf(0)
+            -- vim.schedule(function()
+            --     vim.ui.input({ prompt = "New Heading: ", default = event.line_content }, function(text)
+            --         if not text then return end
+            --
+            --         module.public.rename_heading(line_number, text)
+            --     end)
+            -- end)
         end
     end,
 }

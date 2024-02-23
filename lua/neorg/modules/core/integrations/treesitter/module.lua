@@ -307,6 +307,7 @@ module.public = {
         descend(root)
     end,
     get_node_text = function(node, source)
+        if not node then return "" end
         local start_row, start_col = node:start()
         local end_row, end_col = node:end_()
 
