@@ -186,6 +186,8 @@ module.public = {
                 end
             end)
         end
+
+        P(ws_changes)
     end,
 
     ---Abstract function to generate TextEdits that alter matching links

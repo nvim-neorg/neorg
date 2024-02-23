@@ -36,15 +36,51 @@ module.public = {
         if bufnr == 0 then
             bufnr = vim.api.nvim_get_current_buf()
         end
-        local query_node = with_heading and "link_location" or "link_file_text"
+        -- local query_node = with_heading and "link_location" or "link_file_text"
+        -- local link_query_string = [[
+        --     (link (link_location) @link)
+        -- ]]
+        local link_query_string = [[
+            (link
+             (link_location
+               file: (_)* @file
+               type: (_)* @type
+               text: (_)* @text))
+        ]]
 
-        local nodes = treesitter.get_all_nodes(query_node, { buf = bufnr, ft = "norg" })
-        local res = {}
-        for _, node in ipairs(nodes) do
-            table.insert(res, { treesitter.get_node_text(node), node:range() })
+        local norg_parser = vim.treesitter.get_parser(bufnr, "norg")
+        if not norg_parser then
+            return {}
+        end
+        local result = {}
+
+        local norg_tree = P(norg_parser:parse())[1]
+        local query = vim.treesitter.query.parse("norg", link_query_string)
+
+        local links = {}
+
+        ---@diagnostic disable-next-line: missing-parameter
+        for pattern, match, metadata in query:iter_matches(norg_tree:root(), bufnr) do
+            local link = {}
+            for id, node in pairs(match) do
+                link[node:type()] = {
+                    text = treesitter.get_node_text(node, bufnr),
+                    range = node:range(),
+                }
+            end
+            table.insert(links, link)
         end
 
-        return res
+        P(links)
+
+        return {}
+        -- local nodes = treesitter.get_all_nodes(query_node, { buf = bufnr, ft = "norg" })
+        -- local res = {}
+        -- for _, node in ipairs(nodes) do
+        --     table.insert(res, { treesitter.get_node_text(node), node:range() })
+        -- end
+        --
+        -- return res
     end,
 
     ---fetch all the file links in the given file
@@ -81,7 +117,7 @@ module.public = {
         local heading = match[2]
 
         if file_path:match("^[^%w]") then
-          file_path = dirman_utils.expand_path(file_path)
+            file_path = dirman_utils.expand_path(file_path)
         else -- it's a relative path
             local host_dir = host_file:gsub("/[^/]*$", "")
             file_path = host_dir .. "/" .. file_path
