@@ -70,7 +70,7 @@ A video tutorial may be found on Youtube:
 
 </div>
 
-## 📦 Setup
+## 📦 Installation
 
 Neorg's setup process is slightly more complex than average, so we encourage you to be patient :)
 
