@@ -99,9 +99,6 @@ The recommended installation method is via [rocks.nvim](https://github.com/nvim-
 In order to install Neorg via `lazy.nvim`, you must take a few extra steps - this is because `luarocks` is a critical compontent for Neorg to function.
 See [this issue](https://github.com/folke/lazy.nvim/issues/37) for more information.
 
-Dependencies:
-- `python3`
-
 - <details>
   <summary>Click for installation snippet.</summary>
   
@@ -127,17 +124,17 @@ Dependencies:
   </details>
 
 > [!NOTE]
-> Neorg will attempt to execute a build step. During this build step it will check for the existence
-> of all of the required dependencies.
+> Neorg will attempt to execute a build step where it will install itself via luarocks.
+> During this build step it will check for the existence of all of the required dependencies.
 
 ### Other Plugin Managers
 
 Because of the complexities of `luarocks` we are choosing not to supported other plugin managers for the time
 being. It is actively on our TODO list, however!
 
-## Rest of README
+## 📚 Further Learning
 
-TODO.
+After you have installed Neorg, we recommend you head over to either the Youtube tutorial series or to the [wiki](https://github.com/nvim-neorg/neorg/wiki)!
 
 ## Credits
 
