@@ -133,6 +133,9 @@ module.private = {
         local journal_file_exists =
             module.required["core.dirman"].file_exists(workspace_path .. "/" .. folder_name .. config.pathsep .. path)
 
+        -- WARN: testing
+        print(journal_file_exists)
+
         module.required["core.dirman"].create_file(folder_name .. config.pathsep .. path, workspace)
 
         module.required["core.dirman"].create_file(folder_name .. config.pathsep .. path, workspace)
