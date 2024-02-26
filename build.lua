@@ -9,4 +9,7 @@ assert(ok, "Unable to install neorg: required dependency `camspiers/luarocks` no
 
 -- local version = require("neorg.core.config").version
 
-luarocks.ensure({ "neorg dev" })
+luarocks.ensure({
+    "nvim-nio ~> 1.7",
+    "lua-utils.nvim == 1.0.2",
+})
