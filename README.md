@@ -103,6 +103,7 @@ See [this issue](https://github.com/folke/lazy.nvim/issues/37) for more informat
 > Using luarocks Neorg will install itself and these dependencies with their respective versions:
 > - `lua-utils.nvim`
 > - `nvim-nio`
+> - `nui.nvim`
 > - `plenary.nvim`
 
 <details>
@@ -113,7 +114,6 @@ See [this issue](https://github.com/folke/lazy.nvim/issues/37) for more informat
   {
       "camspiers/luarocks",
       version = "*",
-      priority = 100,
   }
   ```
 - Add the following to your plugin list:
@@ -133,7 +133,24 @@ See [this issue](https://github.com/folke/lazy.nvim/issues/37) for more informat
   }
   ```
 
-  </details>
+</details>
+
+### `packer.nvim`
+
+Neorg can be installed purely via luarocks on packer, pulling in all required dependencies in the process.
+
+It is not recommended to use packer as it is now unmaintained.
+
+<details>
+<summary>Click for installation snippet.</summary>
+
+```lua
+use_rocks {
+    "neorg",
+}
+```
+
+</details>
 
 ### Other Plugin Managers
 
