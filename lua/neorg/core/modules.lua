@@ -751,6 +751,11 @@ function modules.create_event(module, type, content, ev)
 
     local bufid = ev and ev.buf or vim.api.nvim_get_current_buf()
     local winid = assert(vim.fn.bufwinid(bufid))
+
+    if winid == -1 then
+        winid = vim.api.nvim_get_current_win()
+    end
+
     new_event.cursor_position = vim.api.nvim_win_get_cursor(winid)
 
     local row_1b = new_event.cursor_position[1]
