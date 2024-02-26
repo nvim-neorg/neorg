@@ -306,13 +306,13 @@ version: 0.1
     console.log("But I want syntax highlighting...")
     @end
 
-    @code lua
+    @code javascript
     console.log("Thank you!")
     @end
 
 *** Media
 
-    *NOTE: Media is currently unimplemented within Neorg*
+    *NOTE: Media is currently supported only via {https://github.com/3rd/image.nvim}[image.nvim].*
 
     You can embed images directly in base64 format like so:
     @image png svg jpeg jfif exif
@@ -322,7 +322,7 @@ version: 0.1
     Obviously you need to pick one of the available formats.
 
     You can embed external image or video files like so:
-    .image https://github.com/vhyrro/neorg/blob/main/res/neorg.svg
+    .image https://raw.githubusercontent.com/nvim-neorg/neorg/main/res/neorg.svg
 
 *** Math
 
