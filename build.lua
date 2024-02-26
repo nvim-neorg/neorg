@@ -7,6 +7,6 @@ local ok, luarocks = pcall(require, "luarocks.rocks")
 
 assert(ok, "Unable to install neorg: required dependency `camspiers/luarocks` not found!")
 
-local version = require("neorg.core.config").version
+-- local version = require("neorg.core.config").version
 
-luarocks.ensure({ "neorg ~> " .. version })
+luarocks.ensure({ "neorg dev" })
