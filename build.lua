@@ -3,13 +3,18 @@
 -- - Shelling out to luarocks.nvim for installation
 -- - Installing neorg as a rock (including dependencies)
 
-local ok, luarocks = pcall(require, "luarocks.rocks")
+-- Important note: we execute the build code in a vim.schedule
+-- to defer the execution and ensure that the runtimepath is appropriately set.
 
-assert(ok, "Unable to install neorg: required dependency `camspiers/luarocks` not found!")
+vim.schedule(function()
+    local ok, luarocks = pcall(require, "luarocks.rocks")
 
--- local version = require("neorg.core.config").version
+    assert(ok, "Unable to install neorg: required dependency `camspiers/luarocks` not found!")
 
-luarocks.ensure({
-    "nvim-nio ~> 1.7",
-    "lua-utils.nvim == 1.0.2",
-})
+    -- local version = require("neorg.core.config").version
+
+    luarocks.ensure({
+        "nvim-nio ~> 1.7",
+        "lua-utils.nvim == 1.0.2",
+    })
+end)
