@@ -7,7 +7,7 @@
 -- This library is free software; you can redistribute it and/or modify it
 -- under the terms of the MIT license. See LICENSE for details.
 
-local lib = require("neorg.core").lib
+local lib = assert(require("lua-utils"), "unable to find lua-utils dependency. Perhaps try restarting Neovim?")
 
 --- @alias LogLevel
 --- | "trace"
