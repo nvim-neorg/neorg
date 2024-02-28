@@ -45,12 +45,16 @@ local function unordered_list_prefix(level)
 end
 
 local function ordered_list_prefix(level)
-    return function(_, _, state)
+    return function(_, node, state)
         state.ordered_list_level[level] = state.ordered_list_level[level] + 1
         state.weak_indent = ((level - 1) * 4) + 3 + (tostring(state.ordered_list_level[level]):len() - 1)
 
-        for i = level + 1, 6 do
-            state.ordered_list_level[i] = 0
+        local parent = node:parent()
+        local prev_node = parent:prev_named_sibling()
+        -- If the previous node from the current parent (`ordered_list`) isn't another ordered
+        -- list node, the list was split and the current count should be restarted
+        if prev_node == nil or prev_node:type() ~= parent:type() then
+            state.ordered_list_level[level] = 1
         end
 
         return {
