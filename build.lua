@@ -19,4 +19,5 @@ vim.schedule(function()
     })
 
     require("neorg").setup_after_build()
+    pcall(vim.cmd.Neorg, "sync-parsers")
 end)
