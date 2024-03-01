@@ -736,12 +736,13 @@ module.public = {
 
 -- this fixes the problem of installing neorg ts parsers on macOS without resorting to using gcc
 local function install_norg_ts()
+    local install = require("nvim-treesitter.install")
+
     if vim.fn.has("macunix") == 1 then
         -- https://github.com/nvim-neorg/tree-sitter-norg/issues/7
         -- (we have to force clang to c++11 mode on macOS manually)
 
         local shell = require("nvim-treesitter.shell_command_selectors")
-        local install = require("nvim-treesitter.install")
 
         -- save the original functions
         local select_executable = shell.select_executable
@@ -771,7 +772,7 @@ local function install_norg_ts()
             error(err)
         end
     else
-        vim.cmd.TSInstallSync({ args = { "norg" }, bang = true })
+        install.commands.TSInstallSync["run!"]("norg")
     end
 end
 
@@ -793,7 +794,8 @@ module.on_event = function(event)
             utils.notify(string.format([[Unable to auto-install Norg parser: %s]], err), vim.log.levels.WARN)
         end
 
-        pcall(vim.cmd.TSInstallSync, { args = { "norg_meta" }, bang = true })
+        local install = require("nvim-treesitter.install")
+        install.commands.TSInstallSync["run!"]("norg_meta")
     end
 end
 
