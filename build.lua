@@ -17,4 +17,6 @@ vim.schedule(function()
         "nvim-nio ~> 1.7",
         "lua-utils.nvim == 1.0.2",
     })
+
+    require("neorg").setup_after_build()
 end)
