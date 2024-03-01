@@ -149,11 +149,12 @@ module.public = {
                 external_file = function()
                     open_split()
 
-                    vim.api.nvim_cmd({ cmd = "edit", args = { located_link_information.path } }, {})
-
-                    if located_link_information.line then
-                        jump_to_line(located_link_information.line)
-                    end
+		    cmd = {
+                        "edit",
+                        located_link_information.line and "+" .. located_link_information.line or "",
+                        vim.fn.fnameescape(located_link_information.path),
+                    }
+		    vim.api.nvim_command(table.concat(cmd, " "))
                 end,
 
                 buffer = function()
