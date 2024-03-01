@@ -771,7 +771,7 @@ local function install_norg_ts()
             error(err)
         end
     else
-        vim.cmd([[ TSInstall! norg ]])
+        vim.cmd.TSInstallSync({ args = "norg", bang = true})
     end
 end
 
@@ -797,7 +797,8 @@ module.on_event = function(event)
             )
         end
 
-        pcall(vim.cmd, "TSInstall! norg_meta") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+
+        pcall(vim.cmd.TSInstallSync, { args = "norg", bang = true })
     end
 end
 
