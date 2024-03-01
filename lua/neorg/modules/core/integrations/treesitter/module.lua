@@ -787,18 +787,17 @@ module.on_event = function(event)
             module.public.goto_previous_query_match(module.private.link_query)
         end
     elseif event.split_type[2] == "sync-parsers" then
-        local ok = pcall(install_norg_ts)
+        local ok, err = pcall(install_norg_ts)
 
         if not ok then
             utils.notify(
-                [[Unable to install norg parser.
-]],
+                string.format([[Unable to auto-install Norg parser: %s]], err),
                 vim.log.levels.WARN
             )
         end
 
 
-        pcall(vim.cmd.TSInstallSync, { args = "norg", bang = true })
+        pcall(vim.cmd.TSInstallSync, { args = "norg_meta", bang = true })
     end
 end
 
