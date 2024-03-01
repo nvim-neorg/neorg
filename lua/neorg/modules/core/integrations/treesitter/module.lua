@@ -771,7 +771,7 @@ local function install_norg_ts()
             error(err)
         end
     else
-        vim.cmd.TSInstallSync({ args = "norg", bang = true})
+        vim.cmd.TSInstallSync({ args = { "norg" }, bang = true })
     end
 end
 
@@ -790,14 +790,10 @@ module.on_event = function(event)
         local ok, err = pcall(install_norg_ts)
 
         if not ok then
-            utils.notify(
-                string.format([[Unable to auto-install Norg parser: %s]], err),
-                vim.log.levels.WARN
-            )
+            utils.notify(string.format([[Unable to auto-install Norg parser: %s]], err), vim.log.levels.WARN)
         end
 
-
-        pcall(vim.cmd.TSInstallSync, { args = "norg_meta", bang = true })
+        pcall(vim.cmd.TSInstallSync, { args = { "norg_meta" }, bang = true })
     end
 end
 
