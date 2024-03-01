@@ -7,7 +7,7 @@
 -- This library is free software; you can redistribute it and/or modify it
 -- under the terms of the MIT license. See LICENSE for details.
 
-local lib = assert(require("lua-utils"), "unable to find lua-utils dependency. Perhaps try restarting Neovim?")
+local lib = require("lua-utils")
 
 --- @alias LogLevel
 --- | "trace"
@@ -24,7 +24,7 @@ local lib = assert(require("lua-utils"), "unable to find lua-utils dependency. P
 --- @field use_file boolean                                        Whether to write output to a file.
 --- @field level LogLevel                                          Any messages above this level will be logged.
 --- @field modes ({ name: LogLevel, hl: string, level: number })[] Level configuration.
---- @field float_precision float                                   Can limit the number of decimals displayed for floats.
+--- @field float_precision number                                  Can limit the number of decimals displayed for floats.
 
 --- User configuration section
 --- @type neorg.log.configuration

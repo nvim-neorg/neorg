@@ -35,7 +35,10 @@ function neorg.setup(cfg)
         },
     })
 
-    neorg.lib = assert(require("lua-utils"), "unable to find lua-utils dependency. Perhaps try restarting Neovim?")
+    local lua_utils = assert((pcall(require, "lua-utils")), "unable to find lua-utils dependency. Perhaps try restarting Neovim?")
+
+    neorg.lib = lua_utils
+    neorg.log = require("neorg.core.log")
 
     -- If the file we have entered has a `.norg` extension:
     if vim.fn.expand("%:e") == "norg" or not config.user_config.lazy_loading then
@@ -66,8 +69,10 @@ function neorg.setup_after_build()
     end
 
     -- HACK(vhyrro): Please do this elsewhere.
-    neorg.lib =
-        assert((pcall(require, "lua-utils")), "unable to find lua-utils dependency. Perhaps try restarting Neovim?")
+    local lua_utils = assert((pcall(require, "lua-utils")), "unable to find lua-utils dependency. Perhaps try restarting Neovim?")
+
+    neorg.lib = lua_utils
+    neorg.log = require("neorg.core.log")
 
     neorg.setup(user_configuration)
 end
