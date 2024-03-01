@@ -7,8 +7,6 @@
 -- This library is free software; you can redistribute it and/or modify it
 -- under the terms of the MIT license. See LICENSE for details.
 
-local lib = require("lua-utils")
-
 --- @alias LogLevel
 --- | "trace"
 --- | "debug"
@@ -68,10 +66,7 @@ log.new = function(config, standalone)
 
     local outfile = string.format("%s/%s.log", vim.api.nvim_call_function("stdpath", { "data" }), config.plugin)
 
-    local obj = lib.match(standalone ~= nil)({
-        ["true"] = log,
-        ["false"] = {},
-    })
+    local obj = standalone ~= nil and log or {}
 
     local levels = {}
     for _, v in ipairs(config.modes) do
