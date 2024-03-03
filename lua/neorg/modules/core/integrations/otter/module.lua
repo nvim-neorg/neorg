@@ -4,7 +4,11 @@
     description: Integrates with otter.nvim to show diagnostics, give LSP auto complete, just to def, etc. directly in norg buffers.
     ---
 
-Otter.nvim is a plugin that gives you LSP features in embedded languages. The LSP features include:
+From the otter README:
+
+> Otter.nvim provides lsp features and a code completion source for code embedded in other documents.
+
+This includes:
 - auto completion
 - diagnostics
 - hover
@@ -20,7 +24,6 @@ by reading [the Otter.nvim README](https://github.com/jmbuhr/otter.nvim).
 
 If you want auto complete, make sure you add `"otter"` as a source to nvim-cmp (detailed in the
 otter README)
-```
 
 ## Commands
 - `:Neorg otter enable` - enable otter in the current buffer
@@ -90,13 +93,14 @@ module.on_event = function(event)
 end
 
 module.config.public = {
-    -- list of languages that otter will try to start a language server for. nil means all languages
+    -- list of languages that otter will try to start a language server for.
+    -- `nil` means all languages
     languages = nil,
 
     -- Automatically start Otter when a norg buffer is opened
     auto_start = true,
 
-    -- mappings that are set on the buffer when otter is activated
+    -- buffer local mappings set when otter is active
     keys = {
         hover = "K",
         definition = "gd",
@@ -151,8 +155,6 @@ module.public = {
 
     ---Deactivate otter in the current buffer, including unsetting buffer keymaps
     deactivate = function()
-        -- TODO: there is no current way to deactivate otter. I have an open issue for this here
-        -- https://github.com/jmbuhr/otter.nvim/issues/94
         otter.deactivate(
             module.config.public.completion.enabled,
             module.config.public.diagnostics.enabled
