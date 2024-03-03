@@ -1,7 +1,7 @@
 --[[
     file: Otter
     title: LSP Features in Code Cells
-    description: Integrates with otter.nvim to show diagnostics, give LSP auto complete, just to def, etc. directly in norg buffers.
+    description: Integrates with otter.nvim to get LSP features directly in norg code cells.
     ---
 
 From the otter README:
