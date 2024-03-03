@@ -20,10 +20,18 @@ This includes:
 
 ## Setup
 You need to install otter.nvim and make sure it's loaded before Neorg, you can configure it yourself
-by reading [the Otter.nvim README](https://github.com/jmbuhr/otter.nvim).
+by reading [the Otter.nvim README](https://github.com/jmbuhr/otter.nvim). You do not need to
+configure `handle_leading_whitespace`, neorg will do that for you.
 
-If you want auto complete, make sure you add `"otter"` as a source to nvim-cmp (detailed in the
-otter README)
+If you want auto complete, make sure you add `"otter"` as a source to nvim-cmp:
+
+```lua
+sources = {
+  -- ... other sources
+  { name = "otter" },
+  -- ... other sources
+}
+```
 
 ## Commands
 - `:Neorg otter enable` - enable otter in the current buffer
@@ -47,6 +55,9 @@ module.load = function()
     local ok
     ok, otter = pcall(require, "otter")
     assert(ok, "[Neorg] Failed to load otter.nvim")
+
+    -- This will not interfere with other otter.nvim configuration
+    otter.setup({ handle_leading_whitespace = true })
 
     if module.config.public.auto_start then
         local group = vim.api.nvim_create_augroup("neorg.integrations.otter", {})
