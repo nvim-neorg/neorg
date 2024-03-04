@@ -104,7 +104,10 @@ For neovim beginners who don't want to tinker with the configurations:
   vim.g.mapleader = " "
   
   require("lazy").setup({
-    "rebelot/kanagawa.nvim",  -- neorg needs a colorscheme with treesitter support
+    {
+        "rebelot/kanagawa.nvim",  -- neorg needs a colorscheme with treesitter support
+        commit = "7b411f9e66c6f4f6bd9771f3e5affdc468bcbbd2",  -- the last commit with legacy but supported highlight group names
+    },
     {
       "nvim-treesitter/nvim-treesitter",
       build = ":TSUpdate",
