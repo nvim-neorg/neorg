@@ -1336,7 +1336,8 @@ local function handle_init_event(event)
         local wo = vim.wo[event.window]
         wo.foldmethod = "expr"
         wo.foldexpr = vim.treesitter.foldexpr and "v:lua.vim.treesitter.foldexpr()" or "nvim_treesitter#foldexpr()"
-        wo.foldtext = "v:lua.require'neorg'.modules.get_module('core.concealer').foldtext()"
+        wo.foldtext = utils.is_minimum_version(0, 10, 0) and ""
+            or "v:lua.require'neorg'.modules.get_module('core.concealer').foldtext()"
 
         local init_open_folds = module.config.public.init_open_folds
         local function open_folds()
