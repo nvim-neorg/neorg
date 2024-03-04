@@ -61,7 +61,7 @@ module.load = function()
 
     if module.config.public.auto_start then
         local group = vim.api.nvim_create_augroup("neorg.integrations.otter", {})
-        vim.api.nvim_create_autocmd({ "BufEnter" }, {
+        vim.api.nvim_create_autocmd({ "BufReadPost" }, {
             desc = "Activate Otter on Buf Enter",
             pattern = "*.norg",
             group = group,
