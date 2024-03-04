@@ -638,7 +638,7 @@ module.public = {
             end
 
             local line_lengths = {}
-            local max_len = 0
+            local max_len = config.min_width or 0
             for row_0b = row_start_0b, row_end_0bin do
                 local len = get_line_length(bufid, row_0b)
                 if len > max_len then
@@ -928,6 +928,10 @@ module.config.public = {
             -- When set to `content`, will only span as far as the longest line
             -- within the code block.
             width = "fullwidth",
+
+            -- When set to a number, the code block background will be at least
+            -- this many chars wide. Useful in conjunction with `width = "content"`
+            min_width = nil,
 
             -- Additional padding to apply to either the left or the right. Making
             -- these values negative is considered undefined behaviour (it is
