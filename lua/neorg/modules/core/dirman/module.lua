@@ -128,6 +128,8 @@ module.config.public = {
     -- Whether to use core.ui.text_popup for `dirman.new.note` event.
     -- if `false`, will use vim's default `vim.ui.input` instead.
     use_popup = true,
+    -- Whether to inject metadata when creating a file.
+    inject_metadata = false,
 }
 
 module.private = {
@@ -317,6 +319,8 @@ module.public = {
             split = vim.list_slice(split, 0, #split - 1)
         end
 
+        local filename = split[#split]
+
         -- Go through each directory (excluding the actual file name) and create each directory individually
         for _, element in ipairs(vim.list_slice(split, 0, #split - 1)) do
             vim.loop.fs_mkdir(fullpath .. config.pathsep .. element, 16877)
@@ -324,7 +328,7 @@ module.public = {
         end
 
         -- If the provided filepath ends in .norg then don't append the filetype automatically
-        local fname = fullpath .. config.pathsep .. split[#split]
+        local fname = fullpath .. config.pathsep .. filename
         if not vim.endswith(path, ".norg") then
             fname = fname .. ".norg"
         end
@@ -336,6 +340,13 @@ module.public = {
         end
 
         local bufnr = module.public.get_file_bufnr(fname)
+
+        if module.config.public.inject_metadata then
+            opts.metadata = {
+                title = filename
+            }
+        end
+
         modules.broadcast_event(
             assert(modules.create_event(module, "core.dirman.events.file_created", { buffer = bufnr, opts = opts }))
         )
