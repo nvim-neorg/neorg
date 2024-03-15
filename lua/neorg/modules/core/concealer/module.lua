@@ -479,13 +479,11 @@ module.public = {
 
                 for _, extmark in ipairs(icon_extmarks) do
                     local extmark_details = extmark[4]
-                    local extmark_column = extmark[3] + (line_length - vim.api.nvim_strwidth(line))
 
                     for _, virt_text in ipairs(extmark_details.virt_text or {}) do
-                        line = line:sub(1, extmark_column)
+                        line = vim.fn.strcharpart( line, 0, extmark[3] )
                             .. virt_text[1]
-                            .. line:sub(extmark_column + vim.api.nvim_strwidth(virt_text[1]) + 1)
-                        line_length = vim.api.nvim_strwidth(line) - line_length + vim.api.nvim_strwidth(virt_text[1])
+                            .. vim.fn.strcharpart( line, extmark[3] + vim.api.nvim_strwidth(virt_text[1]) )
                     end
                 end
 
