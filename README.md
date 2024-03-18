@@ -109,10 +109,10 @@ See [this blog](https://vhyrro.github.io/posts/neorg-and-luarocks/) for more inf
 <details>
 <summary>Click for installation snippet.</summary>
 
-- Ensure you have `vhyrro/luarocks` installed:
+- Ensure you have `vhyrro/luarocks.nvim` installed:
   ```lua
   {
-      "vhyrro/luarocks",
+      "vhyrro/luarocks.nvim",
       version = "*",
       config = function()
           require("luarocks").setup({})
@@ -123,7 +123,7 @@ See [this blog](https://vhyrro.github.io/posts/neorg-and-luarocks/) for more inf
   ```lua
   {
       "nvim-neorg/neorg",
-      dependencies = { "luarocks" },
+      dependencies = { "luarocks.nvim" },
       lazy = false, -- Disable lazy loading as some `lazy.nvim` distributions set `lazy = true` by default
       version = "*", -- Pin Neorg to the latest stable release
       config = function()
