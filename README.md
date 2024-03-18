@@ -97,7 +97,7 @@ The recommended installation method is via [rocks.nvim](https://github.com/nvim-
 ### `lazy.nvim`
 
 In order to install Neorg via `lazy.nvim`, you must take a few extra steps - this is because `luarocks` is a critical compontent for Neorg to function.
-See [this issue](https://github.com/folke/lazy.nvim/issues/37) for more information.
+See [this blog](https://vhyrro.github.io/posts/neorg-and-luarocks/) for more information.
 
 > [!IMPORTANT]
 > Using luarocks Neorg will install itself and these dependencies with their respective versions:
@@ -109,11 +109,14 @@ See [this issue](https://github.com/folke/lazy.nvim/issues/37) for more informat
 <details>
 <summary>Click for installation snippet.</summary>
 
-- Ensure you have `camspiers/luarocks` installed:
+- Ensure you have `vhyrro/luarocks` installed:
   ```lua
   {
-      "camspiers/luarocks",
+      "vhyrro/luarocks",
       version = "*",
+      config = function()
+          require("luarocks").setup({})
+      end,
   }
   ```
 - Add the following to your plugin list:
