@@ -7,7 +7,7 @@
 -- to defer the execution and ensure that the runtimepath is appropriately set.
 
 vim.schedule(function()
-    local ok, luarocks = pcall(require, "luarocks.rocks")
+    local ok, luarocks = pcall(require, "luarocks-nvim.rocks")
 
     assert(ok, "Unable to install neorg: required dependency `vhyrro/luarocks.nvim` not found!")
 
