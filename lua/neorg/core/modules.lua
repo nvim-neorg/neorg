@@ -13,11 +13,10 @@ local utils = require("neorg.core.utils")
 
 --- @alias neorg.module.public { version: string, [any]: any }
 
---- @class (exact) neorg.module.configuration
 --- Defines both a public and private configuration for a Neorg module.
 --- Public configurations may be tweaked by the user from the `neorg.setup()` function,
 --- whereas private configurations are for internal use only.
----
+--- @class (exact) neorg.module.configuration
 --- @field custom? table         Internal table that tracks the differences (changes) between the default `public` table and the new (altered) `public` table. It contains only the tables that the user has altered in their own configuration.
 --- @field public private? table Internal configuration variables that may be tweaked by the developer.
 --- @field public public? table  Configuration variables that may be tweaked by the user.
@@ -28,10 +27,10 @@ local utils = require("neorg.core.utils")
 
 --- @alias neorg.module.setup { success: boolean, requires?: string[], replaces?: string, replace_merge?: boolean, wants?: string[] }
 
---- @class (exact) neorg.module
 --- Defines a module.
 --- A module is an object that contains a set of hooks which are invoked by Neorg whenever something in the
 --- environment occurs. This can be an event, a simple act of the module being loaded or anything else.
+--- @class (exact) neorg.module
 --- @field config? neorg.module.configuration The configuration for the module.
 --- @field events? neorg.module.events Describes all information related to events for this module.
 --- @field examples? table<string, function> Contains examples of how to use the modules that users or developers may sift through.
