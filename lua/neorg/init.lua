@@ -17,12 +17,18 @@ local user_configuration
 --- @see config.user_config
 --- @see neorg.configuration.user
 function neorg.setup(cfg)
+    cfg = cfg or {
+        load = {
+            ["core.defaults"] = {},
+        }
+    }
+
     if not (pcall(require, "lua-utils")) then
-        user_configuration = cfg or {}
+        user_configuration = cfg
         return
     end
 
-    config.user_config = vim.tbl_deep_extend("force", config.user_config, cfg or {})
+    config.user_config = vim.tbl_deep_extend("force", config.user_config, cfg)
 
     -- Create a new global instance of the neorg logger.
     log.new(config.user_config.logger or log.get_default_config(), true)
