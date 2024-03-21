@@ -85,11 +85,7 @@ The recommended installation method is via [rocks.nvim](https://github.com/nvim-
 - Run `:Rocks install neorg`.
 - Add the following to your config's `lua/plugins/neorg.lua`:
   ```lua
-  require("neorg").setup({
-      load = {
-          ["core.defaults"] = {},
-      }
-  })
+  require("neorg").setup()
   ```
 
 </details>
@@ -126,13 +122,7 @@ See [this blog](https://vhyrro.github.io/posts/neorg-and-luarocks/) for more inf
       dependencies = { "luarocks.nvim" },
       lazy = false, -- Disable lazy loading as some `lazy.nvim` distributions set `lazy = true` by default
       version = "*", -- Pin Neorg to the latest stable release
-      config = function()
-          require("neorg").setup({
-              load = {
-                  ["core.defaults"] = {},
-              },
-          })
-      end,
+      config = true,
   }
   ```
 
