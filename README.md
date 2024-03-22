@@ -111,10 +111,8 @@ See [this blog](https://vhyrro.github.io/posts/neorg-and-luarocks/) for more inf
   ```lua
   {
       "vhyrro/luarocks.nvim",
-      version = "*",
-      config = function()
-          require("luarocks").setup({})
-      end,
+      priority = 1000,
+      config = true,
   }
   ```
 - Add the following to your plugin list:
@@ -140,8 +138,13 @@ It is not recommended to use packer as it is now unmaintained.
 <summary>Click for installation snippet.</summary>
 
 ```lua
-use_rocks {
-    "neorg",
+use {
+  "nvim-neorg/neorg",
+  rocks = { "lua-utils.nvim", "nvim-nio", "nui.nvim", "plenary.nvim" },
+  tag = "*", -- Pin Neorg to the latest stable release
+  config = function()
+      require("neorg").setup()
+  end,
 }
 ```
 
