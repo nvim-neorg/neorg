@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.1.0](https://github.com/nvim-neorg/neorg/compare/v8.0.1...v8.1.0) (2024-03-24)
+
+
+### Features
+
+* **todo_items:** convert TODO item to "on hold" if all items are done but the rest are on hold ([#1339](https://github.com/nvim-neorg/neorg/issues/1339)) ([c32b238](https://github.com/nvim-neorg/neorg/commit/c32b238438a8f1130c89c13a2284961fe10e3e68))
+
+
+### Bug Fixes
+
+* remove old and hacky code related to nvim-treesitter's query cache invalidation ([e8d8d1e](https://github.com/nvim-neorg/neorg/commit/e8d8d1e6608e53e366109fc4f9d7ab364ea0fb5c))
+
 ## [8.0.1](https://github.com/nvim-neorg/neorg/compare/v8.0.0...v8.0.1) (2024-03-24)
 
 
