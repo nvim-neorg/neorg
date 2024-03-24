@@ -20,7 +20,7 @@ function neorg.setup(cfg)
     cfg = cfg or {
         load = {
             ["core.defaults"] = {},
-        }
+        },
     }
 
     if not (pcall(require, "lua-utils")) then
