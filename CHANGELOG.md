@@ -1,5 +1,20 @@
 # Changelog
 
+## [8.0.1](https://github.com/nvim-neorg/neorg/compare/v8.0.0...v8.0.1) (2024-03-24)
+
+
+### Bug Fixes
+
+* broken wiki on github ([d4c10fe](https://github.com/nvim-neorg/neorg/commit/d4c10fe58519ce0d827cfc02f87832c75395045a))
+* **ci:** try to fix the wiki generator with luarocks ([27ac595](https://github.com/nvim-neorg/neorg/commit/27ac595d90481bd8fa2d13290289d46287346903))
+* **docgen:** invalid upvalues ([84ee928](https://github.com/nvim-neorg/neorg/commit/84ee928cd91db8705111c3d485e2a38ca5de61ec))
+* **luarocks:** add proper dependencies ([81328d1](https://github.com/nvim-neorg/neorg/commit/81328d17ed9d5509e7dea8f1efc0fa568535e0e0))
+
+
+### Reverts
+
+* return back old logger code ([a8151f1](https://github.com/nvim-neorg/neorg/commit/a8151f1e21445739c9574d5eba9f4c635688cf98))
+
 ## [8.0.0](https://github.com/nvim-neorg/neorg/compare/v7.0.0...v8.0.0) (2024-03-24)
 
 
