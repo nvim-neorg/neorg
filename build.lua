@@ -20,6 +20,6 @@ vim.schedule(function()
 
     package.loaded["neorg"] = nil
 
-    pcall(vim.cmd.Neorg, "sync-parsers")
     require("neorg").setup_after_build()
+    pcall(vim.cmd.Neorg, "sync-parsers")
 end)
