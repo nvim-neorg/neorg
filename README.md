@@ -94,7 +94,7 @@ The recommended installation method is via [rocks.nvim](https://github.com/nvim-
 
 ### `lazy.nvim`
 
-In order to install Neorg via `lazy.nvim`, you must take a few extra steps - this is because `luarocks` is a critical compontent for Neorg to function.
+In order to install Neorg via `lazy.nvim`, you must take a few extra steps - this is because `luarocks` is a critical component for Neorg to function.
 See [this blog](https://vhyrro.github.io/posts/neorg-and-luarocks/) for more information.
 
 > [!IMPORTANT]
