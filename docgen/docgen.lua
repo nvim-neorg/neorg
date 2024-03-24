@@ -1,5 +1,4 @@
 local neorg = require("neorg.core")
-local lib, modules, utils, log = neorg.lib, neorg.modules, neorg.utils, neorg.log
 
 local docgen = {}
 
@@ -31,6 +30,8 @@ require("neorg").setup({
         },
     },
 })
+
+local lib, modules, utils, log = neorg.lib, neorg.modules, neorg.utils, neorg.log
 
 -- Start neorg
 neorg.org_file_entered(false)
