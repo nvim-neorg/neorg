@@ -36,6 +36,15 @@ jobs:
           neovim: true
           version: ${{ matrix.version }}
 
+      - uses: leafo/gh-actions-lua@v9
+      - uses: leafo/gh-actions-luarocks@v4
+        with:
+          luaVersion: "luajit-2.1.0-beta3"
+
+      - name: Install all required modules
+        run: |
+          luarocks install neorg --deps-only
+
       - name: Clone Wiki
         uses: actions/checkout@v2
         with:

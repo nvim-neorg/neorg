@@ -23,6 +23,8 @@ end
 package.path = "../lua/?.lua;" .. "../lua/?/init.lua;" .. package.path
 package.path = "../plenary.nvim/lua/?.lua;" .. package.path
 package.path = "../nvim-treesitter/lua/?.lua;" .. package.path
+package.path = "/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;" .. package.path
+package.path = "/usr/share/lua/5.1/?.so;" .. package.path
 
 vim.cmd.TSInstallSync({
     bang = true,
