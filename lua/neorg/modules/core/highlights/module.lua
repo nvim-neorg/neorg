@@ -429,23 +429,27 @@ module.public = {
 
     --- Reads the highlights configuration table and applies all defined highlights
     trigger_highlights = function()
-        do
-            local query = require("nvim-treesitter.query")
+        -- NOTE(vhyrro): This code was added here to work around oddities related to nvim-treesitter.
+        -- This code, with modern nvim-treesitter versions, will probably not break as harshly.
+        -- This code should be removed as soon as possible.
+        --
+        -- do
+        --     local query = require("nvim-treesitter.query")
 
-            if not query.has_highlights("norg") then
-                query.invalidate_query_cache()
+        --     if not query.has_highlights("norg") then
+        --         query.invalidate_query_cache()
 
-                if not query.has_highlights("norg") then
-                    log.error(
-                        "nvim-treesitter has no available highlights for norg! Ensure treesitter is properly loaded in your config."
-                    )
-                end
-            end
+        --         if not query.has_highlights("norg") then
+        --             log.error(
+        --                 "nvim-treesitter has no available highlights for norg! Ensure treesitter is properly loaded in your config."
+        --             )
+        --         end
+        --     end
 
-            if vim.bo.filetype == "norg" then
-                require("nvim-treesitter.highlight").attach(vim.api.nvim_get_current_buf(), "norg")
-            end
-        end
+        --     if vim.bo.filetype == "norg" then
+        --         require("nvim-treesitter.highlight").attach(vim.api.nvim_get_current_buf(), "norg")
+        --     end
+        -- end
 
         --- Recursively descends down the highlight configuration and applies every highlight accordingly
         ---@param highlights table #The table of highlights to descend down
