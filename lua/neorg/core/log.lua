@@ -59,14 +59,13 @@ end
 local unpack = unpack or table.unpack
 
 --- @param config neorg.log.configuration
---- @param standalone boolean
-log.new = function(config, standalone)
+log.new = function(config, _)
     config = vim.tbl_deep_extend("force", default_config, config)
     config.plugin = "neorg" -- Force the plugin name to be neorg
 
     local outfile = string.format("%s/%s.log", vim.api.nvim_call_function("stdpath", { "data" }), config.plugin)
 
-    local obj = standalone ~= nil and log or {}
+    local obj = log
 
     local levels = {}
     for _, v in ipairs(config.modes) do

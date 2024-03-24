@@ -188,7 +188,7 @@ module.config.public = {
     -- Module that renders the images. This is currently the only option
     renderer = "core.integrations.image",
 
-    -- make the images larger or smaller by adjusting the scale
+    -- Make the images larger or smaller by adjusting the scale
     scale = 1,
 }
 
