@@ -74,6 +74,8 @@ function neorg.setup_after_build()
         return
     end
 
+    package.loaded["lua-utils"] = nil
+
     -- HACK(vhyrro): Please do this elsewhere.
     local ok, lua_utils = pcall(require, "lua-utils")
     assert(ok, "unable to find lua-utils dependency. Perhaps try restarting Neovim?")
