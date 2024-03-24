@@ -481,9 +481,9 @@ module.public = {
                     local extmark_details = extmark[4]
 
                     for _, virt_text in ipairs(extmark_details.virt_text or {}) do
-                        line = vim.fn.strcharpart( line, 0, extmark[3] )
+                        line = vim.fn.strcharpart(line, 0, extmark[3])
                             .. virt_text[1]
-                            .. vim.fn.strcharpart( line, extmark[3] + vim.api.nvim_strwidth(virt_text[1]) )
+                            .. vim.fn.strcharpart(line, extmark[3] + vim.api.nvim_strwidth(virt_text[1]))
                     end
                 end
 
