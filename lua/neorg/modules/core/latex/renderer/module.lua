@@ -1,7 +1,7 @@
 --[[
     file: Core-Latex-Renderer
     title: Rendering LaTeX with image.nvim
-    summary: An experimental module for inline rendering latex images
+    summary: An experimental module for inline rendering latex images.
     ---
 
 This is an experimental module that requires nvim 0.10+. It renders LaTeX snippets as images
