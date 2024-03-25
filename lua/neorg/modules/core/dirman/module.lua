@@ -64,7 +64,7 @@ end
 module.load = function()
     -- Go through every workspace and expand special symbols like ~
     for name, workspace_location in pairs(module.config.public.workspaces) do
-        module.config.public.workspaces[name] = vim.fn.expand(workspace_location) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+        module.config.public.workspaces[name] = vim.fn.expand(vim.fn.fnameescape(workspace_location)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end
 
     modules.await("core.keybinds", function(keybinds)
@@ -234,7 +234,7 @@ module.public = {
         for workspace, location in pairs(module.config.public.workspaces) do
             if workspace ~= "default" then
                 -- Expand all special symbols like ~ etc. and escape special characters
-                local expanded = string.gsub(vim.fn.expand(location), "%p", "%%%1") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                local expanded = string.gsub(vim.pesc(vim.fn.expand(location)), "%p", "%%%1") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
                 -- If the workspace location is a parent directory of our current realcwd
                 -- or if the ws location is the same then set it as the real workspace
