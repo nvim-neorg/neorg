@@ -125,7 +125,6 @@ module.public = {
         end
 
         local function jump_to_line(line)
-            vim.cmd([[normal! m`]])
             local status, _ = pcall(vim.api.nvim_win_set_cursor, 0, { line, 1 })
 
             if not status then
