@@ -574,7 +574,7 @@ module.public = {
             ["weak_carryover"] = "",
 
             ["key"] = function(text, _, state)
-                return string.rep(" ", state.indent) .. text
+                return string.rep(" ", state.indent) .. (text == "authors" and "author" or text)
             end,
 
             [":"] = ": ",
