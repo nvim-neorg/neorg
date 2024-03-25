@@ -1,8 +1,8 @@
-local neorg = require("neorg.core")
-local lib, modules = neorg.lib, neorg.modules
-
 local docgen = require("docgen")
 local fileio = require("fileio")
+
+local neorg = require("neorg.core")
+local lib, modules = neorg.lib, neorg.modules
 
 --- CONFIGURABLE DOCGEN BEHAVIOUR
 --- Tweak as you see fit.
