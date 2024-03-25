@@ -157,9 +157,29 @@ module.config.public = {
     -- - "implicit-local" like "local", but the timezone information is omitted from the timestamp
     timezone = "local",
 
-    -- Whether or not to call :h :undojoin just before changing the timestamp in `update_metadata`
-    -- This will make your undo key undo the last change before writing the file in addition to the
-    -- timestamp change. This will move your cursor to the top of the file.
+    -- Whether or not to call `:h :undojoin` just before changing the timestamp in
+    -- `update_metadata`. This will make your undo key undo the last change before writing the file
+    -- in addition to the timestamp change. This will move your cursor to the top of the file. For
+    -- users with an autosave plugin, this option must be paired with keybinds for undo/redo to
+    -- avoid problems with undo tree branching:
+    -- ```lua
+    -- ["core.keybinds"] = {
+    --   config = {
+    --     hook = function(keybinds)
+    --       keybinds.map("norg", "n", "u", function()
+    --         require("neorg.modules.core.esupports.metagen.module").public.skip_next_update()
+    --         local k = vim.api.nvim_replace_termcodes("u<c-o>", true, false, true)
+    --         vim.api.nvim_feedkeys(k, 'n', false)
+    --       end)
+    --       keybinds.map("norg", "n", "<c-r>", function()
+    --         require("neorg.modules.core.esupports.metagen.module").public.skip_next_update()
+    --         local k = vim.api.nvim_replace_termcodes("<c-r><c-o>", true, false, true)
+    --         vim.api.nvim_feedkeys(k, 'n', false)
+    --       end)
+    --     end,
+    --   },
+    -- },
+    -- ```
     undojoin_updates = false,
 }
 
