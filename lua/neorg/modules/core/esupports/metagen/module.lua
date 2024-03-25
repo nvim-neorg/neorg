@@ -43,6 +43,16 @@ local function get_timestamp()
     end
 end
 
+local function get_author()
+    local author_config = module.config.public.author
+
+    if author_config == nil or author_config == "" then
+        return utils.get_username()
+    else
+        return author_config
+    end
+end
+
 -- The default template found in the config for this module.
 local default_template = {
     -- The title field generates a title for the file based on the filename.
@@ -56,12 +66,10 @@ local default_template = {
     -- The description field is always kept empty for the user to fill in.
     { "description", "" },
 
-    -- The authors field is autopopulated by querying the current user's system username.
+    -- The authors field is taken from config or autopopulated by querying the current user's system username.
     {
         "authors",
-        function()
-            return utils.get_username()
-        end,
+        get_author
     },
 
     -- The categories field is always kept empty for the user to fill in.
@@ -138,6 +146,10 @@ module.config.public = {
 
     -- Custom template to use for generating content inside `@document.meta` tag
     template = default_template,
+
+    -- Custom author name that overrides default value if not nil or empty
+    -- Default value is autopopulated by querying the current user's system username.
+    author = "",
 
     -- Timezone information in the timestamps
     -- - "utc" the timestamp is in UTC+0
