@@ -1,5 +1,23 @@
 # Changelog
 
+## [8.2.0](https://github.com/nvim-neorg/neorg/compare/v8.1.0...v8.2.0) (2024-03-25)
+
+
+### Features
+
+* **metagen:** add author field to provide persistent custom author name ([#1331](https://github.com/nvim-neorg/neorg/issues/1331)) ([e576308](https://github.com/nvim-neorg/neorg/commit/e576308243b58838ed97309bec60bf180cde3c91))
+
+
+### Bug Fixes
+
+* **ci:** "could not find upvalue `lib`" error ([486a148](https://github.com/nvim-neorg/neorg/commit/486a148d1bf5b7fd14f52a771a0dacc1e6839174))
+* **ci:** supply correct version to the lua setup CI ([c814ef6](https://github.com/nvim-neorg/neorg/commit/c814ef68295baffefed7bfb8a48f8835f73a55a6))
+* **core/events:** fall back to the current window ID if it cannot be located ([22df349](https://github.com/nvim-neorg/neorg/commit/22df349df39d9401a95f7dc0e3dc13113f91a60a))
+* **dirman:** properly escape directories and filenames ([#1232](https://github.com/nvim-neorg/neorg/issues/1232)) ([e1f5556](https://github.com/nvim-neorg/neorg/commit/e1f5556bfbe50cbae262dffc35f376f7469f68cf))
+* do not add the line jump of a link to the jump list ([#1325](https://github.com/nvim-neorg/neorg/issues/1325)) ([918f2a3](https://github.com/nvim-neorg/neorg/commit/918f2a39f96e1447c00871eb611bed2018a047b5))
+* **export.markdown:** export `authors` metadata field key as `author` ([#1319](https://github.com/nvim-neorg/neorg/issues/1319)) ([f30ce72](https://github.com/nvim-neorg/neorg/commit/f30ce728e1b99e23320114c3bddb18be2776baf7))
+* **export.markdown:** fix incorrect reset of ordered list item count ([#1324](https://github.com/nvim-neorg/neorg/issues/1324)) ([ba58c1b](https://github.com/nvim-neorg/neorg/commit/ba58c1b29c9b013928025db345c6ff170e9693bf))
+
 ## [8.1.0](https://github.com/nvim-neorg/neorg/compare/v8.0.1...v8.1.0) (2024-03-24)
 
 
