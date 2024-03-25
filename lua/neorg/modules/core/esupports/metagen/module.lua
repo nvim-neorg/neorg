@@ -69,7 +69,7 @@ local default_template = {
     -- The authors field is taken from config or autopopulated by querying the current user's system username.
     {
         "authors",
-        get_author
+        get_author,
     },
 
     -- The categories field is always kept empty for the user to fill in.
