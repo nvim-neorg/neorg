@@ -6,11 +6,11 @@ A guide on getting started with Neorg.
 
 </div>
 
-This file will get you started with Neorg as your general note taking and life management tool.
-
 ## Neorg as a Concept
 
 First of all, welcome! There's quite a journey ahead of you, hope you stick around :)
+
+This file will get you started with Neorg as your general note taking and life management tool.
 
 Before we get into any of the details, let us discuss what Neorg *is* and what it *isn't*. Neorg is a frontend for a markup format called norg - it provides a load
 of functions for interacting with these norg files. Think of Norg files as highly advanced Markdown files (if you've ever had experience with Markdown before).
@@ -105,3 +105,40 @@ items afterwards, or keep track of what the index of the previous item was. Let'
 the other entries! What if I want to add a new item at the end of the list? You have to look through the list to see what the number of the last entry was so that you can increment it by one.
 
 Using the `~` syntax, Neorg does all of the counting for you, while still displaying the appropriate list index through the concealer. Neat!
+
+#### Headings
+
+As you write more complex notes you'll want to divide them up in some logical fashion. Within norg, this is done through headings:
+```norg
+* Shopping
+  My shopping list consists of:
+  - Milk
+  - Butter
+  - Bread
+```
+
+As you write, you may notice that Neorg will automatically indent things for you. The indentation is based on how far the heading's title is indented! For example, if you were to have this document:
+```norg
+*      Shopping
+  My shopping list consists of:
+  - Milk
+  - Butter
+  - Bread
+```
+
+Pressing `gg=G` (`gg` - go to top of document, `=` - indent, `G` - to the bottom of the document) will indent all of the content to match the indentation of the title!
+Neorg calls this *dynamic indentation*. It can of course be tweaked.
+
+Headings can be nested as much as you want by simply repeating the amount of asterisks!
+
+```norg
+* Shopping
+** Important Shopping
+   This is stuff I must immediately buy:
+   - Bread
+** Other Stuff
+   This is not as important:
+   - Milk
+   - Tomatoes (yum)
+```
+
