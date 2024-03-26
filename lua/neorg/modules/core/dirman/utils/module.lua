@@ -13,6 +13,7 @@ local log, modules = neorg.log, neorg.modules
 
 local module = neorg.modules.create("core.dirman.utils")
 
+---@class core.dirman.utils
 module.public = {
     ---Resolve `$<workspace>/path/to/file` and return the real path
     ---@param path string # path

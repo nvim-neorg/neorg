@@ -54,6 +54,7 @@ module.load = function()
     end)
 end
 
+---@class core.latex.renderer
 module.public = {
     latex_renderer = function()
         module.private.ranges = {}

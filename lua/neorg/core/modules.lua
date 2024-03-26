@@ -512,8 +512,9 @@ function modules.load_module_as_dependency(module_name, parent_module, cfg)
 end
 
 --- Retrieves the public API exposed by the module.
---- @param module_name string The name of the module to retrieve.
---- @return neorg.module.public?
+--- @generic T
+--- @param module_name `T` The name of the module to retrieve.
+--- @return T?
 function modules.get_module(module_name)
     if not modules.is_module_loaded(module_name) then
         log.trace("Attempt to get module with name", module_name, "failed - module is not loaded.")

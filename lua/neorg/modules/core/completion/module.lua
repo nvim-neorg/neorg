@@ -52,6 +52,7 @@ module.private = {
     --- Get a list of all norg files in current workspace. Returns { workspace_path, norg_files }
     --- @return table?
     get_norg_files = function()
+        ---@type core.dirman
         local dirman = neorg.modules.get_module("core.dirman")
         if not dirman then
             return nil
@@ -89,6 +90,7 @@ module.private = {
     --- @param file string file path, norg syntax accepted
     --- @return table<string>
     get_lines = function(file)
+        ---@type core.dirman.utils
         local dirutils = neorg.modules.get_module("core.dirman.utils")
         if not dirutils then
             return {}
@@ -168,6 +170,7 @@ module.private = {
 
     generate_file_links = function(context, _prev, _saved, _match)
         local res = {}
+        ---@type core.dirman
         local dirman = neorg.modules.get_module("core.dirman")
         if not dirman then
             return {}
@@ -219,7 +222,7 @@ module.private = {
     end,
 
     --- The node context for normal norg (ie. not in a code block)
-    normal_norg = function(current, previous)
+    normal_norg = function(current, previous, _, _)
         -- If no previous node exists then try verifying the current node instead
         if not previous then
             return current and (current:type() ~= "translation_unit" or current:type() == "document") or false
@@ -251,7 +254,7 @@ module.load = function()
     end
 
     -- Set a special function in the integration module to allow it to communicate with us
-    module.private.engine.invoke_completion_engine = function(context)
+    module.private.engine.invoke_completion_engine = function(context) ---@diagnostic disable-line
         return module.public.complete(context) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
     end
 
@@ -526,8 +529,8 @@ module.public = {
 
     --- Parses the public completion table and attempts to find all valid matches
     ---@param context table #The context provided by the integration engine
-    ---@param prev table #The previous table of completions - used for descent
-    ---@param saved string #The saved regex in the form of a string, used to concatenate children nodes with parent nodes' regexes
+    ---@param prev table? #The previous table of completions - used for descent
+    ---@param saved string? #The saved regex in the form of a string, used to concatenate children nodes with parent nodes' regexes
     complete = function(context, prev, saved)
         -- If the save variable wasn't passed then set it to an empty string
         saved = saved or ""
@@ -560,7 +563,7 @@ module.public = {
                         -- If the type of completion data we're dealing with is a string then attempt to parse it
                         if type(completion_data.node) == "string" then
                             -- Split the completion node string down every pipe character
-                            local split = vim.split(completion_data.node, "|")
+                            local split = vim.split(completion_data.node --[[@as string]], "|")
                             -- Check whether the first character of the string is an exclamation mark
                             -- If this is present then it means we're looking for a node that *isn't* the one we specify
                             local negate = split[1]:sub(0, 1) == "!"

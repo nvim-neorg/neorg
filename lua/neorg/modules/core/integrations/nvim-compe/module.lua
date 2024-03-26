@@ -184,6 +184,12 @@ module.public = {
             full_line = context.line,
         }
     end,
+
+    invoke_completion_engine = function(context)
+        error("`invoke_completion_engine` must be set from outside.")
+        assert(context)
+        return {}
+    end,
 }
 
 return module

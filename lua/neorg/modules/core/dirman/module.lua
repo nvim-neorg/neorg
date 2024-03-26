@@ -139,6 +139,7 @@ module.public = {
     get_workspaces = function()
         return module.config.public.workspaces
     end,
+    ---@return string[]
     get_workspace_names = function()
         return vim.tbl_keys(module.config.public.workspaces)
     end,
