@@ -101,7 +101,7 @@ module.public = {
 
         local bufname = "neorg://" .. name
 
-        if vim.fn.bufexists(bufname) == 1 then
+        if vim.fn.bufexists(bufname) == 1 then ---@diagnostic disable-line
             log.error("Buffer '" .. name .. "' already exists")
             return
         end
