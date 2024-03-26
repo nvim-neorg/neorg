@@ -21,60 +21,58 @@ If neovim is unable to determine the correct set of terminal capabilities, it ma
 There are a couple of ways that may help determine if terminal support is limiting the display of characters in neovim.
 
 
-> #### Test outside of neovim
->
-> Check the output of the following:
->
-> ```bash
-> echo -e "\e[1mbold\e[0m"
-> echo -e "\e[3mitalic\e[0m"
-> echo -e "\e[3m\e[1mbold italic\e[0m"
-> echo -e "\e[4munderline\e[0m"
-> echo -e "\e[9mstrikethrough\e[0m"
-> echo -e "\x1B[31red\e[0m"
->
-> printf "\x1b[58:2::255:0:0m\x1b[4:1msingle\x1b[4:2mdouble\x1b[4:3mcurly\x1b[4:4mdotted\x1b[4:5mdashed\x1b[0m\n"
-> ```
->
-> If this does not produce what you expect, there is a terminal or a font problem. If it works, but does not work in Neovim, then this may either be a problem with advertising/detecting terminal capabilities or setting highlight groups.
->
->
-> > ##### Windows ConPTY does not support undercurl
-> >
-> > Windows terminal emulators almost all use ConPTY, which strips out certain escape sequences, including those used for more advanced underlines. There is an open ticket for this feature in `microsoft/terminal` but it is unknown when it will become a priority to address given that terminal support is not generally a Microsoft business priority.
->
->
-> #### Check neovim diagnostics
->
-> `nvim -V3log` will produce a file named `log`. After exiting, check the `log` file for a section beginning with `--- Terminal info ---`.
->
-> `:checkhealth` will run some neovim diagnostics and open them in a new `:h tabpage`. You can use `:q` to exit the tab. This will include a section on the `terminal` and in some cases identifies `TERM` settings which may cause problems and how to address them
->
->
-> #### Check that neovim is able to render these characters in other contexts
->
-> 1. `:highlight mytest cterm=italic gui=italic` will create a highlight group named `mytest`.
-> 2. `:highlight mytest` will show a line that looks like `mytest /xxx/ cterm=italic gui=italic`. The `xxx` should be rendered _in the format specified_ (in this case italics). If not, Neovim is likely not getting the correct terminal capabilities.
-> 3. Test for any other format which you are concerned is not appearing correctly.
->
->
-> #### Check that highlight groups are getting assigned correctly and have an appropriate definition
->
-> See [Tree-sitter](#tree-sitter) and [Colorschemes](#colorschemes) for this.
->
->
-> #### Ensure your fonts support bold/italic/underline
-> 
-> Usually terminal emulators automatically set up bold/italic/underline fonts, but these sometimes may fail.
-> Kitty is the most popularly used terminal emulator and some fonts are known to not have detectable "auto" bold fonts (for example Source Code Pro).
-> To fix this, go to your terminal emulator's configuration and manually set the bold and italic fonts (e.g. `Source Code Pro Bold` and `Source Code Pro Italic`).
-> For kitty, this means:
-> ```
-> bold_font        Source Code Pro Bold
-> italic_font      Source Code Pro Italic
-> bold_italic_font auto
-> ```
+### Test outside of neovim
 
+Check the output of the following:
+
+```bash
+echo -e "\e[1mbold\e[0m"
+echo -e "\e[3mitalic\e[0m"
+echo -e "\e[3m\e[1mbold italic\e[0m"
+echo -e "\e[4munderline\e[0m"
+echo -e "\e[9mstrikethrough\e[0m"
+echo -e "\x1B[31red\e[0m"
+
+printf "\x1b[58:2::255:0:0m\x1b[4:1msingle\x1b[4:2mdouble\x1b[4:3mcurly\x1b[4:4mdotted\x1b[4:5mdashed\x1b[0m\n"
+```
+
+If this does not produce what you expect, there is a terminal or a font problem. If it works, but does not work in Neovim, then this may either be a problem with advertising/detecting terminal capabilities or setting highlight groups.
+
+
+#### Windows ConPTY does not support undercurl
+
+Windows terminal emulators almost all use ConPTY, which strips out certain escape sequences, including those used for more advanced underlines. There is an open ticket for this feature in `microsoft/terminal` but it is unknown when it will become a priority to address given that terminal support is not generally a Microsoft business priority.
+
+
+### Check neovim diagnostics
+
+`nvim -V3log` will produce a file named `log`. After exiting, check the `log` file for a section beginning with `--- Terminal info ---`.
+
+`:checkhealth` will run some neovim diagnostics and open them in a new `:h tabpage`. You can use `:q` to exit the tab. This will include a section on the `terminal` and in some cases identifies `TERM` settings which may cause problems and how to address them
+
+#### Check that neovim is able to render these characters in other contexts
+
+1. `:highlight mytest cterm=italic gui=italic` will create a highlight group named `mytest`.
+2. `:highlight mytest` will show a line that looks like `mytest /xxx/ cterm=italic gui=italic`. The `xxx` should be rendered _in the format specified_ (in this case italics). If not, Neovim is likely not getting the correct terminal capabilities.
+3. Test for any other format which you are concerned is not appearing correctly.
+
+
+#### Check that highlight groups are getting assigned correctly and have an appropriate definition
+
+See [Tree-sitter](#tree-sitter) and [Colorschemes](#colorschemes) for this.
+
+
+### Ensure your fonts support bold/italic/underline
+
+Usually terminal emulators automatically set up bold/italic/underline fonts, but these sometimes may fail.
+Kitty is the most popularly used terminal emulator and some fonts are known to not have detectable "auto" bold fonts (for example Source Code Pro).
+To fix this, go to your terminal emulator's configuration and manually set the bold and italic fonts (e.g. `Source Code Pro Bold` and `Source Code Pro Italic`).
+For kitty, this means:
+```
+bold_font        Source Code Pro Bold
+italic_font      Source Code Pro Italic
+bold_italic_font auto
+```
 
 ## Tree-sitter
 
@@ -85,7 +83,6 @@ Parsing of `.norg` documents in `neorg` is primarily handled by the `tree-sitter
 
 Tree-sitter functionality is provided natively by Neovim, **but native support is not the same as supported with no configuration**. Neovim is only responsible for loading a binary **\*.so** file, providing facilities for executing queries against the parse tree, and for creating highlight groups and indent rules based on those queries when they are defined in an appropriate file location. Supplying these parser and query files is the responsibility of the user or may be delegated by the user to a plugin. See `:h treesitter-parsers` for more details on how Neovim locates its tree-sitter parsers and `:h treesitter-query` and `:h treesitter-highlight` for details on the runtimepath files like `queries/*/highlights.scm`.
 
-
 ### Nvim-treesitter plugin
 
 To make things easier the [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter) plugin provides best-effort configuration support for downloading tree-sitter grammars (source code) from their repositories, compiling them automatically, and placing them in the correct paths along with appropriate highlight and other queries.
@@ -95,13 +92,13 @@ To make things easier the [`nvim-treesitter`](https://github.com/nvim-treesitter
 **In order for Neorg to work properly, these features must be enabled when you load and `setup()` nvim-treesitter, especially the highlight module.** See [https://github.com/nvim-treesitter/nvim-treesitter#modules](https://github.com/nvim-treesitter/nvim-treesitter#modules) for more details on how to do this. Within Neovim, you can run `:TSConfigInfo` to ensure that `modules.enable.highlight` has the expected value.
 
 
-> ##### C/C++ Toolchain
->
-> In order for `nvim-treesitter` to properly build the `tree-sitter-norg` parser, it requires an appropriate compiler toolchain. Ensure that the `CC` environment variable points to a compiler that has C++14 support.
-> 
-> ###### MacOS C/C++ Toolchain often outdated
->
-> The compiler bundled with many editions of MacOS lacks the appropriate level of support. You can run Neovim like so: `CC=/path/to/newer/compiler nvim -c "TSInstallSync norg"` in your shell of choice to install the Neorg parser with a newer compiler. You may also want to export the CC variable in general: `export CC=/path/to/newer/compiler`.
+#### C/C++ Toolchain
+
+In order for `nvim-treesitter` to properly build the `tree-sitter-norg` parser, it requires an appropriate compiler toolchain. Ensure that the `CC` environment variable points to a compiler that has C++14 support.
+
+##### MacOS C/C++ Toolchain often outdated
+
+The compiler bundled with many editions of MacOS lacks the appropriate level of support. You can run Neovim like so: `CC=/path/to/newer/compiler nvim -c "TSInstallSync norg"` in your shell of choice to install the Neorg parser with a newer compiler. You may also want to export the CC variable in general: `export CC=/path/to/newer/compiler`.
 
 
 ### Tree-sitter-norg
