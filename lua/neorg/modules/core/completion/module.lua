@@ -50,7 +50,7 @@ module.private = {
     engine = nil,
 
     --- Get a list of all norg files in current workspace. Returns { workspace_path, norg_files }
-    --- @return table?
+    --- @return { [1]: PathlibPath, [2]: PathlibPath[]|nil }|nil
     get_norg_files = function()
         ---@type core.dirman
         local dirman = neorg.modules.get_module("core.dirman")
@@ -182,14 +182,16 @@ module.private = {
         end
 
         local closing_chars = module.private.get_closing_chars(context, true)
-        for _, file in pairs(files[2]) do
-            assert(type(file) == "string")
+        for _, filepath in pairs(files[2]) do
+            local file = tostring(filepath)
             local bufnr = dirman.get_file_bufnr(file)
 
             if vim.api.nvim_get_current_buf() ~= bufnr then
-                -- using -6 to go to the end (-1) and remove '.norg' 5 more chars
-                local link = "{:$" .. file:sub(#files[1] + 1, -6) .. closing_chars
-                table.insert(res, link)
+                local rel = filepath:relative_to(files[1], false)
+                if rel and rel:len() > 0 then
+                    local link = "{:$/" .. rel:with_suffix(""):tostring() .. closing_chars
+                    table.insert(res, link)
+                end
             end
         end
 

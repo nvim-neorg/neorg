@@ -175,10 +175,11 @@ function utils.notify(msg, log_level)
 end
 
 --- Opens up an array of files and runs a callback for each opened file.
---- @param files string[] An array of files to open.
+--- @param files (string|PathlibPath)[] An array of files to open.
 --- @param callback fun(buffer: integer, filename: string) The callback to invoke for each file.
 function utils.read_files(files, callback)
     for _, file in ipairs(files) do
+        file = tostring(file)
         local bufnr = vim.uri_to_bufnr(vim.uri_from_fname(file))
 
         local should_delete = not vim.api.nvim_buf_is_loaded(bufnr)

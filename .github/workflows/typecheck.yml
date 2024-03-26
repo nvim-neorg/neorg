@@ -27,7 +27,8 @@ jobs:
 
       - name: install dependencies
         run: |
-          luarocks install --only-deps ./neorg-scm-1.rockspec
+          luarocks init
+          luarocks install --only-deps ./*.rockspec
 
       - name: Type Check Code Base
         uses: mrcjkb/lua-typecheck-action@v0.2.1
