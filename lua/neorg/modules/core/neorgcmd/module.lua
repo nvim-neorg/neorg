@@ -439,46 +439,38 @@ module.on_event = function(event)
     end
 
     if event.type == "core.neorgcmd.events.module.list" then
-        if not neorg.modules.is_module_loaded("core.ui") then
-            log.error(":Neorg module list requires the `core.ui` module to be loaded!")
-            return
-        end
+        local Popup = require("nui.popup")
 
-        local lines = {
-            -- modules.get_module_config("core.concealer").icons.heading.level_1.icon
-            "*"
-                .. " "
-                .. "Loaded Neorg Modules",
-        }
-
-        for _, mod in pairs(modules.loaded_modules) do
-            table.insert(lines, "  - `" .. mod.name .. "`")
-        end
-
-        -- FIXME(vhyrro): This creates a listed buffer which makes things very ugly.
-        -- Also make sure to disable folds in this view.
-        local buf = neorg.modules.get_module("core.ui").create_norg_buffer("module_list", "nosplit")
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-        vim.keymap.set("n", "q", vim.cmd.quit, { buffer = buf, silent = true, nowait = true })
-
-        local width = vim.api.nvim_win_get_width(0)
-        local height = vim.api.nvim_win_get_height(0)
-
-        vim.api.nvim_open_win(buf, true, {
-            relative = "win",
-            win = 0,
-            width = math.floor(width * 0.7),
-            height = math.floor(height * 0.9),
-            col = math.floor(width * 0.15),
-            row = math.floor(height * 0.05),
-            border = "single",
-            style = "minimal",
+        local module_list_popup = Popup({
+            position = "50%",
+            size = { width = "50%", height = "80%" },
+            enter = true,
+            buf_options = {
+                filetype = "norg",
+                modifiable = true,
+                readonly = false,
+            },
+            win_options = {
+                conceallevel = 3,
+                concealcursor = "nvi",
+            },
         })
 
-        vim.bo[buf].modifiable = false
-        vim.bo[buf].filetype = "norg"
+        module_list_popup:on("VimResized", function()
+            module_list_popup:update_layout()
+        end)
 
-        vim.api.nvim_buf_set_name(buf, "loaded_modules.norg")
+        local lines = {}
+
+        for name, _ in pairs(neorg.modules.loaded_modules) do
+            table.insert(lines, "- `" .. name .. "`")
+        end
+
+        vim.api.nvim_buf_set_lines(module_list_popup.bufnr, 0, -1, true, lines)
+
+        vim.bo[module_list_popup.bufnr].modifiable = false
+
+        module_list_popup:mount()
     end
 end
 
