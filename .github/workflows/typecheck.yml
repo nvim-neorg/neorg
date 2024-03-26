@@ -20,6 +20,15 @@ jobs:
           repository: "folke/neodev.nvim"
           path: "deps/neodev.nvim"
 
+      - uses: leafo/gh-actions-lua@v9
+        with:
+          luaVersion: "5.1"
+      - uses: leafo/gh-actions-luarocks@v4
+
+      - name: install dependencies
+        run: |
+          luarocks install --only-deps ./neorg-scm-1.rockspec
+
       - name: Type Check Code Base
         uses: mrcjkb/lua-typecheck-action@v0.2.1
         with:
