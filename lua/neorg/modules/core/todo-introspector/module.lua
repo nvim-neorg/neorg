@@ -48,6 +48,19 @@ function module.public.attach_introspector(buffer)
         error(string.format("Could not attach to buffer %d, buffer is not a norg file!", buffer))
     end
 
+    module.required["core.integrations.treesitter"].execute_query(
+        [[
+    (_
+      state: (detached_modifier_extension)) @item
+    ]],
+        function(query, id, node)
+            if query.captures[id] == "item" then
+                module.public.perform_introspection(buffer, node)
+            end
+        end,
+        buffer
+    )
+
     vim.api.nvim_buf_attach(buffer, false, {
         on_lines = vim.schedule_wrap(function(_, buf, _, first)
             ---@type TSNode?
