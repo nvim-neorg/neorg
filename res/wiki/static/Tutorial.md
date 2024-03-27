@@ -142,3 +142,51 @@ Headings can be nested as much as you want by simply repeating the amount of ast
    - Tomatoes (yum)
 ```
 
+## Next Steps: Marking Things as Tasks
+
+Alright! We've learned how to make basic norg files, but where's the whole "organizational" part? When will I understand? One step at a time :)
+
+You've now learned to create a basic file *somewhere* on your filesystem, and how to write some norg markup! Before we start organizing your files into meaningful places, let's learn about TODO
+statuses.
+
+Say I have a list of things I'd like to do:
+```norg
+- Take out the trash
+- Watch "how to delete emacs" video
+- Wish Mum a happy birthday
+```
+
+On its own, this is just a list... not very useful, is it? However, norg allows us to annotate *anything* within our documents as a task by giving it a TODO status:
+```norg
+- ( ) Take out the trash
+- ( ) Watch "how to delete emacs" video
+- ( ) Wish Mum a happy birthday
+```
+
+A TODO status is marked by the regular brackets right after the item itself. In our case, there's just a space inbetween the brackets - this means the task is *undone*.
+
+Now let's say I finished watching the "how to delete emacs" video, and I would like to mark it as complete. Put your cursor on the same line as the task and press `Ctrl + Space`!
+This will toggle the state of the item to "done".
+
+> [!TIP]
+> If you have the concealer enabled, this will change the task to a checkmark, but what has really happened under the hood is that
+> the space has turned into an `x`! If you ever want to see the raw text of your file, run `:Neorg toggle-concealer` :)
+
+Pressing `Ctrl + Space` again will toggle the task between three states - undone, done and pending. Pending is marked by the `-` character.
+
+Apart from just these three states (which is what other markup formats commonly support), norg extends the amount of TODOs to a set of **twelve**!
+
+Apart from just undone, done and pending, all of these TODO states are available:
+```norg
+- (=) On hold
+- (_) Cancelled
+- (!) Urgent
+- (?) Ambiguous (uncertain)
+- (+) Recurring (happens every so often)
+```
+
+To set a TODO item to a specific state you can use one of the many keybinds listed in the [`todo_items` module's wiki](https://github.com/nvim-neorg/neorg/wiki/Todo-Items#overview).
+
+> [!NOTE]
+> If you're a keen reader you will have noticed that this is nowhere near 12 TODO states.
+> The others are a bit more advanced, you'll learn them as necessary.
