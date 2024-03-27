@@ -3,8 +3,6 @@ local modules = neorg.modules
 
 local module = modules.create("core.todo-introspector")
 
--- TODO: When searching recursive children also account for generic_list nodes
-
 module.private = {
     namespace = vim.api.nvim_create_namespace("neorg/todo-introspector"),
 
