@@ -60,9 +60,11 @@ function module.public.attach_introspector(buffer)
     )
 
     vim.api.nvim_buf_attach(buffer, false, {
-        on_lines = vim.schedule_wrap(function(_, buf, _, first)
+        on_lines = function(_, buf, _, first)
             ---@type TSNode?
             local node = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, first)
+
+            vim.api.nvim_buf_clear_namespace(buffer, module.private.namespace, first + 1, first + 1)
 
             local parent = node
 
@@ -76,7 +78,7 @@ function module.public.attach_introspector(buffer)
 
                 parent = parent:parent()
             end
-        end),
+        end,
 
         on_detach = function()
             vim.api.nvim_buf_clear_namespace(buffer, module.private.namespace, 0, -1)
@@ -133,17 +135,15 @@ function module.public.perform_introspection(buffer, node)
 
     local line, col = node:start()
 
-    local unique_id = assert(tonumber(tostring(buffer) .. tostring(node:symbol()) .. tostring(line)))
+    vim.api.nvim_buf_clear_namespace(buffer, module.private.namespace, line, line + 1)
 
     if total == 0 then
-        vim.api.nvim_buf_del_extmark(buffer, module.private.namespace, unique_id)
         return
     end
 
     -- TODO: Make configurable, make colours customizable, don't display [x/total]
     -- as the total also includes things like uncertain tasks.
     vim.api.nvim_buf_set_extmark(buffer, module.private.namespace, line, col, {
-        id = unique_id,
         virt_text = { { string.format("[%d/%d]", counts.done, total), "Normal" } },
     })
 end
