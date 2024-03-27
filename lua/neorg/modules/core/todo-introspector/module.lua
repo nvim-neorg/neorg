@@ -46,9 +46,6 @@ function module.public.attach_introspector(buffer)
         error(string.format("Could not attach to buffer %d, buffer is not a norg file!", buffer))
     end
 
-    local language_tree = vim.treesitter.get_parser(buffer, "norg")
-    language_tree:parse(true)
-
     vim.api.nvim_buf_attach(buffer, false, {
         on_lines = function(_, buf, _, first)
             ---@type TSNode?
