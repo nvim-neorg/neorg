@@ -79,6 +79,7 @@ function module.public.attach_introspector(buffer)
         end),
 
         on_detach = function()
+            vim.api.nvim_buf_clear_namespace(buffer, module.private.namespace, 0, -1)
             module.private.buffers[buffer] = nil
         end,
     })
