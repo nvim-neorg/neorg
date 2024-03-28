@@ -14,11 +14,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Checkout dependency neodev
+      - name: Checkout neovim for type annotations
         uses: actions/checkout@v3
         with:
-          repository: "folke/neodev.nvim"
-          path: "deps/neodev.nvim"
+          repository: "neovim/neovim"
+          path: "deps/neovim"
 
       - name: Type Check Code Base
         uses: mrcjkb/lua-typecheck-action@v0.2.1
