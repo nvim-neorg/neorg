@@ -64,6 +64,9 @@ function module.public.attach_introspector(buffer)
             ---@type TSNode?
             local node = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, first)
 
+            -- TODO: Also check the node above the current line if there is a different node there (check node ranges).
+            -- This would allow updates to both nodes whenever a list is broken into two.
+
             vim.api.nvim_buf_clear_namespace(buffer, module.private.namespace, first + 1, first + 1)
 
             local parent = node
