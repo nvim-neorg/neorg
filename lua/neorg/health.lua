@@ -15,17 +15,48 @@ return {
 
             for key, value in pairs(config.load) do
                 if type(key) ~= "string" then
-                    vim.health.error(string.format("Invalid data type provided within `load` table! Expected a module name (e.g. `core.defaults`), got a %s instead.", type(key)))
+                    vim.health.error(
+                        string.format(
+                            "Invalid data type provided within `load` table! Expected a module name (e.g. `core.defaults`), got a %s instead.",
+                            type(key)
+                        )
+                    )
                 elseif not modules[key] then
-                    vim.health.warn(string.format("You are attempting to load a module `%s` which is not recognized by Neorg at this time. You may receive an error upon launching Neorg."))
+                    vim.health.warn(
+                        string.format(
+                            "You are attempting to load a module `%s` which is not recognized by Neorg at this time. You may receive an error upon launching Neorg."
+                        )
+                    )
                 elseif type(value) ~= "table" then
-                    vim.health.error(string.format("Invalid data type provided within `load` table for module `%s`! Expected module data (e.g. `{ config = { ... } }`), got a %s instead.", key, type(key)))
+                    vim.health.error(
+                        string.format(
+                            "Invalid data type provided within `load` table for module `%s`! Expected module data (e.g. `{ config = { ... } }`), got a %s instead.",
+                            key,
+                            type(key)
+                        )
+                    )
                 elseif value.config and type(value.config) ~= "table" then
-                    vim.health.error(string.format("Invalid data type provided within data table for module `%s`! Expected configuration data (e.g. `config = { ... }`), but `config` was set to a %s instead.", key, type(key)))
-                elseif (#vim.tbl_keys(value) > 1 and value.config ~= nil) then
-                    vim.health.warn(string.format("Unexpected extra data provided to module `%s` - each module only expects a `config` table to be provided, nothing else.", key))
+                    vim.health.error(
+                        string.format(
+                            "Invalid data type provided within data table for module `%s`! Expected configuration data (e.g. `config = { ... }`), but `config` was set to a %s instead.",
+                            key,
+                            type(key)
+                        )
+                    )
+                elseif #vim.tbl_keys(value) > 1 and value.config ~= nil then
+                    vim.health.warn(
+                        string.format(
+                            "Unexpected extra data provided to module `%s` - each module only expects a `config` table to be provided, nothing else.",
+                            key
+                        )
+                    )
                 elseif (#vim.tbl_keys(value) > 0 and value.config == nil) or #vim.tbl_keys(value) > 1 then
-                    vim.health.warn(string.format("Misplaced configuration data for module `%s` - it seems like you forgot to put your module configuration inside a `config = {}` table?", key))
+                    vim.health.warn(
+                        string.format(
+                            "Misplaced configuration data for module `%s` - it seems like you forgot to put your module configuration inside a `config = {}` table?",
+                            key
+                        )
+                    )
                 else
                     vim.health.ok(string.format("Module declaration `%s` is well-formed", key))
                 end
@@ -40,9 +71,13 @@ return {
         vim.health.info("Checking existence of dependencies...")
 
         if (pcall(require, "lazy")) and not (pcall(require, "luarocks-nvim")) then
-            vim.health.error("Required dependency `vhyrro/luarocks.nvim` not found! Neither `theHamsta/nvim_rocks` nor `camspiers/luarocks` are compatible. Check installation instructions for how to fix the error.")
+            vim.health.error(
+                "Required dependency `vhyrro/luarocks.nvim` not found! Neither `theHamsta/nvim_rocks` nor `camspiers/luarocks` are compatible. Check installation instructions for how to fix the error."
+            )
         else
-            vim.health.ok("Using plugin manager other than lazy, no need for the `vhyrro/luarocks.nvim` dependency. If you are on an unsupported plugin manager you may still need the plugin for Neorg to function.")
+            vim.health.ok(
+                "Using plugin manager other than lazy, no need for the `vhyrro/luarocks.nvim` dependency. If you are on an unsupported plugin manager you may still need the plugin for Neorg to function."
+            )
         end
-    end
+    end,
 }
