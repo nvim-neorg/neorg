@@ -20,6 +20,12 @@ jobs:
           repository: "folke/neodev.nvim"
           path: "deps/neodev.nvim"
 
+      - name: Checkout neovim for type annotations
+        uses: actions/checkout@v3
+        with:
+          repository: "neovim/neovim"
+          path: "deps/neovim"
+
       - name: Type Check Code Base
         uses: mrcjkb/lua-typecheck-action@v0.2.1
         with:
