@@ -105,7 +105,10 @@ function utils.get_language_shorthands(reverse_lookup)
         ["yaml"] = { "yml" },
     }
 
-    return reverse_lookup and vim.tbl_add_reverse_lookup(langs) or langs
+    -- TODO: `vim.tbl_add_reverse_lookup` deprecated: NO ALTERNATIVES
+    -- GOOD JOB CORE DEVS
+    -- <https://github.com/neovim/neovim/pull/27639>
+    return reverse_lookup and vim.tbl_add_reverse_lookup(langs) or langs ---@diagnostic disable-line
 end
 
 --- Checks whether Neovim is running at least at a specific version.
