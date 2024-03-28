@@ -156,10 +156,27 @@ function module.public.perform_introspection(buffer, node)
         return
     end
 
+    local curated_total = counts.done + counts.undone + counts.pending + counts.urgent
+
     -- TODO: Make configurable, make colours customizable, don't display [x/total]
     -- as the total also includes things like uncertain tasks.
+    --
+    -- NOTE(vhyrro): The selection of done/undone/pending/urgent is a curated arbitrary list for now (and a common-case scenario).
+    -- Yet again, should be customizable :)
+    --
+    -- TODO(vhyrro): Extract the whole string building logic to a function so that it can be used outside of Neorg for other things.
     vim.api.nvim_buf_set_extmark(buffer, module.private.namespace, line, col, {
-        virt_text = { { string.format("[%d/%d]", counts.done, total), "Normal" } },
+        virt_text = {
+            {
+                string.format(
+                    "[%d/%d] (%d%%)",
+                    counts.done,
+                    curated_total,
+                    (curated_total ~= 0 and math.floor((counts.done / curated_total) * 100) or 0)
+                ),
+                "Normal",
+            },
+        },
         invalidate = true,
     })
 end
