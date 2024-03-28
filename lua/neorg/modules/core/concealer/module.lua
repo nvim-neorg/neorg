@@ -651,6 +651,7 @@ module.public = {
                 local len = line_lengths[row_0b - row_start_0b + 1]
                 local mark_col_start_0b = math.max(0, col_start_0b - config.padding.left)
                 local mark_col_end_0bex = max_len + config.padding.right
+                local priority = 101
                 if len >= mark_col_start_0b then
                     vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, mark_col_start_0b, {
                         end_row = row_0b + 1,
@@ -661,6 +662,7 @@ module.public = {
                         virt_text_pos = "overlay",
                         virt_text_win_col = len,
                         spell = config.spell_check,
+                        priority = priority,
                     })
                 else
                     vim.api.nvim_buf_set_extmark(bufid, module.private.ns_icon, row_0b, len, {
@@ -675,6 +677,7 @@ module.public = {
                         virt_text_pos = "overlay",
                         virt_text_win_col = len,
                         spell = config.spell_check,
+                        priority = priority,
                     })
                 end
             end
