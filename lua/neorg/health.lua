@@ -36,5 +36,13 @@ return {
                 vim.health.ok("Default configuration for logger provided, Neorg will not output debug info.")
             end
         end
+
+        vim.health.info("Checking existence of dependencies...")
+
+        if (pcall(require, "lazy")) and not (pcall(require, "luarocks-nvim")) then
+            vim.health.error("Required dependency `vhyrro/luarocks.nvim` not found! Neither `theHamsta/nvim_rocks` nor `camspiers/luarocks` are compatible. Check installation instructions for how to fix the error.")
+        else
+            vim.health.ok("Using plugin manager other than lazy, no need for the `vhyrro/luarocks.nvim` dependency. If you are on an unsupported plugin manager you may still need the plugin for Neorg to function.")
+        end
     end
 }
