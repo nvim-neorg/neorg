@@ -148,6 +148,7 @@ function module.public.perform_introspection(buffer, node)
     -- as the total also includes things like uncertain tasks.
     vim.api.nvim_buf_set_extmark(buffer, module.private.namespace, line, col, {
         virt_text = { { string.format("[%d/%d]", counts.done, total), "Normal" } },
+        invalidate = true,
     })
 end
 
