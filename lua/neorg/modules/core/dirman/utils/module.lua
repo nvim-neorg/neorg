@@ -64,7 +64,7 @@ module.public = {
                 }, " "))
                 return
             end
-            filepath = filepath:with_suffix(".norg")
+            filepath = filepath:add_suffix(".norg")
         end
         return filepath
     end,
