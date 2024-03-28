@@ -13,15 +13,28 @@ local user_configuration
 --- @module "neorg.core.config"
 
 --- Initializes Neorg. Parses the supplied user configuration, initializes all selected modules and adds filetype checking for `.norg`.
---- @param cfg neorg.configuration.user A table that reflects the structure of `config.user_config`.
+--- @param cfg neorg.configuration.user? A table that reflects the structure of `config.user_config`.
 --- @see config.user_config
 --- @see neorg.configuration.user
 function neorg.setup(cfg)
+    -- If the user supplied no configuration then generate a default one (assume the user wants the defaults)
     cfg = cfg or {
         load = {
             ["core.defaults"] = {},
         },
     }
+
+    -- If no `load` table was passed whatsoever then assume the user wants the default ones.
+    -- If the user explicitly sets `load = {}` in their configs then that means they do not want
+    -- any modules loaded.
+    --
+    -- We check for nil specifically because some users might think `load = false` is a valid thing.
+    -- With the explicit check `load = false` will issue an error.
+    if cfg.load == nil then
+        cfg.load = {
+            ["core.defaults"] = {},
+        }
+    end
 
     if not (pcall(require, "lua-utils")) then
         user_configuration = cfg
