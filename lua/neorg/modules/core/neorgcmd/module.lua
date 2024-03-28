@@ -7,7 +7,7 @@
 This internal module handles everything there is for the `:Neorg` command to function.
 
 Different modules can define their own commands, completions and conditions on when they'd
-like these commands to be avaiable.
+like these commands to be available.
 
 For a full example on how to create your own command, it is recommended to read the
 `core.neorgcmd`'s `module.lua` file. At the beginning of the file is an examples table
@@ -31,7 +31,7 @@ module.examples = {
                     min_args = 1, -- Tells neorgcmd that we want at least one argument for this command
                     max_args = 1, -- Tells neorgcmd we want no more than one argument
                     args = 1, -- Setting this variable instead would be the equivalent of min_args = 1 and max_args = 1
-                    -- This command is only avaiable within `.norg` files.
+                    -- This command is only available within `.norg` files.
                     -- This can also be a function(bufnr, is_in_an_norg_file)
                     condition = "norg",
 
