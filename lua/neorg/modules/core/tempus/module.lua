@@ -217,6 +217,7 @@ local timezone_list = {
 
 ---@alias Date {weekday: {name: string, number: number}?, day: number?, month: {name: string, number: number}?, year: number?, timezone: string?, time: {hour: number, minute: number, second: number?}?}
 
+---@class core.tempus
 module.public = {
     --- Converts a parsed date with `parse_date` to a lua date.
     ---@param parsed_date Date #The date to convert

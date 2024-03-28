@@ -86,6 +86,7 @@ module.private = {
     end,
 }
 
+---@class core.ui.calendar
 module.public = {
     add_mode = function(name, factory)
         module.private.modes[name] = factory

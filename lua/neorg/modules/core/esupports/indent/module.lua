@@ -29,6 +29,7 @@ module.setup = function()
     }
 end
 
+---@class core.esupports.indent
 module.public = {
     indentexpr = function(buf, line, node)
         line = line or (vim.v.lnum - 1)

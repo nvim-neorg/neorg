@@ -6,6 +6,7 @@
     "lua/?/init.lua"
   ],
   "Lua.workspace.library": [
+    "/home/runner/work/neorg/neorg/lua_modules/share/lua/5.1",
     "/home/runner/work/neorg/neorg/deps/neovim/runtime/lua",
     "/home/runner/work/neorg/neorg/deps/neodev.nvim/types/stable"
   ],

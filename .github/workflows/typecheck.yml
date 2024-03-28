@@ -14,17 +14,25 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Checkout dependency neodev
+      - name: Checkout dependency neodev # get neodev and neovim/runtime for builtin types
         uses: actions/checkout@v3
         with:
           repository: "folke/neodev.nvim"
           path: "deps/neodev.nvim"
-
       - name: Checkout neovim for type annotations
         uses: actions/checkout@v3
         with:
           repository: "neovim/neovim"
           path: "deps/neovim"
+
+      - uses: leafo/gh-actions-lua@v9 # get luarocks dependencies for their types (eg `PathlibPath`)
+        with:
+          luaVersion: "5.1"
+      - uses: leafo/gh-actions-luarocks@v4
+      - name: install dependencies
+        run: |
+          luarocks init
+          luarocks install --only-deps ./*.rockspec
 
       - name: Type Check Code Base
         uses: mrcjkb/lua-typecheck-action@v0.2.1

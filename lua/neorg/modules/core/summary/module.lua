@@ -150,7 +150,7 @@ module.load = function()
                     if not norgname then
                         norgname = filename
                     end
-                    norgname = string.sub(norgname, string.len(ws_root) + 1)
+                    norgname = string.sub(norgname, ws_root:len() + 1)
 
                     -- normalise categories into a list. Could be vim.NIL, a number, a string or a list ...
                     if not metadata.categories or metadata.categories == vim.NIL then
@@ -237,7 +237,7 @@ module.load = function()
                     local category = path_tokens[#path_tokens - 1] or "Uncategorised"
 
                     local norgname = filename:match("(.+)%.norg$") or filename -- strip extension for link destinations
-                    norgname = string.sub(norgname, string.len(ws_root) + 1)
+                    norgname = string.sub(norgname, ws_root:len() + 1)
 
                     if not metadata.title then
                         metadata.title = get_first_heading_title(bufnr) or vim.fs.basename(norgname)
@@ -290,7 +290,7 @@ module.config.public = {
     -- - "default" - read the metadata to categorize and annotate files. Files
     --   without metadata will use the top level heading as the title. If no headings are present, the filename will be used.
     -- - "by_path" - Similar to "default" but uses the capitalized name of the folder containing a *.norg file as category.
-    -- ---@type string|fun(files: string[], ws_root: string, heading_level: number?, include_categories: string[]?): string[]?
+    ---@type string|fun(files: PathlibPath[], ws_root: PathlibPath, heading_level: number?, include_categories: string[]?): string[]?
     strategy = "default",
 }
 
