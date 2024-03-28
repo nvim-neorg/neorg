@@ -53,15 +53,16 @@ The power of markup languages shines in the ways you can alter the text though, 
 Any word can be made bold, italic, underline, superscript, subscript - all through the use of modifiers. Below are a bunch of examples:
 
 ```norg
-This is just my note! In here I will have some *bold* text, some /italic/, _underline_, ^superscript^ and ,subscript,!
+This is my note! In here I will have some *bold* text, some /italic/, _underline_, ^superscript^ and ,subscript,!
 ```
 
 And indeed, upon typing those, you should see Neorg appropriately make the text **bold**, *italic* and __underline__! Superscript and subscript cannot be properly rendered
 within terminals, so they're just coloured instead.
 
-If the bold, italic or underline are not showing properly you can find a troubleshooting guide [here](https://github.com/nvim-neorg/neorg/wiki/Dependencies)! Terminals can be tricky sometimes :p
-
 *Fantastic!* Being able to mark up any text like this without any effort is very nice.
+
+> [!NOTE]
+> If the bold, italic or underline are not showing properly you can find a troubleshooting guide [here](https://github.com/nvim-neorg/neorg/wiki/Dependencies)! Terminals can be tricky sometimes.
 
 #### Lists
 
@@ -191,4 +192,15 @@ To set a TODO item to a specific state you can use one of the many keybinds list
 
 > [!NOTE]
 > If you're a keen reader you will have noticed that this is nowhere near 12 TODO states.
-> The others are a bit more advanced, you'll learn them as necessary.
+> The others are a bit more advanced, you'll learn them as necessary!
+
+### But Wait, There's More
+
+Tasks aren't exclusive to lists. In norg, you can assign a task to *anything*. Not quite
+done with a heading yet? No problem!
+
+```norg
+* ( ) Undone Heading
+```
+
+This will work, as will a task status attached to anything else in this fashion.
