@@ -12,6 +12,7 @@ module.private = {
 
 -- NOTE(vhyrro): This module serves as a temporary proof of concept.
 -- We will want to add a plethora of customizability options after the base behaviour is implemented.
+---@class core.todo-introspector
 module.config.public = {}
 
 module.setup = function()
