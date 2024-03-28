@@ -14,6 +14,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Checkout dependency neodev
+        uses: actions/checkout@v3
+        with:
+          repository: "folke/neodev.nvim"
+          path: "deps/neodev.nvim"
+
       - name: Checkout neovim for type annotations
         uses: actions/checkout@v3
         with:
