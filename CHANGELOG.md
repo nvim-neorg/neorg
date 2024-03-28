@@ -1,5 +1,33 @@
 # Changelog
 
+## [8.3.0](https://github.com/nvim-neorg/neorg/compare/v8.2.1...v8.3.0) (2024-03-28)
+
+
+### Features
+
+* basic checkhealth for configuration checking ([645cd0c](https://github.com/nvim-neorg/neorg/commit/645cd0c257b2fccc655a32d0b04aa706c96fb1a8))
+* check for the existence of `vhyrro/luarocks.nvim` ([a5aa931](https://github.com/nvim-neorg/neorg/commit/a5aa93108999de75c8d075a0ee4dcc6a715a9e1a))
+* **dirman:** use pathlib for all dirman operations  ([#1354](https://github.com/nvim-neorg/neorg/issues/1354)) ([1190dc7](https://github.com/nvim-neorg/neorg/commit/1190dc78b9785ad75301de9153ed8de83c179b66))
+* implement the basics of the new todo introspector ([a7ad515](https://github.com/nvim-neorg/neorg/commit/a7ad51519f2e7a7274c069e35d4396a0a5f88ddc))
+* **todo-introspector:** correctly enumerate amounts of done/undone items ([d284488](https://github.com/nvim-neorg/neorg/commit/d2844882ec0d18d59a7b8727b893a964fe76a754))
+* **todo-introspector:** display all TODOs on file entry ([80b2d33](https://github.com/nvim-neorg/neorg/commit/80b2d33b1f402b0279009442caf6cfaa9cd308f4))
+* **todo-introspector:** finalize display code ([949ae96](https://github.com/nvim-neorg/neorg/commit/949ae962558d43673130159cd6bce89e4bf4febc))
+* **todo-introspector:** properly handle nodes broken into two ([76e6443](https://github.com/nvim-neorg/neorg/commit/76e6443c9823470897245951f37cef0cc5b966f0))
+
+
+### Bug Fixes
+
+* add `core.todo-introspector` to the list of default modules ([5202271](https://github.com/nvim-neorg/neorg/commit/52022710d47fd66c73280f7a8d7fe2013d899224))
+* **introspector:** various bugs related to extmark updates ([e8c9193](https://github.com/nvim-neorg/neorg/commit/e8c9193b10ea946e6f90e06daf0efeafb55fa970))
+* **luarocks:** pin `pathlib` to `2.0` (as luarocks doesn't like it otherwise) ([5b93840](https://github.com/nvim-neorg/neorg/commit/5b93840d97c2ac0d1534321ca3659f4b8c1342e4))
+* **todo-introspector:** correctly handle deletion of lines ([a8b7ad0](https://github.com/nvim-neorg/neorg/commit/a8b7ad08f6e8cd36c83e371ab9a74cc1e5252a0b))
+* **todo-introspector:** properly clear namespace for refreshed buffers ([5f67407](https://github.com/nvim-neorg/neorg/commit/5f6740795303a03b58c81bf6396ae03d487d5b7c))
+
+
+### Reverts
+
+* backout of commit 5b93840d97c2ac0d1534321ca3659f4b8c1342e4 ([e0690fa](https://github.com/nvim-neorg/neorg/commit/e0690fa65546bd91f9aa4883f1ce4cbea45e1898))
+
 ## [8.2.1](https://github.com/nvim-neorg/neorg/compare/v8.2.0...v8.2.1) (2024-03-28)
 
 
