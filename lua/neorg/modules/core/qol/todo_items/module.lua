@@ -393,12 +393,10 @@ module.public = {
 
         local next = types[index] or types[1]
 
-        if not next then
-            for child in todo_item_at_cursor:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                if module.public.get_todo_item_type(child) then
-                    next = alternative_types[get_index(alternative_types, todo_item_type)]
-                    break
-                end
+        for child in todo_item_at_cursor:iter_children() do
+            if module.public.get_todo_item_type(child) then
+                next = alternative_types[get_index(alternative_types, todo_item_type)]
+                break
             end
         end
 
