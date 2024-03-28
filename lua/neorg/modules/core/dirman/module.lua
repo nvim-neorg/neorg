@@ -305,7 +305,7 @@ module.public = {
             return
         end
 
-        local destination = (fullpath / path):with_suffix(".norg")
+        local destination = (fullpath / path):add_suffix(".norg")
 
         -- Generate parents just in case
         destination:parent_assert():mkdir(Path.const.o755 + 4 * math.pow(8, 4), true) -- 40755(oct)

@@ -16,7 +16,7 @@ vim.schedule(function()
         "lua-utils.nvim == 1.0.2",
         "plenary.nvim == 0.1.4",
         "nui.nvim == 0.3.0",
-        "pathlib.nvim ~> 2",
+        "pathlib.nvim ~> 2.1",
     })
 
     package.loaded["neorg"] = nil
