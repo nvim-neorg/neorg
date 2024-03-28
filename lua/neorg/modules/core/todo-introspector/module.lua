@@ -65,22 +65,33 @@ function module.public.attach_introspector(buffer)
             ---@type TSNode?
             local node = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, first)
 
-            -- TODO: Also check the node above the current line if there is a different node there (check node ranges).
-            -- This would allow updates to both nodes whenever a list is broken into two.
-
             vim.api.nvim_buf_clear_namespace(buffer, module.private.namespace, first + 1, first + 1)
 
-            local parent = node
+            local function introspect(start_node)
+                local parent = start_node
 
-            while parent do
-                local child = parent:named_child(1)
+                while parent do
+                    local child = parent:named_child(1)
 
-                if child and child:type() == "detached_modifier_extension" then
-                    module.public.perform_introspection(buffer, parent)
-                    -- NOTE: do not break here as we want the introspection to propagate all the way up the syntax tree
+                    if child and child:type() == "detached_modifier_extension" then
+                        module.public.perform_introspection(buffer, parent)
+                        -- NOTE: do not break here as we want the introspection to propagate all the way up the syntax tree
+                    end
+
+                    parent = parent:parent()
                 end
+            end
 
-                parent = parent:parent()
+            introspect(node)
+
+            local node_above = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, first - 1)
+
+            do
+                local todo_status = node_above:named_child(1)
+
+                if todo_status and todo_status:type() == "detached_modifier_extension" then
+                    introspect(node_above)
+                end
             end
         end,
 
