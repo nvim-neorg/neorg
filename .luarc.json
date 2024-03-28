@@ -5,9 +5,6 @@
         "_neorg_module_autocommand_triggered",
         "vim"
     ],
-    "Lua.workspace.library": [
-      "lua_modules/share/lua/5.1/"
-    ],
     "Lua.diagnostics.libraryFiles": "Disable",
     "Lua.workspace.checkThirdParty": false
 }

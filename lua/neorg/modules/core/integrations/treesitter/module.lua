@@ -232,6 +232,7 @@ module.public = {
         -- Do we need to go through each tree? lol
         vim.treesitter.get_parser(opts.buf, opts.ft):for_each_tree(function(tree)
             -- Get the root for that tree
+            ---@type TSNode
             local root = tree:root()
 
             --- Recursively searches for a node of a given type

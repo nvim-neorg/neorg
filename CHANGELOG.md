@@ -1,5 +1,16 @@
 # Changelog
 
+## [8.2.1](https://github.com/nvim-neorg/neorg/compare/v8.2.0...v8.2.1) (2024-03-28)
+
+
+### Bug Fixes
+
+* **core.neorgcmd.list:** don't accidentally open a separate file when displaying loaded modules ([eef1705](https://github.com/nvim-neorg/neorg/commit/eef1705ee78ae6e66917901da507a666743de877))
+* don't allow TODOs with nested items of the same type to be given the pending status ([5942fdf](https://github.com/nvim-neorg/neorg/commit/5942fdf7eb42b6364ca0a754ac88bd0ca05ae660))
+* load default modules even if an empty table is provided as input to setup() ([c1d36ad](https://github.com/nvim-neorg/neorg/commit/c1d36add07364e024dbf39276388741e54f7e955))
+* **neorgcmd.modules.list:** add basic escape keybinds ([71e2f05](https://github.com/nvim-neorg/neorg/commit/71e2f05ee19c94705fadbc1f84e11990baf8ff1c))
+* **typecheck:** use type definitions from nvim runtime instead ([#1358](https://github.com/nvim-neorg/neorg/issues/1358)) ([e7f393f](https://github.com/nvim-neorg/neorg/commit/e7f393f9e4a17c32289875e273f687863336894c))
+
 ## [8.2.0](https://github.com/nvim-neorg/neorg/compare/v8.1.0...v8.2.0) (2024-03-25)
 
 

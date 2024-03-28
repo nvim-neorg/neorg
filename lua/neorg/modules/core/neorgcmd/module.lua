@@ -460,6 +460,13 @@ module.on_event = function(event)
             module_list_popup:update_layout()
         end)
 
+        local function close()
+            module_list_popup:unmount()
+        end
+
+        module_list_popup:map("n", "<Esc>", close, {})
+        module_list_popup:map("n", "q", close, {})
+
         local lines = {}
 
         for name, _ in pairs(neorg.modules.loaded_modules) do
