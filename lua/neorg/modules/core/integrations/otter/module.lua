@@ -39,7 +39,7 @@ sources = {
 --]]
 
 local neorg = require("neorg.core")
-local module = neorg.modules.create("core.integrations.image")
+local module = neorg.modules.create("core.integrations.otter")
 
 module.setup = function()
     return {
