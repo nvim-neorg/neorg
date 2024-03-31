@@ -57,6 +57,8 @@ end
 module.public = {
     latex_renderer = function()
         module.private.ranges = {}
+        module.private.latex_jobs = {}
+        module.private.render_jobs = {}
         module.required["core.integrations.treesitter"].execute_query(
             [[
                 (
@@ -72,20 +74,40 @@ module.public = {
                 local latex_snippet =
                     module.required["core.integrations.treesitter"].get_node_text(node, vim.api.nvim_get_current_buf())
 
-                local png_location = module.public.parse_latex(latex_snippet)
-
-                module.private.image.new_image(
-                    vim.api.nvim_get_current_buf(),
-                    png_location,
-                    module.required["core.integrations.treesitter"].get_node_range(node),
-                    vim.api.nvim_get_current_win(),
-                    module.config.public.scale,
-                    not module.config.public.conceal
+                local job = module.public.start_parse_latex_job(latex_snippet)
+                table.insert(
+                    module.private.latex_jobs,
+                    { job_id = job.job_id, document_name = job.document_name, node = node }
                 )
-
                 table.insert(module.private.ranges, { node:range() })
             end
         )
+        for _, job in pairs(module.private.latex_jobs) do
+            vim.fn.jobwait({ job.job_id })
+            local png_result = vim.fn.tempname()
+            local render_job = vim.fn.jobstart(
+                "dvipng -D "
+                    .. tostring(module.config.public.dpi)
+                    .. " -T tight -bg Transparent -fg 'cmyk 0.00 0.04 0.21 0.02' -o "
+                    .. png_result
+                    .. " "
+                    .. job.document_name
+                    .. ".dvi",
+                { cwd = vim.fn.fnamemodify(job.document_name, ":h") }
+            )
+            table.insert(module.private.render_jobs, { job_id = render_job, image = png_result, node = job.node })
+        end
+        for _, job in pairs(module.private.render_jobs) do
+            vim.fn.jobwait({ job.job_id })
+            module.private.image.new_image(
+                vim.api.nvim_get_current_buf(),
+                job.image,
+                module.required["core.integrations.treesitter"].get_node_range(job.node),
+                vim.api.nvim_get_current_win(),
+                module.config.public.scale,
+                not module.config.public.conceal
+            )
+        end
         module.private.images = module.private.image.get_images()
     end,
     create_latex_document = function(snippet)
@@ -147,6 +169,25 @@ module.public = {
         })
 
         return png_result
+    end,
+
+    -- Returns a handle to the latex rendering job
+    -- This prevents blocking when there are many latex snippets.
+    start_parse_latex_job = function(snippet)
+        local document_name = module.public.create_latex_document(snippet)
+
+        if not document_name then
+            return
+        end
+
+        local cwd = vim.fn.fnamemodify(document_name, ":h")
+        return {
+            document_name = document_name,
+            job_id = vim.fn.jobstart(
+                "latex  --interaction=nonstopmode --output-dir=" .. cwd .. " --output-format=dvi " .. document_name,
+                { cwd = cwd }
+            ),
+        }
     end,
     render_inline_math = function(images)
         local conceal_on = (vim.wo.conceallevel >= 2) and module.config.public.conceal
