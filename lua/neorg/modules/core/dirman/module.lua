@@ -310,8 +310,11 @@ module.public = {
         -- Generate parents just in case
         destination:parent_assert():mkdir(Path.const.o755 + 4 * math.pow(8, 4), true) -- 40755(oct)
 
-        -- Touch file
-        destination:touch(Path.permission("rw-rw-rw-"), false)
+        -- Create or overwrite the file
+        local fd = destination:fs_open(opts.force and "w" or "a", Path.const.o644, false)
+        if fd then
+            vim.loop.fs_close(fd)
+        end
 
         -- Broadcast file creation event
         local bufnr = module.public.get_file_bufnr(destination:tostring())
