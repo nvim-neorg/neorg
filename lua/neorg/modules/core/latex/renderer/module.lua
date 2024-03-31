@@ -98,28 +98,12 @@ module.public = {
                 table.insert(latex_jobs, {
                     job_id = job_id,
                     snippet = latex_snippet.snippet,
-                    document_name = document_name,
+                    image = image_filename,
                     node = latex_snippet.node,
                 })
             end
         end
-        local render_jobs = {}
         for _, job in pairs(latex_jobs) do
-            vim.fn.jobwait({ job.job_id })
-            local png_result = job.document_name .. ".png"
-            local render_job = vim.fn.jobstart(
-                "dvipng -D "
-                    .. tostring(module.config.public.dpi)
-                    .. " -T tight -bg Transparent -fg 'cmyk 0.00 0.04 0.21 0.02' -o "
-                    .. png_result
-                    .. " "
-                    .. job.document_name
-                    .. ".dvi",
-                { cwd = vim.fn.fnamemodify(job.document_name, ":h") }
-            )
-            table.insert(render_jobs, { job_id = render_job, image = png_result, node = job.node })
-        end
-        for _, job in pairs(render_jobs) do
             vim.fn.jobwait({ job.job_id })
             module.private.image.new_image(
                 vim.api.nvim_get_current_buf(),
@@ -171,10 +155,20 @@ module.public = {
             return
         end
 
-        local cwd = vim.fn.fnamemodify(document_name, ":h")
         return vim.fn.jobstart(
-            "latex  --interaction=nonstopmode --output-dir=" .. cwd .. " --output-format=dvi " .. document_name,
-            { cwd = cwd }
+            "latex  --interaction=nonstopmode --output-dir="
+                .. module.private.tmp_dir
+                .. " --output-format=dvi "
+                .. document_name
+                .. " && dvipng -D "
+                .. tostring(module.config.public.dpi)
+                .. " -T tight -bg Transparent -fg 'cmyk 0.00 0.04 0.21 0.02' -o "
+                .. document_name
+                .. ".png"
+                .. " "
+                .. document_name
+                .. ".dvi",
+            { cwd = module.private.tmp_dir }
         )
     end,
     render_inline_math = function(images)

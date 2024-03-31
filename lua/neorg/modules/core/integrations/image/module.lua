@@ -35,7 +35,7 @@ module.public = {
             x = position.column_start,
             y = position.row_start + (virtual_padding and 1 or 0),
             width = position.column_end - position.column_start,
-            height = scale * image.image_height,
+            height = scale,
         }
         image:render(geometry)
     end,
