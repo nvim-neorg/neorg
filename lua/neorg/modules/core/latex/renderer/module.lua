@@ -25,6 +25,7 @@ module.setup = function()
             "core.integrations.treesitter",
             "core.autocommands",
             "core.neorgcmd",
+            "core.dirman",
         },
     }
 end
@@ -35,6 +36,7 @@ module.load = function()
     assert(success, "Unable to load image module")
 
     module.private.image = image
+    module.private.dirman = neorg.modules.get_module("core.dirman")
 
     module.required["core.autocommands"].enable_autocommand("BufWinEnter")
     module.required["core.autocommands"].enable_autocommand("CursorMoved")
@@ -57,8 +59,8 @@ end
 module.public = {
     latex_renderer = function()
         module.private.ranges = {}
-        module.private.latex_jobs = {}
-        module.private.render_jobs = {}
+        module.private.tmp_dir = vim.fn.fnamemodify(vim.fn.tempname(), ":h")
+        local latex_snippets = {}
         module.required["core.integrations.treesitter"].execute_query(
             [[
                 (
@@ -74,17 +76,37 @@ module.public = {
                 local latex_snippet =
                     module.required["core.integrations.treesitter"].get_node_text(node, vim.api.nvim_get_current_buf())
 
-                local job = module.public.start_parse_latex_job(latex_snippet)
-                table.insert(
-                    module.private.latex_jobs,
-                    { job_id = job.job_id, document_name = job.document_name, node = node }
-                )
+                table.insert(latex_snippets, { snippet = latex_snippet, node = node })
                 table.insert(module.private.ranges, { node:range() })
             end
         )
-        for _, job in pairs(module.private.latex_jobs) do
+        local latex_jobs = {}
+        for _, latex_snippet in pairs(latex_snippets) do
+            local document_name = module.public.get_snippet_filename(latex_snippet.snippet)
+            local image_filename = document_name .. ".png"
+            if module.private.dirman.file_exists(image_filename) then
+                module.private.image.new_image(
+                    vim.api.nvim_get_current_buf(),
+                    image_filename,
+                    module.required["core.integrations.treesitter"].get_node_range(latex_snippet.node),
+                    vim.api.nvim_get_current_win(),
+                    module.config.public.scale,
+                    not module.config.public.conceal
+                )
+            else -- start rendering job
+                local job_id = module.public.start_parse_latex_job(latex_snippet.snippet)
+                table.insert(latex_jobs, {
+                    job_id = job_id,
+                    snippet = latex_snippet.snippet,
+                    document_name = document_name,
+                    node = latex_snippet.node,
+                })
+            end
+        end
+        local render_jobs = {}
+        for _, job in pairs(latex_jobs) do
             vim.fn.jobwait({ job.job_id })
-            local png_result = vim.fn.tempname()
+            local png_result = job.document_name .. ".png"
             local render_job = vim.fn.jobstart(
                 "dvipng -D "
                     .. tostring(module.config.public.dpi)
@@ -95,9 +117,9 @@ module.public = {
                     .. ".dvi",
                 { cwd = vim.fn.fnamemodify(job.document_name, ":h") }
             )
-            table.insert(module.private.render_jobs, { job_id = render_job, image = png_result, node = job.node })
+            table.insert(render_jobs, { job_id = render_job, image = png_result, node = job.node })
         end
-        for _, job in pairs(module.private.render_jobs) do
+        for _, job in pairs(render_jobs) do
             vim.fn.jobwait({ job.job_id })
             module.private.image.new_image(
                 vim.api.nvim_get_current_buf(),
@@ -110,12 +132,17 @@ module.public = {
         end
         module.private.images = module.private.image.get_images()
     end,
+
+    get_snippet_filename = function(snippet)
+        return module.private.tmp_dir .. "/" .. vim.base64.encode(snippet)
+    end,
+
     create_latex_document = function(snippet)
-        local tempname = vim.fn.tempname()
+        local snippet_filename = module.public.get_snippet_filename(snippet)
 
-        local tempfile = io.open(tempname, "w")
+        local snippet_file = io.open(snippet_filename, "w")
 
-        if not tempfile then
+        if not snippet_file then
             return
         end
 
@@ -129,46 +156,10 @@ module.public = {
             "\\end{document}",
         }, "\n")
 
-        tempfile:write(content)
-        tempfile:close()
+        snippet_file:write(content)
+        snippet_file:close()
 
-        return tempname
-    end,
-
-    -- Returns a handle to an image containing
-    -- the rendered snippet.
-    -- This handle can then be delegated to an external renderer.
-    parse_latex = function(snippet)
-        local document_name = module.public.create_latex_document(snippet)
-
-        if not document_name then
-            return
-        end
-
-        local cwd = vim.fn.fnamemodify(document_name, ":h")
-        vim.fn.jobwait({
-            vim.fn.jobstart(
-                "latex  --interaction=nonstopmode --output-dir=" .. cwd .. " --output-format=dvi " .. document_name,
-                { cwd = cwd }
-            ),
-        })
-
-        local png_result = vim.fn.tempname()
-        -- TODO: Make the conversions async via `on_exit`
-        vim.fn.jobwait({
-            vim.fn.jobstart(
-                "dvipng -D "
-                    .. tostring(module.config.public.dpi)
-                    .. " -T tight -bg Transparent -fg 'cmyk 0.00 0.04 0.21 0.02' -o "
-                    .. png_result
-                    .. " "
-                    .. document_name
-                    .. ".dvi",
-                { cwd = vim.fn.fnamemodify(document_name, ":h") }
-            ),
-        })
-
-        return png_result
+        return snippet_filename
     end,
 
     -- Returns a handle to the latex rendering job
@@ -181,13 +172,10 @@ module.public = {
         end
 
         local cwd = vim.fn.fnamemodify(document_name, ":h")
-        return {
-            document_name = document_name,
-            job_id = vim.fn.jobstart(
-                "latex  --interaction=nonstopmode --output-dir=" .. cwd .. " --output-format=dvi " .. document_name,
-                { cwd = cwd }
-            ),
-        }
+        return vim.fn.jobstart(
+            "latex  --interaction=nonstopmode --output-dir=" .. cwd .. " --output-format=dvi " .. document_name,
+            { cwd = cwd }
+        )
     end,
     render_inline_math = function(images)
         local conceal_on = (vim.wo.conceallevel >= 2) and module.config.public.conceal

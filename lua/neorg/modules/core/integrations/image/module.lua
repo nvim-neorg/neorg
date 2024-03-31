@@ -26,17 +26,17 @@ module.private = {
 
 module.public = {
     new_image = function(buffernr, png_path, position, window, scale, virtual_padding)
-        local geometry = {
-            x = position.column_start,
-            y = position.row_start + (virtual_padding and 1 or 0),
-            width = position.column_end - position.column_start,
-            height = scale,
-        }
         local image = require("image").from_file(png_path, {
             window = window,
             buffer = buffernr,
             with_virtual_padding = virtual_padding,
         })
+        local geometry = {
+            x = position.column_start,
+            y = position.row_start + (virtual_padding and 1 or 0),
+            width = position.column_end - position.column_start,
+            height = scale * image.image_height,
+        }
         image:render(geometry)
     end,
     get_images = function()
@@ -44,8 +44,10 @@ module.public = {
     end,
     render = function(images)
         for _, image in pairs(images) do
-            image:clear()
-            image:render()
+            if not image.is_rendered then
+                image:clear()
+                image:render()
+            end
         end
     end,
     clear = function()
