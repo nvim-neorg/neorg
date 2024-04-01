@@ -13,6 +13,7 @@ Requires [image.nvim](https://github.com/3rd/image.nvim).
 local neorg = require("neorg.core")
 local module = neorg.modules.create("core.latex.renderer")
 local modules = neorg.modules
+local log = neorg.log
 
 assert(vim.re ~= nil, "Neovim 0.10.0+ is required to run the `core.renderer.latex` module!")
 
@@ -77,7 +78,6 @@ module.public = {
                     module.required["core.integrations.treesitter"].get_node_text(node, vim.api.nvim_get_current_buf())
 
                 table.insert(latex_snippets, { snippet = latex_snippet, node = node })
-                table.insert(module.private.ranges, { node:range() })
             end
         )
         local latex_jobs = {}
@@ -93,6 +93,7 @@ module.public = {
                     module.config.public.scale,
                     not module.config.public.conceal
                 )
+                table.insert(module.private.ranges, { latex_snippet.node:range() })
             else -- start rendering job
                 local job_id = module.public.start_parse_latex_job(latex_snippet.snippet)
                 table.insert(latex_jobs, {
@@ -105,14 +106,19 @@ module.public = {
         end
         for _, job in pairs(latex_jobs) do
             vim.fn.jobwait({ job.job_id })
-            module.private.image.new_image(
-                vim.api.nvim_get_current_buf(),
-                job.image,
-                module.required["core.integrations.treesitter"].get_node_range(job.node),
-                vim.api.nvim_get_current_win(),
-                module.config.public.scale,
-                not module.config.public.conceal
-            )
+            if not module.private.dirman.file_exists(job.image) then
+                log.error("Failed to render snippet: ", job.snippet)
+            else
+                module.private.image.new_image(
+                    vim.api.nvim_get_current_buf(),
+                    job.image,
+                    module.required["core.integrations.treesitter"].get_node_range(job.node),
+                    vim.api.nvim_get_current_win(),
+                    module.config.public.scale,
+                    not module.config.public.conceal
+                )
+                table.insert(module.private.ranges, { job.node:range() })
+            end
         end
         module.private.images = module.private.image.get_images()
     end,
