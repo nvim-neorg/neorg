@@ -37,6 +37,7 @@ function neorg.setup(cfg)
     end
 
     if not (pcall(require, "lua-utils")) then
+        vim.notify("Warning [neorg]: lua-utils not found. If you're just installing the plugin, ignore this message, when in doubt run `:Lazy build neorg`. If you're not on lazy please rerun the build scripts.", vim.log.levels.WARN)
         user_configuration = cfg
         return
     end
