@@ -76,6 +76,8 @@ A video tutorial may be found on Youtube:
 
 Neorg's setup process is slightly more complex than average, so we encourage you to be patient :)
 
+**After you're done with the installation process, run `:checkhealth neorg` to see if everything's correct!**
+
 ### `rocks.nvim`
 
 The recommended installation method is via [rocks.nvim](https://github.com/nvim-neorocks/rocks.nvim).
