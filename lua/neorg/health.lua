@@ -70,13 +70,31 @@ return {
 
         vim.health.info("Checking existence of dependencies...")
 
-        if (pcall(require, "lazy")) and not (pcall(require, "luarocks-nvim")) then
-            vim.health.error(
-                "Required dependency `vhyrro/luarocks.nvim` not found! Neither `theHamsta/nvim_rocks` nor `camspiers/luarocks` are compatible. Check installation instructions for how to fix the error."
-            )
+        if pcall(require, "lazy") then
+            if not (pcall(require, "luarocks-nvim")) then
+                vim.health.error(
+                    "Required dependency `vhyrro/luarocks.nvim` not found! Neither `theHamsta/nvim_rocks` nor `camspiers/luarocks` are compatible. Check installation instructions in the README for how to fix the error."
+                )
+            else
+                vim.health.ok("Required dependency `vhyrro/luarocks` found!")
+
+                vim.health.info("Checking existence of luarocks dependencies...")
+
+                local has_lua_utils = (pcall(require, "lua-utils"))
+
+                if not has_lua_utils then
+                    vim.health.error(
+                        "Critical dependency `lua-utils.nvim` not found! Please run `:Lazy build luarocks.nvim` and then `:Lazy build neorg`! Neorg will refuse to load."
+                    )
+                else
+                    vim.health.ok("Critical dependencies are installed. You are free to use Neorg!")
+                    vim.health.warn("If you ever encounter errors please rerun `:Lazy build neorg` again :)")
+                end
+            end
         else
-            vim.health.ok(
-                "Using plugin manager other than lazy, no need for the `vhyrro/luarocks.nvim` dependency. If you are on an unsupported plugin manager you may still need the plugin for Neorg to function."
+            vim.health.ok("Using plugin manager other than lazy, no need for the `vhyrro/luarocks.nvim` dependency.")
+            vim.health.warn(
+                "If you are on an unsupported plugin manager you may still need the plugin for Neorg to function."
             )
         end
     end,
