@@ -1,5 +1,18 @@
 # Changelog
 
+## [8.4.0](https://github.com/nvim-neorg/neorg/compare/v8.3.0...v8.4.0) (2024-04-04)
+
+
+### Features
+
+* add `integrations.otter` for LSP-like behaviours in code blocks ([#1329](https://github.com/nvim-neorg/neorg/issues/1329)) ([ccb7555](https://github.com/nvim-neorg/neorg/commit/ccb75557f8582e044c687452b8b249151f6e7098))
+
+
+### Bug Fixes
+
+* broken wiki ([68ea6b5](https://github.com/nvim-neorg/neorg/commit/68ea6b53b6cb58c54ac51256cdfd76eec540806c))
+* don't load `core.todo-introspector` if not on nightly (oops) ([bc7830e](https://github.com/nvim-neorg/neorg/commit/bc7830ec3e538d381f5361ca80a9bc5f97fc8fa9))
+
 ## [8.3.0](https://github.com/nvim-neorg/neorg/compare/v8.2.1...v8.3.0) (2024-04-04)
 
 
