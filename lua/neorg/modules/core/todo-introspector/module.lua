@@ -1,5 +1,5 @@
 local neorg = require("neorg")
-local modules = neorg.modules
+local modules, utils = neorg.modules, neorg.utils
 
 local module = modules.create("core.todo-introspector")
 
@@ -17,7 +17,7 @@ module.config.public = {}
 
 module.setup = function()
     return {
-        success = true,
+        success = utils.is_minimum_version(0, 10, 0),
         requires = { "core.integrations.treesitter" },
     }
 end
