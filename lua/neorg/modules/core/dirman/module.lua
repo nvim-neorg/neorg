@@ -115,7 +115,7 @@ module.config.public = {
     -- set to the Neovim current working directory on boot.
     ---@type table<string, PathlibPath>
     workspaces = {
-        default = Path.cwd(),
+        default = require("pathlib").cwd(),
     },
     -- The name for the index file.
     --
