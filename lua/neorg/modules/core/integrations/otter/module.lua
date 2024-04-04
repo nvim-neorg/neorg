@@ -67,7 +67,7 @@ module.load = function()
             group = group,
             callback = function(_)
                 module.public.activate()
-            end
+            end,
         })
     end
 
@@ -166,10 +166,7 @@ module.public = {
 
     ---Deactivate otter in the current buffer, including unsetting buffer keymaps
     deactivate = function()
-        otter.deactivate(
-            module.config.public.completion.enabled,
-            module.config.public.diagnostics.enabled
-        )
+        otter.deactivate(module.config.public.completion.enabled, module.config.public.diagnostics.enabled)
         local b = vim.api.nvim_get_current_buf()
         for _, lhs in pairs(module.config.public.keys) do
             vim.api.nvim_buf_del_keymap(b, "n", lhs)
