@@ -204,3 +204,51 @@ done with a heading yet? No problem!
 ```
 
 This will work, as will a task status attached to anything else in this fashion.
+
+## Part Two: File Management
+
+Now that you understand the basics of norg files and what you can put inside of them, let's give these files some meaning.
+
+The simplest thing to get started with is writing your own diary/journal with Neorg! By default, your journal will be placed in the current working directory.
+To open up the journal run `:Neorg journal today`, it should launch you into a new file!
+
+A core concept of Neorg is the concept of *workspaces*. A workspace is a directory which contains an **index file**
+(most commonly referred to as `index.norg`) in its root. This index file usually contains links to other parts in the workspace, sorted in some manner.
+
+How do we manage such workspaces, you may ask? With `core.dirman` (short for directory manager) of course!
+In your configuration, add a `core.dirman` entry as illustrated below:
+```lua
+require("neorg").setup({
+    load = {
+        ["core.defaults"] = {},
+        ["core.dirman"] = {
+            config = {
+                workspaces = {
+                    notes = "~/notes",
+                },
+            },
+        },
+    },
+})
+```
+
+In that snippet we set up a list of workspaces, currently with just one workspace: `notes`.
+This `notes` workspace points to, you guessed it, `~/notes`!
+
+When in Neovim, `:Neorg workspace` will show you the current workspace you're in. This will usually be the `default` workspace - the `default` workspace
+always gets created on-the-fly and points to Neovim's current working directory (seen via the `:pwd` command).
+
+To switch to the notes workspace, run `:Neorg workspace notes`. This will switch the active workspace to `notes` and immediately drop you into its
+`index.norg` file! You're free to perform any edits you may like in that workspace.
+
+If you were working on something beforehand (e.g. some code) you may use the
+`:Neorg return` command to close all norg buffers you opened since running the
+`:Neorg workspace ...` command and put you right back where you started. Neat!
+
+## To be continued...
+
+You thought it ends here! Wrong. You've learned that Neorg is an editing mode as well as a diary writer
+and a quasi file manager. Apart from this, it has many other features that are likely to be useful for a specific use case of yours.
+
+The next parts of this tutorial are under construction... head over to either the [youtube series](https://www.youtube.com/playlist?list=PLx2ksyallYzVI8CN1JMXhEf62j2AijeDa) or 
+the [list of modules](https://github.com/nvim-neorg/neorg/wiki#other-modules) to further your journey with Neorg! Have fun :)
