@@ -15,19 +15,15 @@ Your New Life Organization Tool - All in Lua
 •
 [Tutorial](#-tutorial)
 •
-[Installation](#-installationquickstart)
+[Installation](#-installation)
 •
-[Setup](#-setup)
-•
-[Usage](#-usage)
+[Further Learning](#-further-learning)
 <br>
-[Modules](#-modules)
+[Credits](#credits)
+•
+[Support](#support)
 •
 [Roadmap](/ROADMAP.md)
-•
-[Philosophy](#-philosophy)
-•
-[FAQ](#-faq)
 
 </div>
 
