@@ -89,6 +89,9 @@ module.public = {
 
         local function os_open_link(link_location)
             local o = {}
+
+            link_location = module.private.file_link_to_absolute_path(link_location)
+
             if config.os_info == "windows" then
                 o.command = "rundll32.exe"
                 o.args = { "url.dll,FileProtocolHandler", link_location }
@@ -948,6 +951,24 @@ module.private = {
                 )
         )
     end,
+
+    --- convert "file:./path" to abolute to match the uri-scheme (https://en.wikipedia.org/wiki/File_URI_scheme)
+    ---@param link_str string of "file:" followed by a relative path (if it consists of "file://" followed by an absolute)
+    ---@return string of the form "file://" followed by
+    -- https://en.wikipedia.org/wiki/File_URI_scheme
+    file_link_to_absolute_path = function(link_str)
+        if not vim.startswith(link_str, "file:///") then
+            -- convert the relative path to absolute
+            local tgt_loc = string.gsub(link_str, "file:", "")
+
+            local cwd = vim.fn.expand('%:p:h')
+            local tgt_loc_abs = cwd .. "/" .. tgt_loc
+            return "file://" .. tgt_loc_abs
+        else
+            return link_str
+        end
+    end,
+
 }
 
 module.on_event = function(event)

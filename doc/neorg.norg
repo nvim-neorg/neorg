@@ -158,7 +158,8 @@ version: 0.1
     - `:path:` (another norg file at a given path without specific target)
     - `/ path` (a non-norg file at a given path)
     - `https://github.com` (a URL)
-    - `file:///some/path` (any file, opened via `(xdg-)open`)
+    - `file:///some/path` (any file, opened via `(xdg-)open`). Note neorg also supports relative
+      paths (e.g. `file:./subdir/path`)
 
     Any of the paths used in `:path:` or `/ path` can be formatted in either of the following ways:
     - `:path/to/norg/file:` relative to the file which contains this link
