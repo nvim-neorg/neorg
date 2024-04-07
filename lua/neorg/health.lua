@@ -24,7 +24,8 @@ return {
                 elseif not modules[key] then
                     vim.health.warn(
                         string.format(
-                            "You are attempting to load a module `%s` which is not recognized by Neorg at this time. You may receive an error upon launching Neorg."
+                            "You are attempting to load a module `%s` which is not recognized by Neorg at this time. You may receive an error upon launching Neorg.",
+                            key
                         )
                     )
                 elseif type(value) ~= "table" then
