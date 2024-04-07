@@ -78,6 +78,10 @@ Neorg's setup process is slightly more complex than average, so we encourage you
 
 **After you're done with the installation process, run `:checkhealth neorg` to see if everything's correct!**
 
+> [!TIP]
+> If you're having severe difficulties with installing `8.0.0`, we encourage you to try the `7.0.0` version
+> instead. You will not have all of the latest features but Neorg will continue to function there.
+
 ### `rocks.nvim`
 
 The recommended installation method is via [rocks.nvim](https://github.com/nvim-neorocks/rocks.nvim).
@@ -105,6 +109,7 @@ See [this blog](https://vhyrro.github.io/posts/neorg-and-luarocks/) for more inf
 > - `nvim-nio`
 > - `nui.nvim`
 > - `plenary.nvim`
+> - `pathlib.nvim`
 
 <details>
 <summary>Click for installation snippet.</summary>
@@ -142,7 +147,7 @@ It is not recommended to use packer as it is now unmaintained.
 ```lua
 use {
   "nvim-neorg/neorg",
-  rocks = { "lua-utils.nvim", "nvim-nio", "nui.nvim", "plenary.nvim" },
+  rocks = { "lua-utils.nvim", "nvim-nio", "nui.nvim", "plenary.nvim", "pathlib.nvim" },
   tag = "*", -- Pin Neorg to the latest stable release
   config = function()
       require("neorg").setup()
