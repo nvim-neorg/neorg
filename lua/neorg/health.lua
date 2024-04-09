@@ -1,7 +1,7 @@
 return {
     check = function()
         local config = require("neorg.core").config.user_config
-        local modules = require("neorg.core").modules.loaded_modules
+        local modules = require("neorg.core").modules
 
         vim.health.start("neorg")
         vim.health.info("Checking configuration...")
@@ -21,7 +21,7 @@ return {
                             type(key)
                         )
                     )
-                elseif not modules[key] then
+                elseif not modules.load_module(key) then
                     vim.health.warn(
                         string.format(
                             "You are attempting to load a module `%s` which is not recognized by Neorg at this time. You may receive an error upon launching Neorg.",
