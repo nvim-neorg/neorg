@@ -315,7 +315,7 @@ docgen.generators = {
             "",
             "</div>",
             "",
-            "# Kickstart"
+            "# Kickstart",
             "",
             "If you would like a Neovim setup that has Neorg configured out of the box look no further than the [kickstart guide](https://github.com/nvim-neorg/neorg/wiki/Kickstart)!",
             "",
