@@ -97,6 +97,10 @@ The recommended installation method is via [rocks.nvim](https://github.com/nvim-
 In order to install Neorg via `lazy.nvim`, you must take a few extra steps - this is because `luarocks` is a critical component for Neorg to function.
 See [this blog](https://vhyrro.github.io/posts/neorg-and-luarocks/) for more information.
 
+If you're having installation problems consult the [kickstart config](https://github.com/nvim-neorg/neorg/wiki/Kickstart) and see if it works on your machine.
+The luarocks installation process is not error prone, thus installation failures usually have something to do
+with the user's configuration.
+
 > [!IMPORTANT]
 > Using luarocks Neorg will install itself and these dependencies with their respective versions:
 > - `lua-utils.nvim`
