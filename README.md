@@ -11,9 +11,9 @@
 
 Your New Life Organization Tool - All in Lua
 
-[Summary](#summary)
-•
 [Tutorial](#-tutorial)
+•
+[Roadmap](/ROADMAP.md)
 •
 [Installation](#-installation)
 •
@@ -22,8 +22,6 @@ Your New Life Organization Tool - All in Lua
 [Credits](#credits)
 •
 [Support](#support)
-•
-[Roadmap](/ROADMAP.md)
 
 </div>
 
