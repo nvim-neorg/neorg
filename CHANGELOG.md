@@ -1,5 +1,14 @@
 # Changelog
 
+## [8.4.1](https://github.com/nvim-neorg/neorg/compare/v8.4.0...v8.4.1) (2024-04-13)
+
+
+### Bug Fixes
+
+* **checkhealth:** add missing parameter to string.format ([#1386](https://github.com/nvim-neorg/neorg/issues/1386)) ([9656757](https://github.com/nvim-neorg/neorg/commit/9656757f7085e9e36d2469b8876f6b27f8e87c7b))
+* lack of comma ([65c7550](https://github.com/nvim-neorg/neorg/commit/65c75508626ad02a3cb40a84c4c3df0cde7b0e5a))
+* properly check for existence of a given module by trying to load it instead of passively scanning the loaded module list ([727ef2a](https://github.com/nvim-neorg/neorg/commit/727ef2ab4247b52733d1a84d87143257e783d4e9))
+
 ## [8.4.0](https://github.com/nvim-neorg/neorg/compare/v8.3.0...v8.4.0) (2024-04-04)
 
 
