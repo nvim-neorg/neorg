@@ -113,7 +113,7 @@ See [this blog](https://vhyrro.github.io/posts/neorg-and-luarocks/) for more inf
 <details>
 <summary>Click for installation snippet.</summary>
 
-- Ensure you have `vhyrro/luarocks.nvim` installed:
+- Ensure you have [`vhyrro/luarocks.nvim`](https://github.com/vhyrro/luarocks.nvim) installed (**NOTE**: there are additional install steps in that README):
   ```lua
   {
       "vhyrro/luarocks.nvim",
