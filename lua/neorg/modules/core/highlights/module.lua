@@ -367,6 +367,12 @@ module.config.public = {
             link = "+NonText",
             escape = "+@type",
         },
+
+        -- Rendered Latex, this will dictate the foreground color of latex images rendered via
+        -- core.latex.renderer
+        rendered = {
+            latex = "+Normal",
+        }
     },
 
     -- Handles the dimming of certain highlight groups.
@@ -593,22 +599,22 @@ module.public = {
         return "NONE"
     end,
 
+    hex_to_rgb = function(hex_colour)
+        return tonumber(hex_colour:sub(1, 2), 16),
+            tonumber(hex_colour:sub(3, 4), 16),
+            tonumber(hex_colour:sub(5), 16)
+    end,
+
     dim_color = function(colour, percent)
         if colour == "NONE" then
             return colour
-        end
-
-        local function hex_to_rgb(hex_colour)
-            return tonumber(hex_colour:sub(1, 2), 16),
-                tonumber(hex_colour:sub(3, 4), 16),
-                tonumber(hex_colour:sub(5), 16)
         end
 
         local function alter(attr)
             return math.floor(attr * (100 - percent) / 100)
         end
 
-        local r, g, b = hex_to_rgb(colour)
+        local r, g, b = module.public.hex_to_rgb(colour)
 
         if not r or not g or not b then
             return "NONE"

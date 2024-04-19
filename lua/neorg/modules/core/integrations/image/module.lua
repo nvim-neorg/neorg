@@ -26,40 +26,42 @@ module.private = {
 
 module.public = {
     new_image = function(buffernr, png_path, position, window, scale, virtual_padding)
-        local geometry = {
+        local image = require("image").from_file(png_path, {
+            window = window,
+            buffer = buffernr,
+            inline = true, -- let image.nvim track the position for us
+            with_virtual_padding = virtual_padding,
             x = position.column_start,
             y = position.row_start + (virtual_padding and 1 or 0),
             width = position.column_end - position.column_start,
             height = scale,
-        }
-        local image = require("image").from_file(png_path, {
-            window = window,
-            buffer = buffernr,
-            with_virtual_padding = virtual_padding,
         })
-        image:render(geometry)
+        -- image:render(geometry)
+        return image
     end,
-    get_images = function()
-        return (require("image").get_images())
-    end,
+    ---Render an image or list of images
+    ---@param images any[]
     render = function(images)
-        for _, image in pairs(images) do
-            image:clear()
-            image:render()
+        for _, limage in pairs(images) do
+            limage.image:clear()
+            limage.image:render()
         end
     end,
-    clear = function()
-        local images = module.public.get_images()
-        for _, image in pairs(images) do
-            image:clear()
+    clear = function(images)
+        for _, limage in pairs(images) do
+            limage.image:clear()
         end
     end,
     clear_at_cursor = function(images, row)
-        for _, image in pairs(images) do
+        local cleared = {}
+        for id, limage in pairs(images) do
+            local image = limage.image
             if image.geometry.y == row then
                 image:clear()
+                table.insert(cleared, id)
             end
         end
+        return cleared
     end,
 }
 
