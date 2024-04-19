@@ -418,6 +418,7 @@ end
 local function disable_rendering()
     module.private.do_render = false
     module.private.image_api.clear(module.private.latex_images)
+    module.private.extmark_ids = {}
     vim.api.nvim_buf_clear_namespace(0, module.private.extmark_ns, 0, -1)
 end
 
