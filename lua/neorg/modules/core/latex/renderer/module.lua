@@ -154,6 +154,7 @@ module.private.clear_extmark = function(key)
 end
 
 module.public = {
+    ---@async
     async_latex_renderer = function()
         ---node range to image handle
         -- module.private.ranges = {}
@@ -230,6 +231,7 @@ module.public = {
     end,
 
     ---Writes a latex snippet to a file and wraps it with latex headers to it will render nicely
+    ---@async
     ---@param snippet string latex snippet (if it's math it should include the surrounding $$)
     ---@return string temp file path
     async_create_latex_document = function(snippet)
@@ -253,6 +255,7 @@ module.public = {
     end,
 
     ---Returns a filepath where the rendered image sits
+    ---@async
     ---@param snippet string the full latex snippet to convert to an image
     ---@return string | nil
     async_generate_image = function(snippet)
@@ -361,7 +364,7 @@ local function render_latex()
     end
 
     if not render_timer then
-        render_timer = vim.loop.new_timer()
+        render_timer = vim.uv.new_timer()
     end
 
     render_timer:start(module.config.public.debounce_ms, 0, function()
