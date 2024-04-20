@@ -320,18 +320,16 @@ module.public = {
         local conceallevel = vim.api.nvim_get_option_value("conceallevel", { win = 0 })
         local cursor_row = vim.api.nvim_win_get_cursor(0)[1]
         local conceal_on = conceallevel >= 2 and module.config.public.conceal
-        for key, limage in pairs(images) do
-            local range = limage.range
-            local image = limage.image
-            if range[1] == cursor_row - 1 then
-                table.insert(module.private.cleared_at_cursor, key)
-                goto continue
-            end
-            if not image.is_rendered then
-                module.private.image_api.render({ limage })
-            end
-
-            if conceal_on then
+        if conceal_on then
+            -- Create all extmarks before rendering images b/c these extmarks will change the
+            -- position of th images
+            for key, limage in pairs(images) do
+                local range = limage.range
+                local image = limage.image
+                if range[1] == cursor_row - 1 then
+                    table.insert(module.private.cleared_at_cursor, key)
+                    goto continue
+                end
                 if not module.private.extmark_ids[key] then
                     module.private.clear_extmark(key)
                     local id = vim.api.nvim_buf_set_extmark(0, module.private.extmark_ns, range[1], range[2], {
@@ -345,6 +343,19 @@ module.public = {
                     })
                     module.private.extmark_ids[key] = id
                 end
+                ::continue::
+            end
+        end
+
+        for key, limage in pairs(images) do
+            local range = limage.range
+            local image = limage.image
+            if range[1] == cursor_row - 1 then
+                table.insert(module.private.cleared_at_cursor, key)
+                goto continue
+            end
+            if not image.is_rendered then
+                module.private.image_api.render({ limage })
             end
             ::continue::
         end
@@ -402,13 +413,14 @@ local function clear_at_cursor()
                 module.private.extmark_ids[id] = nil
             end
         end
+        local to_render = {}
         for _, key in ipairs(module.private.cleared_at_cursor) do
             if not vim.tbl_contains(cleared, key) then
-                -- this image was cleared b/c it was at our cursor, and now it should be rendered
-                -- again
-                module.public.render_inline_math({ [key] = module.private.latex_images[key] })
+                -- this image was cleared b/c it was at our cursor, and now it should be rendered again
+                to_render[key] = module.private.latex_images[key]
             end
         end
+        module.public.render_inline_math(to_render)
         module.private.cleared_at_cursor = cleared
     end
 end
