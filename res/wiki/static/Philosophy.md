@@ -12,3 +12,6 @@ why create yet another file format? Why go through all of the troubles?
 
 ## Design Decisions
 
+> [!NOTE]
+> This page is a work-in-progress.
+> There is a design decisions document present in the norg file format [here](https://github.com/nvim-neorg/norg-specs/blob/main/design-decisions.norg) in the meantime.
