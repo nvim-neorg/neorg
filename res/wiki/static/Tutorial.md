@@ -27,8 +27,7 @@ task management side) you can then extend your knowledge to other domains if you
 
 ## Our First Steps
 
-**The first thing you'll want to do is set up Neorg**. There's an entire guide present [here](#)! Feel free to check it out and - once you're done - hop back into this file
-and get going.
+**The first thing you'll want to do is set up Neorg**. There's an entire guide present [in the readme](https://github.com/nvim-neorg/neorg?tab=readme-ov-file#-installation)! Feel free to check it out and - once you're done - hop back into this file and get going.
 
 Neorg is generally always active whenever you start Neovim (unless you lazy load it) - this allows you to jump to convenient locations and files whenever you need.
 
