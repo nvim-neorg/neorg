@@ -8,7 +8,7 @@ A guide on configuring Neorg.
 
 > [!NOTE]
 > If you're just getting started and have no idea why and where to use Neorg,
-> feel free to check out the [Getting Started](#) page (link defunct, will be added soon).
+> feel free to check out the [Getting Started](https://github.com/nvim-neorg/neorg/wiki/Tutorial) page.
 
 ## Where do I begin?
 
@@ -118,3 +118,16 @@ require("neorg").setup({
 Notice that, to configure a module, we first provide a `config` table, and then all of our configuration inside!
 
 If you save, quit and re-enter Neovim, the concealer should now use a completely different set of icons than it did before!
+
+## Running `:checkhealth` to Find Mistakes
+
+If you find something that isn't behaving as intended feel free to run `:checkhealth neorg` - this will open up a window with a set of checkboxes (or crosses if there were errors).
+
+The builtin checkhealth ensures that your configuration is "clean" - that means that there are no errors or mistakes on your end. If something is wrong (e.g. you forgot to wrap your
+module configuration in a `config = {}` block) then the health check will issue a warning or error with detailed instructions on how to fix the issue :)
+
+<!-- TODO: dirman -->
+
+## That's it!
+
+These are the most critical things that you need to know to get started with configuring Neorg. If you would like to understand *how* to start using Neorg, check out the [tutorial](https://github.com/nvim-neorg/neorg/wiki/Tutorial)!
