@@ -38,7 +38,7 @@ any directory of your choice and open up a `note.norg` file. Ready?
 
 Terminology alert: **Neorg** is the name of the Neovim plugin. **Norg** is the name of the markup format that you save onto your disk. Keep this in mind as we progress!
 
-Norg has a lot of default syntax that should immediately feel familiar if you've use `org-mode` or some Markdown. First, let's type some text:
+Norg has a lot of default syntax that should immediately feel familiar if you've used `org-mode` or some Markdown. First, let's type some text:
 
 ```norg
 This is my note!
