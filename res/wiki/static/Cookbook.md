@@ -4,7 +4,7 @@ This document details a bunch of snippets and prebuilt configurations for indivi
 for a just works experience.
 
 > [!TIP]
-> If you're looking for a quickstart setup to get you started with Neorg, check out the [kickstart page](https://github.com/nvim-neorg/neorg/wiki/) instead.
+> If you're looking for a quickstart setup to get you started with Neorg, check out the [kickstart page](https://github.com/nvim-neorg/neorg/wiki/Kickstart) instead.
 
 ## Completion with `nvim-cmp`
 
