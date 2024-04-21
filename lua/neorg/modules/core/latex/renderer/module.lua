@@ -331,11 +331,12 @@ module.public = {
                     goto continue
                 end
                 if not module.private.extmark_ids[key] then
+                    local predicted_image_dimensions = module.private.image_api.image_size(image, { height = 1})
                     module.private.clear_extmark(key)
                     local id = vim.api.nvim_buf_set_extmark(0, module.private.extmark_ns, range[1], range[2], {
                         end_col = range[4],
                         conceal = "",
-                        virt_text = { { (" "):rep(image.rendered_geometry.width or image.geometry.width) } },
+                        virt_text = { { (" "):rep(predicted_image_dimensions.width) } },
                         virt_text_pos = "inline",
                         strict = false, -- this might be a problem... I'm not sure, it could also be fine.
                         invalidate = true,
