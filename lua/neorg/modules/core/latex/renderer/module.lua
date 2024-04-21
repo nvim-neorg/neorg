@@ -341,7 +341,8 @@ module.public = {
                     goto continue
                 end
                 if not module.private.extmark_ids[key] then
-                    local predicted_image_dimensions = module.private.image_api.image_size(image, { height = 1})
+                    local predicted_image_dimensions =
+                        module.private.image_api.image_size(image, { height = module.config.public.scale })
                     module.private.clear_extmark(key)
                     local id = vim.api.nvim_buf_set_extmark(0, module.private.extmark_ns, range[1], range[2], {
                         end_col = range[4],
