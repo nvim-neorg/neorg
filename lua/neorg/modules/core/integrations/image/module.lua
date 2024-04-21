@@ -34,10 +34,8 @@ module.public = {
             with_virtual_padding = virtual_padding,
             x = position.column_start,
             y = position.row_start + (virtual_padding and 1 or 0),
-            width = position.column_end - position.column_start,
             height = scale,
         })
-        -- image:render(geometry)
         return image
     end,
     ---Render an image or list of images
@@ -72,14 +70,15 @@ module.public = {
         limit = limit or {}
         local term_size = require("image.utils.term").get_size()
         local gopts = image.global_state.options
+
         local true_size = {
             width = math.min(
-                image.image_width / term_size.cell_width,
-                gopts.max_width or math.huge,
-                limit.width or math.huge
+                math.floor(image.image_width / term_size.cell_width), -- max image size (images don't scale up past their true size)
+                gopts.max_width or math.huge,                         -- image.nvim configured max size
+                limit.width or math.huge                              -- latex-renderer configured max size
             ),
             height = math.min(
-                image.image_height / term_size.cell_height,
+                math.floor(image.image_height / term_size.cell_height),
                 gopts.max_height or math.huge,
                 limit.height or math.huge
             ),
