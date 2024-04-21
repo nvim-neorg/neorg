@@ -18,6 +18,7 @@ module.load = function()
     assert(success, "Unable to load image.nvim plugin")
 
     module.private.image = image
+    module.private.image_utils = require("image.utils")
 end
 
 module.private = {
@@ -62,6 +63,35 @@ module.public = {
             end
         end
         return cleared
+    end,
+    ---Compute the image's rendered width/height without rendering
+    ---@param image any an image.nvim image
+    ---@param limit { width: number, height: number }
+    ---@return { width: number, height: number }
+    image_size = function(image, limit)
+        limit = limit or {}
+        local term_size = require("image.utils.term").get_size()
+        local gopts = image.global_state.options
+        local true_size = {
+            width = math.min(
+                image.image_width / term_size.cell_width,
+                gopts.max_width or math.huge,
+                limit.width or math.huge
+            ),
+            height = math.min(
+                image.image_height / term_size.cell_height,
+                gopts.max_height or math.huge,
+                limit.height or math.huge
+            ),
+        }
+        local width, height = module.private.image_utils.math.adjust_to_aspect_ratio(
+            term_size,
+            image.image_width,
+            image.image_height,
+            true_size.width,
+            true_size.height
+        )
+        return { width = math.ceil(width), height = math.ceil(height) }
     end,
 }
 
