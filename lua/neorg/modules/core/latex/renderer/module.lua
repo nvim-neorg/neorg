@@ -52,6 +52,10 @@ module.config.public = {
     -- Don't re-render anything until 200ms after the buffer has stopped changing
     debounce_ms = 200,
 
+    -- Only render latex snippets that are longer than this many chars. Escaped chars are removed
+    -- (ie. `$\\int$` counts as 4 chars) spaces are counted
+    min_length = 3,
+
     -- Make the images larger or smaller by adjusting the scale
     scale = 1,
 }
@@ -156,8 +160,6 @@ end
 module.public = {
     ---@async
     async_latex_renderer = function()
-        ---node range to image handle
-        -- module.private.ranges = {}
         ---@type table<string, MathRange>
         local next_images = {}
         module.required["core.integrations.treesitter"].execute_query(
@@ -172,17 +174,25 @@ module.public = {
                     return
                 end
 
-                local latex_snippet =
+                local original_snippet =
                     module.required["core.integrations.treesitter"].get_node_text(node, nio.api.nvim_get_current_buf())
-                latex_snippet = string.gsub(latex_snippet, "^%$|", "$")
-                latex_snippet = string.gsub(latex_snippet, "|%$$", "$")
+                local clean_snippet = string.gsub(original_snippet, "^%$|", "$")
+                clean_snippet = string.gsub(clean_snippet, "|%$$", "$")
+                if clean_snippet == original_snippet then
+                    -- this is a normal math block, we need to remove leading `\` chars
+                    clean_snippet = string.gsub(clean_snippet, "\\(.)", "%1")
+                end
+                -- `- 2` for the two `$`s
+                if string.len(clean_snippet) - 2 < module.config.public.min_length then
+                    return
+                end
 
-                local png_location = module.private.image_paths[latex_snippet]
-                    or module.public.async_generate_image(latex_snippet)
+                local png_location = module.private.image_paths[clean_snippet]
+                    or module.public.async_generate_image(clean_snippet)
                 if not png_location then
                     return
                 end
-                module.private.image_paths[latex_snippet] = png_location
+                module.private.image_paths[clean_snippet] = png_location
                 local range = { node:range() }
                 local key = module.private.get_key(range)
 
@@ -205,7 +215,7 @@ module.public = {
                     module.config.public.scale,
                     not module.config.public.conceal
                 )
-                next_images[key] = { image = img, range = range, snippet = latex_snippet }
+                next_images[key] = { image = img, range = range, snippet = clean_snippet }
             end
         )
 
