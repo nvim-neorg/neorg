@@ -42,7 +42,6 @@ module.public = {
     ---@param images any[]
     render = function(images)
         for _, limage in pairs(images) do
-            limage.image:clear()
             limage.image:render()
         end
     end,
