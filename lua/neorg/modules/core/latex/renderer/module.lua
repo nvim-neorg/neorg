@@ -71,7 +71,9 @@ module.config.public = {
 ---@class MathRange
 ---@field image Image our limited representation of an image
 ---@field range Range4 last range of the math block. Updated based on the extmark
----@field snippet string
+---@field snippet string cleaned latex snippet
+---@field extmark_id number? when rendered, the extmark_id that belongs to this image
+---@field real boolean tag ranges that are confirmed to still exist by TS
 
 ---Compute and set the foreground color string
 local function compute_foreground()
@@ -100,15 +102,12 @@ module.load = function()
     ---@type string[] ids
     module.private.cleared_at_cursor = {}
 
-    ---Image cache, latex_snippet to file path
+    ---Image cache. latex snippet to file path
     ---@type table<string, string>
     module.private.image_paths = {}
 
     ---@type table<string, MathRange>
     module.private.latex_images = {}
-
-    ---@type table<string, number>
-    module.private.extmark_ids = {}
 
     module.private.image_api = image
     module.private.extmark_ns = vim.api.nvim_create_namespace("neorg-latex-concealer")
@@ -148,20 +147,21 @@ module.private.get_key = function(range)
     return ("%d:%d"):format(range[1], range[2])
 end
 
----Clear an extmark for the given key if it exists
----@param key string
-module.private.clear_extmark = function(key)
-    if module.private.extmark_ids[key] then
-        nio.api.nvim_buf_del_extmark(0, module.private.extmark_ns, module.private.extmark_ids[key])
-        module.private.extmark_ids[key] = nil
-    end
-end
-
 module.public = {
     ---@async
     async_latex_renderer = function()
+        -- Update all the limage keys to their new extmark locations
         ---@type table<string, MathRange>
-        local next_images = {}
+        local new_limages = {}
+        for _, limage in pairs(module.private.latex_images) do
+            if limage.extmark_id then
+                local extmark =
+                    vim.api.nvim_buf_get_extmark_by_id(0, module.private.extmark_ns, limage.extmark_id, {})
+                local new_key = module.private.get_key({ extmark[1], extmark[2] })
+                limage.real = false
+                new_limages[new_key] = limage
+            end
+        end
         module.required["core.integrations.treesitter"].execute_query(
             [[
                 (
@@ -180,6 +180,7 @@ module.public = {
                 clean_snippet = string.gsub(clean_snippet, "|%$$", "$")
                 if clean_snippet == original_snippet then
                     -- this is a normal math block, we need to remove leading `\` chars
+                    -- TODO: test that this regex is actually correct
                     clean_snippet = string.gsub(clean_snippet, "\\(.)", "%1")
                 end
                 -- `- 2` for the two `$`s
@@ -196,13 +197,12 @@ module.public = {
                 local range = { node:range() }
                 local key = module.private.get_key(range)
 
-                if module.private.latex_images[key] then
-                    local img = module.private.latex_images[key].image
-                    if img.path == png_location and img.geometry.y == range[1] then
-                        -- This is the same image that's already there.
-                        next_images[key] = module.private.latex_images[key]
-                        -- The range might have changed though
-                        next_images[key].range = range
+                -- If there's already an image at this location and it's the same snippet, don't do
+                -- anything
+                if new_limages[key] then
+                    if new_limages[key].snippet == clean_snippet then
+                        new_limages[key].range = range
+                        new_limages[key].real = true
                         return
                     end
                 end
@@ -215,32 +215,23 @@ module.public = {
                     module.config.public.scale,
                     not module.config.public.conceal
                 )
-                next_images[key] = { image = img, range = range, snippet = clean_snippet }
+                new_limages[key] = { image = img, range = range, snippet = clean_snippet, real = true }
             end
         )
 
-        -- remove any 'orphaned' images. These are images attached to a range that isn't in this
-        -- list, or images that are going to be replaced.
-        for key, limage in pairs(module.private.latex_images) do
-            if not next_images[key] or next_images[key].image.id ~= limage.image.id then
-                -- This is an image that no longer exists...
+        for key, limage in pairs(new_limages) do
+            if not limage.real then
                 module.private.image_api.clear({ [key] = limage })
-                module.private.clear_extmark(key)
+                if limage.extmark_id then
+                    nio.api.nvim_buf_del_extmark(0, module.private.extmark_ns, limage.extmark_id)
+                end
+                new_limages[key] = nil
             end
         end
-        for key, limage in pairs(next_images) do
-            -- existing images in the same position, if it's a different snippet, clear it, b/c it's
-            -- no longer accurate
-            local existing_img = module.private.latex_images[key]
-            if existing_img and existing_img.snippet ~= limage.snippet then
-                module.private.image_api.clear({ [key] = existing_img })
-                module.private.clear_extmark(key)
-            end
-        end
-        module.private.latex_images = next_images
+        module.private.latex_images = new_limages
     end,
 
-    ---Writes a latex snippet to a file and wraps it with latex headers to it will render nicely
+    ---Writes a latex snippet to a file and wraps it with latex headers so it will render nicely
     ---@async
     ---@param snippet string latex snippet (if it's math it should include the surrounding $$)
     ---@return string temp file path
@@ -332,7 +323,7 @@ module.public = {
         local conceal_on = conceallevel >= 2 and module.config.public.conceal
         if conceal_on then
             -- Create all extmarks before rendering images b/c these extmarks will change the
-            -- position of th images
+            -- position of the images
             for key, limage in pairs(images) do
                 local range = limage.range
                 local image = limage.image
@@ -340,35 +331,38 @@ module.public = {
                     table.insert(module.private.cleared_at_cursor, key)
                     goto continue
                 end
-                if not module.private.extmark_ids[key] then
-                    local predicted_image_dimensions =
-                        module.private.image_api.image_size(image, { height = module.config.public.scale })
-                    module.private.clear_extmark(key)
-                    local id = vim.api.nvim_buf_set_extmark(0, module.private.extmark_ns, range[1], range[2], {
-                        end_col = range[4],
-                        conceal = "",
-                        virt_text = { { (" "):rep(predicted_image_dimensions.width) } },
-                        virt_text_pos = "inline",
-                        strict = false, -- this might be a problem... I'm not sure, it could also be fine.
-                        invalidate = true,
-                        undo_restore = false,
-                    })
-                    module.private.extmark_ids[key] = id
-                end
+
+                local predicted_image_dimensions =
+                    module.private.image_api.image_size(image, { height = module.config.public.scale })
+                local ext_opts = {
+                    end_col = range[4],
+                    conceal = "", -- ""
+                    virt_text = { { (" "):rep(predicted_image_dimensions.width) } },
+                    virt_text_pos = "inline",
+                    strict = false,
+                    invalidate = true,
+                    undo_restore = false,
+                    id = limage.extmark_id, -- if it exists, update it, else this is nil so it will create a new one
+                }
+                limage.extmark_id = vim.api.nvim_buf_set_extmark(
+                    0,
+                    module.private.extmark_ns,
+                    range[1],
+                    range[2],
+                    ext_opts
+                )
+
                 ::continue::
             end
         end
 
         for key, limage in pairs(images) do
             local range = limage.range
-            local image = limage.image
             if range[1] == cursor_row - 1 then
                 table.insert(module.private.cleared_at_cursor, key)
                 goto continue
             end
-            if not image.is_rendered then
-                module.private.image_api.render({ limage })
-            end
+            module.private.image_api.render({ limage })
             ::continue::
         end
     end,
@@ -416,13 +410,28 @@ local function clear_at_cursor()
         return
     end
 
+    -- NOTE: clearing the extmarks like this causes images that are cleared at the cursor to not be
+    -- updated when the move. This is potentially a cause of bugs. Extmarks should instead be given
+    -- conceal = "" and virt_text = { { "", "" } } so they can still track the image position, they
+    -- should only be removed if they go out of sync with the ranges found from TS.
     if module.config.public.conceal and module.private.latex_images ~= nil then
         local cleared =
             module.private.image_api.clear_at_cursor(module.private.latex_images, vim.api.nvim_win_get_cursor(0)[1] - 1)
         for _, id in ipairs(cleared) do
-            if module.private.extmark_ids[id] then
-                vim.api.nvim_buf_del_extmark(0, module.private.extmark_ns, module.private.extmark_ids[id])
-                module.private.extmark_ids[id] = nil
+            local limage = module.private.latex_images[id]
+            if limage.extmark_id then
+                -- this is what it used to be:
+                -- vim.api.nvim_buf_del_extmark(0, module.private.extmark_ns, limage.extmark_id)
+                -- limage.extmark_id = nil
+                -- this is what we're doing now
+                -- TODO: make sure that we update extmarks instead of assuming that they're all
+                -- concealing.
+                vim.api.nvim_buf_set_extmark(0, module.private.extmark_ns, limage.range[1], limage.range[2], {
+                    id = limage.extmark_id,
+                    conceal = "",
+                    virt_text = { { "", "" } },
+                    strict = false,
+                })
             end
         end
         local to_render = {}
@@ -444,9 +453,10 @@ end
 
 local function disable_rendering()
     module.private.do_render = false
-    module.private.image_api.clear(module.private.latex_images)
-    module.private.extmark_ids = {}
-    vim.api.nvim_buf_clear_namespace(0, module.private.extmark_ns, 0, -1)
+    -- TODO: uncomment, this is just to test our problems vs image.nvim problems
+    -- module.private.image_api.clear(module.private.latex_images)
+    -- module.private.extmark_ids = {}
+    -- vim.api.nvim_buf_clear_namespace(0, module.private.extmark_ns, 0, -1)
 end
 
 local function show_hidden()
