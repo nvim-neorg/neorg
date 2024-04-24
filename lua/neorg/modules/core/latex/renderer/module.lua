@@ -162,6 +162,7 @@ module.public = {
                 new_limages[new_key] = limage
             end
         end
+        module.private.cleared_at_cursor = {}
         module.required["core.integrations.treesitter"].execute_query(
             [[
                 (
@@ -336,7 +337,7 @@ module.public = {
                     module.private.image_api.image_size(image, { height = module.config.public.scale })
                 local ext_opts = {
                     end_col = range[4],
-                    conceal = "", -- ""
+                    conceal = "",
                     virt_text = { { (" "):rep(predicted_image_dimensions.width) } },
                     virt_text_pos = "inline",
                     strict = false,
@@ -356,10 +357,9 @@ module.public = {
             end
         end
 
-        for key, limage in pairs(images) do
+        for _, limage in pairs(images) do
             local range = limage.range
             if range[1] == cursor_row - 1 then
-                table.insert(module.private.cleared_at_cursor, key)
                 goto continue
             end
             module.private.image_api.render({ limage })
@@ -406,7 +406,7 @@ local function render_latex()
 end
 
 local function clear_at_cursor()
-    if not module.private.do_render then
+    if not module.private.do_render or render_timer then
         return
     end
 
@@ -420,14 +420,9 @@ local function clear_at_cursor()
         for _, id in ipairs(cleared) do
             local limage = module.private.latex_images[id]
             if limage.extmark_id then
-                -- this is what it used to be:
-                -- vim.api.nvim_buf_del_extmark(0, module.private.extmark_ns, limage.extmark_id)
-                -- limage.extmark_id = nil
-                -- this is what we're doing now
-                -- TODO: make sure that we update extmarks instead of assuming that they're all
-                -- concealing.
                 vim.api.nvim_buf_set_extmark(0, module.private.extmark_ns, limage.range[1], limage.range[2], {
                     id = limage.extmark_id,
+                    end_col = limage.range[4],
                     conceal = "",
                     virt_text = { { "", "" } },
                     strict = false,
@@ -441,7 +436,20 @@ local function clear_at_cursor()
                 to_render[key] = module.private.latex_images[key]
             end
         end
-        module.public.render_inline_math(to_render)
+
+        local updated_positions = {}
+        for _, limage in pairs(to_render) do
+            if limage.extmark_id then
+                local extmark =
+                    vim.api.nvim_buf_get_extmark_by_id(0, module.private.extmark_ns, limage.extmark_id,
+                        { details = true })
+                local range = { extmark[1], extmark[2], extmark[3].end_row, extmark[3].end_col }
+                local new_key = module.private.get_key(range)
+                updated_positions[new_key] = limage
+                updated_positions[new_key].range = range
+            end
+        end
+        module.public.render_inline_math(updated_positions)
         module.private.cleared_at_cursor = cleared
     end
 end
