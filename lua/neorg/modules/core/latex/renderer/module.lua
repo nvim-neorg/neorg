@@ -361,6 +361,7 @@ module.public = {
             local range = limage.range
             if range[1] == cursor_row - 1 then
                 table.insert(module.private.cleared_at_cursor, key)
+                module.private.image_api.clear({ limage })
                 goto continue
             end
             module.private.image_api.render({ limage })
