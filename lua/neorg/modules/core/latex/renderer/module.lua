@@ -1,12 +1,12 @@
 --[[
     file: Core-Latex-Renderer
     title: Rendering LaTeX with image.nvim
-    summary: An experimental module for inline rendering latex images.
+    summary: An experimental module for rendering latex images inline.
     ---
 
 This is an experimental module that requires nvim 0.10+. It renders LaTeX snippets as images
 making use of the image.nvim plugin. By default, images are only rendered after running the
-command: `:Neorg render-latex`.
+command: `:Neorg render-latex`. Rendering can be disabled with `:Neorg render-latex disable`
 
 Requires:
 - The [image.nvim](https://github.com/3rd/image.nvim) neovim plugin.
@@ -36,7 +36,8 @@ module.setup = function()
 end
 
 module.config.public = {
-    -- When true, images of rendered LaTeX will cover the source LaTeX they were produced from
+    -- When true, images of rendered LaTeX will cover the source LaTeX they were produced from.
+    -- Setting this value to false creates more lag, and can be buggy with large numbers of images.
     conceal = true,
 
     -- "Dots Per Inch" increasing this value will result in crisper images at the expense of
@@ -46,24 +47,26 @@ module.config.public = {
     -- When true, images will render when a `.norg` buffer is entered
     render_on_enter = false,
 
-    -- Module that renders the images. This is currently the only option
+    -- Module that renders the images. "core.integrations.image" makes use of image.nvim and is
+    -- currently the only option
     renderer = "core.integrations.image",
 
-    -- Don't re-render anything until 200ms after the buffer has stopped changing
+    -- Don't re-render anything until 200ms after the buffer has stopped changing. Lowering will
+    -- lead to a more seamless experience but will cause more temporary images to be created
     debounce_ms = 200,
 
     -- Only render latex snippets that are longer than this many chars. Escaped chars are removed
-    -- (ie. `$\\int$` counts as 4 chars) spaces are counted
+    -- spaces are counted, `$` and `$|`/`|$` are not (ie. `$\\int$` counts as 4 chars)
     min_length = 3,
 
-    -- Make the images larger or smaller by adjusting the scale
+    -- Make the images larger or smaller by adjusting the scale. Will not pad images with virtual
+    -- text when `conceal = true`, so they can overlap text. Images will not be blown up larger than
+    -- their true size, so images may still render one line tall.
     scale = 1,
 }
 
 ---@class Image
 ---@field path string
----@field is_rendered boolean
----@field id string
 -- and many other fields that I don't necessarily need
 
 ---@class MathRange
@@ -154,8 +157,7 @@ module.public = {
         local new_limages = {}
         for _, limage in pairs(module.private.latex_images[buf] or {}) do
             if limage.extmark_id then
-                local extmark =
-                    nio.api.nvim_buf_get_extmark_by_id(0, module.private.extmark_ns, limage.extmark_id, {})
+                local extmark = nio.api.nvim_buf_get_extmark_by_id(buf, module.private.extmark_ns, limage.extmark_id, {})
                 local new_key = module.private.get_key({ extmark[1], extmark[2] })
                 limage.real = false
                 new_limages[new_key] = limage
@@ -208,7 +210,7 @@ module.public = {
                 end
 
                 local img = module.private.image_api.new_image(
-                    nio.api.nvim_get_current_buf(),
+                    buf,
                     png_location,
                     module.required["core.integrations.treesitter"].get_node_range(node),
                     nio.api.nvim_get_current_win(),
@@ -321,38 +323,30 @@ module.public = {
         local conceallevel = vim.api.nvim_get_option_value("conceallevel", { win = 0 })
         local cursor_row = vim.api.nvim_win_get_cursor(0)[1]
         local conceal_on = conceallevel >= 2 and module.config.public.conceal
-        if conceal_on then
-            -- Create all extmarks before rendering images b/c these extmarks will change the
-            -- position of the images
-            for _, limage in pairs(images) do
-                local range = limage.range
+        -- Create all extmarks before rendering images b/c these extmarks will change the
+        -- position of the images
+        for _, limage in pairs(images) do
+            local range = limage.range
 
-                local ext_opts = {
-                    end_col = range[4],
-                    conceal = "",
-                    virt_text_pos = "inline",
-                    strict = false,
-                    invalidate = true,
-                    undo_restore = false,
-                    id = limage.extmark_id, -- if it exists, update it, else this is nil so it will create a new one
-                }
+            local ext_opts = {
+                end_col = range[4],
+                strict = false,
+                invalidate = true,
+                undo_restore = false,
+                id = limage.extmark_id, -- if it exists, update it, else this is nil so it will create a new one
+            }
 
-                if range[1] ~= cursor_row - 1 then
-                    local image = limage.image
-                    local predicted_image_dimensions =
-                        module.private.image_api.image_size(image, { height = module.config.public.scale })
-                    ext_opts.virt_text = { { (" "):rep(predicted_image_dimensions.width) } }
-                    ext_opts.virt_text_pos = "inline"
-                end
-
-                limage.extmark_id = vim.api.nvim_buf_set_extmark(
-                    buffer,
-                    module.private.extmark_ns,
-                    range[1],
-                    range[2],
-                    ext_opts
-                )
+            if conceal_on and range[1] ~= cursor_row - 1 then
+                local image = limage.image
+                local predicted_image_dimensions =
+                    module.private.image_api.image_size(image, { height = module.config.public.scale })
+                ext_opts.virt_text = { { (" "):rep(predicted_image_dimensions.width) } }
+                ext_opts.conceal = ""
+                ext_opts.virt_text_pos = "inline"
             end
+
+            limage.extmark_id =
+                vim.api.nvim_buf_set_extmark(buffer, module.private.extmark_ns, range[1], range[2], ext_opts)
         end
 
         for key, limage in pairs(images) do
@@ -413,9 +407,10 @@ local function clear_at_cursor()
     end
 
     if module.config.public.conceal and module.private.latex_images[buf] ~= nil then
-        local cleared =
-            module.private.image_api.clear_at_cursor(module.private.latex_images[buf],
-                vim.api.nvim_win_get_cursor(0)[1] - 1)
+        local cleared = module.private.image_api.clear_at_cursor(
+            module.private.latex_images[buf],
+            vim.api.nvim_win_get_cursor(0)[1] - 1
+        )
         for _, id in ipairs(cleared) do
             local limage = module.private.latex_images[buf][id]
             if limage.extmark_id then
@@ -439,9 +434,12 @@ local function clear_at_cursor()
         local updated_positions = {}
         for _, limage in pairs(to_render) do
             if limage.extmark_id then
-                local extmark =
-                    vim.api.nvim_buf_get_extmark_by_id(0, module.private.extmark_ns, limage.extmark_id,
-                        { details = true })
+                local extmark = vim.api.nvim_buf_get_extmark_by_id(
+                    buf,
+                    module.private.extmark_ns,
+                    limage.extmark_id,
+                    { details = true }
+                )
                 local range = { extmark[1], extmark[2], extmark[3].end_row, extmark[3].end_col }
                 local new_key = module.private.get_key(range)
                 updated_positions[new_key] = limage
