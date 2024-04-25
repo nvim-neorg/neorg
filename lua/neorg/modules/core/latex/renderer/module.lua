@@ -106,7 +106,7 @@ module.load = function()
     ---@type table<string, string>
     module.private.image_paths = {}
 
-    ---@type table<string, MathRange>
+    ---@type table<number, table<string, MathRange>>
     module.private.latex_images = {}
 
     module.private.image_api = image
@@ -150,13 +150,14 @@ end
 module.public = {
     ---@async
     async_latex_renderer = function()
+        local buf = nio.api.nvim_get_current_buf()
         -- Update all the limage keys to their new extmark locations
         ---@type table<string, MathRange>
         local new_limages = {}
-        for _, limage in pairs(module.private.latex_images) do
+        for _, limage in pairs(module.private.latex_images[buf] or {}) do
             if limage.extmark_id then
                 local extmark =
-                    vim.api.nvim_buf_get_extmark_by_id(0, module.private.extmark_ns, limage.extmark_id, {})
+                    nio.api.nvim_buf_get_extmark_by_id(0, module.private.extmark_ns, limage.extmark_id, {})
                 local new_key = module.private.get_key({ extmark[1], extmark[2] })
                 limage.real = false
                 new_limages[new_key] = limage
@@ -229,7 +230,7 @@ module.public = {
                 new_limages[key] = nil
             end
         end
-        module.private.latex_images = new_limages
+        module.private.latex_images[buf] = new_limages
     end,
 
     ---Writes a latex snippet to a file and wraps it with latex headers so it will render nicely
@@ -325,26 +326,27 @@ module.public = {
         if conceal_on then
             -- Create all extmarks before rendering images b/c these extmarks will change the
             -- position of the images
-            for key, limage in pairs(images) do
+            for _, limage in pairs(images) do
                 local range = limage.range
-                local image = limage.image
-                if range[1] == cursor_row - 1 then
-                    table.insert(module.private.cleared_at_cursor, key)
-                    goto continue
-                end
 
-                local predicted_image_dimensions =
-                    module.private.image_api.image_size(image, { height = module.config.public.scale })
                 local ext_opts = {
                     end_col = range[4],
                     conceal = "",
-                    virt_text = { { (" "):rep(predicted_image_dimensions.width) } },
                     virt_text_pos = "inline",
                     strict = false,
                     invalidate = true,
                     undo_restore = false,
                     id = limage.extmark_id, -- if it exists, update it, else this is nil so it will create a new one
                 }
+
+                if range[1] ~= cursor_row - 1 then
+                    local image = limage.image
+                    local predicted_image_dimensions =
+                        module.private.image_api.image_size(image, { height = module.config.public.scale })
+                    ext_opts.virt_text = { { (" "):rep(predicted_image_dimensions.width) } }
+                    ext_opts.virt_text_pos = "inline"
+                end
+
                 limage.extmark_id = vim.api.nvim_buf_set_extmark(
                     0,
                     module.private.extmark_ns,
@@ -352,14 +354,13 @@ module.public = {
                     range[2],
                     ext_opts
                 )
-
-                ::continue::
             end
         end
 
-        for _, limage in pairs(images) do
+        for key, limage in pairs(images) do
             local range = limage.range
             if range[1] == cursor_row - 1 then
+                table.insert(module.private.cleared_at_cursor, key)
                 goto continue
             end
             module.private.image_api.render({ limage })
@@ -371,6 +372,7 @@ module.public = {
 local running_proc = nil
 local render_timer = nil
 local function render_latex()
+    local buf = vim.api.nvim_get_current_buf()
     if not module.private.do_render then
         if render_timer then
             render_timer:stop()
@@ -396,7 +398,7 @@ local function render_latex()
                         module.public.async_latex_renderer()
                     end,
                     vim.schedule_wrap(function()
-                        module.public.render_inline_math(module.private.latex_images)
+                        module.public.render_inline_math(module.private.latex_images[buf] or {})
                         running_proc = nil
                     end)
                 )
@@ -406,19 +408,17 @@ local function render_latex()
 end
 
 local function clear_at_cursor()
+    local buf = vim.api.nvim_get_current_buf()
     if not module.private.do_render or render_timer then
         return
     end
 
-    -- NOTE: clearing the extmarks like this causes images that are cleared at the cursor to not be
-    -- updated when the move. This is potentially a cause of bugs. Extmarks should instead be given
-    -- conceal = "" and virt_text = { { "", "" } } so they can still track the image position, they
-    -- should only be removed if they go out of sync with the ranges found from TS.
-    if module.config.public.conceal and module.private.latex_images ~= nil then
+    if module.config.public.conceal and module.private.latex_images[buf] ~= nil then
         local cleared =
-            module.private.image_api.clear_at_cursor(module.private.latex_images, vim.api.nvim_win_get_cursor(0)[1] - 1)
+            module.private.image_api.clear_at_cursor(module.private.latex_images[buf],
+                vim.api.nvim_win_get_cursor(0)[1] - 1)
         for _, id in ipairs(cleared) do
-            local limage = module.private.latex_images[id]
+            local limage = module.private.latex_images[buf][id]
             if limage.extmark_id then
                 vim.api.nvim_buf_set_extmark(0, module.private.extmark_ns, limage.range[1], limage.range[2], {
                     id = limage.extmark_id,
@@ -433,7 +433,7 @@ local function clear_at_cursor()
         for _, key in ipairs(module.private.cleared_at_cursor) do
             if not vim.tbl_contains(cleared, key) then
                 -- this image was cleared b/c it was at our cursor, and now it should be rendered again
-                to_render[key] = module.private.latex_images[key]
+                to_render[key] = module.private.latex_images[buf][key]
             end
         end
 
@@ -460,19 +460,20 @@ local function enable_rendering()
 end
 
 local function disable_rendering()
+    local buf = vim.api.nvim_get_current_buf()
     module.private.do_render = false
-    -- TODO: uncomment, this is just to test our problems vs image.nvim problems
-    -- module.private.image_api.clear(module.private.latex_images)
-    -- module.private.extmark_ids = {}
-    -- vim.api.nvim_buf_clear_namespace(0, module.private.extmark_ns, 0, -1)
+    module.private.image_api.clear(module.private.latex_images[buf])
+    module.private.extmark_ids = {}
+    vim.api.nvim_buf_clear_namespace(0, module.private.extmark_ns, 0, -1)
 end
 
 local function show_hidden()
+    local buf = vim.api.nvim_get_current_buf()
     if not module.private.do_render then
         return
     end
 
-    module.private.image_api.render(module.private.latex_images)
+    module.private.image_api.render(module.private.latex_images[buf])
 end
 
 local function colorscheme_change()
