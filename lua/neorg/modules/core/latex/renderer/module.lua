@@ -61,8 +61,6 @@ module.config.public = {
 }
 
 ---@class Image
----@field geometry table
----@field rendered_geometry table
 ---@field path string
 ---@field is_rendered boolean
 ---@field id string
@@ -149,8 +147,8 @@ end
 
 module.public = {
     ---@async
-    async_latex_renderer = function()
-        local buf = nio.api.nvim_get_current_buf()
+    ---@param buf number
+    async_latex_renderer = function(buf)
         -- Update all the limage keys to their new extmark locations
         ---@type table<string, MathRange>
         local new_limages = {}
@@ -319,7 +317,7 @@ module.public = {
 
     ---Actually renders the images (along with any extmarks it needs)
     ---@param images table<string, MathRange>
-    render_inline_math = function(images)
+    render_inline_math = function(images, buffer)
         local conceallevel = vim.api.nvim_get_option_value("conceallevel", { win = 0 })
         local cursor_row = vim.api.nvim_win_get_cursor(0)[1]
         local conceal_on = conceallevel >= 2 and module.config.public.conceal
@@ -348,7 +346,7 @@ module.public = {
                 end
 
                 limage.extmark_id = vim.api.nvim_buf_set_extmark(
-                    0,
+                    buffer,
                     module.private.extmark_ns,
                     range[1],
                     range[2],
@@ -359,7 +357,7 @@ module.public = {
 
         for key, limage in pairs(images) do
             local range = limage.range
-            if range[1] == cursor_row - 1 then
+            if conceal_on and range[1] == cursor_row - 1 then
                 table.insert(module.private.cleared_at_cursor, key)
                 module.private.image_api.clear({ limage })
                 goto continue
@@ -396,10 +394,10 @@ local function render_latex()
             vim.schedule(function()
                 running_proc = nio.run(
                     function()
-                        module.public.async_latex_renderer()
+                        module.public.async_latex_renderer(buf)
                     end,
                     vim.schedule_wrap(function()
-                        module.public.render_inline_math(module.private.latex_images[buf] or {})
+                        module.public.render_inline_math(module.private.latex_images[buf] or {}, buf)
                         running_proc = nil
                     end)
                 )
@@ -450,7 +448,7 @@ local function clear_at_cursor()
                 updated_positions[new_key].range = range
             end
         end
-        module.public.render_inline_math(updated_positions)
+        module.public.render_inline_math(updated_positions, buf)
         module.private.cleared_at_cursor = cleared
     end
 end
@@ -461,11 +459,12 @@ local function enable_rendering()
 end
 
 local function disable_rendering()
-    local buf = vim.api.nvim_get_current_buf()
     module.private.do_render = false
-    module.private.image_api.clear(module.private.latex_images[buf])
-    module.private.extmark_ids = {}
-    vim.api.nvim_buf_clear_namespace(0, module.private.extmark_ns, 0, -1)
+    for buf, images in pairs(module.private.latex_images) do
+        module.private.image_api.clear(images)
+        vim.api.nvim_buf_clear_namespace(buf, module.private.extmark_ns, 0, -1)
+    end
+    module.private.latex_images = {}
 end
 
 local function show_hidden()
@@ -481,6 +480,7 @@ local function colorscheme_change()
     module.private.image_paths = {}
     if module.private.do_render then
         disable_rendering()
+        module.private.latex_images = {}
         vim.schedule(function()
             compute_foreground()
             enable_rendering()
