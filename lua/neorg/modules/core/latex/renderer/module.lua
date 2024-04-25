@@ -473,7 +473,7 @@ local function show_hidden()
         return
     end
 
-    module.private.image_api.render(module.private.latex_images[buf])
+    module.private.image_api.render(module.private.latex_images[buf] or {})
 end
 
 local function colorscheme_change()
