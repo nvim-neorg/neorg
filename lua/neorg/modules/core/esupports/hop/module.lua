@@ -579,72 +579,7 @@ module.public = {
             end,
 
             _ = function()
-                local query_str = lib.match(parsed_link_information.link_type)({
-                    generic = [[
-                        [(_
-                          [(strong_carryover_set
-                             (strong_carryover
-                               name: (tag_name) @tag_name
-                               (tag_parameters) @title
-                               (#eq? @tag_name "name")))
-                           (weak_carryover_set
-                             (weak_carryover
-                               name: (tag_name) @tag_name
-                               (tag_parameters) @title
-                               (#eq? @tag_name "name")))]?
-                          title: (paragraph_segment) @title)
-                         (inline_link_target
-                           (paragraph) @title)]
-                    ]],
-
-                    [{ "definition", "footnote" }] = string.format(
-                        [[
-                        (%s_list
-                            (strong_carryover_set
-                                  (strong_carryover
-                                    name: (tag_name) @tag_name
-                                    (tag_parameters) @title
-                                    (#eq? @tag_name "name")))?
-                            .
-                            [(single_%s
-                               (weak_carryover_set
-                                  (weak_carryover
-                                    name: (tag_name) @tag_name
-                                    (tag_parameters) @title
-                                    (#eq? @tag_name "name")))?
-                               (single_%s_prefix)
-                               title: (paragraph_segment) @title)
-                             (multi_%s
-                               (weak_carryover_set
-                                  (weak_carryover
-                                    name: (tag_name) @tag_name
-                                    (tag_parameters) @title
-                                    (#eq? @tag_name "name")))?
-                                (multi_%s_prefix)
-                                  title: (paragraph_segment) @title)])
-                        ]],
-                        lib.reparg(parsed_link_information.link_type, 5)
-                    ),
-                    _ = string.format(
-                        [[
-                            (%s
-                              [(strong_carryover_set
-                                 (strong_carryover
-                                   name: (tag_name) @tag_name
-                                   (tag_parameters) @title
-                                   (#eq? @tag_name "name")))
-                               (weak_carryover_set
-                                 (weak_carryover
-                                   name: (tag_name) @tag_name
-                                   (tag_parameters) @title
-                                   (#eq? @tag_name "name")))]?
-                              (%s_prefix)
-                              title: (paragraph_segment) @title)
-                        ]],
-                        lib.reparg(parsed_link_information.link_type, 2)
-                    ),
-                })
-
+                local query_str = module.public.get_link_target_query_string(parsed_link_information.link_type)
                 local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
 
                 if not document_root then
@@ -676,6 +611,76 @@ module.public = {
                     end
                 end
             end,
+        })
+    end,
+
+    -- TS query strings for different link targets
+    ---@param link_type "generic" | "definition" | "footnote" | string
+    get_link_target_query_string = function(link_type)
+        return lib.match(link_type)({
+            generic = [[
+                [(_
+                  [(strong_carryover_set
+                     (strong_carryover
+                       name: (tag_name) @tag_name
+                       (tag_parameters) @title
+                       (#eq? @tag_name "name")))
+                   (weak_carryover_set
+                     (weak_carryover
+                       name: (tag_name) @tag_name
+                       (tag_parameters) @title
+                       (#eq? @tag_name "name")))]?
+                  title: (paragraph_segment) @title)
+                 (inline_link_target
+                   (paragraph) @title)]
+            ]],
+
+            [{ "definition", "footnote" }] = string.format(
+                [[
+                (%s_list
+                    (strong_carryover_set
+                          (strong_carryover
+                            name: (tag_name) @tag_name
+                            (tag_parameters) @title
+                            (#eq? @tag_name "name")))?
+                    .
+                    [(single_%s
+                       (weak_carryover_set
+                          (weak_carryover
+                            name: (tag_name) @tag_name
+                            (tag_parameters) @title
+                            (#eq? @tag_name "name")))?
+                       (single_%s_prefix)
+                       title: (paragraph_segment) @title)
+                     (multi_%s
+                       (weak_carryover_set
+                          (weak_carryover
+                            name: (tag_name) @tag_name
+                            (tag_parameters) @title
+                            (#eq? @tag_name "name")))?
+                        (multi_%s_prefix)
+                          title: (paragraph_segment) @title)])
+                ]],
+                lib.reparg(link_type, 5)
+            ),
+            _ = string.format(
+                [[
+                    (%s
+                      [(strong_carryover_set
+                         (strong_carryover
+                           name: (tag_name) @tag_name
+                           (tag_parameters) @title
+                           (#eq? @tag_name "name")))
+                       (weak_carryover_set
+                         (weak_carryover
+                           name: (tag_name) @tag_name
+                           (tag_parameters) @title
+                           (#eq? @tag_name "name")))]?
+                      (%s_prefix)
+                      title: (paragraph_segment) @title)
+                ]],
+                lib.reparg(link_type, 2)
+            ),
         })
     end,
 }
