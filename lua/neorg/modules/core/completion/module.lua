@@ -26,6 +26,7 @@ link completions are smart about closing `:` and `}`.
 --]]
 
 local neorg = require("neorg.core")
+local Path = require("pathlib")
 local log, modules, utils = neorg.log, neorg.modules, neorg.utils
 local dirutils, dirman, hop, treesitter
 
@@ -96,8 +97,7 @@ module.private = {
         end
         if type(source) == "string" then
             -- check if the file is open; use the buffer contents if it is
-            ---@diagnostic disable-next-line: param-type-mismatch
-            if vim.fn.bufexists(source) then
+            if vim.fn.bufnr(source) ~= -1 then
                 source = vim.uri_to_bufnr(vim.uri_from_fname(source))
             else
                 iter_src = io.open(source, "r"):read("*a")
@@ -142,12 +142,9 @@ module.private = {
         end
 
         local closing_chars = module.private.get_closing_chars(context, true)
-        for _, filepath in pairs(files[2]) do
-            local file = tostring(filepath)
-            local bufnr = dirman.get_file_bufnr(file)
-
-            if vim.api.nvim_get_current_buf() ~= bufnr then
-                local rel = filepath:relative_to(files[1], false)
+        for _, file in pairs(files[2]) do
+            if not file:samefile(Path.new(vim.api.nvim_buf_get_name(0))) then
+                local rel = file:relative_to(files[1], false)
                 if rel and rel:len() > 0 then
                     local link = "{:$/" .. rel:with_suffix(""):tostring() .. closing_chars
                     table.insert(res, link)
@@ -170,11 +167,14 @@ module.private = {
         end
         local links = module.private.get_linkables(source, node_type)
         local closing_chars = module.private.get_closing_chars(context, false)
-        return vim.iter(links)
-            :map(function(x)
-                return leading_whitespace .. x.title .. closing_chars
-            end)
-            :totable()
+        return vim.tbl_map(function(x)
+            return leading_whitespace .. x.title .. closing_chars
+        end, links)
+        -- return vim.iter(links)
+        --     :map(function(x)
+        --         return leading_whitespace .. x.title .. closing_chars
+        --     end)
+        --     :totable()
     end,
 
     --- All the things that you can link to (`{#|}` completions)
@@ -191,7 +191,7 @@ module.private = {
         local file = match[1]
         local heading_level = match[2] and #match[2]
         if file then
-            file = dirutils.expand_path(file)
+            file = dirutils.expand_pathlib(file)
             return module.private.suggestions(context, file, ("heading%d"):format(heading_level))
         end
         return {}
@@ -200,7 +200,7 @@ module.private = {
     foreign_generic_links = function(context, _prev, _saved, match)
         local file = match[1]
         if file then
-            file = dirutils.expand_path(file)
+            file = dirutils.expand_pathlib(file)
             return module.private.suggestions(context, file, "generic")
         end
         return {}
@@ -213,7 +213,7 @@ module.private = {
     foreign_footnote_links = function(context, _prev, _saved, match)
         local file = match[2]
         if match[2] then
-            file = dirutils.expand_path(file)
+            file = dirutils.expand_pathlib(file)
             return module.private.suggestions(context, file, "footnote")
         end
         return {}
