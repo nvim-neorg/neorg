@@ -519,8 +519,9 @@ module.public = {
         return result
     end,
     --- Given a node this function will break down the AST elements and return the corresponding text for certain nodes
-    -- @Param  tag_node (userdata/treesitter node) - a node of type tag/carryover_tag
-    get_tag_info = function(tag_node)
+    --- @param tag_node TSNode - a node of type tag/carryover_tag
+    --- @param throw boolean - when true, throw an error instead of logging and returning on failure
+    get_tag_info = function(tag_node, throw)
         if
             not tag_node
             or not vim.tbl_contains(
@@ -543,7 +544,7 @@ module.public = {
             if vim.endswith(child:type(), "_carryover_set") then
                 for subchild in child:iter_children() do
                     if vim.endswith(subchild:type(), "_carryover") then
-                        local meta = module.public.get_tag_info(subchild)
+                        local meta = module.public.get_tag_info(subchild, throw)
 
                         table.insert(attributes, meta)
                     end
@@ -563,13 +564,17 @@ module.public = {
         for i, line in ipairs(content) do
             if i == 1 then
                 if content_start_column < start_column then
-                    log.error(
-                        string.format(
-                            "Unable to query information about tag on line %d: content is indented less than tag start!",
-                            start_row + 1
-                        )
+                    local error_msg = string.format(
+                        "Unable to query information about tag on line %d: content is indented less than tag start!",
+                        start_row + 1
                     )
-                    return nil
+
+                    if throw then
+                        error(error_msg)
+                    else
+                        log.error(error_msg)
+                        return nil
+                    end
                 end
                 content[i] = string.rep(" ", content_start_column - start_column) .. line
             else
@@ -703,7 +708,7 @@ module.public = {
 
     ---get document's metadata
     ---@param source number | string | PathlibPath
-    ---@param no_trim boolean
+    ---@param no_trim boolean?
     ---@return table?
     get_document_metadata = function(source, no_trim)
         source = source or 0

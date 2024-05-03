@@ -160,7 +160,7 @@ The first code block will be tangled to `./output.lua`, the second code block wi
 --]]
 
 local neorg = require("neorg.core")
-local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
+local lib, modules, utils, log = neorg.lib, neorg.modules, neorg.utils, neorg.log
 
 local module = modules.create("core.tangle")
 
@@ -218,6 +218,7 @@ end
 
 module.public = {
     tangle = function(buffer)
+        ---@type core.integrations.treesitter
         local treesitter = module.required["core.integrations.treesitter"]
         local parsed_document_metadata = treesitter.get_document_metadata(buffer) or {}
         local tangle_settings = parsed_document_metadata.tangle or {}
@@ -277,7 +278,15 @@ module.public = {
             local capture = query.captures[id]
 
             if capture == "tag" then
-                local parsed_tag = treesitter.get_tag_info(node)
+                local ok, parsed_tag = pcall(treesitter.get_tag_info, node, true)
+                if not ok then
+                    if module.config.public.indent_errors == "print" then
+                        print(parsed_tag)
+                    else
+                        log.error(parsed_tag)
+                    end
+                    goto skip_tag
+                end
 
                 if parsed_tag then
                     local declared_filetype = parsed_tag.parameters[1]
@@ -405,10 +414,9 @@ module.public = {
                         vim.list_extend(tangles[file_to_tangle_to], delimiter_content)
                     end
                     vim.list_extend(tangles[file_to_tangle_to], block_content)
-
-                    ::skip_tag::
                 end
             end
+            ::skip_tag::
         end
 
         if options.delimiter == "file-content" then
@@ -434,6 +442,13 @@ module.config.public = {
 
     -- Tangle all code blocks in the current norg file on file write.
     tangle_on_write = false,
+
+    -- When text in a code block is less indented than the block itself, Neorg will not tangle that
+    -- block to a file. Instead it can either print or vim.notify error. By default, vim.notify is
+    -- loud and is more likely to create a press enter message.
+    -- - "notify" - Throw a normal looking error
+    -- - "print" - print the error
+    indent_errors = "notify",
 }
 
 module.on_event = function(event)
