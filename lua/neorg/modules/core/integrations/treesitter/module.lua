@@ -385,8 +385,12 @@ module.public = {
         return result
     end,
     --- Given a node this function will break down the AST elements and return the corresponding text for certain nodes
-    -- @Param  tag_node (userdata/treesitter node) - a node of type tag/carryover_tag
-    get_tag_info = function(tag_node)
+    --- @param tag_node TSNode - a node of type tag/carryover_tag
+    --- @param strict boolean? default true, true false, don't error when indentation isn't correct
+    get_tag_info = function(tag_node, strict)
+        if strict == nil then
+            strict = true
+        end
         if
             not tag_node
             or not vim.tbl_contains(
@@ -429,13 +433,17 @@ module.public = {
         for i, line in ipairs(content) do
             if i == 1 then
                 if content_start_column < start_column then
-                    log.error(
-                        string.format(
-                            "Unable to query information about tag on line %d: content is indented less than tag start!",
-                            start_row + 1
+                    if strict then
+                        log.error(
+                            string.format(
+                                "Unable to query information about tag on line %d: content is indented less than tag start!",
+                                start_row + 1
+                            )
                         )
-                    )
-                    return nil
+                        return nil
+                    else
+                        start_column = content_start_column
+                    end
                 end
                 content[i] = string.rep(" ", content_start_column - start_column) .. line
             else

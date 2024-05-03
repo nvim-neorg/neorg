@@ -275,7 +275,7 @@ module.public = {
             local capture = query.captures[id]
 
             if capture == "tag" then
-                local parsed_tag = treesitter.get_tag_info(node)
+                local parsed_tag = treesitter.get_tag_info(node, false)
 
                 if parsed_tag then
                     local declared_filetype = parsed_tag.parameters[1]
