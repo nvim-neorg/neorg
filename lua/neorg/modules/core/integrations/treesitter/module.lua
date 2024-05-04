@@ -215,9 +215,9 @@ module.public = {
         end
     end,
     ---  Gets all nodes of a given type from the AST
-    ---@param  type string #The type of node to filter out
+    ---@param node_type string #The type of node to filter out
     ---@param opts? table #A table of two options: `buf` and `ft`, for the buffer and format to use respectively.
-    get_all_nodes = function(type, opts)
+    get_all_nodes = function(node_type, opts)
         local result = {}
         opts = opts or {}
 
@@ -231,38 +231,17 @@ module.public = {
 
         -- Do we need to go through each tree? lol
         vim.treesitter.get_parser(opts.buf, opts.ft):for_each_tree(function(tree)
-            -- Get the root for that tree
-            ---@type TSNode
-            local root = tree:root()
-
-            --- Recursively searches for a node of a given type
-            ---@param node userdata #The starting point for the search
-            local function descend(node)
-                -- Iterate over all children of the node and try to match their type
-                for child, _ in node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                    if child:type() == type then
-                        table.insert(result, child)
-                    else
-                        -- If no match is found try descending further down the syntax tree
-                        for _, child_node in ipairs(descend(child) or {}) do
-                            table.insert(result, child_node)
-                        end
-                    end
-                end
-            end
-
-            descend(root)
+            table.insert(result, module.public.search_tree(tree, node_type))
         end)
 
-        return result
+        return vim.tbl_flatten(result)
     end,
-    ---  Gets all nodes of a given type from the AST
-    ---@param type string #The type of node to filter out
+
+    --- Gets all nodes of a given type from the AST
+    ---@param node_type string #The type of node to filter out
     ---@param path string path to the file to parse
     ---@param filetype string? file type of the file or `norg` if omitted
-    get_all_nodes_in_file = function(type, path, filetype)
-        -- TODO: refactor this function and the one above, abstract out the tree search code.
-        local result = {}
+    get_all_nodes_in_file = function(node_type, path, filetype)
         path = vim.fs.normalize(path)
         if not filetype then filetype = "norg" end
 
@@ -270,6 +249,11 @@ module.public = {
         local tree = vim.treesitter.get_string_parser(contents, filetype):parse()[1]
         if not (tree or tree.root) then return {} end
 
+        return module.public.search_tree(tree, node_type)
+    end,
+
+    search_tree = function(tree, node_type)
+        local result = {}
         local root = tree:root()
 
         --- Recursively searches for a node of a given type
@@ -277,7 +261,7 @@ module.public = {
         local function descend(node)
             -- Iterate over all children of the node and try to match their type
             for child, _ in node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                if child:type() == type then
+                if child:type() == node_type then
                     table.insert(result, child)
                 else
                     -- If no match is found try descending further down the syntax tree
@@ -289,7 +273,6 @@ module.public = {
         end
 
         descend(root)
-
         return result
     end,
     --- Executes function callback on each child node of the root

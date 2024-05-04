@@ -23,13 +23,15 @@ module.setup = function()
         requires = {
             "core.integrations.treesitter",
             "core.dirman",
+            "core.dirman.utils",
             "core.neorgcmd",
             "core.link-tools",
+            "core.ui.text_popup",
         },
     }
 end
 
-local link_tools, dirman
+local link_tools, dirman, dirman_utils, popup
 module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         -- TODO: we should probably make a few different commands
@@ -38,21 +40,39 @@ module.load = function()
             max_args = 1, -- Tells neorgcmd we want no more than one argument
             -- args = 0, -- Setting this variable instead would be the equivalent of min_args = 1 and max_args = 1
             name = "refactor",
+            condition = "norg",
+            subcommands = {
+                rename = {
+                    args = 1,
+                    name = "refactor.rename",
+                    subcommands = {
+                        file = {
+                            min_args = 0,
+                            max_args = 1,
+                            name = "refactor.rename.file",
+                        },
+                    },
+                },
+            },
         },
     })
     link_tools = module.required["core.link-tools"]
     dirman = module.required["core.dirman"]
+    dirman_utils = module.required["core.dirman.utils"]
+    popup = module.required["core.ui.text_popup"]
 end
 
 module.events.subscribed = {
     ["core.neorgcmd"] = {
-        ["refactor"] = true,
+        ["refactor.rename.file"] = true,
     },
 }
 
 module.on_event = function(event)
-    if event.split_type[2] == "refactor" then
-        module.private.test(event.content[1])
+    P(event)
+    if module.private[event.split_type[2]] then
+        P("here")
+        module.private[event.split_type[2]](event.content[1])
     end
 end
 
@@ -71,11 +91,14 @@ module.public = {
     rename_file = function(current_path, new_path)
         new_path = vim.fs.normalize(new_path)
         current_path = vim.fs.normalize(current_path)
+        local total_changed = { files = 0, links = 0 }
 
         ---@type lsp.WorkspaceEdit
         local wsEdit = { changes = {} }
         local current_file_changes = module.public.fix_out_links(current_path, new_path)
         if #current_file_changes > 0 then
+            total_changed.files = total_changed.files + 1
+            total_changed.links = total_changed.links + #current_file_changes
             local current_path_uri = vim.uri_from_fname(new_path)
             wsEdit.changes[current_path_uri] = current_file_changes
         end
@@ -89,15 +112,25 @@ module.public = {
         for _, file in ipairs(files) do
             local file_changes = module.public.fix_in_links_in_file(current_path, file, new_ws_path)
             if #file_changes > 0 then
+                total_changed.files = total_changed.files + 1
+                total_changed.links = total_changed.links + #file_changes
                 local file_uri = vim.uri_from_fname(file)
                 wsEdit.changes[file_uri] = file_changes
             end
         end
-        P(wsEdit)
 
         os.rename(current_path, new_path)
         vim.cmd.e(new_path)
         vim.lsp.util.apply_workspace_edit(wsEdit, "utf-8")
+        vim.notify(
+            ("[Neorg] renamed %s to %s\nChanged %d links across %d files."):format(
+                current_path,
+                new_path,
+                total_changed.links,
+                total_changed.files
+            ),
+            vim.log.levels.INFO
+        )
     end,
 
     -- NOTE: I want to use LSP text changes to update all the files in one go via a call
@@ -112,24 +145,18 @@ module.public = {
         current_path = vim.fs.normalize(current_path)
         new_path = vim.fs.normalize(new_path)
         local current_dir = vim.fs.dirname(current_path)
-        local current_ws = dirman.get_current_workspace()[2]
+        local current_ws_path = dirman.get_current_workspace()[2]
         -- current buffer links
         local links = link_tools.get_file_links_from_buf(0)
         local document_edits = {}
         for _, link in ipairs(links) do
             local path_text = link[1]
             if not string.match(path_text, "^%$") then
-                -- NOTE: this link transform could probably go into the dirman utils module or fs
-
-                -- transform relative paths into a workspace relative path
-                local ws_path = "$" .. string.gsub(current_dir .. "/" .. path_text, "^" .. current_ws, "")
-
-                -- TODO: test that this works for paths with multiple "dir/../dir2/../"'s in it
-                ws_path = string.gsub(ws_path, "/[^/]+/%.%./", "/")
+                local ws_rel_link = dirman_utils.to_workspace_relative(current_dir, path_text, current_ws_path)
 
                 ---@type lsp.TextEdit
                 local text_edit = {
-                    newText = ws_path,
+                    newText = ws_rel_link,
                     range = {
                         start = {
                             line = link[2],
@@ -138,8 +165,8 @@ module.public = {
                         ["end"] = {
                             line = link[4],
                             character = link[5],
-                        }
-                    }
+                        },
+                    },
                 }
                 table.insert(document_edits, text_edit)
             end
@@ -167,9 +194,8 @@ module.public = {
             -- if it's equal, the we change it to the new workspace path`
             if not string.match(path_text, "^%$") then
                 -- this is a relative path, and we'll want to see where it's pointing
-                local ws_rel_link_text = module.private.path_rel_to_ws(current_ws, file_dir, path_text)
+                local ws_rel_link_text = dirman_utils.to_workspace_relative(current_ws, file_dir, path_text)
                 if ws_rel_link_text == current_path_wsr then
-                    print("this relative link points to the refactored file", path_text)
                     ---@type lsp.TextEdit
                     local text_edit = {
                         newText = new_ws_path,
@@ -181,15 +207,14 @@ module.public = {
                             ["end"] = {
                                 line = link[4],
                                 character = link[5],
-                            }
-                        }
+                            },
+                        },
                     }
                     table.insert(document_edits, text_edit)
                 end
             else
                 -- handle existing ws relative links too
                 if path_text == current_path_wsr then
-                    print("this wsr link points to the refactored file", path_text)
                     ---@type lsp.TextEdit
                     local text_edit = {
                         newText = new_ws_path,
@@ -201,32 +226,36 @@ module.public = {
                             ["end"] = {
                                 line = link[4],
                                 character = link[5],
-                            }
-                        }
+                            },
+                        },
                     }
                     table.insert(document_edits, text_edit)
                 end
             end
         end
         return document_edits
-    end
+    end,
 }
 
 module.private = {
-    ---just a function that's used to test whatever I'm working on
-    test = function(file)
+    ["refactor.rename.file"] = function(new_path)
         local current = vim.api.nvim_buf_get_name(0)
-        module.public.rename_file(current, file)
+        if new_path then
+            module.public.rename_file(current, new_path)
+        else
+            popup.create_prompt("RenameNeorgFile", "New Path: ", function(text)
+                module.public.rename_file(text)
+            end, {
+                center_x = true,
+                center_y = true,
+            }, {
+                width = 50,
+                height = 1,
+                row = 10,
+                col = 0,
+            })
+        end
     end,
-
-    path_rel_to_ws = function(ws, current_dir, path)
-        local ws_path = "$" .. string.gsub(current_dir .. "/" .. path, "^" .. ws, "")
-
-        -- TODO: test that this works for paths with multiple "dir/../dir2/../"'s in it
-        ws_path = string.gsub(ws_path, "/[^/]+/%.%./", "/")
-
-        return ws_path
-    end
 }
 
 return module

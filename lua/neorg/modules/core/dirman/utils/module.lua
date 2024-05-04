@@ -79,6 +79,17 @@ module.public = {
         local res = module.public.expand_pathlib(path, raw_path)
         return res and res:tostring() or nil
     end,
+
+    ---transform a relative path (a link in `file`), to a path that's relative to the workspace
+    ---@param dir string full path to the directory of `file` without the training slash
+    ---@param rel_path string path relative to `dir` which is converted to a workspace path
+    ---@param workspace_dir string full path to the current workspace
+    ---@return string ws relative link like `$/path/to/some/file`
+    to_workspace_relative = function(dir, rel_path, workspace_dir)
+        local ws_path = "$" .. string.gsub(dir .. "/" .. rel_path, "^" .. workspace_dir, "")
+        ws_path = string.gsub(ws_path, "/[^/]+/%.%./", "/")
+        return ws_path
+    end
 }
 
 return module
