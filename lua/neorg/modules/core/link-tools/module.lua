@@ -9,6 +9,7 @@ or file.
 --]]
 
 local neorg = require("neorg.core")
+local Path = require("pathlib")
 local modules = neorg.modules
 
 local module = modules.create("core.link-tools")
@@ -32,8 +33,8 @@ end
 
 ---@class Link
 ---@field file? NodeText
----@field heading_type? NodeText
----@field heading_text? NodeText
+---@field type? NodeText
+---@field text? NodeText
 ---@field range Range range of the entire link
 
 module.public = {
@@ -45,8 +46,8 @@ module.public = {
             (link
               (link_location
                 file: (_)* @file
-                type: (_)* @heading_type
-                text: (_)* @heading_text) @link_location)
+                type: (_)* @type
+                text: (_)* @text) @link_location)
         ]]
 
         local norg_parser
@@ -79,7 +80,6 @@ module.public = {
 
         local links = {}
 
-        ---@diagnostic disable-next-line: missing-parameter
         for _, match in query:iter_matches(norg_tree:root(), iter_src) do
             local link = {}
             for id, node in pairs(match) do
@@ -101,25 +101,30 @@ module.public = {
     -- file relative paths. simplifies links
     ---@param host_file string file the link is in (allows resolving relative paths)
     ---@param link Link
-    ---@return string? # full file path
+    ---@return PathlibPath?, boolean? # full file path
     where_does_this_link_point = function(host_file, link)
         local file_path
-        if link.file and link.file.text then
-            file_path = link.file.text
-            if file_path:match("^[^/%$~]") then -- it's a relative path
-                local host_dir = host_file:gsub("/[^/]*$", "")
-                file_path = host_dir .. "/" .. file_path
-                -- simplify /folder/../
-                file_path = string.gsub(file_path, "/[^/]+/%.%./", "/")
-                -- simplify // and /./
-                file_path = string.gsub(file_path, "/%.?/", "/")
-            end
-            file_path = dirman_utils.expand_path(file_path)
+        if link.type and link.type.text == "/ " then
+            file_path = link.text.text -- don't ask me why the parser does this
         else
-            file_path = host_file
+            file_path = link.file and link.file.text
+            if file_path then
+                file_path = dirman_utils.expand_pathlib(file_path)
+            else
+                file_path = host_file
+            end
         end
 
-        return file_path
+        local rel = false
+        if file_path then
+            file_path = Path.new(file_path)
+            if file_path:is_relative() then
+                rel = true
+                file_path = Path(host_file):parent():child(tostring(file_path))
+            end
+        end
+
+        return Path(file_path):resolve_copy(), rel
     end,
 }
 

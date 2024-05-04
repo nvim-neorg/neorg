@@ -1,6 +1,6 @@
 --[[
     file: Refactor-Module
-    title: Rename Things without Much Worry
+    title: Rename Things Without Much Worry
     summary: A module that allows for file and header refactors without breaking existing links
     internal: false
     ---
@@ -23,6 +23,7 @@ so unsaved changes are accounted for.
 --]]
 
 local neorg = require("neorg.core")
+local Path = require("pathlib")
 local modules = neorg.modules
 
 local module = modules.create("core.refactor")
@@ -41,7 +42,7 @@ module.setup = function()
     }
 end
 
-local link_tools, dirman, dirman_utils, ts
+local link_tools, dirman, ts
 module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         refactor = {
@@ -71,7 +72,6 @@ module.load = function()
     ts = module.required["core.integrations.treesitter"]
     link_tools = module.required["core.link-tools"]
     dirman = module.required["core.dirman"]
-    dirman_utils = module.required["core.dirman.utils"]
 end
 
 module.events.subscribed = {
@@ -101,11 +101,21 @@ module.public = {
         local wsEdit = { changes = {} }
         ---@param link Link
         local current_file_changes = module.public.fix_links(current_path, function(link)
-            local link_path, _ = link_tools.where_does_this_link_point(current_path, link)
-            if link_path and link.file and not link.file.text:match("^%$") then
-                link_path = link_path:gsub("%.norg$", "")
-                local ws_rel_link = dirman_utils.to_workspace_relative(link_path)
-                return ws_rel_link, unpack(link.file.range)
+            local link_path, rel = link_tools.where_does_this_link_point(current_path, link)
+            if link_path and rel then
+                -- it's relative to the file location, so we might have to change it
+                local lp = Path(link_path):relative_to(Path(new_path):parent(), true):resolve_copy()
+                if not lp then
+                    return
+                end
+
+                local range = link.file and link.file.range
+                if link.type and link.type.text == "/ " then
+                    range = link.text.range
+                else
+                    return
+                end
+                return tostring(lp), unpack(range)
             end
         end)
         if #current_file_changes > 0 then
@@ -127,8 +137,13 @@ module.public = {
             local file_changes = module.public.fix_links(file, function(link)
                 local link_path, _ = link_tools.where_does_this_link_point(file, link)
                 if link_path == current_path then
-                    link_path = link_path:gsub("%.norg$", "")
-                    return new_ws_path, unpack(link.file.range)
+                    local new_link
+                    if Path(link):is_relative() then
+                        new_link = Path(new_path):relative_to(Path(file))
+                    else
+                        new_link = new_ws_path
+                    end
+                    return new_link, unpack(link.file.range)
                 end
             end)
             if #file_changes > 0 then
@@ -185,8 +200,8 @@ module.public = {
         local wsEdit = { changes = {} }
         ---@param link Link
         local changes = module.public.fix_links(buf, function(link)
-            local link_prefix = link.heading_type and link.heading_type.text
-            local link_heading = link.heading_text and link.heading_text.text
+            local link_prefix = link.type and link.type.text
+            local link_heading = link.text and link.text.text
             -- NOTE: This will not work for {:path/to/current/file:# heading} but who would do that..
             if not link.file and (link_prefix == "# " or link_prefix == prefix) and link_heading == title_text then
                 local p = new_prefix
@@ -230,8 +245,8 @@ module.public = {
             ---@param link Link
             changes = module.public.fix_links(file, function(link)
                 local link_path = link_tools.where_does_this_link_point(file, link)
-                local link_heading = link.heading_text and link.heading_text.text
-                local link_prefix = link.heading_type and link.heading_type.text
+                local link_heading = link.text and link.text.text
+                local link_prefix = link.type and link.type.text
                 if not link_heading or not link_prefix then
                     return
                 end
@@ -246,10 +261,10 @@ module.public = {
                         p = "# "
                     end
                     return ("%s%s"):format(p, new_name),
-                        link.heading_type.range[1],
-                        link.heading_type.range[2],
-                        link.heading_text.range[3],
-                        link.heading_text.range[4]
+                        link.type.range[1],
+                        link.type.range[2],
+                        link.text.range[3],
+                        link.text.range[4]
                 end
             end)
             if #changes > 0 then
