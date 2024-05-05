@@ -52,6 +52,9 @@ module.public = {
 
         local norg_parser
         local iter_src
+        if type(source) ~= "string" and type(source) ~= "number" then
+            source = tostring(source)
+        end
         if type(source) == "string" then
             -- check if the file is open; use the buffer contents if it is
             ---@diagnostic disable-next-line: param-type-mismatch
@@ -109,6 +112,7 @@ module.public = {
         else
             file_path = link.file and link.file.text
             if file_path then
+                -- NOTE: This ruins the relative part... uhh, and it's not even accurate
                 file_path = dirman_utils.expand_pathlib(file_path)
             else
                 file_path = host_file
@@ -117,7 +121,8 @@ module.public = {
 
         local rel = false
         if file_path then
-            file_path = Path.new(file_path)
+            file_path = Path(file_path)
+            print("wdtlp, file_path:", file_path)
             if file_path:is_relative() then
                 rel = true
                 file_path = Path(host_file):parent():child(tostring(file_path))

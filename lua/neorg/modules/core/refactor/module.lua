@@ -42,7 +42,7 @@ module.setup = function()
     }
 end
 
-local link_tools, dirman, ts
+local link_tools, dirman, dirman_utils, ts
 module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         refactor = {
@@ -72,6 +72,7 @@ module.load = function()
     ts = module.required["core.integrations.treesitter"]
     link_tools = module.required["core.link-tools"]
     dirman = module.required["core.dirman"]
+    dirman_utils = module.required["core.dirman.utils"]
 end
 
 module.events.subscribed = {
@@ -95,27 +96,34 @@ module.public = {
     rename_file = function(current_path, new_path)
         new_path = vim.fs.normalize(new_path)
         current_path = vim.fs.normalize(current_path)
+        local buf = vim.uri_to_bufnr(vim.uri_from_fname(current_path))
         local total_changed = { files = 0, links = 0 }
 
         ---@type lsp.WorkspaceEdit
         local wsEdit = { changes = {} }
         ---@param link Link
         local current_file_changes = module.public.fix_links(current_path, function(link)
-            local link_path, rel = link_tools.where_does_this_link_point(current_path, link)
+            local range = link.file and link.file.range
+            local link_str = link.file and link.file.text
+            local raw = false
+            if link.type and link.type.text == "/ " then
+                range = link.text.range -- don't ask me why the parser does this
+                link_str = link.text.text
+                raw = true
+            end
+            if not range then
+                return
+            end
+            local link_path, rel = dirman_utils.expand_pathlib(link_str, raw, current_path)
             if link_path and rel then
                 -- it's relative to the file location, so we might have to change it
-                local lp = Path(link_path):relative_to(Path(new_path):parent(), true):resolve_copy()
-                if not lp then
-                    return
+                local lp = Path(tostring(link_path))
+                    :relative_to(Path(new_path):parent(), true)
+                    :resolve()
+                    :remove_suffix(".norg")
+                if lp then
+                    return tostring(lp), unpack(range)
                 end
-
-                local range = link.file and link.file.range
-                if link.type and link.type.text == "/ " then
-                    range = link.text.range
-                else
-                    return
-                end
-                return tostring(lp), unpack(range)
             end
         end)
         if #current_file_changes > 0 then
@@ -132,18 +140,38 @@ module.public = {
         local new_ws_path = "$" .. string.gsub(new_path, "^" .. ws_path, "")
         new_ws_path = string.gsub(new_ws_path, "%.norg$", "")
         for _, file in ipairs(files) do
-            if file == current_path then goto continue end
+            if file == current_path then
+                goto continue
+            end
             ---@param link Link
             local file_changes = module.public.fix_links(file, function(link)
-                local link_path, _ = link_tools.where_does_this_link_point(file, link)
-                if link_path == current_path then
+                local range = link.file and link.file.range
+                local link_str = link.file and link.file.text
+                local raw = false
+                if link.type and link.type.text == "/ " then
+                    range = link.text.range -- don't ask me why the parser does this
+                    link_str = link.text.text
+                    raw = true
+                end
+                if not range then
+                    return
+                end
+                local link_path, rel = dirman_utils.expand_pathlib(link_str, raw, file)
+                if not link_path then
+                    return
+                end
+                if link_path and link_path:samefile(Path(current_path)) then
                     local new_link
-                    if Path(link):is_relative() then
+                    if rel then
                         new_link = Path(new_path):relative_to(Path(file))
+                        if not new_link then
+                            return
+                        end
+                        new_link:resolve():remove_sufix(".norg")
                     else
                         new_link = new_ws_path
                     end
-                    return new_link, unpack(link.file.range)
+                    return new_link, unpack(range)
                 end
             end)
             if #file_changes > 0 then
@@ -158,6 +186,7 @@ module.public = {
 
         os.rename(current_path, new_path)
         vim.cmd.e(new_path)
+        vim.api.nvim_buf_delete(buf, {})
         vim.lsp.util.apply_workspace_edit(wsEdit, "utf-8")
         vim.notify(
             ("[Neorg] renamed %s to %s\nChanged %d links across %d files."):format(
@@ -240,11 +269,18 @@ module.public = {
 
         local current_path = vim.api.nvim_buf_get_name(0)
         for _, file in ipairs(files) do
-            if file == current_path then goto continue end
+            if file == current_path then
+                goto continue
+            end
 
             ---@param link Link
             changes = module.public.fix_links(file, function(link)
-                local link_path = link_tools.where_does_this_link_point(file, link)
+                local link_str = link.file and link.file.text
+                if not link_str then
+                    return
+                end
+
+                local link_path, _ = dirman_utils.expand_pathlib(link_str, false, current_path)
                 local link_heading = link.text and link.text.text
                 local link_prefix = link.type and link.type.text
                 if not link_heading or not link_prefix then
@@ -254,7 +290,7 @@ module.public = {
                 if
                     (link_prefix == "# " or link_prefix == prefix)
                     and link_heading == title_text
-                    and link_path == current_path
+                    and link_path:samefile(Path(current_path))
                 then
                     local p = new_prefix
                     if link_prefix == "# " then
@@ -346,7 +382,9 @@ module.private = {
 
         vim.schedule(function()
             vim.ui.input({ prompt = "New Heading: ", default = event.line_content }, function(text)
-                if not text then return end
+                if not text then
+                    return
+                end
 
                 module.public.rename_heading(line_number, text)
             end)
