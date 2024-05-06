@@ -10,9 +10,13 @@ file. It also lets you rename headers without breaking links to the header. Work
 in the workspace, if a file is open, it will use the buffer contents instead of the file contents
 so unsaved changes are accounted for.
 
+Relative file links like `{/ ./path/to/file.txt}` are also changed.
+
+Moving a file to a location that already exists will fail. Moving a file to a folder that doesn't
+exist will create the folder.
+
 ## Limitations
 
-- When renaming a file, and links inside the file will be converted to workspace relative links
 - Links that include a file path to their own file (ie. `{:path/to/blah:}` while in `blah.norg`)
   are not supported
 
@@ -25,6 +29,7 @@ so unsaved changes are accounted for.
 local neorg = require("neorg.core")
 local Path = require("pathlib")
 local modules = neorg.modules
+local log = neorg.log
 
 local module = modules.create("core.refactor")
 
@@ -36,13 +41,12 @@ module.setup = function()
             "core.dirman",
             "core.dirman.utils",
             "core.neorgcmd",
-            "core.link-tools",
             "core.ui.text_popup",
         },
     }
 end
 
-local link_tools, dirman, dirman_utils, ts
+local dirman, dirman_utils, ts
 module.load = function()
     module.required["core.neorgcmd"].add_commands_from_table({
         refactor = {
@@ -70,7 +74,6 @@ module.load = function()
         },
     })
     ts = module.required["core.integrations.treesitter"]
-    link_tools = module.required["core.link-tools"]
     dirman = module.required["core.dirman"]
     dirman_utils = module.required["core.dirman.utils"]
 end
@@ -91,11 +94,23 @@ end
 module.public = {
     ---move the current file from one location to another, and update all the links to/from the file
     ---in the current workspace
-    ---@param current_path any
-    ---@param new_path any
+    ---@param current_path string
+    ---@param new_path string
     rename_file = function(current_path, new_path)
         new_path = vim.fs.normalize(new_path)
         current_path = vim.fs.normalize(current_path)
+
+        if new_path == current_path then
+            return
+        end
+
+        if Path(new_path):exists() then
+            log.error(
+                ("Cannot move file `%s` to `%s` becuase `%s` already exists."):format(current_path, new_path, new_path)
+            )
+            return
+        end
+
         local buf = vim.uri_to_bufnr(vim.uri_from_fname(current_path))
         local total_changed = { files = 0, links = 0 }
 
@@ -184,6 +199,9 @@ module.public = {
             ::continue::
         end
 
+        if not Path(new_path):parent():exists() then
+            Path(new_path):parent():mkdir(750, true)
+        end
         os.rename(current_path, new_path)
         vim.cmd.e(new_path)
         vim.api.nvim_buf_delete(buf, {})
@@ -330,7 +348,7 @@ module.public = {
     ---or nil if this shouldn't be changed
     fix_links = function(source, fix_link)
         local links = nil
-        links = link_tools.get_links(source)
+        links = module.private.get_links(source)
 
         local edits = {}
         for _, link in ipairs(links) do
@@ -357,6 +375,71 @@ module.public = {
         return edits
     end,
 }
+
+---@class NodeText
+---@field range Range
+---@field text string
+
+---@class Link
+---@field file? NodeText
+---@field type? NodeText
+---@field text? NodeText
+---@field range Range range of the entire link
+
+---fetch all the links in the given buffer
+---@param source number | string bufnr or full path to file
+---@return Link[]
+module.private.get_links = function(source)
+    local link_query_string = [[
+        (link
+          (link_location
+            file: (_)* @file
+            type: (_)* @type
+            text: (_)* @text) @link_location)
+    ]]
+    local norg_parser
+    local iter_src
+    if type(source) ~= "string" and type(source) ~= "number" then
+        source = tostring(source)
+    end
+    if type(source) == "string" then
+        -- check if the file is open; use the buffer contents if it is
+        ---@diagnostic disable-next-line: param-type-mismatch
+        if vim.fn.bufexists(source) then
+            source = vim.uri_to_bufnr(vim.uri_from_fname(source))
+        else
+            iter_src = io.open(source, "r"):read("*a")
+            norg_parser = vim.treesitter.get_string_parser(iter_src, "norg")
+        end
+    end
+    if type(source) == "number" then
+        if source == 0 then
+            source = vim.api.nvim_get_current_buf()
+        end
+        norg_parser = vim.treesitter.get_parser(source, "norg")
+        iter_src = source
+    end
+    if not norg_parser then
+        return {}
+    end
+    local norg_tree = norg_parser:parse()[1]
+    local query = vim.treesitter.query.parse("norg", link_query_string)
+    local links = {}
+    for _, match in query:iter_matches(norg_tree:root(), iter_src) do
+        local link = {}
+        for id, node in pairs(match) do
+            local name = query.captures[id]
+            link[name] = {
+                text = ts.get_node_text(node, iter_src),
+                range = { node:range() },
+            }
+        end
+        link.range = link.link_location.range
+        link.link_location = nil
+        table.insert(links, link)
+    end
+    return links
+end
 
 module.private = {
     ["refactor.rename.file"] = function(event)
