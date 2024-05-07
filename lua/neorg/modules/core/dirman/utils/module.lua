@@ -84,7 +84,7 @@ module.public = {
     ---@param raw_path boolean? # If true, returns resolved path, otherwise, returns resolved path and append ".norg"
     ---@return string? # Resolved path. If path does not start with `$` or not absolute, adds relative from current file.
     expand_path = function(path, raw_path)
-        local res, _ = module.public.expand_pathlib(path, raw_path)
+        local res = module.public.expand_pathlib(path, raw_path)
         return res and res:tostring() or nil
     end,
 }
