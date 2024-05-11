@@ -22,8 +22,6 @@ local module = modules.create("core.clipboard.code-blocks")
 module.load = function()
     modules.await("core.clipboard", function(clipboard)
         clipboard.add_callback("ranged_verbatim_tag_content", function(node, content, position)
-            -- TODO: Handle visual/visual line/visual block modes
-
             -- The end of "ranged_tag_content" spans one line too many
             if position["end"][1] > node:end_() - 1 then
                 return

@@ -15,7 +15,7 @@ It will be switched to a `.norg` file when possible.
 
 ## Miscellaneous
 
-- [ ] Make `core.clipboard.code-blocks` work with a visual selection.
+- [x] Make `core.clipboard.code-blocks` work with a visual selection.
 - [ ] Reimplement the `core.maneouvre` module, which has been deprecated since `1.0`.
 - [ ] The `a` and `b` commands in the hop module are not implemented.
 - [ ] Readd colouring to TODO items.
