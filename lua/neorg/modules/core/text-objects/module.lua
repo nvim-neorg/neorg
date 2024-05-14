@@ -4,8 +4,48 @@
     summary: A Neorg module for moving and selecting elements of the document.
     ---
 
+**WARNING:** Requires nvim 0.10+
+
 - Easily move items up and down in the document
 - Provides text objects for headings, tags, and lists
+
+## Usage
+
+Users can create keybinds for some or all of the different events this module exposes. Those are:
+
+those events are:
+
+- `core.text-objects.item_up` - Moves the current "item" up
+- `core.text-objects.item_down` - same but down
+- `core.text-objects.textobject.heading.outer`
+- `core.text-objects.textobject.heading.inner`
+- `core.text-objects.textobject.tag.inner`
+- `core.text-objects.textobject.tag.outer`
+- `core.text-objects.textobject.list.outer` - around the entire list
+
+_Movable "items" include headings, and list items (ordered/unordered/todo)_
+
+### Example
+
+Example keybinds that would go in your Neorg configuration:
+
+```lua
+["core.keybinds"] = {
+    config = {
+        hook = function(keybinds)
+            -- Binds to move items up or down
+            keybinds.remap_event("norg", "n", "<up>", "core.text-objects.item_up")
+            keybinds.remap_event("norg", "n", "<down>", "core.text-objects.item_down")
+
+            -- text objects, these binds are available as `vaH` to "visual select around a header" or
+            -- `diH` to "delete inside a header"
+            keybinds.remap_event("norg", { "o", "x" }, "iH", "core.text-objects.textobject.heading.inner")
+            keybinds.remap_event("norg", { "o", "x" }, "aH", "core.text-objects.textobject.heading.outer")
+        end,
+    },
+},
+```
+
 --]]
 
 local neorg = require("neorg.core")
