@@ -113,7 +113,7 @@ module.public = {
     get_element_from_cursor = function(node_pattern)
         local node_at_cursor = vim.treesitter.get_node()
 
-        if not node_at_cursor:parent():type():match(node_pattern) then
+        if not node_at_cursor or not node_at_cursor:parent():type():match(node_pattern) then
             log.trace(string.format("Could not find element of pattern '%s' under the cursor", node_pattern))
             return
         end
