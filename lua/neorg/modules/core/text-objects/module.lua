@@ -33,11 +33,11 @@ end
 local tags = {
     "item_up",
     "item_down",
-    "textobject.around-heading",
-    "textobject.inner-heading",
-    "textobject.around-tag",
-    "textobject.inner-tag",
-    "textobject.around-whole-list",
+    "textobject.heading.outer",
+    "textobject.heading.inner",
+    "textobject.tag.inner",
+    "textobject.tag.outer",
+    "textobject.list.outer",
 }
 
 module.load = function()
@@ -166,20 +166,20 @@ end
 
 module.config.private = {
     textobjects = {
-        ["around-heading"] = function(node)
+        ["heading.outer"] = function(node)
             return highlight_node(find(node, "^heading%d+$"))
         end,
-        ["inner-heading"] = function(node)
+        ["heading.inner"] = function(node)
             return highlight_node(find_content(node, "^heading%d+$"))
         end,
-        ["around-tag"] = function(node)
+        ["tag.outer"] = function(node)
             return highlight_node(find(node, "ranged_tag$"))
         end,
-        ["inner-tag"] = function(node)
+        ["tag.inner"] = function(node)
             -- TODO: Fix Treesitter, this is currently buggy
             return highlight_node(find_content(node, "ranged_tag$"))
         end,
-        ["around-whole-list"] = function(node)
+        ["list.outer"] = function(node)
             return highlight_node(find(node, "generic_list"))
         end,
     },
