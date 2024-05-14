@@ -1,20 +1,18 @@
 --[[
-    file: Norg-Manoeuvre
-    title: Move around elements easily
-    summary: A Neorg module for moving around different elements up and down.
+    file: Norg-Text-Objects
+    title: Navigation, Selection, and Swapping
+    summary: A Neorg module for moving and selecting elements of the document.
     ---
-### WARNING: This module is deprecated!
 
-There is no available successor to this module yet.
+- Easily move items up and down in the document
+- Provides text objects for headings, tags, and lists
 --]]
-
--- NOTE(vhyrro): This module is obsolete! There is no successor module to this yet, although
--- we hope to implement one with the module rewrite of 0.2.
 
 local neorg = require("neorg.core")
 local utils, log, modules = neorg.utils, neorg.log, neorg.modules
+local ts
 
-local module = modules.create("core.manoeuvre")
+local module = modules.create("core.text-objects")
 
 module.setup = function()
     if not utils.is_minimum_version(0, 7, 0) then
@@ -25,19 +23,26 @@ module.setup = function()
         }
     end
 
-    return { success = true, requires = { "core.keybinds", "core.integrations.treesitter" } }
+    return {
+        success = true,
+        requires = { "core.keybinds", "core.integrations.treesitter" },
+    }
 end
 
+-- TODO: what's a better name for this?
+local tags = {
+    "item_up",
+    "item_down",
+    "textobject.around-heading",
+    "textobject.inner-heading",
+    "textobject.around-tag",
+    "textobject.inner-tag",
+    "textobject.around-whole-list",
+}
+
 module.load = function()
-    module.required["core.keybinds"].register_keybinds(module.name, {
-        "item_up",
-        "item_down",
-        "textobject.around-heading",
-        "textobject.inner-heading",
-        "textobject.around-tag",
-        "textobject.inner-tag",
-        "textobject.around-whole-list",
-    })
+    module.required["core.keybinds"].register_keybinds(module.name, tags)
+    ts = module.required["core.integrations.treesitter"]
 end
 
 module.config.public = {
@@ -63,10 +68,10 @@ module.config.public = {
     },
 }
 
----@class core.manoeuvre
+---@class core.text-objects
 module.public = {
     get_element_from_cursor = function(node_pattern)
-        local node_at_cursor = module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
+        local node_at_cursor = vim.treesitter.get_node()
 
         if not node_at_cursor:parent():type():match(node_pattern) then
             log.trace(string.format("Could not find element of pattern '%s' under the cursor", node_pattern))
@@ -76,7 +81,7 @@ module.public = {
         return node_at_cursor:parent()
     end,
 
-    move_item_down = function(pattern, expected_sibling_name)
+    move_item_down = function(pattern, expected_sibling_name, buffer)
         local element = module.public.get_element_from_cursor(pattern)
 
         if not element then
@@ -87,24 +92,19 @@ module.public = {
 
         if type(expected_sibling_name) == "string" then
             if next_element and next_element:type():match(expected_sibling_name) then
-                -- TODO: This is a bit buggy and doesn't always set the cursor position to where you'd expect
-                module.required["core.integrations.treesitter"]
-                    .get_ts_utils()
-                    .swap_nodes(element, next_element, 0, true)
+                ts.swap_nodes(element, next_element, buffer, true)
             end
         else
             for _, expected in ipairs(expected_sibling_name) do
                 if next_element and next_element:type():match(expected) then
-                    module.required["core.integrations.treesitter"]
-                        .get_ts_utils()
-                        .swap_nodes(element, next_element, 0, true)
+                    ts.swap_nodes(element, next_element, buffer, true)
                     return
                 end
             end
         end
     end,
 
-    move_item_up = function(pattern, expected_sibling_name)
+    move_item_up = function(pattern, expected_sibling_name, buffer)
         local element = module.public.get_element_from_cursor(pattern)
 
         if not element then
@@ -115,16 +115,12 @@ module.public = {
 
         if type(expected_sibling_name) == "string" then
             if prev_element and prev_element:type():match(expected_sibling_name) then
-                module.required["core.integrations.treesitter"]
-                    .get_ts_utils()
-                    .swap_nodes(element, prev_element, 0, true)
+                ts.swap_nodes(element, prev_element, buffer, true)
             end
         else
             for _, expected in ipairs(expected_sibling_name) do
                 if prev_element and prev_element:type():match(expected) then
-                    module.required["core.integrations.treesitter"]
-                        .get_ts_utils()
-                        .swap_nodes(element, prev_element, 0, true)
+                    ts.swap_nodes(element, prev_element, buffer, true)
                     return
                 end
             end
@@ -189,16 +185,18 @@ module.config.private = {
     },
 }
 
+---Handle events
+---@param event neorg.event
 module.on_event = function(event)
     local config = module.config.public.moveables
 
-    if event.split_type[2] == "core.manoeuvre.item_down" then
+    if event.split_type[2] == "core.text-objects.item_down" then
         for _, data in pairs(config) do
-            module.public.move_item_down(data[1], data[2])
+            module.public.move_item_down(data[1], data[2], event.buffer)
         end
-    elseif event.split_type[2] == "core.manoeuvre.item_up" then
+    elseif event.split_type[2] == "core.text-objects.item_up" then
         for _, data in pairs(config) do
-            module.public.move_item_up(data[1], data[2])
+            module.public.move_item_up(data[1], data[2], event.buffer)
         end
     else
         local textobj = event.split_type[2]:find("textobject")
@@ -216,20 +214,9 @@ module.on_event = function(event)
     end
 end
 
-module.events.subscribed = {
-    ["core.keybinds"] = {
-        [module.name .. ".item_down"] = true,
-        [module.name .. ".item_up"] = true,
-
-        -- TODO(vhyrro): Automate the creation of these
-        [module.name .. ".textobject.around-heading"] = true,
-        [module.name .. ".textobject.inner-heading"] = true,
-
-        [module.name .. ".textobject.around-tag"] = true,
-        [module.name .. ".textobject.inner-tag"] = true,
-
-        [module.name .. ".textobject.around-whole-list"] = true,
-    },
-}
+module.events.subscribed = { ["core.keybinds"] = {} }
+for _, name in ipairs(tags) do
+    module.events.subscribed["core.keybinds"][("%s.%s"):format(module.name, name)] = true
+end
 
 return module
