@@ -206,9 +206,7 @@ module.on_event = function(event)
             local textobj_lookup = module.config.private.textobjects[textobject_type]
 
             if textobj_lookup then
-                return textobj_lookup(
-                    module.required["core.integrations.treesitter"].get_ts_utils().get_node_at_cursor()
-                )
+                return textobj_lookup(vim.treesitter.get_node())
             end
         end
     end
