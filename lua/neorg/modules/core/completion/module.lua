@@ -7,7 +7,7 @@
 This module is an intermediary between Neorg and the completion engine of your choice. After setting up this
 module (this usually just involves setting the `engine` field in the [configuration](#configuration) section),
 please read the corresponding wiki page for the engine you selected ([`nvim-cmp`](@core.integrations.nvim-cmp)
-or [`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
+[`coq_nvim`](@core.integrations.coq_nvim) or [`nvim-compe`](@core.integrations.nvim-compe)) to complete setup.
 
 Completions are provided in the following cases (examples in (), `|` represents the cursor location):
 - TODO items (`- (|`)
@@ -37,6 +37,7 @@ module.config.public = {
     --
     -- Possible values:
     -- - [`"nvim-cmp"`](@core.integrations.nvim-cmp)
+    -- - [`"coq_nvim"`](@core.integrations.coq_nvim)
     -- - [`"nvim-compe"`](@core.integrations.nvim-compe)
     engine = nil,
 
@@ -248,6 +249,9 @@ module.load = function()
     elseif module.config.public.engine == "nvim-cmp" and modules.load_module("core.integrations.nvim-cmp") then
         modules.load_module_as_dependency("core.integrations.nvim-cmp", module.name, {})
         module.private.engine = modules.get_module("core.integrations.nvim-cmp")
+    elseif module.config.public.engine == "coq_nvim" and modules.load_module("core.integrations.coq_nvim") then
+        modules.load_module_as_dependency("core.integrations.coq_nvim", module.name, {})
+        module.private.engine = modules.get_module("core.integrations.coq_nvim")
     else
         log.error("Unable to load completion module -", module.config.public.engine, "is not a recognized engine.")
         return
