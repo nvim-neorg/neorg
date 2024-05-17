@@ -157,7 +157,8 @@ module.public = {
         local new_limages = {}
         for _, limage in pairs(module.private.latex_images[buf] or {}) do
             if limage.extmark_id then
-                local extmark = nio.api.nvim_buf_get_extmark_by_id(buf, module.private.extmark_ns, limage.extmark_id, {})
+                local extmark =
+                    nio.api.nvim_buf_get_extmark_by_id(buf, module.private.extmark_ns, limage.extmark_id, {})
                 local new_key = module.private.get_key({ extmark[1], extmark[2] })
                 limage.real = false
                 new_limages[new_key] = limage
@@ -336,13 +337,16 @@ module.public = {
                 id = limage.extmark_id, -- if it exists, update it, else this is nil so it will create a new one
             }
 
-            if conceal_on and range[1] ~= cursor_row - 1 then
+            if module.config.public.conceal then
                 local image = limage.image
                 local predicted_image_dimensions =
                     module.private.image_api.image_size(image, { height = module.config.public.scale })
                 ext_opts.virt_text = { { (" "):rep(predicted_image_dimensions.width) } }
-                ext_opts.conceal = ""
                 ext_opts.virt_text_pos = "inline"
+            end
+
+            if conceal_on and range[1] ~= cursor_row - 1 then
+                ext_opts.conceal = ""
             end
 
             limage.extmark_id =
