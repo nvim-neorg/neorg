@@ -31,7 +31,7 @@ echo -e "\e[3mitalic\e[0m"
 echo -e "\e[3m\e[1mbold italic\e[0m"
 echo -e "\e[4munderline\e[0m"
 echo -e "\e[9mstrikethrough\e[0m"
-echo -e "\x1B[31red\e[0m"
+echo -e "\x1B[31mred\e[0m"
 
 printf "\x1b[58:2::255:0:0m\x1b[4:1msingle\x1b[4:2mdouble\x1b[4:3mcurly\x1b[4:4mdotted\x1b[4:5mdashed\x1b[0m\n"
 ```
