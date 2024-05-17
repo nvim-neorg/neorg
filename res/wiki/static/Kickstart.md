@@ -16,6 +16,7 @@ To use this configuration, a set of prerequisites must be fulfilled beforehand.
 4. Ensure you have Lua 5.1 *or* LuaJIT installed on your system:
    - **Windows**: install [lua for windows](https://github.com/rjpcomputing/luaforwindows/releases/tag/v5.1.5-52).
    - **MacOS**: install via `brew install luajit`. Lua 5.1 is incorrectly marked as "deprecated" on MacOS systems, therefore luajit should be used instead.
+   - **`apk`**: `sudo apk add luajit luajit-dev wget`
    - **`apt`**: `sudo apt install liblua5.1-0-dev`
    - **`dnf`**: `sudo dnf install compat-lua-devel-5.1.5`
    - **`pacman`**: `sudo pacman -Syu luajit`
