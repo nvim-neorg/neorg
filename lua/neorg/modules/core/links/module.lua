@@ -2,6 +2,7 @@
     file: Links
     title: Find links/target in the buffer
     description: Utility module to handle links/link targets in the buffer
+    internal: true
     ---
 
 This module provides utility functions that are used to find links and their targets in the buffer.
