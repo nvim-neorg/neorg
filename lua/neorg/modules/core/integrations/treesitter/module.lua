@@ -335,7 +335,9 @@ module.public = {
         local text1 = module.public.get_node_text(node1, bufnr)
         local text2 = module.public.get_node_text(node2, bufnr)
 
-        if not text1 or not text2 then return end
+        if not text1 or not text2 then
+            return
+        end
 
         text1 = vim.split(text1, "\n")
         text2 = vim.split(text2, "\n")
@@ -368,7 +370,7 @@ module.public = {
 
         if cursor_to_second then
             -- set jump location
-            vim.cmd "normal! m'"
+            vim.cmd("normal! m'")
 
             local char_delta = 0
             local line_delta = 0
