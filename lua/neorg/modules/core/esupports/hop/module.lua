@@ -13,6 +13,7 @@ prompted with a set of actions that you can perform on the broken link.
 
 local neorg = require("neorg.core")
 local config, lib, log, modules, utils = neorg.config, neorg.lib, neorg.log, neorg.modules, neorg.utils
+local links
 
 local module = modules.create("core.esupports.hop")
 
@@ -23,11 +24,13 @@ module.setup = function()
             "core.integrations.treesitter",
             "core.ui",
             "core.dirman.utils",
+            "core.links",
         },
     }
 end
 
 module.load = function()
+    links = module.required["core.links"]
     modules.await("core.keybinds", function(keybinds)
         keybinds.register_keybind(module.name, "hop-link")
     end)
@@ -579,71 +582,7 @@ module.public = {
             end,
 
             _ = function()
-                local query_str = lib.match(parsed_link_information.link_type)({
-                    generic = [[
-                        [(_
-                          [(strong_carryover_set
-                             (strong_carryover
-                               name: (tag_name) @tag_name
-                               (tag_parameters) @title
-                               (#eq? @tag_name "name")))
-                           (weak_carryover_set
-                             (weak_carryover
-                               name: (tag_name) @tag_name
-                               (tag_parameters) @title
-                               (#eq? @tag_name "name")))]?
-                          title: (paragraph_segment) @title)
-                         (inline_link_target
-                           (paragraph) @title)]
-                    ]],
-
-                    [{ "definition", "footnote" }] = string.format(
-                        [[
-                        (%s_list
-                            (strong_carryover_set
-                                  (strong_carryover
-                                    name: (tag_name) @tag_name
-                                    (tag_parameters) @title
-                                    (#eq? @tag_name "name")))?
-                            .
-                            [(single_%s
-                               (weak_carryover_set
-                                  (weak_carryover
-                                    name: (tag_name) @tag_name
-                                    (tag_parameters) @title
-                                    (#eq? @tag_name "name")))?
-                               (single_%s_prefix)
-                               title: (paragraph_segment) @title)
-                             (multi_%s
-                               (weak_carryover_set
-                                  (weak_carryover
-                                    name: (tag_name) @tag_name
-                                    (tag_parameters) @title
-                                    (#eq? @tag_name "name")))?
-                                (multi_%s_prefix)
-                                  title: (paragraph_segment) @title)])
-                        ]],
-                        lib.reparg(parsed_link_information.link_type, 5)
-                    ),
-                    _ = string.format(
-                        [[
-                            (%s
-                              [(strong_carryover_set
-                                 (strong_carryover
-                                   name: (tag_name) @tag_name
-                                   (tag_parameters) @title
-                                   (#eq? @tag_name "name")))
-                               (weak_carryover_set
-                                 (weak_carryover
-                                   name: (tag_name) @tag_name
-                                   (tag_parameters) @title
-                                   (#eq? @tag_name "name")))]?
-                              (%s_prefix)
-                              title: (paragraph_segment) @title)
-                        ]],
-                        lib.reparg(parsed_link_information.link_type, 2)
-                    ),
-                })
+                local query_str = links.get_link_target_query_string(parsed_link_information.link_type)
 
                 local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
 
