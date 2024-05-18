@@ -28,7 +28,7 @@ link completions are smart about closing `:` and `}`.
 local neorg = require("neorg.core")
 local Path = require("pathlib")
 local log, modules, utils = neorg.log, neorg.modules, neorg.utils
-local dirutils, dirman, hop, treesitter
+local dirutils, dirman, links, treesitter
 
 local module = modules.create("core.completion")
 
@@ -47,7 +47,7 @@ module.config.public = {
 module.setup = function()
     return {
         success = true,
-        requires = { "core.dirman", "core.dirman.utils", "core.integrations.treesitter", "core.esupports.hop" },
+        requires = { "core.dirman", "core.dirman.utils", "core.integrations.treesitter", "core.links" },
     }
 end
 
@@ -89,7 +89,7 @@ module.private = {
     ---@param source number | string | PathlibPath bufnr or file path
     ---@param link_type "generic" | "definition" | "footnote" | string
     get_linkables = function(source, link_type)
-        local query_str = hop.get_link_target_query_string(link_type)
+        local query_str = links.get_link_target_query_string(link_type)
         local norg_parser
         local iter_src
         if type(source) ~= "string" and type(source) ~= "number" then
@@ -253,7 +253,7 @@ module.load = function()
 
     dirutils = module.required["core.dirman.utils"]
     dirman = module.required["core.dirman"]
-    hop = module.required["core.esupports.hop"]
+    links = module.required["core.links"]
     treesitter = module.required["core.integrations.treesitter"]
 
     -- Set a special function in the integration module to allow it to communicate with us
