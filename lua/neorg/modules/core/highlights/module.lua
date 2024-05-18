@@ -372,7 +372,7 @@ module.config.public = {
         -- core.latex.renderer
         rendered = {
             latex = "+Normal",
-        }
+        },
     },
 
     -- Handles the dimming of certain highlight groups.
@@ -600,9 +600,7 @@ module.public = {
     end,
 
     hex_to_rgb = function(hex_colour)
-        return tonumber(hex_colour:sub(1, 2), 16),
-            tonumber(hex_colour:sub(3, 4), 16),
-            tonumber(hex_colour:sub(5), 16)
+        return tonumber(hex_colour:sub(1, 2), 16), tonumber(hex_colour:sub(3, 4), 16), tonumber(hex_colour:sub(5), 16)
     end,
 
     dim_color = function(colour, percent)

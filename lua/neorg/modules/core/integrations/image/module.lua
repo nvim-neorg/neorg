@@ -73,8 +73,8 @@ module.public = {
         local true_size = {
             width = math.min(
                 math.floor(image.image_width / term_size.cell_width), -- max image size (images don't scale up past their true size)
-                gopts.max_width or math.huge,                         -- image.nvim configured max size
-                limit.width or math.huge                              -- latex-renderer configured max size
+                gopts.max_width or math.huge, -- image.nvim configured max size
+                limit.width or math.huge -- latex-renderer configured max size
             ),
             height = math.min(
                 math.floor(image.image_height / term_size.cell_height),
