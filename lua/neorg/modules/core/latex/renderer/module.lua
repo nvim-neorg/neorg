@@ -389,17 +389,16 @@ local function render_latex()
         render_timer = nil
 
         if not running_proc then
-            vim.schedule(function()
-                running_proc = nio.run(
-                    function()
-                        module.public.async_latex_renderer(buf)
-                    end,
-                    vim.schedule_wrap(function()
-                        module.public.render_inline_math(module.private.latex_images[buf] or {}, buf)
-                        running_proc = nil
-                    end)
-                )
-            end)
+            running_proc = nio.run(
+                function()
+                    nio.scheduler()
+                    module.public.async_latex_renderer(buf)
+                end,
+                function()
+                    module.public.render_inline_math(module.private.latex_images[buf] or {}, buf)
+                    running_proc = nil
+                end
+            )
         end
     end)
 end
