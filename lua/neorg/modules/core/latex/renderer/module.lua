@@ -218,7 +218,14 @@ module.public = {
                     module.config.public.scale,
                     not module.config.public.conceal
                 )
-                new_limages[key] = { image = img, range = range, snippet = clean_snippet, real = true }
+                local existing_ext_id = new_limages[key] and new_limages[key].extmark_id
+                new_limages[key] = {
+                    image = img,
+                    range = range,
+                    snippet = clean_snippet,
+                    real = true,
+                    extmark_id = existing_ext_id,
+                }
             end
         )
 
@@ -341,8 +348,10 @@ module.public = {
                 local image = limage.image
                 local predicted_image_dimensions =
                     module.private.image_api.image_size(image, { height = module.config.public.scale })
-                ext_opts.virt_text = { { (" "):rep(predicted_image_dimensions.width) } }
-                ext_opts.virt_text_pos = "inline"
+                if range[1] ~= cursor_row - 1 then
+                    ext_opts.virt_text = { { (" "):rep(predicted_image_dimensions.width) } }
+                    ext_opts.virt_text_pos = "inline"
+                end
             end
 
             if conceal_on and range[1] ~= cursor_row - 1 then
@@ -358,6 +367,11 @@ module.public = {
             if conceal_on and range[1] == cursor_row - 1 then
                 table.insert(module.private.cleared_at_cursor, key)
                 module.private.image_api.clear({ limage })
+                if limage.extmark_id then
+                    vim.api.nvim_buf_set_extmark(buffer, module.private.extmark_ns, range[1], range[2], {
+                        virt_text = { { "" } },
+                    })
+                end
                 goto continue
             end
             module.private.image_api.render({ limage })
@@ -389,16 +403,13 @@ local function render_latex()
         render_timer = nil
 
         if not running_proc then
-            running_proc = nio.run(
-                function()
-                    nio.scheduler()
-                    module.public.async_latex_renderer(buf)
-                end,
-                function()
-                    module.public.render_inline_math(module.private.latex_images[buf] or {}, buf)
-                    running_proc = nil
-                end
-            )
+            running_proc = nio.run(function()
+                nio.scheduler()
+                module.public.async_latex_renderer(buf)
+            end, function()
+                module.public.render_inline_math(module.private.latex_images[buf] or {}, buf)
+                running_proc = nil
+            end)
         end
     end)
 end
@@ -499,7 +510,7 @@ local event_handlers = {
     ["core.autocommands.events.bufwinenter"] = show_hidden,
     ["core.autocommands.events.cursormoved"] = clear_at_cursor,
     ["core.autocommands.events.textchanged"] = render_latex,
-    ["core.autocommands.events.textchangedi"] = render_latex,
+    -- ["core.autocommands.events.textchangedi"] = render_latex,
     ["core.autocommands.events.insertleave"] = render_latex,
     ["core.autocommands.events.colorscheme"] = colorscheme_change,
 }
@@ -518,7 +529,7 @@ module.events.subscribed = {
         bufwinenter = true,
         cursormoved = true,
         textchanged = true,
-        textchangedi = true,
+        -- textchangedi = true,
         insertleave = true,
         colorscheme = true,
     },
