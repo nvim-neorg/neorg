@@ -1,4 +1,5 @@
 /wiki/
+/.pre-commit-config.yaml
 test.norg
 /luarocks
 /lua_modules
