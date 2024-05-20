@@ -216,6 +216,8 @@ module.public = {
             scope = tangle_settings.scope or "all", -- "all" | "tagged" | "main"
             delimiter = tangle_settings.delimiter or "newline", -- "newline" | "heading" | "file-content" | "none"
         }
+
+        ---@diagnostic disable-next-line
         if vim.tbl_islist(options.languages) then
             options.filenames_only = options.languages
             options.languages = {}

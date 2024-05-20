@@ -311,7 +311,7 @@ module.public = {
 
     --- Get the range of a TSNode as an LspRange
     ---@param node TSNode
-    ---@return lsp.range
+    ---@return lsp.Range
     node_to_lsp_range = function(node)
         local start_line, start_col, end_line, end_col = node:range()
         return {
