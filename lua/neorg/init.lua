@@ -41,6 +41,10 @@ function neorg.setup(cfg)
             "Warning [neorg]: lua-utils not found. If you're just installing the plugin, ignore this message, when in doubt run `:Lazy build neorg`. If you're not on lazy please rerun the build scripts.",
             vim.log.levels.WARN
         )
+
+        -- Allow neorg to be reloaded once more.
+        package.loaded.neorg = nil
+
         user_configuration = cfg
         return
     end
