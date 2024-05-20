@@ -42,10 +42,14 @@ require("lazy").setup({
       config = true,
   },
   {
-    "nvim-neorg/neorg",
+    dir = ".",
+    name = "neorg",
     dependencies = { "luarocks.nvim" },
-    version = "*",
     config = function()
+      vim.cmd.Lazy("build neorg")
+
+      package.loaded.neorg = nil
+
       require("neorg").setup {
         load = {
           ["core.defaults"] = {},
@@ -63,6 +67,8 @@ require("lazy").setup({
 
       vim.wo.foldlevel = 99
       vim.wo.conceallevel = 2
+
+      vim.cmd.e('success')
     end,
   }
 })

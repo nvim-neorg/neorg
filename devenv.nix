@@ -13,6 +13,8 @@
 in {
   name = "neorg";
 
+  env.NVIM_APPNAME = "nvimneorg";
+
   languages.lua = {
     enable = true;
     package = pkgs.luajit;
@@ -30,11 +32,18 @@ in {
     '';
 
   enterTest = ''
-    nvim --headless -u ./res/kickstart.lua example.norg -c wq
-    if [ ! -f example.norg ]; then
+    echo "* Hello World!" > example.norg
+
+    # Open example.norg to trigger all of Neorg's features
+    nvim --headless -u ./.github/kickstart.lua -c wq example.norg
+
+    rm example.norg
+
+    if [ ! -f success ]; then
       echo "Integration test failed!"
       exit 1
     fi
-    rm example.norg
+
+    rm success
   '';
 }
