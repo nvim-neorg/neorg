@@ -1,8 +1,16 @@
 /wiki/
-.devenv/
 /luarocks
 /lua_modules
 /.luarocks
 /.luarc.json
-/.pre-commit-config.yaml
 test.norg
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
