@@ -15,12 +15,17 @@ jobs:
       matrix:
         os:
           - host: ubuntu-20.04
-          # - host: windows-2019
+          - host: windows-2022
           - host: macos-11 # x86_64
           - host: macos-14 # aarch64
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v10
+      - name: Setup WSL for Windows
+        if: runner.os == 'Windows'
+        uses: Vampire/setup-wsl@v3
+        with:
+          distribution: Ubuntu-22.04
       - uses: cachix/cachix-action@v14
         with:
           name: devenv
