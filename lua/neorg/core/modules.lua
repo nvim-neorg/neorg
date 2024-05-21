@@ -143,6 +143,8 @@ function modules.create(name, imports)
                 ["my.module.submodule"] = { ... },
             --]]
         },
+
+        tests = function() end,
     }
 
     if imports then
