@@ -45,7 +45,6 @@ local utils = require("neorg.core.utils")
 --- @field setup? fun(): neorg.module.setup? Function that is invoked before any other loading occurs. Should perform preliminary startup tasks.
 --- @field replaced? boolean If `true`, this means the module is a replacement for a core module. This flag is set automatically whenever `setup().replaces` is set to a value.
 --- @field on_event fun(event: neorg.event) A callback that is invoked any time an event the module has subscribed to has fired.
---- @field tests function A function for running tests.
 
 local modules = {}
 
