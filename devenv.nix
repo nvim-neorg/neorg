@@ -7,8 +7,9 @@
   ...
 }: let
   neorg-dependencies = builtins.fromJSON (builtins.readFile ./res/deps.json);
+  test-dependencies = [ "busted" ];
   luarc = pkgs.mk-luarc {
-    plugins = builtins.attrNames neorg-dependencies;
+    plugins = builtins.attrNames neorg-dependencies ++ test-dependencies;
   };
 in {
   name = "neorg";
@@ -23,7 +24,7 @@ in {
   # Set up packages for the developer and testing environment. Explanation of some packages:
   # - `tree-sitter` - for `tree-sitter-build` to work
   # - `imagemagick` - for testing `image.nvim` integrations
-  packages = with pkgs; [imagemagick git wget tree-sitter gcc luajitPackages.luarocks luajitPackages.magick neovim-unwrapped];
+  packages = with pkgs; [imagemagick git wget tree-sitter gcc neovim-unwrapped];
 
   enterShell =
     # TODO(vhyrro): Hook these up to the user's Neovim instance (somehow) | lib.attrsets.foldlAttrs (acc: name: version: "luarocks install --force-lock --local ${name} ${version}" + "\n" + acc) "" neorg-dependencies +
