@@ -912,11 +912,14 @@ module.events.subscribed = {
 }
 
 module.tests = function()
-    describe("initial test to see if CI works (cannot be tested on a branch, must be tested on main, `act` doesn't work here, help)", function()
-        it("should be working", function()
-            assert.truthy("Yessir.")
-        end)
-    end)
+    describe(
+        "initial test to see if CI works (cannot be tested on a branch, must be tested on main, `act` doesn't work here, help)",
+        function()
+            it("should be working", function()
+                assert.truthy("Yessir.")
+            end)
+        end
+    )
 end
 
 return module
