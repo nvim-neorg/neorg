@@ -1,0 +1,7 @@
+inputs:
+  nixpkgs:
+    url: github:cachix/devenv-nixpkgs/rolling
+  gen-luarc:
+    url: github:mrcjkb/nix-gen-luarc-json
+    overlays:
+      - default

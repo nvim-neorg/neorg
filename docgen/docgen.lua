@@ -499,7 +499,7 @@ docgen.generators = {
                 end
 
                 return docgen.evaluate_functions({
-                    "# Required Modules",
+                    "# Dependencies",
                     "",
                     list_modules_with_predicate(module_list, function()
                         return true

@@ -61,7 +61,7 @@ function module.public.attach_introspector(buffer)
     )
 
     vim.api.nvim_buf_attach(buffer, false, {
-        on_lines = function(_, buf, _, first)
+        on_lines = vim.schedule_wrap(function(_, buf, _, first)
             -- If we delete the last line of a file `first` will point to a nonexistent line
             -- For this reason we fall back to the line count (accounting for 0-based indexing)
             -- whenever a change to the document is made.
@@ -69,6 +69,10 @@ function module.public.attach_introspector(buffer)
 
             ---@type TSNode?
             local node = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, first)
+
+            if not node then
+                return
+            end
 
             vim.api.nvim_buf_clear_namespace(buffer, module.private.namespace, first + 1, first + 1)
 
@@ -98,7 +102,7 @@ function module.public.attach_introspector(buffer)
                     introspect(node_above)
                 end
             end
-        end,
+        end),
 
         on_detach = function()
             vim.api.nvim_buf_clear_namespace(buffer, module.private.namespace, 0, -1)

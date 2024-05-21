@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.5.0](https://github.com/nvim-neorg/neorg/compare/v8.4.1...v8.5.0) (2024-05-17)
+
+
+### Features
+
+* text-objects and working swap ([#1421](https://github.com/nvim-neorg/neorg/issues/1421)) ([49a3c64](https://github.com/nvim-neorg/neorg/commit/49a3c64c06dae55b5424b218dc7c6e6b643fd4f5))
+
+
+### Bug Fixes
+
+* **core.todo-introspector:** treesitter highlighter errors ([cb4f25b](https://github.com/nvim-neorg/neorg/commit/cb4f25bca799c49a81e471aeca1d6d95322c87a6))
+
 ## [8.4.1](https://github.com/nvim-neorg/neorg/compare/v8.4.0...v8.4.1) (2024-04-13)
 
 
