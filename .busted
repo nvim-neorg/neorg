@@ -3,7 +3,7 @@ return {
         coverage = false,
         lpath = "lua/?.lua;lua/?/init.lua",
         pattern = "module%.lua$",
-        auto_insulate = false,
+        -- auto_insulate = false,
         ROOT = { "lua/" },
     },
     default = {
