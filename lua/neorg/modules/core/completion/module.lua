@@ -122,7 +122,9 @@ module.private = {
             if capture == "title" then
                 local original_title = treesitter.get_node_text(node, iter_src)
                 if original_title then
-                    local title = original_title:gsub("[%s\\]", "")
+                    local title = original_title:gsub("\\", "")
+                    title = title:gsub("%s+", " ")
+                    title = title:gsub("^%s+", "")
                     table.insert(links, {
                         original_title = original_title,
                         title = title,
