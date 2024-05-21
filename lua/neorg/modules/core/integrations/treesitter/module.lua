@@ -308,6 +308,105 @@ module.public = {
 
         return table.concat(lines, "\n")
     end,
+
+    --- Get the range of a TSNode as an LspRange
+    ---@param node TSNode
+    ---@return lsp.Range
+    node_to_lsp_range = function(node)
+        local start_line, start_col, end_line, end_col = node:range()
+        return {
+            start = { line = start_line, character = start_col },
+            ["end"] = { line = end_line, character = end_col },
+        }
+    end,
+
+    --- Swap two nodes in the buffer. Ignores newlines at the end of the node
+    ---@param node1 TSNode
+    ---@param node2 TSNode
+    ---@param bufnr number
+    ---@param cursor_to_second boolean move the cursor to the start of the second node (default false)
+    swap_nodes = function(node1, node2, bufnr, cursor_to_second)
+        if not node1 or not node2 then
+            return
+        end
+        local range1 = module.public.node_to_lsp_range(node1)
+        local range2 = module.public.node_to_lsp_range(node2)
+
+        local text1 = module.public.get_node_text(node1, bufnr)
+        local text2 = module.public.get_node_text(node2, bufnr)
+
+        if not text1 or not text2 then
+            return
+        end
+
+        text1 = vim.split(text1, "\n")
+        text2 = vim.split(text2, "\n")
+
+        ---remove trailing blank lines from the text, and update the corresponding range appropriately
+        ---@param text string[]
+        ---@param range table
+        local function remove_trailing_blank_lines(text, range)
+            local end_line_offset = 0
+            while text[#text] == "" do
+                text[#text] = nil
+                end_line_offset = end_line_offset + 1
+            end
+            range["end"] = {
+                character = string.len(text[#text]),
+                line = range["end"].line - end_line_offset,
+            }
+            if #text == 1 then -- ie. start and end lines are equal
+                range["end"].character = range["end"].character + range.start.character
+            end
+        end
+
+        remove_trailing_blank_lines(text1, range1)
+        remove_trailing_blank_lines(text2, range2)
+
+        local edit1 = { range = range1, newText = table.concat(text2, "\n") }
+        local edit2 = { range = range2, newText = table.concat(text1, "\n") }
+
+        vim.lsp.util.apply_text_edits({ edit1, edit2 }, bufnr, "utf-8")
+
+        if cursor_to_second then
+            -- set jump location
+            vim.cmd("normal! m'")
+
+            local char_delta = 0
+            local line_delta = 0
+            if
+                range1["end"].line < range2.start.line
+                or (range1["end"].line == range2.start.line and range1["end"].character <= range2.start.character)
+            then
+                line_delta = #text2 - #text1
+            end
+
+            if range1["end"].line == range2.start.line and range1["end"].character <= range2.start.character then
+                if line_delta ~= 0 then
+                    --- why?
+                    --correction_after_line_change =  -range2.start.character
+                    --text_now_before_range2 = #(text2[#text2])
+                    --space_between_ranges = range2.start.character - range1["end"].character
+                    --char_delta = correction_after_line_change + text_now_before_range2 + space_between_ranges
+                    --- Equivalent to:
+                    char_delta = #text2[#text2] - range1["end"].character
+
+                    -- add range1.start.character if last line of range1 (now text2) does not start at 0
+                    if range1.start.line == range2.start.line + line_delta then
+                        char_delta = char_delta + range1.start.character
+                    end
+                else
+                    char_delta = #text2[#text2] - #text1[#text1]
+                end
+            end
+
+            vim.api.nvim_win_set_cursor(
+                vim.api.nvim_get_current_win(),
+                { range2.start.line + 1 + line_delta, range2.start.character + char_delta }
+            )
+        end
+    end,
+
     --- Returns the first node of given type if present
     ---@param type string #The type of node to search for
     ---@param buf number #The buffer to search in
