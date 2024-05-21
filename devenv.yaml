@@ -1,6 +1,6 @@
 inputs:
   nixpkgs:
-    url: github:cachix/devenv-nixpkgs/rolling
+    url: github:nixos/nixpkgs?ref=nixos-unstable
   gen-luarc:
     url: github:mrcjkb/nix-gen-luarc-json
     overlays:

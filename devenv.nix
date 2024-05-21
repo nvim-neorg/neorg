@@ -13,7 +13,7 @@
 in {
   name = "neorg";
 
-  env.NVIM_APPNAME = "nvimneorg";
+  # env.NVIM_APPNAME = "nvimneorg";
 
   languages.lua = {
     enable = true;
@@ -23,7 +23,7 @@ in {
   # Set up packages for the developer and testing environment. Explanation of some packages:
   # - `tree-sitter` - for `tree-sitter-build` to work
   # - `imagemagick` - for testing `image.nvim` integrations
-  packages = with pkgs; [imagemagick git wget tree-sitter gcc luajitPackages.luarocks luajitPackages.magick neovim];
+  packages = with pkgs; [imagemagick git wget tree-sitter gcc luajitPackages.luarocks luajitPackages.magick neovim-unwrapped];
 
   enterShell =
     # TODO(vhyrro): Hook these up to the user's Neovim instance (somehow) | lib.attrsets.foldlAttrs (acc: name: version: "luarocks install --force-lock --local ${name} ${version}" + "\n" + acc) "" neorg-dependencies +
@@ -32,6 +32,8 @@ in {
     '';
 
   enterTest = ''
+    export NVIM_APPNAME="nvimneorg"
+
     echo "* Hello World!" > example.norg
 
     # Open example.norg to trigger all of Neorg's features

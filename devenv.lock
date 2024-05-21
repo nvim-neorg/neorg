@@ -3,11 +3,11 @@
     "devenv": {
       "locked": {
         "dir": "src/modules",
-        "lastModified": 1716095607,
+        "lastModified": 1716283962,
         "owner": "cachix",
         "repo": "devenv",
-        "rev": "32983f6dbc1583e333eaaf8126dc21dfbcbef291",
-        "treeHash": "6d5dd30b138123c570417f2bac23874d884674c7",
+        "rev": "493a90dce3d276fb976f872bdbaa1af422b05b62",
+        "treeHash": "9a0f606370f647bd2a38bab1eb91da5d1adce51b",
         "type": "github"
       },
       "original": {
@@ -121,11 +121,11 @@
     },
     "nixpkgs-stable": {
       "locked": {
-        "lastModified": 1716061101,
+        "lastModified": 1716218643,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "e7cc61784ddf51c81487637b3031a6dd2d6673a2",
-        "treeHash": "0dfa8dcfb5f2b25b4be1a6f873c087557f335fac",
+        "rev": "a8695cbd09a7ecf3376bd62c798b9864d20f86ee",
+        "treeHash": "7c62ffb1bbf9fc2417d1720663e38db0c3f0b907",
         "type": "github"
       },
       "original": {
@@ -137,17 +137,17 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1713361204,
-        "owner": "cachix",
-        "repo": "devenv-nixpkgs",
-        "rev": "285676e87ad9f0ca23d8714a6ab61e7e027020c6",
-        "treeHash": "50354b35a3e0277d4a83a0a88fa0b0866b5f392f",
+        "lastModified": 1716137900,
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "6c0b7a92c30122196a761b440ac0d46d3d9954f1",
+        "treeHash": "b2e84f496b7b10fc3abd9e277841664e27854c74",
         "type": "github"
       },
       "original": {
-        "owner": "cachix",
-        "ref": "rolling",
-        "repo": "devenv-nixpkgs",
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
         "type": "github"
       }
     },
@@ -161,11 +161,11 @@
         "nixpkgs-stable": "nixpkgs-stable"
       },
       "locked": {
-        "lastModified": 1715870890,
+        "lastModified": 1716213921,
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "fa606cccd7b0ccebe2880051208e4a0f61bfc8c1",
-        "treeHash": "ea38e19d9964cd72fb9936d75b9807756c754234",
+        "rev": "0e8fcc54b842ad8428c9e705cb5994eaf05c26a0",
+        "treeHash": "17b9f9f9983467bcff247b09761dca9831d3d3be",
         "type": "github"
       },
       "original": {
