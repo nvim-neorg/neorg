@@ -5,10 +5,6 @@
 /.luarc.json
 test.norg
 
-# Devenv
-.devenv*
-devenv.local.nix
-
 # direnv
 .direnv
 
