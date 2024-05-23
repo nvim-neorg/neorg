@@ -7,7 +7,7 @@
   ...
 }: let
   neorg-dependencies = builtins.fromJSON (builtins.readFile ./res/deps.json);
-  test-dependencies = [ "busted" ];
+  test-dependencies = [];
   luarc = pkgs.mk-luarc {
     plugins = builtins.attrNames neorg-dependencies ++ test-dependencies;
   };
