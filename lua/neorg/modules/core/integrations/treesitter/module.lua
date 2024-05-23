@@ -288,7 +288,9 @@ module.public = {
         descend(root)
     end,
     get_node_text = function(node, source)
-        if not node then return "" end
+        if not node then
+            return ""
+        end
 
         -- when source is the string contents of the file
         if type(source) == "string" then
