@@ -583,7 +583,6 @@ module.public = {
 
             _ = function()
                 local query_str = links.get_link_target_query_string(parsed_link_information.link_type)
-
                 local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
 
                 if not document_root then

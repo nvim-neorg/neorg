@@ -288,6 +288,15 @@ module.public = {
         descend(root)
     end,
     get_node_text = function(node, source)
+        if not node then return "" end
+
+        -- when source is the string contents of the file
+        if type(source) == "string" then
+            local _, _, start_bytes = node:start()
+            local _, _, end_bytes = node:end_()
+            return string.sub(source, start_bytes, end_bytes)
+        end
+
         source = source or 0
 
         local start_row, start_col = node:start()
