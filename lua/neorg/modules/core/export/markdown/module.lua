@@ -224,10 +224,23 @@ module.public = {
                 tag_close = nil,
                 ranged_tag_indentation_level = 0,
                 is_url = false,
+                footnote_count = 0,
             }
         end,
 
         functions = {
+
+            ["single_footnote"] = function(_, node, state)
+                state['footnote_count'] = state['footnote_count'] + 1
+                for nd in node:iter_children() do
+                    if nd:type() == 'paragraph' then
+                        local n = state['footnote_count']
+                        return "[^" .. n .. "]\n\n\n[^" .. n .. "]: " .. module.required["core.integrations.treesitter"].get_node_text(nd)
+                    end
+                end
+                return ""
+            end,
+
             ["_word"] = true,
             ["_space"] = true,
 
