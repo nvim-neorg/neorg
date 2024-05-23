@@ -231,11 +231,16 @@ module.public = {
         functions = {
 
             ["single_footnote"] = function(_, node, state)
-                state['footnote_count'] = state['footnote_count'] + 1
+                state["footnote_count"] = state["footnote_count"] + 1
                 for nd in node:iter_children() do
-                    if nd:type() == 'paragraph' then
-                        local n = state['footnote_count']
-                        return "[^" .. n .. "]\n\n\n[^" .. n .. "]: " .. module.required["core.integrations.treesitter"].get_node_text(nd)
+                    if nd:type() == "paragraph" then
+                        local n = state["footnote_count"]
+                        return "[^"
+                            .. n
+                            .. "]\n\n\n[^"
+                            .. n
+                            .. "]: "
+                            .. module.required["core.integrations.treesitter"].get_node_text(nd)
                     end
                 end
                 return ""
