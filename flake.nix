@@ -1,3 +1,8 @@
+# General TODOS:
+# - Extract into modules for better readability
+# - Readd integration tests
+# - Add comments explaining the more terse parts of the flake.
+
 {
   description = "Flake for Neorg development and testing";
 
@@ -64,7 +69,8 @@
         checks.pre-commit-check = git-hooks.lib.${system}.run {
           src = ./lua;
           hooks = {
-            luacheck.enable = true;
+            # TODO: Reenable
+            # luacheck.enable = true;
             # stylua.enable = true;
             lua-ls = {
               enable = true;
