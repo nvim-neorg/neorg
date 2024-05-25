@@ -17,6 +17,8 @@ dependencies = {
     -- "norgopolis-server.lua >= 1.3.1",
     "lua-utils.nvim",
     "pathlib.nvim ~> 2.2",
+    "tree-sitter-norg == 0.2.4",
+    "tree-sitter-norg-meta == 0.1.0",
 }
 
 source = {
@@ -28,6 +30,10 @@ if MODREV == "scm" then
 		url = "git://github.com/nvim-neorg/neorg",
 	}
 end
+
+test_dependencies = {
+    "nlua",
+}
 
 build = {
    type = "builtin",

@@ -5,13 +5,14 @@
   wget,
   self,
 }: let
-  dependencies = builtins.fromJSON (builtins.readFile "${self}/res/deps.json");
+  # Temporarily remove the parsers due to installation problems on Nix. Causes the integration test to fail for now.
+  dependencies = builtins.removeAttrs (builtins.fromJSON (builtins.readFile "${self}/res/deps.json")) ["tree-sitter-norg" "tree-sitter-norg-meta"];
 in
   runCommand "install-neorg-dependencies" {
     nativeBuildInputs = [lua51Packages.luarocks wget];
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
-    outputHash = "sha256-Z9hODJb/vNqa2OhAo8IuOLJWTaa/63mu0mVxAlAGJnA=";
+    outputHash = "sha256-tvMqTgTshVApj3muQyvwj+as/8b7tw1r0BlCTpMlGuU=";
   } ''
     mkdir $PWD/home
     export HOME=$PWD/home
@@ -19,7 +20,7 @@ in
 
     ${lib.concatStrings (lib.mapAttrsToList (name: version:
       ''
-        luarocks install --server="https://nvim-neorocks.github.io/rocks-binaries/" --tree="$out/luarocks" --force-lock --local ${name} ${version}
+        luarocks install --tree="$out/luarocks" --force-lock --local ${name} ${version}
         luarocks download ${name} ${version}
       ''
       + "\n")
