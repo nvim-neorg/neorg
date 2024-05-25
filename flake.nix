@@ -47,7 +47,7 @@
         };
         dependencies = builtins.fromJSON (builtins.readFile ./res/deps.json);
         install-dependencies = pkgs.runCommand "install-neorg-dependencies" {
-          packages = with pkgs; [lua51Packages.luarocks wget];
+          nativeBuildInputs = with pkgs; [lua51Packages.luarocks wget];
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
           outputHash = "sha256-SOsIgtmkXTKMZrKUHHzAf+XAshl/J7+DN9RFeLz+DDY=";
