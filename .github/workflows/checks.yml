@@ -1,0 +1,18 @@
+name: "Codebase Checks"
+
+# This workflow runs various checks (type checking, code checks)
+# to ensure that Neorg is not breaking.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v10
+      - name: Run Checks
+        run: nix flake check
