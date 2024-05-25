@@ -50,10 +50,11 @@
           nativeBuildInputs = with pkgs; [lua51Packages.luarocks wget];
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
-          outputHash = "sha256-SOsIgtmkXTKMZrKUHHzAf+XAshl/J7+DN9RFeLz+DDY=";
+          outputHash = "sha256-dCr4RGzmOavixuO5kUg8SAwmi3bh1WX5cd0Nl+Vj26g=";
         } ''
-          mkdir home
+          mkdir $PWD/home
           export HOME=$PWD/home
+          mkdir -p $out/luarocks
 
           ${lib.concatStrings (lib.mapAttrsToList (name: version: "luarocks install --tree='$out/luarocks' --force-lock --local ${name} ${version}\n") dependencies)}
         '';
