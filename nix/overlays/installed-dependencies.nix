@@ -1,12 +1,14 @@
 {
   lib,
-  pkgs,
+  runCommand,
+  lua51Packages,
+  wget,
   self,
 }: let
   dependencies = builtins.fromJSON (builtins.readFile "${self}/res/deps.json");
 in
-  pkgs.runCommand "install-neorg-dependencies" {
-    nativeBuildInputs = with pkgs; [lua51Packages.luarocks wget];
+  runCommand "install-neorg-dependencies" {
+    nativeBuildInputs = [lua51Packages.luarocks wget];
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
     outputHash = "sha256-tvMqTgTshVApj3muQyvwj+as/8b7tw1r0BlCTpMlGuU=";

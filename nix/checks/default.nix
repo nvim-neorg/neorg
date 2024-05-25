@@ -34,7 +34,7 @@
 
       neorocks-test =
         (pkgs.neorocksTest {
-          src = self;
+          src = "${self}";
           name = "neorg";
           version = "scm-1";
           neovim = pkgs.neovim-unwrapped;
