@@ -2,7 +2,6 @@
 # - Extract into modules for better readability
 # - Readd integration tests
 # - Add comments explaining the more terse parts of the flake.
-
 {
   description = "Flake for Neorg development and testing";
 
@@ -46,18 +45,19 @@
           ];
         };
         dependencies = builtins.fromJSON (builtins.readFile ./res/deps.json);
-        install-dependencies = pkgs.runCommand "install-neorg-dependencies" {
-          nativeBuildInputs = with pkgs; [lua51Packages.luarocks wget];
-          outputHashAlgo = "sha256";
-          outputHashMode = "recursive";
-          outputHash = "sha256-SOsIgtmkXTKMZrKUHHzAf+XAshl/J7+DN9RFeLz+DDY=";
-        } ''
-          mkdir $PWD/home
-          export HOME=$PWD/home
-          mkdir -p $out/luarocks
+        install-dependencies =
+          pkgs.runCommand "install-neorg-dependencies" {
+            nativeBuildInputs = with pkgs; [lua51Packages.luarocks wget];
+            outputHashAlgo = "sha256";
+            outputHashMode = "recursive";
+            outputHash = "sha256-SOsIgtmkXTKMZrKUHHzAf+XAshl/J7+DN9RFeLz+DDY=";
+          } ''
+            mkdir $PWD/home
+            export HOME=$PWD/home
+            mkdir -p $out/luarocks
 
-          ${lib.concatStrings (lib.mapAttrsToList (name: version: ''luarocks install --tree="$out/luarocks" --force-lock --local ${name} ${version}'' + "\n") dependencies)}
-        '';
+            ${lib.concatStrings (lib.mapAttrsToList (name: version: ''luarocks install --tree="$out/luarocks" --force-lock --local ${name} ${version}'' + "\n") dependencies)}
+          '';
         luarc = pkgs.mk-luarc {};
         luarc-with-dependencies =
           luarc
@@ -72,16 +72,22 @@
       in {
         formatter = pkgs.alejandra;
 
-        checks.pre-commit-check = git-hooks.lib.${system}.run {
+        checks.type-check = git-hooks.lib.${system}.run {
           src = ./lua;
           hooks = {
-            # TODO: Reenable
-            # luacheck.enable = true;
-            # stylua.enable = true;
             lua-ls = {
               enable = true;
               settings.configuration = luarc-with-dependencies;
             };
+          };
+        };
+
+        checks.pre-commit-check = git-hooks.lib.${system}.run {
+          src = self;
+          hooks = {
+            alejandra.enable = true;
+            luacheck.enable = true;
+            # stylua.enable = true;
           };
         };
 

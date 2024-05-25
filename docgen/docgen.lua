@@ -79,7 +79,7 @@ docgen.get_module_top_comment = function(buf)
     local comment = vim.split(ts.get_node_text(node, buf), "\n")
 
     -- Stops execution if it's not a multiline comment
-    if not comment[1] == "--[[" or not comment[#comment] == "--]]" then
+    if comment[1] ~= "--[[" or comment[#comment] ~= "--]]" then
         return
     end
 

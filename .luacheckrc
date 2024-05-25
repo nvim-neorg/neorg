@@ -9,6 +9,8 @@ globals = {
   "_neorg_module_autocommand_triggered"
 }
 
+std = "max+busted"
+
 ignore = {
   "631",  -- max_line_length
 }
