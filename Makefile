@@ -8,4 +8,10 @@ format:
 	stylua -v --verify .
 
 check:
-	luacheck lua/ --codes
+	nix flake check
+
+shell:
+	nix develop
+
+integration-test:
+	nix run ".#integration-test"
