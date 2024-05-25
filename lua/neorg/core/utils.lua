@@ -12,6 +12,7 @@ function utils.ts_parse_query(language, query_string)
     if vim.treesitter.query.parse then
         return vim.treesitter.query.parse(language, query_string)
     else
+        ---@diagnostic disable-next-line
         return vim.treesitter.parse_query(language, query_string)
     end
 end

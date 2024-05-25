@@ -98,7 +98,7 @@ module.private = {
         end
         if type(source) == "string" then
             -- check if the file is open; use the buffer contents if it is
-            if vim.fn.bufnr(source) ~= -1 then
+            if vim.fn.bufnr(source) ~= -1 then ---@diagnostic disable-line
                 source = vim.uri_to_bufnr(vim.uri_from_fname(source))
             else
                 iter_src = io.open(source, "r"):read("*a")
@@ -118,7 +118,7 @@ module.private = {
         local norg_tree = norg_parser:parse()[1]
         local query = vim.treesitter.query.parse("norg", query_str)
         local links = {}
-        for id, node in query:iter_captures(norg_tree:root(), iter_src) do
+        for id, node in query:iter_captures(norg_tree:root(), iter_src, 0, -1) do
             local capture = query.captures[id]
             if capture == "title" then
                 local original_title = treesitter.get_node_text(node, iter_src)

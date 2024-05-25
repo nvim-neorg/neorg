@@ -236,7 +236,7 @@ module.public = {
             local root = tree:root()
 
             --- Recursively searches for a node of a given type
-            ---@param node userdata #The starting point for the search
+            ---@param node TSNode #The starting point for the search
             local function descend(node)
                 -- Iterate over all children of the node and try to match their type
                 for child, _ in node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
@@ -471,7 +471,7 @@ module.public = {
             end
 
             --- Recursively searches for a node of a given type
-            ---@param node userdata #The starting point for the search
+            ---@param node TSNode #The starting point for the search
             local function descend(node)
                 -- Iterate over all children of the node and try to match their type
                 for child, _ in node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
@@ -596,7 +596,7 @@ module.public = {
     --- Extracts the document root from the current document or from the string
     ---@param src number|string The number of the buffer to extract or string with code (can be nil)
     ---@param filetype string? #The filetype of the buffer or the string with code
-    ---@return userdata? #The root node of the document
+    ---@return TSNode? #The root node of the document
     get_document_root = function(src, filetype)
         filetype = filetype or "norg"
 
