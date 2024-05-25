@@ -1,6 +1,8 @@
 {
   self,
   git-hooks,
+  pkgs,
+  lib,
   ...
 }: {
   perSystem = {
@@ -29,6 +31,21 @@
           # stylua.enable = true;
         };
       };
+
+      neorocks-test =
+        (pkgs.neorocksTest {
+          src = self;
+          name = "neorg";
+          version = "scm-1";
+          neovim = pkgs.neovim-unwrapped;
+        })
+        .overrideAttrs (oa:
+          lib.recursiveUpdate oa {
+            luarocksConfig = {
+              rocks_servers = ["${pkgs.installed-dependencies}/luarocks"];
+              rocks_trees = oa.luarocksConfig.rocks_trees ++ ["${pkgs.installed-dependencies}/luarocks" "."];
+            };
+          });
     };
   };
 }

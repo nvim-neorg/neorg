@@ -1,28 +1,13 @@
 {
+  callPackage,
+  installed-dependencies,
   lib,
-  self,
-  mk-luarc,
-  runCommand,
   lua51Packages,
-  wget,
+  mk-luarc,
+  pkgs,
+  self,
 }: let
   luarc = mk-luarc {};
-
-  dependencies = builtins.fromJSON (builtins.readFile "${self}/res/deps.json");
-
-  install-dependencies =
-    runCommand "install-neorg-dependencies" {
-      nativeBuildInputs = [lua51Packages.luarocks wget];
-      outputHashAlgo = "sha256";
-      outputHashMode = "recursive";
-      outputHash = "sha256-SOsIgtmkXTKMZrKUHHzAf+XAshl/J7+DN9RFeLz+DDY=";
-    } ''
-      mkdir $PWD/home
-      export HOME=$PWD/home
-      mkdir -p $out/luarocks
-
-      ${lib.concatStrings (lib.mapAttrsToList (name: version: ''luarocks install --tree="$out/luarocks" --force-lock --local ${name} ${version} '' + "\n") dependencies)}
-    '';
 in
   luarc
   // {
@@ -30,6 +15,6 @@ in
     inherit (luarc.Lua) diagnostics globals;
     Lua.workspace = {
       inherit (luarc.Lua.workspace) ignoreDir;
-      library = luarc.Lua.workspace.library ++ ["${install-dependencies}/luarocks/share/lua/5.1/"];
+      library = luarc.Lua.workspace.library ++ ["${installed-dependencies}/luarocks/share/lua/5.1/"];
     };
   }

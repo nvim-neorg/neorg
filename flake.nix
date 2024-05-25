@@ -7,6 +7,9 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
 
+    neorocks.url = "github:nvim-neorocks/neorocks";
+    neorocks.inputs.nixpkgs.follows = "nixpkgs";
+
     gen-luarc.url = "github:mrcjkb/nix-gen-luarc-json";
     gen-luarc.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -18,6 +21,7 @@
     self,
     nixpkgs,
     flake-parts,
+    neorocks,
     gen-luarc,
     git-hooks,
     ...
@@ -29,7 +33,7 @@
         "aarch64-darwin"
       ];
 
-      _module.args = {inherit gen-luarc git-hooks;};
+      _module.args = {inherit gen-luarc neorocks git-hooks;};
 
       imports = [
         ./nix/overlays
