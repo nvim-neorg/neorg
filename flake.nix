@@ -30,12 +30,11 @@
         "aarch64-darwin"
       ];
 
-      _module.args = {
-        inherit gen-luarc;
-      };
+      _module.args = {inherit gen-luarc git-hooks;};
 
       imports = [
         ./nix/overlays
+        ./nix/checks
       ];
 
       perSystem = {
@@ -49,25 +48,6 @@
       }: let
       in {
         formatter = pkgs.alejandra;
-
-        checks.type-check = git-hooks.lib.${system}.run {
-          src = ./lua;
-          hooks = {
-            lua-ls = {
-              enable = true;
-              settings.configuration = pkgs.luarc-with-dependencies;
-            };
-          };
-        };
-
-        checks.pre-commit-check = git-hooks.lib.${system}.run {
-          src = self;
-          hooks = {
-            alejandra.enable = true;
-            luacheck.enable = true;
-            # stylua.enable = true;
-          };
-        };
 
         packages.integration-test = let
           kickstart-config =
