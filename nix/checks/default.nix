@@ -3,12 +3,32 @@
   git-hooks,
   ...
 }: {
-  perSystem = {pkgs, ...}: {
-    checks = let
-      callPackage = pkgs.lib.callPackageWith (pkgs // {inherit self git-hooks;});
-    in {
-      type-check = callPackage ./type-check.nix {};
-      pre-commit-check = callPackage ./pre-commit-check.nix {};
+  perSystem = {
+    pkgs,
+    system,
+    ...
+  }: {
+    checks = {
+      type-check = git-hooks.lib.${system}.run {
+        src = "${self}/lua";
+
+        hooks = {
+          lua-ls = {
+            enable = true;
+            settings.configuration = pkgs.luarc-with-dependencies;
+          };
+        };
+      };
+
+      pre-commit-check = git-hooks.lib.${system}.run {
+        src = "${self}";
+
+        hooks = {
+          alejandra.enable = true;
+          luacheck.enable = true;
+          # stylua.enable = true;
+        };
+      };
     };
   };
 }
