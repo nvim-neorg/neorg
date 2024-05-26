@@ -15,7 +15,9 @@
       overlays = [
         gen-luarc.overlays.default
 
-        (_: prev: {
+        (final: prev: {
+          lib = prev.lib // import ./lib.nix {inherit pkgs;};
+
           # NOTE: I would have used callPackage for easy overriding, but
           # this changes the type and *-to-json fails later. To be figured out.
           luarc-with-dependencies = import ./luarc.nix {
