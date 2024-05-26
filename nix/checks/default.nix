@@ -3,11 +3,7 @@
   git-hooks,
   ...
 }: {
-  perSystem = {
-    pkgs,
-    system,
-    ...
-  }: {
+  perSystem = {pkgs, ...}: {
     checks = let
       callPackage = pkgs.lib.callPackageWith (pkgs // {inherit self git-hooks;});
     in {
