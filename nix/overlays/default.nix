@@ -16,8 +16,8 @@
         gen-luarc.overlays.default
 
         (_: prev: {
-          # NOTE: I would have use callPackage for easy overriding, but
-          # this changes the type and *-to-json fails later. To figure out.
+          # NOTE: I would have used callPackage for easy overriding, but
+          # this changes the type and *-to-json fails later. To be figured out.
           luarc-with-dependencies = import ./luarc.nix {
             inherit self;
             inherit (pkgs) lib mk-luarc runCommand lua51Packages wget;
