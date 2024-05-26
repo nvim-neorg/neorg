@@ -29,6 +29,15 @@
         "x86_64-darwin"
         "aarch64-darwin"
       ];
+
+      _module.args = {
+        inherit gen-luarc;
+      };
+
+      imports = [
+        ./nix/overlays
+      ];
+
       perSystem = {
         config,
         self',
@@ -38,37 +47,6 @@
         lib,
         ...
       }: let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [
-            gen-luarc.overlays.default
-          ];
-        };
-        dependencies = builtins.fromJSON (builtins.readFile ./res/deps.json);
-        install-dependencies =
-          pkgs.runCommand "install-neorg-dependencies" {
-            nativeBuildInputs = with pkgs; [lua51Packages.luarocks wget];
-            outputHashAlgo = "sha256";
-            outputHashMode = "recursive";
-            outputHash = "sha256-SOsIgtmkXTKMZrKUHHzAf+XAshl/J7+DN9RFeLz+DDY=";
-          } ''
-            mkdir $PWD/home
-            export HOME=$PWD/home
-            mkdir -p $out/luarocks
-
-            ${lib.concatStrings (lib.mapAttrsToList (name: version: ''luarocks install --tree="$out/luarocks" --force-lock --local ${name} ${version}'' + "\n") dependencies)}
-          '';
-        luarc = pkgs.mk-luarc {};
-        luarc-with-dependencies =
-          luarc
-          // {
-            inherit (luarc) runtime;
-            inherit (luarc.Lua) diagnostics globals;
-            Lua.workspace = {
-              inherit (luarc.Lua.workspace) ignoreDir;
-              library = luarc.Lua.workspace.library ++ ["${install-dependencies}/luarocks/share/lua/5.1/"];
-            };
-          };
       in {
         formatter = pkgs.alejandra;
 
@@ -77,7 +55,7 @@
           hooks = {
             lua-ls = {
               enable = true;
-              settings.configuration = luarc-with-dependencies;
+              settings.configuration = pkgs.luarc-with-dependencies;
             };
           };
         };
@@ -193,7 +171,7 @@
           name = "neorg devShell";
 
           shellHook = ''
-            ln -fs ${pkgs.luarc-to-json luarc-with-dependencies} .luarc.json
+            ln -fs ${pkgs.luarc-to-json pkgs.luarc-with-dependencies} .luarc.json
           '';
 
           packages = with pkgs; [
