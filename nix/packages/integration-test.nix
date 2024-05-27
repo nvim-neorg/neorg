@@ -14,70 +14,70 @@
       -- Install lazy.nvim
       local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
       if not (vim.uv or vim.loop).fs_stat(lazypath) then
-      vim.fn.system({
+      	vim.fn.system({
       		"git",
       		"clone",
       		"--filter=blob:none",
       		"https://github.com/folke/lazy.nvim.git",
       		"--branch=stable", -- latest stable release
       		lazypath,
-      		})
+      	})
       end
       vim.opt.rtp:prepend(lazypath)
 
       -- Set up both the traditional leader (for keymaps) as well as the local leader (for norg files)
-      	vim.g.mapleader = " "
-      	vim.g.maplocalleader = ","
+      vim.g.mapleader = " "
+      vim.g.maplocalleader = ","
 
-      	require("lazy").setup({
-      			{
-      			"rebelot/kanagawa.nvim", -- neorg needs a colorscheme with treesitter support
-      			config = function()
-      			vim.cmd.colorscheme("kanagawa")
-      			end,
-      			},
-      			{
-      			"nvim-treesitter/nvim-treesitter",
-      			build = ":TSUpdate",
-      			opts = {
+      require("lazy").setup({
+      	{
+      		"rebelot/kanagawa.nvim", -- neorg needs a colorscheme with treesitter support
+      		config = function()
+      				vim.cmd.colorscheme("kanagawa")
+      		end,
+      	},
+      	{
+      		"nvim-treesitter/nvim-treesitter",
+      		build = ":TSUpdate",
+      		opts = {
       			ensure_installed = { "c", "lua", "vim", "vimdoc", "query" },
       			highlight = { enable = true },
-      			},
-      			config = function(_, opts)
+      		},
+      		config = function(_, opts)
       			require("nvim-treesitter.configs").setup(opts)
-      			end,
-      			},
-      			{
+      		end,
+      	},
+      	{
       			"vhyrro/luarocks.nvim",
       			priority = 1000,
       			config = true,
-      			},
-      			{
-      				"nvim-neorg/neorg",
-      				dependencies = { "luarocks.nvim" },
-      				config = function()
-      					require("neorg").setup {
-      						load = {
-      							["core.defaults"] = {},
-      							["core.concealer"] = {},
-      							["core.dirman"] = {
-      								config = {
-      									workspaces = {
-      										notes = "~/notes",
-      									},
-      									default_workspace = "notes",
-      								},
+      	},
+      	{
+      		"nvim-neorg/neorg",
+      		dependencies = { "luarocks.nvim" },
+      		config = function()
+      			require("neorg").setup {
+      				load = {
+      					["core.defaults"] = {},
+      					["core.concealer"] = {},
+      					["core.dirman"] = {
+      						config = {
+      							workspaces = {
+      								notes = "~/notes",
       							},
+      							default_workspace = "notes",
       						},
-      					}
-
-      				vim.cmd.e("success")
-
-      					vim.wo.foldlevel = 99
-      					vim.wo.conceallevel = 2
-      					end,
+      					},
+      				},
       			}
-      	})
+
+      			vim.cmd.e("success")
+
+      			vim.wo.foldlevel = 99
+      			vim.wo.conceallevel = 2
+      		end,
+      	}
+      })
     '';
 in
   writeShellApplication {
@@ -102,9 +102,9 @@ in
 
       if [ ! -f success ]; then
       	echo "Integration test failed!"
-      		exit 1
-      		fi
+      	exit 1
+      fi
 
-      		rm success
+      rm success
     '';
   }
