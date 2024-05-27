@@ -322,11 +322,11 @@
         "pre-commit-hooks": "pre-commit-hooks_2"
       },
       "locked": {
-        "lastModified": 1716700969,
-        "narHash": "sha256-IKn6PbJ9KVI7Ab4pUFGeJ2dVfTufrZ8d3YNUqAne6MQ=",
+        "lastModified": 1716789124,
+        "narHash": "sha256-HKmLyKmacbSih+G1iO6duY9JEz4K/R3USyLymetC3Bg=",
         "owner": "nvim-neorocks",
         "repo": "neorocks",
-        "rev": "c3cd6a44734bd4d09a8d05025249f79a8de8f3d2",
+        "rev": "1043f03edcbb6bb0079001a3d42a4ce63f213a55",
         "type": "github"
       },
       "original": {
@@ -345,11 +345,11 @@
         "pre-commit-hooks": "pre-commit-hooks"
       },
       "locked": {
-        "lastModified": 1716672993,
-        "narHash": "sha256-KISj1WGeeEb6d2rYFRGYHYiDvNJN1JtRKU2+jE32LMQ=",
+        "lastModified": 1716760058,
+        "narHash": "sha256-5fMMNezTARjbc8HgEkvcOazlrsBBzlKSMVp56xTCY2g=",
         "owner": "nix-community",
         "repo": "neovim-nightly-overlay",
-        "rev": "0f91f34a626baade98dfa091cc7a023266644d91",
+        "rev": "0c1fc48841eda5e35402327b1a71f4bb034a012c",
         "type": "github"
       },
       "original": {
@@ -454,11 +454,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1716358718,
-        "narHash": "sha256-NQbegJb2ZZnAqp2EJhWwTf6DrZXSpA6xZCEq+RGV1r0=",
+        "lastModified": 1716715802,
+        "narHash": "sha256-usk0vE7VlxPX8jOavrtpOqphdfqEQpf9lgedlY/r66c=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "3f316d2a50699a78afe5e77ca486ad553169061e",
+        "rev": "e2dd4e18cc1c7314e24154331bae07df76eb582f",
         "type": "github"
       },
       "original": {
@@ -487,13 +487,13 @@
         "lastModified": 1716213921,
         "narHash": "sha256-xrsYFST8ij4QWaV6HEokCUNIZLjjLP1bYC60K8XiBVA=",
         "owner": "cachix",
-        "repo": "pre-commit-hooks.nix",
+        "repo": "git-hooks.nix",
         "rev": "0e8fcc54b842ad8428c9e705cb5994eaf05c26a0",
         "type": "github"
       },
       "original": {
         "owner": "cachix",
-        "repo": "pre-commit-hooks.nix",
+        "repo": "git-hooks.nix",
         "type": "github"
       }
     },
