@@ -4,6 +4,7 @@
   neovim-unwrapped,
   tree-sitter,
   lua5_1,
+  gcc,
   wget,
 }: let
   kickstart-config =
@@ -88,6 +89,7 @@ in
       tree-sitter
       lua5_1
       wget
+      gcc
       kickstart-config
     ];
 
