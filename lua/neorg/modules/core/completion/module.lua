@@ -48,7 +48,7 @@ module.config.public = {
 module.setup = function()
     return {
         success = true,
-        requires = { "core.dirman", "core.dirman.utils", "core.integrations.treesitter", "core.links" },
+        requires = { "core.dirman", "core.dirman.utils", "core.treesitter", "core.links" },
     }
 end
 
@@ -260,7 +260,7 @@ module.load = function()
     dirutils = module.required["core.dirman.utils"]
     dirman = module.required["core.dirman"]
     link_utils = module.required["core.links"]
-    treesitter = module.required["core.integrations.treesitter"]
+    treesitter = module.required["core.treesitter"]
 
     -- Set a special function in the integration module to allow it to communicate with us
     module.private.engine.invoke_completion_engine = function(context) ---@diagnostic disable-line
@@ -567,9 +567,6 @@ module.public = {
 
                     -- If the completion data has a node variable then attempt to match the current node too!
                     if completion_data.node then
-                        -- Grab the treesitter utilities
-                        local ts = treesitter.get_ts_utils()
-
                         -- If the type of completion data we're dealing with is a string then attempt to parse it
                         if type(completion_data.node) == "string" then
                             -- Split the completion node string down every pipe character
@@ -588,13 +585,13 @@ module.public = {
                                 -- Is our other value "prev"? If so, compare the current node in the syntax tree with the previous node
                                 if split[2] == "prev" then
                                     -- Get the previous node
-                                    local current_node = ts.get_node_at_cursor()
+                                    local current_node = vim.treesitter.get_node()
 
                                     if not current_node then
                                         return { items = {}, options = {} }
                                     end
 
-                                    local previous_node = ts.get_previous_node(current_node, true, true)
+                                    local previous_node = module.required["core.treesitter"].get_previous_node(current_node, true, true)
 
                                     -- If the previous node is nil
                                     if not previous_node then
@@ -621,13 +618,13 @@ module.public = {
                                     -- Else if our second split is equal to "next" then it's time to inspect the next node in the AST
                                 elseif split[2] == "next" then
                                     -- Grab the next node
-                                    local current_node = ts.get_node_at_cursor()
+                                    local current_node = vim.treesitter.get_node()
 
                                     if not current_node then
                                         return { items = {}, options = {} }
                                     end
 
-                                    local next_node = ts.get_next_node(current_node, true, true)
+                                    local next_node = module.required["core.treesitter"].get_next_node(current_node, true, true)
 
                                     -- If it's nil
                                     if not next_node then
@@ -652,7 +649,7 @@ module.public = {
                                     end
                                 end
                             else -- If we haven't defined a split (no pipe was found) then compare the current node
-                                if ts.get_node_at_cursor():type() == split[1] then
+                                if vim.treesitter.get_node():type() == split[1] then
                                     -- If we're not negating then return completions
                                     if not negate then
                                         return ret_completions
@@ -664,19 +661,19 @@ module.public = {
                             -- If our completion data type is not a string but rather it is a function then
                         elseif type(completion_data.node) == "function" then
                             -- Grab all the necessary variables (current node, previous node, next node)
-                            local current_node = ts.get_node_at_cursor()
+                            local current_node = vim.treesitter.get_node()
 
                             -- The file is blank, return completions
                             if not current_node then
                                 return ret_completions
                             end
 
-                            local next_node = ts.get_next_node(current_node, true, true)
-                            local previous_node = ts.get_previous_node(current_node, true, true)
+                            local next_node = module.required["core.treesitter"].get_next_node(current_node, true, true)
+                            local previous_node = module.required["core.treesitter"].get_previous_node(current_node, true, true)
 
                             -- Execute the callback function with all of our parameters.
                             -- If it returns true then that means the match was successful, and so return completions
-                            if completion_data.node(current_node, previous_node, next_node, ts) then
+                            if completion_data.node(current_node, previous_node, next_node) then
                                 return ret_completions
                             end
 

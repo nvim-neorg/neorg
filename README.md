@@ -84,6 +84,7 @@ The recommended installation method is via [rocks.nvim](https://github.com/nvim-
 <summary>Installation snippet.</summary>
 
 - Run `:Rocks install rocks-config.nvim` (if you don't have it already!).
+- If you don't have `nvim-treesitter` installed run `:Rocks install rocks-treesitter.nvim`.
 - Run `:Rocks install neorg`.
 - Add the following to your config's `lua/plugins/neorg.lua`:
   ```lua

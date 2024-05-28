@@ -29,7 +29,7 @@ local module = modules.create("core.summary")
 module.setup = function()
     return {
         sucess = true,
-        requires = { "core.integrations.treesitter" },
+        requires = { "core.treesitter" },
     }
 end
 
@@ -43,7 +43,7 @@ module.load = function()
             },
         })
     end)
-    local ts = module.required["core.integrations.treesitter"]
+    local ts = module.required["core.treesitter"]
 
     -- declare query on load so that it's parsed once, on first use
     local heading_query
@@ -300,7 +300,7 @@ module.public = {
     ---@param include_categories string[]? table of strings (ignores case) for categories that you wish to include in the summary.
     -- if excluded then all categories are written into the summary.
     generate_workspace_summary = function(buf, cursor_pos, include_categories)
-        local ts = module.required["core.integrations.treesitter"]
+        local ts = module.required["core.treesitter"]
 
         local buffer = buf or 0
         local cursor_position = cursor_pos or vim.api.nvim_win_get_cursor(0)

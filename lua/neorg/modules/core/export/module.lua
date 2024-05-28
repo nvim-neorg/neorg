@@ -34,7 +34,7 @@ module.setup = function()
     return {
         success = true,
         requires = {
-            "core.integrations.treesitter",
+            "core.treesitter",
         },
     }
 end
@@ -106,7 +106,7 @@ module.public = {
             return
         end
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
+        local document_root = module.required["core.treesitter"].get_document_root(buffer)
 
         if not document_root then
             return
@@ -115,7 +115,6 @@ module.public = {
         -- Initialize the state. The state is a table that exists throughout the entire duration
         -- of the export, and can be used to e.g. retain indent levels and/or keep references.
         local state = converter.export.init_state and converter.export.init_state() or {}
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
 
         --- Descends down a node and its children
         ---@param start table #The TS node to begin at
@@ -143,7 +142,7 @@ module.public = {
                         --  `keep_descending`  - if true will continue to recurse down the current node's children despite the current
                         --                      node already being parsed
                         --  `state`   - a modified version of the state that then gets merged into the main state table
-                        local result = exporter(vim.treesitter.get_node_text(node, buffer), node, state, ts_utils)
+                        local result = exporter(vim.treesitter.get_node_text(node, buffer), node, state)
 
                         if type(result) == "table" then
                             state = result.state and vim.tbl_extend("force", state, result.state) or state
@@ -154,7 +153,7 @@ module.public = {
 
                             if result.keep_descending then
                                 if state.parse_as then
-                                    node = module.required["core.integrations.treesitter"].get_document_root(
+                                    node = module.required["core.treesitter"].get_document_root(
                                         "\n" .. vim.treesitter.get_node_text(node, buffer),
                                         state.parse_as
                                     )
@@ -173,7 +172,7 @@ module.public = {
                     elseif exporter == true then
                         table.insert(
                             output,
-                            module.required["core.integrations.treesitter"].get_node_text(node, buffer)
+                            module.required["core.treesitter"].get_node_text(node, buffer)
                         )
                     else
                         table.insert(output, exporter)
@@ -203,7 +202,7 @@ module.public = {
             -- and rearrange its components to { "Term", ": ", "Definition" } to then achieve the desired result.
             local recollector = converter.export.recollectors[start:type()]
 
-            return recollector and table.concat(recollector(output, state, start, ts_utils) or {})
+            return recollector and table.concat(recollector(output, state, start) or {})
                 or (not vim.tbl_isempty(output) and table.concat(output))
         end
 

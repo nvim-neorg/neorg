@@ -10,10 +10,9 @@
 local neorg = require("neorg.core")
 local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.utils
 
-local module = modules.create("core.integrations.treesitter")
+local module = modules.create("core.treesitter")
 
 module.private = {
-    ts_utils = nil,
     link_query = [[
                 (link) @next-segment
                 (anchor_declaration) @next-segment
@@ -48,58 +47,14 @@ module.setup = function()
 end
 
 module.load = function()
-    local success, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
-
-    assert(success, "Unable to load nvim-treesitter.ts_utils :(")
-
-    if module.config.public.configure_parsers then
-        -- luacheck: push ignore
-
-        local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
-
-        parser_configs.norg = {
-            install_info = module.config.public.parser_configs.norg,
-        }
-
-        parser_configs.norg_meta = {
-            install_info = module.config.public.parser_configs.norg_meta,
-        }
-
-        modules.await("core.neorgcmd", function(neorgcmd)
-            neorgcmd.add_commands_from_table({
-                ["sync-parsers"] = {
-                    args = 0,
-                    name = "sync-parsers",
-                },
-            })
-        end)
-
-        -- luacheck: pop
-
-        vim.api.nvim_create_autocmd("BufEnter", {
-            pattern = "*.norg",
-            once = true,
-            callback = function()
-                module.public.parser_path = vim.api.nvim_get_runtime_file("parser/norg.so", false)[1]
-
-                if module.public.parser_path then
-                    return
-                end
-
-                if module.config.public.install_parsers then
-                    require("nvim-treesitter.install").commands.TSInstallSync["run!"]("norg", "norg_meta")
-                    module.public.parser_path = vim.api.nvim_get_runtime_file("parser/norg.so", false)[1]
-                else
-                    assert(
-                        false,
-                        "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it, then restart Neovim."
-                    )
-                end
-            end,
+    modules.await("core.neorgcmd", function(neorgcmd)
+        neorgcmd.add_commands_from_table({
+            ["sync-parsers"] = {
+                args = 0,
+                name = "sync-parsers",
+            },
         })
-    end
-
-    module.private.ts_utils = ts_utils
+    end)
 
     module.required["core.mode"].add_mode("traverse-heading")
     module.required["core.mode"].add_mode("traverse-link")
@@ -108,42 +63,8 @@ module.load = function()
     end)
 end
 
-module.config.public = {
-    --- If true will auto-configure the parsers to use the recommended setup.
-    --  Set to false only if you know what you're doing, or if the setting messes
-    --  with your personal configuration.
-    configure_parsers = true,
-    --- If true will automatically install Norg parsers if they are not present.
-    install_parsers = true,
-    --- Configurations for each parser as required by `nvim-treesitter`.
-    --  If you would like to tweak your parser configs you may do so here.
-    parser_configs = {
-        -- Configuration for the mainline norg parser.
-        norg = {
-            url = "https://github.com/nvim-neorg/tree-sitter-norg",
-            files = { "src/parser.c", "src/scanner.cc" },
-            branch = "main",
-            revision = "6348056b999f06c2c7f43bb0a5aa7cfde5302712",
-        },
-        -- Configuration for the metadata parser (used to parse the contents
-        -- of `@document.meta` blocks).
-        norg_meta = {
-            url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
-            files = { "src/parser.c" },
-            branch = "main",
-            revision = "a479d1ca05848d0b51dd25bc9f71a17e0108b240",
-        },
-    },
-}
-
----@class core.integrations.treesitter
+---@class core.treesitter
 module.public = {
-    parser_path = nil,
-    --- Gives back an instance of `nvim-treesitter.ts_utils`
-    ---@return table #`nvim-treesitter.ts_utils`
-    get_ts_utils = function()
-        return module.private.ts_utils
-    end,
     --- Jumps to the next match of a query in the current buffer
     ---@param query_string string Query with `@next-segment` captures
     goto_next_query_match = function(query_string)
@@ -169,7 +90,7 @@ module.public = {
 
                 -- Find and go to the first matching node that starts after the current cursor position.
                 if (start_line == line_number and start_col > col_number) or start_line > line_number then
-                    module.private.ts_utils.goto_node(node) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                    module.public.goto_node(node)
                     return
                 end
             end
@@ -211,7 +132,7 @@ module.public = {
             ::continue::
         end
         if final_node then
-            module.private.ts_utils.goto_node(final_node) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            module.public.goto_node(final_node)
         end
     end,
     ---  Gets all nodes of a given type from the AST
@@ -843,79 +764,153 @@ module.public = {
 
         return true
     end,
+
+    -- NOTE: Below you will find functions taken from nvim-treesitter's ts-utils library.
+
+    -- Get a compatible vim range (1 index based) from a TS node range.
+    --
+    -- TS nodes start with 0 and the end col is ending exclusive.
+    -- They also treat a EOF/EOL char as a char ending in the first
+    -- col of the next row.
+    ---comment
+    ---@param range integer[]
+    ---@param buf integer|nil
+    ---@return integer, integer, integer, integer
+    get_vim_range = function(range, buf)
+        ---@type integer, integer, integer, integer
+        local srow, scol, erow, ecol = unpack(range)
+        srow = srow + 1
+        scol = scol + 1
+        erow = erow + 1
+
+        if ecol == 0 then
+            -- Use the value of the last col of the previous row instead.
+            erow = erow - 1
+            if not buf or buf == 0 then
+                ecol = vim.fn.col({ erow, "$" }) - 1
+            else
+                ecol = #vim.api.nvim_buf_get_lines(buf, erow - 1, erow, false)[1]
+            end
+            ecol = math.max(ecol, 1)
+        end
+        return srow, scol, erow, ecol
+    end,
+
+    -- Get next node with same parent
+    ---@param node                  TSNode
+    ---@param allow_switch_parents? boolean allow switching parents if last node
+    ---@param allow_next_parent?    boolean allow next parent if last node and next parent without children
+    get_next_node = function(node, allow_switch_parents, allow_next_parent)
+        local destination_node ---@type TSNode
+        local parent = node:parent()
+
+        if not parent then
+            return
+        end
+        local found_pos = 0
+        for i = 0, parent:named_child_count() - 1, 1 do
+            if parent:named_child(i) == node then
+                found_pos = i
+                break
+            end
+        end
+        if parent:named_child_count() > found_pos + 1 then
+            destination_node = parent:named_child(found_pos + 1)
+        elseif allow_switch_parents then
+            local next_node = module.public.get_next_node(node:parent())
+            if next_node and next_node:named_child_count() > 0 then
+                destination_node = next_node:named_child(0)
+            elseif next_node and allow_next_parent then
+                destination_node = next_node
+            end
+        end
+
+        return destination_node
+    end,
+
+    -- Get previous node with same parent
+    ---@param node                   TSNode
+    ---@param allow_switch_parents?  boolean allow switching parents if first node
+    ---@param allow_previous_parent? boolean allow previous parent if first node and previous parent without children
+    get_previous_node = function(node, allow_switch_parents, allow_previous_parent)
+        local destination_node ---@type TSNode
+        local parent = node:parent()
+        if not parent then
+            return
+        end
+
+        local found_pos = 0
+        for i = 0, parent:named_child_count() - 1, 1 do
+            if parent:named_child(i) == node then
+                found_pos = i
+                break
+            end
+        end
+        if 0 < found_pos then
+            destination_node = parent:named_child(found_pos - 1)
+        elseif allow_switch_parents then
+            local previous_node = module.public.get_previous_node(node:parent())
+            if previous_node and previous_node:named_child_count() > 0 then
+                destination_node = previous_node:named_child(previous_node:named_child_count() - 1)
+            elseif previous_node and allow_previous_parent then
+                destination_node = previous_node
+            end
+        end
+        return destination_node
+    end,
+
+    goto_node = function(node, goto_end, avoid_set_jump)
+        if not node then
+            return
+        end
+
+        if not avoid_set_jump then
+            vim.cmd("normal! m'")
+        end
+
+        local range = { module.public.get_vim_range({ node:range() }) }
+        ---@type table<number>
+        local position
+        if not goto_end then
+            position = { range[1], range[2] }
+        else
+            position = { range[3], range[4] }
+        end
+
+        -- Enter visual mode if we are in operator pending mode
+        -- If we don't do this, it will miss the last character.
+        local mode = vim.api.nvim_get_mode()
+        if mode.mode == "no" then
+            vim.cmd("normal! v")
+        end
+
+        -- Position is 1, 0 indexed.
+        vim.api.nvim_win_set_cursor(0, { position[1], position[2] - 1 })
+    end,
 }
-
--- this fixes the problem of installing neorg ts parsers on macOS without resorting to using gcc
-local function install_norg_ts()
-    local install = require("nvim-treesitter.install")
-
-    if vim.fn.has("macunix") == 1 then
-        -- https://github.com/nvim-neorg/tree-sitter-norg/issues/7
-        -- (we have to force clang to c++11 mode on macOS manually)
-
-        local shell = require("nvim-treesitter.shell_command_selectors")
-
-        -- save the original functions
-        local select_executable = shell.select_executable
-        local compilers = install.compilers
-
-        -- temporarily patch treesitter install logic
-        local cc = "clang++ -std=c++11"
-        ---@diagnostic disable-next-line: duplicate-set-field
-        shell.select_executable = function(executables)
-            return vim.tbl_filter(function(c) ---@param c string
-                return c ~= vim.NIL and (vim.fn.executable(c) == 1 or c == cc)
-            end, executables)[1]
-        end
-        install.compilers = { cc }
-
-        -- install norg parsers
-        local ok, err = pcall(function()
-            install.commands.TSInstallSync["run!"]("norg")
-        end)
-
-        -- no matter what, restore the defaults back
-        shell.select_executable = select_executable
-        install.compilers = compilers
-
-        -- if an error occurred during install, propagate it up
-        if not ok then
-            error(err)
-        end
-    else
-        install.commands.TSInstallSync["run!"]("norg")
-    end
-end
 
 module.on_event = function(event)
     if event.split_type[1] == "core.keybinds" then
-        if event.split_type[2] == "core.integrations.treesitter.next.heading" then
+        if event.split_type[2] == "core.treesitter.next.heading" then
             module.public.goto_next_query_match(module.private.heading_query)
-        elseif event.split_type[2] == "core.integrations.treesitter.previous.heading" then
+        elseif event.split_type[2] == "core.treesitter.previous.heading" then
             module.public.goto_previous_query_match(module.private.heading_query)
-        elseif event.split_type[2] == "core.integrations.treesitter.next.link" then
+        elseif event.split_type[2] == "core.treesitter.next.link" then
             module.public.goto_next_query_match(module.private.link_query)
-        elseif event.split_type[2] == "core.integrations.treesitter.previous.link" then
+        elseif event.split_type[2] == "core.treesitter.previous.link" then
             module.public.goto_previous_query_match(module.private.link_query)
         end
     elseif event.split_type[2] == "sync-parsers" then
-        local ok, err = pcall(install_norg_ts)
-
-        if not ok then
-            utils.notify(string.format([[Unable to auto-install Norg parser: %s]], err), vim.log.levels.WARN)
-        end
-
-        local install = require("nvim-treesitter.install")
-        install.commands.TSInstallSync["run!"]("norg_meta")
+        log.warn("`:Neorg sync-parsers` has been deprecated as of v9.0.0 in favour of a precompiled parser architecture! There is no longer a need to build your parsers :)")
     end
 end
 
 module.events.subscribed = {
     ["core.keybinds"] = {
-        ["core.integrations.treesitter.next.heading"] = true,
-        ["core.integrations.treesitter.previous.heading"] = true,
-        ["core.integrations.treesitter.next.link"] = true,
-        ["core.integrations.treesitter.previous.link"] = true,
+        ["core.treesitter.next.heading"] = true,
+        ["core.treesitter.previous.heading"] = true,
+        ["core.treesitter.next.link"] = true,
+        ["core.treesitter.previous.link"] = true,
     },
     ["core.neorgcmd"] = {
         ["sync-parsers"] = true,

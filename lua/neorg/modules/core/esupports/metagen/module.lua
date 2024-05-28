@@ -125,7 +125,7 @@ local function fill_template_defaults()
 end
 
 module.setup = function()
-    return { requires = { "core.autocommands", "core.integrations.treesitter" } }
+    return { requires = { "core.autocommands", "core.treesitter" } }
 end
 
 module.config.public = {
@@ -205,7 +205,7 @@ module.public = {
             ]]
         )
 
-        local root = module.required["core.integrations.treesitter"].get_document_root(buf)
+        local root = module.required["core.treesitter"].get_document_root(buf)
 
         if not root then
             return false, {
@@ -315,7 +315,7 @@ module.public = {
         end
 
         -- Extract the root node of the norg_meta language
-        -- This process should be abstracted into a core.integrations.treesitter
+        -- This process should be abstracted into a core.treesitter
         -- function.
         local languagetree = vim.treesitter.get_parser(buf, "norg")
 
@@ -366,10 +366,10 @@ module.public = {
             local capture = query.captures[id]
 
             if capture == "updated" then
-                local date = module.required["core.integrations.treesitter"].get_node_text(node)
+                local date = module.required["core.treesitter"].get_node_text(node)
 
                 if date ~= current_date then
-                    local range = module.required["core.integrations.treesitter"].get_node_range(node)
+                    local range = module.required["core.treesitter"].get_node_range(node)
 
                     if module.config.public.undojoin_updates then
                         vim.cmd.undojoin()

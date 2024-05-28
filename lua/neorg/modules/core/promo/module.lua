@@ -33,7 +33,7 @@ module.setup = function()
     return {
         success = true,
         requires = {
-            "core.integrations.treesitter",
+            "core.treesitter",
         },
     }
 end
@@ -164,7 +164,7 @@ module.public = {
             end
         end
 
-        local root_node = module.required["core.integrations.treesitter"].get_first_node_on_line(
+        local root_node = module.required["core.treesitter"].get_first_node_on_line(
             buffer,
             row,
             module.private.ignore_types

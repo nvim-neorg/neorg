@@ -65,7 +65,7 @@ module.setup = function()
 
     return {
         success = true,
-        requires = { "core.keybinds", "core.integrations.treesitter" },
+        requires = { "core.keybinds", "core.treesitter" },
     }
 end
 
@@ -82,7 +82,7 @@ local tags = {
 
 module.load = function()
     module.required["core.keybinds"].register_keybinds(module.name, tags)
-    ts = module.required["core.integrations.treesitter"]
+    ts = module.required["core.treesitter"]
 end
 
 module.config.public = {
@@ -197,7 +197,7 @@ local function highlight_node(node)
         return
     end
 
-    local range = module.required["core.integrations.treesitter"].get_node_range(node)
+    local range = module.required["core.treesitter"].get_node_range(node)
 
     vim.api.nvim_buf_set_mark(0, "<", range.row_start + 1, range.column_start, {})
     vim.api.nvim_buf_set_mark(0, ">", range.row_end + 1, range.column_end, {})

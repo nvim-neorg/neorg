@@ -21,7 +21,7 @@ local module = modules.create("core.queries.native")
 module.setup = function()
     return {
         success = true,
-        requires = { "core.integrations.treesitter" },
+        requires = { "core.treesitter" },
     }
 end
 
@@ -113,7 +113,7 @@ module.public = {
     ---@return table
     query_nodes_from_buf = function(tree, bufnr)
         local temp_buf = module.public.get_temp_buf(bufnr)
-        local root_node = module.required["core.integrations.treesitter"].get_document_root(temp_buf)
+        local root_node = module.required["core.treesitter"].get_document_root(temp_buf)
         if not root_node then
             return {}
         end

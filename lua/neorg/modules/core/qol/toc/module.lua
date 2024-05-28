@@ -23,7 +23,7 @@ local module = modules.create("core.qol.toc")
 
 module.setup = function()
     return {
-        requires = { "core.integrations.treesitter", "core.ui" },
+        requires = { "core.treesitter", "core.ui" },
     }
 end
 
@@ -97,7 +97,7 @@ module.public = {
     parse_toc_macro = function(buffer)
         local toc, toc_name = false, nil
 
-        local success = module.required["core.integrations.treesitter"].execute_query(
+        local success = module.required["core.treesitter"].execute_query(
             [[
         (infirm_tag
             (tag_name) @name
@@ -108,11 +108,11 @@ module.public = {
 
                 if
                     capture_name == "name"
-                    and module.required["core.integrations.treesitter"].get_node_text(node, buffer):lower() == "toc"
+                    and module.required["core.treesitter"].get_node_text(node, buffer):lower() == "toc"
                 then
                     toc = true
                 elseif capture_name == "parameters" and toc then
-                    toc_name = module.required["core.integrations.treesitter"].get_node_text(node, buffer)
+                    toc_name = module.required["core.treesitter"].get_node_text(node, buffer)
                     return true
                 end
             end,
@@ -130,7 +130,7 @@ module.public = {
         local prefix, title
         local qflist_data = {}
 
-        local success = module.required["core.integrations.treesitter"].execute_query(
+        local success = module.required["core.treesitter"].execute_query(
             [[
             (_
               .
@@ -154,9 +154,9 @@ module.public = {
 
                 if prefix and title then
                     local prefix_text =
-                        module.required["core.integrations.treesitter"].get_node_text(prefix, original_buffer)
+                        module.required["core.treesitter"].get_node_text(prefix, original_buffer)
                     local title_text =
-                        module.required["core.integrations.treesitter"].get_node_text(title, original_buffer)
+                        module.required["core.treesitter"].get_node_text(title, original_buffer)
 
                     if prefix_text:sub(1, 1) ~= "*" and prefix_text:match("^%W%W") then
                         prefix_text = table.concat({ prefix_text:sub(1, 1), " " })
@@ -238,7 +238,7 @@ module.public = {
         )]]
             )
 
-        local norg_root = module.required["core.integrations.treesitter"].get_document_root(norg_buffer)
+        local norg_root = module.required["core.treesitter"].get_document_root(norg_buffer)
         if not norg_root then
             return
         end

@@ -92,7 +92,7 @@ module.setup = function()
         success = true,
         requires = {
             "core.dirman",
-            "core.integrations.treesitter",
+            "core.treesitter",
         },
     }
 end
@@ -215,7 +215,7 @@ module.private = {
         -- Gets the title from the metadata of a file, must be called in a vim.schedule
         local get_title = function(file)
             local buffer = vim.fn.bufadd(workspace_path .. config.pathsep .. folder_name .. config.pathsep .. file)
-            local meta = module.required["core.integrations.treesitter"].get_document_metadata(buffer)
+            local meta = module.required["core.treesitter"].get_document_metadata(buffer)
             return meta.title
         end
 

@@ -21,7 +21,7 @@ module.setup = function()
     return {
         success = true,
         requires = {
-            "core.integrations.treesitter",
+            "core.treesitter",
             "core.ui",
             "core.dirman.utils",
             "core.links",
@@ -76,7 +76,7 @@ module.public = {
             end
 
             local range =
-                module.required["core.integrations.treesitter"].get_node_range(located_anchor_declaration.node)
+                module.required["core.treesitter"].get_node_range(located_anchor_declaration.node)
 
             vim.cmd([[normal! m`]])
             vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
@@ -172,7 +172,7 @@ module.public = {
                     end
 
                     if located_link_information.node then
-                        local range = module.required["core.integrations.treesitter"].get_node_range(
+                        local range = module.required["core.treesitter"].get_node_range(
                             located_link_information.node
                         )
 
@@ -274,14 +274,8 @@ module.public = {
     --- Locate a `link` or `anchor` node under the cursor
     ---@return userdata|nil #A `link` or `anchor` node if present under the cursor, else `nil`
     extract_link_node = function()
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-
-        if not ts_utils then
-            return
-        end
-
-        local current_node = ts_utils.get_node_at_cursor()
-        local found_node = module.required["core.integrations.treesitter"].find_parent(
+        local current_node = vim.treesitter.get_node()
+        local found_node = module.required["core.treesitter"].find_parent(
             current_node,
             { "link", "anchor_declaration", "anchor_definition" }
         )
@@ -296,8 +290,6 @@ module.public = {
     --- Attempts to locate a `link` or `anchor` node after the cursor on the same line
     ---@return userdata|nil #A `link` or `anchor` node if present on the current line, else `nil`
     lookahead_link_node = function()
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-
         local line = vim.api.nvim_get_current_line()
         local current_cursor_pos = vim.api.nvim_win_get_cursor(0)
         local current_line = current_cursor_pos[1]
@@ -324,7 +316,7 @@ module.public = {
                 smaller_value - 1,
             })
 
-            local node_under_cursor = ts_utils.get_node_at_cursor()
+            local node_under_cursor = vim.treesitter.get_node()
 
             if vim.tbl_contains({ "link_location", "link_description" }, node_under_cursor:type()) then
                 resulting_node = node_under_cursor:parent()
@@ -345,7 +337,7 @@ module.public = {
 
         local target = module
             .required
-            ["core.integrations.treesitter"]
+            ["core.treesitter"]
             .get_node_text(anchor_decl_node:named_child(0):named_child(0)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             :gsub("[%s\\]", "")
 
@@ -357,7 +349,7 @@ module.public = {
             )
         ]]
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+        local document_root = module.required["core.treesitter"].get_document_root()
 
         if not document_root then
             return
@@ -369,7 +361,7 @@ module.public = {
             local capture = query.captures[id]
 
             if capture == "text" then
-                local original_title = module.required["core.integrations.treesitter"].get_node_text(node)
+                local original_title = module.required["core.treesitter"].get_node_text(node)
                 local title = original_title:gsub("[%s\\]", "")
 
                 if title:lower() == target:lower() then
@@ -448,14 +440,14 @@ module.public = {
             ]
         ]]
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
+        local document_root = module.required["core.treesitter"].get_document_root(buf)
 
         if not document_root then
             return
         end
 
         local query = utils.ts_parse_query("norg", query_text)
-        local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
+        local range = module.required["core.treesitter"].get_node_range(link_node)
 
         local parsed_link_information = {
             link_node = link_node,
@@ -464,12 +456,12 @@ module.public = {
         for id, node in query:iter_captures(document_root, buf, range.row_start, range.row_end + 1) do
             local capture = query.captures[id]
 
-            local capture_node_range = module.required["core.integrations.treesitter"].get_node_range(node)
+            local capture_node_range = module.required["core.treesitter"].get_node_range(node)
 
             -- Check whether the node captured node is in bounds.
             -- There are certain rare cases where incorrect nodes would be parsed.
             if range_contains(range, capture_node_range) then
-                local extract_node_text = lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
+                local extract_node_text = lib.wrap(module.required["core.treesitter"].get_node_text, node)
 
                 parsed_link_information[capture] = parsed_link_information[capture]
                     or lib.match(capture)({
@@ -583,7 +575,7 @@ module.public = {
 
             _ = function()
                 local query_str = links.get_link_target_query_string(parsed_link_information.link_type)
-                local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
+                local document_root = module.required["core.treesitter"].get_document_root(buf_pointer)
 
                 if not document_root then
                     return
@@ -596,7 +588,7 @@ module.public = {
 
                     if capture == "title" then
                         local original_title =
-                            module.required["core.integrations.treesitter"].get_node_text(node, buf_pointer)
+                            module.required["core.treesitter"].get_node_text(node, buf_pointer)
 
                         if original_title then
                             local title = original_title:gsub("[%s\\]", "")
@@ -791,7 +783,7 @@ module.private = {
 
         local query = utils.ts_parse_query("norg", query_str)
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
+        local document_root = module.required["core.treesitter"].get_document_root(buffer)
 
         if not document_root then
             return ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
@@ -805,7 +797,7 @@ module.private = {
             local capture_name = query.captures[id]
 
             if capture_name == "title" then
-                local text = module.required["core.integrations.treesitter"].get_node_text(node, buffer)
+                local text = module.required["core.treesitter"].get_node_text(node, buffer)
                 local similarity = module.private.calculate_similarity(parsed_link_information.link_location_text, text)
 
                 -- If our match is similar enough then add it to the list
@@ -838,7 +830,7 @@ module.private = {
             return
         end
 
-        local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
+        local range = module.required["core.treesitter"].get_node_range(link_node)
 
         local prefix = lib.when(
             parsed_link_information.link_type == "generic" and not force_type,

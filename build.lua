@@ -17,10 +17,11 @@ vim.schedule(function()
         "plenary.nvim == 0.1.4",
         "nui.nvim == 0.3.0",
         "pathlib.nvim ~> 2.2",
+        "tree-sitter-norg == 0.2.4",
+        "tree-sitter-norg-meta == 0.1.0",
     })
 
     package.loaded["neorg"] = nil
 
     require("neorg").setup_after_build()
-    pcall(vim.cmd.Neorg, "sync-parsers")
 end)

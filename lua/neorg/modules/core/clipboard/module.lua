@@ -16,7 +16,7 @@ local module = modules.create("core.clipboard")
 module.setup = function()
     return {
         requires = {
-            "core.integrations.treesitter",
+            "core.treesitter",
         },
     }
 end
@@ -33,7 +33,7 @@ module.load = function()
             range[2][1] = range[2][1] - 1
 
             for i = range[1][1], range[2][1] do
-                local node = module.required["core.integrations.treesitter"].get_first_node_on_line(data.buf, i)
+                local node = module.required["core.treesitter"].get_first_node_on_line(data.buf, i)
 
                 while node:parent() do
                     if module.private.callbacks[node:type()] then
