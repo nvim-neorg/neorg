@@ -36,7 +36,7 @@ module.load = function()
     module.private.compe = compe
 end
 
----@class core.integrations.nvim-compe
+---@class core.integrations.nvim-compe : neorg.completion_engine
 module.public = {
     ---@param user_data table #A table of user data to supply to the source upon creation
     create_source = function(user_data)
