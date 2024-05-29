@@ -52,7 +52,11 @@ module.setup = function()
     }
 end
 
+---@class neorg.completion_engine
+---@field create_source function
+
 module.private = {
+    ---@type neorg.completion_engine
     engine = nil,
 
     --- Get a list of all norg files in current workspace. Returns { workspace_path, norg_files }

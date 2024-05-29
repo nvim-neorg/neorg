@@ -41,7 +41,7 @@ module.load = function()
     end
 end
 
----@class core.integrations.coq_nvim
+---@class core.integrations.coq_nvim : neorg.completion_engine
 module.public = {
     create_source = function()
         module.private.completion_item_mapping = {
