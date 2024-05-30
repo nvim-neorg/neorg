@@ -843,6 +843,37 @@ module.public = {
 
         return true
     end,
+
+    ---Create a norg TS parser from the given source
+    ---@param source string | number | PathlibPath file path or buf number or 0 for current buffer
+    ---@return vim.treesitter.LanguageTree? norg_parser
+    ---@return string | number iter_src the corresponding source that you must pass to
+    ---`iter_query()`, either the full file text, or the buffer number
+    get_ts_parser = function(source)
+        local norg_parser
+        local iter_src
+        if type(source) ~= "string" and type(source) ~= "number" then
+            source = tostring(source)
+        end
+        if type(source) == "string" then
+            -- check if the file is open; use the buffer contents if it is
+            if vim.fn.bufnr(source) ~= -1 then ---@diagnostic disable-line
+                source = vim.uri_to_bufnr(vim.uri_from_fname(source))
+            else
+                iter_src = io.open(source, "r"):read("*a")
+                norg_parser = vim.treesitter.get_string_parser(iter_src, "norg")
+            end
+        end
+        if type(source) == "number" then
+            if source == 0 then
+                source = vim.api.nvim_get_current_buf()
+            end
+            norg_parser = vim.treesitter.get_parser(source, "norg")
+            iter_src = source
+        end
+
+        return norg_parser, iter_src
+    end
 }
 
 -- this fixes the problem of installing neorg ts parsers on macOS without resorting to using gcc

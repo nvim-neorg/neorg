@@ -95,27 +95,7 @@ module.private = {
     ---@param link_type "generic" | "definition" | "footnote" | string
     get_linkables = function(source, link_type)
         local query_str = link_utils.get_link_target_query_string(link_type)
-        local norg_parser
-        local iter_src
-        if type(source) ~= "string" and type(source) ~= "number" then
-            source = tostring(source)
-        end
-        if type(source) == "string" then
-            -- check if the file is open; use the buffer contents if it is
-            if vim.fn.bufnr(source) ~= -1 then ---@diagnostic disable-line
-                source = vim.uri_to_bufnr(vim.uri_from_fname(source))
-            else
-                iter_src = io.open(source, "r"):read("*a")
-                norg_parser = vim.treesitter.get_string_parser(iter_src, "norg")
-            end
-        end
-        if type(source) == "number" then
-            if source == 0 then
-                source = vim.api.nvim_get_current_buf()
-            end
-            norg_parser = vim.treesitter.get_parser(source, "norg")
-            iter_src = source
-        end
+        local norg_parser, iter_src = treesitter.get_ts_parser(source)
         if not norg_parser then
             return {}
         end
