@@ -219,6 +219,33 @@ module.private = {
     end,
 }
 
+---Suggest common link names for the given link. Suggests:
+--- - target name if the link point to a heading/footer/etc.
+--- - metadata `title` field
+--- - file description
+---@return string[]
+module.private.foreign_link_names = function(context, _prev, _saved, match)
+    print("foreign")
+    local file, target = match[2], match[3]
+    local path = dirutils.expand_pathlib(file)
+    print("Context")
+    P(context)
+    print("path:", path)
+    print("target:", target)
+    return {}
+end
+
+--- suggest the link target name
+---@return string[]
+module.private.local_link_names = function(context, _prev, _saved, match)
+    local target = match[2]
+    if target then
+        target = target:gsub("^%s+", "")
+        target = target:gsub("%s+$", "")
+    end
+    return { target }
+end
+
 module.load = function()
     -- If we have not defined an engine then bail
     if not module.config.public.engine then
@@ -517,6 +544,30 @@ module.public = {
             options = {
                 type = "Reference",
                 completion_start = "^",
+            },
+        },
+        { -- foreign link name suggestions `{:path:target}[|]`
+            regex = "^(.*){:([^:]*):([^}]*)}%[",
+
+            complete = module.private.foreign_link_names,
+
+            node = module.private.normal_norg,
+
+            options = {
+                type = "Reference",
+                completion_start = "[",
+            },
+        },
+        { -- local link name suggestions `{target}[|]` for `#`, `$`, `^`, `*` link targets
+            regex = "^(.*){[#$*%^]+ ([^}]*)}%[",
+
+            complete = module.private.local_link_names,
+
+            node = module.private.normal_norg,
+
+            options = {
+                type = "Reference",
+                completion_start = "[",
             },
         },
     },

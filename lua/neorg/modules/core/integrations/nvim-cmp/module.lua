@@ -87,7 +87,7 @@ module.public = {
         end
 
         function module.private.source:get_trigger_characters()
-            return { "@", "-", "(", " ", ".", ":", "#", "*", "^" }
+            return { "@", "-", "(", " ", ".", ":", "#", "*", "^", "[" }
         end
 
         function module.private.source:is_available()
