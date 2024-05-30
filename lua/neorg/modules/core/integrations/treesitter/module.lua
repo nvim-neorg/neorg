@@ -772,7 +772,7 @@ module.public = {
         local meta_node
         for id, node in norg_query:iter_captures(norg_tree:root(), source) do
             if norg_query.captures[id] == "tag_name" then
-                local tag_name = trim(module.public.get_node_text(node, buf))
+                local tag_name = trim(module.public.get_node_text(node, source))
                 if tag_name == "document.meta" then
                     meta_node = node:next_named_sibling() or vim.NIL
                     break
@@ -784,6 +784,7 @@ module.public = {
             return result
         end
 
+        local meta_source = module.public.get_node_text(meta_node, source)
 
         local norg_meta_parser = vim.treesitter.get_string_parser(meta_source, "norg_meta") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
@@ -813,18 +814,21 @@ module.public = {
     end,
     --- Parses a query and automatically executes it for Norg
     ---@param query_string string #The query string
-    ---@param callback function #The callback to execute with all the value returned by iter_captures
-    ---@param buffer number #The buffer ID for the query
+    ---@param callback function #The callback to execute with all values returned by
+    ---`Query:iter_captures()`. When callback returns true, this function returns early
+    ---@param source number | string | PathlibPath #buf number, or file path or 0 for current buffer
     ---@param start number? #The start line for the query
     ---@param finish number? #The end line for the query
-    execute_query = function(query_string, callback, buffer, start, finish)
+    execute_query = function(query_string, callback, source, start, finish)
         local query = utils.ts_parse_query("norg", query_string)
-        local root = module.public.get_document_root(buffer)
+        local norg_parser, iter_src = module.public.get_ts_parser(source)
 
-        if not root then
+        if not norg_parser then
             return false
         end
 
+        local root = norg_parser:parse()[1]:root()
+        for id, node, metadata in query:iter_captures(root, iter_src, start, finish) do
             if callback(query, id, node, metadata) == true then
                 return true
             end
