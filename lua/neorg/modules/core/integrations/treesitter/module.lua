@@ -677,40 +677,31 @@ module.public = {
         return descendant
     end,
 
-    get_document_metadata = function(buf, no_trim)
-        buf = buf or 0
+    ---get document's metadata
+    ---@param source number | string | PathlibPath
+    ---@param no_trim boolean
+    ---@return table?
+    get_document_metadata = function(source, no_trim)
+        source = source or 0
 
-        local norg_parser = vim.treesitter.get_parser(buf, "norg")
-
-        if not norg_parser then
-            return
-        end
-
-        local result = {}
+        local norg_parser, iter_src = module.public.get_ts_parser(source)
+        if not norg_parser then return end
 
         local norg_tree = norg_parser:parse()[1]
-
-        if not norg_tree then
-            return
-        end
+        if not norg_tree then return end
 
         local function trim(value)
             return no_trim and value or vim.trim(value)
         end
 
-        local function get_node_text_from_str(n, s)
-            local _, _, start_bytes = n:start()
-            local _, _, end_bytes = n:end_()
-            return string.sub(s, start_bytes, end_bytes)
-        end
-
+        local result = {}
         local function parse_data(node, str)
             return lib.match(node:type())({
                 string = function()
-                    return trim(get_node_text_from_str(node, str))
+                    return trim(module.public.get_node_text(node, str))
                 end,
                 number = function()
-                    return tonumber(get_node_text_from_str(node, str))
+                    return tonumber(module.public.get_node_text(node, str))
                 end,
                 array = function()
                     local resulting_array = {}
@@ -742,7 +733,7 @@ module.public = {
                             goto continue
                         end
 
-                        local key_content = trim(get_node_text_from_str(key, str))
+                        local key_content = trim(module.public.get_node_text(key, str))
 
                         resulting_object[key_content] = (value and parse_data(value, str) or vim.NIL)
 
@@ -779,7 +770,7 @@ module.public = {
         )
 
         local meta_node
-        for id, node in norg_query:iter_captures(norg_tree:root(), buf) do
+        for id, node in norg_query:iter_captures(norg_tree:root(), source) do
             if norg_query.captures[id] == "tag_name" then
                 local tag_name = trim(module.public.get_node_text(node, buf))
                 if tag_name == "document.meta" then
@@ -793,7 +784,6 @@ module.public = {
             return result
         end
 
-        local meta_source = module.public.get_node_text(meta_node, buf)
 
         local norg_meta_parser = vim.treesitter.get_string_parser(meta_source, "norg_meta") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
@@ -805,12 +795,12 @@ module.public = {
 
         for id, node in meta_query:iter_captures(norg_meta_tree:root(), meta_source) do
             if meta_query.captures[id] == "key" then
-                local key = trim(get_node_text_from_str(node, meta_source))
+                local key = trim(module.public.get_node_text(node, meta_source))
 
                 local val
                 if key == "title" then
                     -- force title's value as string type
-                    val = trim(get_node_text_from_str(node:next_named_sibling(), meta_source))
+                    val = trim(module.public.get_node_text(node:next_named_sibling(), meta_source))
                 else
                     val = node:next_named_sibling() and parse_data(node:next_named_sibling(), meta_source) or vim.NIL
                 end
@@ -835,7 +825,6 @@ module.public = {
             return false
         end
 
-        for id, node, metadata in query:iter_captures(root, buffer, start, finish) do
             if callback(query, id, node, metadata) == true then
                 return true
             end
