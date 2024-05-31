@@ -1,5 +1,46 @@
 # Changelog
 
+## [8.6.0](https://github.com/nvim-neorg/neorg/compare/v8.5.0...v8.6.0) (2024-05-31)
+
+
+### Features
+
+* add `integrations.coq_nvim` as a new completion engine ([b8f9f83](https://github.com/nvim-neorg/neorg/commit/b8f9f834d999a6807ee9476857fb3af2c58f64a2))
+* create `deps.json` for a universal list of Neorg dependencies ([a64c6af](https://github.com/nvim-neorg/neorg/commit/a64c6af4ac1ab4aa3a5de93d86111814125e3ed8))
+* **latex:** async image rendering ([b1c96a0](https://github.com/nvim-neorg/neorg/commit/b1c96a049da8d534820f7452195fc9d961f3d025))
+* **latex:** minimum length to render ([5a9d638](https://github.com/nvim-neorg/neorg/commit/5a9d6381581014c67219a823f149ce871f3af15d))
+* modify deps.json to have proper version constraints ([5e9a3ef](https://github.com/nvim-neorg/neorg/commit/5e9a3ef798726fd2001d1596e6134b03f331a333))
+* treesitter-based completions ([#1412](https://github.com/nvim-neorg/neorg/issues/1412)) ([79f6a49](https://github.com/nvim-neorg/neorg/commit/79f6a49b869a891bca9ce746f77781af46977e71))
+
+
+### Bug Fixes
+
+* clear extmarks on disable ([1be7808](https://github.com/nvim-neorg/neorg/commit/1be78080714b6f0cc1d77432629b91328880ce53))
+* clear images at cursor after change ([9edd802](https://github.com/nvim-neorg/neorg/commit/9edd802c194ef180587c9c836ea84142927bc887))
+* clear package.loaded cache when first installing neorg ([3d50b49](https://github.com/nvim-neorg/neorg/commit/3d50b49e1c1d37182c2ed94e718ecd5eed8cacd4))
+* compute image dimensions before rendering ([94abd99](https://github.com/nvim-neorg/neorg/commit/94abd999cbb21d66080ee3970f41303c7093e1a6))
+* conceal cursor updates ([2701e07](https://github.com/nvim-neorg/neorg/commit/2701e0770697ca10665277c0afd692567b24103d))
+* **dirman:** swapfile error when opening index.norg ([#1451](https://github.com/nvim-neorg/neorg/issues/1451)) ([70d4b89](https://github.com/nvim-neorg/neorg/commit/70d4b899928d72ec9ab7961f69ae47fd24b8c3c4))
+* handle switching buffers ([af4001e](https://github.com/nvim-neorg/neorg/commit/af4001ebd8678261e334591be4435f11e1aac294))
+* image flashing on text change ([19737b0](https://github.com/nvim-neorg/neorg/commit/19737b02be7aee6c4395439fbd756901adb428a1))
+* **latex-renderer:** handle broken latex ([#1438](https://github.com/nvim-neorg/neorg/issues/1438)) ([8140135](https://github.com/nvim-neorg/neorg/commit/81401353dc13ff87f4879b6e0b5f96ff2de14d9c))
+* **latex:** predict image size for scale &gt; 1 ([bde2402](https://github.com/nvim-neorg/neorg/commit/bde24023d2b1ae507034c0839144f36e96dc7dc2))
+* limages losing track of their extmarks ([f05bce2](https://github.com/nvim-neorg/neorg/commit/f05bce247e53a53a19bfe47c57d6bc8023b5c43b))
+* logic when inline = false ([fc8c054](https://github.com/nvim-neorg/neorg/commit/fc8c0542d8676155e8c47d0b735e816a366235b1))
+* mark core.links as internal ([22e7151](https://github.com/nvim-neorg/neorg/commit/22e7151f02559cea0320d02b57e59d2fb8294956))
+* render images on cursor line on enable ([dc51ff4](https://github.com/nvim-neorg/neorg/commit/dc51ff489a653c292c6bf84751a5d060e8018c6c))
+* rendering order for multiple img in one line ([a50c034](https://github.com/nvim-neorg/neorg/commit/a50c03432ba9cd4c370ebedfa6d84db1f0e61b6d))
+* **text-objects:** nil check node's parent ([72da6e0](https://github.com/nvim-neorg/neorg/commit/72da6e0773298356f5a83ce52c9efdd88d4147e5))
+* use nio.scheduler to avoid double wrap ([2a9c3fa](https://github.com/nvim-neorg/neorg/commit/2a9c3fab1bb6beabc4160264835be7f3b9a579e7))
+* various type errors in codebase ([c564e6c](https://github.com/nvim-neorg/neorg/commit/c564e6cd470e1582414b63720ef85f1d0abe1d64))
+* virt text disapearing on conceallevel=0 ([acd4293](https://github.com/nvim-neorg/neorg/commit/acd4293ab269c42eb9f3294d182eb87e7a34d66b))
+* work on one buffer at a time ([ba41187](https://github.com/nvim-neorg/neorg/commit/ba41187669002622b7f9778e4c49723f47faf69a))
+
+
+### Reverts
+
+* d8ba19a18c896cc146e7ecbd4d67bdbe03f2e0c4 ([c8e2947](https://github.com/nvim-neorg/neorg/commit/c8e2947bdb71838ce90614cb3d9a0eb530c45fd7))
+
 ## [8.5.0](https://github.com/nvim-neorg/neorg/compare/v8.4.1...v8.5.0) (2024-05-17)
 
 
