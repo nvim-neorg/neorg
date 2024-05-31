@@ -136,14 +136,14 @@ module.config.public = {
                     -- Move to the next heading in the document
                     {
                         "j",
-                        "core.integrations.treesitter.next.heading",
+                        "core.treesitter.next.heading",
                         opts = { desc = "[neorg] Move to Next Heading" },
                     },
 
                     -- Move to the previous heading in the document
                     {
                         "k",
-                        "core.integrations.treesitter.previous.heading",
+                        "core.treesitter.previous.heading",
                         opts = { desc = "[neorg] Move to Previous Heading" },
                     },
                 },
@@ -156,12 +156,12 @@ module.config.public = {
             keybinds.map_event_to_mode("traverse-link", {
                 n = {
                     -- Move to the next link in the document
-                    { "j", "core.integrations.treesitter.next.link", opts = { desc = "[neorg] Move to Next Link" } },
+                    { "j", "core.treesitter.next.link", opts = { desc = "[neorg] Move to Next Link" } },
 
                     -- Move to the previous link in the document
                     {
                         "k",
-                        "core.integrations.treesitter.previous.link",
+                        "core.treesitter.previous.link",
                         opts = { desc = "[neorg] Move to Previous Link" },
                     },
                 },

@@ -23,7 +23,7 @@ module.setup = function()
     return {
         success = true,
         requires = {
-            "core.integrations.treesitter",
+            "core.treesitter",
         },
     }
 end
@@ -108,8 +108,8 @@ local function todo_item_recollector()
 end
 
 local function handle_heading_newlines()
-    return function(output, _, node, ts_utils)
-        local prev = ts_utils.get_previous_node(node, true, true)
+    return function(output, _, node)
+        local prev = module.required["core.treesitter"].get_previous_node(node, true, true)
 
         if
             prev
@@ -240,7 +240,7 @@ module.public = {
                             .. "]\n\n\n[^"
                             .. n
                             .. "]: "
-                            .. module.required["core.integrations.treesitter"].get_node_text(nd)
+                            .. module.required["core.treesitter"].get_node_text(nd)
                     end
                 end
                 return ""
@@ -441,7 +441,7 @@ module.public = {
                     and node:next_named_sibling()
                     and vim.tbl_contains(
                         { "markdown", "html", module.config.public.extensions["latex"] and "latex" or nil },
-                        module.required["core.integrations.treesitter"].get_node_text(node:next_named_sibling())
+                        module.required["core.treesitter"].get_node_text(node:next_named_sibling())
                     )
                 then
                     return {

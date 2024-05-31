@@ -26,7 +26,7 @@ module.setup = function()
         success = true,
         requires = {
             "core.queries.native",
-            "core.integrations.treesitter",
+            "core.treesitter",
             "core.ui",
             "core.mode",
         },

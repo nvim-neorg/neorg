@@ -95,7 +95,7 @@ module.setup = function()
         success = true,
         requires = {
             "core.autocommands",
-            "core.integrations.treesitter",
+            "core.treesitter",
         },
     }
 end
@@ -1136,7 +1136,7 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
     -- TODO: optimize
     row_end_0bex = math.min(row_end_0bex + 1, vim.api.nvim_buf_line_count(bufid))
 
-    local treesitter_module = module.required["core.integrations.treesitter"]
+    local treesitter_module = module.required["core.treesitter"]
     local document_root = treesitter_module.get_document_root(bufid)
     assert(document_root)
 

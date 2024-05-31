@@ -44,7 +44,7 @@ module.setup = function()
         success = true,
         requires = {
             "core.autocommands",
-            "core.integrations.treesitter",
+            "core.treesitter",
         },
     }
 end
@@ -112,7 +112,7 @@ module.public = {
         end
 
         -- If the tree is valid then attempt to perform the query
-        local tree = module.required["core.integrations.treesitter"].get_document_root(buf)
+        local tree = module.required["core.treesitter"].get_document_root(buf)
 
         if tree then
             -- get the language node used by the code block

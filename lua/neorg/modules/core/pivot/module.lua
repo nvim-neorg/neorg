@@ -25,7 +25,7 @@ local module = modules.create("core.pivot")
 module.setup = function()
     return {
         requires = {
-            "core.integrations.treesitter",
+            "core.treesitter",
         },
     }
 end
@@ -38,7 +38,7 @@ end
 
 module.on_event = function(event)
     if event.split_type[2] == "core.pivot.toggle-list-type" or event.split_type[2] == "core.pivot.invert-list-type" then
-        local node = module.required["core.integrations.treesitter"].get_first_node_on_line(
+        local node = module.required["core.treesitter"].get_first_node_on_line(
             event.buffer,
             event.cursor_position[1] - 1
         )
@@ -48,7 +48,7 @@ module.on_event = function(event)
             return
         end
 
-        node = module.required["core.integrations.treesitter"].find_parent(node, "^generic_list$")
+        node = module.required["core.treesitter"].find_parent(node, "^generic_list$")
 
         if not node then
             log.error("No list found under the cursor! `toggle-list-type` works only for lists.")

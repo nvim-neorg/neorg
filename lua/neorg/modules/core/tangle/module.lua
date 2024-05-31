@@ -167,7 +167,7 @@ local module = modules.create("core.tangle")
 module.setup = function()
     return {
         requires = {
-            "core.integrations.treesitter",
+            "core.treesitter",
             "core.neorgcmd",
         },
     }
@@ -208,7 +208,7 @@ end
 
 module.public = {
     tangle = function(buffer)
-        local treesitter = module.required["core.integrations.treesitter"]
+        local treesitter = module.required["core.treesitter"]
         local parsed_document_metadata = treesitter.get_document_metadata(buffer) or {}
         local tangle_settings = parsed_document_metadata.tangle or {}
         local options = {

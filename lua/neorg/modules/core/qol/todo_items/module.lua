@@ -32,7 +32,7 @@ local log, modules = neorg.log, neorg.modules
 local module = modules.create("core.qol.todo_items")
 
 module.setup = function()
-    return { success = true, requires = { "core.integrations.treesitter" } }
+    return { success = true, requires = { "core.treesitter" } }
 end
 
 module.load = function()
@@ -228,7 +228,7 @@ module.public = {
             return
         end
 
-        local range = module.required["core.integrations.treesitter"].get_node_range(first_status_extension)
+        local range = module.required["core.treesitter"].get_node_range(first_status_extension)
 
         -- Replace the line where the todo item is situated
         vim.api.nvim_buf_set_text(
@@ -261,7 +261,7 @@ module.public = {
     --- Tries to locate a todo_item node under the cursor
     ---@return userdata? #The node if it was located, else nil
     get_todo_item_from_cursor = function(buf, line)
-        local node_at_cursor = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, line)
+        local node_at_cursor = module.required["core.treesitter"].get_first_node_on_line(buf, line)
 
         if not node_at_cursor then
             return
@@ -335,7 +335,7 @@ module.public = {
 
             vim.api.nvim_buf_set_text(buf, row, column, row, column, { "(" .. char .. ") " })
         else
-            local range = module.required["core.integrations.treesitter"].get_node_range(first_status_extension)
+            local range = module.required["core.treesitter"].get_node_range(first_status_extension)
 
             vim.api.nvim_buf_set_text(
                 buf,

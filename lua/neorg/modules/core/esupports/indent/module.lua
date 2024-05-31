@@ -6,7 +6,7 @@
 `core.esupports.indent` uses Norg's format to unambiguously determine
 the indentation level for the current line.
 
-The indent calculation is aided by [treesitter](@core.integrations.treesitter), which
+The indent calculation is aided by [treesitter](@core.treesitter), which
 means that the quality of indents is "limited" by the quality of the produced syntax tree,
 which will get better and better with time.
 
@@ -23,7 +23,7 @@ local module = modules.create("core.esupports.indent")
 module.setup = function()
     return {
         requires = {
-            "core.integrations.treesitter",
+            "core.treesitter",
             "core.autocommands",
         },
     }
@@ -33,7 +33,7 @@ end
 module.public = {
     indentexpr = function(buf, line, node)
         line = line or (vim.v.lnum - 1)
-        node = node or module.required["core.integrations.treesitter"].get_first_node_on_line(buf, line)
+        node = node or module.required["core.treesitter"].get_first_node_on_line(buf, line)
 
         if not node then
             return 0
@@ -85,7 +85,7 @@ module.public = {
                     end
                 end
 
-                return module.required["core.integrations.treesitter"].get_node_range(node:parent()).column_start
+                return module.required["core.treesitter"].get_node_range(node:parent()).column_start
                     + vim.fn["nvim_treesitter#indent"]()
             else
                 return vim.fn["nvim_treesitter#indent"]()
@@ -153,7 +153,7 @@ module.config.public = {
         -- make it indent as expected.
         ["strong_paragraph_delimiter"] = {
             indent = function(buf, _, line)
-                local node = module.required["core.integrations.treesitter"].get_first_node_on_line(
+                local node = module.required["core.treesitter"].get_first_node_on_line(
                     buf,
                     vim.fn.prevnonblank(line) - 1
                 )
@@ -162,7 +162,7 @@ module.config.public = {
                     return 0
                 end
 
-                return module.required["core.integrations.treesitter"].get_node_range(
+                return module.required["core.treesitter"].get_node_range(
                     node:type():match("heading%d") and node:named_child(1) or node
                 ).column_start
             end,
@@ -223,7 +223,7 @@ module.config.public = {
         -- `@end` tags should always be indented as far as the beginning `@` ranged verbatim tag.
         ["ranged_tag_end"] = {
             indent = function(_, node)
-                return module.required["core.integrations.treesitter"].get_node_range(node:parent()).column_start
+                return module.required["core.treesitter"].get_node_range(node:parent()).column_start
             end,
         },
     },
@@ -234,18 +234,18 @@ module.config.public = {
     modifiers = {
         -- For any object that can exist under headings
         ["under-headings"] = function(_, node)
-            local heading = module.required["core.integrations.treesitter"].find_parent(node:parent(), "heading%d")
+            local heading = module.required["core.treesitter"].find_parent(node:parent(), "heading%d")
 
             if not heading or not heading:named_child(1) then
                 return 0
             end
 
-            return module.required["core.integrations.treesitter"].get_node_range(heading:named_child(1)).column_start
+            return module.required["core.treesitter"].get_node_range(heading:named_child(1)).column_start
         end,
 
         -- For any object that should be indented under a list
         ["under-nestable-detached-modifiers"] = function(_, node)
-            local list = module.required["core.integrations.treesitter"].find_parent(node, {
+            local list = module.required["core.treesitter"].find_parent(node, {
                 "unordered_list1",
                 "unordered_list2",
                 "unordered_list3",
@@ -271,14 +271,14 @@ module.config.public = {
             end
 
             if list:named_child(1):type() == "detached_modifier_extension" then
-                return module.required["core.integrations.treesitter"].get_node_range(list:named_child(2)).column_start
-                    + module.required["core.integrations.treesitter"]
+                return module.required["core.treesitter"].get_node_range(list:named_child(2)).column_start
+                    + module.required["core.treesitter"]
                         .get_node_text(list:named_child(2))
                         :match("^%s*")
                         :len()
             end
 
-            return module.required["core.integrations.treesitter"].get_node_range(list:named_child(1)).column_start
+            return module.required["core.treesitter"].get_node_range(list:named_child(1)).column_start
         end,
     },
 

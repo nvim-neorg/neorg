@@ -18,7 +18,7 @@ module.config.public = {}
 module.setup = function()
     return {
         success = utils.is_minimum_version(0, 10, 0),
-        requires = { "core.integrations.treesitter" },
+        requires = { "core.treesitter" },
     }
 end
 
@@ -47,7 +47,7 @@ function module.public.attach_introspector(buffer)
         error(string.format("Could not attach to buffer %d, buffer is not a norg file!", buffer))
     end
 
-    module.required["core.integrations.treesitter"].execute_query(
+    module.required["core.treesitter"].execute_query(
         [[
     (_
       state: (detached_modifier_extension)) @item
@@ -68,7 +68,7 @@ function module.public.attach_introspector(buffer)
             first = math.min(first, vim.api.nvim_buf_line_count(buf) - 1)
 
             ---@type TSNode?
-            local node = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, first)
+            local node = module.required["core.treesitter"].get_first_node_on_line(buf, first)
 
             if not node then
                 return
@@ -93,7 +93,7 @@ function module.public.attach_introspector(buffer)
 
             introspect(node)
 
-            local node_above = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, first - 1)
+            local node_above = module.required["core.treesitter"].get_first_node_on_line(buf, first - 1)
 
             do
                 local todo_status = node_above:named_child(1)

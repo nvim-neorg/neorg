@@ -27,7 +27,7 @@ module.setup = function()
     return {
         requires = {
             "core.integrations.image",
-            "core.integrations.treesitter",
+            "core.treesitter",
             "core.autocommands",
             "core.neorgcmd",
             "core.highlights",
@@ -165,7 +165,7 @@ module.public = {
             end
         end
         module.private.cleared_at_cursor = {}
-        module.required["core.integrations.treesitter"].execute_query(
+        module.required["core.treesitter"].execute_query(
             [[
                 (
                     (inline_math) @latex
@@ -178,7 +178,7 @@ module.public = {
                 end
 
                 local original_snippet =
-                    module.required["core.integrations.treesitter"].get_node_text(node, nio.api.nvim_get_current_buf())
+                    module.required["core.treesitter"].get_node_text(node, nio.api.nvim_get_current_buf())
                 local clean_snippet = string.gsub(original_snippet, "^%$|", "$")
                 clean_snippet = string.gsub(clean_snippet, "|%$$", "$")
                 if clean_snippet == original_snippet then
@@ -213,7 +213,7 @@ module.public = {
                 local img = module.private.image_api.new_image(
                     buf,
                     png_location,
-                    module.required["core.integrations.treesitter"].get_node_range(node),
+                    module.required["core.treesitter"].get_node_range(node),
                     nio.api.nvim_get_current_win(),
                     module.config.public.scale,
                     not module.config.public.conceal

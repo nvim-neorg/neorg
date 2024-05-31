@@ -41,7 +41,7 @@ local module = modules.create("core.itero")
 module.setup = function()
     return {
         requires = {
-            "core.integrations.treesitter",
+            "core.treesitter",
         },
     }
 end
@@ -83,7 +83,7 @@ end
 
 module.on_event = function(event)
     if event.split_type[2] == (module.name .. ".next-iteration") then
-        local ts = module.required["core.integrations.treesitter"]
+        local ts = module.required["core.treesitter"]
         local cursor_pos = event.cursor_position[1] - 1
 
         local current = ts.get_first_node_on_line(event.buffer, cursor_pos, module.config.private.stop_types)

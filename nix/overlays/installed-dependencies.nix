@@ -11,7 +11,7 @@ in
     nativeBuildInputs = [lua51Packages.luarocks wget];
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
-    outputHash = "sha256-tvMqTgTshVApj3muQyvwj+as/8b7tw1r0BlCTpMlGuU=";
+    outputHash = "sha256-Z9hODJb/vNqa2OhAo8IuOLJWTaa/63mu0mVxAlAGJnA=";
   } ''
     mkdir $PWD/home
     export HOME=$PWD/home
@@ -19,7 +19,7 @@ in
 
     ${lib.concatStrings (lib.mapAttrsToList (name: version:
       ''
-        luarocks install --tree="$out/luarocks" --force-lock --local ${name} ${version}
+        luarocks install --server="https://nvim-neorocks.github.io/rocks-binaries/" --tree="$out/luarocks" --force-lock --local ${name} ${version}
         luarocks download ${name} ${version}
       ''
       + "\n")

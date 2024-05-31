@@ -30,7 +30,7 @@ module.setup = function()
     return {
         success = true,
         requires = {
-            "core.integrations.treesitter",
+            "core.treesitter",
             "core.ui",
         },
     }
@@ -88,9 +88,7 @@ module.public = {
                 -- Make sure that the cursor is within bounds of the code block
                 if cursor_pos[1] > extmark_begin[1] and cursor_pos[1] <= (extmark_end[1] + 1) then
                     -- For extra information grab the current node under the cursor
-                    local current_node = module.required["core.integrations.treesitter"]
-                        .get_ts_utils()
-                        .get_node_at_cursor(source_window, true)
+                    local current_node = vim.treesitter.get_node({ bufnr = source, })
 
                     if not current_node then
                         vim.api.nvim_buf_delete(target, { force = true })
@@ -101,7 +99,7 @@ module.public = {
                     -- If we are within bounds of the code block but the current node type is not part of a ranged
                     -- tag then it means the user malformed the code block in some way and we should bail
                     if
-                        not module.required["core.integrations.treesitter"].find_parent(
+                        not module.required["core.treesitter"].find_parent(
                             current_node,
                             "^ranged_verbatim_tag.*"
                         )
@@ -192,7 +190,7 @@ module.on_event = function(event)
         ]]
         )
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root(event.buffer)
+        local document_root = module.required["core.treesitter"].get_document_root(event.buffer)
 
         --- Table containing information about the code block that is potentially under the cursor
         local code_block_info
@@ -204,7 +202,7 @@ module.on_event = function(event)
                 local capture = query.captures[id]
 
                 if capture == "tag" then
-                    local tag_info = module.required["core.integrations.treesitter"].get_tag_info(node)
+                    local tag_info = module.required["core.treesitter"].get_tag_info(node)
 
                     if not tag_info then
                         utils.notify("Unable to magnify current code block :(", vim.log.levels.WARN)

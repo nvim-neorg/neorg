@@ -33,7 +33,7 @@ return modules.create_meta(
     "core.esupports.hop",
     "core.esupports.indent",
     "core.esupports.metagen",
-    "core.integrations.treesitter",
+    "core.treesitter",
     "core.itero",
     "core.journal",
     "core.keybinds",
