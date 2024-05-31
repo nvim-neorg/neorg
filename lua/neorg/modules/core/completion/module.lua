@@ -547,7 +547,7 @@ module.public = {
             },
         },
         { -- foreign link name suggestions `{:path:target}[|]`
-            regex = "^(.*){:([^:]*):([^}]*)}%[",
+            regex = "^(.*){:([^:]*):[#$*%^]* ([^}]*)}%[",
 
             complete = module.private.foreign_link_names,
 
