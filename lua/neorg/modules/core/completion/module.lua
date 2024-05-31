@@ -225,14 +225,38 @@ module.private = {
 --- - file description
 ---@return string[]
 module.private.foreign_link_names = function(context, _prev, _saved, match)
-    print("foreign")
     local file, target = match[2], match[3]
     local path = dirutils.expand_pathlib(file)
-    print("Context")
-    P(context)
-    print("path:", path)
-    print("target:", target)
-    return {}
+    local meta = treesitter.get_document_metadata(path)
+    local suggestions = {}
+    if meta then
+        table.insert(suggestions, meta.title)
+        table.insert(suggestions, meta.description)
+    end
+    if target ~= "" then
+        table.insert(suggestions, target)
+    end
+    return suggestions
+end
+
+---provide suggestions for anchors that are already defined in the document
+---@return string[]
+module.private.anchor_suggestions = function(_context, _prev, _saved, _match)
+    local suggestions = {}
+
+    local anchor_query_string = [[
+        (anchor_definition
+            (link_description
+              text: (paragraph) @anchor_name ))
+    ]]
+
+    treesitter.execute_query(anchor_query_string, function(query, id, node, _metadata)
+        local capture_name = query.captures[id]
+        if capture_name == "anchor_name" then
+            table.insert(suggestions, treesitter.get_node_text(node, 0))
+        end
+    end, 0)
+    return suggestions
 end
 
 --- suggest the link target name
@@ -570,6 +594,21 @@ module.public = {
                 completion_start = "[",
             },
         },
+        { -- complete anchor names that exist in the current buffer ` [|`
+            regex = {
+                "^(.*)[^}]%[",
+                "^%[",
+            },
+
+            complete = module.private.anchor_suggestions,
+
+            node = module.private.normal_norg,
+
+            options = {
+                type = "Reference",
+                completion_start = "[",
+            },
+        },
     },
 
     --- Parses the public completion table and attempts to find all valid matches
@@ -587,8 +626,27 @@ module.public = {
         for _, completion_data in ipairs(completions) do
             -- If the completion data has a regex variable
             if completion_data.regex then
-                -- Attempt to match the current line before the cursor with that regex
-                local match = { context.line:match(saved .. completion_data.regex .. "$") }
+                local regexes = {}
+
+                if type(completion_data.regex) == "string" then
+                    regexes = { completion_data.regex }
+                elseif type(completion_data.regex) == "table" then
+                    ---@diagnostic disable-next-line: cast-local-type
+                    regexes = completion_data.regex
+                else
+                    break
+                end
+
+                local match = {}
+                -- Attempt to match the current line before the cursor with any of the regex
+                -- expressions in the list, first one to succeed is used
+                ---@diagnostic disable-next-line: param-type-mismatch
+                for _, regex in ipairs(regexes) do
+                    match = { context.line:match(saved .. regex .. "$") }
+                    if not vim.tbl_isempty(match) then
+                        break
+                    end
+                end
 
                 -- If our match was successful
                 if not vim.tbl_isempty(match) then
@@ -752,7 +810,6 @@ module.public = {
                     end
                 end
             end
-
             ::continue::
         end
 
