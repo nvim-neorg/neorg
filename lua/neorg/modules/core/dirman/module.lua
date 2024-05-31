@@ -497,7 +497,14 @@ module.on_event = function(event)
             end
         end
 
-        vim.cmd.edit(index_path:cmd_string())
+        local ok, _ = pcall(vim.cmd.edit, index_path:cmd_string())
+        if not ok then
+            log.warn(
+                ("Failed to edit file %s. This can result from vim finding a swapfile. If that was the case, ignore this warning."):format(
+                    index_path
+                )
+            )
+        end
         return
     end
 
