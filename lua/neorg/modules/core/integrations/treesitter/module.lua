@@ -296,7 +296,7 @@ module.public = {
         if type(source) == "string" then
             local _, _, start_bytes = node:start()
             local _, _, end_bytes = node:end_()
-            return string.sub(source, start_bytes, end_bytes)
+            return string.sub(source, start_bytes + 1, end_bytes)
         end
 
         source = source or 0
@@ -312,7 +312,7 @@ module.public = {
         end
 
         if start_row >= eof_row then
-            return nil
+            return ""
         end
 
         local lines = vim.api.nvim_buf_get_text(source, start_row, start_col, end_row, end_col, {})
@@ -695,20 +695,20 @@ module.public = {
         end
 
         local result = {}
-        local function parse_data(node, str)
+        local function parse_data(node, src)
             return lib.match(node:type())({
                 string = function()
-                    return trim(module.public.get_node_text(node, str))
+                    return trim(module.public.get_node_text(node, src))
                 end,
                 number = function()
-                    return tonumber(module.public.get_node_text(node, str))
+                    return tonumber(module.public.get_node_text(node, src))
                 end,
                 array = function()
                     local resulting_array = {}
 
                     for child in node:iter_children() do
                         if child:named() then
-                            local parsed_data = parse_data(child, str)
+                            local parsed_data = parse_data(child, src)
 
                             if parsed_data then
                                 table.insert(resulting_array, parsed_data)
@@ -733,9 +733,9 @@ module.public = {
                             goto continue
                         end
 
-                        local key_content = trim(module.public.get_node_text(key, str))
+                        local key_content = trim(module.public.get_node_text(key, src))
 
-                        resulting_object[key_content] = (value and parse_data(value, str) or vim.NIL)
+                        resulting_object[key_content] = (value and parse_data(value, src) or vim.NIL)
 
                         ::continue::
                     end
@@ -770,9 +770,9 @@ module.public = {
         )
 
         local meta_node
-        for id, node in norg_query:iter_captures(norg_tree:root(), source) do
+        for id, node in norg_query:iter_captures(norg_tree:root(), iter_src) do
             if norg_query.captures[id] == "tag_name" then
-                local tag_name = trim(module.public.get_node_text(node, source))
+                local tag_name = trim(module.public.get_node_text(node, iter_src))
                 if tag_name == "document.meta" then
                     meta_node = node:next_named_sibling() or vim.NIL
                     break
@@ -784,9 +784,9 @@ module.public = {
             return result
         end
 
-        local meta_source = module.public.get_node_text(meta_node, source)
+        local meta_source = module.public.get_node_text(meta_node, iter_src)
 
-        local norg_meta_parser = vim.treesitter.get_string_parser(meta_source, "norg_meta") ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+        local norg_meta_parser = vim.treesitter.get_string_parser(meta_source, "norg_meta")
 
         local norg_meta_tree = norg_meta_parser:parse()[1]
 
