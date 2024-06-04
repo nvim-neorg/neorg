@@ -456,8 +456,8 @@ module.public = {
                 completion_start = "@",
             },
         },
-        { -- TODO items `- (|)`
-            regex = "^%s*%-+%s+%(([x%*%s]?)",
+        { -- Detached Modifier Extensions `- (`, `* (`, etc.
+            regex = "^%s*[%-*$~^]+%s+%(",
 
             complete = {
                 { "( ) ", label = "( ) (undone)" },
