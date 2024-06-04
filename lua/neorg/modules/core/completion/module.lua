@@ -224,7 +224,7 @@ module.private = {
 --- - metadata `title` field
 --- - file description
 ---@return string[]
-module.private.foreign_link_names = function(context, _prev, _saved, match)
+module.private.foreign_link_names = function(_context, _prev, _saved, match)
     local file, target = match[2], match[3]
     local path = dirutils.expand_pathlib(file)
     local meta = treesitter.get_document_metadata(path)
@@ -261,7 +261,7 @@ end
 
 --- suggest the link target name
 ---@return string[]
-module.private.local_link_names = function(context, _prev, _saved, match)
+module.private.local_link_names = function(_context, _prev, _saved, match)
     local target = match[2]
     if target then
         target = target:gsub("^%s+", "")
@@ -626,7 +626,7 @@ module.public = {
         for _, completion_data in ipairs(completions) do
             -- If the completion data has a regex variable
             if completion_data.regex then
-                local regexes = {}
+                local regexes
 
                 if type(completion_data.regex) == "string" then
                     regexes = { completion_data.regex }
