@@ -90,6 +90,13 @@ The recommended installation method is via [rocks.nvim](https://github.com/nvim-
   require("neorg").setup()
   ```
 
+For the time being you also need `nvim-treesitter` installed, but the plugin is not readily available on luarocks yet.
+To counter this, you also need to run the following:
+- `:Rocks install rocks-git.nvim`
+- `:Rocks install nvim-treesitter/nvim-treesitter`
+
+The last two steps will eventually not be required to run Neorg.
+
 </details>
 
 ### `neorg-kickstart`
