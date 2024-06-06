@@ -53,13 +53,14 @@ local Path = require("pathlib")
 
 local neorg = require("neorg.core")
 local log, modules, utils = neorg.log, neorg.modules, neorg.utils
+local dirman_utils
 
 local module = modules.create("core.dirman")
 
 module.setup = function()
     return {
         success = true,
-        requires = { "core.autocommands", "core.ui", "core.storage" },
+        requires = { "core.autocommands", "core.ui", "core.storage", "core.dirman.utils" },
     }
 end
 
@@ -69,6 +70,8 @@ module.load = function()
         -- module.config.public.workspaces[name] = vim.fn.expand(vim.fn.fnameescape(workspace_location)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
         module.config.public.workspaces[name] = Path(workspace_location):resolve():to_absolute()
     end
+
+    dirman_utils = module.required["core.dirman.utils"]
 
     modules.await("core.keybinds", function(keybinds)
         keybinds.register_keybind(module.name, "new.note")
@@ -497,14 +500,7 @@ module.on_event = function(event)
             end
         end
 
-        local ok, _ = pcall(vim.cmd.edit, index_path:cmd_string())
-        if not ok then
-            log.warn(
-                ("Failed to edit file %s. This can result from vim finding a swapfile. If that was the case, ignore this warning."):format(
-                    index_path
-                )
-            )
-        end
+        dirman_utils.edit_file(index_path:cmd_string())
         return
     end
 

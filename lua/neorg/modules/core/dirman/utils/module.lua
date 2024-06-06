@@ -68,6 +68,22 @@ module.public = {
         end
         return filepath
     end,
+
+    ---Call attempt to edit a file, catches and suppresses the error caused by a swap file being
+    ---present. Re-raises other errors via log.error
+    ---@param path string
+    edit_file = function(path)
+        local ok, err = pcall(vim.cmd.edit, path)
+        if not ok then
+            -- Vim:E325 is the swap file error, in which case, a lengthy message already shows to
+            -- the user, and we don't have to crash out of this function (which creates a long and
+            -- misleading error message).
+            if err and not err:match("Vim:E325") then
+                log.error("Failed to edit file %s. Error:\n%s"):format(path, err)
+            end
+        end
+    end,
+
     ---Resolve `$<workspace>/path/to/file` and return the real path
     -- NOTE: Use `expand_pathlib` which returns a PathlibPath object instead.
     ---

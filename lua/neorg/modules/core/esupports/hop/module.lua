@@ -13,7 +13,7 @@ prompted with a set of actions that you can perform on the broken link.
 
 local neorg = require("neorg.core")
 local config, lib, log, modules, utils = neorg.config, neorg.lib, neorg.log, neorg.modules, neorg.utils
-local links
+local links, dirman_utils
 
 local module = modules.create("core.esupports.hop")
 
@@ -31,6 +31,7 @@ end
 
 module.load = function()
     links = module.required["core.links"]
+    dirman_utils = module.required["core.dirman.utils"]
     modules.await("core.keybinds", function(keybinds)
         keybinds.register_keybind(module.name, "hop-link")
     end)
@@ -151,7 +152,7 @@ module.public = {
                 external_file = function()
                     open_split()
 
-                    vim.api.nvim_cmd({ cmd = "edit", args = { located_link_information.path } }, {})
+                    dirman_utils.edit_file(located_link_information.path)
 
                     if located_link_information.line then
                         jump_to_line(located_link_information.line)
@@ -499,7 +500,7 @@ module.public = {
         -- Check whether our target is from a different file
         if parsed_link_information.link_file_text then
             local expanded_link_text =
-                module.required["core.dirman.utils"].expand_path(parsed_link_information.link_file_text)
+                dirman_utils.expand_path(parsed_link_information.link_file_text)
 
             if expanded_link_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
@@ -781,7 +782,7 @@ module.private = {
 
         if parsed_link_information.link_file_text then
             local expanded_link_text =
-                module.required["core.dirman.utils"].expand_path(parsed_link_information.link_file_text)
+                dirman_utils.expand_path(parsed_link_information.link_file_text)
 
             if expanded_link_text ~= vim.fn.expand("%:p") then
                 -- We are dealing with a foreign file
