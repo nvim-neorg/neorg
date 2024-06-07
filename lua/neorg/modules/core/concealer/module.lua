@@ -139,6 +139,11 @@ local function set_mark(bufid, row_0b, col_0b, text, highlight, ext_opts)
         ui_watched = nil,
     }
 
+    -- proxy for nvim 0.10+
+    if vim.version then
+        opt["invalidate"] = true
+    end
+
     if ext_opts then
         table_extend_in_place(opt, ext_opts)
     end
