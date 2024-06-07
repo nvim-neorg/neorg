@@ -85,7 +85,7 @@ The recommended installation method is via [rocks.nvim](https://github.com/nvim-
 
 - Run `:Rocks install rocks-config.nvim` (if you don't have it already!).
 - Run `:Rocks install neorg`.
-- Add the following to your config's `lua/plugins/neorg.lua`:
+- From the root of your configuration (`~/.config/nvim/` on unix-like systems), create a `lua/plugins/neorg.lua` file and place the following content inside:
   ```lua
   require("neorg").setup()
   ```
