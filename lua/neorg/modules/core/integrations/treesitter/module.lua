@@ -685,10 +685,14 @@ module.public = {
         source = source or 0
 
         local norg_parser, iter_src = module.public.get_ts_parser(source)
-        if not norg_parser then return end
+        if not norg_parser then
+            return
+        end
 
         local norg_tree = norg_parser:parse()[1]
-        if not norg_tree then return end
+        if not norg_tree then
+            return
+        end
 
         local function trim(value)
             return no_trim and value or vim.trim(value)
@@ -866,7 +870,7 @@ module.public = {
         end
 
         return norg_parser, iter_src
-    end
+    end,
 }
 
 -- this fixes the problem of installing neorg ts parsers on macOS without resorting to using gcc
