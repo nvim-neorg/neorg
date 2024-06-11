@@ -1,5 +1,25 @@
 # Changelog
 
+## [8.7.0](https://github.com/nvim-neorg/neorg/compare/v8.6.0...v8.7.0) (2024-06-11)
+
+
+### Features
+
+* anchor completion ([9917f99](https://github.com/nvim-neorg/neorg/commit/9917f993c505c3ab7d122e253a3af7cf13820fd0))
+* **completion:** additional detached modifier extensions ([6b02bf1](https://github.com/nvim-neorg/neorg/commit/6b02bf156d4cf1ded9b2bb93cb4669a00e6a1e7f))
+* link name completions ([8ec38e0](https://github.com/nvim-neorg/neorg/commit/8ec38e07ddffa84d0925faf425d4d52e5c1f91b7))
+* **treesitter:** add get_ts_parser ([5221820](https://github.com/nvim-neorg/neorg/commit/5221820166a9cfac67451581ea79a9e2e7680215))
+* **treesitter:** get_document_root accepts more sources ([4ebb7c7](https://github.com/nvim-neorg/neorg/commit/4ebb7c7bd62d12b77f0a8a0ec27e2e64ef204d65))
+
+
+### Bug Fixes
+
+* **concealer:** invalidate extmarks when range is deleted ([51be069](https://github.com/nvim-neorg/neorg/commit/51be06957fc6cc7140b310abd30be6682041962a))
+* foreign link completions with item ([8537710](https://github.com/nvim-neorg/neorg/commit/85377108531d4083c0526623023a35aab2509410))
+* supress swap file errors ([4420ddc](https://github.com/nvim-neorg/neorg/commit/4420ddc26ab80b42d4735ec78efea39c7cc7f547))
+* thoroughly test for current Neovim version ([352570c](https://github.com/nvim-neorg/neorg/commit/352570cb174c73d50a82376f06b05badb1cda338))
+* **todo-items:** error when switching from on-hold item with children ([f03435f](https://github.com/nvim-neorg/neorg/commit/f03435f03b5649598fb1478429d4e985dc5789bb))
+
 ## [8.6.0](https://github.com/nvim-neorg/neorg/compare/v8.5.0...v8.6.0) (2024-05-31)
 
 
