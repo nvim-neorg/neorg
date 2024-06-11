@@ -33,7 +33,7 @@ For the motivation behind this, see the [external tools](#external-tooling) sect
 ## Documentation
 
 - [ ] Develop and ship a Neorg landing page with documentation, presumably with docasaurus.
-    - [ ] Provide a written tutorial on how to get started with Neorg.
+    - [x] Provide a written tutorial on how to get started with Neorg.
     - [ ] Provided a tutorial on how to develop for Neorg (modules, events, etc.).
 - [ ] Provide a dropdown in the wiki which will display a module's entire configuration as a lua snippet.
 
