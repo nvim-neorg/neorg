@@ -83,6 +83,7 @@ local has_anticonceal = (function()
     sub_version = tonumber(sub_version)
     return sub_version and sub_version > 575
 end)()
+local has_extmark_invalidation = utils.is_minimum_version(0, 10, 0)
 
 local module = modules.create("core.concealer", {
     "preset_basic",
@@ -139,8 +140,7 @@ local function set_mark(bufid, row_0b, col_0b, text, highlight, ext_opts)
         ui_watched = nil,
     }
 
-    -- proxy for nvim 0.10+
-    if vim.version then
+    if has_extmark_invalidation then
         opt["invalidate"] = true
     end
 
