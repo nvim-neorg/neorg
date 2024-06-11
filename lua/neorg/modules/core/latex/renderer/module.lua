@@ -226,7 +226,8 @@ module.public = {
                     real = true,
                     extmark_id = existing_ext_id,
                 }
-            end
+            end,
+            buf
         )
 
         for key, limage in pairs(new_limages) do
