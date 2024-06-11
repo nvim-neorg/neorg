@@ -94,8 +94,16 @@ For the time being you also need `nvim-treesitter` installed, but the plugin is 
 To counter this, you also need to run the following:
 - `:Rocks install rocks-git.nvim`
 - `:Rocks install nvim-treesitter/nvim-treesitter`
+- Just like the `neorg.lua` file, create a `lua/plugins/treesitter.lua` file and place the following content inside:
+  ```lua
+  require("nvim-treesitter.configs").setup({
+    highlight = {
+      enable = true,
+    },
+  })
+  ```
 
-The last two steps will eventually not be required to run Neorg.
+The last three steps will eventually not be required to run Neorg.
 
 </details>
 
