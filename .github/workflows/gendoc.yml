@@ -15,16 +15,16 @@ jobs:
     name: Generate Markdown Docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install Plenary
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: nvim-lua/plenary.nvim
           path: plenary.nvim
 
       - name: Install Treesitter
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: nvim-treesitter/nvim-treesitter
           path: nvim-treesitter
@@ -47,7 +47,7 @@ jobs:
           luarocks install --lua-version=5.1 neorg --deps-only
 
       - name: Clone Wiki
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: "nvim-neorg/neorg.wiki"
           path: wiki/
