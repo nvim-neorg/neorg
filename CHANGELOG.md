@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.7.1](https://github.com/nvim-neorg/neorg/compare/v8.7.0...v8.7.1) (2024-06-12)
+
+
+### Bug Fixes
+
+* **latex-renderer:** fixed renderer failing silently ([4b22a4e](https://github.com/nvim-neorg/neorg/commit/4b22a4ea798efeeb756a6df52baa369715832a5a))
+
 ## [8.7.0](https://github.com/nvim-neorg/neorg/compare/v8.6.0...v8.7.0) (2024-06-11)
 
 
