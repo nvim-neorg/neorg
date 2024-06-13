@@ -20,8 +20,7 @@ jobs:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
         with:
           version: ${{ env.LUAROCKS_VERSION }}
-          test_interpreters: |
-            neovim-stable
+          test_interpreters: ""
           dependencies: |
             nvim-nio ~> 1.7
             lua-utils.nvim == 1.0.2
