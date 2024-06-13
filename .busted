@@ -3,6 +3,7 @@ return {
         coverage = false,
         lpath = "lua/?.lua;lua/?/init.lua",
         pattern = "tests%.lua$",
+        lua = "nlua",
         ROOT = { "lua/" },
     },
     default = {

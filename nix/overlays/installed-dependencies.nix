@@ -5,7 +5,8 @@
   wget,
   self,
 }: let
-  dependencies = builtins.fromJSON (builtins.readFile "${self}/res/deps.json");
+  # Temporarily remove the parsers due to installation problems on Nix. Causes the integration test to fail for now.
+  dependencies = builtins.removeAttrs (builtins.fromJSON (builtins.readFile "${self}/res/deps.json")) ["tree-sitter-norg" "tree-sitter-norg-meta"];
 in
   runCommand "install-neorg-dependencies" {
     nativeBuildInputs = [lua51Packages.luarocks wget];
