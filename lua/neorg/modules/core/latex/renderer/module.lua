@@ -229,6 +229,7 @@ module.public = {
             end,
             buf
         )
+        nio.scheduler()
 
         for key, limage in pairs(new_limages) do
             if not limage.real then
