@@ -314,10 +314,10 @@ module.public = {
             return
         end
 
-				local modified = vim.api.nvim_buf_get_option(buf, "modified")
-				if not modified then
-					return
-				end
+        local modified = vim.api.nvim_buf_get_option(buf, "modified")
+        if not modified then
+            return
+        end
 
         -- Extract the root node of the norg_meta language
         -- This process should be abstracted into a core.integrations.treesitter
