@@ -437,6 +437,36 @@ module.public = {
             }, callback)
         end
     end,
+
+    ---add some time to a given date
+    ---@param date Date | number
+    ---@param elapsed_time { year: number?, month: number?, day: number? }
+    ---@return number
+    add_time = function(date, elapsed_time)
+        if type(date) == "number" then
+            date = module.public.to_date(os.date("*t", date) --[[@as osdate]])
+        end
+        local lua_date = module.public.to_lua_date(date)
+        lua_date.year = lua_date.year + (elapsed_time.year or 0)
+        lua_date.month = lua_date.month + (elapsed_time.month or 0)
+        lua_date.day = lua_date.day + (elapsed_time.day or 0)
+        return os.time(lua_date --[[@as osdateparam]])
+    end,
+
+    ---add some time to a given date
+    ---@param date Date | number
+    ---@param elapsed_time { year: number?, month: number?, day: number? }
+    ---@return number
+    sub_time = function(date, elapsed_time)
+        if type(date) == "number" then
+            date = module.public.to_date(os.date("*t", date) --[[@as osdate]])
+        end
+        local lua_date = module.public.to_lua_date(date)
+        lua_date.year = lua_date.year - (elapsed_time.year or 0)
+        lua_date.month = lua_date.month - (elapsed_time.month or 0)
+        lua_date.day = lua_date.day - (elapsed_time.day or 0)
+        return os.time(lua_date --[[@as osdateparam]])
+    end,
 }
 
 module.private = {

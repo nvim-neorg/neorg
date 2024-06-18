@@ -4,87 +4,118 @@
     description: The journal module allows you to take personal notes with zero friction.
     summary: Easily track a journal within Neorg.
     ---
-The journal module exposes a total of six commands.
-The first three, `:Neorg journal today|yesterday|tomorrow`, allow you to access entries
-for a given time relative to today. A file will be opened with the respective date as a `.norg` file.
+Journals are "periodic" in Neorg. You can have a daily journal, a weekly journal, a quarterly
+journal, etc, (or all of them at once). The `daily` journal is the default, and Neorg ships with
+`daily`, `weekly`, `monthly`, and `yearly` journals already defined.
 
-The fourth command, `:Neorg journal custom`, allows you to specify a custom date as an argument.
-The date must be formatted according to the `YYYY-mm-dd` format, e.g. `2023-01-01`.
+### Commands:
 
-The `:Neorg journal template` command creates a template file which will be used as the base whenever
-a new journal entry is created.
+The main commands are: `:Neorg journal previous|current|next <name?>`, where `<name>` is the name of
+a periodic journal--either one of the pre-defined journal names mentioned above, or a custom name
+added in configuration. Eliding `name` will use the default journal (usually `daily` but this is
+configurable)
 
-Last but not least, the `:Neorg journal toc open|update` commands open or create/update a Table of Contents
-file found in the root of the journal. This file contains links to all other journal entries, alongside
-their titles.
+Additionally, you can specify a custom date with `:Neorg journal custom <name?> <date?>`. The date
+can be either:
+- a date in `YYYY-mm-dd` format, e.g. `2023-01-01`
+- a date in the Norg date format: `<day>?,? <day-of-month> <month> -?<year> <time> <timezone>`, eg:
+    - `Sat, 29 Oct 1994 19:43.31 GMT`
+    - `We 12th Jan 2022`
+
+If an exact date isn't given, it will go to the previous valid date. For example: `:Neorg journal
+custom monthly 2024-01-12` will be the same as `:Neorg journal custom monthly 2024-01-01`; both will
+take you to Jan 2024's monthly note. If you leave `date` out Neorg will prompt you to select a date
+via the calendar.
+
+Some aliases exist for convenience:
+- `Neorg journal today|yesterday|tomorrow`, allow you to access daily journal entries for a given
+time relative to today. A file will be opened with the respective date as a `.norg` file. (as such,
+you cannot name a periodic journal "today", "yesterday", or "tomorrow"). These commands _always_ use
+the `daily` journal.
+
+The `:Neorg journal template <name>` command creates or opens a template file which will be used as
+the base whenever a new journal entry is created.
+
+Last but not least, the `:Neorg journal toc open|update <name>` commands open or create/update
+a Table of Contents file found in the root of the journal. This file contains links to all other
+journal entries, alongside their titles.
 --]]
 
 local neorg = require("neorg.core")
 local config, lib, log, modules = neorg.config, neorg.lib, neorg.log, neorg.modules
+---@type core.tempus
+local tempus
 
 local module = modules.create("core.journal")
 
-module.examples = {
-    ["Changing TOC format to divide year in quarters"] = function()
-        -- In your ["core.journal"] options, change toc_format to a function like this:
+module.config.public = {
+    -- Which workspace to use for the journal files, the default behaviour
+    -- is to use the current workspace.
+    --
+    -- It is recommended to set this to a static workspace, but the most optimal
+    -- behaviour may vary from workflow to workflow.
+    workspace = nil,
 
-        require("neorg").setup({
-            load = {
-                -- ...
-                ["core.journal"] = {
-                    config = {
-                        -- ...
-                        toc_format = function(entries)
-                            -- Convert the entries into a certain format
+    -- The name for the folder in which the journal files are put.
+    journal_folder = "journal",
 
-                            local output = {}
-                            local current_year
-                            local current_quarter
-                            local last_quarter
-                            local current_month
-                            for _, entry in ipairs(entries) do
-                                -- Don't print the year if it hasn't changed
-                                if not current_year or current_year < entry[1] then
-                                    current_year = entry[1]
-                                    current_month = nil
-                                    table.insert(output, "* " .. current_year)
-                                end
+    -- when a journal command is used without a name, this is the journal that it will default to
+    default_journal_name = "daily",
 
-                                -- Check to which quarter the current month corresponds to
-                                if entry[2] <= 3 then
-                                    current_quarter = 1
-                                elseif entry[2] <= 6 then
-                                    current_quarter = 2
-                                elseif entry[2] <= 9 then
-                                    current_quarter = 3
-                                else
-                                    current_quarter = 4
-                                end
+    -- The strategy to use to create directories.
+    -- May be "flat" (`2022-03-02.norg`), "nested" (`2022/03/02.norg`),
+    -- a lua string with the format given to `os.date()` or a lua function
+    -- that returns a lua string with the same format.
+    strategy = "nested",
 
-                                -- If the current month corresponds to another quarter, print it
-                                if current_quarter ~= last_quarter then
-                                    table.insert(output, "** Quarter " .. current_quarter)
-                                    last_quarter = current_quarter
-                                end
+    -- The name of the template file to use (sans the `.norg`) when running `:Neorg journal
+    -- template`. The actual file path will be: `base_template_name .. "-" .. journal_name .. ".norg"`
+    -- for the default  journal template this looks like: `"template-daily.norg"`
+    base_template_name = "template",
 
-                                -- Don't print the month if it hasn't changed
-                                if not current_month or current_month < entry[2] then
-                                    current_month = entry[2]
-                                    table.insert(output, "*** Month " .. current_month)
-                                end
+    -- Whether to apply the template file to new journal entries.
+    use_template = true,
 
-                                -- Prints the file link
-                                table.insert(output, "   " .. entry[4] .. string.format("[%s]", entry[5]))
-                            end
+    -- Formatter function used to generate the toc file.
+    -- Receives a table that contains tables like { yy, mm, dd, link, title }.
+    --
+    -- The function must return a table of strings.
+    toc_format = nil,
 
-                            return output
-                        end,
-                        -- ...
-                    },
-                },
-            },
-        })
-    end,
+    -- this is where you can define additional periodic journals
+    --
+    -- an example entry looks like:
+    -- ```lua
+    -- sprint = {
+    --   start_date = os.time({ year = 2024, month = 06, day = 17 }), -- a Monday
+    --   period = { day = 14 },
+    --   path_format_strategy = "%Y/%m/%d-sprint.norg"
+    -- }
+    -- ```
+    -- - `sprint` is the name of the journal, it's how you refer to the journal in commands.
+    -- - `start_date` can be any time, including days in the future
+    -- - `period` can contain `days` or (`months` and `years`). You can't mix `days` with
+    -- `months`/`years` due to inconsistencies with the length of the later group
+    -- - `path_format_strategy` accepts the same values as `strategy`, _and_ it is optional. By
+    -- default the normal journal strategy is used with `-journal_name` appended to the end
+    --
+    -- You can override default journal behaviours with this table. For example, if you want your
+    -- daily journal to run a little into the next day so you can use `:Neorg journal today` at 1am
+    -- and get the previous day's journal, you can do something like this:
+    -- ```lua
+    -- daily = {
+    --   start_date = os.time({ year = 2024, month = 06, day = 01, hour = 1 })
+    --   -- other fields will stay default
+    -- }
+    -- ```
+    journals = {},
+}
+
+module.config.private = {
+    strategies = {
+        flat = "%Y-%m-%d.norg",
+        nested = "%Y" .. config.pathsep .. "%m" .. config.pathsep .. "%d.norg",
+    },
 }
 
 module.setup = function()
@@ -93,47 +124,184 @@ module.setup = function()
         requires = {
             "core.dirman",
             "core.integrations.treesitter",
+            "core.tempus",
         },
     }
 end
 
-module.private = {
-    --- Opens a diary entry at the given time
-    ---@param time? number #The time to open the journal entry at as returned by `os.time()`
-    ---@param custom_date? string #A YYYY-mm-dd string that specifies a date to open the diary at instead
-    open_diary = function(time, custom_date)
-        -- TODO(vhyrro): Change this to use Norg dates!
+module.load = function()
+    tempus = module.required["core.tempus"]
+    if module.config.private.strategies[module.config.public.strategy] then
+        module.config.public.strategy = module.config.private.strategies[module.config.public.strategy]
+    end
+
+    ---alter a format strategy to include the name of the journal at the end (to avoid name
+    ---collisions with the default journal)
+    local function alter_strategy(strat, name)
+        -- use the default strategy for the default journal
+        if name == module.config.public.default_journal_name then
+            return strat
+        end
+
+        if type(strat) == "string" then
+            return strat:gsub("%.norg$", "-" .. name .. ".norg")
+        end
+
+        if type(strat) == "function" then
+            return function(t)
+                local str = strat(t)
+                return str:gsub("%.norg$", "-" .. name .. ".norg")
+            end
+        end
+
+        return strat
+    end
+
+    ---@class JournalMonthTimePeriod
+    ---@field year number?
+    ---@field month number?
+
+    ---@class JournalDayTimePeriod
+    ---@field day number?
+
+    ---@alias JournalTimePeriod JournalDayTimePeriod | JournalMonthTimePeriod
+
+    ---@class JournalSpec
+    ---@field start_date integer time
+    ---@field period JournalTimePeriod
+    ---@field path_format_strategy string | function
+
+    ---@type table<any, JournalSpec>
+    module.config.private.journals = {
+        daily = {
+            start_date = os.time({ year = 2024, month = 06, day = 01, hour = 0 }),
+            period = { day = 1 },
+            path_format_strategy = alter_strategy(module.config.public.strategy, "daily"),
+        },
+        weekly = {
+            -- NOTE: this makes the week start on a Monday
+            start_date = os.time({ year = 2024, month = 06, day = 03, hour = 0 }),
+            period = { day = 7 },
+            path_format_strategy = alter_strategy(module.config.public.strategy, "weekly"),
+        },
+        monthly = {
+            start_date = os.time({ year = 2024, month = 01, day = 01, hour = 0 }),
+            period = { month = 1 },
+            path_format_strategy = alter_strategy(module.config.public.strategy, "monthly"),
+        },
+    }
+
+    -- validate journal periods
+    for name, journal in pairs(module.config.public.journals) do
+        if journal.period then
+            if journal.period.day and (journal.period.month or journal.period.year) then
+                log.warn(
+                    "Journals cannot have a period that mixes days with months or years. Days will be ignored for journal: "
+                        .. name
+                )
+            end
+        end
+        if not journal.path_format_strategy then
+            journal.path_format_strategy = alter_strategy(module.config.public.strategy, name)
+        end
+    end
+
+    module.config.public.journals =
+        vim.tbl_deep_extend("keep", module.config.public.journals, module.config.private.journals)
+
+    modules.await("core.neorgcmd", function(neorgcmd)
+        local journal_names = vim.tbl_keys(module.config.public.journals)
+        neorgcmd.add_commands_from_table({
+            journal = {
+                min_args = 1,
+                subcommands = {
+                    tomorrow = { args = 0, name = "journal.tomorrow" },
+                    yesterday = { args = 0, name = "journal.yesterday" },
+                    today = { args = 0, name = "journal.today" },
+                    previous = {
+                        min_args = 0,
+                        max_args = 1,
+                        name = "journal.previous",
+                        complete = { journal_names },
+                    },
+                    current = {
+                        min_args = 0,
+                        max_args = 1,
+                        name = "journal.current",
+                        complete = { journal_names },
+                    },
+                    next = {
+                        min_args = 0,
+                        max_args = 1,
+                        name = "journal.next",
+                        complete = { journal_names },
+                    },
+                    custom = {
+                        min_args = 1,
+                        name = "journal.custom",
+                        complete = { journal_names },
+                    },
+                    template = {
+                        max_args = 1,
+                        name = "journal.template",
+                        complete = { journal_names },
+                    },
+                    toc = {
+                        args = 1,
+                        name = "journal.toc",
+                        subcommands = {
+                            open = {
+                                max_args = 1,
+                                name = "journal.toc.open",
+                                complete = { journal_names },
+                            },
+                            update = {
+                                max_args = 1,
+                                name = "journal.toc.update",
+                                complete = { journal_names },
+                            },
+                        },
+                    },
+                },
+            },
+        })
+    end)
+end
+
+---@class core.journal
+module.public = {
+    ---Opens a diary entry at the given time
+    ---@param journal_name string journal name
+    ---@param date? number #The time to open the journal entry at as returned by `os.time()`
+    open_journal = function(journal_name, date)
         local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
         local folder_name = module.config.public.journal_folder
-        local template_name = module.config.public.template_name
+        local template_name = module.private.get_template_name(journal_name)
 
-        if custom_date then
-            local year, month, day = custom_date:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
-
-            if not year or not month or not day then
-                log.error("Wrong date format: use YYYY-mm-dd")
-                return
-            end
-
-            time = os.time({
-                year = year,
-                month = month,
-                day = day,
-            })
+        local journal = module.config.public.journals[journal_name]
+        if not journal then
+            local valid_names = vim.iter(vim.tbl_keys(module.config.public.journals)):join(", ")
+            log.error(
+                ("Cannot find journal with name: `%s`\nHere is a list of recognized journal names: %s"):format(
+                    journal_name,
+                    valid_names
+                )
+            )
+            return
         end
 
         local path = os.date(
-            type(module.config.public.strategy) == "function" and module.config.public.strategy(os.date("*t", time))
-                or module.config.public.strategy,
-            time
+            ---@diagnostic disable-next-line: param-type-mismatch
+            (type(journal.path_format_strategy) == "function" and journal.path_format_strategy(os.date("*t", date)))
+                or journal.path_format_strategy,
+            ---@diagnostic disable-next-line: param-type-mismatch
+            date
         )
 
         local workspace_path = module.required["core.dirman"].get_workspace(workspace)
 
         local journal_file_exists =
             module.required["core.dirman"].file_exists(workspace_path .. "/" .. folder_name .. config.pathsep .. path)
-
-        module.required["core.dirman"].create_file(folder_name .. config.pathsep .. path, workspace)
 
         module.required["core.dirman"].create_file(folder_name .. config.pathsep .. path, workspace)
 
@@ -145,27 +313,101 @@ module.private = {
             vim.cmd("$read " .. workspace_path .. "/" .. folder_name .. "/" .. template_name .. "| w")
         end
     end,
+}
 
-    --- Opens a diary entry for tomorrow's date
-    diary_tomorrow = function()
-        module.private.open_diary(os.time() + 24 * 60 * 60)
+module.private = {
+    journal_previous = function(args)
+        local journal_name = args[1]
+        local journal = module.config.public.journals[journal_name]
+        local current = module.private.get_period_date(journal_name)
+        module.public.open_journal(journal_name, tempus.sub_time(current, journal.period))
     end,
 
-    --- Opens a diary entry for yesterday's date
-    diary_yesterday = function()
-        module.private.open_diary(os.time() - 24 * 60 * 60)
+    journal_next = function(args)
+        local journal_name = args[1]
+        local journal = module.config.public.journals[journal_name]
+        local current = module.private.get_period_date(journal_name)
+        module.public.open_journal(journal_name, tempus.add_time(current, journal.period))
     end,
 
-    --- Opens a diary entry for today's date
-    diary_today = function()
-        module.private.open_diary()
+    ---Get the date at the start of the period which contains the given time for the given journal.
+    ---When time is nil, use the current time
+    ---@param journal_name string
+    ---@param time number?
+    ---@return number os.time or 0 when given an invalid journal
+    get_period_date = function(journal_name, time)
+        local journal = module.config.public.journals[journal_name]
+        if not journal then
+            return 0
+        end
+
+        local start_date = os.date("*t", journal.start_date)
+        local start_as_Date = tempus.to_date(os.date("*t", journal.start_date) --[[@as osdate]])
+
+        time = time or os.time()
+        local date = os.date("*t", time)
+
+        if journal.period.month or journal.period.year then -- months/years take priority, and days will be ignored if present
+            -- calculate based on months
+            local period_months = (journal.period.month or 0) + (journal.period.year or 0) * 12
+            local start_months = (start_date.month or 0) + (start_date.year or 0) * 12
+            local current_months = (date.month or 0) + (date.year or 0) * 12
+            local month_diff = current_months - start_months
+            local time_periods_since_start = math.floor(month_diff / period_months)
+
+            -- TODO: is this off by one or okay?
+            return tempus.add_time(start_as_Date, {
+                month = time_periods_since_start * period_months
+            })
+        else
+            -- calculate based on days, this calculation would work for everything if months were
+            -- a consistent length :|
+            local diff = os.difftime(os.time(date --[[@as osdateparam]]), journal.start_date)
+            local start_plus_period = tempus.add_time(start_as_Date, journal.period)
+            local period_as_int = os.difftime(start_plus_period, journal.start_date)
+
+            local time_periods_since_start = math.floor(diff / period_as_int)
+
+            return tempus.add_time(start_as_Date, {
+                day = time_periods_since_start * (journal.period.day or 0),
+            })
+        end
+    end,
+
+    ---@param args string[]
+    journal_current = function(args)
+        local journal_name = args[1]
+        local current = module.private.get_period_date(journal_name)
+        module.public.open_journal(journal_name, current)
+    end,
+
+    --- Opens a journal entry for tomorrow's date
+    journal_tomorrow = function()
+        module.private.journal_next({ "daily" })
+    end,
+
+    --- Opens a journal entry for yesterday's date
+    journal_yesterday = function()
+        module.private.journal_previous({ "daily" })
+    end,
+
+    --- Opens a journal entry for today's date
+    journal_today = function()
+        module.private.journal_current({ "daily" })
+    end,
+
+    get_template_name = function(journal_name)
+        return module.config.public.base_template_name
+            .. "-"
+            .. (journal_name or module.config.public.default_journal_name)
+            .. ".norg"
     end,
 
     --- Creates a template file
-    create_template = function()
+    create_template = function(args)
         local workspace = module.config.public.workspace
         local folder_name = module.config.public.journal_folder
-        local template_name = module.config.public.template_name
+        local template_name = module.private.get_template_name(args[1])
 
         module.required["core.dirman"].create_file(
             folder_name .. config.pathsep .. template_name,
@@ -173,8 +415,12 @@ module.private = {
         )
     end,
 
+    -- TODO: file paths for this are going to be weird I think...
+    -- might just want another config option for TOC file paths/locations on each periodic journal
     --- Opens the toc file
-    open_toc = function()
+    ---@param args string[]
+    open_toc = function(args)
+        local journal_name = args[1] or module.config.public.default_journal_name
         local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
         local index = modules.get_module_config("core.dirman").index
         local folder_name = module.config.public.journal_folder
@@ -183,12 +429,16 @@ module.private = {
         if module.required["core.dirman"].file_exists(folder_name .. config.pathsep .. index) then
             module.required["core.dirman"].open_file(workspace, folder_name .. config.pathsep .. index)
         else
-            module.private.create_toc()
+            module.private.create_toc({ journal_name })
         end
     end,
 
-    --- Creates or updates the toc file
-    create_toc = function()
+    -- TODO: I'm putting this off b/c it's annoying and a lot of work, and I want to get the basics
+    -- first anyway
+    --- Creates or updates the toc file for a given journal
+    ---@param args string[]
+    create_toc = function(args)
+        local journal_name = args[1] or module.config.public.default_journal_name
         local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
         local index = modules.get_module_config("core.dirman").index
         local workspace_path = module.required["core.dirman"].get_workspace(workspace)
@@ -377,116 +627,67 @@ module.private = {
     end,
 }
 
-module.config.public = {
-    -- Which workspace to use for the journal files, the default behaviour
-    -- is to use the current workspace.
-    --
-    -- It is recommended to set this to a static workspace, but the most optimal
-    -- behaviour may vary from workflow to workflow.
-    workspace = nil,
+local function handle_custom(args)
+    local journal_name = args[1] or module.config.public.default_journal_name
+    if not args[2] then
+        local calendar = modules.get_module("core.ui.calendar")
 
-    -- The name for the folder in which the journal files are put.
-    journal_folder = "journal",
+        if not calendar then
+            log.error("[ERROR]: `core.ui.calendar` is not loaded but is required for this operation.")
+            return
+        end
 
-    -- The strategy to use to create directories.
-    -- May be "flat" (`2022-03-02.norg`), "nested" (`2022/03/02.norg`),
-    -- a lua string with the format given to `os.date()` or a lua function
-    -- that returns a lua string with the same format.
-    strategy = "nested",
-
-    -- The name of the template file to use when running `:Neorg journal template`.
-    template_name = "template.norg",
-
-    -- Whether to apply the template file to new journal entries.
-    use_template = true,
-
-    -- Formatter function used to generate the toc file.
-    -- Receives a table that contains tables like { yy, mm, dd, link, title }.
-    --
-    -- The function must return a table of strings.
-    toc_format = nil,
-}
-
-module.config.private = {
-    strategies = {
-        flat = "%Y-%m-%d.norg",
-        nested = "%Y" .. config.pathsep .. "%m" .. config.pathsep .. "%d.norg",
-    },
-}
-
-module.public = {
-    version = "0.0.9",
-}
-
-module.load = function()
-    if module.config.private.strategies[module.config.public.strategy] then
-        module.config.public.strategy = module.config.private.strategies[module.config.public.strategy]
-    end
-
-    modules.await("core.neorgcmd", function(neorgcmd)
-        neorgcmd.add_commands_from_table({
-            journal = {
-                min_args = 1,
-                max_args = 2,
-                subcommands = {
-                    tomorrow = { args = 0, name = "journal.tomorrow" },
-                    yesterday = { args = 0, name = "journal.yesterday" },
-                    today = { args = 0, name = "journal.today" },
-                    custom = { max_args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
-                    template = { args = 0, name = "journal.template" },
-                    toc = {
-                        args = 1,
-                        name = "journal.toc",
-                        subcommands = {
-                            open = { args = 0, name = "journal.toc.open" },
-                            update = { args = 0, name = "journal.toc.update" },
-                        },
-                    },
-                },
-            },
+        calendar.select_date({
+            callback = vim.schedule_wrap(function(osdate)
+                module.public.open_journal(journal_name, module.private.get_period_date(journal_name, os.time(osdate)))
+            end),
         })
-    end)
+    else
+        local year, month, day = args[2]:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
+
+        if not year or not month or not day then
+            -- try to treat it like a Norg date
+            local date = tempus.parse_date(vim.iter(args):skip(1):join(" "))
+            if type(date) == "string" then
+                log.error("Error trying to parse date: ", date)
+                return
+            end
+
+            year = date.year
+            month = date.month.number
+            day = date.day
+        end
+
+        if not year or not month or not day then
+            log.error("Must specify year month and day, in either YYYY-mm-dd or Neorg date format")
+            return
+        end
+        local time = os.time({
+            year = year,
+            month = month,
+            day = day,
+        })
+
+        module.public.open_journal(journal_name, module.private.get_period_date(journal_name, time))
+    end
 end
 
+local event_handlers = {
+    ["core.neorgcmd.events.journal.previous"] = module.private.journal_previous,
+    ["core.neorgcmd.events.journal.current"] = module.private.journal_current,
+    ["core.neorgcmd.events.journal.next"] = module.private.journal_next,
+    ["core.neorgcmd.events.journal.yesterday"] = module.private.journal_yesterday,
+    ["core.neorgcmd.events.journal.tomorrow"] = module.private.journal_tomorrow,
+    ["core.neorgcmd.events.journal.today"] = module.private.journal_today,
+    ["core.neorgcmd.events.journal.custom"] = handle_custom,
+    ["core.neorgcmd.events.journal.template"] = module.private.create_template,
+    ["core.neorgcmd.events.journal.toc.update"] = module.private.create_toc,
+    ["core.neorgcmd.events.journal.toc.open"] = module.private.open_toc,
+}
+
 module.on_event = function(event)
-    if event.split_type[1] == "core.neorgcmd" then
-        if event.split_type[2] == "journal.tomorrow" then
-            module.private.diary_tomorrow()
-        elseif event.split_type[2] == "journal.yesterday" then
-            module.private.diary_yesterday()
-        elseif event.split_type[2] == "journal.custom" then
-            if not event.content[1] then
-                local calendar = modules.get_module("core.ui.calendar")
-
-                if not calendar then
-                    log.error("[ERROR]: `core.ui.calendar` is not loaded! Said module is required for this operation.")
-                    return
-                end
-
-                calendar.select_date({
-                    callback = vim.schedule_wrap(function(osdate)
-                        module.private.open_diary(
-                            nil,
-                            string.format("%04d", osdate.year)
-                                .. "-"
-                                .. string.format("%02d", osdate.month)
-                                .. "-"
-                                .. string.format("%02d", osdate.day)
-                        )
-                    end),
-                })
-            else
-                module.private.open_diary(nil, event.content[1])
-            end
-        elseif event.split_type[2] == "journal.today" then
-            module.private.diary_today()
-        elseif event.split_type[2] == "journal.template" then
-            module.private.create_template()
-        elseif event.split_type[2] == "journal.toc.open" then
-            module.private.open_toc()
-        elseif event.split_type[2] == "journal.toc.update" then
-            module.private.create_toc()
-        end
+    if event_handlers[event.type] then
+        return event_handlers[event.type](event.content)
     end
 end
 
@@ -495,11 +696,77 @@ module.events.subscribed = {
         ["journal.yesterday"] = true,
         ["journal.tomorrow"] = true,
         ["journal.today"] = true,
+        ["journal.previous"] = true,
+        ["journal.current"] = true,
+        ["journal.next"] = true,
         ["journal.custom"] = true,
         ["journal.template"] = true,
         ["journal.toc.update"] = true,
         ["journal.toc.open"] = true,
     },
+}
+
+module.examples = {
+    ["Changing TOC format to divide year in quarters"] = function()
+        -- In your ["core.journal"] options, change toc_format to a function like this:
+
+        require("neorg").setup({
+            load = {
+                -- ...
+                ["core.journal"] = {
+                    config = {
+                        -- ...
+                        toc_format = function(entries)
+                            -- Convert the entries into a certain format
+
+                            local output = {}
+                            local current_year
+                            local current_quarter
+                            local last_quarter
+                            local current_month
+                            for _, entry in ipairs(entries) do
+                                -- Don't print the year if it hasn't changed
+                                if not current_year or current_year < entry[1] then
+                                    current_year = entry[1]
+                                    current_month = nil
+                                    table.insert(output, "* " .. current_year)
+                                end
+
+                                -- Check to which quarter the current month corresponds to
+                                if entry[2] <= 3 then
+                                    current_quarter = 1
+                                elseif entry[2] <= 6 then
+                                    current_quarter = 2
+                                elseif entry[2] <= 9 then
+                                    current_quarter = 3
+                                else
+                                    current_quarter = 4
+                                end
+
+                                -- If the current month corresponds to another quarter, print it
+                                if current_quarter ~= last_quarter then
+                                    table.insert(output, "** Quarter " .. current_quarter)
+                                    last_quarter = current_quarter
+                                end
+
+                                -- Don't print the month if it hasn't changed
+                                if not current_month or current_month < entry[2] then
+                                    current_month = entry[2]
+                                    table.insert(output, "*** Month " .. current_month)
+                                end
+
+                                -- Prints the file link
+                                table.insert(output, "   " .. entry[4] .. string.format("[%s]", entry[5]))
+                            end
+
+                            return output
+                        end,
+                        -- ...
+                    },
+                },
+            },
+        })
+    end,
 }
 
 return module
