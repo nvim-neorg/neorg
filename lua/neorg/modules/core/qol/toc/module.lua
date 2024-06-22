@@ -67,6 +67,9 @@ module.config.public = {
     -- window
     sync_cursorline = true,
 
+    -- max width of the ToC window when `fit_width = true` (in columns)
+    max_width = 30,
+
     -- options for automatically opening/entering the ToC window
     auto_toc = {
         -- automatically open a ToC window when entering any `norg` buffer
@@ -329,15 +332,24 @@ module.public = {
     end,
 }
 
-local function get_max_virtcol()
-    local n_line = vim.fn.line("$")
-    local result = 1
-    for i = 1, n_line do
-        -- FIXME: for neovim <=0.9.*, virtcol() doesn't accept winid argument
-        result = math.max(result, vim.fn.virtcol({ i, "$" }))
-    end
-    return result
-end
+module.private = {
+    ---set the width of the ToC window
+    get_toc_width = function(ui_data)
+        local max_virtcol_1bex = module.private.get_max_virtcol()
+        local current_winwidth = vim.fn.winwidth(vim.fn.bufwinid(ui_data.buffer))
+        local new_winwidth = math.min(current_winwidth, math.max(module.config.public.max_width, max_virtcol_1bex - 1))
+        return new_winwidth + 1
+    end,
+
+    get_max_virtcol = function()
+        local n_line = vim.fn.line("$")
+        local result = 1
+        for i = 1, n_line do
+            result = math.max(result, vim.fn.virtcol({ i, "$" }))
+        end
+        return result
+    end,
+}
 
 local function get_norg_ui(norg_buffer)
     local tabpage = vim.api.nvim_win_get_tabpage(vim.fn.bufwinid(norg_buffer))
@@ -422,10 +434,7 @@ module.on_event = function(event)
     module.public.update_toc(toc_title, ui_data_of_tabpage[tabpage], norg_buffer)
 
     if module.config.public.fit_width then
-        local max_virtcol_1bex = get_max_virtcol()
-        local current_winwidth = vim.fn.winwidth(vim.fn.bufwinid(ui_data.buffer))
-        local new_winwidth = math.min(current_winwidth, math.max(30, max_virtcol_1bex - 1))
-        vim.cmd(("vertical resize %d"):format(new_winwidth + 1)) -- +1 for margin
+        vim.cmd(("vertical resize %d"):format(module.private.get_toc_width(ui_data)))
     end
 
     local close_buffer_callback = function()
