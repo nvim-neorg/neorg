@@ -316,8 +316,21 @@ module.public = {
                 end
 
                 local norg_window = vim.fn.bufwinid(norg_buffer)
-                vim.api.nvim_set_current_win(norg_window)
-                vim.api.nvim_set_current_buf(norg_buffer)
+                if norg_window == -1 then
+                    local toc_window = vim.fn.bufwinid(ui_data.buffer)
+                    local buf_width = nil
+                    if toc_window ~= -1 then
+                        buf_width = vim.api.nvim_win_get_width(toc_window) - module.private.get_toc_width(ui_data)
+                        if buf_width < 1 then
+                            buf_width = nil
+                        end
+                    end
+                    norg_window =
+                        vim.api.nvim_open_win(norg_buffer, true, { win = 0, vertical = true, width = buf_width })
+                else
+                    vim.api.nvim_set_current_win(norg_window)
+                    vim.api.nvim_set_current_buf(norg_buffer)
+                end
                 vim.api.nvim_win_set_cursor(norg_window, { location[1] + 1, location[2] })
 
                 if module.config.public.close_after_use then
