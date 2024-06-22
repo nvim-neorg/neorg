@@ -40,6 +40,19 @@ module.load = function()
             },
         })
     end)
+
+    if module.config.public.auto_toc.open then
+        vim.api.nvim_create_autocmd("BufEnter", {
+            pattern = "*.norg",
+            callback = function()
+                local win = vim.api.nvim_get_current_win()
+                vim.cmd([[Neorg toc]])
+                if not module.config.public.auto_toc.enter then
+                    vim.api.nvim_set_current_win(win)
+                end
+            end,
+        })
+    end
 end
 
 module.config.public = {
@@ -53,6 +66,14 @@ module.config.public = {
     -- enable `cursorline` in the ToC window, and sync the cursor position between ToC and content
     -- window
     sync_cursorline = true,
+
+    -- options for automatically opening/entering the ToC window
+    auto_toc = {
+        -- automatically open a ToC window when entering any `norg` buffer
+        open = false,
+        -- enter an automatically opened ToC window
+        enter = false,
+    },
 }
 
 local ui_data_of_tabpage = {}
