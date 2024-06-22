@@ -83,7 +83,7 @@ module.public = {
     ---@param option_list table a table of option = value pairs
     apply_buffer_options = function(buf, option_list)
         for option_name, value in pairs(option_list or {}) do
-            vim.api.nvim_buf_set_option(buf, option_name, value)
+            vim.api.nvim_set_option_value(option_name, value, { buf = buf })
         end
     end,
 
@@ -182,8 +182,8 @@ module.public = {
         vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
         vim.api.nvim_win_set_buf(0, buf)
 
-        vim.api.nvim_win_set_option(0, "number", false)
-        vim.api.nvim_win_set_option(0, "relativenumber", false)
+        vim.api.nvim_set_option_value("number", false, { win = 0 })
+        vim.api.nvim_set_option_value("relativenumber", false, { win = 0 })
 
         vim.api.nvim_win_set_buf(0, buf)
 
