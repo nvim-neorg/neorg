@@ -17,7 +17,7 @@ Norg document. The TOC view updates automatically when switching buffers.
 --]]
 
 local neorg = require("neorg.core")
-local modules, utils = neorg.modules, neorg.utils
+local modules, utils, log = neorg.modules, neorg.utils, neorg.log
 
 local module = modules.create("core.qol.toc")
 
@@ -78,6 +78,8 @@ module.config.public = {
         enter = false,
         -- automatically close the ToC window when there is no longer an open norg buffer
         close = true,
+        -- will exit nvim if the ToC is the last buffer on the screen, similar to help windows
+        exit_nvim = true,
     },
 }
 
@@ -235,6 +237,11 @@ module.public = {
         local ui_buffer = ui_data.buffer
         ui_data.norg_buffer = norg_buffer
 
+        if not vim.api.nvim_buf_is_valid(ui_buffer) then
+            log.error("update_toc called with invalid ui buffer")
+            return
+        end
+
         vim.bo[ui_buffer].modifiable = true
         vim.api.nvim_buf_clear_namespace(norg_buffer, toc_namespace, 0, -1)
 
@@ -296,9 +303,9 @@ module.public = {
             )
 
             for _, line in
-            ipairs(
-                vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})
-            )
+                ipairs(
+                    vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})
+                )
             do
                 table.insert(heading_texts, line)
             end
@@ -403,6 +410,7 @@ local function create_ui(tabpage, mode)
     ui_wo.foldmethod = "expr"
     ui_wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
     ui_wo.foldlevel = 99
+    ui_wo.winfixbuf = true
 
     if module.config.public.sync_cursorline then
         ui_wo.cursorline = true
@@ -411,6 +419,7 @@ local function create_ui(tabpage, mode)
     local ui_data = {
         buffer = ui_buffer,
         tabpage = tabpage,
+        window = ui_window,
     }
 
     ui_data_of_tabpage[tabpage] = ui_data
@@ -447,7 +456,7 @@ module.on_event = function(event)
         return
     end
 
-    local ui_data = ui_data_of_tabpage[tabpage] or create_ui(tabpage, (event.content[1] or "left") == "left")
+    local ui_data = create_ui(tabpage, (event.content[1] or "left") == "left")
 
     module.public.update_toc(toc_title, ui_data_of_tabpage[tabpage], norg_buffer)
 
@@ -463,12 +472,11 @@ module.on_event = function(event)
         ui_data_of_tabpage[tabpage] = nil
     end
 
-    vim.api.nvim_buf_set_keymap(ui_data.buffer, "n", "q", "", {
-        callback = close_buffer_callback,
-    })
+    vim.keymap.set("n", "q", close_buffer_callback, { buffer = ui_data.buffer })
 
+    --- WinClosed matches against the win number as a string, not the buf number
     vim.api.nvim_create_autocmd("WinClosed", {
-        buffer = ui_data.buffer,
+        pattern = tostring(ui_data.window),
         callback = close_buffer_callback,
     })
 
@@ -549,6 +557,26 @@ module.on_event = function(event)
             pattern = "*.norg",
             callback = unlisten_if_closed(function(_norg_buffer, _ui_data)
                 vim.cmd("normal! m'")
+            end),
+        })
+    end
+
+    if module.config.public.auto_toc.exit_nvim then
+        vim.api.nvim_create_autocmd("WinEnter", {
+            buffer = ui_data.buffer,
+            callback = unlisten_if_closed(function(_, _)
+                vim.schedule(function()
+                    -- count the number of 'real' (non-floating) windows. This avoids noice popups
+                    -- and nvim notify popups causing nvim to stay open
+                    local real_windows = vim.iter(vim.api.nvim_list_wins())
+                        :filter(function(win)
+                            return vim.api.nvim_win_get_config(win).relative == ""
+                        end)
+                        :totable()
+                    if #real_windows == 1 then
+                        vim.schedule(vim.cmd.q)
+                    end
+                end)
             end),
         })
     end
