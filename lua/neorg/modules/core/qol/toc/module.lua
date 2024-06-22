@@ -1,7 +1,7 @@
 --[[
     file: TOC
     title: A Bird's Eye View of Norg Documents
-    description: The TOC module geneates a table of contents for a given Norg buffer.
+    description: The TOC module generates a table of contents for a given Norg buffer.
     summary: Generates a table of contents for a given Norg buffer.
     ---
 
@@ -43,16 +43,15 @@ module.load = function()
 end
 
 module.config.public = {
-    -- If `true`, will close the Table of Contents after an entry in the table
-    -- is picked.
+    -- close the Table of Contents after an entry in the table is picked
     close_after_use = false,
 
-    -- If `true`, the width of the Table of Contents window will automatically
-    -- fit its longest line
+    -- width of the Table of Contents window will automatically fit its longest line, up to
+    -- `max_width`
     fit_width = true,
 
-    -- If `true`, `cursurline` will be enabled (highlighted) in the ToC window,
-    -- and the cursor position between ToC and content window will be synchronized.
+    -- enable `cursorline` in the ToC window, and sync the cursor position between ToC and content
+    -- window
     sync_cursorline = true,
 }
 
@@ -93,16 +92,17 @@ end
 
 local toc_query
 
+---@class core.qol.toc
 module.public = {
     parse_toc_macro = function(buffer)
         local toc, toc_name = false, nil
 
         local success = module.required["core.integrations.treesitter"].execute_query(
             [[
-        (infirm_tag
-            (tag_name) @name
-            (tag_parameters)? @parameters)
-        ]],
+                (infirm_tag
+                    (tag_name) @name
+                    (tag_parameters)? @parameters)
+            ]],
             function(query, id, node)
                 local capture_name = query.captures[id]
 
@@ -270,9 +270,9 @@ module.public = {
             )
 
             for _, line in
-                ipairs(
-                    vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})
-                )
+            ipairs(
+                vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})
+            )
             do
                 table.insert(heading_texts, line)
             end
