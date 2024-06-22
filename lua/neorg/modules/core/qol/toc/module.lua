@@ -76,6 +76,8 @@ module.config.public = {
         open = false,
         -- enter an automatically opened ToC window
         enter = false,
+        -- automatically close the ToC window when there is no longer an open norg buffer
+        close = true,
     },
 }
 
@@ -369,6 +371,9 @@ local function get_norg_ui(norg_buffer)
     return ui_data_of_tabpage[tabpage]
 end
 
+---Guard an autocommand callback function with a check that the ToC is still open
+---@param listener function
+---@return function
 local function unlisten_if_closed(listener)
     return function(ev)
         if vim.tbl_isempty(ui_data_of_tabpage) then
@@ -463,12 +468,8 @@ module.on_event = function(event)
     })
 
     vim.api.nvim_create_autocmd("WinClosed", {
-        pattern = "*",
-        callback = function(ev)
-            if ev.buf == ui_data.buffer then
-                close_buffer_callback()
-            end
-        end,
+        buffer = ui_data.buffer,
+        callback = close_buffer_callback,
     })
 
     vim.api.nvim_create_autocmd("BufWritePost", {
@@ -548,6 +549,23 @@ module.on_event = function(event)
             pattern = "*.norg",
             callback = unlisten_if_closed(function(_norg_buffer, _ui_data)
                 vim.cmd("normal! m'")
+            end),
+        })
+    end
+
+    if module.config.public.auto_toc.close then
+        vim.api.nvim_create_autocmd("BufWinLeave", {
+            pattern = "*.norg",
+            callback = unlisten_if_closed(function(_buf, ui)
+                vim.schedule(function()
+                    if vim.fn.winnr("$") > 1 then
+                        local win = vim.fn.bufwinid(ui.buffer)
+                        if win ~= -1 then
+                            vim.api.nvim_win_close(win, true)
+                            close_buffer_callback()
+                        end
+                    end
+                end)
             end),
         })
     end
