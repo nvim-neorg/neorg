@@ -20,6 +20,8 @@ Completions are provided in the following cases (examples in (), `|` represents 
 - file path + header links (`{:path:*|`)
 - file path + fuzzy header links (`{:path:#|`)
 - file path + footnotes (`{:path:^|`)
+- anchor names (`[|`)
+- link names (`{<somelink>}[|`)
 
 Header completions will show only valid headers at the current level in the current or specified file. All
 link completions are smart about closing `:` and `}`.
