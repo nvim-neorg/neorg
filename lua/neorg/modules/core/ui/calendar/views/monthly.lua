@@ -500,7 +500,7 @@ module.private = {
             31,
             30,
             31,
-        })[month]
+        })[((month - 1) % 12) + 1]
     end,
 
     is_leap_year = function(year)
@@ -581,12 +581,17 @@ module.public = {
         view:render_view(ui_info, date, nil, options)
 
         do
+            ---helper to get the count multiplier
+            local count = function()
+                return (vim.v.count == 0 and 1 or vim.v.count)
+            end
+
             -- TODO: Make cursor wrapping behaviour configurable
             vim.keymap.set("n", "l", function()
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = date.day + 1,
+                    day = date.day + 1 * count(),
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
@@ -596,7 +601,7 @@ module.public = {
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = date.day - 1,
+                    day = date.day - 1 * count(),
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
@@ -606,7 +611,7 @@ module.public = {
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = date.day + 7,
+                    day = date.day + 7 * count(),
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
@@ -616,7 +621,7 @@ module.public = {
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = date.day - 7,
+                    day = date.day - 7 * count(),
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
@@ -637,7 +642,7 @@ module.public = {
             vim.keymap.set("n", "L", function()
                 local new_date = reformat_time({
                     year = date.year,
-                    month = date.month + 1,
+                    month = date.month + count(),
                     day = date.day,
                 })
                 view:render_view(ui_info, new_date, date, options)
@@ -645,16 +650,10 @@ module.public = {
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "H", function()
-                local length_of_current_month = module.private.get_month_length(date.month, date.year)
-                local length_of_previous_month = (
-                    date.month == 1 and module.private.get_month_length(12, date.year - 1)
-                    or module.private.get_month_length(date.month - 1, date.year)
-                )
-
                 local new_date = reformat_time({
                     year = date.year,
-                    month = date.month - 1,
-                    day = date.day == length_of_current_month and length_of_previous_month or date.day,
+                    month = date.month - count(),
+                    day = date.day,
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
@@ -663,7 +662,7 @@ module.public = {
             vim.keymap.set("n", "m", function()
                 local new_date = reformat_time({
                     year = date.year,
-                    month = date.month + 1,
+                    month = date.month + count(),
                     day = 1,
                 })
                 view:render_view(ui_info, new_date, date, options)
@@ -673,7 +672,7 @@ module.public = {
             vim.keymap.set("n", "M", function()
                 local new_date = reformat_time({
                     year = date.year,
-                    month = date.month - 1,
+                    month = date.month - count(),
                     day = 1,
                 })
                 view:render_view(ui_info, new_date, date, options)
@@ -682,7 +681,7 @@ module.public = {
 
             vim.keymap.set("n", "y", function()
                 local new_date = reformat_time({
-                    year = date.year + 1,
+                    year = date.year + count(),
                     month = date.month,
                     day = date.day,
                 })
@@ -692,7 +691,7 @@ module.public = {
 
             vim.keymap.set("n", "Y", function()
                 local new_date = reformat_time({
-                    year = date.year - 1,
+                    year = date.year - count(),
                     month = date.month,
                     day = date.day,
                 })
