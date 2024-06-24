@@ -738,6 +738,124 @@ module.public = {
                 date = new_date
             end, { buffer = ui_info.buffer })
 
+            vim.keymap.set("n", "c", function()
+                local new_date = reformat_time({
+                    year = date.year + 100 * count(),
+                    month = date.month,
+                    day = date.day,
+                })
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "C", function()
+                local new_date = reformat_time({
+                    year = date.year - 100 * count(),
+                    month = date.month,
+                    day = date.day,
+                })
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "d", function()
+                local new_date = reformat_time({
+                    year = date.year + 10 * count(),
+                    month = date.month,
+                    day = date.day,
+                })
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "D", function()
+                local new_date = reformat_time({
+                    year = date.year - 10 * count(),
+                    month = date.month,
+                    day = date.day,
+                })
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "e", function()
+                local new_date = reformat_time({
+                    year = date.year,
+                    month = date.month + count(),
+                    day = module.private.get_month_length(date.month + count(), date.year)
+                })
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "E", function()
+                local new_date = reformat_time({
+                    year = date.year,
+                    month = date.month - count(),
+                    day = module.private.get_month_length(date.month - count(), date.year)
+                })
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "w", function()
+                local new_date = reformat_time({
+                    year = date.year,
+                    month = date.month,
+                    day = date.day + 7 * count()
+                })
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "W", function()
+                local new_date = reformat_time({
+                    year = date.year,
+                    month = date.month,
+                    day = date.day - 7 * count()
+                })
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer })
+
+            -- TODO: I'm not sure how to do f mappings the native way. It's not operator pending
+            -- mode, and I can't find anything in the help docs. Using on_key like this doesn't work
+            -- either.
+            -- vim.keymap.set("n", "f", function()
+            --     local ns = vim.api.nvim_create_namespace("neorg_cal_f")
+            --     print("waiting...")
+            --     vim.on_key(function(key, typed)
+            --         -- typed is the char we're dealing with
+            --         print("key:", key)
+            --         print("typed:", typed)
+            --         local months = {}
+            --         for i = 1, 12 do
+            --             table.insert(
+            --                 months,
+            --                 (os.date("%B", os.time({ year = 2000, month = i, day = 1 })) --[[@as string]]):lower()
+            --             )
+            --         end
+            --         print("months:")
+            --         P(months)
+            --         for i = date.month, date.month + 12 do
+            --             local m = ((i - 1) % 12) + 1
+            --             if months[m]:match("^" .. typed) then
+            --                 print("match", months[m])
+            --                 date.month = m
+            --                 break
+            --             end
+            --         end
+            --         vim.on_key(nil, ns)
+            --         local new_date = reformat_time({
+            --             year = date.year,
+            --             month = date.month,
+            --             day = date.day,
+            --         })
+            --         view:render_view(ui_info, new_date, date, options)
+            --         date = new_date
+            --     end, ns)
+            -- end)
+
             vim.keymap.set(
                 "n",
                 "?",
