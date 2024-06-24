@@ -135,6 +135,10 @@ module.load = function()
                         args = 0,
                         name = "latex.render.disable",
                     },
+                    toggle = {
+                        args = 0,
+                        name = "latex.render.toggle",
+                    },
                 },
                 condition = "norg",
             },
@@ -484,6 +488,14 @@ local function disable_rendering()
     module.private.latex_images = {}
 end
 
+local function toggle_rendering()
+    if module.private.do_render then
+        disable_rendering()
+    else
+        enable_rendering()
+    end
+end
+
 local function show_hidden()
     local buf = vim.api.nvim_get_current_buf()
     if not module.private.do_render then
@@ -511,6 +523,7 @@ local event_handlers = {
     ["core.neorgcmd.events.latex.render.render"] = enable_rendering,
     ["core.neorgcmd.events.latex.render.enable"] = enable_rendering,
     ["core.neorgcmd.events.latex.render.disable"] = disable_rendering,
+    ["core.neorgcmd.events.latex.render.toggle"] = toggle_rendering,
     ["core.autocommands.events.bufreadpost"] = render_latex,
     ["core.autocommands.events.bufwinenter"] = show_hidden,
     ["core.autocommands.events.cursormoved"] = clear_at_cursor,
@@ -542,6 +555,7 @@ module.events.subscribed = {
         ["latex.render.render"] = true,
         ["latex.render.enable"] = true,
         ["latex.render.disable"] = true,
+        ["latex.render.toggle"] = true,
     },
 }
 return module
