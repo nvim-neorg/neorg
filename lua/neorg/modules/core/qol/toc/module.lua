@@ -452,6 +452,9 @@ module.on_event = function(event)
 
     local tabpage = vim.api.nvim_win_get_tabpage(vim.fn.bufwinid(norg_buffer))
     if ui_data_of_tabpage[tabpage] then
+        if norg_buffer == ui_data_of_tabpage[tabpage].buffer then
+            return
+        end
         module.public.update_toc(toc_title, ui_data_of_tabpage[tabpage], norg_buffer)
         return
     end
