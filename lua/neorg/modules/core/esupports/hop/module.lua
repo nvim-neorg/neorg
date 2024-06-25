@@ -143,6 +143,14 @@ module.public = {
             end
 
             lib.match(located_link_information.type)({
+                -- Filter the currently unsupported link types and let the user know that they do not work
+                wiki = function()
+                    vim.notify(
+                        "Neorg doesn't support wiki links yet, please use a more specific link type instead.",
+                        vim.log.levels.WARN
+                    )
+                end,
+
                 -- If we're dealing with a URI, simply open the URI in the user's preferred method
                 external_app = function()
                     os_open_link(located_link_information.uri)
@@ -414,6 +422,7 @@ module.public = {
                             (link_target_heading5)
                             (link_target_heading6)
                             (link_target_line_number)
+                            (link_target_wiki)
                         ]? @link_type
                         text: (paragraph)? @link_location_text
                     )
@@ -442,6 +451,7 @@ module.public = {
                             (link_target_heading4)
                             (link_target_heading5)
                             (link_target_heading6)
+                            (link_target_wiki)
                         ]? @link_type
                         text: (paragraph)? @link_location_text
                     )
@@ -517,6 +527,11 @@ module.public = {
         end
 
         return lib.match(parsed_link_information.link_type)({
+            -- Wiki links are currently unsupported, so we simply forward the link type
+            wiki = function()
+                return { type = "wiki" }
+            end,
+
             url = function()
                 return { type = "external_app", uri = parsed_link_information.link_location_text }
             end,
