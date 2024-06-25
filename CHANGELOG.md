@@ -1,5 +1,28 @@
 # Changelog
 
+## [8.8.0](https://github.com/nvim-neorg/neorg/compare/v8.7.1...v8.8.0) (2024-06-25)
+
+
+### Features
+
+* **latex-renderer:** add toggle renderer command ([a00628f](https://github.com/nvim-neorg/neorg/commit/a00628f54f895774dde09e4d7a3c99eb8340cbb6))
+* **toc:** auto open/enter ToC ([988c2c1](https://github.com/nvim-neorg/neorg/commit/988c2c197c9f431d338519a3b81825cc5690b4e4))
+* **toc:** close toc when neorg win is closed ([78e1155](https://github.com/nvim-neorg/neorg/commit/78e1155b8c3cc3f63e98817b7eea85f84ca7f6af))
+* **toc:** configurable max width ([b0544ed](https://github.com/nvim-neorg/neorg/commit/b0544ed42c3aa28ceb8edf54a3a71c777de91e5d))
+* **toc:** exit nvim when toc is the last window ([baf9934](https://github.com/nvim-neorg/neorg/commit/baf9934832866d28762b59c7e52c82854366d7dd))
+
+
+### Bug Fixes
+
+* broken true-zen integration ([#1477](https://github.com/nvim-neorg/neorg/issues/1477)) ([ace1cda](https://github.com/nvim-neorg/neorg/commit/ace1cdae9d0a95083bf9bf8cfb5e70dbb38d6351))
+* don't update metadata unless buffer is modified ([#1469](https://github.com/nvim-neorg/neorg/issues/1469)) ([286d94b](https://github.com/nvim-neorg/neorg/commit/286d94bf6e30be4a5fc7ce89aa860538d39189a0))
+* **hop:** describe which links are currently unsupported instead of "not found" ([9626def](https://github.com/nvim-neorg/neorg/commit/9626def65687a052b0e2c390e9ee9ee599344415))
+* insert template at the end of a new journal entry ([#1468](https://github.com/nvim-neorg/neorg/issues/1468)) ([f33a491](https://github.com/nvim-neorg/neorg/commit/f33a4919b3aa2744209d8106886879e5522a38a4))
+* **latex-renderer:** fixed renderer breaking when a snippet change made it stop compiling ([7fc91bb](https://github.com/nvim-neorg/neorg/commit/7fc91bbc7c316e0ad33132fb61325adc71d4f260))
+* **toc:** don't try to open a toc from a toc ([6cdd6a1](https://github.com/nvim-neorg/neorg/commit/6cdd6a121c113d15c2aa55d79b6ec9915cc47284))
+* **toc:** open new win from toc when neorg win was closed ([c2d58da](https://github.com/nvim-neorg/neorg/commit/c2d58da7c4800e9b8cb5b5ed1a6f38cde1a176d7))
+* **todo-introspector:** check that the buffer is valid ([369ed28](https://github.com/nvim-neorg/neorg/commit/369ed28b0b0c3f221b46816ad53a509d73c7e7ed))
+
 ## [8.7.1](https://github.com/nvim-neorg/neorg/compare/v8.7.0...v8.7.1) (2024-06-12)
 
 
