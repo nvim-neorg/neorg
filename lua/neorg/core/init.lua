@@ -4,6 +4,9 @@ local neorg = {
     log = require("neorg.core.log"),
     modules = require("neorg.core.modules"),
     utils = require("neorg.core.utils"),
+
+    ---@module "lua-utils"
+    lib = nil,
 }
 
 return neorg
