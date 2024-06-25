@@ -62,6 +62,9 @@ function module.public.attach_introspector(buffer)
 
     vim.api.nvim_buf_attach(buffer, false, {
         on_lines = vim.schedule_wrap(function(_, buf, _, first)
+            if not vim.api.nvim_buf_is_valid(buf) then
+                return
+            end
             -- If we delete the last line of a file `first` will point to a nonexistent line
             -- For this reason we fall back to the line count (accounting for 0-based indexing)
             -- whenever a change to the document is made.
