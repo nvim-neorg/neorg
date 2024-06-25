@@ -406,6 +406,7 @@ module.private = {
                     self:select_current_day(ui_info, date)
 
                     vim.api.nvim_buf_set_option(ui_info.buffer, "modifiable", false)
+                    vim.api.nvim_set_option_value("winfixbuf", true, { win = ui_info.window })
 
                     return
                 end
@@ -486,6 +487,7 @@ module.private = {
         vim.api.nvim_buf_set_lines(ui_info.buffer, 0, -1, true, fill)
     end,
 
+    --- get the number of days in the month, months are wrapped (ie, month 13 <==> month 1)
     get_month_length = function(month, year)
         return ({
             31,
@@ -500,7 +502,7 @@ module.private = {
             31,
             30,
             31,
-        })[((month - 1) % 12) + 1]
+        })[lib.number_wrap(month, 1, 12)]
     end,
 
     is_leap_year = function(year)
@@ -532,25 +534,28 @@ module.private = {
     end,
 
     display_help = function(lines)
+        local width, height = 44, 32
         local buffer = vim.api.nvim_create_buf(false, true)
         local window = vim.api.nvim_open_win(buffer, true, {
             style = "minimal",
             border = "rounded",
-            title = "Calendar",
+            title = " Calendar ",
             title_pos = "center",
-            row = (vim.o.lines / 2) - 15,
-            col = (vim.o.columns / 2) - 20,
-            width = 40,
-            height = 30,
+            row = (vim.o.lines / 2) - height / 2,
+            col = (vim.o.columns / 2) - width / 2,
+            width = width,
+            height = height,
             relative = "editor",
             noautocmd = true,
         })
+        vim.api.nvim_set_option_value("winfixbuf", true, { win = window })
 
         local function quit()
             vim.api.nvim_win_close(window, true)
             pcall(vim.api.nvim_buf_delete, buffer, { force = true })
         end
 
+        vim.keymap.set("n", "q", quit, { buffer = buffer })
         vim.keymap.set("n", "<Esc>", quit, { buffer = buffer })
 
         vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave" }, {
@@ -581,17 +586,12 @@ module.public = {
         view:render_view(ui_info, date, nil, options)
 
         do
-            ---helper to get the count multiplier
-            local count = function()
-                return (vim.v.count == 0 and 1 or vim.v.count)
-            end
-
             -- TODO: Make cursor wrapping behaviour configurable
             vim.keymap.set("n", "l", function()
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = date.day + 1 * count(),
+                    day = date.day + 1 * vim.v.count1,
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
@@ -601,7 +601,7 @@ module.public = {
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = date.day - 1 * count(),
+                    day = date.day - 1 * vim.v.count1,
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
@@ -611,7 +611,7 @@ module.public = {
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = date.day + 7 * count(),
+                    day = date.day + 7 * vim.v.count1,
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
@@ -621,7 +621,7 @@ module.public = {
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = date.day - 7 * count(),
+                    day = date.day - 7 * vim.v.count1,
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
@@ -642,7 +642,7 @@ module.public = {
             vim.keymap.set("n", "L", function()
                 local new_date = reformat_time({
                     year = date.year,
-                    month = date.month + count(),
+                    month = date.month + vim.v.count1,
                     day = date.day,
                 })
                 view:render_view(ui_info, new_date, date, options)
@@ -652,7 +652,7 @@ module.public = {
             vim.keymap.set("n", "H", function()
                 local new_date = reformat_time({
                     year = date.year,
-                    month = date.month - count(),
+                    month = date.month - vim.v.count1,
                     day = date.day,
                 })
                 view:render_view(ui_info, new_date, date, options)
@@ -662,7 +662,7 @@ module.public = {
             vim.keymap.set("n", "m", function()
                 local new_date = reformat_time({
                     year = date.year,
-                    month = date.month + count(),
+                    month = date.month + vim.v.count1,
                     day = 1,
                 })
                 view:render_view(ui_info, new_date, date, options)
@@ -670,9 +670,12 @@ module.public = {
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "M", function()
+                if date.day > 1 then
+                    date.month = date.month + 1
+                end
                 local new_date = reformat_time({
                     year = date.year,
-                    month = date.month - count(),
+                    month = date.month - vim.v.count1,
                     day = 1,
                 })
                 view:render_view(ui_info, new_date, date, options)
@@ -681,7 +684,7 @@ module.public = {
 
             vim.keymap.set("n", "y", function()
                 local new_date = reformat_time({
-                    year = date.year + count(),
+                    year = date.year + vim.v.count1,
                     month = date.month,
                     day = date.day,
                 })
@@ -691,7 +694,7 @@ module.public = {
 
             vim.keymap.set("n", "Y", function()
                 local new_date = reformat_time({
-                    year = date.year - count(),
+                    year = date.year - vim.v.count1,
                     month = date.month,
                     day = date.day,
                 })
@@ -700,36 +703,29 @@ module.public = {
             end, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "$", function()
+                local new_day = date.day - (lib.number_wrap(date.wday - 1, 1, 7) - 1) + 6
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = module.private.get_month_length(date.month, date.year),
+                    day = new_day,
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
             end, { buffer = ui_info.buffer })
 
-            -- NOTE(vhyrro): For some reason you can't bind many keys to the same function
-            -- through `vim.keymap.set()`
-            vim.keymap.set("n", "0", function()
+            local start_of_week = function()
+                local new_day = date.day - (lib.number_wrap(date.wday - 1, 1, 7) - 1)
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = 1,
+                    day = new_day,
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
-            end, { buffer = ui_info.buffer })
+            end
 
-            vim.keymap.set("n", "_", function()
-                local new_date = reformat_time({
-                    year = date.year,
-                    month = date.month,
-                    day = 1,
-                })
-                view:render_view(ui_info, new_date, date, options)
-                date = new_date
-            end, { buffer = ui_info.buffer })
+            vim.keymap.set("n", "0", start_of_week, { buffer = ui_info.buffer })
+            vim.keymap.set("n", "_", start_of_week, { buffer = ui_info.buffer })
 
             vim.keymap.set("n", "t", function()
                 local new_date = os.date("*t")
@@ -738,51 +734,15 @@ module.public = {
                 date = new_date
             end, { buffer = ui_info.buffer })
 
-            vim.keymap.set("n", "c", function()
-                local new_date = reformat_time({
-                    year = date.year + 100 * count(),
-                    month = date.month,
-                    day = date.day,
-                })
-                view:render_view(ui_info, new_date, date, options)
-                date = new_date
-            end, { buffer = ui_info.buffer })
-
-            vim.keymap.set("n", "C", function()
-                local new_date = reformat_time({
-                    year = date.year - 100 * count(),
-                    month = date.month,
-                    day = date.day,
-                })
-                view:render_view(ui_info, new_date, date, options)
-                date = new_date
-            end, { buffer = ui_info.buffer })
-
-            vim.keymap.set("n", "d", function()
-                local new_date = reformat_time({
-                    year = date.year + 10 * count(),
-                    month = date.month,
-                    day = date.day,
-                })
-                view:render_view(ui_info, new_date, date, options)
-                date = new_date
-            end, { buffer = ui_info.buffer })
-
-            vim.keymap.set("n", "D", function()
-                local new_date = reformat_time({
-                    year = date.year - 10 * count(),
-                    month = date.month,
-                    day = date.day,
-                })
-                view:render_view(ui_info, new_date, date, options)
-                date = new_date
-            end, { buffer = ui_info.buffer })
-
             vim.keymap.set("n", "e", function()
+                local end_of_current_month = module.private.get_month_length(date.month, date.year)
+                if end_of_current_month > date.day then
+                    date.month = date.month - 1
+                end
                 local new_date = reformat_time({
                     year = date.year,
-                    month = date.month + count(),
-                    day = module.private.get_month_length(date.month + count(), date.year)
+                    month = date.month + vim.v.count1,
+                    day = module.private.get_month_length(date.month + vim.v.count1, date.year),
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
@@ -791,8 +751,8 @@ module.public = {
             vim.keymap.set("n", "E", function()
                 local new_date = reformat_time({
                     year = date.year,
-                    month = date.month - count(),
-                    day = module.private.get_month_length(date.month - count(), date.year)
+                    month = date.month - vim.v.count1,
+                    day = module.private.get_month_length(date.month - vim.v.count1, date.year),
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
@@ -802,8 +762,9 @@ module.public = {
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = date.day + 7 * count()
+                    day = date.day + 7 * vim.v.count1,
                 })
+                new_date.day = new_date.day - (lib.number_wrap(new_date.wday - 1, 1, 7) - 1)
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
             end, { buffer = ui_info.buffer })
@@ -812,56 +773,135 @@ module.public = {
                 local new_date = reformat_time({
                     year = date.year,
                     month = date.month,
-                    day = date.day - 7 * count()
+                    day = date.day - 7 * vim.v.count1,
+                })
+                new_date.day = new_date.day - (lib.number_wrap(new_date.wday - 1, 1, 7) - 1)
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer })
+
+            local months = {}
+            for i = 1, 12 do
+                table.insert(
+                    months,
+                    (os.date("%B", os.time({ year = 2000, month = i, day = 1 })) --[[@as string]]):lower()
+                )
+            end
+
+            -- store the last `;` repeatable search
+            local last_semi_jump = nil
+            -- flag to set when we're using `;` so it doesn't cycle
+            local skip_next = false
+
+            vim.keymap.set("n", ";", function()
+                if last_semi_jump then
+                    vim.api.nvim_feedkeys(last_semi_jump, "m", false)
+                end
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", ",", function()
+                if last_semi_jump then
+                    local action = string.sub(last_semi_jump, 1, 1)
+                    local subject = string.sub(last_semi_jump, 2)
+                    local new_keys
+                    if string.upper(action) == action then
+                        new_keys = action:lower() .. subject
+                    else
+                        new_keys = action:upper() .. subject
+                    end
+                    vim.api.nvim_feedkeys(new_keys, "m", false)
+
+                    skip_next = true
+                end
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "f", function()
+                local char = vim.fn.getcharstr()
+
+                for i = date.month + 1, date.month + 12 do
+                    local m = lib.number_wrap(i, 1, 12)
+                    if months[m]:match("^" .. char) then
+                        if not skip_next then
+                            last_semi_jump = "f" .. char
+                        else
+                            skip_next = false
+                        end
+
+                        local new_date = reformat_time({
+                            year = date.year,
+                            month = m,
+                            day = date.day,
+                        })
+                        view:render_view(ui_info, new_date, date, options)
+                        date = new_date
+                        break
+                    end
+                end
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "F", function()
+                local char = vim.fn.getcharstr()
+
+                for i = date.month + 11, date.month, -1 do
+                    local m = lib.number_wrap(i, 1, 12)
+                    if months[m]:match("^" .. char) then
+                        if not skip_next then
+                            last_semi_jump = "F" .. char
+                        else
+                            skip_next = false
+                        end
+                        local new_date = reformat_time({
+                            year = date.year,
+                            month = m,
+                            day = date.day,
+                        })
+                        view:render_view(ui_info, new_date, date, options)
+                        date = new_date
+                        break
+                    end
+                end
+            end, { buffer = ui_info.buffer })
+
+            vim.keymap.set("n", "g", function()
+                local day = math.min(vim.v.count1, module.private.get_month_length(date.month, date.year))
+
+                local new_date = reformat_time({
+                    year = date.year,
+                    month = date.month,
+                    day = day,
+                })
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer, nowait = true })
+
+            vim.keymap.set("n", "G", function()
+                local new_date = reformat_time({
+                    year = date.year,
+                    month = date.month,
+                    day = module.private.get_month_length(date.month, date.year),
                 })
                 view:render_view(ui_info, new_date, date, options)
                 date = new_date
             end, { buffer = ui_info.buffer })
 
-            -- TODO: I'm not sure how to do f mappings the native way. It's not operator pending
-            -- mode, and I can't find anything in the help docs. Using on_key like this doesn't work
-            -- either.
-            -- vim.keymap.set("n", "f", function()
-            --     local ns = vim.api.nvim_create_namespace("neorg_cal_f")
-            --     print("waiting...")
-            --     vim.on_key(function(key, typed)
-            --         -- typed is the char we're dealing with
-            --         print("key:", key)
-            --         print("typed:", typed)
-            --         local months = {}
-            --         for i = 1, 12 do
-            --             table.insert(
-            --                 months,
-            --                 (os.date("%B", os.time({ year = 2000, month = i, day = 1 })) --[[@as string]]):lower()
-            --             )
-            --         end
-            --         print("months:")
-            --         P(months)
-            --         for i = date.month, date.month + 12 do
-            --             local m = ((i - 1) % 12) + 1
-            --             if months[m]:match("^" .. typed) then
-            --                 print("match", months[m])
-            --                 date.month = m
-            --                 break
-            --             end
-            --         end
-            --         vim.on_key(nil, ns)
-            --         local new_date = reformat_time({
-            --             year = date.year,
-            --             month = date.month,
-            --             day = date.day,
-            --         })
-            --         view:render_view(ui_info, new_date, date, options)
-            --         date = new_date
-            --     end, ns)
-            -- end)
+            vim.keymap.set("n", "d", function()
+                local n = vim.v.count1
+                local weekday = math.min(n, 7)
+                local new_date = reformat_time({
+                    year = date.year,
+                    month = date.month,
+                    day = date.day + (weekday - lib.number_wrap(date.wday - 1, 1, 7)),
+                })
+                view:render_view(ui_info, new_date, date, options)
+                date = new_date
+            end, { buffer = ui_info.buffer, nowait = true })
 
             vim.keymap.set(
                 "n",
                 "?",
                 lib.wrap(module.private.display_help, {
                     {
-                        { "<Esc>", "@namespace" },
+                        { "q/<Esc>", "@namespace" },
                         { " - " },
                         { "close this window", "@text.strong" },
                     },
@@ -877,24 +917,32 @@ module.public = {
                     },
                     {},
                     {
-                        { "l", "@namespace" },
+                        { "l/h", "@namespace" },
                         { " - " },
-                        { "next day", "@text.strong" },
+                        { "next/previous day", "@text.strong" },
                     },
                     {
-                        { "h", "@namespace" },
+                        { "j/k", "@namespace" },
                         { " - " },
-                        { "previous day", "@text.strong" },
+                        { "next/previous week", "@text.strong" },
                     },
                     {
-                        { "j", "@namespace" },
+                        { "w/W", "@namespace" },
                         { " - " },
-                        { "next week", "@text.strong" },
+                        { "start of next/this or previous week", "@text.strong" },
                     },
                     {
-                        { "k", "@namespace" },
+                        { "t", "@namespace" },
                         { " - " },
-                        { "previous week", "@text.strong" },
+                        { "today", "@text.strong" },
+                    },
+                    {
+                        { "d", "@namespace" },
+                        { "n" },
+                        { " - " },
+                        { "weekday ", "@text.strong" },
+                        { "n" },
+                        { " (1 = monday)", "@text.strong" },
                     },
                     {},
                     {
@@ -902,24 +950,23 @@ module.public = {
                     },
                     {},
                     {
-                        { "L", "@namespace" },
+                        { "L/H", "@namespace" },
                         { " - " },
-                        { "next month", "@text.strong" },
+                        { "next/previous month (same day)", "@text.strong" },
                     },
                     {
-                        { "H", "@namespace" },
+                        { "m/M", "@namespace" },
                         { " - " },
-                        { "previous month", "@text.strong" },
+                        { "1st of next/this or previous month", "@text.strong" },
                     },
                     {
-                        { "m", "@namespace" },
+                        { "f", "@namespace" },
+                        { "x" },
+                        { "/F", "@namespace" },
+                        { "x" },
                         { " - " },
-                        { "day 1 of next month", "@text.strong" },
-                    },
-                    {
-                        { "M", "@namespace" },
-                        { " - " },
-                        { "day 1 of previous month", "@text.strong" },
+                        { "next/previous month starting with ", "@text.strong" },
+                        { "x" },
                     },
                     {},
                     {
@@ -927,14 +974,39 @@ module.public = {
                     },
                     {},
                     {
-                        { "y", "@namespace" },
+                        { "y/Y", "@namespace" },
                         { " - " },
-                        { "next year", "@text.strong" },
+                        { "next/previous year (same day)", "@text.strong" },
                     },
                     {
-                        { "Y", "@namespace" },
+                        { "gy", "@namespace" },
                         { " - " },
-                        { "previous year", "@text.strong" },
+                        { "start of the current year", "@text.strong" },
+                    },
+                    {
+                        { "c/C", "@namespace" },
+                        { " - " },
+                        { "next/this or previous century", "@text.strong" },
+                    },
+                    {
+                        { "g/G", "@namespace" },
+                        { " - " },
+                        { "start/end of month", "@text.strong" },
+                    },
+                    {
+                        { "      " },
+                        { "<n>g takes you to <n> day of the month", "@text.strong" },
+                    },
+                    {},
+                    {
+                        { "--- Additional Info ---", "@text.title" },
+                    },
+                    {},
+                    {
+                        { "All movements accept counts" },
+                    },
+                    {
+                        { "f/F and g/G work with `;` and `,`" },
                     },
                 }),
                 { buffer = ui_info.buffer }
