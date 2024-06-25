@@ -12,11 +12,9 @@ local modules, log = neorg.modules, neorg.log
 
 local module = modules.create("core.integrations.truezen")
 
-
 module.setup = function()
     local success, truezen = pcall(require, "true-zen.main")
     local success, truezen = pcall(require, "true-zen")
-
 
     if not success then
         log.warn("Could not find module: `true-zen`. Please ensure you have true-zen installed.")
@@ -39,4 +37,3 @@ module.public = {
 }
 
 return module
-
