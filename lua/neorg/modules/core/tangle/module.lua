@@ -193,6 +193,16 @@ module.load = function()
             },
         })
     end)
+
+    if module.config.public.tangle_on_write then
+        local augroup = vim.api.nvim_create_augroup("norg_auto_tangle", { clear = true })
+        vim.api.nvim_create_autocmd("BufWritePost", {
+            desc = "Tangle the current file on write",
+            pattern = "*.norg",
+            group = augroup,
+            command = "Neorg tangle current-file",
+        })
+    end
 end
 
 local function get_comment_string(language)
@@ -267,7 +277,7 @@ module.public = {
             local capture = query.captures[id]
 
             if capture == "tag" then
-                local parsed_tag = treesitter.get_tag_info(node)
+                local parsed_tag = treesitter.get_tag_info(node, false)
 
                 if parsed_tag then
                     local declared_filetype = parsed_tag.parameters[1]
@@ -421,6 +431,9 @@ module.public = {
 module.config.public = {
     -- Notify when there is nothing to tangle (INFO) or when the content is empty (WARN).
     report_on_empty = true,
+
+    -- Tangle all code blocks in the current norg file on file write.
+    tangle_on_write = false,
 }
 
 module.on_event = function(event)
