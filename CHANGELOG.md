@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.8.1](https://github.com/nvim-neorg/neorg/compare/v8.8.0...v8.8.1) (2024-06-26)
+
+
+### Bug Fixes
+
+* remove `tree-sitter-norg` from the luarocks dependency list momentarily (delegate work to nvim-treesitter for the moment) ([4103d43](https://github.com/nvim-neorg/neorg/commit/4103d43898f0a612f1b702c5a6d2ef1e7fb76058))
+
 ## [8.8.0](https://github.com/nvim-neorg/neorg/compare/v8.7.1...v8.8.0) (2024-06-25)
 
 
