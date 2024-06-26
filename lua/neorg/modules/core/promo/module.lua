@@ -79,6 +79,34 @@ module.private = {
         "generic_list",
         "quote",
     },
+
+    get_line = function(buffer, target_row)
+        return vim.api.nvim_buf_get_lines(buffer, target_row, target_row + 1, true)[1]
+    end,
+
+    buffer_set_line_indent = function(buffer, start_row, new_indent)
+        local line = module.private.get_line(buffer, start_row)
+
+        if line:match("^%s*$") then
+            return
+        end
+
+        local leading_whitespace = line:match("^%s*"):len()
+
+        return vim.api.nvim_buf_set_text(buffer, start_row, 0, start_row, leading_whitespace, { (" "):rep(new_indent) })
+    end,
+
+    reindent_range = function(buffer, row_start, row_end)
+        local indent_module = modules.get_module("core.esupports.indent")
+        if not indent_module then
+            return
+        end
+
+        for i = row_start, row_end - 1 do
+            local indent_level = indent_module.indentexpr(buffer, i)
+            module.private.buffer_set_line_indent(buffer, i, indent_level)
+        end
+    end,
 }
 
 ---@class core.promo
@@ -92,32 +120,6 @@ module.public = {
     end,
 
     promote_or_demote = function(buffer, mode, row, reindent_children, affect_children)
-        -- Vim buffer helpers
-        local function count_leading_whitespace(s)
-            return s:match("^%s*"):len()
-        end
-
-        local function get_line(target_row)
-            return vim.api.nvim_buf_get_lines(buffer, target_row, target_row + 1, true)[1]
-        end
-
-        local function buffer_set_line_indent(start_row, new_indent)
-            local line = get_line(start_row)
-
-            if line:match("^%s*$") then
-                return
-            end
-
-            return vim.api.nvim_buf_set_text(
-                buffer,
-                start_row,
-                0,
-                start_row,
-                count_leading_whitespace(line),
-                { (" "):rep(new_indent) }
-            )
-        end
-
         -- Treesitter node helpers
         local function get_header_prefix_node(header_node)
             local first_child = header_node:child(0)
@@ -145,14 +147,14 @@ module.public = {
         end
 
         local function is_quasi_prefix(target_row)
-            local line = get_line(target_row)
+            local line = module.private.get_line(buffer, target_row)
             -- NOTE: This is a hardcoded check determined by the limitations of
             -- the first generation treesitter parser.
             return line:match("^%s*[%-~%*]+%s*$")
         end
 
         local function adjust_quasi_prefix(target_row, count)
-            local line = get_line(target_row)
+            local line = module.private.get_line(buffer, target_row)
             local l, r = line:find("%S+")
             assert(l)
             assert(count ~= 0)
@@ -189,7 +191,7 @@ module.public = {
             local current_visual_indent = vim.fn.indent(row + 1)
             local new_indent = math.max(0, current_visual_indent + n_space_diff)
 
-            buffer_set_line_indent(row, new_indent)
+            module.private.buffer_set_line_indent(buffer, row, new_indent)
             return
         end
 
@@ -288,19 +290,7 @@ module.public = {
             return
         end
 
-        local indent_module = modules.get_module("core.esupports.indent")
-        if not indent_module then
-            return
-        end
-
-        local function reindent_range(row_start, row_end)
-            for i = row_start, row_end - 1 do
-                local indent_level = indent_module.indentexpr(buffer, i)
-                buffer_set_line_indent(i, indent_level)
-            end
-        end
-
-        reindent_range(indent_row_start, indent_row_end)
+        module.private.reindent_range(buffer, indent_row_start, indent_row_end)
     end,
 }
 
@@ -319,40 +309,18 @@ module.on_event = neorg.utils.wrap_dotrepeat(function(event)
         local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
         local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
 
-        for i = 0, end_pos[1] - start_pos[1] do
-            module.public.promote_or_demote(event.buffer, "promote", start_pos[1] + i)
+        for i = start_pos[1], end_pos[1] do
+            module.public.promote_or_demote(event.buffer, "promote", i - 1, false, false)
         end
-
-        if modules.loaded_modules["core.concealer"] then
-            modules.broadcast_event(
-                assert(
-                    modules.create_event(
-                        modules.loaded_modules["core.concealer"],
-                        "core.concealer.events.update_region",
-                        { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
-                    )
-                )
-            )
-        end
+        module.private.reindent_range(event.buffer, start_pos[1], end_pos[1])
     elseif event.split_type[2] == "core.promo.demote_range" then
         local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
         local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
 
-        for i = 0, end_pos[1] - start_pos[1] do
-            module.public.promote_or_demote(event.buffer, "demote", start_pos[1] + i)
+        for i = start_pos[1], end_pos[1] do
+            module.public.promote_or_demote(event.buffer, "demote", i - 1, false, false)
         end
-
-        if modules.loaded_modules["core.concealer"] then
-            modules.broadcast_event(
-                assert(
-                    modules.create_event(
-                        modules.loaded_modules["core.concealer"],
-                        "core.concealer.events.update_region",
-                        { start = start_pos[1] - 1, ["end"] = end_pos[1] + 2 }
-                    )
-                )
-            )
-        end
+        module.private.reindent_range(event.buffer, start_pos[1], end_pos[1])
     end
 end)
 
