@@ -187,17 +187,18 @@ module.load = function()
                 local starting_prefix = string.rep("*", heading_level)
 
                 local function add_category(category, data, level)
+                    local result_temp = {}
+                    local sub_cats_temp = {}
                     local new_prefix = starting_prefix .. string.rep("*", level)
-                    table.insert(result, new_prefix .. " " .. category)
+                    table.insert(result_temp, new_prefix .. " " .. category)
                     for _, datapoint in ipairs(data) do
                         if datapoint.sub_categories then
-                            level = level + 1
                             for sub_category, sub_data in vim.spairs(datapoint.sub_categories) do
-                                add_category(sub_category, sub_data, level)
+                                table.insert(sub_cats_temp, add_category(sub_category, sub_data, level + 1))
                             end
                         else
                             table.insert(
-                                result,
+                                result_temp,
                                 table.concat({
                                     string.rep(" ", level + 1),
                                     " - {:$",
@@ -212,9 +213,18 @@ module.load = function()
                             )
                         end
                     end
+                    for _, sub_cat in pairs(sub_cats_temp) do
+                        for _, row in pairs(sub_cat) do
+                            table.insert(result_temp, row)
+                        end
+                    end
+                    return result_temp
                 end
                 for category, data in vim.spairs(categories) do
-                    add_category(category, data, 0)
+                    local temp = add_category(category, data, 0)
+                    for _, row in pairs(temp) do
+                        table.insert(result, row)
+                    end
                 end
                 return result
             end
