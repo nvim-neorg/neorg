@@ -28,17 +28,21 @@ local neorg = require("neorg.core")
 local modules = neorg.modules
 
 local module = modules.create("core.promo")
+local indent
 
 module.setup = function()
     return {
         success = true,
         requires = {
             "core.integrations.treesitter",
+            "core.esupports.indent",
         },
     }
 end
 
 module.load = function()
+    ---@type core.esupports.indent
+    indent = module.required["core.esupports.indent"]
     modules.await("core.keybinds", function(keybinds)
         keybinds.register_keybinds(
             module.name,
@@ -82,30 +86,6 @@ module.private = {
 
     get_line = function(buffer, target_row)
         return vim.api.nvim_buf_get_lines(buffer, target_row, target_row + 1, true)[1]
-    end,
-
-    buffer_set_line_indent = function(buffer, start_row, new_indent)
-        local line = module.private.get_line(buffer, start_row)
-
-        if line:match("^%s*$") then
-            return
-        end
-
-        local leading_whitespace = line:match("^%s*"):len()
-
-        return vim.api.nvim_buf_set_text(buffer, start_row, 0, start_row, leading_whitespace, { (" "):rep(new_indent) })
-    end,
-
-    reindent_range = function(buffer, row_start, row_end)
-        local indent_module = modules.get_module("core.esupports.indent")
-        if not indent_module then
-            return
-        end
-
-        for i = row_start, row_end - 1 do
-            local indent_level = indent_module.indentexpr(buffer, i)
-            module.private.buffer_set_line_indent(buffer, i, indent_level)
-        end
     end,
 }
 
@@ -191,7 +171,7 @@ module.public = {
             local current_visual_indent = vim.fn.indent(row + 1)
             local new_indent = math.max(0, current_visual_indent + n_space_diff)
 
-            module.private.buffer_set_line_indent(buffer, row, new_indent)
+            indent.buffer_set_line_indent(buffer, row, new_indent)
             return
         end
 
@@ -290,7 +270,7 @@ module.public = {
             return
         end
 
-        module.private.reindent_range(buffer, indent_row_start, indent_row_end)
+        indent.reindent_range(buffer, indent_row_start, indent_row_end)
     end,
 }
 
@@ -312,7 +292,7 @@ module.on_event = neorg.utils.wrap_dotrepeat(function(event)
         for i = start_pos[1], end_pos[1] do
             module.public.promote_or_demote(event.buffer, "promote", i - 1, false, false)
         end
-        module.private.reindent_range(event.buffer, start_pos[1], end_pos[1])
+        indent.reindent_range(event.buffer, start_pos[1], end_pos[1])
     elseif event.split_type[2] == "core.promo.demote_range" then
         local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
         local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
@@ -320,7 +300,7 @@ module.on_event = neorg.utils.wrap_dotrepeat(function(event)
         for i = start_pos[1], end_pos[1] do
             module.public.promote_or_demote(event.buffer, "demote", i - 1, false, false)
         end
-        module.private.reindent_range(event.buffer, start_pos[1], end_pos[1])
+        indent.reindent_range(event.buffer, start_pos[1], end_pos[1])
     end
 end)
 
