@@ -18,10 +18,18 @@ local module = neorg.modules.create("core.dirman.utils")
 ---@class core.dirman.utils
 module.public = {
     ---Resolve `$<workspace>/path/to/file` and return the real path
-    ---@param path string|PathlibPath # path
-    ---@param raw_path boolean? # If true, returns resolved path, otherwise, returns resolved path and append ".norg"
-    ---@return PathlibPath? # Resolved path. If path does not start with `$` or not absolute, adds relative from current file.
-    expand_pathlib = function(path, raw_path)
+    ---@param path string | PathlibPath # path
+    ---@param raw_path boolean? # If true, returns resolved path, otherwise, returns resolved path
+    ---and append ".norg"
+    ---@param host_file string | PathlibPath | nil file the link resides in, if the link is
+    ---relative, this file is used instead of the current file
+    ---@return PathlibPath?, boolean? # Resolved path. If path does not start with `$` or not absolute, adds
+    ---relative from current file.
+    expand_pathlib = function(path, raw_path, host_file)
+        local relative = false
+        if not host_file then
+            host_file = vim.fn.expand("%:p")
+        end
         local filepath = Path(path)
         -- Expand special chars like `$`
         local custom_workspace_path = filepath:match("^%$([^/\\]*)[/\\]")
@@ -48,7 +56,8 @@ module.public = {
                 filepath = workspace / filepath:relative_to(Path("$" .. custom_workspace_path))
             end
         elseif filepath:is_relative() then
-            local this_file = Path(vim.fn.expand("%:p")):absolute()
+            relative = true
+            local this_file = Path(host_file):absolute()
             filepath = this_file:parent_assert() / filepath
         else
             filepath = filepath:absolute()
@@ -66,7 +75,7 @@ module.public = {
             end
             filepath = filepath:add_suffix(".norg")
         end
-        return filepath
+        return filepath, relative
     end,
 
     ---Call attempt to edit a file, catches and suppresses the error caused by a swap file being
