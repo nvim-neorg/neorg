@@ -616,22 +616,34 @@ module.public = {
         return tree:root()
     end,
     --- Attempts to find a parent of a node recursively
-    ---@param node userdata #The node to start at
-    ---@param types table|string #If `types` is a table, this function will attempt to match any of the types present in the table.
-    -- If the type is a string, the function will attempt to pattern match the `types` value with the node type.
-    find_parent = function(node, types)
-        local _node = node
+    ---@param node TSNode? #The node to start at
+    ---@param types table|string #Will attempt to pattern match any of the types present in the table/string.
+    ---@param match_self boolean #If true can match on self, if false needs to match on ancestor to node
+    ---@return TSNode?
+    -- TODO: if remove match_self param, need to check other functionality that depends on this
+    find_parent = function(node, types, match_self)
+        match_self = match_self == nil and true or match_self
 
-        while _node do
-            if type(types) == "string" then
-                if _node:type():match(types) then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                    return _node
-                end
-            elseif vim.tbl_contains(types, _node:type()) then ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                return _node
+        if not node then
+            return
+        end
+
+        if not match_self then
+            node = node:parent()
+        end
+
+        if type(types) == "string" then
+            types = { types }
+        end
+
+        while node do
+            if vim.tbl_contains(types, function(v)
+                return node:type():match(v)
+            end, { predicate = true }) then
+                return node
             end
 
-            _node = _node:parent() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            node = node:parent()
         end
     end,
     --- Retrieves the first node at a specific line
