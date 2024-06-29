@@ -243,11 +243,15 @@ module.public = {
     ---@param filetype string? file type of the file or `norg` if omitted
     get_all_nodes_in_file = function(node_type, path, filetype)
         path = vim.fs.normalize(path)
-        if not filetype then filetype = "norg" end
+        if not filetype then
+            filetype = "norg"
+        end
 
         local contents = io.open(path, "r"):read("*a")
         local tree = vim.treesitter.get_string_parser(contents, filetype):parse()[1]
-        if not (tree or tree.root) then return {} end
+        if not (tree or tree.root) then
+            return {}
+        end
 
         return module.public.search_tree(tree, node_type)
     end,
