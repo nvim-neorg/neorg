@@ -122,6 +122,31 @@ module.public = {
 
         return new_indent
     end,
+
+    ---re-evaluate the indent expression for each line in the range, and apply the new indentation
+    ---@param buffer number
+    ---@param row_start number 0 based
+    ---@param row_end number 0 based exclusive
+    reindent_range = function(buffer, row_start, row_end)
+        for i = row_start, row_end - 1 do
+            local indent_level = module.public.indentexpr(buffer, i)
+            module.public.buffer_set_line_indent(buffer, i, indent_level)
+        end
+    end,
+
+    ---Set the indent of the given line to the new value
+    ---@param buffer number
+    ---@param start_row number 0 based
+    ---@param new_indent number
+    buffer_set_line_indent = function(buffer, start_row, new_indent)
+        local line = vim.api.nvim_buf_get_lines(buffer, start_row, start_row + 1, true)[1]
+        if line:match("^%s*$") then
+            return
+        end
+
+        local leading_whitespace = line:match("^%s*"):len()
+        return vim.api.nvim_buf_set_text(buffer, start_row, 0, start_row, leading_whitespace, { (" "):rep(new_indent) })
+    end,
 }
 
 module.config.public = {

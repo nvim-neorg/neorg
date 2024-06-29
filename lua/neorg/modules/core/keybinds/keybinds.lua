@@ -120,11 +120,10 @@ module.config.public = {
                     { "<M-d>", "core.tempus.insert-date-insert-mode", opts = { desc = "[neorg] Insert Date" } },
                 },
 
-                -- TODO: Readd these
-                -- v = {
-                --     { ">>", ":<cr><cmd>Neorg keybind all core.promo.promote_range<cr>" },
-                --     { "<<", ":<cr><cmd>Neorg keybind all core.promo.demote_range<cr>" },
-                -- },
+                v = {
+                    { ">", "core.promo.promote_range", opts = { desc = "[neorg] Promote Objects in Range" } },
+                    { "<", "core.promo.demote_range", opts = { desc = "[neorg] Demote Objects in Range" } },
+                },
             }, {
                 silent = true,
                 noremap = true,
