@@ -202,10 +202,26 @@ local function highlight_node(node)
     end
 
     local range = module.required["core.integrations.treesitter"].get_node_range(node)
+    if range.column_end == 0 then
+        range.row_end = range.row_end - 1
+        range.column_end = vim.api.nvim_buf_get_lines(0, range.row_end, range.row_end + 1, true)[1]:len()
+    end
+    if range.column_start == vim.api.nvim_buf_get_lines(0, range.row_start, range.row_start + 1, true)[1]:len() then
+        range.row_start = range.row_start + 1
+        range.column_start = 0
+    end
 
-    vim.api.nvim_buf_set_mark(0, "<", range.row_start + 1, range.column_start, {})
-    vim.api.nvim_buf_set_mark(0, ">", range.row_end + 1, range.column_end, {})
-    vim.cmd("normal! gv")
+    -- This method of selection is from ts_utils, it avoids a bug with the nvim_buf_set_mark
+    -- approach
+    local selection_mode = "v"
+    local mode = vim.api.nvim_get_mode()
+    if mode.mode ~= selection_mode then
+        vim.cmd.normal({ selection_mode, bang = true })
+    end
+
+    vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
+    vim.cmd.normal({ bang = true, args = { "o" } })
+    vim.api.nvim_win_set_cursor(0, { range.row_end + 1, range.column_end })
 end
 
 module.config.private = {
