@@ -49,9 +49,9 @@ function module.public.attach_introspector(buffer)
 
     module.required["core.integrations.treesitter"].execute_query(
         [[
-    (_
-      state: (detached_modifier_extension)) @item
-    ]],
+            (_
+              state: (detached_modifier_extension)) @item
+        ]],
         function(query, id, node)
             if query.captures[id] == "item" then
                 module.public.perform_introspection(buffer, node)
@@ -132,24 +132,27 @@ function module.public.calculate_items(node)
 
     local total = 0
 
-    -- Go through all the children of the current todo item node and count the amount of "done" children
-    for child in node:iter_children() do
-        if child:named_child(1) and child:named_child(1):type() == "detached_modifier_extension" then
-            for status in child:named_child(1):iter_children() do
-                if status:type():match("^todo_item_") then
-                    local type = status:type():match("^todo_item_(.+)$")
+    local function descend(next_node)
+        for child in next_node:iter_children() do
+            if child:named_child(1) and child:named_child(1):type() == "detached_modifier_extension" then
+                for status in child:named_child(1):iter_children() do
+                    if status:type():match("^todo_item_") then
+                        local type = status:type():match("^todo_item_(.+)$")
 
-                    counts[type] = counts[type] + 1
+                        counts[type] = counts[type] + 1
 
-                    if type == "cancelled" then
-                        break
+                        if type ~= "cancelled" then
+                            total = total + 1
+                        end
                     end
-
-                    total = total + 1
                 end
+            else
+                descend(child)
             end
         end
     end
+
+    descend(node)
 
     return counts, total
 end
