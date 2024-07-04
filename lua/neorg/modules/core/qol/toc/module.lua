@@ -27,6 +27,8 @@ module.setup = function()
     }
 end
 
+---Track if the next TOC open was automatic. Used to determine if we should enter the TOC or not.
+local next_open_is_auto = false
 module.load = function()
     modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
@@ -42,14 +44,13 @@ module.load = function()
     end)
 
     if module.config.public.auto_toc.open then
-        vim.api.nvim_create_autocmd("BufEnter", {
+        vim.api.nvim_create_autocmd("BufWinEnter", {
             pattern = "*.norg",
             callback = function()
-                local win = vim.api.nvim_get_current_win()
-                vim.cmd([[Neorg toc]])
-                if not module.config.public.auto_toc.enter then
-                    vim.api.nvim_set_current_win(win)
-                end
+                vim.schedule(function()
+                    next_open_is_auto = true
+                    vim.cmd([[Neorg toc]])
+                end)
             end,
         })
     end
@@ -63,12 +64,19 @@ module.config.public = {
     -- `max_width`
     fit_width = true,
 
+    -- max width of the ToC window when `fit_width = true` (in columns)
+    max_width = 30,
+
+    -- when set, the ToC window will always be this many cols wide.
+    -- will override `fit_width` and ignore `max_width`
+    fixed_width = nil,
+
     -- enable `cursorline` in the ToC window, and sync the cursor position between ToC and content
     -- window
     sync_cursorline = true,
 
-    -- max width of the ToC window when `fit_width = true` (in columns)
-    max_width = 30,
+    -- Enter a ToC window opened manually (any ToC window not opened by auto_toc)
+    enter = true,
 
     -- options for automatically opening/entering the ToC window
     auto_toc = {
@@ -303,9 +311,9 @@ module.public = {
             )
 
             for _, line in
-                ipairs(
-                    vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})
-                )
+            ipairs(
+                vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})
+            )
             do
                 table.insert(heading_texts, line)
             end
@@ -355,19 +363,24 @@ module.public = {
 }
 
 module.private = {
-    ---set the width of the ToC window
+    ---get the width of the ToC window
+    ---@param ui_data table
+    ---@return number
     get_toc_width = function(ui_data)
-        local max_virtcol_1bex = module.private.get_max_virtcol()
-        local current_winwidth = vim.fn.winwidth(vim.fn.bufwinid(ui_data.buffer))
-        local new_winwidth = math.min(current_winwidth, math.max(module.config.public.max_width, max_virtcol_1bex - 1))
+        if type(module.config.public.fixed_width) == "number" then
+            return module.config.public.fixed_width
+        end
+        local max_virtcol_1bex = module.private.get_max_virtcol(ui_data.window)
+        local current_winwidth = vim.api.nvim_win_get_width(ui_data.window)
+        local new_winwidth = math.min(current_winwidth, module.config.public.max_width, max_virtcol_1bex - 1)
         return new_winwidth + 1
     end,
 
-    get_max_virtcol = function()
-        local n_line = vim.fn.line("$")
+    get_max_virtcol = function(win)
+        local n_line = vim.fn.line("$", win)
         local result = 1
         for i = 1, n_line do
-            result = math.max(result, vim.fn.virtcol({ i, "$" }))
+            result = math.max(result, vim.fn.virtcol({ i, "$" }, 0, win))
         end
         return result
     end,
@@ -397,12 +410,22 @@ local function unlisten_if_closed(listener)
     end
 end
 
-local function create_ui(tabpage, mode)
+---Create a split window and buffer for the table of contents. Set buffer and window options
+---accordingly
+---@param tabpage number
+---@param split_dir "left" | "right"
+---@param enter boolean
+---@return table
+local function create_ui(tabpage, split_dir, enter)
     assert(tabpage == vim.api.nvim_get_current_tabpage())
 
     toc_namespace = toc_namespace or vim.api.nvim_create_namespace("neorg/toc")
-    local ui_buffer, ui_window =
-        module.required["core.ui"].create_vsplit(("toc-%d"):format(tabpage), { ft = "norg" }, mode)
+    local ui_buffer, ui_window = module.required["core.ui"].create_vsplit(
+        ("toc-%d"):format(tabpage),
+        enter,
+        { ft = "norg" },
+        { split = split_dir, win = 0, style = "minimal" }
+    )
 
     local ui_wo = vim.wo[ui_window]
     ui_wo.scrolloff = 999
@@ -425,6 +448,15 @@ local function create_ui(tabpage, mode)
     ui_data_of_tabpage[tabpage] = ui_data
 
     return ui_data
+end
+
+--- should we enter the ToC window?
+local function enter_toc_win()
+    local do_enter = module.config.public.enter
+    if next_open_is_auto then
+        do_enter = module.config.public.auto_toc.enter
+    end
+    return do_enter
 end
 
 module.on_event = function(event)
@@ -456,15 +488,20 @@ module.on_event = function(event)
             return
         end
         module.public.update_toc(toc_title, ui_data_of_tabpage[tabpage], norg_buffer)
+
+        if enter_toc_win() then
+            vim.api.nvim_set_current_win(ui_data_of_tabpage[tabpage].window)
+        end
         return
     end
 
-    local ui_data = create_ui(tabpage, (event.content[1] or "left") == "left")
+    local ui_data = create_ui(tabpage, event.content[1] or "left", enter_toc_win())
+    next_open_is_auto = false
 
     module.public.update_toc(toc_title, ui_data_of_tabpage[tabpage], norg_buffer)
 
     if module.config.public.fit_width then
-        vim.cmd(("vertical resize %d"):format(module.private.get_toc_width(ui_data)))
+        vim.api.nvim_win_set_width(ui_data.window, module.private.get_toc_width(ui_data))
     end
 
     local close_buffer_callback = function()
