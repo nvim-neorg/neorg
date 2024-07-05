@@ -145,7 +145,7 @@ module.public = {
         end
 
         local leading_whitespace = line:match("^%s*"):len()
-        return vim.api.nvim_buf_set_text(buffer, start_row, 0, start_row, leading_whitespace, { (" "):rep(new_indent) })
+        vim.api.nvim_buf_set_text(buffer, start_row, 0, start_row, leading_whitespace, { (" "):rep(new_indent) })
     end,
 }
 
