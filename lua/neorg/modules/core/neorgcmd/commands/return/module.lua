@@ -31,13 +31,21 @@ module.on_event = function(event)
         -- Get all the buffers
         local buffers = vim.api.nvim_list_bufs()
 
+        local to_delete = {}
         for _, buffer in ipairs(buffers) do
             if vim.fn.buflisted(buffer) == 1 then
                 -- If the listed buffer we're working with has a .norg extension then remove it (not forcibly)
-                if vim.endswith(vim.api.nvim_buf_get_name(buffer), ".norg") then
-                    vim.api.nvim_buf_delete(buffer, {})
+                if not vim.endswith(vim.api.nvim_buf_get_name(buffer), ".norg") then
+                    vim.api.nvim_win_set_buf(0, buffer)
+                    break
+                else
+                    table.insert(to_delete, buffer)
                 end
             end
+        end
+
+        for _, buffer in ipairs(to_delete) do
+            vim.api.nvim_buf_delete(buffer, {})
         end
     end
 end
