@@ -41,6 +41,10 @@ module.config.public = {
     -- - [`"nvim-cmp"`](@core.integrations.nvim-cmp)
     -- - [`"coq_nvim"`](@core.integrations.coq_nvim)
     -- - [`"nvim-compe"`](@core.integrations.nvim-compe)
+    -- - `{ module_name = "external.lsp-completion" }` this must be used with
+    --   [neorg-interim-ls](https://github.com/benlubas/neorg-interim-ls) and can provide
+    --   completions through a shim Language Server. This allows users without an auto complete
+    --   plugin to still get neorg completions
     engine = nil,
 
     -- The identifier for the Neorg source.
@@ -279,8 +283,13 @@ module.load = function()
         return
     end
 
-    -- If our engine is compe then attempt to load the integration module for nvim-compe
-    if module.config.public.engine == "nvim-compe" and modules.load_module("core.integrations.nvim-compe") then
+    -- check if a custom completion module is provided
+    if type(module.config.public.engine) == "table" and module.config.public.engine["module_name"] then
+        local completion_module = module.config.public.engine["module_name"]
+        modules.load_module_as_dependency(completion_module, module.name, {})
+        module.private.engine = modules.get_module(completion_module)
+    elseif module.config.public.engine == "nvim-compe" and modules.load_module("core.integrations.nvim-compe") then
+        -- If our engine is compe then attempt to load the integration module for nvim-compe
         modules.load_module_as_dependency("core.integrations.nvim-compe", module.name, {})
         module.private.engine = modules.get_module("core.integrations.nvim-compe")
     elseif module.config.public.engine == "nvim-cmp" and modules.load_module("core.integrations.nvim-cmp") then
