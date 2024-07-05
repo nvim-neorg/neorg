@@ -225,10 +225,11 @@ module.on_event = function(event)
         -- TODO: Make the vsplit location configurable (i.e. whether it spawns on the left or the right)
         local vsplit = module.required["core.ui"].create_vsplit(
             "code-block-" .. tostring(code_block_info.start.row) .. tostring(code_block_info["end"].row), -- This is done to make the name of the vsplit unique
+            true,
             {
                 filetype = (code_block_info.parameters[1] or "none"),
             },
-            true
+            { split = "left" }
         )
 
         if not vsplit then

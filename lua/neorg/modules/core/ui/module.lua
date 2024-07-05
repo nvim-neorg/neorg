@@ -151,23 +151,17 @@ module.public = {
 
     --- Creates a new vertical split
     ---@param name string the name of the buffer
-    ---@param config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
-    ---@param left boolean if true will spawn the vertical split on the left (default is right)
-    ---@return number?, number? #The buffer of the vertical split
-    create_vsplit = function(name, config, left)
+    ---@param enter boolean enter the window or not
+    ---@param buf_config table a table of <option> = <value> keypairs signifying buffer-local options for the buffer contained within the split
+    ---@param win_config table table of <option>=<value> keypairs for `nvim_open_win`, must provide `win`
+    ---@return number?, number? #The buffer and window numbers of the vertical split
+    create_vsplit = function(name, enter, buf_config, win_config)
         vim.validate({
             name = { name, "string" },
-            config = { config, "table" },
-            left = { left, "boolean", true },
+            enter = { enter, "boolean", true },
+            config = { buf_config, "table" },
+            win_config = { win_config, "table" },
         })
-
-        left = left or false
-
-        vim.cmd("vsplit")
-
-        if left then
-            vim.cmd("wincmd H")
-        end
 
         local buf = vim.api.nvim_create_buf(false, true)
 
@@ -180,17 +174,18 @@ module.public = {
         }
 
         vim.api.nvim_buf_set_name(buf, "neorg://" .. name)
-        vim.api.nvim_win_set_buf(0, buf)
 
-        vim.api.nvim_set_option_value("number", false, { win = 0 })
-        vim.api.nvim_set_option_value("relativenumber", false, { win = 0 })
+        local win_options = {
+            vertical = true,
+        }
+        win_options = vim.tbl_deep_extend("keep", win_options, win_config)
+        local window = vim.api.nvim_open_win(buf, enter, win_options)
 
-        vim.api.nvim_win_set_buf(0, buf)
+        vim.api.nvim_set_option_value("number", false, { win = window })
+        vim.api.nvim_set_option_value("relativenumber", false, { win = window })
 
         -- Merge the user provided options with the default options and apply them to the new buffer
-        module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
-
-        local window = vim.api.nvim_get_current_win()
+        module.public.apply_buffer_options(buf, vim.tbl_extend("keep", buf_config or {}, default_options))
 
         -- Make sure to clean up the window if the user leaves the popup at any time
         vim.api.nvim_create_autocmd({ "BufDelete", "WinClosed" }, {
@@ -225,9 +220,9 @@ module.public = {
             name = "display/" .. name
 
             if split_type == "vsplitl" then
-                return module.public.create_vsplit(name, {}, true)
+                return module.public.create_vsplit(name, true, {}, { split = "left" })
             elseif split_type == "vsplitr" then
-                return module.public.create_vsplit(name, {}, false)
+                return module.public.create_vsplit(name, true, {}, { split = "right" })
             elseif split_type == "split" then
                 return module.public.create_split(name, {})
             else
@@ -329,9 +324,9 @@ module.public = {
             name = "norg/" .. name .. ".norg"
 
             if split_type == "vsplitl" then
-                return module.public.create_vsplit(name, {}, true)
+                return module.public.create_vsplit(name, true, {}, { split = "left" })
             elseif split_type == "vsplitr" then
-                return module.public.create_vsplit(name, {}, false)
+                return module.public.create_vsplit(name, true, {}, { split = "right" })
             elseif split_type == "split" then
                 return module.public.create_split(name, {})
             else
