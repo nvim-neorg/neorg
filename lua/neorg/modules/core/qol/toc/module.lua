@@ -311,9 +311,9 @@ module.public = {
             )
 
             for _, line in
-            ipairs(
-                vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})
-            )
+                ipairs(
+                    vim.api.nvim_buf_get_text(norg_buffer, row_start_0b, col_start_0b, row_end_0bin, col_end_0bex, {})
+                )
             do
                 table.insert(heading_texts, line)
             end
