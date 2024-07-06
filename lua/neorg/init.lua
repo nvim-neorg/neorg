@@ -5,11 +5,6 @@
 local neorg = require("neorg.core")
 local config, log, modules = neorg.config, neorg.log, neorg.modules
 
--- HACK(vhyrro): This variable is here to prevent issues with lazy's build.lua script loading.
-
----@type neorg.configuration.user?
-local user_configuration
-
 --- @module "neorg.core.config"
 
 --- Initializes Neorg. Parses the supplied user configuration, initializes all selected modules and adds filetype checking for `.norg`.
@@ -36,19 +31,6 @@ function neorg.setup(cfg)
         }
     end
 
-    if not (pcall(require, "lua-utils")) then
-        vim.notify(
-            "Warning [neorg]: lua-utils not found. If you're just installing the plugin, ignore this message, when in doubt run `:Lazy build neorg`. If you're not on lazy please rerun the build scripts.",
-            vim.log.levels.WARN
-        )
-
-        -- Allow neorg to be reloaded once more.
-        package.loaded.neorg = nil
-
-        user_configuration = cfg
-        return
-    end
-
     config.user_config = vim.tbl_deep_extend("force", config.user_config, cfg)
 
     -- Create a new global instance of the neorg logger.
@@ -61,11 +43,6 @@ function neorg.setup(cfg)
             norg = "norg",
         },
     })
-
-    local ok, lua_utils = pcall(require, "lua-utils")
-    assert(ok, "unable to find lua-utils dependency. Perhaps try restarting Neovim?")
-
-    neorg.lib = lua_utils
 
     -- If the file we have entered has a `.norg` extension:
     if vim.fn.expand("%:e") == "norg" or not config.user_config.lazy_loading then
@@ -85,25 +62,6 @@ function neorg.setup(cfg)
             end,
         })
     end
-end
-
---- Equivalent of `setup()`, but is executed by Lazy.nvim's build.lua script.
---- It attempts to pull the configuration options provided by the user when setup()
---- first ran, and relays those configuration options to the actual Neorg runtime.
-function neorg.setup_after_build()
-    if not user_configuration then
-        return
-    end
-
-    package.loaded["lua-utils"] = nil
-
-    -- HACK(vhyrro): Please do this elsewhere.
-    local ok, lua_utils = pcall(require, "lua-utils")
-    assert(ok, "unable to find lua-utils dependency. Perhaps try restarting Neovim?")
-
-    neorg.lib = lua_utils
-
-    neorg.setup(user_configuration)
 end
 
 --- This function gets called upon entering a .norg file and loads all of the user-defined modules.
