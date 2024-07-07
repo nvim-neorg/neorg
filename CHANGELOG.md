@@ -1,5 +1,23 @@
 # Changelog
 
+## [8.9.0](https://github.com/nvim-neorg/neorg/compare/v8.8.1...v8.9.0) (2024-07-07)
+
+
+### Features
+
+* **calendar-ui:** new mappings ([2a4081f](https://github.com/nvim-neorg/neorg/commit/2a4081fe89f8f264c672eff2ab88b79f91aa6898))
+* **calendar-ui:** support count in keymappings ([6b4751c](https://github.com/nvim-neorg/neorg/commit/6b4751c2c486578c8a11dfd2f79dfd35cacaa5b8))
+* **calendar:** even more keybinds + ; repeat ([a5c2624](https://github.com/nvim-neorg/neorg/commit/a5c2624bc41cb760c4689734b2c3c5a9f17e4c48))
+
+
+### Bug Fixes
+
+* **promo:** promote/demote range + keybinds ([a94d1e6](https://github.com/nvim-neorg/neorg/commit/a94d1e67f7df3a97c0f57894c107b70a54523a4d))
+* **return:** return causing early exit when paired with auto_toc.exit_nvim ([959b8a2](https://github.com/nvim-neorg/neorg/commit/959b8a20114c63097261cd1b48f2dacfbe4ccd5f))
+* **summary:** ordering and indentation of nested entries ([9279672](https://github.com/nvim-neorg/neorg/commit/9279672d2b97929fc52d1b182af754497dfd8d8a))
+* **text-objects:** node selection inconsistencies ([99b3249](https://github.com/nvim-neorg/neorg/commit/99b32492b836b64a5ff4544d4c466496f0aec9bd))
+* **toc:** various fixes ([#1500](https://github.com/nvim-neorg/neorg/issues/1500)) ([83637f1](https://github.com/nvim-neorg/neorg/commit/83637f11295aaaa6db5b0a28d6db8ac727592759))
+
 ## [8.8.1](https://github.com/nvim-neorg/neorg/compare/v8.8.0...v8.8.1) (2024-06-26)
 
 
