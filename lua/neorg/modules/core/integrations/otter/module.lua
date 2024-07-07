@@ -111,24 +111,13 @@ module.config.public = {
     -- Automatically start Otter when a norg buffer is opened
     auto_start = true,
 
-    -- buffer local mappings set when otter is active
-    keys = {
-        hover = "K",
-        definition = "gd",
-        type_definition = "gD",
-        references = "gr",
-        rename = "<leader>rn",
-        format = "<leader>gf",
-        document_symbols = "gs",
-    },
-
     completion = {
-        -- enable/disable autocomplete
+        -- enable/disable Otter autocomplete
         enabled = true,
     },
 
     diagnostics = {
-        -- enable/disable diagnostics
+        -- enable/disable Otter diagnostics
         enabled = true,
     },
 }
@@ -151,26 +140,11 @@ module.public = {
             module.config.public.diagnostics.enabled,
             nil -- or a query...
         )
-
-        local b = vim.api.nvim_get_current_buf()
-        for func, lhs in pairs(module.config.public.keys) do
-            vim.api.nvim_buf_set_keymap(
-                b,
-                "n",
-                lhs,
-                (":lua require'otter'.ask_%s()<cr>"):format(func),
-                { silent = true, noremap = true }
-            )
-        end
     end,
 
     ---Deactivate otter in the current buffer, including unsetting buffer keymaps
     deactivate = function()
         otter.deactivate(module.config.public.completion.enabled, module.config.public.diagnostics.enabled)
-        local b = vim.api.nvim_get_current_buf()
-        for _, lhs in pairs(module.config.public.keys) do
-            vim.api.nvim_buf_del_keymap(b, "n", lhs)
-        end
     end,
 }
 
