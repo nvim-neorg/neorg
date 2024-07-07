@@ -10,7 +10,11 @@ command: `:Neorg render-latex`. Rendering can be disabled with `:Neorg render-la
 
 Requires:
 - The [image.nvim](https://github.com/3rd/image.nvim) neovim plugin.
-- `latex` executable in path
+- `latex` executable in path with the following packages:
+  - standalone
+  - amsmath
+  - amssymb
+  - graphicx
 - `dvipng` executable in path (normally comes with LaTeX)
 
 There's a highlight group that controls the foreground color of the rendered latex:
