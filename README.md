@@ -78,9 +78,9 @@ Neorg's setup process is slightly more complex than average, so we encourage you
 
 ### `rocks.nvim`
 
-The recommended installation method is via [rocks.nvim](https://github.com/nvim-neorocks/rocks.nvim).
+One way of installing Neorg is via [rocks.nvim](https://github.com/nvim-neorocks/rocks.nvim).
 
-<details open>
+<details>
 <summary>Installation snippet.</summary>
 
 - Run `:Rocks install rocks-config.nvim` (if you don't have it already!).
@@ -114,38 +114,21 @@ which will get you up and running with Neorg without any prior Neovim configurat
 
 ### `lazy.nvim`
 
-In order to install Neorg via `lazy.nvim`, you must take a few extra steps - this is because `luarocks` is a critical component for Neorg to function.
-See [this blog](https://vhyrro.github.io/posts/neorg-and-luarocks/) for more information.
-
-> [!IMPORTANT]
-> Using luarocks Neorg will install itself and these dependencies with their respective versions:
-> - `lua-utils.nvim`
-> - `nvim-nio`
-> - `nui.nvim`
-> - `plenary.nvim`
-> - `pathlib.nvim`
+To install Neorg via lazy, first ensure that you have `luarocks` installed on your system.
+On Linux/Mac, this involves installing using your system's package manager. On Windows, consider
+the [Lua for Windows](https://github.com/rjpcomputing/luaforwindows) all-in-one package.
 
 <details>
 <summary>Click for installation snippet.</summary>
 
-- Ensure you have [`vhyrro/luarocks.nvim`](https://github.com/vhyrro/luarocks.nvim) installed (**NOTE**: there are additional install steps in that README):
-  ```lua
-  {
-      "vhyrro/luarocks.nvim",
-      priority = 1000,
-      config = true,
-  }
-  ```
-- Add the following to your plugin list:
-  ```lua
-  {
-      "nvim-neorg/neorg",
-      dependencies = { "luarocks.nvim" },
-      lazy = false, -- Disable lazy loading as some `lazy.nvim` distributions set `lazy = true` by default
-      version = "*", -- Pin Neorg to the latest stable release
-      config = true,
-  }
-  ```
+```lua
+{
+    "nvim-neorg/neorg",
+    lazy = false, -- Disable lazy loading as some `lazy.nvim` distributions set `lazy = true` by default
+    version = "*", -- Pin Neorg to the latest stable release
+    config = true,
+}
+```
 
 </details>
 
