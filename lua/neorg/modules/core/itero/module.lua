@@ -124,8 +124,7 @@ module.public = {
 
         local _, column = current:start()
 
-        local is_on_nonempty_line =
-            vim.api.nvim_buf_get_lines(buffer, cursor_pos, cursor_pos + 1, true)[1]:match("%S")
+        local is_on_nonempty_line = vim.api.nvim_buf_get_lines(buffer, cursor_pos, cursor_pos + 1, true)[1]:match("%S")
         if is_on_nonempty_line then
             cursor_pos = cursor_pos + 1
         end
@@ -141,7 +140,7 @@ module.public = {
             0,
             { cursor_pos + 1, column + text_to_repeat:len() + (should_append_extension and ("( ) "):len() or 0) }
         )
-    end
+    end,
 }
 
 module.events.subscribed = {

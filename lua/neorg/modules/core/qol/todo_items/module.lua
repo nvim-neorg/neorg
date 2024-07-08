@@ -7,23 +7,19 @@ This module handles the whole concept of toggling TODO items, as well as updatin
 parent and/or children items alongside the current item.
 
 The following keybinds are exposed:
-- `core.qol.todo_items.todo.task_done` (`<LocalLeader>td`)
-- `core.qol.todo_items.todo.task_undone` (`<LocalLeader>tu`)
-- `core.qol.todo_items.todo.task_pending` (`<LocalLeader>tp`)
-- `core.qol.todo_items.todo.task_on_hold` (`<LocalLeader>th`)
-- `core.qol.todo_items.todo.task_cancelled` (`<LocalLeader>tc`)
-- `core.qol.todo_items.todo.task_recurring` (`<LocalLeader>tr`)
-- `core.qol.todo_items.todo.task_important` (`<LocalLeader>ti`)
-- `core.qol.todo_items.todo.task_cycle` (`<C-Space>`)
-- `core.qol.todo_items.todo.task_cycle_reverse` (no default keybind)
+- `<Plug>(neorg.qol.todo_items.todo.task_done)` (`<LocalLeader>td`)
+- `<Plug>(neorg.qol.todo_items.todo.task_undone)` (`<LocalLeader>tu`)
+- `<Plug>(neorg.qol.todo_items.todo.task_pending)` (`<LocalLeader>tp`)
+- `<Plug>(neorg.qol.todo_items.todo.task_on_hold)` (`<LocalLeader>th`)
+- `<Plug>(neorg.qol.todo_items.todo.task_cancelled)` (`<LocalLeader>tc`)
+- `<Plug>(neorg.qol.todo_items.todo.task_recurring)` (`<LocalLeader>tr`)
+- `<Plug>(neorg.qol.todo_items.todo.task_important)` (`<LocalLeader>ti`)
+- `<Plug>(neorg.qol.todo_items.todo.task_cycle)` (`<C-Space>`)
+- `<Plug>(neorg.qol.todo_items.todo.task_cycle_reverse)` (no default keybind)
 
 With your cursor on a line that contains an item with a TODO attribute, press
 any of the above keys to toggle the state of that particular item.
 Parent items of the same type and children items of the same type are update accordingly.
-
-## Changing Keybinds
-
-To change the existing keybinds please refer to the [`core.keybinds`](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds#setting-up-a-keybind-hook) module!
 --]]
 
 local neorg = require("neorg.core")
@@ -36,20 +32,24 @@ module.setup = function()
 end
 
 module.load = function()
-    modules.await("core.keybinds", function(keybinds)
-        keybinds.register_keybinds(
-            module.name,
-            (function()
-                local keys = vim.tbl_keys(module.events.subscribed["core.keybinds"])
-
-                for i, key in ipairs(keys) do
-                    keys[i] = key:sub(module.name:len() + 2)
-                end
-
-                return keys
-            end)()
+    for _, task in ipairs({
+        "done",
+        "undone",
+        "pending",
+        "on_hold",
+        "cancelled",
+        "important",
+        "recurring",
+        "ambiguous",
+        "cycle",
+        "cycle_reverse",
+    }) do
+        vim.keymap.set(
+            "",
+            string.format("<Plug>(neorg.qol.todo_items.todo.task_%s)", task),
+            module.public["task_" .. task]
         )
-    end)
+    end
 end
 
 module.config.public = {
@@ -85,7 +85,7 @@ module.config.public = {
     -- ```
     --
     -- When this option is `true` and the child's state is updated to e.g.
-    -- `(x)` via the `gtd` keybind, the new output becomes:
+    -- `(x)` via the `<LocaLeader>td` keybind, the new output becomes:
     -- ```norg
     -- - (x) Text
     -- -- (x) Child text
@@ -117,7 +117,7 @@ module.config.public = {
 ---|"uncertain"
 
 ---@class core.qol.todo_items
-module.public = {
+module.private = {
     --- Updates the parent todo item for the current todo item if it exists
     ---@param recursion_level number the index of the parent to change. The higher the number the more the code will traverse up the syntax tree.
     update_parent = function(buf, line, recursion_level)
@@ -125,7 +125,7 @@ module.public = {
         vim.treesitter.get_parser(buf, "norg"):parse()
 
         -- If present grab the item that is under the cursor
-        local item_at_cursor = module.public.get_todo_item_from_cursor(buf, line)
+        local item_at_cursor = module.private.get_todo_item_from_cursor(buf, line)
 
         if not item_at_cursor then
             return
@@ -206,7 +206,7 @@ module.public = {
             resulting_char = "-"
         end
 
-        local first_status_extension = module.public.find_first_status_extension(item_at_cursor:named_child(1))
+        local first_status_extension = module.private.find_first_status_extension(item_at_cursor:named_child(1))
 
         -- TODO(vhyrro):
         -- Implement a toggleable behaviour where Neorg can automatically convert this:
@@ -224,7 +224,7 @@ module.public = {
 
             vim.api.nvim_buf_set_text(buf, row, column, row, column, { "(" .. resulting_char .. ") " })
 
-            module.public.update_parent(buf, line, recursion_level + 1)
+            module.private.update_parent(buf, line, recursion_level + 1)
             return
         end
 
@@ -240,7 +240,7 @@ module.public = {
             { resulting_char }
         )
 
-        module.public.update_parent(buf, line, recursion_level + 1)
+        module.private.update_parent(buf, line, recursion_level + 1)
     end,
 
     --- Find the first occurence of a status extension within a detached
@@ -301,7 +301,7 @@ module.public = {
             return
         end
 
-        local todo_type = module.public.find_first_status_extension(todo_node:named_child(1)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+        local todo_type = module.private.find_first_status_extension(todo_node:named_child(1)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         return todo_type and todo_type:type():sub(string.len("todo_item_") + 1) or nil
     end,
@@ -320,11 +320,11 @@ module.public = {
 
         -- If the type of the current todo item differs from the one we want to change to then
         -- We do this because we don't want to be unnecessarily modifying a line that doesn't need changing
-        if module.public.get_todo_item_type(node) == todo_item_type then
+        if module.private.get_todo_item_type(node) == todo_item_type then
             return
         end
 
-        local first_status_extension = module.public.find_first_status_extension(node:named_child(1)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+        local first_status_extension = module.private.find_first_status_extension(node:named_child(1)) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
         if not first_status_extension then
             if not module.config.public.create_todo_items then
@@ -349,19 +349,19 @@ module.public = {
 
         for child in node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
             if type == child:type():match("^(.+)%d+$") then
-                module.public.make_all(buf, child, todo_item_type, char)
+                module.private.make_all(buf, child, todo_item_type, char)
             end
         end
     end,
 
     task_cycle = function(buf, linenr, types, alternative_types)
-        local todo_item_at_cursor = module.public.get_todo_item_from_cursor(buf, linenr - 1)
+        local todo_item_at_cursor = module.private.get_todo_item_from_cursor(buf, linenr - 1)
 
         if not todo_item_at_cursor then
             return
         end
 
-        local todo_item_type = module.public.get_todo_item_type(todo_item_at_cursor)
+        local todo_item_type = module.private.get_todo_item_type(todo_item_at_cursor)
 
         --- Gets the next item of a flat list based on the first item
         ---@param type_list table[] #A list of { "type", "char" } items
@@ -384,8 +384,8 @@ module.public = {
                 return
             end
 
-            module.public.make_all(buf, todo_item_at_cursor, types[1][1], types[1][2])
-            module.public.update_parent(buf, linenr - 1, 0)
+            module.private.make_all(buf, todo_item_at_cursor, types[1][1], types[1][2])
+            module.private.update_parent(buf, linenr - 1, 0)
             return
         end
 
@@ -394,79 +394,63 @@ module.public = {
         local next = types[index] or types[1]
 
         for child in todo_item_at_cursor:iter_children() do
-            if module.public.get_todo_item_type(child) then
+            if module.private.get_todo_item_type(child) then
                 next = alternative_types[get_index(alternative_types, todo_item_type)] or alternative_types[1]
                 break
             end
         end
 
-        module.public.make_all(buf, todo_item_at_cursor, next[1], next[2])
-        module.public.update_parent(buf, linenr - 1, 0)
+        module.private.make_all(buf, todo_item_at_cursor, next[1], next[2])
+        module.private.update_parent(buf, linenr - 1, 0)
     end,
 }
 
-module.on_event = neorg.utils.wrap_dotrepeat(function(event)
-    local todo_str = "core.qol.todo_items.todo."
+module.public = {
+    task_set = function(character, name)
+        return function()
+            local buffer = vim.api.nvim_get_current_buf()
+            local cursor = vim.api.nvim_win_get_cursor(0)
 
-    if event.split_type[1] == "core.keybinds" then
-        local todo_item_at_cursor = module.public.get_todo_item_from_cursor(event.buffer, event.cursor_position[1] - 1)
+            local todo_item_at_cursor = module.private.get_todo_item_from_cursor(buffer, cursor[1] - 1)
 
-        if not todo_item_at_cursor then
-            return
+            if not todo_item_at_cursor then
+                return
+            end
+
+            module.private.make_all(buffer, todo_item_at_cursor, name, character)
         end
+    end,
 
-        local map_of_names_to_symbols = {
-            undone = " ",
-            pending = "-",
-            on_hold = "=",
-            cancelled = "_",
-            done = "x",
-            important = "!",
-            recurring = "+",
-            ambiguous = "?",
-        }
+    task_done = module.public.task_set("x", "done"),
+    task_undone = module.public.task_set(" ", "undone"),
+    task_pending = module.public.task_set("-", "pending"),
+    task_on_hold = module.public.task_set("=", "on_hold"),
+    task_cancelled = module.public.task_set("_", "cancelled"),
+    task_important = module.public.task_set("!", "important"),
+    task_recurring = module.public.task_set("+", "recurring"),
+    task_ambiguous = module.public.task_set("?", "ambiguous"),
+    task_cycle = function()
+        local buffer = vim.api.nvim_get_current_buf()
+        local cursor = vim.api.nvim_win_get_cursor(0)
 
-        local match = event.split_type[2]:match(todo_str .. "task_(.+)")
+        module.private.task_cycle(
+            buffer,
+            cursor[1],
+            module.config.public.order,
+            module.config.public.order_with_children
+        )
+    end,
+    task_cycle_reverse = function()
+        local buffer = vim.api.nvim_get_current_buf()
+        local cursor = vim.api.nvim_win_get_cursor(0)
 
-        if match and match ~= "cycle" and match ~= "cycle_reverse" then
-            module.public.make_all(
-                event.buffer,
-                todo_item_at_cursor,
-                match,
-                map_of_names_to_symbols[match] or "<unsupported>"
-            )
-            module.public.update_parent(event.buffer, event.cursor_position[1] - 1, 0)
-        elseif event.split_type[2] == todo_str .. "task_cycle" then
-            module.public.task_cycle(
-                event.buffer,
-                event.cursor_position[1],
-                module.config.public.order,
-                module.config.public.order_with_children
-            )
-        elseif event.split_type[2] == todo_str .. "task_cycle_reverse" then
-            module.public.task_cycle(
-                event.buffer,
-                event.cursor_position[1],
-                vim.fn.reverse(module.config.public.order),
-                vim.fn.reverse(module.config.public.order_with_children)
-            )
-        end
-    end
-end)
-
-module.events.subscribed = {
-    ["core.keybinds"] = {
-        ["core.qol.todo_items.todo.task_done"] = true,
-        ["core.qol.todo_items.todo.task_undone"] = true,
-        ["core.qol.todo_items.todo.task_pending"] = true,
-        ["core.qol.todo_items.todo.task_on_hold"] = true,
-        ["core.qol.todo_items.todo.task_cancelled"] = true,
-        ["core.qol.todo_items.todo.task_important"] = true,
-        ["core.qol.todo_items.todo.task_recurring"] = true,
-        ["core.qol.todo_items.todo.task_ambiguous"] = true,
-        ["core.qol.todo_items.todo.task_cycle"] = true,
-        ["core.qol.todo_items.todo.task_cycle_reverse"] = true,
-    },
+        module.private.task_cycle(
+            buffer,
+            cursor[1],
+            vim.fn.reverse(module.config.public.order),
+            vim.fn.reverse(module.config.public.order_with_children)
+        )
+    end,
 }
 
 return module
