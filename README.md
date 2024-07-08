@@ -4,7 +4,7 @@
 
 # Neorg - An Organized Future
 
-<a href="https://neovim.io"> ![Neovim](https://img.shields.io/badge/Neovim%200.8+-brightgreen?style=for-the-badge) </a>
+<a href="https://neovim.io"> ![Neovim](https://img.shields.io/badge/Neovim%200.10+-brightgreen?style=for-the-badge) </a>
 <a href="https://discord.gg/T6EgTAX7ht"> ![Discord](https://img.shields.io/badge/discord-join-7289da?style=for-the-badge&logo=discord) </a>
 <a href="/LICENSE"> ![License](https://img.shields.io/badge/license-GPL%20v3-brightgreen?style=for-the-badge)</a>
 <a href="https://dotfyle.com/plugins/nvim-neorg/neorg"> ![Usage](https://dotfyle.com/plugins/nvim-neorg/neorg/shield?style=for-the-badge) </a>
@@ -70,7 +70,9 @@ A video tutorial may be found on Youtube:
 
 Neorg's setup process is slightly more complex than average, so we encourage you to be patient :)
 
-**After you're done with the installation process, run `:checkhealth neorg` to see if everything's correct!**
+**Neorg requires Neovim 0.10 or above to function. After you're done with the
+installation process, run `:checkhealth neorg` to see if everything's
+correct!**
 
 ### `rocks.nvim`
 

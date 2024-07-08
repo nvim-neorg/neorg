@@ -36,14 +36,6 @@ function neorg.setup(cfg)
     -- Create a new global instance of the neorg logger.
     log.new(config.user_config.logger or log.get_default_config(), true)
 
-    -- TODO(vhyrro): Remove this after Neovim 0.10, where `norg` files will be
-    -- detected automatically.
-    vim.filetype.add({
-        extension = {
-            norg = "norg",
-        },
-    })
-
     -- If the file we have entered has a `.norg` extension:
     if vim.fn.expand("%:e") == "norg" or not config.user_config.lazy_loading then
         -- Then boot up the environment.
