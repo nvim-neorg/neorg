@@ -10,20 +10,20 @@ Get up and running with Neorg even with zero Neovim knowledge.
 
 To use this configuration, a set of prerequisites must be fulfilled beforehand.
 
-1. Install one of the Nerd fonts, for example Meslo Nerd Font from [Nerd Fonts](https://www.nerdfonts.com/font-downloads).
+1. Install one of the Nerd fonts, for example the Meslo Nerd Font from [Nerd Fonts](https://www.nerdfonts.com/font-downloads).
 2. Set your terminal font to the installed Nerd Font.
 3. Make sure you have git by running `git --version`.
-4. Ensure you have Lua 5.1 *or* LuaJIT installed on your system:
+4. Ensure you have Luarocks installed on your system:
    - **Windows**: install [lua for windows](https://github.com/rjpcomputing/luaforwindows/releases/tag/v5.1.5-52).
-   - **MacOS**: install via `brew install luajit`. Lua 5.1 is incorrectly marked as "deprecated" on MacOS systems, therefore luajit should be used instead.
-   - **`apk`**: `sudo apk add luajit luajit-dev wget`
-   - **`apt`**: `sudo apt install liblua5.1-0-dev`
-   - **`dnf`**: `sudo dnf install compat-lua-devel-5.1.5`
-   - **`pacman`**: `sudo pacman -Syu luajit`
+   - **MacOS**: install via `brew install luarocks`.
+   - **`apk`**: `sudo apk add luarocks wget`
+   - **`apt`**: `sudo apt install luarocks`
+   - **`dnf`**: `sudo dnf install luarocks`
+   - **`pacman`**: `sudo pacman -Syu luarocks`
 
 ## Troubleshooting
 
-If you have any issues like bold or italic not rendering or highlights being improperly applied
+If you have any issues like bold/italic not rendering or highlights being improperly applied
 I encourage you to check out the [dependencies document](https://github.com/nvim-neorg/neorg/wiki/Dependencies) which explains troubleshooting steps
 for different kinds of terminals.
 
@@ -38,19 +38,20 @@ With that, let's begin!
 
   Put the following into the `init.lua` file:
   ```lua
-  -- Adapted from https://github.com/folke/lazy.nvim#-installation
-  
-  -- Install lazy.nvim
+  -- Bootstrap lazy.nvim
   local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
   if not (vim.uv or vim.loop).fs_stat(lazypath) then
-    vim.fn.system({
-      "git",
-      "clone",
-      "--filter=blob:none",
-      "https://github.com/folke/lazy.nvim.git",
-      "--branch=stable", -- latest stable release
-      lazypath,
-    })
+    local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+    local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+    if vim.v.shell_error ~= 0 then
+      vim.api.nvim_echo({
+        { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+        { out, "WarningMsg" },
+        { "\nPress any key to exit..." },
+      }, true, {})
+      vim.fn.getchar()
+      os.exit(1)
+    end
   end
   vim.opt.rtp:prepend(lazypath)
   
@@ -58,55 +59,53 @@ With that, let's begin!
   vim.g.mapleader = " "
   vim.g.maplocalleader = ","
   
+  -- Setup lazy.nvim
   require("lazy").setup({
-    {
-      "rebelot/kanagawa.nvim", -- neorg needs a colorscheme with treesitter support
-      config = function()
-          vim.cmd.colorscheme("kanagawa")
-      end,
-    },
-    {
-      "nvim-treesitter/nvim-treesitter",
-      build = ":TSUpdate",
-      opts = {
-        ensure_installed = { "c", "lua", "vim", "vimdoc", "query" },
-        highlight = { enable = true },
+    spec = {
+      {
+        "rebelot/kanagawa.nvim", -- neorg needs a colorscheme with treesitter support
+        config = function()
+            vim.cmd.colorscheme("kanagawa")
+        end,
       },
-      config = function(_, opts)
-        require("nvim-treesitter.configs").setup(opts)
-      end,
-    },
-    {
-        "vhyrro/luarocks.nvim",
-        priority = 1000,
-        config = true,
-    },
-    {
-      "nvim-neorg/neorg",
-      dependencies = { "luarocks.nvim" },
-      version = "*",
-      config = function()
-        require("neorg").setup {
-          load = {
-            ["core.defaults"] = {},
-            ["core.concealer"] = {},
-            ["core.dirman"] = {
-              config = {
-                workspaces = {
-                  notes = "~/notes",
+      {
+        "nvim-treesitter/nvim-treesitter",
+        build = ":TSUpdate",
+        opts = {
+          ensure_installed = { "c", "lua", "vim", "vimdoc", "query" },
+          highlight = { enable = true },
+        },
+        config = function(_, opts)
+          require("nvim-treesitter.configs").setup(opts)
+        end,
+      },
+      {
+        "nvim-neorg/neorg",
+        lazy = false,
+        version = "*",
+        config = function()
+          require("neorg").setup {
+            load = {
+              ["core.defaults"] = {},
+              ["core.concealer"] = {},
+              ["core.dirman"] = {
+                config = {
+                  workspaces = {
+                    notes = "~/notes",
+                  },
+                  default_workspace = "notes",
                 },
-                default_workspace = "notes",
               },
             },
-          },
-        }
-  
-        vim.wo.foldlevel = 99
-        vim.wo.conceallevel = 2
-      end,
-    }
+          }
+    
+          vim.wo.foldlevel = 99
+          vim.wo.conceallevel = 2
+        end,
+      },
+    },
   })
   ```
-- Close and reopen Neovim. Everything should just work! If you do not see Neorg working
-  for any reason, run `:Lazy build luarocks.nvim` and afterwards `:Lazy build neorg`.
-- Open up any `.norg` file and start typing!
+- Close and reopen Neovim. Everything should just work!
+- Open up any `.norg` file and start typing! You may see an initial error, just hit enter a few times, after
+  which Neorg should immediately fix itself.

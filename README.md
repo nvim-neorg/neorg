@@ -72,10 +72,6 @@ Neorg's setup process is slightly more complex than average, so we encourage you
 
 **After you're done with the installation process, run `:checkhealth neorg` to see if everything's correct!**
 
-> [!TIP]
-> If you're having severe difficulties with installing `8.0.0`, we encourage you to try the `7.0.0` version
-> instead. You will not have all of the latest features but Neorg will continue to function there.
-
 ### `rocks.nvim`
 
 One way of installing Neorg is via [rocks.nvim](https://github.com/nvim-neorocks/rocks.nvim).
