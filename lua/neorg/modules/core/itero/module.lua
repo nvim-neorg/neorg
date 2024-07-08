@@ -143,10 +143,4 @@ module.public = {
     end,
 }
 
-module.events.subscribed = {
-    ["core.keybinds"] = {
-        [module.name .. ".next-iteration"] = true,
-    },
-}
-
 return module
