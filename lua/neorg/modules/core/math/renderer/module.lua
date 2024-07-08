@@ -41,9 +41,6 @@ module.setup = function()
             "core.neorgcmd",
             "core.highlights",
         },
-        wants = {
-            "core.math.renderer.latex",
-        },
     }
 end
 
@@ -110,8 +107,9 @@ end
 module.load = function()
     local success, image_api = pcall(neorg.modules.get_module, module.config.public.image_renderer)
     assert(success, "Unable to load image_renderer module")
-    local ok, math_image_generator = pcall(neorg.modules.get_module, module.config.public.image_generator)
+    local ok = neorg.modules.load_module(module.config.public.image_generator)
     assert(ok, "Unable to load image_generator module")
+    local math_image_generator = neorg.modules.get_module(module.config.public.image_generator)
 
     nio = require("nio")
 
