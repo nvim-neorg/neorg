@@ -405,8 +405,7 @@ module.private = {
     end,
 }
 
-module.public = {
-    task_set = function(character, name)
+    local function task_set(character, name)
         return function()
             local buffer = vim.api.nvim_get_current_buf()
             local cursor = vim.api.nvim_win_get_cursor(0)
@@ -419,16 +418,18 @@ module.public = {
 
             module.private.make_all(buffer, todo_item_at_cursor, name, character)
         end
-    end,
+    end
 
-    task_done = module.public.task_set("x", "done"),
-    task_undone = module.public.task_set(" ", "undone"),
-    task_pending = module.public.task_set("-", "pending"),
-    task_on_hold = module.public.task_set("=", "on_hold"),
-    task_cancelled = module.public.task_set("_", "cancelled"),
-    task_important = module.public.task_set("!", "important"),
-    task_recurring = module.public.task_set("+", "recurring"),
-    task_ambiguous = module.public.task_set("?", "ambiguous"),
+module.public = {
+
+    task_done = task_set("x", "done"),
+    task_undone = task_set(" ", "undone"),
+    task_pending = task_set("-", "pending"),
+    task_on_hold = task_set("=", "on_hold"),
+    task_cancelled = task_set("_", "cancelled"),
+    task_important = task_set("!", "important"),
+    task_recurring = task_set("+", "recurring"),
+    task_ambiguous = task_set("?", "ambiguous"),
     task_cycle = function()
         local buffer = vim.api.nvim_get_current_buf()
         local cursor = vim.api.nvim_win_get_cursor(0)
