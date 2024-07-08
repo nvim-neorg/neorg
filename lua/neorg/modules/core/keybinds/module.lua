@@ -18,13 +18,21 @@ module.load = function()
 
         for mode, keybinds in pairs(preset) do
             for _, keybind in ipairs(keybinds) do
-                if vim.fn.hasmapto(keybinds[2], mode) == 0 then
+                if vim.fn.hasmapto(keybind[2], mode, false) == 0 then
                     vim.keymap.set(mode, keybind[1], keybind[2], keybind.opts or {})
                 end
             end
         end
     end
 end
+
+-- Temporary functions to act as wrappers
+module.public = {
+    register_keybind = function (...)
+    end,
+    register_keybinds = function (...)
+    end
+}
 
 module.private = {
     presets = {
