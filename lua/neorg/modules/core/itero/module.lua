@@ -76,7 +76,7 @@ module.config.private = {
 }
 
 module.load = function()
-    vim.keymap.set("", "<Plug>(neorg.itero.next-iteration.carriage-return)", module.public.next_iteration_cr)
+    vim.keymap.set("", "<Plug>(neorg.itero.next-iteration)", module.public.next_iteration_cr)
 end
 
 module.public = {

@@ -145,7 +145,7 @@ module.private = {
             i = {
                 { "<C-t>", "<Plug>(neorg.promo.promote)", opts = { desc = "[neorg] Promote Object (Recursively)" } },
                 { "<C-d>", "<Plug>(neorg.promo.demote)", opts = { desc = "[neorg] Demote Object (Recursively)" } },
-                { "<M-CR>", "<Plug>(neorg.itero.next-iteration.carriage-return)", opts = { desc = "[neorg] Continue Object" } },
+                { "<M-CR>", "<Plug>(neorg.itero.next-iteration)", opts = { desc = "[neorg] Continue Object" } },
                 { "<M-d>", "<Plug>(neorg.tempus.insert-date-insert-mode)", opts = { desc = "[neorg] Insert Date" } },
             },
 
