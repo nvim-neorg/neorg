@@ -3,7 +3,7 @@
 --- @brief ]]
 
 local neorg = require("neorg.core")
-local config, log, modules = neorg.config, neorg.log, neorg.modules
+local config, log, modules, utils = neorg.config, neorg.log, neorg.modules, neorg.utils
 
 --- @module "neorg.core.config"
 
@@ -12,6 +12,9 @@ local config, log, modules = neorg.config, neorg.log, neorg.modules
 --- @see config.user_config
 --- @see neorg.configuration.user
 function neorg.setup(cfg)
+    -- Ensure that we are running Neovim 0.10+
+    assert(utils.is_minimum_version(0, 10, 0), "Neorg requires at least Neovim version 0.10 to operate!")
+
     -- If the user supplied no configuration then generate a default one (assume the user wants the defaults)
     cfg = cfg or {
         load = {
