@@ -328,35 +328,35 @@ module.public = {
     end,
 }
 
-local running_proc = nil
-local render_timer = nil
+local running_proc = {}
+local render_timer = {}
 local function render_math()
     local buf = vim.api.nvim_get_current_buf()
     if not module.private.do_render then
-        if render_timer then
-            render_timer:stop()
-            render_timer:close()
-            render_timer = nil
+        if render_timer[buf] then
+            render_timer[buf]:stop()
+            render_timer[buf]:close()
+            render_timer[buf] = nil
         end
         return
     end
 
-    if not render_timer then
-        render_timer = vim.uv.new_timer()
+    if not render_timer[buf] then
+        render_timer[buf] = vim.uv.new_timer()
     end
 
-    render_timer:start(module.config.public.debounce_ms, 0, function()
-        render_timer:stop()
-        render_timer:close()
-        render_timer = nil
+    render_timer[buf]:start(module.config.public.debounce_ms, 0, function()
+        render_timer[buf]:stop()
+        render_timer[buf]:close()
+        render_timer[buf] = nil
 
-        if not running_proc then
-            running_proc = nio.run(function()
+        if not running_proc[buf] then
+            running_proc[buf] = nio.run(function()
                 nio.scheduler()
                 module.public.async_math_renderer(buf)
             end, function()
                 module.public.render_inline_math(module.private.math_images[buf] or {}, buf)
-                running_proc = nil
+                running_proc[buf] = nil
             end)
         end
     end)
@@ -364,7 +364,7 @@ end
 
 local function clear_at_cursor()
     local buf = vim.api.nvim_get_current_buf()
-    if not module.private.do_render or render_timer then
+    if not module.private.do_render or render_timer[buf] then
         return
     end
 
