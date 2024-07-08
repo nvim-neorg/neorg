@@ -1,5 +1,5 @@
 --[[
-    file: Core-Math-Renderer
+    file: Math-Renderer
     title: Conceal Math ranges with their rendered versions
     summary: An experimental module for rendering inline math blocks
     ---

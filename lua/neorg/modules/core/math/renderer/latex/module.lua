@@ -1,5 +1,5 @@
 --[[
-    file: Core-Math-Renderer-LaTeX
+    file: Math-Renderer-LaTeX
     title: Convert LaTeX snippets into image files
     summary: A module that provides images of LaTeX for `core.math.renderer`
     ---
@@ -14,7 +14,7 @@ Requires:
     - graphicx
 - `dvipng` executable in path (normally comes with LaTeX)
 
-A highlight group that controls the foreground color of the rendered math: `@norg.rendered.latex`,
+A highlight group that controls the foreground color of the rendered math: `@neorg.rendered.math`,
 configurable in `core.highlights`. It links to `Normal` by default
 
 Note, when `'concealcursor'` contains `"n"` This plugin will fail for the time being.
@@ -22,8 +22,6 @@ Note, when `'concealcursor'` contains `"n"` This plugin will fail for the time b
 local nio
 local neorg = require("neorg.core")
 local module = neorg.modules.create("core.math.renderer.latex")
-
-assert(vim.re ~= nil, "Neovim 0.10.0+ is required for the `core.math.renderer.latex` module!")
 
 module.load = function()
     nio = require("nio")
