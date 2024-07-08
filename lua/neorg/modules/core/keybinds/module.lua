@@ -51,7 +51,7 @@ module.private = {
                 {
                     "<LocalLeader>td",
                     "<Plug>(neorg.qol.todo_items.todo.task_done)",
-                    opts = { desc = "[neorg] Mark as Done" }
+                    opts = { desc = "[neorg] Mark as Done" },
                 },
 
                 -- Marks the task under the cursor as "on_hold"
@@ -98,7 +98,7 @@ module.private = {
                 {
                     "<C-Space>",
                     "<Plug>(neorg.qol.todo_items.todo.task_cycle)",
-                    opts = { desc = "[neorg] Cycle Task" }
+                    opts = { desc = "[neorg] Cycle Task" },
                 },
 
                 -- Creates a new .norg file to take notes in
@@ -106,7 +106,7 @@ module.private = {
                 {
                     "<LocalLeader>nn",
                     "<Plug>(neorg.dirman.new.note)",
-                    opts = { desc = "[neorg] Create New Note" }
+                    opts = { desc = "[neorg] Create New Note" },
                 },
 
                 -- Hop to the destination of the link under the cursor
@@ -125,7 +125,11 @@ module.private = {
                 { ">.", "<Plug>(neorg.promo.promote)", opts = { desc = "[neorg] Promote Object (Non-Recursively)" } },
                 { "<,", "<Plug>(neorg.promo.demote)", opts = { desc = "[neorg] Demote Object (Non-Recursively)" } },
 
-                { ">>", "<Plug>(neorg.promo.promote.nested)", opts = { desc = "[neorg] Promote Object (Recursively)" } },
+                {
+                    ">>",
+                    "<Plug>(neorg.promo.promote.nested)",
+                    opts = { desc = "[neorg] Promote Object (Recursively)" },
+                },
                 { "<<", "<Plug>(neorg.promo.demote.nested)", opts = { desc = "[neorg] Demote Object (Recursively)" } },
 
                 {
