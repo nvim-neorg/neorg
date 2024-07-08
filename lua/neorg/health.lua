@@ -74,7 +74,9 @@ return {
         if vim.fn.executable("luarocks") then
             vim.health.ok("`luarocks` is installed.")
         else
-            vim.health.error("`luarocks` not installed on your system! Please consult the Neorg README for installation instructions.")
+            vim.health.error(
+                "`luarocks` not installed on your system! Please consult the Neorg README for installation instructions."
+            )
         end
     end,
 }
