@@ -421,7 +421,6 @@ module.private = {
     end
 
 module.public = {
-
     task_done = task_set("x", "done"),
     task_undone = task_set(" ", "undone"),
     task_pending = task_set("-", "pending"),

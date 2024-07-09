@@ -119,9 +119,10 @@ module.private = {
 
                 -- Hop to the destination of the link under the cursor
                 { "<CR>", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
-                { "gd", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
-                { "gf", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
-                { "gF", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
+                -- TODO: Move these to the "vim" preset
+                -- { "gd", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
+                -- { "gf", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
+                -- { "gF", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
 
                 -- Same as `<CR>`, except opens the destination in a vertical split
                 {

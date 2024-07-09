@@ -32,9 +32,8 @@ end
 module.load = function()
     links = module.required["core.links"]
     dirman_utils = module.required["core.dirman.utils"]
-    modules.await("core.keybinds", function(keybinds)
-        keybinds.register_keybind(module.name, "hop-link")
-    end)
+    vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link)", module.public.hop_link)
+    vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link.vsplit)", lib.wrap(module.public.hop_link, "vsplit"))
 end
 
 module.config.public = {
@@ -677,6 +676,19 @@ module.public = {
             end,
         } --[[@as table<string, fun(): LinkTarget?>]])
     end,
+
+    hop_link = function(split_mode)
+        local link_node_at_cursor = module.public.extract_link_node()
+
+        if not link_node_at_cursor then
+            log.trace("No link under cursor.")
+            return
+        end
+
+        local parsed_link = module.public.parse_link(link_node_at_cursor)
+
+        module.public.follow_link(link_node_at_cursor, split_mode, parsed_link)
+    end
 }
 
 module.private = {
@@ -945,23 +957,6 @@ module.private = {
         )
     end,
 }
-
-module.on_event = function(event)
-    if event.split_type[2] == "core.esupports.hop.hop-link" then
-        local split_mode = event.content[1]
-
-        local link_node_at_cursor = module.public.extract_link_node()
-
-        if not link_node_at_cursor then
-            log.trace("No link under cursor.")
-            return
-        end
-
-        local parsed_link = module.public.parse_link(link_node_at_cursor)
-
-        module.public.follow_link(link_node_at_cursor, split_mode, parsed_link)
-    end
-end
 
 module.events.subscribed = {
     ["core.keybinds"] = {
