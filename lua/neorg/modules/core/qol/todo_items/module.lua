@@ -7,15 +7,15 @@ This module handles the whole concept of toggling TODO items, as well as updatin
 parent and/or children items alongside the current item.
 
 The following keybinds are exposed:
-- `<Plug>(neorg.qol.todo_items.todo.task_done)` (`<LocalLeader>td`)
-- `<Plug>(neorg.qol.todo_items.todo.task_undone)` (`<LocalLeader>tu`)
-- `<Plug>(neorg.qol.todo_items.todo.task_pending)` (`<LocalLeader>tp`)
-- `<Plug>(neorg.qol.todo_items.todo.task_on_hold)` (`<LocalLeader>th`)
-- `<Plug>(neorg.qol.todo_items.todo.task_cancelled)` (`<LocalLeader>tc`)
-- `<Plug>(neorg.qol.todo_items.todo.task_recurring)` (`<LocalLeader>tr`)
-- `<Plug>(neorg.qol.todo_items.todo.task_important)` (`<LocalLeader>ti`)
-- `<Plug>(neorg.qol.todo_items.todo.task_cycle)` (`<C-Space>`)
-- `<Plug>(neorg.qol.todo_items.todo.task_cycle_reverse)` (no default keybind)
+- `<Plug>(neorg.qol.todo_items.todo.task-done)` (`<LocalLeader>td`)
+- `<Plug>(neorg.qol.todo_items.todo.task-undone)` (`<LocalLeader>tu`)
+- `<Plug>(neorg.qol.todo_items.todo.task-pending)` (`<LocalLeader>tp`)
+- `<Plug>(neorg.qol.todo_items.todo.task-on_hold)` (`<LocalLeader>th`)
+- `<Plug>(neorg.qol.todo_items.todo.task-cancelled)` (`<LocalLeader>tc`)
+- `<Plug>(neorg.qol.todo_items.todo.task-recurring)` (`<LocalLeader>tr`)
+- `<Plug>(neorg.qol.todo_items.todo.task-important)` (`<LocalLeader>ti`)
+- `<Plug>(neorg.qol.todo_items.todo.task-cycle)` (`<C-Space>`)
+- `<Plug>(neorg.qol.todo_items.todo.task-cycle-reverse)` (no default keybind)
 
 With your cursor on a line that contains an item with a TODO attribute, press
 any of the above keys to toggle the state of that particular item.
@@ -36,18 +36,18 @@ module.load = function()
         "done",
         "undone",
         "pending",
-        "on_hold",
+        "on-hold",
         "cancelled",
         "important",
         "recurring",
         "ambiguous",
         "cycle",
-        "cycle_reverse",
+        "cycle-reverse",
     }) do
         vim.keymap.set(
             "",
-            string.format("<Plug>(neorg.qol.todo_items.todo.task_%s)", task),
-            module.public["task_" .. task]
+            string.format("<Plug>(neorg.qol.todo-items.todo.task-%s)", task),
+            module.public["task-" .. task]
         )
     end
 end
@@ -421,15 +421,15 @@ module.private = {
     end
 
 module.public = {
-    task_done = task_set("x", "done"),
-    task_undone = task_set(" ", "undone"),
-    task_pending = task_set("-", "pending"),
-    task_on_hold = task_set("=", "on_hold"),
-    task_cancelled = task_set("_", "cancelled"),
-    task_important = task_set("!", "important"),
-    task_recurring = task_set("+", "recurring"),
-    task_ambiguous = task_set("?", "ambiguous"),
-    task_cycle = function()
+    ["task-done"] = task_set("x", "done"),
+    ["task-undone"] = task_set(" ", "undone"),
+    ["task-pending"] = task_set("-", "pending"),
+    ["task-on-hold"] = task_set("=", "on_hold"),
+    ["task-cancelled"] = task_set("_", "cancelled"),
+    ["task-important"] = task_set("!", "important"),
+    ["task-recurring"] = task_set("+", "recurring"),
+    ["task-ambiguous"] = task_set("?", "ambiguous"),
+    ["task-cycle"] = function()
         local buffer = vim.api.nvim_get_current_buf()
         local cursor = vim.api.nvim_win_get_cursor(0)
 
@@ -440,7 +440,7 @@ module.public = {
             module.config.public.order_with_children
         )
     end,
-    task_cycle_reverse = function()
+    ["task-cycle-reverse"] = function()
         local buffer = vim.api.nvim_get_current_buf()
         local cursor = vim.api.nvim_win_get_cursor(0)
 

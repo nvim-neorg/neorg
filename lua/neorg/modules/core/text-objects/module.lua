@@ -49,7 +49,7 @@ Example keybinds that would go in your Neorg configuration:
 --]]
 
 local neorg = require("neorg.core")
-local utils, log, modules = neorg.utils, neorg.log, neorg.modules
+local utils, log, modules, lib = neorg.utils, neorg.log, neorg.modules, neorg.lib
 local ts
 
 local module = modules.create("core.text-objects")
@@ -65,24 +65,19 @@ module.setup = function()
 
     return {
         success = true,
-        requires = { "core.keybinds", "core.integrations.treesitter" },
+        requires = { "core.integrations.treesitter" },
     }
 end
 
--- TODO: what's a better name for this?
-local tags = {
-    "item_up",
-    "item_down",
-    "textobject.heading.outer",
-    "textobject.heading.inner",
-    "textobject.tag.inner",
-    "textobject.tag.outer",
-    "textobject.list.outer",
-}
-
 module.load = function()
-    module.required["core.keybinds"].register_keybinds(module.name, tags)
     ts = module.required["core.integrations.treesitter"]
+    vim.keymap.set("", "<Plug>(neorg.text-objects.item-up)", module.public.move_up)
+    vim.keymap.set("", "<Plug>(neorg.text-objects.item-down)", module.public.move_down)
+    vim.keymap.set("", "<Plug>(neorg.text-objects.textobject.heading.outer)", lib.wrap(module.public.highlight_node, "heading.outer"))
+    vim.keymap.set("", "<Plug>(neorg.text-objects.textobject.heading.inner)", lib.wrap(module.public.highlight_node, "heading.inner"))
+    vim.keymap.set("", "<Plug>(neorg.text-objects.textobject.tag.inner)", lib.wrap(module.public.highlight_node, "tag.inner"))
+    vim.keymap.set("", "<Plug>(neorg.text-objects.textobject.tag.outer)", lib.wrap(module.public.highlight_node, "tag.outer"))
+    vim.keymap.set("", "<Plug>(neorg.text-objects.textobject.list.outer)", lib.wrap(module.public.highlight_node, "lits.outer"))
 end
 
 module.config.public = {
@@ -109,7 +104,7 @@ module.config.public = {
 }
 
 ---@class core.text-objects
-module.public = {
+module.private = {
     get_element_from_cursor = function(node_pattern)
         local node_at_cursor = vim.treesitter.get_node()
 
@@ -126,7 +121,7 @@ module.public = {
     end,
 
     move_item_down = function(pattern, expected_sibling_name, buffer)
-        local element = module.public.get_element_from_cursor(pattern)
+        local element = module.private.get_element_from_cursor(pattern)
 
         if not element then
             return
@@ -149,7 +144,7 @@ module.public = {
     end,
 
     move_item_up = function(pattern, expected_sibling_name, buffer)
-        local element = module.public.get_element_from_cursor(pattern)
+        local element = module.private.get_element_from_cursor(pattern)
 
         if not element then
             return
@@ -168,6 +163,34 @@ module.public = {
                     return
                 end
             end
+        end
+    end,
+}
+
+module.public = {
+    move_up = function()
+        local config = module.config.public.moveables
+        local buffer = vim.api.nvim_get_current_buf()
+
+        for _, data in pairs(config) do
+            module.private.move_item_up(data[1], data[2], buffer)
+        end
+    end,
+
+    move_down = function()
+        local config = module.config.public.moveables
+        local buffer = vim.api.nvim_get_current_buf()
+
+        for _, data in pairs(config) do
+            module.private.move_item_down(data[1], data[2], buffer)
+        end
+    end,
+
+    highlight_node = function(name)
+        local textobj_lookup = module.config.private.textobjects[name]
+
+        if textobj_lookup then
+            return textobj_lookup(vim.treesitter.get_node())
         end
     end,
 }
@@ -244,37 +267,5 @@ module.config.private = {
         end,
     },
 }
-
----Handle events
----@param event neorg.event
-module.on_event = function(event)
-    local config = module.config.public.moveables
-
-    if event.split_type[2] == "core.text-objects.item_down" then
-        for _, data in pairs(config) do
-            module.public.move_item_down(data[1], data[2], event.buffer)
-        end
-    elseif event.split_type[2] == "core.text-objects.item_up" then
-        for _, data in pairs(config) do
-            module.public.move_item_up(data[1], data[2], event.buffer)
-        end
-    else
-        local textobj = event.split_type[2]:find("textobject")
-
-        if textobj then
-            local textobject_type = event.split_type[2]:sub(textobj + string.len("textobject") + 1)
-            local textobj_lookup = module.config.private.textobjects[textobject_type]
-
-            if textobj_lookup then
-                return textobj_lookup(vim.treesitter.get_node())
-            end
-        end
-    end
-end
-
-module.events.subscribed = { ["core.keybinds"] = {} }
-for _, name in ipairs(tags) do
-    module.events.subscribed["core.keybinds"][("%s.%s"):format(module.name, name)] = true
-end
 
 return module
