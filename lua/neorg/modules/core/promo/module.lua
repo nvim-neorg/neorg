@@ -43,20 +43,12 @@ end
 module.load = function()
     ---@type core.esupports.indent
     indent = module.required["core.esupports.indent"]
-    modules.await("core.keybinds", function(keybinds)
-        keybinds.register_keybinds(
-            module.name,
-            (function()
-                local keys = vim.tbl_keys(module.events.subscribed["core.keybinds"])
-
-                for i, key in ipairs(keys) do
-                    keys[i] = key:sub(module.name:len() + 2)
-                end
-
-                return keys
-            end)()
-        )
-    end)
+    vim.keymap.set("", "<Plug>(neorg.promo.promote)", module.public.promote)
+    vim.keymap.set("", "<Plug>(neorg.promo.promote.nested)", module.public.promote_nested)
+    vim.keymap.set("", "<Plug>(neorg.promo.promote.range)", module.public.promote_range)
+    vim.keymap.set("", "<Plug>(neorg.promo.demote)", module.public.demote)
+    vim.keymap.set("", "<Plug>(neorg.promo.demote.nested)", module.public.demote_nested)
+    vim.keymap.set("", "<Plug>(neorg.promo.demote.range)", module.public.demote_range)
 end
 
 module.private = {
@@ -87,10 +79,7 @@ module.private = {
     get_line = function(buffer, target_row)
         return vim.api.nvim_buf_get_lines(buffer, target_row, target_row + 1, true)[1]
     end,
-}
 
----@class core.promo
-module.public = {
     get_promotable_node_prefix = function(node)
         for _, data in pairs(module.private.types) do
             if node:type():match(data.pattern) then
@@ -161,7 +150,7 @@ module.public = {
             return
         end
 
-        local root_prefix_char = module.public.get_promotable_node_prefix(root_node)
+        local root_prefix_char = module.private.get_promotable_node_prefix(root_node)
         if not root_prefix_char then
             local n_space_diff = vim.bo.shiftwidth * action_count
             if mode == "demote" then
@@ -251,7 +240,7 @@ module.public = {
         local apply_recursive = root_level < HEADING_VERYLOW_LEVEL and apply_recursive_normal or apply_recursive_verylow
 
         apply_recursive(root_node, function(node)
-            return module.public.get_promotable_node_prefix(node) == root_prefix_char
+            return module.private.get_promotable_node_prefix(node) == root_prefix_char
         end, function(node)
             indent_targets[#indent_targets + 1] = node
         end)
@@ -274,43 +263,52 @@ module.public = {
     end,
 }
 
-module.on_event = neorg.utils.wrap_dotrepeat(function(event)
-    local row = event.cursor_position[1] - 1
+---@class core.promo
+module.public = {
+    promote = function()
+        local buffer = vim.api.nvim_get_current_buf()
+        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 
-    if event.split_type[1] ~= "core.keybinds" then
-        return
-    end
+        module.private.promote_or_demote(buffer, "promote", row, true, false)
+    end,
+    promote_nested = function()
+        local buffer = vim.api.nvim_get_current_buf()
+        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 
-    if event.split_type[2] == "core.promo.promote" then
-        module.public.promote_or_demote(event.buffer, "promote", row, true, event.content[1] == "nested")
-    elseif event.split_type[2] == "core.promo.demote" then
-        module.public.promote_or_demote(event.buffer, "demote", row, true, event.content[1] == "nested")
-    elseif event.split_type[2] == "core.promo.promote_range" then
-        local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
-        local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
-
-        for i = start_pos[1], end_pos[1] do
-            module.public.promote_or_demote(event.buffer, "promote", i - 1, false, false)
-        end
-        indent.reindent_range(event.buffer, start_pos[1], end_pos[1])
-    elseif event.split_type[2] == "core.promo.demote_range" then
-        local start_pos = vim.api.nvim_buf_get_mark(event.buffer, "<")
-        local end_pos = vim.api.nvim_buf_get_mark(event.buffer, ">")
+        module.private.promote_or_demote(buffer, "promote", row, true, true)
+    end,
+    promote_range = function()
+        local buffer = vim.api.nvim_get_current_buf()
+        local start_pos = vim.api.nvim_buf_get_mark(buffer, "<")
+        local end_pos = vim.api.nvim_buf_get_mark(buffer, ">")
 
         for i = start_pos[1], end_pos[1] do
-            module.public.promote_or_demote(event.buffer, "demote", i - 1, false, false)
+            module.private.promote_or_demote(buffer, "promote", i - 1, false, false)
         end
-        indent.reindent_range(event.buffer, start_pos[1], end_pos[1])
-    end
-end)
+        indent.reindent_range(buffer, start_pos[1], end_pos[1])
+    end,
+    demote = function()
+        local buffer = vim.api.nvim_get_current_buf()
+        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 
-module.events.subscribed = {
-    ["core.keybinds"] = {
-        ["core.promo.promote"] = true,
-        ["core.promo.demote"] = true,
-        ["core.promo.promote_range"] = true,
-        ["core.promo.demote_range"] = true,
-    },
+        module.private.promote_or_demote(buffer, "demote", row, true, false)
+    end,
+    demote_nested = function()
+        local buffer = vim.api.nvim_get_current_buf()
+        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
+
+        module.private.promote_or_demote(buffer, "demote", row, true, true)
+    end,
+    demote_range = function()
+        local buffer = vim.api.nvim_get_current_buf()
+        local start_pos = vim.api.nvim_buf_get_mark(buffer, "<")
+        local end_pos = vim.api.nvim_buf_get_mark(buffer, ">")
+
+        for i = start_pos[1], end_pos[1] do
+            module.private.promote_or_demote(buffer, "demote", i - 1, false, false)
+        end
+        indent.reindent_range(buffer, start_pos[1], end_pos[1])
+    end
 }
 
 return module
