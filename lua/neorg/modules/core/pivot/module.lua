@@ -18,7 +18,7 @@ This module exposes two keybinds:
 --]]
 
 local neorg = require("neorg.core")
-local log, modules = neorg.log, neorg.modules
+local log, modules, lib = neorg.log, neorg.modules, neorg.lib
 
 local module = modules.create("core.pivot")
 
@@ -31,16 +31,19 @@ module.setup = function()
 end
 
 module.load = function()
-    modules.await("core.keybinds", function(keybinds)
-        keybinds.register_keybinds(module.name, { "toggle-list-type", "invert-list-type" })
-    end)
+    vim.keymap.set("", "<Plug>(neorg.pivot.list.toggle)", lib.wrap(module.public.change_list, false))
+    vim.keymap.set("", "<Plug>(neorg.pivot.list.invert)", lib.wrap(module.public.change_list, true))
 end
 
-module.on_event = function(event)
-    if event.split_type[2] == "core.pivot.toggle-list-type" or event.split_type[2] == "core.pivot.invert-list-type" then
+module.public = {
+    ---@param invert boolean
+    change_list = function(invert)
+        local buffer = vim.api.nvim_get_current_buf()
+        local cursor = vim.api.nvim_win_get_cursor(0)
+
         local node = module.required["core.integrations.treesitter"].get_first_node_on_line(
-            event.buffer,
-            event.cursor_position[1] - 1
+            buffer,
+            cursor[1] - 1
         )
 
         if not node then
@@ -64,7 +67,7 @@ module.on_event = function(event)
         local type = first_child:type():match("^un") and "~" or "-"
 
         for child in node:iter_children() do
-            if event.split_type[2] == "core.pivot.invert-list-type" then
+            if invert then
                 type = child:type():match("^un") and "~" or "-"
             end
 
@@ -74,20 +77,13 @@ module.on_event = function(event)
                 if subchild:type():match("_prefix$") then
                     local line, column = subchild:range()
 
-                    vim.api.nvim_buf_set_text(event.buffer, line, column, line, column + 1, { type })
+                    vim.api.nvim_buf_set_text(buffer, line, column, line, column + 1, { type })
 
                     break
                 end
             end
         end
-    end
-end
-
-module.events.subscribed = {
-    ["core.keybinds"] = {
-        ["core.pivot.toggle-list-type"] = true,
-        ["core.pivot.invert-list-type"] = true,
-    },
+    end,
 }
 
 return module
