@@ -73,9 +73,7 @@ module.load = function()
 
     dirman_utils = module.required["core.dirman.utils"]
 
-    modules.await("core.keybinds", function(keybinds)
-        keybinds.register_keybind(module.name, "new.note")
-    end)
+    vim.keymap.set("", "<Plug>(neorg.dirman.new-note)", module.public.new_note)
 
     -- Used to detect when we've entered a buffer with a potentially different cwd
     module.required["core.autocommands"].enable_autocommand("BufEnter", true)
@@ -444,6 +442,28 @@ module.public = {
     get_index = function()
         return module.config.public.index
     end,
+    new_note = function()
+        if module.config.public.use_popup then
+            module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
+                -- Create the file that the user has entered
+                module.public.create_file(text)
+            end, {
+                center_x = true,
+                center_y = true,
+            }, {
+                width = 25,
+                height = 1,
+                row = 10,
+                col = 0,
+            })
+        else
+            vim.ui.input({ prompt = "New Note: " }, function(text)
+                if text ~= nil and #text > 0 then
+                    module.public.create_file(text)
+                end
+            end)
+        end
+    end
 }
 
 module.on_event = function(event)
@@ -503,30 +523,6 @@ module.on_event = function(event)
         dirman_utils.edit_file(index_path:cmd_string())
         return
     end
-
-    -- If the user has executed a keybind to create a new note then create a prompt
-    if event.type == "core.keybinds.events.core.dirman.new.note" then
-        if module.config.public.use_popup then
-            module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
-                -- Create the file that the user has entered
-                module.public.create_file(text)
-            end, {
-                center_x = true,
-                center_y = true,
-            }, {
-                width = 25,
-                height = 1,
-                row = 10,
-                col = 0,
-            })
-        else
-            vim.ui.input({ prompt = "New Note: " }, function(text)
-                if text ~= nil and #text > 0 then
-                    module.public.create_file(text)
-                end
-            end)
-        end
-    end
 end
 
 module.events.defined = {
@@ -546,9 +542,6 @@ module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["dirman.workspace"] = true,
         ["dirman.index"] = true,
-    },
-    ["core.keybinds"] = {
-        ["core.dirman.new.note"] = true,
     },
 }
 

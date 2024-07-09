@@ -395,6 +395,50 @@ module.public = {
 
         return module.private.tostringable_date(output)
     end,
+
+    insert_date = function(insert_mode)
+        local function callback(input)
+            if input == "" or not input then
+                return
+            end
+
+            local output
+
+            if type(input) == "table" then
+                output = tostring(module.public.to_date(input))
+            else
+                output = module.public.parse_date(input)
+
+                if type(output) == "string" then
+                    utils.notify(output, vim.log.levels.ERROR)
+
+                    vim.ui.input({
+                        prompt = "Date: ",
+                        default = input,
+                    }, callback)
+
+                    return
+                end
+
+                output = tostring(output)
+            end
+
+            vim.api.nvim_put({ "{@ " .. output .. "}" }, "c", false, true)
+
+            if insert_mode then
+                vim.cmd.startinsert()
+            end
+        end
+
+        if modules.is_module_loaded("core.ui.calendar") then
+            vim.cmd.stopinsert()
+            modules.get_module("core.ui.calendar").select_date({ callback = vim.schedule_wrap(callback) })
+        else
+            vim.ui.input({
+                prompt = "Date: ",
+            }, callback)
+        end
+    end
 }
 
 module.private = {
@@ -406,12 +450,12 @@ module.private = {
                 end
 
                 return vim.trim(
-                    d(date_table.weekday and date_table.weekday.name)
-                        .. d(date_table.day)
-                        .. d(date_table.month and date_table.month.name)
-                        .. d(date_table.year and string.format("%04d", date_table.year))
-                        .. d(date_table.time and tostring(date_table.time))
-                        .. d(date_table.timezone)
+                d(date_table.weekday and date_table.weekday.name)
+                .. d(date_table.day)
+                .. d(date_table.month and date_table.month.name)
+                .. d(date_table.year and string.format("%04d", date_table.year))
+                .. d(date_table.time and tostring(date_table.time))
+                .. d(date_table.timezone)
                 )
             end,
         })
@@ -419,67 +463,8 @@ module.private = {
 }
 
 module.load = function()
-    modules.await("core.keybinds", function(keybinds)
-        keybinds.register_keybinds(module.name, { "insert-date", "insert-date-insert-mode" })
-    end)
+    vim.keymap.set("", "<Plug>(neorg.tempus.insert-date)", lib.wrap(module.public.insert_date, false))
+    vim.keymap.set("", "<Plug>(neorg.tempus.insert-date.insert-mode)", lib.wrap(module.public.insert_date, true))
 end
-
-module.on_event = function(event)
-    if
-        event.split_type[2] ~= "core.tempus.insert-date"
-        and event.split_type[2] ~= "core.tempus.insert-date-insert-mode"
-    then
-        return
-    end
-
-    local function callback(input)
-        if input == "" or not input then
-            return
-        end
-
-        local output
-
-        if type(input) == "table" then
-            output = tostring(module.public.to_date(input))
-        else
-            output = module.public.parse_date(input)
-
-            if type(output) == "string" then
-                utils.notify(output, vim.log.levels.ERROR)
-
-                vim.ui.input({
-                    prompt = "Date: ",
-                    default = input,
-                }, callback)
-
-                return
-            end
-
-            output = tostring(output)
-        end
-
-        vim.api.nvim_put({ "{@ " .. output .. "}" }, "c", false, true)
-
-        if vim.endswith(event.split_type[2], "insert-mode") then
-            vim.cmd.startinsert()
-        end
-    end
-
-    if modules.is_module_loaded("core.ui.calendar") then
-        vim.cmd.stopinsert()
-        modules.get_module("core.ui.calendar").select_date({ callback = vim.schedule_wrap(callback) })
-    else
-        vim.ui.input({
-            prompt = "Date: ",
-        }, callback)
-    end
-end
-
-module.events.subscribed = {
-    ["core.keybinds"] = {
-        [module.name .. ".insert-date"] = true,
-        [module.name .. ".insert-date-insert-mode"] = true,
-    },
-}
 
 return module

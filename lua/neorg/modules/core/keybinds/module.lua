@@ -26,14 +26,6 @@ module.load = function()
     end
 end
 
--- Temporary functions to act as wrappers
-module.public = {
-    register_keybind = function (...)
-    end,
-    register_keybinds = function (...)
-    end
-}
-
 module.private = {
     presets = {
         neorg = {
@@ -42,7 +34,7 @@ module.private = {
                 -- ^mark Task as Undone
                 {
                     "<LocalLeader>tu",
-                    "<Plug>(neorg.qol.todo_items.todo.task_undone)",
+                    "<Plug>(neorg.qol.todo-items.todo.task-undone)",
                     opts = { desc = "[neorg] Mark as Undone" },
                 },
 
@@ -50,7 +42,7 @@ module.private = {
                 -- ^mark Task as Pending
                 {
                     "<LocalLeader>tp",
-                    "<Plug>(neorg.qol.todo_items.todo.task_pending)",
+                    "<Plug>(neorg.qol.todo-items.todo.task-pending)",
                     opts = { desc = "[neorg] Mark as Pending" },
                 },
 
@@ -58,15 +50,15 @@ module.private = {
                 -- ^mark Task as Done
                 {
                     "<LocalLeader>td",
-                    "<Plug>(neorg.qol.todo_items.todo.task_done)",
+                    "<Plug>(neorg.qol.todo-items.todo.task-done)",
                     opts = { desc = "[neorg] Mark as Done" },
                 },
 
-                -- Marks the task under the cursor as "on_hold"
+                -- Marks the task under the cursor as "on-hold"
                 -- ^mark Task as on Hold
                 {
                     "<LocalLeader>th",
-                    "<Plug>(neorg.qol.todo_items.todo.task_on_hold)",
+                    "<Plug>(neorg.qol.todo-items.todo.task-on-hold)",
                     opts = { desc = "[neorg] Mark as On Hold" },
                 },
 
@@ -74,7 +66,7 @@ module.private = {
                 -- ^mark Task as Cancelled
                 {
                     "<LocalLeader>tc",
-                    "<Plug>(neorg.qol.todo_items.todo.task_cancelled)",
+                    "<Plug>(neorg.qol.todo-items.todo.task-cancelled)",
                     opts = { desc = "[neorg] Mark as Cancelled" },
                 },
 
@@ -82,7 +74,7 @@ module.private = {
                 -- ^mark Task as Recurring
                 {
                     "<LocalLeader>tr",
-                    "<Plug>(neorg.qol.todo_items.todo.task_recurring)",
+                    "<Plug>(neorg.qol.todo-items.todo.task-recurring)",
                     opts = { desc = "[neorg] Mark as Recurring" },
                 },
 
@@ -90,7 +82,7 @@ module.private = {
                 -- ^mark Task as Important
                 {
                     "<LocalLeader>ti",
-                    "<Plug>(neorg.qol.todo_items.todo.task_important)",
+                    "<Plug>(neorg.qol.todo-items.todo.task-important)",
                     opts = { desc = "[neorg] Mark as Important" },
                 },
 
@@ -98,14 +90,14 @@ module.private = {
                 -- ^mark Task as ambiguous
                 {
                     "<LocalLeader>ta",
-                    "<Plug>(neorg.qol.todo_items.todo.task_ambiguous)",
+                    "<Plug>(neorg.qol.todo-items.todo.task-ambiguous)",
                     opts = { desc = "[neorg] Mark as Ambigous" },
                 },
 
                 -- Switches the task under the cursor between a select few states
                 {
                     "<C-Space>",
-                    "<Plug>(neorg.qol.todo_items.todo.task_cycle)",
+                    "<Plug>(neorg.qol.todo-items.todo.task-cycle)",
                     opts = { desc = "[neorg] Cycle Task" },
                 },
 
@@ -113,7 +105,7 @@ module.private = {
                 -- ^New Note
                 {
                     "<LocalLeader>nn",
-                    "<Plug>(neorg.dirman.new.note)",
+                    "<Plug>(neorg.dirman.new-note)",
                     opts = { desc = "[neorg] Create New Note" },
                 },
 
@@ -163,8 +155,8 @@ module.private = {
             },
 
             v = {
-                { ">", "<Plug>(neorg.promo.promote_range)", opts = { desc = "[neorg] Promote Objects in Range" } },
-                { "<", "<Plug>(neorg.promo.demote_range)", opts = { desc = "[neorg] Demote Objects in Range" } },
+                { ">", "<Plug>(neorg.promo.promote-range)", opts = { desc = "[neorg] Promote Objects in Range" } },
+                { "<", "<Plug>(neorg.promo.demote-range)", opts = { desc = "[neorg] Demote Objects in Range" } },
             },
         },
     },

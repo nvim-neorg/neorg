@@ -103,9 +103,10 @@ module.load = function()
 
     module.required["core.mode"].add_mode("traverse-heading")
     module.required["core.mode"].add_mode("traverse-link")
-    modules.await("core.keybinds", function(keybinds)
-        keybinds.register_keybinds(module.name, { "next.heading", "previous.heading", "next.link", "previous.link" })
-    end)
+    vim.keymap.set("", "<Plug>(neorg.treesitter.next.heading)", lib.wrap(module.public.goto_next_query_match, module.private.heading_query))
+    vim.keymap.set("", "<Plug>(neorg.treesitter.next.link)", lib.wrap(module.public.goto_next_query_match, module.private.link_query))
+    vim.keymap.set("", "<Plug>(neorg.treesitter.previous.heading)", lib.wrap(module.public.goto_previous_query_match, module.private.heading_query))
+    vim.keymap.set("", "<Plug>(neorg.treesitter.previous.link)", lib.wrap(module.public.goto_previous_query_match, module.private.link_query))
 end
 
 module.config.public = {
@@ -940,17 +941,7 @@ local function install_norg_ts()
 end
 
 module.on_event = function(event)
-    if event.split_type[1] == "core.keybinds" then
-        if event.split_type[2] == "core.integrations.treesitter.next.heading" then
-            module.public.goto_next_query_match(module.private.heading_query)
-        elseif event.split_type[2] == "core.integrations.treesitter.previous.heading" then
-            module.public.goto_previous_query_match(module.private.heading_query)
-        elseif event.split_type[2] == "core.integrations.treesitter.next.link" then
-            module.public.goto_next_query_match(module.private.link_query)
-        elseif event.split_type[2] == "core.integrations.treesitter.previous.link" then
-            module.public.goto_previous_query_match(module.private.link_query)
-        end
-    elseif event.split_type[2] == "sync-parsers" then
+    if event.split_type[2] == "sync-parsers" then
         local ok, err = pcall(install_norg_ts)
 
         if not ok then
@@ -963,12 +954,6 @@ module.on_event = function(event)
 end
 
 module.events.subscribed = {
-    ["core.keybinds"] = {
-        ["core.integrations.treesitter.next.heading"] = true,
-        ["core.integrations.treesitter.previous.heading"] = true,
-        ["core.integrations.treesitter.next.link"] = true,
-        ["core.integrations.treesitter.previous.link"] = true,
-    },
     ["core.neorgcmd"] = {
         ["sync-parsers"] = true,
     },
