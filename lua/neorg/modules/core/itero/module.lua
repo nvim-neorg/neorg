@@ -109,7 +109,7 @@ module.public = {
         end
 
         if not current or current:type() == "document" then
-            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR>", true, true, true), "t", false)
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR>", true, true, true), "n", false)
             return
         end
 
