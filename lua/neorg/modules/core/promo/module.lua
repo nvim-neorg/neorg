@@ -43,12 +43,12 @@ end
 module.load = function()
     ---@type core.esupports.indent
     indent = module.required["core.esupports.indent"]
-    vim.keymap.set("", "<Plug>(neorg.promo.promote)", module.public.promote)
-    vim.keymap.set("", "<Plug>(neorg.promo.promote.nested)", module.public.promote_nested)
-    vim.keymap.set("", "<Plug>(neorg.promo.promote.range)", module.public.promote_range)
-    vim.keymap.set("", "<Plug>(neorg.promo.demote)", module.public.demote)
-    vim.keymap.set("", "<Plug>(neorg.promo.demote.nested)", module.public.demote_nested)
-    vim.keymap.set("", "<Plug>(neorg.promo.demote.range)", module.public.demote_range)
+    vim.keymap.set({ "n", "i" }, "<Plug>(neorg.promo.promote)", module.public.promote)
+    vim.keymap.set({ "n", "i" }, "<Plug>(neorg.promo.promote.nested)", module.public.promote_nested)
+    vim.keymap.set({ "n", "i", "v" }, "<Plug>(neorg.promo.promote.range)", module.public.promote_range)
+    vim.keymap.set({ "n", "i" }, "<Plug>(neorg.promo.demote)", module.public.demote)
+    vim.keymap.set({ "n", "i" }, "<Plug>(neorg.promo.demote.nested)", module.public.demote_nested)
+    vim.keymap.set({ "n", "i", "v" }, "<Plug>(neorg.promo.demote.range)", module.public.demote_range)
 end
 
 module.private = {
