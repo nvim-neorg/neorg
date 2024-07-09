@@ -143,12 +143,12 @@ module.private = {
 
                 {
                     "<LocalLeader>lt",
-                    "<Plug>(neorg.pivot.toggle-list-type)",
+                    "<Plug>(neorg.pivot.list.toggle)",
                     opts = { desc = "[neorg] Toggle (Un)ordered List" },
                 },
                 {
                     "<LocalLeader>li",
-                    "<Plug>(neorg.pivot.invert-list-type)",
+                    "<Plug>(neorg.pivot.list.invert)",
                     opts = { desc = "[neorg] Invert (Un)ordered List" },
                 },
 
