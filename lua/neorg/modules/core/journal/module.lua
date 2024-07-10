@@ -37,14 +37,18 @@ The `:Neorg journal template <name>` command creates or opens a template file wh
 the base whenever a new journal entry is created.
 
 Last but not least, the `:Neorg journal toc open|update <name>` commands open or create/update
-a Table of Contents file found in the root of the journal. This file contains links to all other
-journal entries, alongside their titles.
+a Table of Contents file found in the root of your journal folder. Each journal has its own ToC that
+only references files that are a part of the same journal. For example, `:Neorg journal toc update
+weekly` will create a file that references all of the weekly journals.
 --]]
 
 local neorg = require("neorg.core")
+local Path = require("pathlib")
 local config, lib, log, modules = neorg.config, neorg.lib, neorg.log, neorg.modules
----@type core.tempus
-local tempus
+
+local tempus ---@type core.tempus
+local dirman ---@type core.dirman
+local treesitter ---@type core.integrations.treesitter
 
 local module = modules.create("core.journal")
 
@@ -64,8 +68,8 @@ module.config.public = {
 
     -- The strategy to use to create directories.
     -- May be "flat" (`2022-03-02.norg`), "nested" (`2022/03/02.norg`),
-    -- a lua string with the format given to `os.date()` or a lua function
-    -- that returns a lua string with the same format.
+    -- a lua string with the format given to `os.date()` or a lua function with the signature:
+    -- `fun(date: os.date): string` where the return value is a format string passed to os.date
     strategy = "nested",
 
     -- The name of the template file to use (sans the `.norg`) when running `:Neorg journal
@@ -89,15 +93,20 @@ module.config.public = {
     -- sprint = {
     --   start_date = os.time({ year = 2024, month = 06, day = 17 }), -- a Monday
     --   period = { day = 14 },
-    --   path_format_strategy = "%Y/%m/%d-sprint.norg"
+    --   path_format_strategy = "%Y/%m/%d-sprint.norg",
+    --   parse_journal_path = nil, -- nil | fun(path: string): [number?, number?, number?]? (year, month, day)
     -- }
     -- ```
     -- - `sprint` is the name of the journal, it's how you refer to the journal in commands.
     -- - `start_date` can be any time, including days in the future
     -- - `period` can contain `days` or (`months` and `years`). You can't mix `days` with
-    -- `months`/`years` due to inconsistencies with the length of the later group
+    --   `months`/`years` due to inconsistencies with the length of the later group
     -- - `path_format_strategy` accepts the same values as `strategy`, _and_ it is optional. By
-    -- default the normal journal strategy is used with `-journal_name` appended to the end
+    --   default the normal journal strategy is used with `-<journal_name>` appended to the end
+    --   - If a function is passed, you also must pass a function for `parse_journal_path` which
+    --     takes a file path and returns either nil, or a table with three numbers that represent the
+    --     year, month, and day for the file to be categorized under. Any of year/month/day may be
+    --     omitted at the expense of grouping in the ToC
     --
     -- You can override default journal behaviours with this table. For example, if you want your
     -- daily journal to run a little into the next day so you can use `:Neorg journal today` at 1am
@@ -105,7 +114,7 @@ module.config.public = {
     -- ```lua
     -- daily = {
     --   start_date = os.time({ year = 2024, month = 06, day = 01, hour = 1 })
-    --   -- other fields will stay default
+    --   -- other fields will keep their default values
     -- }
     -- ```
     journals = {},
@@ -130,7 +139,10 @@ module.setup = function()
 end
 
 module.load = function()
-    tempus = module.required["core.tempus"]
+    tempus = module.required["core.tempus"] ---@type core.tempus
+    dirman = module.required["core.dirman"] ---@type core.dirman
+    treesitter = module.required["core.integrations.treesitter"] ---@type core.integrations.treesitter
+
     if module.config.private.strategies[module.config.public.strategy] then
         module.config.public.strategy = module.config.private.strategies[module.config.public.strategy]
     end
@@ -166,12 +178,20 @@ module.load = function()
 
     ---@alias JournalTimePeriod JournalDayTimePeriod | JournalMonthTimePeriod
 
-    ---@class JournalSpec
+    ---@class _AJournalSpec
     ---@field start_date integer time
     ---@field period JournalTimePeriod
-    ---@field path_format_strategy string | function
 
-    ---@type table<any, JournalSpec>
+    ---@class StringJournalSpec : _AJournalSpec
+    ---@field path_format_strategy string
+
+    ---@class FunJournalSpec : _AJournalSpec
+    ---@field path_format_strategy fun(date: osdate): string
+    ---@field parse_journal_path fun(path: string): boolean
+
+    ---@alias JournalSpec FunJournalSpec | StringJournalSpec
+
+    ---@type table<string, JournalSpec>
     module.config.private.journals = {
         daily = {
             start_date = os.time({ year = 2024, month = 06, day = 01, hour = 0 }),
@@ -191,7 +211,7 @@ module.load = function()
         },
     }
 
-    -- validate journal periods
+    -- validate user defined journals
     for name, journal in pairs(module.config.public.journals) do
         if journal.period then
             if journal.period.day and (journal.period.month or journal.period.year) then
@@ -201,13 +221,48 @@ module.load = function()
                 )
             end
         end
+        if module.config.private.journals[name] then
+            goto continue
+        end
+
         if not journal.path_format_strategy then
             journal.path_format_strategy = alter_strategy(module.config.public.strategy, name)
         end
+
+        -- require a parse function if the format strategy is a function
+        if type(journal.path_format_strategy) == "function" then
+            if not journal.parse_journal_path then
+                log.error(
+                    ("Journal `%s` has a `path_format_strategy` of type `function` but no `parse_journal_path` function was provided."):format(
+                        name
+                    )
+                )
+                module.config.public.journals[name] = nil
+                goto continue
+            end
+        end
+
+        ::continue::
     end
 
+    ---@type FunJournalSpec
     module.config.public.journals =
         vim.tbl_deep_extend("keep", module.config.public.journals, module.config.private.journals)
+
+    for _, journal in pairs(module.config.public.journals) do
+        -- if the format strategy is a string, we auto generate the filter function like this:
+        if not journal.parse_journal_path then
+            local path_pat =
+                tempus.date_format_to_lua_pattern((journal --[[@as StringJournalSpec]]).path_format_strategy)
+            journal.parse_journal_path = function(full_path)
+                -- print("path_pat:", path_pat)
+                local match = { full_path:match(path_pat) }
+                if not vim.tbl_isempty(match) then
+                    return match
+                end
+            end
+        end
+    end
 
     modules.await("core.neorgcmd", function(neorgcmd)
         local journal_names = vim.tbl_keys(module.config.public.journals)
@@ -274,7 +329,7 @@ module.public = {
     ---@param journal_name string journal name
     ---@param date? number #The time to open the journal entry at as returned by `os.time()`
     open_journal = function(journal_name, date)
-        local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
+        local workspace = module.config.public.workspace or dirman.get_current_workspace()[1]
         local folder_name = module.config.public.journal_folder
         local template_name = module.private.get_template_name(journal_name)
 
@@ -298,17 +353,16 @@ module.public = {
             date
         )
 
-        local workspace_path = module.required["core.dirman"].get_workspace(workspace)
+        local workspace_path = dirman.get_workspace(workspace)
 
-        local journal_file_exists =
-            module.required["core.dirman"].file_exists(workspace_path .. "/" .. folder_name .. config.pathsep .. path)
+        local journal_file_exists = dirman.file_exists(workspace_path .. "/" .. folder_name .. config.pathsep .. path)
 
-        module.required["core.dirman"].create_file(folder_name .. config.pathsep .. path, workspace)
+        dirman.create_file(folder_name .. config.pathsep .. path, workspace)
 
         if
             not journal_file_exists
             and module.config.public.use_template
-            and module.required["core.dirman"].file_exists(workspace_path .. "/" .. folder_name .. "/" .. template_name)
+            and dirman.file_exists(workspace_path .. "/" .. folder_name .. "/" .. template_name)
         then
             vim.cmd("$read " .. workspace_path .. "/" .. folder_name .. "/" .. template_name .. "| w")
         end
@@ -357,7 +411,7 @@ module.private = {
 
             -- TODO: is this off by one or okay?
             return tempus.add_time(start_as_Date, {
-                month = time_periods_since_start * period_months
+                month = time_periods_since_start * period_months,
             })
         else
             -- calculate based on days, this calculation would work for everything if months were
@@ -409,41 +463,44 @@ module.private = {
         local folder_name = module.config.public.journal_folder
         local template_name = module.private.get_template_name(args[1])
 
-        module.required["core.dirman"].create_file(
+        dirman.create_file(
             folder_name .. config.pathsep .. template_name,
-            workspace or module.required["core.dirman"].get_current_workspace()[1]
+            workspace or dirman.get_current_workspace()[1]
         )
     end,
 
     -- TODO: file paths for this are going to be weird I think...
     -- might just want another config option for TOC file paths/locations on each periodic journal
+
     --- Opens the toc file
     ---@param args string[]
     open_toc = function(args)
         local journal_name = args[1] or module.config.public.default_journal_name
-        local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
+        local workspace = module.config.public.workspace or dirman.get_current_workspace()[1]
         local index = modules.get_module_config("core.dirman").index
         local folder_name = module.config.public.journal_folder
 
         -- If the toc exists, open it, if not, create it
-        if module.required["core.dirman"].file_exists(folder_name .. config.pathsep .. index) then
-            module.required["core.dirman"].open_file(workspace, folder_name .. config.pathsep .. index)
+        if dirman.file_exists(folder_name .. config.pathsep .. index) then
+            dirman.open_file(workspace, folder_name .. config.pathsep .. index)
         else
             module.private.create_toc({ journal_name })
         end
     end,
 
-    -- TODO: I'm putting this off b/c it's annoying and a lot of work, and I want to get the basics
-    -- first anyway
     --- Creates or updates the toc file for a given journal
     ---@param args string[]
     create_toc = function(args)
         local journal_name = args[1] or module.config.public.default_journal_name
-        local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
+        local journal = module.config.public.journals[journal_name]
+
+        local workspace = module.config.public.workspace or dirman.get_current_workspace()[1]
         local index = modules.get_module_config("core.dirman").index
-        local workspace_path = module.required["core.dirman"].get_workspace(workspace)
+        local workspace_path = dirman.get_workspace(workspace)
         local workspace_name_for_links = module.config.public.workspace or ""
         local folder_name = module.config.public.journal_folder
+
+        local journal_base_path = Path.new(workspace_path) / folder_name
 
         -- Each entry is a table that contains tables like { yy, mm, dd, link, title }
         local toc_entries = {}
@@ -452,8 +509,7 @@ module.private = {
         -- path is for each subfolder
         local get_fs_handle = function(path)
             path = path or ""
-            local handle =
-                vim.loop.fs_scandir(workspace_path .. config.pathsep .. folder_name .. config.pathsep .. path)
+            local handle = vim.loop.fs_scandir(tostring(journal_base_path / path))
 
             if type(handle) ~= "userdata" then
                 error(lib.lazy_string_concat("Failed to scan directory '", workspace, path, "': ", handle))
@@ -463,166 +519,94 @@ module.private = {
         end
 
         -- Gets the title from the metadata of a file, must be called in a vim.schedule
-        local get_title = function(file)
-            local buffer = vim.fn.bufadd(workspace_path .. config.pathsep .. folder_name .. config.pathsep .. file)
-            local meta = module.required["core.integrations.treesitter"].get_document_metadata(buffer)
-            return meta.title
+        ---@param file_path PathlibPath
+        ---@return string? #the title or nil if no title is present
+        local get_title = function(file_path)
+            local meta = treesitter.get_document_metadata(file_path, false)
+            if meta then
+                return meta.title
+            end
         end
 
-        vim.loop.fs_scandir(workspace_path .. config.pathsep .. folder_name .. config.pathsep, function(err, handle)
-            assert(not err, lib.lazy_string_concat("Unable to generate TOC for directory '", folder_name, "' - ", err))
+        assert(type(journal.path_format_strategy) == "string")
 
-            while true do
-                -- Name corresponds to either a YYYY-mm-dd.norg file, or just the year ("nested" strategy)
-                local name, type = vim.loop.fs_scandir_next(handle) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-
-                if not name then
-                    break
-                end
-
-                -- Handle nested entries
-                if type == "directory" then
-                    local years_handle = get_fs_handle(name)
-                    while true do
-                        -- mname is the month
-                        local mname, mtype = vim.loop.fs_scandir_next(years_handle)
-
-                        if not mname then
-                            break
-                        end
-
-                        if mtype == "directory" then
-                            local months_handle = get_fs_handle(name .. config.pathsep .. mname)
-                            while true do
-                                -- dname is the day
-                                local dname, dtype = vim.loop.fs_scandir_next(months_handle)
-
-                                if not dname then
-                                    break
-                                end
-
-                                -- If it's a .norg file, also ensure it is a day entry
-                                if dtype == "file" and string.match(dname, "%d%d%.norg") then
-                                    -- Split the file name
-                                    local file = vim.split(dname, ".", { plain = true })
-
-                                    vim.schedule(function()
-                                        -- Get the title from the metadata, else, it just defaults to the name of the file
-                                        local title = get_title(
-                                            name .. config.pathsep .. mname .. config.pathsep .. dname
-                                        ) or file[1]
-
-                                        -- Insert a new entry
-                                        table.insert(toc_entries, {
-                                            tonumber(name),
-                                            tonumber(mname),
-                                            tonumber(file[1]),
-                                            "{:$"
-                                                .. workspace_name_for_links
-                                                .. config.pathsep
-                                                .. module.config.public.journal_folder
-                                                .. config.pathsep
-                                                .. name
-                                                .. config.pathsep
-                                                .. mname
-                                                .. config.pathsep
-                                                .. file[1]
-                                                .. ":}",
-                                            title,
-                                        })
-                                    end)
-                                end
-                            end
-                        end
-                    end
-                end
-
-                -- Handles flat entries
-                -- If it is a .norg file, but it's not any user generated file.
-                -- The match is here to avoid handling files made by the user, like a template file, or
-                -- the toc file
-                if type == "file" and string.match(name, "%d+-%d+-%d+%.norg") then
-                    -- Split yyyy-mm-dd to a table
-                    local file = vim.split(name, ".", { plain = true })
-                    local parts = vim.split(file[1], "-")
-
-                    -- Convert the parts into numbers
-                    for k, v in pairs(parts) do
-                        parts[k] = tonumber(v) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                    end
-
-                    vim.schedule(function()
-                        -- Get the title from the metadata, else, it just defaults to the name of the file
-                        local title = get_title(name) or parts[3]
-
-                        -- And insert a new entry that corresponds to the file
-                        table.insert(toc_entries, {
-                            parts[1],
-                            parts[2],
-                            parts[3],
-                            "{:$"
-                                .. workspace_name_for_links
-                                .. config.pathsep
-                                .. module.config.public.journal_folder
-                                .. config.pathsep
-                                .. file[1]
-                                .. ":}",
-                            title,
-                        })
-                    end)
-                end
+        for file in
+            journal_base_path:fs_iterdir(false, nil, function(path)
+                return path:is_hidden()
+            end)
+        do
+            -- print("file:", file, "match:", journal.parse_journal_path(tostring(file)))
+            local file_date_info = journal.parse_journal_path(tostring(file))
+            if not file_date_info then
+                goto continue
             end
 
-            vim.schedule(function()
-                -- Gets a default format for the entries
-                local format = module.config.public.toc_format
-                    or function(entries)
-                        local months_text = {
-                            "January",
-                            "February",
-                            "March",
-                            "April",
-                            "May",
-                            "June",
-                            "July",
-                            "August",
-                            "September",
-                            "October",
-                            "November",
-                            "December",
-                        }
-                        -- Convert the entries into a certain format to be written
-                        local output = {}
-                        local current_year
-                        local current_month
-                        for _, entry in ipairs(entries) do
-                            -- Don't print the year and month if they haven't changed
-                            if not current_year or current_year < entry[1] then
-                                current_year = entry[1]
-                                current_month = nil
-                                table.insert(output, "* " .. current_year)
-                            end
-                            if not current_month or current_month < entry[2] then
-                                current_month = entry[2]
-                                table.insert(output, "** " .. months_text[current_month])
-                            end
+            -- Get the title from the metadata, else, it just defaults to the name of the file
+            local title = get_title(file) or ({ file:basename():match("(.*)%.norg$") })[1]
+            local ws_rel_path = file:relative_to(workspace_path)
 
-                            -- Prints the file link
-                            table.insert(output, "   " .. entry[4] .. string.format("[%s]", entry[5]))
+            -- Insert a new entry
+            table.insert(toc_entries, {
+                tonumber(file_date_info[1]), -- year
+                tonumber(file_date_info[2]), -- month
+                tonumber(file_date_info[3]), -- day
+                ("{:%s:}"):format(Path.new("$" .. workspace_name_for_links) / ws_rel_path),
+                title,
+            })
+
+            ::continue::
+        end
+
+        vim.schedule(function()
+            -- Gets a default format for the entries
+            local format = module.config.public.toc_format
+                or function(entries)
+                    local months_text = {
+                        "January",
+                        "February",
+                        "March",
+                        "April",
+                        "May",
+                        "June",
+                        "July",
+                        "August",
+                        "September",
+                        "October",
+                        "November",
+                        "December",
+                    }
+                    -- Convert the entries into a certain format to be written
+                    local output = {}
+                    local current_year
+                    local current_month
+                    for _, entry in ipairs(entries) do
+                        -- print("entry:")
+                        -- Don't print the year and month if they haven't changed
+                        if not current_year or current_year < entry[1] then
+                            current_year = entry[1]
+                            current_month = nil
+                            table.insert(output, "* " .. current_year)
+                        end
+                        if not current_month or current_month < entry[2] then
+                            current_month = entry[2]
+                            table.insert(output, "** " .. months_text[current_month])
                         end
 
-                        return output
+                        -- Prints the file link
+                        table.insert(output, "   " .. entry[4] .. string.format("[%s]", entry[5]))
                     end
 
-                module.required["core.dirman"].create_file(
-                    folder_name .. config.pathsep .. index,
-                    workspace or module.required["core.dirman"].get_current_workspace()[1]
-                )
+                    return output
+                end
 
-                -- The current buffer now must be the toc file, so we set our toc entries there
-                vim.api.nvim_buf_set_lines(0, 0, -1, false, format(toc_entries))
-                vim.cmd("w")
-            end)
+            dirman.create_file(
+                journal_base_path:relative_to(workspace_path) / index,
+                workspace or dirman.get_current_workspace()[1]
+            )
+
+            -- The current buffer now must be the toc file, so we set our toc entries there
+            vim.api.nvim_buf_set_lines(0, 0, -1, false, format(toc_entries))
+            vim.cmd("w")
         end)
     end,
 }

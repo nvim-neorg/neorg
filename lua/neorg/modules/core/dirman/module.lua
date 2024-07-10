@@ -306,6 +306,8 @@ module.public = {
             return
         end
 
+        print("fullpath:", fullpath)
+        print("path:", path)
         local destination = (fullpath / path):add_suffix(".norg")
 
         -- Generate parents just in case

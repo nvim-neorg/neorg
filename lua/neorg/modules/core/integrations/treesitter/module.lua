@@ -901,6 +901,8 @@ module.public = {
             if vim.fn.bufnr(source) ~= -1 then ---@diagnostic disable-line
                 source = vim.uri_to_bufnr(vim.uri_from_fname(source))
             else
+                print("source:", source)
+                P(source)
                 iter_src = io.open(source, "r"):read("*a")
                 norg_parser = vim.treesitter.get_string_parser(iter_src, "norg")
             end
