@@ -14,7 +14,7 @@ local module = modules.create("core.keybinds")
 module.load = function()
     if module.config.public.default_keybinds then
         vim.api.nvim_create_autocmd("BufEnter", {
-            callback = function()
+            callback = function(ev)
                 local is_norg = vim.bo.filetype == "norg"
 
                 local preset = module.private.presets[module.config.public.preset]
@@ -24,7 +24,7 @@ module.load = function()
                     for mode, keybinds in pairs(data) do
                         for _, keybind in ipairs(keybinds) do
                             if vim.fn.hasmapto(keybind[2], mode, false) == 0 then
-                                local opts = vim.tbl_deep_extend("force", { buffer = true }, keybinds.opts or {})
+                                local opts = vim.tbl_deep_extend("force", { buffer = ev.buf }, keybinds.opts or {})
                                 vim.keymap.set(mode, keybind[1], keybind[2], opts)
                             end
                         end
