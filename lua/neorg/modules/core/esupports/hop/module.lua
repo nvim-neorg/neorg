@@ -958,10 +958,4 @@ module.private = {
     end,
 }
 
-module.events.subscribed = {
-    ["core.keybinds"] = {
-        ["core.esupports.hop.hop-link"] = true,
-    },
-}
-
 return module
