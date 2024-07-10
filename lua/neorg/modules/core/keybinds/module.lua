@@ -15,27 +15,7 @@ module.load = function()
     if module.config.public.default_keybinds then
         vim.api.nvim_create_autocmd("BufEnter", {
             callback = function(ev)
-                local is_norg = vim.bo.filetype == "norg"
-
-                local preset = module.private.presets[module.config.public.preset]
-                assert(preset, string.format("keybind preset `%s` does not exist!", module.config.public.preset))
-
-                local function set_keys_for(data)
-                    for mode, keybinds in pairs(data) do
-                        for _, keybind in ipairs(keybinds) do
-                            if vim.fn.hasmapto(keybind[2], mode, false) == 0 then
-                                local opts = vim.tbl_deep_extend("force", { buffer = ev.buf }, keybinds.opts or {})
-                                vim.keymap.set(mode, keybind[1], keybind[2], opts)
-                            end
-                        end
-                    end
-                end
-
-                set_keys_for(preset.all)
-
-                if is_norg then
-                    set_keys_for(preset.norg)
-                end
+                module.public.bind_keys(ev.buf)
             end,
         })
     end
@@ -43,6 +23,7 @@ end
 
 module.private = {
     presets = {
+        ---@class neorg.keybinds.preset
         neorg = {
             all = {
                 n = {
@@ -189,6 +170,57 @@ module.config.public = {
     -- Which keybind preset to use.
     -- TODO: Docs
     preset = "neorg",
+}
+
+module.public = {
+    --- Adds a set of default keys for Neorg to bind.
+    --- Should be used exclusively by external modules wanting to provide their own default keymaps.
+    ---@param name string The name of the preset to extend (allows for providing default keymaps for various presets)
+    ---@param preset neorg.keybinds.preset The preset data itself.
+    extend_preset = function(name, preset)
+        local original_preset = assert(module.private.presets[name], "provided preset doesn't exist!")
+
+        local function extend(a, b)
+            for k, v in pairs(b) do
+                if type(v) == "table" then
+                    if vim.islist(v) then
+                        vim.list_extend(a[k], v)
+                    else
+                        extend(a[k], v)
+                    end
+                end
+
+                a[k] = v
+            end
+        end
+
+        extend(original_preset, preset)
+        module.public.bind_keys(vim.api.nvim_get_current_buf())
+    end,
+
+    bind_keys = function(buffer)
+        local is_norg = vim.bo.filetype == "norg"
+
+        local preset = module.private.presets[module.config.public.preset]
+        assert(preset, string.format("keybind preset `%s` does not exist!", module.config.public.preset))
+
+        local function set_keys_for(data)
+            for mode, keybinds in pairs(data) do
+                for _, keybind in ipairs(keybinds) do
+                    if vim.fn.hasmapto(keybind[2], mode, false) == 0 then
+                        local opts = vim.tbl_deep_extend("force", { buffer = buffer or true }, keybinds.opts or {})
+                        vim.keymap.set(mode, keybind[1], keybind[2], opts)
+                    end
+                end
+            end
+        end
+
+        set_keys_for(preset.all)
+
+        if is_norg then
+            set_keys_for(preset.norg)
+        end
+    end,
 }
 
 return module
