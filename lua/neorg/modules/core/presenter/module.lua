@@ -28,7 +28,6 @@ module.setup = function()
             "core.queries.native",
             "core.integrations.treesitter",
             "core.ui",
-            "core.mode",
         },
     }
 end
@@ -171,7 +170,6 @@ module.public = {
 
         api.nvim_buf_set_option(buffer, "modifiable", false)
 
-        module.required["core.mode"].set_mode("presenter")
         module.private.buf = buffer
         module.private.data = results
     end,
@@ -219,10 +217,6 @@ module.public = {
         if not module.private.buf then
             return
         end
-
-        -- Go back to previous mode
-        local previous_mode = module.required["core.mode"].get_previous_mode()
-        module.required["core.mode"].set_mode(previous_mode)
 
         if module.config.public.zen_mode == "truezen" and modules.is_module_loaded("core.integrations.truezen") then
             modules.get_module("core.integrations.truezen").toggle_ataraxis()
