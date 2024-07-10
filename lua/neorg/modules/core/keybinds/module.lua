@@ -4,6 +4,56 @@
     description: `core.keybinds` manages mappings for operations on or in `.norg` files.
     summary: Module for managing keybindings with Neorg mode support.
     ---
+The `core.keybinds` module configures an out-of-the-box Neovim experience by providing a default
+set of keys.
+
+To disable default keybinds, see the next section. To remap the existing keys, see [here](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds#remapping-keys).
+
+### Disabling Default Keybinds
+
+By default when you load the `core.keybinds` module all keybinds will be enabled. If you would like to change this, be sure to set `default_keybinds` to `false`:
+```lua
+["core.keybinds"] = {
+    config = {
+        default_keybinds = false,
+    },
+}
+```
+
+### Remapping Keys
+
+To understand how to effectively remap keys, one must understand how keybinds are set.
+Neorg binds keys to various `<Plug>` mappings bound to `<Plug>(neorg...`.
+
+To remap a key, simply map it somewhere in your configuration:
+
+```lua
+vim.keymap.set("n", "my-key-here", "<Plug>(neorg.pivot.list.toggle)", {})
+```
+
+Neorg will recognize that the key has been bound by you and not bind its own key.
+
+This approach has a downside - all of Neorg's keybinds are set on a per-buffer basis
+so that keybinds don't "overflow" into buffers you don't want them active in.
+
+When you map a key using `vim.keymap.set`, you set a global key which is always active, even in non-norg
+files. There are two ways to combat this:
+- Create a file under `<your-configuration>/ftplugin/norg.lua`:
+  ```lua
+  vim.keymap.set("n", "my-key-here", "<Plug>(neorg.pivot.list.toggle)", { buffer = true })
+  ```
+- Create an autocommand using `vim.api.nvim_create_autocmd`:
+  ```lua
+  vim.api.nvim_create_autocmd("BufEnter", {
+      pattern = "*.norg",
+      callback = function()
+          vim.keymap.set("n", "my-key-here", "<Plug>(neorg.pivot.list.toggle)", { buffer = true })
+      end,
+  })
+  ```
+
+Notice that in both situations a `{ buffer = true }` was supplied to the function.
+This way, your remapped keys will never interfere with other files.
 --]]
 
 local neorg = require("neorg.core")
