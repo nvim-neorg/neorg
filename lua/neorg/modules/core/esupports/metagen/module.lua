@@ -163,22 +163,16 @@ module.config.public = {
     -- users with an autosave plugin, this option must be paired with keybinds for undo/redo to
     -- avoid problems with undo tree branching:
     -- ```lua
-    -- ["core.keybinds"] = {
-    --   config = {
-    --     hook = function(keybinds)
-    --       keybinds.map("norg", "n", "u", function()
-    --         require("neorg.modules.core.esupports.metagen.module").public.skip_next_update()
-    --         local k = vim.api.nvim_replace_termcodes("u<c-o>", true, false, true)
-    --         vim.api.nvim_feedkeys(k, 'n', false)
-    --       end)
-    --       keybinds.map("norg", "n", "<c-r>", function()
-    --         require("neorg.modules.core.esupports.metagen.module").public.skip_next_update()
-    --         local k = vim.api.nvim_replace_termcodes("<c-r><c-o>", true, false, true)
-    --         vim.api.nvim_feedkeys(k, 'n', false)
-    --       end)
-    --     end,
-    --   },
-    -- },
+    -- vim.keymap.set("n", "u", function()
+    --     require("neorg.modules").get_module("core.esupports.metagen").skip_next_update()
+    --     local k = vim.api.nvim_replace_termcodes("u<c-o>", true, false, true)
+    --     vim.api.nvim_feedkeys(k, 'n', false)
+    -- end)
+    -- vim.keymap.set("n", "<C-r>", function()
+    --     require("neorg.modules").get_module("core.esupports.metagen").skip_next_update()
+    --     local k = vim.api.nvim_replace_termcodes("<c-r><c-o>", true, false, true)
+    --     vim.api.nvim_feedkeys(k, 'n', false)
+    -- end)
     -- ```
     undojoin_updates = false,
 }

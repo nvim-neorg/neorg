@@ -72,11 +72,11 @@ module.load = function()
 end
 
 module.config.public = {
-    -- Whether to use the default keybinds provided [here](https://github.com/nvim-neorg/neorg/blob/main/lua/neorg/modules/core/keybinds/keybinds.lua).
+    -- Whether to enable the default keybinds.
     default_keybinds = true,
 
     -- Which keybind preset to use.
-    -- TODO: Docs
+    -- Currently allows only a single value: `"neorg"`.
     preset = "neorg",
 }
 

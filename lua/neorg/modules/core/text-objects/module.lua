@@ -30,20 +30,10 @@ _Movable "items" include headings, and list items (ordered/unordered/todo)_
 Example keybinds that would go in your Neorg configuration:
 
 ```lua
-["core.keybinds"] = {
-    config = {
-        hook = function(keybinds)
-            -- Binds to move items up or down
-            keybinds.remap_event("norg", "n", "<up>", "core.text-objects.item_up")
-            keybinds.remap_event("norg", "n", "<down>", "core.text-objects.item_down")
-
-            -- text objects, these binds are available as `vaH` to "visual select around a header" or
-            -- `diH` to "delete inside a header"
-            keybinds.remap_event("norg", { "o", "x" }, "iH", "core.text-objects.textobject.heading.inner")
-            keybinds.remap_event("norg", { "o", "x" }, "aH", "core.text-objects.textobject.heading.outer")
-        end,
-    },
-},
+vim.keymap.set("n", "<up>", "<Plug>(neorg.text-objects.item-up)", {})
+vim.keymap.set("n", "<down>", "<Plug>(neorg.text-objects.item-down)", {})
+vim.keymap.set({ "o", "x" }, "iH", "<Plug>(neorg.text-objects.textobject.heading.inner)", {})
+vim.keymap.set({ "o", "x" }, "aH", "<Plug>(neorg.text-objects.textobject.heading.outer)", {})
 ```
 
 --]]
