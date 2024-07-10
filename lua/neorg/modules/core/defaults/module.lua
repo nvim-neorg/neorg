@@ -38,7 +38,6 @@ return modules.create_meta(
     "core.journal",
     "core.keybinds",
     "core.looking-glass",
-    "core.mode",
     "core.neorgcmd",
     "core.pivot",
     "core.promo",
