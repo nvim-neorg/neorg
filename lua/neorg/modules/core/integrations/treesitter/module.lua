@@ -44,7 +44,7 @@ module.private = {
 }
 
 module.setup = function()
-    return { success = true, requires = { "core.highlights", "core.mode" } }
+    return { success = true, requires = { "core.highlights" } }
 end
 
 module.load = function()
@@ -101,8 +101,6 @@ module.load = function()
 
     module.private.ts_utils = ts_utils
 
-    module.required["core.mode"].add_mode("traverse-heading")
-    module.required["core.mode"].add_mode("traverse-link")
     vim.keymap.set("", "<Plug>(neorg.treesitter.next.heading)", lib.wrap(module.public.goto_next_query_match, module.private.heading_query))
     vim.keymap.set("", "<Plug>(neorg.treesitter.next.link)", lib.wrap(module.public.goto_next_query_match, module.private.link_query))
     vim.keymap.set("", "<Plug>(neorg.treesitter.previous.heading)", lib.wrap(module.public.goto_previous_query_match, module.private.heading_query))
