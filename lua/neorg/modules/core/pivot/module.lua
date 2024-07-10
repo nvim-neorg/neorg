@@ -37,7 +37,7 @@ end
 
 module.public = {
     ---@param invert boolean
-    change_list = function(invert)
+    change_list = neorg.utils.wrap_dotrepeat(function(invert)
         local buffer = vim.api.nvim_get_current_buf()
         local cursor = vim.api.nvim_win_get_cursor(0)
 
@@ -83,7 +83,7 @@ module.public = {
                 end
             end
         end
-    end,
+    end),
 }
 
 return module
