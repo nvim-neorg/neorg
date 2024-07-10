@@ -202,23 +202,16 @@ function utils.set_operatorfunc(f)
     vim.go.operatorfunc = "v:lua.require'neorg'.utils._neorg_operatorfunc"
 end
 
-function utils.wrap_dotrepeat(event_handler)
-    return function(event)
+function utils.wrap_dotrepeat(callback)
+    return function(...)
         if vim.api.nvim_get_mode().mode == "i" then
-            event_handler(event)
+            callback(...)
             return
         end
 
-        utils._neorg_is_dotrepeat = false
+        local args = { ... }
         utils.set_operatorfunc(function()
-            if utils._neorg_is_dotrepeat then
-                local pos = assert(vim.fn.getpos("."))
-
-                event.buffer = pos[1]
-                event.cursor_position = { pos[2], pos[3] }
-            end
-            utils._neorg_is_dotrepeat = true
-            event_handler(event)
+            callback(unpack(args))
         end)
         vim.cmd("normal! g@l")
     end

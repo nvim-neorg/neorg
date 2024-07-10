@@ -265,19 +265,19 @@ module.private = {
 
 ---@class core.promo
 module.public = {
-    promote = function()
+    promote = neorg.utils.wrap_dotrepeat(function()
         local buffer = vim.api.nvim_get_current_buf()
         local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 
         module.private.promote_or_demote(buffer, "promote", row, true, false)
-    end,
-    promote_nested = function()
+    end),
+    promote_nested = neorg.utils.wrap_dotrepeat(function()
         local buffer = vim.api.nvim_get_current_buf()
         local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 
         module.private.promote_or_demote(buffer, "promote", row, true, true)
-    end,
-    promote_range = function()
+    end),
+    promote_range = neorg.utils.wrap_dotrepeat(function()
         local buffer = vim.api.nvim_get_current_buf()
         local start_pos = vim.api.nvim_buf_get_mark(buffer, "<")
         local end_pos = vim.api.nvim_buf_get_mark(buffer, ">")
@@ -286,20 +286,20 @@ module.public = {
             module.private.promote_or_demote(buffer, "promote", i - 1, false, false)
         end
         indent.reindent_range(buffer, start_pos[1], end_pos[1])
-    end,
-    demote = function()
+    end),
+    demote = neorg.utils.wrap_dotrepeat(function()
         local buffer = vim.api.nvim_get_current_buf()
         local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 
         module.private.promote_or_demote(buffer, "demote", row, true, false)
-    end,
-    demote_nested = function()
+    end),
+    demote_nested = neorg.utils.wrap_dotrepeat(function()
         local buffer = vim.api.nvim_get_current_buf()
         local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 
         module.private.promote_or_demote(buffer, "demote", row, true, true)
-    end,
-    demote_range = function()
+    end),
+    demote_range = neorg.utils.wrap_dotrepeat(function()
         local buffer = vim.api.nvim_get_current_buf()
         local start_pos = vim.api.nvim_buf_get_mark(buffer, "<")
         local end_pos = vim.api.nvim_buf_get_mark(buffer, ">")
@@ -308,7 +308,7 @@ module.public = {
             module.private.promote_or_demote(buffer, "demote", i - 1, false, false)
         end
         indent.reindent_range(buffer, start_pos[1], end_pos[1])
-    end
+    end),
 }
 
 return module

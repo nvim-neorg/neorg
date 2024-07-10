@@ -405,20 +405,20 @@ module.private = {
     end,
 }
 
-    local function task_set(character, name)
-        return function()
-            local buffer = vim.api.nvim_get_current_buf()
-            local cursor = vim.api.nvim_win_get_cursor(0)
+local function task_set(character, name)
+    return neorg.utils.wrap_dotrepeat(function()
+        local buffer = vim.api.nvim_get_current_buf()
+        local cursor = vim.api.nvim_win_get_cursor(0)
 
-            local todo_item_at_cursor = module.private.get_todo_item_from_cursor(buffer, cursor[1] - 1)
+        local todo_item_at_cursor = module.private.get_todo_item_from_cursor(buffer, cursor[1] - 1)
 
-            if not todo_item_at_cursor then
-                return
-            end
-
-            module.private.make_all(buffer, todo_item_at_cursor, name, character)
+        if not todo_item_at_cursor then
+            return
         end
-    end
+
+        module.private.make_all(buffer, todo_item_at_cursor, name, character)
+    end)
+end
 
 module.public = {
     ["task-done"] = task_set("x", "done"),
