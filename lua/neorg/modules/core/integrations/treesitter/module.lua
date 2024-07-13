@@ -101,10 +101,26 @@ module.load = function()
 
     module.private.ts_utils = ts_utils
 
-    vim.keymap.set("", "<Plug>(neorg.treesitter.next.heading)", lib.wrap(module.public.goto_next_query_match, module.private.heading_query))
-    vim.keymap.set("", "<Plug>(neorg.treesitter.next.link)", lib.wrap(module.public.goto_next_query_match, module.private.link_query))
-    vim.keymap.set("", "<Plug>(neorg.treesitter.previous.heading)", lib.wrap(module.public.goto_previous_query_match, module.private.heading_query))
-    vim.keymap.set("", "<Plug>(neorg.treesitter.previous.link)", lib.wrap(module.public.goto_previous_query_match, module.private.link_query))
+    vim.keymap.set(
+        "",
+        "<Plug>(neorg.treesitter.next.heading)",
+        lib.wrap(module.public.goto_next_query_match, module.private.heading_query)
+    )
+    vim.keymap.set(
+        "",
+        "<Plug>(neorg.treesitter.next.link)",
+        lib.wrap(module.public.goto_next_query_match, module.private.link_query)
+    )
+    vim.keymap.set(
+        "",
+        "<Plug>(neorg.treesitter.previous.heading)",
+        lib.wrap(module.public.goto_previous_query_match, module.private.heading_query)
+    )
+    vim.keymap.set(
+        "",
+        "<Plug>(neorg.treesitter.previous.link)",
+        lib.wrap(module.public.goto_previous_query_match, module.private.link_query)
+    )
 end
 
 module.config.public = {
