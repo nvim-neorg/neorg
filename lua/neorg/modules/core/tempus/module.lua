@@ -438,7 +438,7 @@ module.public = {
                 prompt = "Date: ",
             }, callback)
         end
-    end
+    end,
 }
 
 module.private = {
@@ -450,12 +450,12 @@ module.private = {
                 end
 
                 return vim.trim(
-                d(date_table.weekday and date_table.weekday.name)
-                .. d(date_table.day)
-                .. d(date_table.month and date_table.month.name)
-                .. d(date_table.year and string.format("%04d", date_table.year))
-                .. d(date_table.time and tostring(date_table.time))
-                .. d(date_table.timezone)
+                    d(date_table.weekday and date_table.weekday.name)
+                        .. d(date_table.day)
+                        .. d(date_table.month and date_table.month.name)
+                        .. d(date_table.year and string.format("%04d", date_table.year))
+                        .. d(date_table.time and tostring(date_table.time))
+                        .. d(date_table.timezone)
                 )
             end,
         })

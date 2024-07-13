@@ -63,11 +63,31 @@ module.load = function()
     ts = module.required["core.integrations.treesitter"]
     vim.keymap.set("", "<Plug>(neorg.text-objects.item-up)", module.public.move_up)
     vim.keymap.set("", "<Plug>(neorg.text-objects.item-down)", module.public.move_down)
-    vim.keymap.set("", "<Plug>(neorg.text-objects.textobject.heading.outer)", lib.wrap(module.public.highlight_node, "heading.outer"))
-    vim.keymap.set("", "<Plug>(neorg.text-objects.textobject.heading.inner)", lib.wrap(module.public.highlight_node, "heading.inner"))
-    vim.keymap.set("", "<Plug>(neorg.text-objects.textobject.tag.inner)", lib.wrap(module.public.highlight_node, "tag.inner"))
-    vim.keymap.set("", "<Plug>(neorg.text-objects.textobject.tag.outer)", lib.wrap(module.public.highlight_node, "tag.outer"))
-    vim.keymap.set("", "<Plug>(neorg.text-objects.textobject.list.outer)", lib.wrap(module.public.highlight_node, "lits.outer"))
+    vim.keymap.set(
+        "",
+        "<Plug>(neorg.text-objects.textobject.heading.outer)",
+        lib.wrap(module.public.highlight_node, "heading.outer")
+    )
+    vim.keymap.set(
+        "",
+        "<Plug>(neorg.text-objects.textobject.heading.inner)",
+        lib.wrap(module.public.highlight_node, "heading.inner")
+    )
+    vim.keymap.set(
+        "",
+        "<Plug>(neorg.text-objects.textobject.tag.inner)",
+        lib.wrap(module.public.highlight_node, "tag.inner")
+    )
+    vim.keymap.set(
+        "",
+        "<Plug>(neorg.text-objects.textobject.tag.outer)",
+        lib.wrap(module.public.highlight_node, "tag.outer")
+    )
+    vim.keymap.set(
+        "",
+        "<Plug>(neorg.text-objects.textobject.list.outer)",
+        lib.wrap(module.public.highlight_node, "lits.outer")
+    )
 end
 
 module.config.public = {

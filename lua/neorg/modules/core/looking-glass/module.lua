@@ -177,7 +177,7 @@ module.public = {
         })
     end,
 
-    magnify_code_block = function ()
+    magnify_code_block = function()
         local buffer = vim.api.nvim_get_current_buf()
         local window = vim.api.nvim_get_current_win()
 
@@ -263,7 +263,7 @@ module.public = {
             vsplit,
             vim.api.nvim_get_current_win()
         )
-    end
+    end,
 }
 
 return module

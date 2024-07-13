@@ -41,10 +41,7 @@ module.public = {
         local buffer = vim.api.nvim_get_current_buf()
         local cursor = vim.api.nvim_win_get_cursor(0)
 
-        local node = module.required["core.integrations.treesitter"].get_first_node_on_line(
-            buffer,
-            cursor[1] - 1
-        )
+        local node = module.required["core.integrations.treesitter"].get_first_node_on_line(buffer, cursor[1] - 1)
 
         if not node then
             log.error("No node found under the cursor! Make sure your cursor is in a list.")

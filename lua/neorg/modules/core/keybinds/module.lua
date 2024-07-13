@@ -235,7 +235,11 @@ module.private = {
                     },
 
                     -- Promote an object non-recursively.
-                    { ">.", "<Plug>(neorg.promo.promote)", opts = { desc = "[neorg] Promote Object (Non-Recursively)" } },
+                    {
+                        ">.",
+                        "<Plug>(neorg.promo.promote)",
+                        opts = { desc = "[neorg] Promote Object (Non-Recursively)" },
+                    },
                     -- Demote an object non-recursively.
                     { "<,", "<Plug>(neorg.promo.demote)", opts = { desc = "[neorg] Demote Object (Non-Recursively)" } },
 
@@ -246,7 +250,11 @@ module.private = {
                         opts = { desc = "[neorg] Promote Object (Recursively)" },
                     },
                     -- Demote an object recursively.
-                    { "<<", "<Plug>(neorg.promo.demote.nested)", opts = { desc = "[neorg] Demote Object (Recursively)" } },
+                    {
+                        "<<",
+                        "<Plug>(neorg.promo.demote.nested)",
+                        opts = { desc = "[neorg] Demote Object (Recursively)" },
+                    },
 
                     -- Toggle a list from ordered <-> unordered
                     -- ^List Toggle
@@ -273,14 +281,22 @@ module.private = {
 
                 i = {
                     -- Promote an object recursively.
-                    { "<C-t>", "<Plug>(neorg.promo.promote)", opts = { desc = "[neorg] Promote Object (Recursively)" } },
+                    {
+                        "<C-t>",
+                        "<Plug>(neorg.promo.promote)",
+                        opts = { desc = "[neorg] Promote Object (Recursively)" },
+                    },
                     -- Demote an object recursively.
                     { "<C-d>", "<Plug>(neorg.promo.demote)", opts = { desc = "[neorg] Demote Object (Recursively)" } },
                     -- Create an iteration of e.g. a list item.
                     { "<M-CR>", "<Plug>(neorg.itero.next-iteration)", opts = { desc = "[neorg] Continue Object" } },
                     -- Insert a link to a date at the current cursor position.
                     -- ^Date
-                    { "<M-d>", "<Plug>(neorg.tempus.insert-date-insert-mode)", opts = { desc = "[neorg] Insert Date" } },
+                    {
+                        "<M-d>",
+                        "<Plug>(neorg.tempus.insert-date-insert-mode)",
+                        opts = { desc = "[neorg] Insert Date" },
+                    },
                 },
 
                 v = {
@@ -289,7 +305,7 @@ module.private = {
                     -- Demote objects in range.
                     { "<", "<Plug>(neorg.promo.demote.range)", opts = { desc = "[neorg] Demote Objects in Range" } },
                 },
-            }
+            },
         },
     },
 }

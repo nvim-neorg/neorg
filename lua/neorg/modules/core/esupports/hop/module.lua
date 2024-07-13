@@ -688,7 +688,7 @@ module.public = {
         local parsed_link = module.public.parse_link(link_node_at_cursor)
 
         module.public.follow_link(link_node_at_cursor, split_mode, parsed_link)
-    end
+    end,
 }
 
 module.private = {
