@@ -94,6 +94,7 @@ end
 
 -- Non-module pages have their own dedicated generators
 fileio.write_to_wiki("Home", docgen.generators.homepage(doc_modules))
+fileio.write_to_wiki("Default-Keybinds", docgen.generators.keybinds(doc_modules, docgen.open_file(vim.fn.fnamemodify("../lua/neorg/modules/core/keybinds/module.lua", ":p"))))
 fileio.write_to_wiki("_Sidebar", docgen.generators.sidebar(doc_modules))
 
 -- Loop through all modules and generate their respective wiki files

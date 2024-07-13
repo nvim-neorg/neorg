@@ -153,8 +153,8 @@ end
 
 --- Retrieves the TS node corresponding to the `module.config.public` treesitter node
 ---@param buffer number #Buffer ID
----@param root userdata #The root node
----@return userdata? #The `module.config.public` node
+---@param root TSNode #The root node
+---@return TSNode? #The `module.config.public` node
 docgen.get_module_config_node = function(buffer, root)
     local query = utils.ts_parse_query(
         "lua",
@@ -170,7 +170,7 @@ docgen.get_module_config_node = function(buffer, root)
     return declaration_node and declaration_node:named_child(1):named_child(0) or nil
 end
 
----@alias ConfigOptionData { node: userdata, name: string, value: userdata, parents: string[] }
+---@alias ConfigOptionData { node: TSNode, name: string, value: userdata, parents: string[] }
 
 --- Recursively maps over each item in the `module.config.public` table,
 --  invoking a callback on each run. Also descends down recursive tables.
@@ -534,6 +534,79 @@ docgen.generators = {
 
         return docgen.evaluate_functions(structure)
     end,
+
+    keybinds = function(mods, buffer)
+        local keybind_data = docgen.parse_keybind_data(buffer)
+
+        local layout = {
+            '<div align="center">',
+            "",
+            "# :keyboard: Neorg Keybinds :keyboard:",
+            "A comprehensive list of all keys available in Neorg.",
+            "",
+            "</div>",
+            "",
+            "### Further Reading",
+            "",
+            docgen.lookup_modules(mods, "To find out how to rebind the available keys consult the [`core.keybinds`](@core.keybinds) wiki entry."),
+            "",
+        }
+
+        local main_preset = "neorg"
+
+        for preset_name, preset_data in vim.spairs(keybind_data) do
+            table.insert(layout, string.format("## Preset `%s`%s", preset_name, preset_name == main_preset and " (default)" or ""))
+            table.insert(layout, "")
+
+            for neorg_mode_name, neorg_mode_data in vim.spairs(preset_data) do
+                if neorg_mode_name == "all" then
+                    table.insert(layout, "### Available in all Files")
+                    table.insert(layout, "")
+                elseif neorg_mode_name == "norg" then
+                    table.insert(layout, "### Available in Norg Files Only")
+                    table.insert(layout, "")
+                end
+
+                for mode_name, mode_data in vim.spairs(neorg_mode_data) do
+                    mode_name = lib.match(mode_name)({
+                        n = "Normal Mode",
+                        i = "Insert Mode",
+                        v = "Visual Mode",
+                    })
+
+                    table.insert(layout, "#### " .. mode_name)
+                    table.insert(layout, "")
+
+                    for key, data in vim.spairs(mode_data) do
+                        if not vim.tbl_isempty(data.comments) then
+                            local comments = vim.iter(data.comments):map(function(comment)
+                                return (comment:gsub("^%s*%-%-%s*", ""))
+                            end):totable()
+
+                            local mnemonic = docgen.extract_mnemonic(comments)
+
+                            local description = table.concat(comments, " ")
+                            local err = docgen.check_comment_integrity(description)
+
+                            if err then
+                                log.error("Invalid keybind description:", err)
+                            end
+
+                            table.insert(layout, string.format("- `%s` - %s", key, description))
+                            table.insert(layout, string.format("    - Default map: `%s`", data.rhs))
+                            if mnemonic then
+                                table.insert(layout, string.format("    - Mnemonic: %s", docgen.format_mnemonic(mnemonic)))
+                            end
+
+                            table.insert(layout, "")
+                        end
+                    end
+                end
+            end
+        end
+
+        return layout
+    end
 }
 
 --- Check the integrity of the description comments found in configuration blocks
@@ -705,6 +778,76 @@ docgen.htmlify = function(configuration_option)
     end
 
     return result
+end
+
+--- Parses keybind data and returns it in a readable format.
+---@param buffer number The buffer ID to extract information from.
+---@return table<string, table>
+docgen.parse_keybind_data = function(buffer)
+        local query = utils.ts_parse_query("lua", [[
+        (field
+          name: (identifier) @_ident
+          (#eq? @_ident "presets")) @presets
+        ]])
+
+        local root = assert(vim.treesitter.get_parser(buffer, "lua"):parse()[1]:root(), "unable to parse keybinds!")
+
+        local _, presets = query:iter_captures(root, buffer)()
+        assert(presets, "could not find presets")
+
+        local available_keys = neorg.modules.loaded_modules["core.keybinds"].private.presets
+
+        local output = vim.defaulttable()
+
+        for preset in presets:named_child(1):iter_children() do
+            if preset:type() == "field" then
+                local preset_name, preset_data = vim.treesitter.get_node_text(assert(preset:named_child(0)), buffer), preset:named_child(1)
+
+                for neorg_mode in assert(preset_data):iter_children() do
+                    if neorg_mode:type() == "field" then
+                        local neorg_mode_name, neorg_mode_data = vim.treesitter.get_node_text(assert(neorg_mode:named_child(0)), buffer), neorg_mode:named_child(1)
+
+                        for neovim_mode in assert(neorg_mode_data):iter_children() do
+                            if neovim_mode:type() == "field" then
+                                local mode_name, mode_data = vim.treesitter.get_node_text(assert(neovim_mode:named_child(0)), buffer), neovim_mode:named_child(1)
+
+                                local comments = {}
+                                local i, keybind_data
+
+                                for comment_or_data in assert(mode_data):iter_children() do
+                                    if comment_or_data:type() == "comment" then
+                                        table.insert(comments, vim.trim(vim.treesitter.get_node_text(comment_or_data, buffer)))
+                                    elseif comment_or_data:type() == "field" then
+                                        i, keybind_data = next(available_keys[preset_name][neorg_mode_name][mode_name], i)
+                                        output[preset_name][neorg_mode_name][mode_name][keybind_data[1]] = {
+                                            comments = comments,
+                                            rhs = keybind_data[2],
+                                        }
+                                        comments = {}
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        return output
+end
+
+docgen.format_mnemonic = function(str)
+    return str:gsub("([A-Z])", "`%1`")
+end
+
+docgen.extract_mnemonic = function(comments)
+    for i, comment in ipairs(comments) do
+        local mnemonic = comment:match("^%s*%^(.+)")
+
+        if mnemonic then
+            table.remove(comments, i)
+            return mnemonic
+        end
+    end
 end
 
 return docgen
