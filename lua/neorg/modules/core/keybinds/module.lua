@@ -23,15 +23,17 @@ By default when you load the `core.keybinds` module all keybinds will be enabled
 ### Remapping Keys
 
 To understand how to effectively remap keys, one must understand how keybinds are set.
-Neorg binds keys to various `<Plug>` mappings bound to `<Plug>(neorg...`.
+Neorg binds actions to various `<Plug>` mappings that look like so: `<Plug>(neorg...`.
 
-To remap a key, simply map it somewhere in your configuration:
+To remap a key, simply map an action somewhere in your configuration:
 
 ```lua
 vim.keymap.set("n", "my-key-here", "<Plug>(neorg.pivot.list.toggle)", {})
 ```
 
 Neorg will recognize that the key has been bound by you and not bind its own key.
+
+#### Binding Keys for Norg Files Only
 
 This approach has a downside - all of Neorg's keybinds are set on a per-buffer basis
 so that keybinds don't "overflow" into buffers you don't want them active in.
@@ -54,6 +56,10 @@ files. There are two ways to combat this:
 
 Notice that in both situations a `{ buffer = true }` was supplied to the function.
 This way, your remapped keys will never interfere with other files.
+
+### Discovering Keys
+
+A comprehensive list of all keybinds can be found on [this page!](https://github.com/nvim-neorg/neorg/wiki/Default-Keybinds)
 --]]
 
 local neorg = require("neorg.core")
