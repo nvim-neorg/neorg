@@ -463,7 +463,7 @@ module.public = {
                 end
             end)
         end
-    end
+    end,
 }
 
 module.on_event = function(event)
