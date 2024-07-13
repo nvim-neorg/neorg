@@ -132,12 +132,17 @@ module.public = {
 }
 
 module.private = {
+
+    -- TODO: Move these to the "vim" preset
+    -- { "gd", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
+    -- { "gf", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
+    -- { "gF", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
     presets = {
         ---@class neorg.keybinds.preset
         neorg = {
             all = {
                 n = {
-                    -- Creates a new .norg file to take notes in
+                    -- Create a new `.norg` file to take notes in
                     -- ^New Note
                     {
                         "<LocalLeader>nn",
@@ -148,7 +153,7 @@ module.private = {
             },
             norg = {
                 n = {
-                    -- Marks the task under the cursor as "undone"
+                    -- Mark the task under the cursor as "undone"
                     -- ^mark Task as Undone
                     {
                         "<LocalLeader>tu",
@@ -156,7 +161,7 @@ module.private = {
                         opts = { desc = "[neorg] Mark as Undone" },
                     },
 
-                    -- Marks the task under the cursor as "pending"
+                    -- Mark the task under the cursor as "pending"
                     -- ^mark Task as Pending
                     {
                         "<LocalLeader>tp",
@@ -164,7 +169,7 @@ module.private = {
                         opts = { desc = "[neorg] Mark as Pending" },
                     },
 
-                    -- Marks the task under the cursor as "done"
+                    -- Mark the task under the cursor as "done"
                     -- ^mark Task as Done
                     {
                         "<LocalLeader>td",
@@ -172,7 +177,7 @@ module.private = {
                         opts = { desc = "[neorg] Mark as Done" },
                     },
 
-                    -- Marks the task under the cursor as "on-hold"
+                    -- Mark the task under the cursor as "on-hold"
                     -- ^mark Task as on Hold
                     {
                         "<LocalLeader>th",
@@ -180,7 +185,7 @@ module.private = {
                         opts = { desc = "[neorg] Mark as On Hold" },
                     },
 
-                    -- Marks the task under the cursor as "cancelled"
+                    -- Mark the task under the cursor as "cancelled"
                     -- ^mark Task as Cancelled
                     {
                         "<LocalLeader>tc",
@@ -188,7 +193,7 @@ module.private = {
                         opts = { desc = "[neorg] Mark as Cancelled" },
                     },
 
-                    -- Marks the task under the cursor as "recurring"
+                    -- Mark the task under the cursor as "recurring"
                     -- ^mark Task as Recurring
                     {
                         "<LocalLeader>tr",
@@ -196,7 +201,7 @@ module.private = {
                         opts = { desc = "[neorg] Mark as Recurring" },
                     },
 
-                    -- Marks the task under the cursor as "important"
+                    -- Mark the task under the cursor as "important"
                     -- ^mark Task as Important
                     {
                         "<LocalLeader>ti",
@@ -204,7 +209,7 @@ module.private = {
                         opts = { desc = "[neorg] Mark as Important" },
                     },
 
-                    -- Marks the task under the cursor as "ambiguous"
+                    -- Mark the task under the cursor as "ambiguous"
                     -- ^mark Task as ambiguous
                     {
                         "<LocalLeader>ta",
@@ -212,7 +217,7 @@ module.private = {
                         opts = { desc = "[neorg] Mark as Ambigous" },
                     },
 
-                    -- Switches the task under the cursor between a select few states
+                    -- Switch the task under the cursor between a select few states
                     {
                         "<C-Space>",
                         "<Plug>(neorg.qol.todo-items.todo.task-cycle)",
@@ -221,51 +226,67 @@ module.private = {
 
                     -- Hop to the destination of the link under the cursor
                     { "<CR>", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
-                    -- TODO: Move these to the "vim" preset
-                    -- { "gd", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
-                    -- { "gf", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
-                    -- { "gF", "<Plug>(neorg.esupports.hop.hop-link)", opts = { desc = "[neorg] Jump to Link" } },
 
-                    -- Same as `<CR>`, except opens the destination in a vertical split
+                    -- Same as `<CR>`, except open the destination in a vertical split
                     {
                         "<M-CR>",
                         "<Plug>(neorg.esupports.hop.hop-link.vsplit)",
                         opts = { desc = "[neorg] Jump to Link (Vertical Split)" },
                     },
 
+                    -- Promote an object non-recursively.
                     { ">.", "<Plug>(neorg.promo.promote)", opts = { desc = "[neorg] Promote Object (Non-Recursively)" } },
+                    -- Demote an object non-recursively.
                     { "<,", "<Plug>(neorg.promo.demote)", opts = { desc = "[neorg] Demote Object (Non-Recursively)" } },
 
+                    -- Promote an object recursively.
                     {
                         ">>",
                         "<Plug>(neorg.promo.promote.nested)",
                         opts = { desc = "[neorg] Promote Object (Recursively)" },
                     },
+                    -- Demote an object recursively.
                     { "<<", "<Plug>(neorg.promo.demote.nested)", opts = { desc = "[neorg] Demote Object (Recursively)" } },
 
+                    -- Toggle a list from ordered <-> unordered
+                    -- ^List Toggle
                     {
                         "<LocalLeader>lt",
                         "<Plug>(neorg.pivot.list.toggle)",
                         opts = { desc = "[neorg] Toggle (Un)ordered List" },
                     },
+
+                    -- Invert all items in a list.
+                    -- Unlike `<LocalLeader>lt`, inverting a list will respect mixed list
+                    -- items, instead of snapping all list types to a single one.
+                    -- ^List Invert
                     {
                         "<LocalLeader>li",
                         "<Plug>(neorg.pivot.list.invert)",
                         opts = { desc = "[neorg] Invert (Un)ordered List" },
                     },
 
+                    -- Insert a link to a date at the given position.
+                    -- ^Insert Date
                     { "<LocalLeader>id", "<Plug>(neorg.tempus.insert-date)", opts = { desc = "[neorg] Insert Date" } },
                 },
 
                 i = {
+                    -- Promote an object recursively.
                     { "<C-t>", "<Plug>(neorg.promo.promote)", opts = { desc = "[neorg] Promote Object (Recursively)" } },
+                    -- Demote an object recursively.
                     { "<C-d>", "<Plug>(neorg.promo.demote)", opts = { desc = "[neorg] Demote Object (Recursively)" } },
+                    -- Create an iteration of e.g. a list item.
                     { "<M-CR>", "<Plug>(neorg.itero.next-iteration)", opts = { desc = "[neorg] Continue Object" } },
+                    -- Insert a link to a date at the current cursor position.
+                    -- ^Date
                     { "<M-d>", "<Plug>(neorg.tempus.insert-date-insert-mode)", opts = { desc = "[neorg] Insert Date" } },
                 },
 
                 v = {
+                    -- Promote objects in range.
                     { ">", "<Plug>(neorg.promo.promote.range)", opts = { desc = "[neorg] Promote Objects in Range" } },
+                    -- Demote objects in range.
                     { "<", "<Plug>(neorg.promo.demote.range)", opts = { desc = "[neorg] Demote Objects in Range" } },
                 },
             }
