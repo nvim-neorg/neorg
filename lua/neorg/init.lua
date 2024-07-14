@@ -89,15 +89,6 @@ function neorg.org_file_entered(manual, arguments)
 
     -- Go through each defined module and grab its config
     for name, module in pairs(module_list) do
-        -- If the module's data is not empty and we have not defined a config table then it probably means there's junk in there
-        if not vim.tbl_isempty(module) and not module.config then
-            log.warn(
-                "Potential bug detected in",
-                name,
-                "- nonstandard tables found in the module definition. Did you perhaps mean to put these tables inside of the config = {} table?"
-            )
-        end
-
         -- Apply the config
         config.modules[name] = vim.tbl_deep_extend("force", config.modules[name] or {}, module.config or {})
     end
