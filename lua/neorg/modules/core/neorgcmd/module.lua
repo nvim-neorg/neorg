@@ -435,7 +435,11 @@ module.neorg_post_load = module.public.sync
 
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.module.load" then
-        modules.load_module(event.content[1])
+        local ok = pcall(modules.load_module, event.content[1])
+
+        if not ok then
+            vim.notify(string.format("Module `%s` does not exist!", event.content[1]), vim.log.levels.ERROR, {})
+        end
     end
 
     if event.type == "core.neorgcmd.events.module.list" then
