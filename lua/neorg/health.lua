@@ -90,18 +90,35 @@ return {
             if key_healthcheck.preset_exists then
                 vim.health.info(string.format("Neorg is configured to use keybind preset `%s`", keybinds_config.preset))
             else
-                vim.health.error(string.format("Invalid configuration found: preset `%s` does not exist! Did you perhaps make a typo?", keybinds_config.preset))
+                vim.health.error(
+                    string.format(
+                        "Invalid configuration found: preset `%s` does not exist! Did you perhaps make a typo?",
+                        keybinds_config.preset
+                    )
+                )
                 return
             end
 
             for remap_key, remap_rhs in vim.spairs(key_healthcheck.remaps) do
-                vim.health.ok(string.format("Action `%s` (bound to `%s` by default) has been remapped to something else in your configuration.", remap_rhs, remap_key))
+                vim.health.ok(
+                    string.format(
+                        "Action `%s` (bound to `%s` by default) has been remapped to something else in your configuration.",
+                        remap_rhs,
+                        remap_key
+                    )
+                )
             end
 
             local ok = true
 
             for conflict_key, rhs in vim.spairs(key_healthcheck.conflicts) do
-                vim.health.warn(string.format("Key `%s` conflicts with a key bound by the user. Neorg will not bind this key.", conflict_key), string.format("consider mapping `%s` to a different key than the one bound by Neorg.", rhs))
+                vim.health.warn(
+                    string.format(
+                        "Key `%s` conflicts with a key bound by the user. Neorg will not bind this key.",
+                        conflict_key
+                    ),
+                    string.format("consider mapping `%s` to a different key than the one bound by Neorg.", rhs)
+                )
                 ok = false
             end
 
