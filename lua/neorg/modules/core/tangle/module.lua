@@ -13,8 +13,10 @@ The `tangle` module currently provides a single command:
 - `:Neorg tangle current-file` - performs all possible tangling operations on the current file
 
 ### Usage Tutorial
-By default, *zero* code blocks are tangled. You must provide where you'd like to tangle each code block manually (global configuration will be discussed later).
-To do so, add a `#tangle <output-file>` tag above the code block you'd wish to export. For example:
+By default, *zero* code blocks are tangled. You must provide where you'd like to tangle each code
+block manually (global configuration will be discussed later). To do so, add a `#tangle
+<output-file>` tag above the code block you'd wish to export, where <output-file> is relative to the
+current file. For example:
 
 ```norg
 #tangle init.lua
@@ -163,6 +165,7 @@ local neorg = require("neorg.core")
 local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
 
 local module = modules.create("core.tangle")
+local Path = require("pathlib")
 
 module.setup = function()
     return {
@@ -262,6 +265,7 @@ module.public = {
         local previous_headings = {}
         local commentstrings = {}
         local file_content_line_start = {}
+        local buf_name = vim.api.nvim_buf_get_name(buffer)
 
         for id, node in query:iter_captures(document_root, buffer, 0, -1) do
             local capture = query.captures[id]
@@ -319,6 +323,12 @@ module.public = {
                     end
                     if not file_to_tangle_to then
                         goto skip_tag
+                    end
+
+                    local path_lib_path = Path.new(file_to_tangle_to)
+                    if path_lib_path:is_relative() then
+                        local buf_path = Path.new(buf_name)
+                        file_to_tangle_to = tostring(buf_path:parent():child(file_to_tangle_to):resolve())
                     end
 
                     local delimiter_content
