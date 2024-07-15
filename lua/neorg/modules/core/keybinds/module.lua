@@ -121,7 +121,7 @@ module.public = {
         local function set_keys_for(data)
             for mode, keybinds in pairs(data) do
                 for _, keybind in ipairs(keybinds) do
-                    if vim.fn.hasmapto(keybind[2], mode, false) == 0 then
+                    if vim.fn.hasmapto(keybind[2], mode, false) == 0 and vim.fn.mapcheck(keybind[1], mode, false):len() == 0 then
                         local opts = vim.tbl_deep_extend("force", { buffer = buffer or true }, keybinds.opts or {})
                         vim.keymap.set(mode, keybind[1], keybind[2], opts)
                     end
