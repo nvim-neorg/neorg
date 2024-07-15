@@ -67,6 +67,8 @@ local modules = neorg.modules
 
 local module = modules.create("core.keybinds")
 
+local bound_keys = {}
+
 module.load = function()
     if module.config.public.default_keybinds then
         vim.api.nvim_create_autocmd("BufEnter", {
@@ -120,10 +122,14 @@ module.public = {
 
         local function set_keys_for(data)
             for mode, keybinds in pairs(data) do
+                bound_keys[mode] = bound_keys[mode] or {}
+
                 for _, keybind in ipairs(keybinds) do
                     if vim.fn.hasmapto(keybind[2], mode, false) == 0 and vim.fn.mapcheck(keybind[1], mode, false):len() == 0 then
                         local opts = vim.tbl_deep_extend("force", { buffer = buffer or true }, keybinds.opts or {})
                         vim.keymap.set(mode, keybind[1], keybind[2], opts)
+
+                        bound_keys[mode][keybind[1]] = true
                     end
                 end
             end
@@ -135,6 +141,44 @@ module.public = {
             set_keys_for(preset.norg)
         end
     end,
+
+    --- Checks the health of keybinds. Returns all remaps and all conflicts in a table.
+    ---@return { preset_exists: boolean, remaps: table<string, string>, conflicts: table<string, string> }
+    health = function()
+        local preset = module.private.presets[module.config.public.preset]
+
+        if not preset then
+            return {
+                preset_exists = false,
+            }
+        end
+
+        local remaps = {}
+        local conflicts = {}
+
+        local function check_keys_for(data)
+            for mode, keybinds in pairs(data) do
+                for _, keybind in ipairs(keybinds) do
+                    if not bound_keys[mode] or not bound_keys[mode][keybind[1]] then
+                        if vim.fn.hasmapto(keybind[2], mode, false) ~= 0 then
+                            remaps[keybind[1]] = keybind[2]
+                        elseif vim.fn.mapcheck(keybind[1], mode, false):len() ~= 0 then
+                            conflicts[keybind[1]] = keybind[2]
+                        end
+                    end
+                end
+            end
+        end
+
+        check_keys_for(preset.all)
+        check_keys_for(preset.norg)
+
+        return {
+            preset_exists = true,
+            remaps = remaps,
+            conflicts = conflicts,
+        }
+    end
 }
 
 module.private = {

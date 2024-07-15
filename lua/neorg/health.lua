@@ -1,10 +1,9 @@
 return {
     check = function()
         local config = require("neorg.core").config.user_config
-        local modules = require("neorg.core").modules
+        local modules = require("neorg.core.modules")
 
-        vim.health.start("neorg")
-        vim.health.info("Checking configuration...")
+        vim.health.start("Neorg Configuration")
 
         if config.load == nil or vim.tbl_isempty(config.load) then
             vim.health.ok("Empty configuration provided: Neorg will load `core.defaults` by default.")
@@ -69,7 +68,7 @@ return {
             end
         end
 
-        vim.health.info("Checking existence of dependencies...")
+        vim.health.start("Neorg Dependencies")
 
         if vim.fn.executable("luarocks") then
             vim.health.ok("`luarocks` is installed.")
@@ -77,6 +76,40 @@ return {
             vim.health.error(
                 "`luarocks` not installed on your system! Please consult the Neorg README for installation instructions."
             )
+        end
+
+        vim.health.start("Neorg Keybinds")
+
+        modules.load_module("core.keybinds")
+        local keybinds = modules.get_module("core.keybinds")
+        local keybinds_config = modules.get_module_config("core.keybinds")
+
+        if keybinds_config.default_keybinds then
+            local key_healthcheck = keybinds.health()
+
+            if key_healthcheck.preset_exists then
+                vim.health.info(string.format("Neorg is configured to use keybind preset `%s`", keybinds_config.preset))
+            else
+                vim.health.error(string.format("Invalid configuration found: preset `%s` does not exist! Did you perhaps make a typo?", keybinds_config.preset))
+                return
+            end
+
+            for remap_key, remap_rhs in vim.spairs(key_healthcheck.remaps) do
+                vim.health.ok(string.format("Action `%s` (bound to `%s` by default) has been remapped to something else in your configuration.", remap_rhs, remap_key))
+            end
+
+            local ok = true
+
+            for conflict_key, rhs in vim.spairs(key_healthcheck.conflicts) do
+                vim.health.warn(string.format("Key `%s` conflicts with a key bound by the user. Neorg will not bind this key.", conflict_key), string.format("consider mapping `%s` to a different key than the one bound by Neorg.", rhs))
+                ok = false
+            end
+
+            if ok then
+                vim.health.ok("No keybind conflicts found.")
+            end
+        else
+            vim.health.ok("Neorg is not configured to set any default keybinds.")
         end
     end,
 }
