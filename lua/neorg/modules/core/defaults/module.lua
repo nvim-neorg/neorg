@@ -45,5 +45,7 @@ return modules.create_meta(
     "core.qol.todo_items",
     "core.storage",
     "core.tangle",
-    "core.todo-introspector"
+    "core.tempus",
+    "core.todo-introspector",
+    "core.ui.calendar"
 )
