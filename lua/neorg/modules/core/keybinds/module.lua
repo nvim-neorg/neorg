@@ -71,9 +71,15 @@ local bound_keys = {}
 
 module.load = function()
     if module.config.public.default_keybinds then
-        vim.api.nvim_create_autocmd("BufEnter", {
+        local preset = module.private.presets[module.config.public.preset]
+        assert(preset, string.format("keybind preset `%s` does not exist!", module.config.public.preset))
+
+        module.public.set_keys_for(false, preset.all)
+
+        vim.api.nvim_create_autocmd("FileType", {
+            pattern = "norg",
             callback = function(ev)
-                module.public.bind_keys(ev.buf)
+                module.public.set_keys_for(ev.buf, preset.norg)
             end,
         })
     end
@@ -111,34 +117,26 @@ module.public = {
         end
 
         extend(original_preset, preset)
-        module.public.bind_keys(vim.api.nvim_get_current_buf())
+        module.public.bind_norg_keys(vim.api.nvim_get_current_buf())
     end,
 
-    bind_keys = function(buffer)
-        local is_norg = vim.bo.filetype == "norg"
+    ---@param buffer number|boolean
+    ---@param preset_subdata table
+    set_keys_for = function(buffer, preset_subdata)
+        for mode, keybinds in pairs(preset_subdata) do
+            bound_keys[mode] = bound_keys[mode] or {}
 
-        local preset = module.private.presets[module.config.public.preset]
-        assert(preset, string.format("keybind preset `%s` does not exist!", module.config.public.preset))
+            for _, keybind in ipairs(keybinds) do
+                if
+                    vim.fn.hasmapto(keybind[2], mode, false) == 0
+                    and vim.fn.mapcheck(keybind[1], mode, false):len() == 0
+                then
+                    local opts = vim.tbl_deep_extend("force", { buffer = buffer }, keybinds.opts or {})
+                    vim.keymap.set(mode, keybind[1], keybind[2], opts)
 
-        local function set_keys_for(data)
-            for mode, keybinds in pairs(data) do
-                bound_keys[mode] = bound_keys[mode] or {}
-
-                for _, keybind in ipairs(keybinds) do
-                    if vim.fn.hasmapto(keybind[2], mode, false) == 0 and vim.fn.mapcheck(keybind[1], mode, false):len() == 0 then
-                        local opts = vim.tbl_deep_extend("force", { buffer = buffer or true }, keybinds.opts or {})
-                        vim.keymap.set(mode, keybind[1], keybind[2], opts)
-
-                        bound_keys[mode][keybind[1]] = true
-                    end
+                    bound_keys[mode][keybind[1]] = true
                 end
             end
-        end
-
-        set_keys_for(preset.all)
-
-        if is_norg then
-            set_keys_for(preset.norg)
         end
     end,
 
@@ -178,7 +176,7 @@ module.public = {
             remaps = remaps,
             conflicts = conflicts,
         }
-    end
+    end,
 }
 
 module.private = {
