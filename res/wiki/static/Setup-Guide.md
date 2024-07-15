@@ -8,7 +8,7 @@ A guide on configuring Neorg.
 
 > [!NOTE]
 > If you're just getting started and have no idea why and where to use Neorg,
-> feel free to check out the [Getting Started](https://github.com/nvim-neorg/neorg/wiki/Tutorial) page.
+> feel free to check out the [tutorial](https://github.com/nvim-neorg/neorg/wiki/Tutorial).
 
 ## Where do I begin?
 
