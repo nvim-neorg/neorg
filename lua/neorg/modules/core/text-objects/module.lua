@@ -4,16 +4,12 @@
     summary: A Neorg module for moving and selecting elements of the document.
     ---
 
-**WARNING:** Requires nvim 0.10+
-
 - Easily move items up and down in the document
 - Provides text objects for headings, tags, and lists
 
 ## Usage
 
 Users can create keybinds for some or all of the different events this module exposes. Those are:
-
-those events are:
 
 - `core.text-objects.item_up` - Moves the current "item" up
 - `core.text-objects.item_down` - same but down
@@ -39,20 +35,12 @@ vim.keymap.set({ "o", "x" }, "aH", "<Plug>(neorg.text-objects.textobject.heading
 --]]
 
 local neorg = require("neorg.core")
-local utils, log, modules, lib = neorg.utils, neorg.log, neorg.modules, neorg.lib
+local log, modules, lib = neorg.log, neorg.modules, neorg.lib
 local ts
 
 local module = modules.create("core.text-objects")
 
 module.setup = function()
-    if not utils.is_minimum_version(0, 10, 0) then
-        log.error("This module requires at least Neovim 0.10 to run!")
-
-        return {
-            success = false,
-        }
-    end
-
     return {
         success = true,
         requires = { "core.integrations.treesitter" },

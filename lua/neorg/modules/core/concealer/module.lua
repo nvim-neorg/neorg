@@ -65,26 +65,6 @@ end
 
 --- end utils
 
---- TODO: Migrate to `vim.version` when `0.10.0` becomes stable
-local has_anticonceal = (function()
-    if not utils.is_minimum_version(0, 10, 0) then
-        return false
-    end
-
-    if utils.is_minimum_version(0, 10, 1) then
-        return true
-    end
-
-    local full_version = vim.api.nvim_cmd({ cmd = "version" }, { output = true })
-    local _, _, sub_version = string.find(full_version, "-(%d+)[+]")
-    if not sub_version then
-        return true
-    end -- no longer a dev version
-    sub_version = tonumber(sub_version)
-    return sub_version and sub_version > 575
-end)()
-local has_extmark_invalidation = utils.is_minimum_version(0, 10, 0)
-
 local module = modules.create("core.concealer", {
     "preset_basic",
     "preset_varied",
@@ -138,11 +118,8 @@ local function set_mark(bufid, row_0b, col_0b, text, highlight, ext_opts)
         cursorline_hl_group = nil,
         spell = nil,
         ui_watched = nil,
+        invalidate = true,
     }
-
-    if has_extmark_invalidation then
-        opt["invalidate"] = true
-    end
 
     if ext_opts then
         table_extend_in_place(opt, ext_opts)
@@ -461,42 +438,6 @@ local superscript_digits = {
 
 ---@class core.concealer
 module.public = {
-    foldtext = function()
-        local foldstart = vim.v.foldstart
-        local line = vim.api.nvim_buf_get_lines(0, foldstart - 1, foldstart, true)[1]
-
-        return lib.match(line, function(lhs, rhs)
-            return vim.startswith(lhs, rhs)
-        end)({
-            ["@document.meta"] = "Document Metadata",
-            _ = function()
-                local line_length = vim.api.nvim_strwidth(line)
-
-                local icon_extmarks = vim.api.nvim_buf_get_extmarks(
-                    0,
-                    module.private.ns_icon,
-                    { foldstart - 1, 0 },
-                    { foldstart - 1, line_length },
-                    {
-                        details = true,
-                    }
-                )
-
-                for _, extmark in ipairs(icon_extmarks) do
-                    local extmark_details = extmark[4]
-
-                    for _, virt_text in ipairs(extmark_details.virt_text or {}) do
-                        line = vim.fn.strcharpart(line, 0, extmark[3])
-                            .. virt_text[1]
-                            .. vim.fn.strcharpart(line, extmark[3] + vim.api.nvim_strwidth(virt_text[1]))
-                    end
-                end
-
-                return line
-            end,
-        })
-    end,
-
     icon_renderers = {
         on_left = function(config, bufid, node)
             if not config.icon then
@@ -526,16 +467,11 @@ module.public = {
                 end
 
                 local text = (" "):rep(len - 1) .. icon
-                if vim.fn.strcharlen(text) > len and not has_anticonceal then
-                    -- TODO warn neovim version
-                    return
-                end
 
                 local _, first_unicode_end = text:find("[%z\1-\127\194-\244][\128-\191]*", len)
                 local highlight = config.highlights and table_get_default_last(config.highlights, len)
                 set_mark(bufid, row_0b, col_0b, text:sub(1, first_unicode_end), highlight)
                 if vim.fn.strcharlen(text) > len then
-                    assert(has_anticonceal)
                     set_mark(bufid, row_0b, col_0b + len, text:sub(first_unicode_end + 1), highlight, {
                         virt_text_pos = "inline",
                     })
@@ -780,8 +716,7 @@ module.config.public = {
             render = module.public.icon_renderers.multilevel_on_right(false),
         },
         ordered = {
-            icons = has_anticonceal and { "1.", "A.", "a.", "(1)", "I.", "i." }
-                or { "⒈", "A", "a", "⑴", "Ⓐ", "ⓐ" },
+            icons = { "1.", "A.", "a.", "(1)", "I.", "i." },
             nodes = {
                 "ordered_list1_prefix",
                 "ordered_list2_prefix",
@@ -1342,8 +1277,7 @@ local function handle_init_event(event)
         local wo = vim.wo[event.window]
         wo.foldmethod = "expr"
         wo.foldexpr = vim.treesitter.foldexpr and "v:lua.vim.treesitter.foldexpr()" or "nvim_treesitter#foldexpr()"
-        wo.foldtext = utils.is_minimum_version(0, 10, 0) and ""
-            or "v:lua.require'neorg'.modules.get_module('core.concealer').foldtext()"
+        wo.foldtext = ""
 
         local init_open_folds = module.config.public.init_open_folds
         local function open_folds()
@@ -1483,18 +1417,17 @@ module.load = function()
             },
         })
     end)
-    if utils.is_minimum_version(0, 7, 0) then
-        vim.api.nvim_create_autocmd("OptionSet", {
-            pattern = "conceallevel",
-            callback = function(_ev) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-                local bufid = vim.api.nvim_get_current_buf()
-                if vim.bo[bufid].ft ~= "norg" then
-                    return
-                end
-                mark_all_lines_changed(bufid)
-            end,
-        })
-    end
+
+    vim.api.nvim_create_autocmd("OptionSet", {
+        pattern = "conceallevel",
+        callback = function()
+            local bufid = vim.api.nvim_get_current_buf()
+            if vim.bo[bufid].ft ~= "norg" then
+                return
+            end
+            mark_all_lines_changed(bufid)
+        end,
+    })
 end
 
 module.events.subscribed = {

@@ -15,18 +15,11 @@ but you may map it yourself via the [`core.keybinds`](@core.keybinds) module.
 --]]
 
 local neorg = require("neorg.core")
-local log, modules, utils = neorg.log, neorg.modules, neorg.utils
+local modules, utils = neorg.modules, neorg.utils
 
 local module = modules.create("core.looking-glass")
 
 module.setup = function()
-    if not utils.is_minimum_version(0, 7, 0) then
-        log.error("The `looking-glass` module requires Neovim 0.7+! Please upgrade your Neovim installation.")
-        return {
-            success = false,
-        }
-    end
-
     return {
         success = true,
         requires = {

@@ -14,8 +14,6 @@ local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
 
 local module = modules.create("core.tempus")
 
-assert(vim.re ~= nil, "Neovim 0.10.0+ is required to run the `core.tempus` module! ")
-
 -- NOTE: Maybe encapsulate whole date parser in a single PEG grammar?
 local _, time_regex = pcall(vim.re.compile, [[{%d%d?} ":" {%d%d} ("." {%d%d?})?]])
 
