@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.0.1](https://github.com/nvim-neorg/neorg/compare/v9.0.0...v9.0.1) (2024-07-16)
+
+
+### Bug Fixes
+
+* **metagen:** proper iteration on metadata fields ([#1518](https://github.com/nvim-neorg/neorg/issues/1518)) ([0306887](https://github.com/nvim-neorg/neorg/commit/0306887c0c6ea302e3a3fecbb36998793f4c27d5))
+
 ## [9.0.0](https://github.com/nvim-neorg/neorg/compare/v8.9.0...v9.0.0) (2024-07-16)
 
 
