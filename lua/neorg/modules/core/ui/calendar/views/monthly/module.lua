@@ -556,7 +556,6 @@ module.private = {
         end
 
         vim.keymap.set("n", "q", quit, { buffer = buffer })
-        vim.keymap.set("n", "<Esc>", quit, { buffer = buffer })
 
         vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave" }, {
             buffer = buffer,
@@ -586,6 +585,10 @@ module.public = {
         view:render_view(ui_info, date, nil, options)
 
         do
+            vim.keymap.set("n", "q", function()
+                vim.api.nvim_buf_delete(ui_info.buffer, { force = true })
+            end, { buffer = ui_info.buffer })
+
             -- TODO: Make cursor wrapping behaviour configurable
             vim.keymap.set("n", "l", function()
                 local new_date = reformat_time({
@@ -901,7 +904,7 @@ module.public = {
                 "?",
                 lib.wrap(module.private.display_help, {
                     {
-                        { "q/<Esc>", "@namespace" },
+                        { "q", "@namespace" },
                         { " - " },
                         { "close this window", "@text.strong" },
                     },
@@ -1041,7 +1044,7 @@ module.public = {
                     "?",
                     lib.wrap(module.private.display_help, {
                         {
-                            { "<Esc>", "@namespace" },
+                            { "q", "@namespace" },
                             { " - " },
                             { "close this window", "@text.strong" },
                         },
