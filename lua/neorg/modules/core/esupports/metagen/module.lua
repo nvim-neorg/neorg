@@ -269,7 +269,10 @@ module.public = {
                 -- override with data from metadata table
                 data = { data[1], metadata[data[1]] }
             end
-            local lines = whitespace .. data[1] .. delimiter .. tostring(type(data[2]) == "function" and data[2]() or data[2])
+            local lines = whitespace
+                .. data[1]
+                .. delimiter
+                .. tostring(type(data[2]) == "function" and data[2]() or data[2])
             for line in ipairs(vim.split(lines, "\n")) do
                 table.insert(result, line)
             end
