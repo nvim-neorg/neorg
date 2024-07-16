@@ -597,29 +597,31 @@ docgen.generators = {
 
                             local mnemonic = docgen.extract_mnemonic(comments)
 
-                            local description = table.concat(comments, " ")
-                            local err = docgen.check_comment_integrity(description)
+                            local summary = comments[1]
+                            local description = vim.list_slice(comments, 2)
+                            local err = docgen.check_comment_integrity(summary)
 
                             if err then
                                 log.error("Invalid keybind description:", err)
                             end
 
-                            table.insert(layout, "- <details>")
-                            table.insert(layout, "  <summary>")
+                            table.insert(layout, "<details>")
+                            table.insert(layout, "<summary>")
                             table.insert(layout, "")
-                            table.insert(layout, string.format("  #### `%s` - %s", key, description))
+                            table.insert(layout, string.format("#### `%s` - %s", key, summary))
                             table.insert(layout, "")
-                            table.insert(layout, "  </summary>")
+                            table.insert(layout, "</summary>")
                             table.insert(layout, "")
+                            table.insert(layout, description)
                             table.insert(layout, string.format("  - Default map: `%s`", data.rhs))
                             if mnemonic then
                                 table.insert(
                                     layout,
-                                    string.format("  - Mnemonic: %s", docgen.format_mnemonic(mnemonic))
+                                    string.format("- Mnemonic: %s", docgen.format_mnemonic(mnemonic))
                                 )
                             end
                             table.insert(layout, "")
-                            table.insert(layout, "  </details>")
+                            table.insert(layout, "</details>")
                             table.insert(layout, "")
                         end
                     end
