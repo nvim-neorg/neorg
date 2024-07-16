@@ -21,7 +21,7 @@ make it look like this module isn't working.
 -- utils  to be refactored
 
 local neorg = require("neorg.core")
-local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.utils
+local log, modules, utils = neorg.log, neorg.modules, neorg.utils
 
 local function in_range(k, l, r_ex)
     return l <= k and k < r_ex
