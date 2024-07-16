@@ -605,7 +605,9 @@ docgen.generators = {
                             end
 
                             table.insert(layout, "- <details>")
-                            table.insert(layout, string.format("  <summary> `%s` - %s </summary>", key, description))
+                            table.insert(layout, "  <summary>")
+                            table.insert(layout, string.format("  #### `%s` - %s", key, description))
+                            table.insert(layout, "  </summary>")
                             table.insert(layout, "")
                             table.insert(layout, string.format("  - Default map: `%s`", data.rhs))
                             if mnemonic then
