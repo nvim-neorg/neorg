@@ -606,7 +606,9 @@ docgen.generators = {
 
                             table.insert(layout, "- <details>")
                             table.insert(layout, "  <summary>")
+                            table.insert(layout, "")
                             table.insert(layout, string.format("  #### `%s` - %s", key, description))
+                            table.insert(layout, "")
                             table.insert(layout, "  </summary>")
                             table.insert(layout, "")
                             table.insert(layout, string.format("  - Default map: `%s`", data.rhs))
