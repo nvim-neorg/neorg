@@ -562,10 +562,10 @@ docgen.generators = {
         for preset_name, preset_data in vim.spairs(keybind_data) do
             for neorg_mode_name, neorg_mode_data in vim.spairs(preset_data) do
                 if neorg_mode_name == "all" then
-                    table.insert(layout, string.format("## Preset `%s` / All Files", preset_name))
+                    table.insert(layout, string.format("## Preset `%s` // All Files", preset_name))
                     table.insert(layout, "")
                 elseif neorg_mode_name == "norg" then
-                    table.insert(layout, string.format("## Preset `%s` / Norg Only", preset_name))
+                    table.insert(layout, string.format("## Preset `%s` // Norg Only", preset_name))
                     table.insert(layout, "")
                 end
 
