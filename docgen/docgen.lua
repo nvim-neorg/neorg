@@ -613,9 +613,9 @@ docgen.generators = {
                             table.insert(layout, "</summary>")
                             table.insert(layout, "")
                             vim.list_extend(layout, description)
-                            table.insert(layout, string.format("- Default map: `%s`", data.rhs))
+                            table.insert(layout, string.format("- Maps to: `%s`", data.rhs))
                             if mnemonic then
-                                table.insert(layout, string.format("- Mnemonic: %s", docgen.format_mnemonic(mnemonic)))
+                                table.insert(layout, string.format("- Mnemonic: <code>%s</code>", docgen.format_mnemonic(mnemonic)))
                             end
                             table.insert(layout, "")
                             table.insert(layout, "</details>")
@@ -868,7 +868,7 @@ docgen.parse_keybind_data = function(buffer)
 end
 
 docgen.format_mnemonic = function(str)
-    return str:gsub("([A-Z])", "`%1`")
+    return str:gsub("([A-Z])", "<strong>%1</strong>"):lower()
 end
 
 docgen.extract_mnemonic = function(comments)
