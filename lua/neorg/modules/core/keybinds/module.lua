@@ -258,7 +258,7 @@ module.private = {
                     },
 
                     -- Mark the task under the cursor as "ambiguous"
-                    -- ^mark Task as ambiguous
+                    -- ^mark Task as Ambiguous
                     {
                         "<LocalLeader>ta",
                         "<Plug>(neorg.qol.todo-items.todo.task-ambiguous)",
