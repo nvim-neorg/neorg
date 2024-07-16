@@ -615,7 +615,10 @@ docgen.generators = {
                             vim.list_extend(layout, description)
                             table.insert(layout, string.format("- Maps to: `%s`", data.rhs))
                             if mnemonic then
-                                table.insert(layout, string.format("- Mnemonic: <code>%s</code>", docgen.format_mnemonic(mnemonic)))
+                                table.insert(
+                                    layout,
+                                    string.format("- Mnemonic: <code>%s</code>", docgen.format_mnemonic(mnemonic))
+                                )
                             end
                             table.insert(layout, "")
                             table.insert(layout, "</details>")
