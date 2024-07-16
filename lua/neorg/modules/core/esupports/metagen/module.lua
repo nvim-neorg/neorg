@@ -273,7 +273,7 @@ module.public = {
                 .. data[1]
                 .. delimiter
                 .. tostring(type(data[2]) == "function" and data[2]() or data[2])
-            for line in ipairs(vim.split(lines, "\n")) do
+            for _, line in ipairs(vim.split(lines, "\n")) do
                 table.insert(result, line)
             end
         end
