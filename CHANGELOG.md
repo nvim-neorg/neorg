@@ -1,5 +1,77 @@
 # Changelog
 
+## [9.0.0](https://github.com/nvim-neorg/neorg/compare/v8.9.0...v9.0.0) (2024-07-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* tangle files relative to norg file ([#1415](https://github.com/nvim-neorg/neorg/issues/1415))
+* remove `traverse-link` and `traverse-heading` modes
+* remove all references to `core.mode`
+* remove `core.mode`
+* move rest of modules to new keybind system
+* move core.pivot to new keybind system
+* migrate core.promo to new keybind system
+* move esupports.hop to the new keybind schema
+* move qol.todo_items to new keybind API
+* keybind refactor, update core.itero to new changes
+* make Neovim 0.10 a requirement for Neorg
+* simplify code in preparation of lazy.nvim luarocks support
+* remove `ftdetect` file as Neorg is now natively recognized by Neovim ([#1083](https://github.com/nvim-neorg/neorg/issues/1083))
+
+### Features
+
+* add `core.ui.calendar` to the default list of modules ([52a37e0](https://github.com/nvim-neorg/neorg/commit/52a37e01abe059c6431f744eab9f22626fb275c5))
+* add descriptions to all Neorg keybinds ([a042515](https://github.com/nvim-neorg/neorg/commit/a042515bc832ecab6d47a18ffc2976ee72f4bc1b))
+* add dotrepeat to all common commands ([6b49397](https://github.com/nvim-neorg/neorg/commit/6b49397f1e8bea2f19064012e392cd4b36e00d18))
+* auto tangle ([#1413](https://github.com/nvim-neorg/neorg/issues/1413)) ([0f24e4a](https://github.com/nvim-neorg/neorg/commit/0f24e4a53b05328a0ae6496be9867ea5df7b7f40))
+* **calendar:** unify exit keybind to always be `q` instead of a mix of `q`/`&lt;Esc&gt;` ([582d7b6](https://github.com/nvim-neorg/neorg/commit/582d7b616d9bdb5e2bbcba4ebd0e82f7fb9130e0))
+* **completion:** allow custom completion engines ([04d201d](https://github.com/nvim-neorg/neorg/commit/04d201d56857073efecf79a8be29fae45b57ebeb))
+* **docgen:** add default keybinds list ([d762f6d](https://github.com/nvim-neorg/neorg/commit/d762f6dd4cfc7f8337272582abf0459b4c85fe3b))
+* **docgen:** add more links to sidebar ([5bef42a](https://github.com/nvim-neorg/neorg/commit/5bef42ab385e0d2da9e68a60e4ba484c583b9aa7))
+* **health:** check for keybind clashes in checkhealth ([bbe4243](https://github.com/nvim-neorg/neorg/commit/bbe42438a90afd25a5d52b843ebbcc19d8476cef))
+* **intergrations.otter:** update to use otter 2.0 ([1347eeb](https://github.com/nvim-neorg/neorg/commit/1347eebc8a0116524f17a7c33240ae782efb974e))
+* keybind refactor, update core.itero to new changes ([3dd946a](https://github.com/nvim-neorg/neorg/commit/3dd946ae976ee45147a60eeb5174f0f951f04f94))
+* **keybinds:** add `extend_preset` function ([4f09926](https://github.com/nvim-neorg/neorg/commit/4f0992643b42d544a442f6e1928bd5838e355bcd))
+* **keybinds:** don't try to forcefully override user keys ([591b883](https://github.com/nvim-neorg/neorg/commit/591b8831587895b95cbce30ad5a30c53f01b882c))
+* **keybinds:** split presets into norg and non-norg, move to buffer-local mappings instead ([113c21b](https://github.com/nvim-neorg/neorg/commit/113c21b2de4f68c150a5778ff754cdbbec04758f))
+* support multi-line values in metagen ([#1514](https://github.com/nvim-neorg/neorg/issues/1514)) ([321c435](https://github.com/nvim-neorg/neorg/commit/321c435e96a738a32ba2376f7f8f27b401759236))
+
+
+### Bug Fixes
+
+* better formatting, properly handle complex keybind descriptions ([c087db0](https://github.com/nvim-neorg/neorg/commit/c087db0473b3d8363e31135ef42d1290994075e6))
+* calendar not working with the latest breakages ([c659b09](https://github.com/nvim-neorg/neorg/commit/c659b0901bea4143667489ee2af4c78762fabc5c))
+* **docgen:** beautify keybind output in &lt;details&gt; tag ([7a9d54c](https://github.com/nvim-neorg/neorg/commit/7a9d54c3c81bb1c403b3591cbc3b0cf27949fc6b))
+* **docgen:** better mnemonic rendering ([b3bf963](https://github.com/nvim-neorg/neorg/commit/b3bf9639d2ebc905f7a99197844bf6da0547a2c9))
+* **docgen:** broken wiki ([e23d0d3](https://github.com/nvim-neorg/neorg/commit/e23d0d32ea11d13c9da67b841a809b6cfda02887))
+* **docgen:** display keybind data in the form of a dropdown ([572de72](https://github.com/nvim-neorg/neorg/commit/572de724159fcf929f3feb125da72b25ccad7bd2))
+* **docgen:** invalid github markdown ([75edcdc](https://github.com/nvim-neorg/neorg/commit/75edcdc68ba9ce4aae5f0df6543f9818c55c5206))
+* error in hasmapto() ([dfcc78a](https://github.com/nvim-neorg/neorg/commit/dfcc78a110051aaedef8c19b48fda486960e1089))
+* feed keys without remaps ([ecf5f41](https://github.com/nvim-neorg/neorg/commit/ecf5f415c96cf7a12b74a8233b8f6d4ecc3779c4))
+* improve startup time by removing pcall on every module load ([7d9bd33](https://github.com/nvim-neorg/neorg/commit/7d9bd33a176fa86c65030776eb9b45cdb729250b))
+* itero keybind not functioning, add fallback functions to core.keybinds ([cd950aa](https://github.com/nvim-neorg/neorg/commit/cd950aa89ae2125882b235b8e79afde13c90e1b1))
+* make core.promo keybinds functional again ([8a48172](https://github.com/nvim-neorg/neorg/commit/8a48172e94854d364b3cb3ecd2940cbe84b2f7bd))
+* properly error when failing to load module using `:Neorg module load` ([721fd28](https://github.com/nvim-neorg/neorg/commit/721fd28f39ba2cb0978e410bd9a7668f8c74ccca))
+* remove all references to `core.mode` ([53429c4](https://github.com/nvim-neorg/neorg/commit/53429c497bda64671c7161b3f59d4640415bf145))
+* set global keybinds only once, set keys on filetype ([e00042a](https://github.com/nvim-neorg/neorg/commit/e00042af322802f4db38706c5eeee8e77145fe65))
+* set keybinds for the appropriate buffer (fixes telescope issues) ([b49c214](https://github.com/nvim-neorg/neorg/commit/b49c214f72ba33d5d76a63f7d70da43c840dc1e2))
+* tangle files relative to norg file ([#1415](https://github.com/nvim-neorg/neorg/issues/1415)) ([3c3b977](https://github.com/nvim-neorg/neorg/commit/3c3b977dff916aecf5b2d63747896691c70639df))
+
+
+### Code Refactoring
+
+* make Neovim 0.10 a requirement for Neorg ([c916501](https://github.com/nvim-neorg/neorg/commit/c91650128130f05c79a2cf1e981a8d87b1f91113))
+* migrate core.promo to new keybind system ([faad665](https://github.com/nvim-neorg/neorg/commit/faad665a8e9c32f9dceae613e7c4c2abdbda9585))
+* move core.pivot to new keybind system ([0c1222b](https://github.com/nvim-neorg/neorg/commit/0c1222b4aa4faf21a76158fe8de1339700442e08))
+* move esupports.hop to the new keybind schema ([cdfbe19](https://github.com/nvim-neorg/neorg/commit/cdfbe19125a5d71288ea5c28f7916f709ca57ddd))
+* move qol.todo_items to new keybind API ([b71d8ba](https://github.com/nvim-neorg/neorg/commit/b71d8ba34c53a0a4d022cd72af90513029800b27))
+* move rest of modules to new keybind system ([94b860b](https://github.com/nvim-neorg/neorg/commit/94b860b704bceb1180eb82443064e6530e001fae))
+* remove `core.mode` ([49e8710](https://github.com/nvim-neorg/neorg/commit/49e8710b3c09b19d69fcce322769fcbbdc4e6f30))
+* remove `ftdetect` file as Neorg is now natively recognized by Neovim ([#1083](https://github.com/nvim-neorg/neorg/issues/1083)) ([5c32056](https://github.com/nvim-neorg/neorg/commit/5c320566757d334ab255a287da960d961d7a9012))
+* remove `traverse-link` and `traverse-heading` modes ([da3e062](https://github.com/nvim-neorg/neorg/commit/da3e0621e03ad33f62cdd2fa77ba02ffb1b52d2b))
+* simplify code in preparation of lazy.nvim luarocks support ([12b7cf2](https://github.com/nvim-neorg/neorg/commit/12b7cf253e60f6ce8552e4498a1598c8b57acf66))
+
 ## [8.9.0](https://github.com/nvim-neorg/neorg/compare/v8.8.1...v8.9.0) (2024-07-07)
 
 
