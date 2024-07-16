@@ -589,7 +589,7 @@ docgen.generators = {
 
                             local mnemonic = docgen.extract_mnemonic(comments)
 
-                            local summary = comments[1]
+                            local summary = comments[1]:sub(1, 1):lower() .. comments[1]:sub(2)
                             local description = vim.list_slice(comments, 2)
                             local err = docgen.check_comment_integrity(summary)
 
