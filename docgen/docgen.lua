@@ -564,16 +564,16 @@ docgen.generators = {
         for preset_name, preset_data in vim.spairs(keybind_data) do
             table.insert(
                 layout,
-                string.format("## Preset `%s`%s", preset_name, preset_name == main_preset and " (default)" or "")
+                string.format("# Preset `%s`%s", preset_name, preset_name == main_preset and " (default)" or "")
             )
             table.insert(layout, "")
 
             for neorg_mode_name, neorg_mode_data in vim.spairs(preset_data) do
                 if neorg_mode_name == "all" then
-                    table.insert(layout, "### Available in all Files")
+                    table.insert(layout, "## Available in all Files")
                     table.insert(layout, "")
                 elseif neorg_mode_name == "norg" then
-                    table.insert(layout, "### Available in Norg Files Only")
+                    table.insert(layout, "## Available in Norg Files Only")
                     table.insert(layout, "")
                 end
 
@@ -584,7 +584,7 @@ docgen.generators = {
                         v = "Visual Mode",
                     })
 
-                    table.insert(layout, "#### " .. mode_name)
+                    table.insert(layout, "### " .. mode_name)
                     table.insert(layout, "")
 
                     for key, data in vim.spairs(mode_data) do
