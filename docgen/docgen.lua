@@ -612,8 +612,8 @@ docgen.generators = {
                             table.insert(layout, "")
                             table.insert(layout, "</summary>")
                             table.insert(layout, "")
-                            table.insert(layout, description)
-                            table.insert(layout, string.format("  - Default map: `%s`", data.rhs))
+                            vim.list_extend(layout, description)
+                            table.insert(layout, string.format("- Default map: `%s`", data.rhs))
                             if mnemonic then
                                 table.insert(layout, string.format("- Mnemonic: %s", docgen.format_mnemonic(mnemonic)))
                             end
