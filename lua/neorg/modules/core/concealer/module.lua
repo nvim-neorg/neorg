@@ -495,22 +495,32 @@ module.public = {
             end
         end,
 
-        multilevel_copied = function(config, bufid, node)
+        ---@param node TSNode
+        quote_concealed = function(config, bufid, node)
             if not config.icons then
                 return
             end
-            local row_0b, col_0b, len = get_node_position_and_text_length(bufid, node)
+
+            local lines_count_0b = vim.api.nvim_buf_line_count(bufid) - 1
+
+            local prefix = node:named_child(0)
+
+            local row_0b, col_0b, len = get_node_position_and_text_length(bufid, prefix)
+            local row_last_0b = node:end_()
+
             local last_icon, last_highlight
-            for i = 1, len do
-                if config.icons[i] ~= nil then
-                    last_icon = config.icons[i]
+            for line=row_0b, row_last_0b > lines_count_0b and lines_count_0b or row_last_0b do
+                for col = 1, len do
+                    if config.icons[col] ~= nil then
+                        last_icon = config.icons[col]
+                    end
+                    if not last_icon then
+                        goto continue
+                    end
+                    last_highlight = config.highlights[col] or last_highlight
+                    set_mark(bufid, line, col_0b + (col - 1), last_icon, last_highlight)
+                    ::continue::
                 end
-                if not last_icon then
-                    goto continue
-                end
-                last_highlight = config.highlights[i] or last_highlight
-                set_mark(bufid, row_0b, col_0b + (i - 1), last_icon, last_highlight)
-                ::continue::
             end
         end,
 
@@ -730,12 +740,12 @@ module.config.public = {
         quote = {
             icons = { "│" },
             nodes = {
-                "quote1_prefix",
-                "quote2_prefix",
-                "quote3_prefix",
-                "quote4_prefix",
-                "quote5_prefix",
-                "quote6_prefix",
+                "quote1",
+                "quote2",
+                "quote3",
+                "quote4",
+                "quote5",
+                "quote6",
             },
             highlights = {
                 "@neorg.quotes.1.prefix",
@@ -745,7 +755,7 @@ module.config.public = {
                 "@neorg.quotes.5.prefix",
                 "@neorg.quotes.6.prefix",
             },
-            render = module.public.icon_renderers.multilevel_copied,
+            render = module.public.icon_renderers.quote_concealed,
         },
         heading = {
             icons = { "◉", "◎", "○", "✺", "▶", "⤷" },
