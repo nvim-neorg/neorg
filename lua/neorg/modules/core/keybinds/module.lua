@@ -129,7 +129,7 @@ module.public = {
             for _, keybind in ipairs(keybinds) do
                 if
                     vim.fn.hasmapto(keybind[2], mode, false) == 0
-                    and vim.fn.mapcheck(keybind[1], mode, false):len() == 0
+                    and vim.fn.maparg(keybind[1], mode, false) ~= ""
                 then
                     local opts = vim.tbl_deep_extend("force", { buffer = buffer }, keybinds.opts or {})
                     vim.keymap.set(mode, keybind[1], keybind[2], opts)
@@ -160,7 +160,7 @@ module.public = {
                     if not bound_keys[mode] or not bound_keys[mode][keybind[1]] then
                         if vim.fn.hasmapto(keybind[2], mode, false) ~= 0 then
                             remaps[keybind[1]] = keybind[2]
-                        elseif vim.fn.mapcheck(keybind[1], mode, false):len() ~= 0 then
+                        elseif vim.fn.maparg(keybind[1], mode, false) ~= "" then
                             conflicts[keybind[1]] = keybind[2]
                         end
                     end
