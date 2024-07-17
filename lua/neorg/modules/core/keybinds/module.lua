@@ -131,7 +131,7 @@ module.public = {
                     vim.fn.hasmapto(keybind[2], mode, false) == 0
                     and vim.fn.mapcheck(keybind[1], mode, false):len() == 0
                 then
-                    local opts = vim.tbl_deep_extend("force", { buffer = buffer }, keybinds.opts or {})
+                    local opts = vim.tbl_deep_extend("force", { buffer = buffer }, keybind.opts or {})
                     vim.keymap.set(mode, keybind[1], keybind[2], opts)
 
                     bound_keys[mode][keybind[1]] = true
