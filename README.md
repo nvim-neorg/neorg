@@ -29,7 +29,7 @@ Your New Life Organization Tool - All in Lua
 
 <br>
 
-**:warning: Neorg `8.0.0` has introduced some breaking changes! Please see [this blog post](https://vhyrro.github.io/posts/neorg-and-luarocks/) on how to migrate.**
+**:warning: Neorg `9.0.0` has introduced some breaking changes! Please see [this blog post](https://vhyrro.github.io/posts/neorg-9-0-0/) on what changed.**
 
 ## Summary
 
