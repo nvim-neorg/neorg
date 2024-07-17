@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.0.2](https://github.com/nvim-neorg/neorg/compare/v9.0.1...v9.0.2) (2024-07-17)
+
+
+### Bug Fixes
+
+* **keybinds:** correctly get keymap opts ([4a2f5b2](https://github.com/nvim-neorg/neorg/commit/4a2f5b2104169883131646f27ffaeb6af324b05a))
+
 ## [9.0.1](https://github.com/nvim-neorg/neorg/compare/v9.0.0...v9.0.1) (2024-07-16)
 
 
