@@ -342,7 +342,7 @@ module.private = {
                     -- ^Date
                     {
                         "<M-d>",
-                        "<Plug>(neorg.tempus.insert-date-insert-mode)",
+                        "<Plug>(neorg.tempus.insert-date.insert-mode)",
                         opts = { desc = "[neorg] Insert Date" },
                     },
                 },
