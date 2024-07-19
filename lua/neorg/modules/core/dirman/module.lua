@@ -133,6 +133,9 @@ module.config.public = {
     -- Whether to use core.ui.text_popup for `dirman.new.note` event.
     -- if `false`, will use vim's default `vim.ui.input` instead.
     use_popup = true,
+    -- Whether to show a popup to name created notes
+    -- if `false`, a random UUID will be provided
+    name_notes = true,
 }
 
 module.private = {
@@ -443,6 +446,20 @@ module.public = {
         return module.config.public.index
     end,
     new_note = function()
+        -- Use UUID as note name as defined by the RFC 4122 standard
+        if not module.config.public.name_notes then
+            local template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+
+            local name = string.gsub(template, "[xy]", function(c)
+                local v = (c == "x") and math.random(0, 0xf) or math.random(8, 0xb)
+                return string.format("%x", v)
+            end)
+
+            module.public.create_file(name)
+
+            return
+        end
+
         if module.config.public.use_popup then
             module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
                 -- Create the file that the user has entered
