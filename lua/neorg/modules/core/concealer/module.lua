@@ -501,25 +501,36 @@ module.public = {
                 return
             end
 
-            local lines_count_0b = vim.api.nvim_buf_line_count(bufid) - 1
-
             local prefix = node:named_child(0)
 
             local row_0b, col_0b, len = get_node_position_and_text_length(bufid, prefix)
-            local row_last_0b = node:end_()
 
             local last_icon, last_highlight
-            for line=row_0b, row_last_0b > lines_count_0b and lines_count_0b or row_last_0b do
-                for col = 1, len do
-                    if config.icons[col] ~= nil then
-                        last_icon = config.icons[col]
+
+            for _, child in ipairs(node:field("content")) do
+                local row_last_0b, col_last_0b = child:end_()
+
+                -- Sometimes the parser overshoots to the next newline, breaking
+                -- the range.
+                -- To counteract this we correct the overshoot.
+                if col_last_0b == 0 then
+                    row_last_0b = row_last_0b - 1
+                end
+
+                for line=row_0b, row_last_0b do
+                    if get_line_length(bufid, line) > len then
+                        for col = 1, len do
+                            if config.icons[col] ~= nil then
+                                last_icon = config.icons[col]
+                            end
+                            if not last_icon then
+                                goto continue
+                            end
+                            last_highlight = config.highlights[col] or last_highlight
+                            set_mark(bufid, line, col_0b + (col - 1), last_icon, last_highlight)
+                            ::continue::
+                        end
                     end
-                    if not last_icon then
-                        goto continue
-                    end
-                    last_highlight = config.highlights[col] or last_highlight
-                    set_mark(bufid, line, col_0b + (col - 1), last_icon, last_highlight)
-                    ::continue::
                 end
             end
         end,
@@ -634,6 +645,14 @@ module.public = {
             end
         end,
     },
+
+    icon_removers = {
+        quote = function(_, bufid, node)
+            for _, content in ipairs(node:field("content")) do
+                vim.api.nvim_buf_clear_namespace(bufid, module.private.ns_icon, (content:start()), (content:end_()) + 1)
+            end
+        end,
+    }
 }
 
 module.config.public = {
@@ -756,6 +775,7 @@ module.config.public = {
                 "@neorg.quotes.6.prefix",
             },
             render = module.public.icon_renderers.quote_concealed,
+            clear = module.public.icon_removers.quote,
         },
         heading = {
             icons = { "◉", "◎", "○", "✺", "▶", "⤷" },
@@ -938,15 +958,16 @@ local function remove_extmarks(bufid, pos_start_0b_0b, pos_end_0bin_0bex)
         )
     do
         local extmark_id = result[1]
-        local node_pos_0b_0b = { x = result[2], y = result[3] }
-        assert(
-            pos_le(pos_start_0b_0b, node_pos_0b_0b) and pos_le(node_pos_0b_0b, pos_end_0bin_0bex),
-            ("start=%s, end=%s, node=%s"):format(
-                vim.inspect(pos_start_0b_0b),
-                vim.inspect(pos_end_0bin_0bex),
-                vim.inspect(node_pos_0b_0b)
-            )
-        )
+        -- TODO: Optimize
+        -- local node_pos_0b_0b = { x = result[2], y = result[3] }
+        -- assert(
+        --     pos_le(pos_start_0b_0b, node_pos_0b_0b) and pos_le(node_pos_0b_0b, pos_end_0bin_0bex),
+        --     ("start=%s, end=%s, node=%s"):format(
+        --         vim.inspect(pos_start_0b_0b),
+        --         vim.inspect(pos_end_0bin_0bex),
+        --         vim.inspect(node_pos_0b_0b)
+        --     )
+        -- )
         vim.api.nvim_buf_del_extmark(bufid, ns_icon, extmark_id)
     end
 end
@@ -1101,10 +1122,6 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
         check_max(pos_end_0bin_0bex, nodes[i]:end_())
     end
 
-    remove_extmarks(bufid, pos_start_0b_0b, pos_end_0bin_0bex)
-    remove_prettify_flag_range(bufid, pos_start_0b_0b.x, pos_end_0bin_0bex.x + 1)
-    add_prettify_flag_range(bufid, pos_start_0b_0b.x, pos_end_0bin_0bex.x + 1)
-
     local winid = vim.fn.bufwinid(bufid)
     assert(winid > 0)
     local current_row_0b = vim.api.nvim_win_get_cursor(winid)[1] - 1
@@ -1118,6 +1135,15 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
         local node_row_start_0b, _, _node_row_end_0bin = node:range()
         local node_row_end_0bex = _node_row_end_0bin + 1
         local config = module.private.config_by_node_name[node:type()]
+
+        if config.clear then
+            config:clear(bufid, node)
+        else
+            remove_extmarks(bufid, { x = node_row_start_0b, y = 0 }, { x = node_row_end_0bex - 1, y =  get_line_length(bufid, node_row_end_0bex - 1)})
+        end
+
+        remove_prettify_flag_range(bufid, node_row_start_0b, node_row_end_0bex)
+        add_prettify_flag_range(bufid, node_row_start_0b, node_row_end_0bex)
 
         if should_skip_prettify(current_mode, current_row_0b, node, config, node_row_start_0b, node_row_end_0bex) then
             goto continue
