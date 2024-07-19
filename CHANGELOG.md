@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.0.3](https://github.com/nvim-neorg/neorg/compare/v9.0.2...v9.0.3) (2024-07-19)
+
+
+### Bug Fixes
+
+* **keybinds:** fixed tempus insert date insert mode default keybind command ([87e55f3](https://github.com/nvim-neorg/neorg/commit/87e55f3727ad84ecc261f7236892f4dbec82efc1))
+
 ## [9.0.2](https://github.com/nvim-neorg/neorg/compare/v9.0.1...v9.0.2) (2024-07-17)
 
 
