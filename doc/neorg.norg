@@ -50,11 +50,6 @@ version: 0.1
 
 *** Unordered lists
 
-    |example
-    - Unordered list level 1
-    -- Unordered list level 2
-    |end
-
     - Unordered list level 1
     -- Unordered list level 2
     --- Unordered list level 3
@@ -64,20 +59,15 @@ version: 0.1
 
 *** Ordered lists
 
-    |example
     ~ Ordered list level 1
     ~~ Ordered list level 2
     ~~~ Ordered list level 3
     ~~~~ Ordered list level 4
     ~~~~~ Ordered list level 5
     ~~~~~~ Ordered list level 6
-    |end
-
-    *NOTE: For proper ordered list rendering ensure you are running Neovim >= `0.10.0`*
 
 *** Tasks
 
-    |example
     - ( ) Undone -> not done yet
     - (x) Done -> done with that
     - (?) Needs further input
@@ -88,17 +78,12 @@ version: 0.1
     - (-) Pending -> currently in progress
     - (=) Task put on hold
     - (_) Task cancelled (put down)
-    |end
 
     The task modifier can be placed on any detached modifier, including
     headings, definitions, footnotes etc. to track their state.
 
 *** Quotes
 
-    |example
-    > 1. level quote
-    >> 2. level quote
-    |end
     > 1. level quote
     >> 2. level quote
     >>> 3. level quote
@@ -238,7 +223,7 @@ version: 0.1
 
 *** Multi-paragraph definitions
 
-    $$ Object to be defined
+    $$ Term
     Here, I can place any number of paragraphs or other format objects.
 
     Even a code example:
@@ -258,8 +243,7 @@ version: 0.1
     ^ This is the title of my footnote. I can use this as a link target.
     This is the actual footnote content.
 
-    This is no longer part of the {^ This is the title of my footnote. I can use this as a link
-    target}[footnote].
+    This is no longer part of the footnote.
 
 *** Multi-paragraph footnotes
 
@@ -355,11 +339,7 @@ version: 0.1
 
     Note: You can:*not* combine sub- and superscripts like so:
 
-    ^,This should be super- and subscript.,^ - why though?
-
-    You will notice that this gets highlighted as an error:
-
-    ^,This should be super- and subscript.,^
+    ^,This should be super- and subscript.,^ - gets highlighted as an error.
 
 *** Variables
 
