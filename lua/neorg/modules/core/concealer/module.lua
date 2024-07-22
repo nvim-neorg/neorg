@@ -649,7 +649,15 @@ module.public = {
     icon_removers = {
         quote = function(_, bufid, node)
             for _, content in ipairs(node:field("content")) do
-                vim.api.nvim_buf_clear_namespace(bufid, module.private.ns_icon, (content:start()), (content:end_()) + 1)
+                local end_row, end_col = content:end_()
+
+                -- This counteracts the issue where a quote can span onto the next
+                -- line, even though it shouldn't.
+                if end_col == 0 then
+                    end_row = end_row - 1
+                end
+
+                vim.api.nvim_buf_clear_namespace(bufid, module.private.ns_icon, (content:start()), end_row + 1)
             end
         end,
     }
@@ -1114,14 +1122,6 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
     local nodes, concealed_node_ids =
         query_get_nodes(get_parsed_query_lazy(), document_root, bufid, row_start_0b, row_end_0bex)
 
-    local pos_start_0b_0b = { x = row_start_0b, y = 0 }
-    local pos_end_0bin_0bex = { x = row_end_0bex - 1, y = get_line_length(bufid, row_end_0bex - 1) }
-
-    for i = 1, #nodes do
-        check_min(pos_start_0b_0b, nodes[i]:start())
-        check_max(pos_end_0bin_0bex, nodes[i]:end_())
-    end
-
     local winid = vim.fn.bufwinid(bufid)
     assert(winid > 0)
     local current_row_0b = vim.api.nvim_win_get_cursor(winid)[1] - 1
@@ -1132,14 +1132,19 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
     assert(document_root)
 
     for _, node in ipairs(nodes) do
-        local node_row_start_0b, _, _node_row_end_0bin = node:range()
-        local node_row_end_0bex = _node_row_end_0bin + 1
+        local node_row_start_0b, node_col_start_0b, node_row_end_0bin, node_col_end_0bex = node:range()
+        local node_row_end_0bex = node_row_end_0bin + 1
         local config = module.private.config_by_node_name[node:type()]
 
         if config.clear then
             config:clear(bufid, node)
         else
-            remove_extmarks(bufid, { x = node_row_start_0b, y = 0 }, { x = node_row_end_0bex - 1, y =  get_line_length(bufid, node_row_end_0bex - 1)})
+            local pos_start_0b_0b, pos_end_0bin_0bex = { x = node_row_start_0b, y = node_col_start_0b }, { x = node_row_end_0bin, y = node_col_end_0bex }
+
+            check_min(pos_start_0b_0b, node:start())
+            check_max(pos_end_0bin_0bex, node:end_())
+
+            remove_extmarks(bufid, pos_start_0b_0b, pos_end_0bin_0bex)
         end
 
         remove_prettify_flag_range(bufid, node_row_start_0b, node_row_end_0bex)
