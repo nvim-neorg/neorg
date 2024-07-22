@@ -325,6 +325,10 @@ module.private = {
                     -- Insert a link to a date at the given position
                     -- ^Insert Date
                     { "<LocalLeader>id", "<Plug>(neorg.tempus.insert-date)", opts = { desc = "[neorg] Insert Date" } },
+
+                    -- Magnifies a code block to a separate buffer.
+                    -- ^Code Magnify
+                    { "<LocalLeader>cm", "<Plug>(neorg.looking-glass.magnify-code-block)", opts = { desc = "[neorg] Magnify Code Block" } },
                 },
 
                 i = {
@@ -334,10 +338,13 @@ module.private = {
                         "<Plug>(neorg.promo.promote)",
                         opts = { desc = "[neorg] Promote Object (Recursively)" },
                     },
+
                     -- Demote an object recursively
                     { "<C-d>", "<Plug>(neorg.promo.demote)", opts = { desc = "[neorg] Demote Object (Recursively)" } },
+
                     -- Create an iteration of e.g. a list item
                     { "<M-CR>", "<Plug>(neorg.itero.next-iteration)", opts = { desc = "[neorg] Continue Object" } },
+
                     -- Insert a link to a date at the current cursor position
                     -- ^Date
                     {
