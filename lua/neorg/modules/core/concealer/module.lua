@@ -517,7 +517,7 @@ module.public = {
                     row_last_0b = row_last_0b - 1
                 end
 
-                for line=row_0b, row_last_0b do
+                for line = row_0b, row_last_0b do
                     if get_line_length(bufid, line) > len then
                         for col = 1, len do
                             if config.icons[col] ~= nil then
@@ -660,7 +660,7 @@ module.public = {
                 vim.api.nvim_buf_clear_namespace(bufid, module.private.ns_icon, (content:start()), end_row + 1)
             end
         end,
-    }
+    },
 }
 
 module.config.public = {
@@ -1139,7 +1139,8 @@ local function prettify_range(bufid, row_start_0b, row_end_0bex)
         if config.clear then
             config:clear(bufid, node)
         else
-            local pos_start_0b_0b, pos_end_0bin_0bex = { x = node_row_start_0b, y = node_col_start_0b }, { x = node_row_end_0bin, y = node_col_end_0bex }
+            local pos_start_0b_0b, pos_end_0bin_0bex =
+                { x = node_row_start_0b, y = node_col_start_0b }, { x = node_row_end_0bin, y = node_col_end_0bex }
 
             check_min(pos_start_0b_0b, node:start())
             check_max(pos_end_0bin_0bex, node:end_())
