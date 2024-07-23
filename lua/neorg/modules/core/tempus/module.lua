@@ -462,7 +462,7 @@ module.private = {
 
 module.load = function()
     vim.keymap.set("", "<Plug>(neorg.tempus.insert-date)", lib.wrap(module.public.insert_date, false))
-    vim.keymap.set("", "<Plug>(neorg.tempus.insert-date.insert-mode)", lib.wrap(module.public.insert_date, true))
+    vim.keymap.set("i", "<Plug>(neorg.tempus.insert-date.insert-mode)", lib.wrap(module.public.insert_date, true))
 end
 
 return module
