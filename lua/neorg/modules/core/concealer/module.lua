@@ -1271,8 +1271,6 @@ local function update_cursor(event)
 end
 
 local function handle_init_event(event)
-    -- TODO: make sure only init once
-
     assert(vim.api.nvim_win_is_valid(event.window))
     update_cursor(event)
 
@@ -1315,30 +1313,38 @@ local function handle_init_event(event)
     language_tree:register_cbs({ on_changedtree = on_changedtree_callback })
     mark_all_lines_changed(event.buffer)
 
-    if module.config.public.folds and vim.api.nvim_win_is_valid(event.window) then
-        local wo = vim.wo[event.window]
-        wo.foldmethod = "expr"
-        wo.foldexpr = vim.treesitter.foldexpr and "v:lua.vim.treesitter.foldexpr()" or "nvim_treesitter#foldexpr()"
-        wo.foldtext = ""
+    if
+        module.config.public.folds
+        and vim.api.nvim_win_is_valid(event.window)
+        and vim.api.nvim_buf_is_valid(event.buffer)
+    then
+        vim.api.nvim_buf_call(event.buffer, function()
+            -- NOTE(vhyrro): `vim.wo` only supports `wo[winid][0]`,
+            -- hence the `buf_call` here.
+            local wo = vim.wo[event.window][0]
+            wo.foldmethod = "expr"
+            wo.foldexpr = vim.treesitter.foldexpr and "v:lua.vim.treesitter.foldexpr()" or "nvim_treesitter#foldexpr()"
+            wo.foldtext = ""
 
-        local init_open_folds = module.config.public.init_open_folds
-        local function open_folds()
-            vim.cmd("normal! zR")
-        end
-
-        if init_open_folds == "always" then
-            open_folds()
-        elseif init_open_folds == "never" then -- luacheck:ignore 542
-            -- do nothing
-        else
-            if init_open_folds ~= "auto" then
-                log.warn('"init_open_folds" must be "auto", "always", or "never"')
+            local init_open_folds = module.config.public.init_open_folds
+            local function open_folds()
+                vim.cmd("normal! zR")
             end
 
-            if wo.foldlevel == 0 then
+            if init_open_folds == "always" then
                 open_folds()
+            elseif init_open_folds == "never" then -- luacheck:ignore 542
+                -- do nothing
+            else
+                if init_open_folds ~= "auto" then
+                    log.warn('"init_open_folds" must be "auto", "always", or "never"')
+                end
+
+                if wo.foldlevel == 0 then
+                    open_folds()
+                end
             end
-        end
+        end)
     end
 end
 
