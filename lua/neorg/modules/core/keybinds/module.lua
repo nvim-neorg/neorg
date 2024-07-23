@@ -9,6 +9,8 @@ set of keys.
 
 To disable default keybinds, see the next section. To remap the existing keys, see [here](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds#remapping-keys).
 
+To find common problems, consult the [FAQ](https://github.com/nvim-neorg/neorg/wiki/User-Keybinds#faq).
+
 ### Disabling Default Keybinds
 
 By default when you load the `core.keybinds` module all keybinds will be enabled. If you would like to change this, be sure to set `default_keybinds` to `false`:
@@ -60,6 +62,19 @@ This way, your remapped keys will never interfere with other files.
 ### Discovering Keys
 
 A comprehensive list of all keybinds can be found on [this page!](https://github.com/nvim-neorg/neorg/wiki/Default-Keybinds)
+
+## FAQ
+
+### Some (or all) keybinds do not work
+
+Neorg refuses to bind keys when it knows they'll interfere with your configuration.
+Run `:checkhealth neorg` to see a full list of what keys Neorg has considered "conflicted"
+or "rebound".
+
+If you see that *all* of your keybinds are in conflict, you're likely using a plugin that is mapping to your
+local leader key. This is a known issue with older versions of `which-key.nvim`. Since version `3.0` of which-key the issue has been fixed - we
+recommend updating to the latest version to resolve the errors.
+
 --]]
 
 local neorg = require("neorg.core")
