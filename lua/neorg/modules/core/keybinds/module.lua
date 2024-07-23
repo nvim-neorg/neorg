@@ -328,7 +328,11 @@ module.private = {
 
                     -- Magnifies a code block to a separate buffer.
                     -- ^Code Magnify
-                    { "<LocalLeader>cm", "<Plug>(neorg.looking-glass.magnify-code-block)", opts = { desc = "[neorg] Magnify Code Block" } },
+                    {
+                        "<LocalLeader>cm",
+                        "<Plug>(neorg.looking-glass.magnify-code-block)",
+                        opts = { desc = "[neorg] Magnify Code Block" },
+                    },
                 },
 
                 i = {
