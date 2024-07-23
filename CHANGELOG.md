@@ -1,5 +1,22 @@
 # Changelog
 
+## [9.1.0](https://github.com/nvim-neorg/neorg/compare/v9.0.3...v9.1.0) (2024-07-23)
+
+
+### Features
+
+* add `&lt;LocalLeader&gt;cm` keybind for code block magnification ([c52c00f](https://github.com/nvim-neorg/neorg/commit/c52c00f72c85d3ca258de623e40e64c3e552185a))
+* **concealer:** properly display blockquotes, allow entities to set their own clear functions ([28bbefc](https://github.com/nvim-neorg/neorg/commit/28bbefcfce10a51d7d834c6b6c0f7229bc6b38e1))
+
+
+### Bug Fixes
+
+* **`:h neorg`:** remove `|example` blocks until parser is fixed ([a93190d](https://github.com/nvim-neorg/neorg/commit/a93190db5b804c7db7d2f8f4d1c7edf6414cbe39))
+* `insert-date` not working in insert mode ([7af14b3](https://github.com/nvim-neorg/neorg/commit/7af14b30b6ce9321e5a399eb6eb491ad111b0cda))
+* **concealer:** don't overflow folds into other, non-norg files ([19e4bea](https://github.com/nvim-neorg/neorg/commit/19e4beabdcd6080ececbd5ffcb7ecb50b1590461))
+* **concealer:** properly render quotes ([08277bb](https://github.com/nvim-neorg/neorg/commit/08277bb5cf1b310d2527adcb0d613a8625c7b3d3))
+* **concealer:** quote and list rendering bugs ([e292cf5](https://github.com/nvim-neorg/neorg/commit/e292cf5f3d19a8066e13928ff00efece10915124))
+
 ## [9.0.3](https://github.com/nvim-neorg/neorg/compare/v9.0.2...v9.0.3) (2024-07-19)
 
 
