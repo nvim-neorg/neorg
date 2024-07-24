@@ -79,6 +79,7 @@ module.private = {
     callbacks = {},
 }
 
+--- @class core.clipboard
 module.public = {
     add_callback = function(node_type, func, strict)
         module.private.callbacks[node_type] = module.private.callbacks[node_type] or {}

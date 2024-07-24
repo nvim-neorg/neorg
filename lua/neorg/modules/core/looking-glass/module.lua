@@ -33,6 +33,7 @@ module.load = function()
     vim.keymap.set("", "<Plug>(neorg.looking-glass.magnify-code-block)", module.public.magnify_code_block)
 end
 
+---@class core.looking-glass
 module.public = {
     sync_text_segment = function(source, source_window, source_start, source_end, target, target_window)
         -- Create a unique but deterministic namespace name for the code block

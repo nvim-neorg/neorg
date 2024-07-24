@@ -304,6 +304,7 @@ module.config.public = {
     strategy = "default",
 }
 
+---@class core.summary
 module.public = {
     ---@param buf integer? the buffer to insert the summary to
     ---@param cursor_pos integer[]? a tuple of row, col of the cursor positon (see nvim_win_get_cursor())
