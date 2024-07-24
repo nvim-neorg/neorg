@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.1.1](https://github.com/nvim-neorg/neorg/compare/v9.1.0...v9.1.1) (2024-07-24)
+
+
+### Bug Fixes
+
+* non-functional toggling of sublists ([#1492](https://github.com/nvim-neorg/neorg/issues/1492)) ([169495c](https://github.com/nvim-neorg/neorg/commit/169495ca3ed67f919589499d20fa89bfea9e4de4))
+
 ## [9.1.0](https://github.com/nvim-neorg/neorg/compare/v9.0.3...v9.1.0) (2024-07-23)
 
 
