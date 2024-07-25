@@ -7,7 +7,7 @@ local modules = neorg.modules
 
 local module = modules.create("core.ui.text_popup")
 
----@class core.ui
+---@class core.ui.text_popup
 module.public = {
     --- Opens a floating window at the specified position and asks for user input
     ---@param name string #The name of the floating window

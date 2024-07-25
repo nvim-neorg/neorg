@@ -13,6 +13,47 @@ local utils = require("neorg.core.utils")
 
 --- @alias neorg.module.public { version: string, [any]: any }
 
+--- @class (exact) neorg.module.resolver
+--- @field ["core.autocommands"] core.autocommands
+--- @field ["core.clipboard"] core.clipboard
+--- @field ["core.completion"] core.completion
+--- @field ["core.concealer"] core.concealer
+--- @field ["core.dirman"] core.dirman
+--- @field ["core.esupports.hop"] core.esupports.hop
+--- @field ["core.esupports.indent"] core.esupports.indent
+--- @field ["core.esupports.metagen"] core.esupports.metagen
+--- @field ["core.export"] core.export
+--- @field ["core.export.markdown"] core.export.markdown
+--- @field ["core.fs"] core.fs
+--- @field ["core.highlights"] core.highlights
+--- @field ["core.integrations.treesitter"] core.integrations.treesitter
+--- @field ["core.itero"] core.itero
+--- @field ["core.journal"] core.journal
+--- @field ["core.keybinds"] core.keybinds
+--- @field ["core.latex.renderer"] core.latex.renderer
+--- @field ["core.links"] core.links
+--- @field ["core.looking-glass"] core.looking-glass
+--- @field ["core.neorgcmd"] core.neorgcmd
+--- @field ["core.pivot"] core.pivot
+--- @field ["core.presenter"] core.presenter
+--- @field ["core.promo"] core.promo
+--- @field ["core.qol.toc"] core.qol.toc
+--- @field ["core.qol.todo_items"] core.qol.todo_items
+--- @field ["core.queries.native"] core.queries.native
+--- @field ["core.scanner"] core.scanner
+--- @field ["core.storage"] core.storage
+--- @field ["core.summary"] core.summary
+--- @field ["core.syntax"] core.syntax
+--- @field ["core.tangle"] core.tangle
+--- @field ["core.tempus"] core.tempus
+--- @field ["core.text-objects"] core.text-objects
+--- @field ["core.todo-introspector"] core.todo-introspector
+--- @field ["core.ui"] core.ui
+--- @field ["core.ui.calendar"] core.ui.calendar
+--- @field ["core.ui.calendar.views.monthly"] core.ui.calendar.views.monthly
+--- @field ["core.ui.selection_popup"] core.ui.selection_popup
+--- @field ["core.ui.text_popup"] core.ui.text_popup
+
 --- Defines both a public and private configuration for a Neorg module.
 --- Public configurations may be tweaked by the user from the `neorg.setup()` function,
 --- whereas private configurations are for internal use only.
@@ -41,7 +82,7 @@ local utils = require("neorg.core.utils")
 --- @field path string The full path to the module (a more verbose version of `name`). May be used in lua's `require()` statements.
 --- @field public private? table A convenience table to place all of your private variables that you don't want to expose.
 --- @field public public? neorg.module.public Every module can expose any set of information it sees fit through this field. All functions and variables declared in this table will be visiable to any other module loaded.
---- @field required? table<string, neorg.module.public> Contains the public tables of all modules that were required via the `requires` array provided in the `setup()` function of this module.
+--- @field required? neorg.module.resolver Contains the public tables of all modules that were required via the `requires` array provided in the `setup()` function of this module.
 --- @field setup? fun(): neorg.module.setup? Function that is invoked before any other loading occurs. Should perform preliminary startup tasks.
 --- @field replaced? boolean If `true`, this means the module is a replacement for a core module. This flag is set automatically whenever `setup().replaces` is set to a value.
 --- @field on_event fun(event: neorg.event) A callback that is invoked any time an event the module has subscribed to has fired.

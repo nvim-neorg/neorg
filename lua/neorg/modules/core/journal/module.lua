@@ -414,6 +414,7 @@ module.config.private = {
     },
 }
 
+---@class core.journal
 module.public = {
     version = "0.0.9",
 }

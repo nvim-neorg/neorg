@@ -13,6 +13,7 @@ local modules = neorg.modules
 
 local module = modules.create("core.fs")
 
+---@class core.fs
 module.public = {
     directory_map = function(path, callback)
         for name, type in vim.fs.dir(path) do

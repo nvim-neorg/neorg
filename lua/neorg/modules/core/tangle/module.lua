@@ -219,6 +219,7 @@ local function get_comment_string(language)
     return commentstring
 end
 
+---@class core.tangle
 module.public = {
     tangle = function(buffer)
         ---@type core.integrations.treesitter

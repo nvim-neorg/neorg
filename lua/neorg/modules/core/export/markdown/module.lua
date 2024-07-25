@@ -206,6 +206,7 @@ module.config.public = {
     extension = "md",
 }
 
+--- @class core.export.markdown
 module.public = {
     export = {
         init_state = function()

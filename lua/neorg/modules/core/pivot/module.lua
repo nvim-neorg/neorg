@@ -84,6 +84,7 @@ module.private = {
     end,
 }
 
+---@class core.pivot
 module.public = {
     ---@param invert boolean
     change_list = neorg.utils.wrap_dotrepeat(function(invert)
