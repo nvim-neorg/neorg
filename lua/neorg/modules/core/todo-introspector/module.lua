@@ -1,3 +1,12 @@
+--[[
+    file: Todo-Introspector
+    title: Displays how many subtasks are done in a task
+    summary: Module for displaying progress of completed subtasks in the virtual line.
+    ---
+
+When a todo list item has a list of subtasks this module enables virtual text in the top level item and displays the
+progress of the subtasks. By default it displays in the format of [completed/total] (progress%).
+--]]
 local neorg = require("neorg")
 local modules = neorg.modules
 
@@ -10,10 +19,49 @@ module.private = {
     buffers = {},
 }
 
--- NOTE(vhyrro): This module serves as a temporary proof of concept.
--- We will want to add a plethora of customizability options after the base behaviour is implemented.
 ---@class core.todo-introspector
-module.config.public = {}
+module.config.public = {
+
+    -- Highlight group to display introspector in.
+    --
+    -- Defaults to "Normal".
+    highlight_group = "Normal",
+
+    -- Which status types to count towards the totol.
+    --
+    -- Defaults to the following: `done`, `pending`, `undone`, `urgent`.
+    counted_statuses = {
+        "done",
+        "pending",
+        "undone",
+        "urgent",
+    },
+
+    -- Which status should count towards the completed count (should be a subset of counted_statuses).
+    --
+    -- Defaults to the following: `done`.
+    completed_statuses = {
+        "done",
+    },
+
+    -- Callback to format introspector. Takes in two parameters:
+    -- * `completed`: number of completed tasks
+    -- * `total`: number of total counted tasks
+    --
+    -- Should return a string with the format you want to display the introspector in.
+    --
+    -- Defaults to "[completed/total] (progress%)"
+    format = function(completed, total)
+        -- stylua: ignore start
+        return string.format(
+            "[%d/%d] (%d%%)",
+            completed,
+            total,
+            (total ~= 0 and math.floor((completed / total) * 100) or 0)
+        )
+        -- stylua: ignore end
+    end,
+}
 
 module.setup = function()
     return {
@@ -115,19 +163,13 @@ end
 
 --- Aggregates TODO item counts from children.
 ---@param node TSNode
----@return { undone: number, pending: number, done: number, cancelled: number, recurring: number, on_hold: number, urgent: number, uncertain: number }
----@return number total
+---@return number completed Total number of completed tasks
+---@return number total Total number of counted tasks
 function module.public.calculate_items(node)
-    local counts = {
-        undone = 0,
-        pending = 0,
-        done = 0,
-        cancelled = 0,
-        recurring = 0,
-        on_hold = 0,
-        urgent = 0,
-        uncertain = 0,
-    }
+    local counts = {}
+    for _, status in ipairs(module.config.public.counted_statuses) do
+        counts[status] = 0
+    end
 
     local total = 0
 
@@ -138,26 +180,32 @@ function module.public.calculate_items(node)
                 if status:type():match("^todo_item_") then
                     local type = status:type():match("^todo_item_(.+)$")
 
-                    counts[type] = counts[type] + 1
-
-                    if type == "cancelled" then
+                    if not counts[type] then
                         break
                     end
 
+                    counts[type] = counts[type] + 1
                     total = total + 1
                 end
             end
         end
     end
 
-    return counts, total
+    local completed = 0
+    for _, status in ipairs(module.config.public.completed_statuses) do
+        if counts[status] then
+            completed = completed + counts[status]
+        end
+    end
+
+    return completed, total
 end
 
 --- Displays the amount of done items in the form of an extmark.
 ---@param buffer number
 ---@param node TSNode
 function module.public.perform_introspection(buffer, node)
-    local counts, total = module.public.calculate_items(node)
+    local completed, total = module.public.calculate_items(node)
 
     local line, col = node:start()
 
@@ -167,25 +215,11 @@ function module.public.perform_introspection(buffer, node)
         return
     end
 
-    local curated_total = counts.done + counts.undone + counts.pending + counts.urgent
-
-    -- TODO: Make configurable, make colours customizable, don't display [x/total]
-    -- as the total also includes things like uncertain tasks.
-    --
-    -- NOTE(vhyrro): The selection of done/undone/pending/urgent is a curated arbitrary list for now (and a common-case scenario).
-    -- Yet again, should be customizable :)
-    --
-    -- TODO(vhyrro): Extract the whole string building logic to a function so that it can be used outside of Neorg for other things.
     vim.api.nvim_buf_set_extmark(buffer, module.private.namespace, line, col, {
         virt_text = {
             {
-                string.format(
-                    "[%d/%d] (%d%%)",
-                    counts.done,
-                    curated_total,
-                    (curated_total ~= 0 and math.floor((counts.done / curated_total) * 100) or 0)
-                ),
-                "Normal",
+                module.config.public.format(completed, total),
+                module.config.public.highlight_group,
             },
         },
         invalidate = true,
