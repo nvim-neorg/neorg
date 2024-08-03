@@ -116,7 +116,6 @@ module.config.public = {
 ---|"urgent"
 ---|"uncertain"
 
----@class core.qol.todo_items
 module.private = {
     --- Updates the parent todo item for the current todo item if it exists
     ---@param recursion_level number the index of the parent to change. The higher the number the more the code will traverse up the syntax tree.
@@ -420,6 +419,7 @@ local function task_set(character, name)
     end)
 end
 
+---@class core.qol.todo_items
 module.public = {
     ["task-done"] = task_set("x", "done"),
     ["task-undone"] = task_set(" ", "undone"),

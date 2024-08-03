@@ -325,6 +325,8 @@ end
 
 ---@class core.journal
 module.public = {
+    version = "1.0.0",
+  
     ---Opens a diary entry at the given time
     ---@param journal_name string journal name
     ---@param date? number #The time to open the journal entry at as returned by `os.time()`

@@ -101,7 +101,6 @@ module.config.public = {
     },
 }
 
----@class core.text-objects
 module.private = {
     get_element_from_cursor = function(node_pattern)
         local node_at_cursor = vim.treesitter.get_node()
@@ -165,6 +164,7 @@ module.private = {
     end,
 }
 
+---@class core.text-objects
 module.public = {
     move_up = function()
         local config = module.config.public.moveables

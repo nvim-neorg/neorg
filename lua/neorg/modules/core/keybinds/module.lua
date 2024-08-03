@@ -109,6 +109,7 @@ module.config.public = {
     preset = "neorg",
 }
 
+---@class core.keybinds
 module.public = {
     --- Adds a set of default keys for Neorg to bind.
     --- Should be used exclusively by external modules wanting to provide their own default keymaps.

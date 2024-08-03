@@ -79,6 +79,7 @@ module.load = function()
     vim.keymap.set("!", "<Plug>(neorg.itero.next-iteration)", module.public.next_iteration_cr)
 end
 
+---@class core.itero
 module.public = {
     next_iteration_cr = function()
         local cursor = vim.api.nvim_win_get_cursor(0)

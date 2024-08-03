@@ -154,6 +154,7 @@ module.private.get_key = function(range)
     return ("%d:%d"):format(range[1], range[2])
 end
 
+---@class core.latex.renderer
 module.public = {
     ---@async
     ---@param buf number

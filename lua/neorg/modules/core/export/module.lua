@@ -69,6 +69,7 @@ module.config.public = {
     export_dir = "<export-dir>/<language>-export",
 }
 
+---@class core.export
 module.public = {
     --- Returns a module that can handle conversion from `.norg` to the target filetype
     ---@param ftype string #The filetype to export to

@@ -78,6 +78,7 @@ module.private = {
     available_languages = {},
 }
 
+---@class core.syntax
 module.public = {
 
     -- fills module.private.loaded_code_blocks with the list of active code blocks in the buffer

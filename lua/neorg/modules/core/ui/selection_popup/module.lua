@@ -8,7 +8,7 @@ local lib = neorg.lib
 
 local module = modules.create("core.ui.selection_popup")
 
----@class core.ui
+---@class core.ui.selection_popup
 module.public = {
     --- Constructs a new selection
     ---@param buffer number #The number of the buffer the selection should attach to

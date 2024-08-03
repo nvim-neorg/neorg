@@ -571,6 +571,7 @@ module.private = {
     end,
 }
 
+---@class core.ui.calendar.views.monthly
 module.public = {
 
     view_name = "monthly",
