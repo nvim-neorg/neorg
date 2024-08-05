@@ -48,8 +48,10 @@ module.load = function()
             pattern = "*.norg",
             callback = function()
                 vim.schedule(function()
-                    next_open_is_auto = true
-                    vim.cmd([[Neorg toc]])
+                    if vim.bo.filetype == "norg" then
+                        next_open_is_auto = true
+                        vim.cmd([[Neorg toc]])
+                    end
                 end)
             end,
         })
