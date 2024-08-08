@@ -1,11 +1,12 @@
 --[[
     file: Todo-Introspector
-    title: Displays how many subtasks are done in a task
+    title: See Your Progress at a Glance
+    description: The introspector module displays progress for nested tasks.
     summary: Module for displaying progress of completed subtasks in the virtual line.
     ---
 
-When a todo list item has a list of subtasks this module enables virtual text in the top level item and displays the
-progress of the subtasks. By default it displays in the format of [completed/total] (progress%).
+When an item with a TODO status has children with their own TODOs this module enables virtual text in the top level item and displays the
+progress of the subtasks. By default it displays in the format of `[completed/total] (progress%)`.
 --]]
 local neorg = require("neorg")
 local modules = neorg.modules
