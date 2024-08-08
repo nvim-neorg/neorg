@@ -406,6 +406,9 @@ module.private = {
                     self:select_current_day(ui_info, date)
 
                     vim.api.nvim_buf_set_option(ui_info.buffer, "modifiable", false)
+                    vim.api.nvim_buf_set_option(ui_info.buffer, "filetype", "prompt")
+                    vim.api.nvim_buf_set_option(ui_info.buffer, "cursorcolumn", true)
+                    vim.api.nvim_buf_set_option(ui_info.buffer, "cursorline", true)
                     vim.api.nvim_set_option_value("winfixbuf", true, { win = ui_info.window })
 
                     return
