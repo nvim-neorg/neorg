@@ -7,15 +7,15 @@ This module handles the whole concept of toggling TODO items, as well as updatin
 parent and/or children items alongside the current item.
 
 The following keybinds are exposed:
-- `<Plug>(neorg.qol.todo_items.todo.task-done)` (`<LocalLeader>td`)
-- `<Plug>(neorg.qol.todo_items.todo.task-undone)` (`<LocalLeader>tu`)
-- `<Plug>(neorg.qol.todo_items.todo.task-pending)` (`<LocalLeader>tp`)
-- `<Plug>(neorg.qol.todo_items.todo.task-on_hold)` (`<LocalLeader>th`)
-- `<Plug>(neorg.qol.todo_items.todo.task-cancelled)` (`<LocalLeader>tc`)
-- `<Plug>(neorg.qol.todo_items.todo.task-recurring)` (`<LocalLeader>tr`)
-- `<Plug>(neorg.qol.todo_items.todo.task-important)` (`<LocalLeader>ti`)
-- `<Plug>(neorg.qol.todo_items.todo.task-cycle)` (`<C-Space>`)
-- `<Plug>(neorg.qol.todo_items.todo.task-cycle-reverse)` (no default keybind)
+- `<Plug>(neorg.qol.todo-items.todo.task-done)` (`<LocalLeader>td`)
+- `<Plug>(neorg.qol.todo-items.todo.task-undone)` (`<LocalLeader>tu`)
+- `<Plug>(neorg.qol.todo-items.todo.task-pending)` (`<LocalLeader>tp`)
+- `<Plug>(neorg.qol.todo-items.todo.task-on_hold)` (`<LocalLeader>th`)
+- `<Plug>(neorg.qol.todo-items.todo.task-cancelled)` (`<LocalLeader>tc`)
+- `<Plug>(neorg.qol.todo-items.todo.task-recurring)` (`<LocalLeader>tr`)
+- `<Plug>(neorg.qol.todo-items.todo.task-important)` (`<LocalLeader>ti`)
+- `<Plug>(neorg.qol.todo-items.todo.task-cycle)` (`<C-Space>`)
+- `<Plug>(neorg.qol.todo-items.todo.task-cycle-reverse)` (no default keybind)
 
 With your cursor on a line that contains an item with a TODO attribute, press
 any of the above keys to toggle the state of that particular item.
