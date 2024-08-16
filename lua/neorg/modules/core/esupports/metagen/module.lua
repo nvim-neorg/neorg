@@ -145,6 +145,24 @@ module.config.public = {
     delimiter = ": ",
 
     -- Custom template to use for generating content inside `@document.meta` tag
+    -- The template is a list of lists, each defining a key-value pair of metadata
+    --
+    -- Example:
+    -- ```
+    -- template = {
+    --   -- Default field name without a value will fall back to the default behavior
+    --   { "title" },
+    --   -- Set a custom value for "authors" field
+    --   { "authors", "Vhyrro" },
+    --   -- Fields can be set by lua functions
+    --   {
+    --     "categories",
+    --     function()
+    --       return {"Category-1", "Category-2"}
+    --     end
+    --   }
+    -- }
+    -- ```
     template = default_template,
 
     -- Custom author name that overrides default value if not nil or empty
