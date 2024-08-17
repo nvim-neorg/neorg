@@ -154,7 +154,7 @@ use {
 
 ### Other Plugin Managers
 
-Because of the complexities of `luarocks` we are choosing not to supported other plugin managers for the time
+Because of the complexities of `luarocks`, we are choosing not to support other plugin managers for the time
 being. It is actively on our TODO list, however!
 
 ## 📚 Further Learning
