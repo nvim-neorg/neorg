@@ -1,5 +1,5 @@
 --- @brief [[
---- Defines user callbacks - ways for the user to directly interact with Neorg and respon on certain events.
+--- Defines user callbacks - ways for the user to directly interact with Neorg and respond on certain events.
 --- @brief ]]
 
 --- @module "neorg.core.modules"
