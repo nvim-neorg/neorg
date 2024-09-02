@@ -333,6 +333,7 @@ module.private = {
             local row, _, _, column = node:named_child(0):range() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
 
             vim.api.nvim_buf_set_text(buf, row, column, row, column, { "(" .. char .. ") " })
+            module.private.update_parent(buf, row, 0)
         else
             local range = module.required["core.integrations.treesitter"].get_node_range(first_status_extension)
 
@@ -344,6 +345,7 @@ module.private = {
                 range.column_end,
                 { char }
             )
+            module.private.update_parent(buf, range.row_start, 0)
         end
 
         for child in node:iter_children() do ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
