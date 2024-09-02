@@ -300,7 +300,9 @@ module.config.public = {
     -- - "default" - read the metadata to categorize and annotate files. Files
     --   without metadata will use the top level heading as the title. If no headings are present, the filename will be used.
     -- - "by_path" - Similar to "default" but uses the capitalized name of the folder containing a *.norg file as category.
-    ---@type string|fun(files: PathlibPath[], ws_root: PathlibPath, heading_level: number?, include_categories: string[]?): string[]?
+    -- - A custom function with the signature:
+    --   `fun(files: PathlibPath[], ws_root: PathlibPath, heading_level: number?, include_categories: string[]?): string[]?`.
+    --   Returning a list of lines that make up the summary
     strategy = "default",
 }
 
