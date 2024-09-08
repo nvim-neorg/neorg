@@ -139,7 +139,7 @@ module.private = {
             if not file:samefile(Path.new(vim.api.nvim_buf_get_name(0))) then
                 local rel = file:relative_to(files[1], false)
                 if rel and rel:len() > 0 then
-                    local link = "{:$/" .. rel:with_suffix(""):tostring() .. closing_chars
+                    local link = "$/" .. rel:with_suffix(""):tostring() .. closing_chars
                     table.insert(res, link)
                 end
             end
@@ -160,14 +160,11 @@ module.private = {
         end
         local links = module.private.get_linkables(source, node_type)
         local closing_chars = module.private.get_closing_chars(context, false)
-        return vim.tbl_map(function(x)
-            return leading_whitespace .. x.title .. closing_chars
-        end, links)
-        -- return vim.iter(links)
-        --     :map(function(x)
-        --         return leading_whitespace .. x.title .. closing_chars
-        --     end)
-        --     :totable()
+        return vim.iter(links)
+            :map(function(x)
+                return leading_whitespace .. x.title .. closing_chars
+            end)
+            :totable()
     end,
 
     --- All the things that you can link to (`{#|}` completions)
