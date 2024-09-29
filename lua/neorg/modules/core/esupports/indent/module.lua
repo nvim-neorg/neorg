@@ -13,6 +13,10 @@ which will get better and better with time.
 To reindent a file, you may use the inbuilt Neovim `=` operator.
 Indent levels are also calculated as you type, but may not be entirely correct
 due to incomplete syntax trees (if you find any such examples, then file an issue!).
+
+It is also noteworthy that indents add the indentation level to the beginning of the line
+and doesn't carry on the indentation level from the previous heading, meaning that if both heading1
+and heading2 have an indentation level of 4, heading2 will not be indented an additional 4 spaces from heading1.
 --]]
 
 local neorg = require("neorg.core")
@@ -309,6 +313,9 @@ module.config.public = {
 
     -- Tweaks are user defined `node_name` => `indent_level` mappings,
     -- allowing the user to overwrite the indentation level for certain nodes.
+    --
+    -- Nodes can be found via treesitter's `:InspectTree`. For example,
+    -- indenting an unordered list can be done with `unordered_list2 = 4`
     tweaks = {},
 
     -- When true, will reformat the current line every time you press `<CR>` (Enter).
