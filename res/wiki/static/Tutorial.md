@@ -167,6 +167,9 @@ On its own, this is just a list... not very useful, is it? However, norg allows 
 
 A TODO status is marked by the regular brackets right after the item itself. In our case, there's just a space inbetween the brackets - this means the task is *undone*.
 
+> [!TIP]
+> If you have the concealer enabled, this will change the task to a x. This does not mean the task is done as this is shown by a checkmark (see below).
+
 Now let's say I finished watching the "how to delete emacs" video, and I would like to mark it as complete. Put your cursor on the same line as the task and press `Ctrl + Space`!
 This will toggle the state of the item to "done".
 
