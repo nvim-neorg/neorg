@@ -709,7 +709,7 @@ module.config.public = {
                 render = module.public.icon_renderers.on_left,
             },
             undone = {
-                icon = "×",
+                icon = " ",
                 nodes = { "todo_item_undone" },
                 render = module.public.icon_renderers.on_left,
             },
