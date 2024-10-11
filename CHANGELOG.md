@@ -1,5 +1,21 @@
 # Changelog
 
+## [9.2.0](https://github.com/nvim-neorg/neorg/compare/v9.1.1...v9.2.0) (2024-10-11)
+
+
+### Features
+
+* automatically typed `module.required` dependencies ([#1537](https://github.com/nvim-neorg/neorg/issues/1537)) ([1985f2d](https://github.com/nvim-neorg/neorg/commit/1985f2d6f152622b0066f48ba8e39d157635dd38))
+* **introspector:** implement introspector customizability and improvements ([#1539](https://github.com/nvim-neorg/neorg/issues/1539)) ([fd11950](https://github.com/nvim-neorg/neorg/commit/fd11950048d111b837b9f615c5d023e79bd1af9a))
+
+
+### Bug Fixes
+
+* don't suggest leading chars for file completions ([ba35900](https://github.com/nvim-neorg/neorg/commit/ba35900b21921c439e676b063a79c8fad914eac9))
+* intuitive default undone icon ([#1578](https://github.com/nvim-neorg/neorg/issues/1578)) ([13d1d54](https://github.com/nvim-neorg/neorg/commit/13d1d546684c83ba464adbf463a8a272c884e1e8))
+* Neorg return to most recent file ([e5e797e](https://github.com/nvim-neorg/neorg/commit/e5e797e6eddcb6efb1d2c3fc2612b31ad9a76cef))
+* **ToC:** only try to open when still in norg buffer ([#1549](https://github.com/nvim-neorg/neorg/issues/1549)) ([88dbab5](https://github.com/nvim-neorg/neorg/commit/88dbab5325ce07092ab7a38b160bc8e988830524))
+
 ## [9.1.1](https://github.com/nvim-neorg/neorg/compare/v9.1.0...v9.1.1) (2024-07-24)
 
 
