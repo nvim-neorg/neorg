@@ -11,8 +11,18 @@ To set it up, first be sure to set the `zen_mode` variable in the [configuration
 Afterwards, run `:Neorg presenter start` on any Norg file. The presenter will split up your file
 at each level 1 heading, and display each in a different slide.
 
-NOTE: This module is due for a rewrite. All of its behaviour is not fully documented here as it will be
-overwritten soon anyway.
+NOTE: This module is due for a rewrite. All of its behaviour is not fully documented here as it will
+be overwritten soon anyway.
+
+## Keybinds
+
+This module exposes the following keybinds (see [`core.keybinds`](@core.keybinds) for instructions on
+mapping them):
+
+- `neorg.presenter.next-page` - go to next page
+- `neorg.presenter.previous-page` - go to previous page
+- `neorg.presenter.close` - close presentation view
+
 --]]
 
 local neorg = require("neorg.core")

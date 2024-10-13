@@ -5,6 +5,16 @@
     embed: https://user-images.githubusercontent.com/76052559/151668244-9805afc4-8c50-4925-85ec-1098aff5ede6.gif
     internal: true
     ---
+
+## Keybinds
+
+This module exposes the following keybinds (see [`core.keybinds`](@core.keybinds) for instructions on
+mapping them):
+
+- `neorg.treesitter.next.heading` - jump to the next heading
+- `neorg.treesitter.next.link` - jump to the next link
+- `neorg.treesitter.previous.heading` - jump to the previous heading
+- `neorg.treesitter.previous.link` - jump to the previous link
 --]]
 
 local neorg = require("neorg.core")
