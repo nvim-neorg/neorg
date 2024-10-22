@@ -22,6 +22,19 @@ In insert mode, you are also provided with two keybinds, also being Neovim defau
 - `<C-d>` decrease the indentation level for the current object
 
 This module is commonly used with the [`core.itero`](@core.itero) module for an effective workflow.
+
+## Keybinds
+
+This module exposes the following keybinds (see [`core.keybinds`](@core.keybinds) for instructions on
+mapping them):
+
+- `neorg.promo.promote` - Promote item on current line
+- `neorg.promo.promote.nested` - Promote current line and nested items
+- `neorg.promo.promote.range` - Promote all items in range
+- `neorg.promo.demote` - similar
+- `neorg.promo.demote.nested` - similar
+- `neorg.promo.demote.range` - similar
+
 --]]
 
 local neorg = require("neorg.core")

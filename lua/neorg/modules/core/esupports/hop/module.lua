@@ -9,6 +9,14 @@ The hop module serves to provide an easy way to follow and fix broken links with
 By default, pressing `<CR>` in normal mode under a link will attempt to follow said link.
 If the link location is found, you will be taken to the destination - if it is not, you will be
 prompted with a set of actions that you can perform on the broken link.
+
+## Keybinds
+
+This module exposes the following keybinds (see [`core.keybinds`](@core.keybinds) for instructions on
+mapping them):
+
+- `neorg.esupports.hop.hop-link` - Follow the link under the cursor, seeks forward
+- `neorg.esupports.hop.hop-link.vsplit` - Same, but open the link in a vertical split
 --]]
 
 local neorg = require("neorg.core")

@@ -9,7 +9,7 @@
 headings and other repeatable (iterable) items.
 
 By default, the key that is used to iterate on an item is `<M-CR>` (Alt + Enter). If you want to
-change the bind, remap the `core.itero.next-iteration` event.
+change the bind, remap the `neorg.itero.next-iteration` event.
 
 Begin by writing an initial item you'd like to iterate (in this instance, and unordered list item):
 ```md
