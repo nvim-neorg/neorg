@@ -36,7 +36,7 @@ After a recent update `core.dirman` will no longer change the current working di
 workspace. To get the best experience it's recommended to set the `autochdir` Neovim option.
 
 
-### Create a new note
+### Create a new note (in lua)
 You can use dirman to create new notes in your workspaces.
 
 ```lua
@@ -47,6 +47,14 @@ dirman.create_file("my_file", "my_ws", {
     metadata = {}      -- key-value table for metadata fields
 })
 ```
+
+## Keybinds
+
+This module exposes the following keybinds (see [`core.keybinds`](@core.keybinds) for instructions on
+mapping them):
+
+- `neorg.dirman.new-note` - Create a new note in the current workspace, prompt for name
+
 --]]
 
 local Path = require("pathlib")

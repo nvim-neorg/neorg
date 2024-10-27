@@ -6,7 +6,7 @@
 This module handles the whole concept of toggling TODO items, as well as updating
 parent and/or children items alongside the current item.
 
-The following keybinds are exposed:
+The following keybinds are exposed (with their default binds):
 - `<Plug>(neorg.qol.todo-items.todo.task-done)` (`<LocalLeader>td`)
 - `<Plug>(neorg.qol.todo-items.todo.task-undone)` (`<LocalLeader>tu`)
 - `<Plug>(neorg.qol.todo-items.todo.task-pending)` (`<LocalLeader>tp`)

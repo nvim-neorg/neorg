@@ -7,6 +7,14 @@
 `core.tempus` is an internal module specifically designed
 to handle complex dates. It exposes two functions: `parse_date(string) -> date|string`
 and `to_lua_date(date) -> osdate`.
+
+## Keybinds
+
+This module exposes the following keybinds (see [`core.keybinds`](@core.keybinds) for instructions on
+mapping them):
+
+- `neorg.tempus.insert-date` - Insert date at cursor position (called from normal mode)
+- `neorg.tempus.insert-date.insert-mode` - Insert date at cursor position (called from insert mode)
 --]]
 
 local neorg = require("neorg.core")
