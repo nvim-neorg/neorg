@@ -67,17 +67,39 @@ module.public = {
                     return callback()
                 end
 
-                local completion_cache = module.public.invoke_completion_engine(args)
+                local row, col = unpack(args.pos)
+                local line = args.line
+                local before_char = line:sub(#line, #line)
+                -- Neorg requires a nvim-compe like context nvim-compe defines
+                -- the following fields. Not all of them are used by Neorg, but
+                -- they are left here for future reference
+                local context = {
+                    start_offset = nil,
+                    char = col + 1,
+                    before_char = before_char,
+                    line = line,
+                    column = nil,
+                    buffer = nil,
+                    line_number = row + 1,
+                    previous_context = nil,
+                    full_line = line,
+                }
+                local completion_cache = module.public.invoke_completion_engine(context)
+                local prev = line:match("({.*)$")
 
                 if completion_cache.options.pre then
-                    completion_cache.options.pre(args)
+                    completion_cache.options.pre(context)
                 end
 
                 local completions = vim.deepcopy(completion_cache.items)
 
                 for index, element in ipairs(completions) do
-                    local word = element
-                    local label = element
+                    -- coq_nvim requries at least 2 exact prefix characters by
+                    -- default. Users could chagnge this setting, but instead
+                    -- we are providing the start of the match (for links) so
+                    -- coq_nvim doesnt' filter our results
+                    local word = (prev or "") .. element
+                    local label = (prev or "") .. element
                     if type(element) == "table" then
                         word = element[1]
                         label = element.label
