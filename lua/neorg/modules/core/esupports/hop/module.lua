@@ -19,6 +19,8 @@ mapping them):
 - `neorg.esupports.hop.hop-link.vsplit` - Same, but open the link in a vertical split
 - `neorg.esupports.hop.hop-link.tab-drop` - Same as hop-link, but open the link in a new tab; if the destination is already
                                             open in an existing tab then just navigate to that tab (check :help :drop)
+- `neorg.esupports.hop.hop-link.drop` - Same as hop-link, but navigate to the buffer if the destination is already open
+                                        in an existing buffer (check :help :drop)
 --]]
 
 local neorg = require("neorg.core")
@@ -44,6 +46,7 @@ module.load = function()
     dirman_utils = module.required["core.dirman.utils"]
     vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link)", module.public.hop_link)
     vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link.vsplit)", lib.wrap(module.public.hop_link, "vsplit"))
+    vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link.drop)", lib.wrap(module.public.hop_link, "drop"))
     vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link.tab-drop)", lib.wrap(module.public.hop_link, "tab-drop"))
 end
 
@@ -219,13 +222,16 @@ module.public = {
                 end,
 
                 buffer = function()
-                    if open_mode ~= "tab-drop" then
+                    if open_mode ~= "tab-drop" and open_mode ~= "drop" then
                         open_split()
                     end
 
                     if located_link_information.buffer ~= vim.api.nvim_get_current_buf() then
                         if open_mode == "tab-drop" then
                             vim.cmd("tab drop " .. vim.api.nvim_buf_get_name(located_link_information.buffer))
+                            return
+                        elseif open_mode == "drop" then
+                            vim.cmd("drop " .. vim.api.nvim_buf_get_name(located_link_information.buffer))
                             return
                         end
 

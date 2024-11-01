@@ -306,6 +306,13 @@ module.private = {
                         opts = { desc = "[neorg] Jump to Link (Tab Drop)" },
                     },
 
+                    -- Same as `<CR>`, except if destination is already open in a buffer, just navigate to it
+                    {
+                        "<C-d>",
+                        "<Plug>(neorg.esupports.hop.hop-link.drop)",
+                        opts = { desc = "[neorg] Jump to Link (Drop)" },
+                    },
+
                     -- Promote an object non-recursively
                     {
                         ">.",
