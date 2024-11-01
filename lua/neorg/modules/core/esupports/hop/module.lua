@@ -17,6 +17,8 @@ mapping them):
 
 - `neorg.esupports.hop.hop-link` - Follow the link under the cursor, seeks forward
 - `neorg.esupports.hop.hop-link.vsplit` - Same, but open the link in a vertical split
+- `neorg.esupports.hop.hop-link.tab-drop` - Same as hop-link, but open the link in a new tab; if the destination is already
+                                            open in an existing tab then just navigate to that tab (check :help :drop)
 --]]
 
 local neorg = require("neorg.core")
