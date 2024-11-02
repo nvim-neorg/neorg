@@ -229,14 +229,12 @@ module.public = {
                     if located_link_information.buffer ~= vim.api.nvim_get_current_buf() then
                         if open_mode == "tab-drop" then
                             vim.cmd("tab drop " .. vim.api.nvim_buf_get_name(located_link_information.buffer))
-                            return
                         elseif open_mode == "drop" then
                             vim.cmd("drop " .. vim.api.nvim_buf_get_name(located_link_information.buffer))
-                            return
+                        else
+                            vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
+                            vim.api.nvim_set_current_buf(located_link_information.buffer)
                         end
-
-                        vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
-                        vim.api.nvim_set_current_buf(located_link_information.buffer)
                     end
 
                     if located_link_information.line then
