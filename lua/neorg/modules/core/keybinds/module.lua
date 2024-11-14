@@ -301,7 +301,7 @@ module.private = {
                     -- Same as `<CR>`, except open the destination in a new tab
                     -- If destination is already open in an existing tab, just navigate to it
                     {
-                        "<C-t>",
+                        "<M-t>",
                         "<Plug>(neorg.esupports.hop.hop-link.tab-drop)",
                         opts = { desc = "[neorg] Jump to Link (Tab Drop)" },
                     },
