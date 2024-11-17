@@ -13,6 +13,7 @@ The `tangle` module currently provides a single command:
 - `:Neorg tangle current-file` - performs all possible tangling operations on the current file
 
 ### Usage Tutorial
+
 By default, *zero* code blocks are tangled. You must provide where you'd like to tangle each code
 block manually (global configuration will be discussed later). To do so, add a `#tangle
 <output-file>` tag above the code block you'd wish to export, where <output-file> is relative to the
@@ -25,6 +26,10 @@ print("Hello World!")
 @end
 ```
 The above snippet will *only* tangle that single code block to the desired output file: `init.lua`.
+
+> [!WARNING]
+> Due to a bug in the norg treesitter parser, `#tangle ./init.lua` or `#tangle folder/init.lua` will not work
+> As a result, we recommend specifying files destinations in metadata
 
 #### Global Tangling for Single Files
 Apart from tangling a single or a set of code blocks, you can declare a global output file in the document's metadata:
@@ -50,6 +55,17 @@ tangle: [
 
 The above snippet tells the Neorg tangling engine to tangle all `lua` code blocks to `./init.lua` and all `haskell` code blocks to `./output.hs`.
 As always if any of the code blocks have a `#tangle` tag then that takes precedence.
+
+If you want to be more verbose, or you're tangling to a file without an extension (perhaps you're
+writing a shell script that has a shebang) you can also do this:
+```norg
+@document.meta
+tangle: {
+    lua: ./init.lua
+    python: ./output
+}
+@end
+```
 
 #### Ignoring Code Blocks
 Sometimes when tangling you may want to omit some code blocks. For this you may use the `#tangle.none` tag:
@@ -166,17 +182,21 @@ local lib, modules, utils, log = neorg.lib, neorg.modules, neorg.utils, neorg.lo
 
 local module = modules.create("core.tangle")
 local Path = require("pathlib")
+---@type core.dirman.utils
+local dirman_utils
 
 module.setup = function()
     return {
         requires = {
             "core.integrations.treesitter",
+            "core.dirman.utils",
             "core.neorgcmd",
         },
     }
 end
 
 module.load = function()
+    dirman_utils = module.required["core.dirman.utils"]
     modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             tangle = {
@@ -348,7 +368,7 @@ module.public = {
                     local path_lib_path = Path.new(file_to_tangle_to)
                     if path_lib_path:is_relative() then
                         local buf_path = Path.new(buf_name)
-                        file_to_tangle_to = tostring(buf_path:parent():child(file_to_tangle_to):resolve())
+                        file_to_tangle_to = tostring(dirman_utils.expand_pathlib(file_to_tangle_to, true, buf_path):resolve())
                     end
 
                     local delimiter_content
@@ -477,14 +497,7 @@ module.on_event = function(event)
         local tangled_count = 0
 
         for file, content in pairs(tangles) do
-            -- resolve upward relative path like `../../`
-            local relative_file, upward_count = string.gsub(file, "%.%.[\\/]", "")
-            if upward_count > 0 then
-                local base_dir = vim.fn.expand("%:p" .. string.rep(":h", upward_count + 1)) --[[@as string]]
-                file = vim.fs.joinpath(base_dir, relative_file)
-            end
-
-            vim.loop.fs_open(vim.fn.expand(file) --[[@as string]], "w", 438, function(err, fd)
+            vim.loop.fs_open(file, "w", 438, function(err, fd)
                 assert(not err and fd, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
                 local write_content = table.concat(content, "\n")
