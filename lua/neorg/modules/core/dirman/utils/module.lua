@@ -19,12 +19,9 @@ local module = neorg.modules.create("core.dirman.utils")
 module.public = {
     ---Resolve `$<workspace>/path/to/file` and return the real path
     ---@param path string | PathlibPath # path
-    ---@param raw_path boolean? # If true, returns resolved path, otherwise, returns resolved path
-    ---and append ".norg"
-    ---@param host_file string | PathlibPath | nil file the link resides in, if the link is
-    ---relative, this file is used instead of the current file
-    ---@return PathlibPath?, boolean? # Resolved path. If path does not start with `$` or not absolute, adds
-    ---relative from current file.
+    ---@param raw_path boolean? # If true, returns resolved path, otherwise, returns resolved path and append ".norg"
+    ---@param host_file string | PathlibPath | nil file the link resides in, if the link is relative, this file is used instead of the current file
+    ---@return PathlibPath?, boolean? # Resolved path. If path does not start with `$` or not absolute, adds relative from current file.
     expand_pathlib = function(path, raw_path, host_file)
         local relative = false
         if not host_file then
