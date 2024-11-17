@@ -368,7 +368,8 @@ module.public = {
                     local path_lib_path = Path.new(file_to_tangle_to)
                     if path_lib_path:is_relative() then
                         local buf_path = Path.new(buf_name)
-                        file_to_tangle_to = tostring(dirman_utils.expand_pathlib(file_to_tangle_to, true, buf_path):resolve())
+                        file_to_tangle_to =
+                            tostring(dirman_utils.expand_pathlib(file_to_tangle_to, true, buf_path):resolve())
                     end
 
                     local delimiter_content
