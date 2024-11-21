@@ -97,6 +97,7 @@ module.load = function()
     vim.api.nvim_create_user_command("Neorg", module.private.command_callback, {
         nargs = "*",
         complete = module.private.generate_completions,
+        range = 2,
     })
 
     -- Loop through all the command modules we want to load and load them
@@ -295,12 +296,14 @@ module.private = {
             module.events.defined[ref.name] = modules.define_event(module, ref.name)
         end
 
+        local content = vim.list_slice(args, argument_index + 1)
+        content["data"] = data
         modules.broadcast_event(
             assert(
                 modules.create_event(
                     module,
                     table.concat({ "core.neorgcmd.events.", ref.name }),
-                    vim.list_slice(args, argument_index + 1)
+                    content
                 )
             )
         )
