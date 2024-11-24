@@ -97,7 +97,47 @@ module.setup = function()
     }
 end
 
-module.private = {
+module.config.public = {
+    -- Which workspace to use for the journal files, the default behaviour
+    -- is to use the current workspace.
+    --
+    -- It is recommended to set this to a static workspace, but the most optimal
+    -- behaviour may vary from workflow to workflow.
+    workspace = nil,
+
+    -- The name for the folder in which the journal files are put.
+    journal_folder = "journal",
+
+    -- The strategy to use to create directories.
+    -- May be "flat" (`2022-03-02.norg`), "nested" (`2022/03/02.norg`),
+    -- a lua string with the format given to `os.date()` or a lua function
+    -- that returns a lua string with the same format.
+    strategy = "nested",
+
+    -- The name of the template file to use when running `:Neorg journal template`.
+    template_name = "template.norg",
+
+    -- Whether to apply the template file to new journal entries.
+    use_template = true,
+
+    -- Formatter function used to generate the toc file.
+    -- Receives a table that contains tables like { yy, mm, dd, link, title }.
+    --
+    -- The function must return a table of strings.
+    toc_format = nil,
+}
+
+module.config.private = {
+    strategies = {
+        flat = "%Y-%m-%d.norg",
+        nested = "%Y" .. config.pathsep .. "%m" .. config.pathsep .. "%d.norg",
+    },
+}
+
+---@class core.journal
+module.public = {
+    version = "0.0.9",
+
     --- Opens a diary entry at the given time
     ---@param time? number #The time to open the journal entry at as returned by `os.time()`
     ---@param custom_date? string #A YYYY-mm-dd string that specifies a date to open the diary at instead
@@ -148,20 +188,19 @@ module.private = {
 
     --- Opens a diary entry for tomorrow's date
     diary_tomorrow = function()
-        module.private.open_diary(os.time() + 24 * 60 * 60)
+        module.public.open_diary(os.time() + 24 * 60 * 60)
     end,
 
     --- Opens a diary entry for yesterday's date
     diary_yesterday = function()
-        module.private.open_diary(os.time() - 24 * 60 * 60)
+        module.public.open_diary(os.time() - 24 * 60 * 60)
     end,
 
     --- Opens a diary entry for today's date
     diary_today = function()
-        module.private.open_diary()
+        module.public.open_diary()
     end,
 
-    --- Creates a template file
     create_template = function()
         local workspace = module.config.public.workspace
         local folder_name = module.config.public.journal_folder
@@ -183,7 +222,7 @@ module.private = {
         if module.required["core.dirman"].file_exists(folder_name .. config.pathsep .. index) then
             module.required["core.dirman"].open_file(workspace, folder_name .. config.pathsep .. index)
         else
-            module.private.create_toc()
+            module.public.create_toc()
         end
     end,
 
@@ -377,48 +416,6 @@ module.private = {
     end,
 }
 
-module.config.public = {
-    -- Which workspace to use for the journal files, the default behaviour
-    -- is to use the current workspace.
-    --
-    -- It is recommended to set this to a static workspace, but the most optimal
-    -- behaviour may vary from workflow to workflow.
-    workspace = nil,
-
-    -- The name for the folder in which the journal files are put.
-    journal_folder = "journal",
-
-    -- The strategy to use to create directories.
-    -- May be "flat" (`2022-03-02.norg`), "nested" (`2022/03/02.norg`),
-    -- a lua string with the format given to `os.date()` or a lua function
-    -- that returns a lua string with the same format.
-    strategy = "nested",
-
-    -- The name of the template file to use when running `:Neorg journal template`.
-    template_name = "template.norg",
-
-    -- Whether to apply the template file to new journal entries.
-    use_template = true,
-
-    -- Formatter function used to generate the toc file.
-    -- Receives a table that contains tables like { yy, mm, dd, link, title }.
-    --
-    -- The function must return a table of strings.
-    toc_format = nil,
-}
-
-module.config.private = {
-    strategies = {
-        flat = "%Y-%m-%d.norg",
-        nested = "%Y" .. config.pathsep .. "%m" .. config.pathsep .. "%d.norg",
-    },
-}
-
----@class core.journal
-module.public = {
-    version = "0.0.9",
-}
-
 module.load = function()
     if module.config.private.strategies[module.config.public.strategy] then
         module.config.public.strategy = module.config.private.strategies[module.config.public.strategy]
@@ -452,9 +449,9 @@ end
 module.on_event = function(event)
     if event.split_type[1] == "core.neorgcmd" then
         if event.split_type[2] == "journal.tomorrow" then
-            module.private.diary_tomorrow()
+            module.public.diary_tomorrow()
         elseif event.split_type[2] == "journal.yesterday" then
-            module.private.diary_yesterday()
+            module.public.diary_yesterday()
         elseif event.split_type[2] == "journal.custom" then
             if not event.content[1] then
                 local calendar = modules.get_module("core.ui.calendar")
@@ -466,7 +463,7 @@ module.on_event = function(event)
 
                 calendar.select_date({
                     callback = vim.schedule_wrap(function(osdate)
-                        module.private.open_diary(
+                        module.public.open_diary(
                             nil,
                             string.format("%04d", osdate.year)
                                 .. "-"
@@ -477,16 +474,16 @@ module.on_event = function(event)
                     end),
                 })
             else
-                module.private.open_diary(nil, event.content[1])
+                module.public.open_diary(nil, event.content[1])
             end
         elseif event.split_type[2] == "journal.today" then
-            module.private.diary_today()
+            module.public.diary_today()
         elseif event.split_type[2] == "journal.template" then
-            module.private.create_template()
+            module.public.create_template()
         elseif event.split_type[2] == "journal.toc.open" then
-            module.private.open_toc()
+            module.public.open_toc()
         elseif event.split_type[2] == "journal.toc.update" then
-            module.private.create_toc()
+            module.public.create_toc()
         end
     end
 end
