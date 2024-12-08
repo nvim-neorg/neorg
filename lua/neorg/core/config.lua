@@ -36,7 +36,7 @@
 local function get_os_info()
     local os = vim.loop.os_uname().sysname:lower()
 
-    if os:find("windows_nt") then
+    if os:find("windows_nt") or os:find("mingw32_nt") then
         return "windows"
     elseif os == "darwin" then
         return "mac"
