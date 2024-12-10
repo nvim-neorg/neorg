@@ -162,7 +162,7 @@ module.public = {
     get_workspace = function(name)
         return module.config.public.workspaces[name]
     end,
-    --- Returns a table in the format { "workspace_name", "path" }
+    --- @return { [1]: string, [2]: PathlibPath }
     get_current_workspace = function()
         return module.private.current_workspace
     end,
@@ -471,6 +471,20 @@ module.public = {
                 end
             end)
         end
+    end,
+
+    ---Is the file a part of the given workspace?
+    ---@param file PathlibPath
+    ---@param workspace_name string? workspace or current ws when nil
+    ---@return boolean
+    in_workspace = function(file, workspace_name)
+        local ws_path
+        if not workspace_name then
+            ws_path = module.private.current_workspace[2]
+        else
+            ws_path = module.public.get_workspace(workspace_name)
+        end
+        return not not file:match("^" .. ws_path)
     end,
 }
 
