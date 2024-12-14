@@ -299,13 +299,7 @@ module.private = {
         local content = vim.list_slice(args, argument_index + 1)
         content["data"] = data
         modules.broadcast_event(
-            assert(
-                modules.create_event(
-                    module,
-                    table.concat({ "core.neorgcmd.events.", ref.name }),
-                    content
-                )
-            )
+            assert(modules.create_event(module, table.concat({ "core.neorgcmd.events.", ref.name }), content))
         )
     end,
 
