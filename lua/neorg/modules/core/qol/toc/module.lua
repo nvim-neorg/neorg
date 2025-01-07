@@ -268,17 +268,21 @@ module.public = {
         local start_lines = { offset = offset }
         ui_data.start_lines = start_lines
 
+        ---@type vim.treesitter.Query
         toc_query = toc_query
             or utils.ts_parse_query(
                 "norg",
-                [[
-        (
-            [(heading1_prefix)(heading2_prefix)(heading3_prefix)(heading4_prefix)(heading5_prefix)(heading6_prefix)]@prefix
-            .
-            state: (detached_modifier_extension (_)@modifier)?
-            .
-            title: (paragraph_segment)@title
-        )]]
+                [[ (
+                  [(heading1_prefix)
+                   (heading2_prefix)
+                   (heading3_prefix)
+                   (heading4_prefix)
+                   (heading5_prefix)
+                   (heading6_prefix)
+                  ] @prefix
+                  state: (detached_modifier_extension . (_)@modifier)?
+                  title: (paragraph_segment) @title
+                ) ]]
             )
 
         local norg_root = module.required["core.integrations.treesitter"].get_document_root(norg_buffer)
