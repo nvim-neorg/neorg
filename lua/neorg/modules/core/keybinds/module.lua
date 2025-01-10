@@ -213,6 +213,14 @@ module.private = {
                         "<Plug>(neorg.dirman.new-note)",
                         opts = { desc = "[neorg] Create New Note" },
                     },
+
+                    -- Create a Table of Contents
+                    -- ^Table of Contents
+                    {
+                        "gO",
+                        "<cmd>Neorg toc<CR>",
+                        opts = { desc = "[neorg] Create Table of Contents" },
+                    },
                 },
             },
             norg = {
