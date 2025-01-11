@@ -56,7 +56,7 @@
    headings, lists, and quotes. 
 
    To disable part of the config, replace the table with `false`, or prepend `false and` to it.
-   For example: `done = false` or `done = false and { ... }`. 
+   For example: `done = false` or `done = false and { ... \}`. 
 
 *** code_block (table)
 

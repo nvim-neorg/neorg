@@ -49,7 +49,7 @@
      - Create an autocommand using `vim.api.nvim_create_autocmd`:
        `lua   vim.api.nvim_create_autocmd("Filetype", {       pattern = "norg",       callback = function()           vim.keymap.set("n", "my-key-here", "<Plug>(neorg.pivot.list.toggle)", { buffer = true })       end,   })` 
 
-     Notice that in both situations a `{ buffer = true }` was supplied to the function.
+     Notice that in both situations a `{ buffer = true \}` was supplied to the function.
      This way, your remapped keys will never interfere with other files. 
 
 *** Discovering Keys

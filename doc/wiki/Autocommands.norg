@@ -11,7 +11,7 @@
 
 ****** NOTE: This module will be soon deprecated, and it’s favourable to use the `vim.api*` functions instead.
 
-       In your `module.setup()`, make sure to require `core.autocommands` (`requires = { "core.autocommands" }`)
+       In your `module.setup()`, make sure to require `core.autocommands` (`requires = { "core.autocommands" \}`)
        Afterwards in a function of your choice that gets called /after/ core.autocommmands gets intialized (e.g. `load()`): 
 
        @code lua
