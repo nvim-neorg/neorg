@@ -119,55 +119,55 @@ TODO: Rewrite parts of this to be more clear (remove the quotes).
     -- bootstrap lazy.nvim
     local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
     if not vim.loop.fs_stat(lazypath) then
-    vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
-    lazypath,
-    })
+        vim.fn.system({
+            "git",
+            "clone",
+            "--filter=blob:none",
+            "https://github.com/folke/lazy.nvim.git",
+            "--branch=stable", -- latest stable release
+            lazypath,
+        })
     end
     vim.opt.rtp:prepend(lazypath)
 
     require('lazy').setup({
-    {
-    "nvim-neorg/neorg",
-    build = ":Neorg sync-parsers",
-    opts = {
-    load = {
-    ["core.defaults"] = {}, -- Loads default behaviour
-    ["core.concealer"] = {}, -- Adds pretty icons to your documents
-    ["core.dirman"] = { -- Manages Neorg workspaces
-    config = {
-    workspaces = {
-    notes = "~/notes",
-    },
-    default_workspace = "notes",
-    },
-    },
-    },
-    },
-    dependencies = {
-    { "nvim-lua/plenary.nvim", },
-    {
-    -- YOU ALMOST CERTAINLY WANT A MORE ROBUST nvim-treesitter SETUP
-    -- see https://github.com/nvim-treesitter/nvim-treesitter
-    "nvim-treesitter/nvim-treesitter",
-    opts = {
-    auto_install = true,
-    highlight = {
-    enable = true,
-    additional_vim_regex_highlighting = false,
-    },
-    },
-    config = function(_,opts)
-    require('nvim-treesitter.configs').setup(opts)
-    end
-    },
-    { "folke/tokyonight.nvim", config=function(_,_) vim.cmd.colorscheme "tokyonight-storm" end,},
-    },
-    },
+        {
+            "nvim-neorg/neorg",
+            build = ":Neorg sync-parsers",
+            opts = {
+                load = {
+                    ["core.defaults"] = {}, -- Loads default behaviour
+                    ["core.concealer"] = {}, -- Adds pretty icons to your documents
+                    ["core.dirman"] = { -- Manages Neorg workspaces
+                        config = {
+                            workspaces = {
+                                notes = "~/notes",
+                            },
+                            default_workspace = "notes",
+                        },
+                    },
+                },
+            },
+            dependencies = {
+                { "nvim-lua/plenary.nvim", },
+                {
+                    -- YOU ALMOST CERTAINLY WANT A MORE ROBUST nvim-treesitter SETUP
+                    -- see https://github.com/nvim-treesitter/nvim-treesitter
+                    "nvim-treesitter/nvim-treesitter",
+                    opts = {
+                        auto_install = true,
+                        highlight = {
+                            enable = true,
+                            additional_vim_regex_highlighting = false,
+                        },
+                    },
+                    config = function(_,opts)
+                        require('nvim-treesitter.configs').setup(opts)
+                    end
+                },
+                { "folke/tokyonight.nvim", config=function(_,_) vim.cmd.colorscheme "tokyonight-storm" end,},
+            },
+        },
     })
     @end
 

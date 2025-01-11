@@ -83,7 +83,7 @@
      haskell: my-haskell-file
      }
      delimiter: heading
-     scope: all
+         scope: all
      }
      @end
      |end

@@ -28,9 +28,9 @@
 
    @code lua
    require("neorg").setup({
-   load = {
-   ["core.defaults"] = {},
-   }
+       load = {
+           ["core.defaults"] = {},
+       }
    })
    @end
 
@@ -66,10 +66,10 @@
 
    @code lua
    require("neorg").setup({
-   load = {
-   ["core.defaults"] = {},
-   ["core.concealer"] = {}, -- We added this line!
-   }
+       load = {
+           ["core.defaults"] = {},
+           ["core.concealer"] = {}, -- We added this line!
+       }
    })
    @end
 
@@ -103,14 +103,14 @@
 
    @code lua
    require("neorg").setup({
-   load = {
-   ["core.defaults"] = {},
-   ["core.concealer"] = {
-   config = { -- We added a `config` table!
-   icon_preset = "varied", -- And we set our option here.
-   },
-   },
-   }
+       load = {
+           ["core.defaults"] = {},
+           ["core.concealer"] = {
+               config = { -- We added a `config` table!
+                   icon_preset = "varied", -- And we set our option here.
+               },
+           },
+       }
    })
    @end
 

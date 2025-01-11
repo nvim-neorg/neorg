@@ -18,21 +18,21 @@
     ~ In your Neorg configuration: 
     @code lua
     load = {
-    ["core.defaults"] = {},
-    ["core.completion"] = {
-    config = {
-    engine = "nvim-cmp",
-    }
-    },
-    ["core.integrations.nvim-cmp"] = {},
+        ["core.defaults"] = {},
+        ["core.completion"] = {
+            config = {
+                engine = "nvim-cmp",
+            }
+        },
+        ["core.integrations.nvim-cmp"] = {},
     }
     @end
 
     ~ In your `nvim-cmp` configuration: 
     @code lua
     sources = cmp.config.sources({
-    -- ... your other sources here
-    { name = "neorg" },
+        -- ... your other sources here
+        { name = "neorg" },
     })
     @end
 
@@ -49,7 +49,7 @@
     @code lua
     load = {
     ["core.integrations.image"] = {},
-    ["core.latex.renderer"] = {},
+        ["core.latex.renderer"] = {},
     }
     @end
 

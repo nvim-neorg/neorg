@@ -17,18 +17,18 @@
 
   @code lua
   require('neorg').setup {
-  load = {
-  ["core.defaults"] = {},
-  ["core.dirman"] = {
-  config = {
-  workspaces = {
-  my_ws = "~/neorg", -- Format: <name_of_workspace> = <path_to_workspace_root>
-  my_other_notes = "~/work/notes",
-  },
-  index = "index.norg", -- The name of the main (root) .norg file
-  }
-  }
-  }
+      load = {
+          ["core.defaults"] = {},
+          ["core.dirman"] = {
+              config = {
+                  workspaces = {
+                      my_ws = "~/neorg", -- Format: <name_of_workspace> = <path_to_workspace_root>
+                      my_other_notes = "~/work/notes",
+                  },
+                  index = "index.norg", -- The name of the main (root) .norg file
+              }
+          }
+      }
   }
   @end
 
@@ -46,9 +46,9 @@
     @code lua
     local dirman = require('neorg').modules.get_module("core.dirman")
     dirman.create_file("my_file", "my_ws", {
-    no_open  = false,  -- open file after creation?
-    force    = false,  -- overwrite file if exists
-    metadata = {}      -- key-value table for metadata fields
+        no_open  = false,  -- open file after creation?
+        force    = false,  -- overwrite file if exists
+        metadata = {}      -- key-value table for metadata fields
     })
     @end
 

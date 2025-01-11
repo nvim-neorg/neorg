@@ -12,15 +12,15 @@
 
   @code lua
   load = {
-  ["core.defaults"] = {
-  config = {
-  disable = {
-  -- module list goes here
-  "core.autocommands",
-  "core.itero",
-  },
-  },
-  },
+      ["core.defaults"] = {
+          config = {
+              disable = {
+                  -- module list goes here
+                  "core.autocommands",
+                  "core.itero",
+              },
+          },
+      },
   }
   @end
 

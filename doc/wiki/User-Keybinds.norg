@@ -20,9 +20,9 @@
 
     @code lua
     ["core.keybinds"] = {
-    config = {
-    default_keybinds = false,
-    },
+        config = {
+            default_keybinds = false,
+        },
     }
     @end
 

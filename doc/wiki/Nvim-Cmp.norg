@@ -14,7 +14,7 @@
 
   @code lua
   sources = {
-  { name = "neorg" },
+      { name = "neorg" },
   },
   @end
 

@@ -81,9 +81,9 @@
 
    @code lua
    tags = {
-   ranged_verbatim = {
-   begin = "+@comment",
-   },
+       ranged_verbatim = {
+           begin = "+@comment",
+       },
    }
    @end
 
@@ -290,37 +290,37 @@
 
 ******* prefix (string)
 
-	default: `"+@neorg.headings.1.prefix"` 
+        default: `"+@neorg.headings.1.prefix"` 
 
 ****** 2 (table)
 
 ******* prefix (string)
 
-	default: `"+@neorg.headings.2.prefix"` 
+        default: `"+@neorg.headings.2.prefix"` 
 
 ****** 3 (table)
 
 ******* prefix (string)
 
-	default: `"+@neorg.headings.3.prefix"` 
+        default: `"+@neorg.headings.3.prefix"` 
 
 ****** 4 (table)
 
 ******* prefix (string)
 
-	default: `"+@neorg.headings.4.prefix"` 
+        default: `"+@neorg.headings.4.prefix"` 
 
 ****** 5 (table)
 
 ******* prefix (string)
 
-	default: `"+@neorg.headings.5.prefix"` 
+        default: `"+@neorg.headings.5.prefix"` 
 
 ****** 6 (table)
 
 ******* prefix (string)
 
-	default: `"+@neorg.headings.6.prefix"` 
+        default: `"+@neorg.headings.6.prefix"` 
 
 ***** marker (table)
 
@@ -591,11 +591,11 @@
 
 ******* bracket (string)
 
-	default: `"+@punctuation.bracket"` 
+        default: `"+@punctuation.bracket"` 
 
 ******* value (string)
 
-	default: `"+@none"` 
+        default: `"+@none"` 
 
 ****** authors (string)
 
@@ -625,7 +625,7 @@
 
 ******* bracket (string)
 
-	default: `"+@punctuation.bracket"` 
+        default: `"+@punctuation.bracket"` 
 
 ****** title (string)
 

@@ -68,14 +68,14 @@
 
    @code lua
    vim.keymap.set("n", "u", function()
-   require("neorg.modules").get_module("core.esupports.metagen").skip_next_update()
-   local k = vim.api.nvim_replace_termcodes("u<c-o>", true, false, true)
-   vim.api.nvim_feedkeys(k, 'n', false)
+       require("neorg.modules").get_module("core.esupports.metagen").skip_next_update()
+       local k = vim.api.nvim_replace_termcodes("u<c-o>", true, false, true)
+       vim.api.nvim_feedkeys(k, 'n', false)
    end)
    vim.keymap.set("n", "<C-r>", function()
-   require("neorg.modules").get_module("core.esupports.metagen").skip_next_update()
-   local k = vim.api.nvim_replace_termcodes("<c-r><c-o>", true, false, true)
-   vim.api.nvim_feedkeys(k, 'n', false)
+       require("neorg.modules").get_module("core.esupports.metagen").skip_next_update()
+       local k = vim.api.nvim_replace_termcodes("<c-r><c-o>", true, false, true)
+       vim.api.nvim_feedkeys(k, 'n', false)
    end)
    @end
 

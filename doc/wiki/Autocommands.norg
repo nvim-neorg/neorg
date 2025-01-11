@@ -16,7 +16,7 @@
 
        @code lua
        module.load = function()
-       module.required["core.autocommands"].enable_autocommand("VimLeavePre") -- Substitute VimLeavePre for any valid neovim autocommand
+           module.required["core.autocommands"].enable_autocommand("VimLeavePre") -- Substitute VimLeavePre for any valid neovim autocommand
        end
        @end
 
@@ -24,9 +24,9 @@
 
        @code lua
        module.events.subscribed = {
-       ["core.autocommands"] = {
-       vimleavepre = true
-       }
+           ["core.autocommands"] = {
+               vimleavepre = true
+           }
        }
        @end
 
@@ -34,8 +34,8 @@
 
        @code lua
        {
-       type = "core.autocommands.events.<name of autocommand, e.g. vimleavepre>",
-       broadcast = true
+           type = "core.autocommands.events.<name of autocommand, e.g. vimleavepre>",
+           broadcast = true
        }
        @end
 
