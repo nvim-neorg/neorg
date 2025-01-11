@@ -82,7 +82,7 @@
      lua: ./output.lua
      haskell: my-haskell-file
      }
-     delimiter: heading
+         delimiter: heading
          scope: all
      }
      @end
@@ -157,10 +157,10 @@
       |example
       @document.meta
       tangle: {
-      languages: {
-      lua: ./output.lua
-      }
-      scope: main
+          languages: {
+              lua: ./output.lua
+          }
+          scope: main
       }
       @end
 

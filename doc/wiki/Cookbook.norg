@@ -48,7 +48,7 @@
     ~ In your Neorg configuration: 
     @code lua
     load = {
-    ["core.integrations.image"] = {},
+        ["core.integrations.image"] = {},
         ["core.latex.renderer"] = {},
     }
     @end

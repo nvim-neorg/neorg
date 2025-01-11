@@ -215,16 +215,16 @@ Below I'll create an ordered list of stuff:
 
    @code lua
    require("neorg").setup({
-   load = {
-   ["core.defaults"] = {},
-   ["core.dirman"] = {
-   config = {
-   workspaces = {
-   notes = "~/notes",
-   },
-   },
-   },
-   },
+       load = {
+           ["core.defaults"] = {},
+           ["core.dirman"] = {
+               config = {
+                   workspaces = {
+                       notes = "~/notes",
+                   },
+               },
+           },
+       },
    })
    @end
 
