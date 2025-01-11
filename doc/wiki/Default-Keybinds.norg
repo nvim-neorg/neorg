@@ -5,7 +5,7 @@
 
 *** Further Reading
 
-    To find out how to rebind the available keys consult the {https://github.com/nvim-neorg/neorg/wiki/User-Keybinds}[`core.keybinds`] wiki entry. 
+    To find out how to rebind the available keys consult the {:User-Keybinds:}[`core.keybinds`] wiki entry. 
 
 ** Preset `neorg` // All Files
 

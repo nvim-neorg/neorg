@@ -54,7 +54,7 @@
      /Fantastic!/ Being able to mark up any text like this without any effort is very nice. 
 
      > [!NOTE]
-       If the bold, italic or underline are not showing properly you can find a troubleshooting guide {https://github.com/nvim-neorg/neorg/wiki/Dependencies}[here]! Terminals can be tricky sometimes. 
+       If the bold, italic or underline are not showing properly you can find a troubleshooting guide {:Dependencies:}[here]! Terminals can be tricky sometimes. 
 
 **** Lists
 
@@ -93,7 +93,7 @@ Below I'll create an ordered list of stuff:
      ~ Second thing
      |end
 
-     If you have the {https://github.com/nvim-neorg/neorg/wiki/Concealer}[concealer] module enabled this will automatically get visually converted into a numeric list. 
+     If you have the {:Concealer:}[concealer] module enabled this will automatically get visually converted into a numeric list. 
 
      This approach may seem very odd initially until it clicks. When you write lists using the `1.` syntax, any time you want to add an item or reorder the list, you have to manually update /all/ of the
      items afterwards, or keep track of what the index of the previous item was. Let’s say I have a list of 10 items, and I want to move the second item to the end. Now I have to change the numbers of all

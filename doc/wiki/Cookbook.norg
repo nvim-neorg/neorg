@@ -5,7 +5,7 @@
   for a just works experience. 
 
   > [!TIP]
-    If you’re looking for a quickstart setup to get you started with Neorg, check out the {https://github.com/nvim-neorg/neorg/wiki/Kickstart}[kickstart page] instead. 
+    If you’re looking for a quickstart setup to get you started with Neorg, check out the {:Kickstart:}[kickstart page] instead. 
 
 ** Completion with `nvim-cmp`
 

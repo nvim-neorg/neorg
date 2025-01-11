@@ -32,7 +32,7 @@
   * |
   @end
 
-  This functionality is commonly paired with the {https://github.com/nvim-neorg/neorg/wiki/Promo}[`core.promo`] module to then indent/dedent
+  This functionality is commonly paired with the {:Promo:}[`core.promo`] module to then indent/dedent
   the item under the cursor with the `<C-t>` and `<C-d>` bindings. 
 
 * Configuration
@@ -66,5 +66,5 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Treesitter-Integration}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
+  - {:Treesitter-Integration:}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
 

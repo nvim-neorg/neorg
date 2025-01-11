@@ -23,7 +23,7 @@
   - `<C-t>` increase the indentation level for the current object
   - `<C-d>` decrease the indentation level for the current object 
 
-  This module is commonly used with the {https://github.com/nvim-neorg/neorg/wiki/Itero}[`core.itero`] module for an effective workflow. 
+  This module is commonly used with the {:Itero:}[`core.itero`] module for an effective workflow. 
 
 * Configuration
 
@@ -31,6 +31,6 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Indent}[`core.esupports.indent`] - A set of instructions for Neovim to indent Neorg documents. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Treesitter-Integration}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
+  - {:Indent:}[`core.esupports.indent`] - A set of instructions for Neovim to indent Neorg documents. 
+  - {:Treesitter-Integration:}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
 

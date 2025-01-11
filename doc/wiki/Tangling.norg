@@ -207,6 +207,6 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Treesitter-Integration}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Neorgcmd-Module}[`core.neorgcmd`] - This module deals with handling everything related to the `:Neorg` command. 
+  - {:Treesitter-Integration:}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
+  - {:Neorgcmd-Module:}[`core.neorgcmd`] - This module deals with handling everything related to the `:Neorg` command. 
 

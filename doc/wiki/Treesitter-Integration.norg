@@ -68,31 +68,31 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Core-Highlights}[`core.highlights`] - Manages your highlight groups with this module. 
+  - {:Core-Highlights:}[`core.highlights`] - Manages your highlight groups with this module. 
 
 * Required By
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Clipboard}[`core.clipboard`] - A module to manipulate and interact with the user’s clipboard. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Completion}[`core.completion`] - A wrapper to interface with several different completion engines. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Concealer}[`core.concealer`] - Enhances the basic Neorg experience by using icons instead of text. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Esupports-Hop}[`core.esupports.hop`] - "Hop" between Neorg links, following them with a single keypress. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Indent}[`core.esupports.indent`] - A set of instructions for Neovim to indent Neorg documents. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Metagen}[`core.esupports.metagen`] - A Neorg module for generating document metadata automatically. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Exporting-Files}[`core.export`] - Exports Neorg documents into any other supported filetype. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Markdown-Export}[`core.export.markdown`] - Interface for `core.export` to allow exporting to markdown. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Itero}[`core.itero`] - Module designed to continue lists, headings and other iterables. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Journal}[`core.journal`] - Easily track a journal within Neorg. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Core-Latex-Renderer}[`core.latex.renderer`] - An experimental module for rendering latex images inline. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Looking-Glass}[`core.looking-glass`] - Allows for editing of code blocks within a separate buffer. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Pivot}[`core.pivot`] - Toggles the type of list currently under the cursor. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Core-Presenter}[`core.presenter`] - Neorg module to create gorgeous presentation slides. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Promo}[`core.promo`] - Promotes or demotes nestable items within Neorg files. 
-  - {https://github.com/nvim-neorg/neorg/wiki/TOC}[`core.qol.toc`] - Generates a table of contents for a given Norg buffer. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Todo-Items}[`core.qol.todo_items`] - Module for implementing todo lists. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Queries-Module}[`core.queries.native`] - TS wrapper in order to fetch nodes using a custom table. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Summary}[`core.summary`] - Creates links to all files in any workspace. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Syntax}[`core.syntax`] - Handles interaction for syntax files for code blocks. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Tangling}[`core.tangle`] - An Advanced Code Block Exporter. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Norg-Text-Objects}[`core.text-objects`] - A Neorg module for moving and selecting elements of the document. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Todo-Introspector}[`core.todo-introspector`] - Module for displaying progress of completed subtasks in the virtual line. 
+  - {:Clipboard:}[`core.clipboard`] - A module to manipulate and interact with the user’s clipboard. 
+  - {:Completion:}[`core.completion`] - A wrapper to interface with several different completion engines. 
+  - {:Concealer:}[`core.concealer`] - Enhances the basic Neorg experience by using icons instead of text. 
+  - {:Esupports-Hop:}[`core.esupports.hop`] - "Hop" between Neorg links, following them with a single keypress. 
+  - {:Indent:}[`core.esupports.indent`] - A set of instructions for Neovim to indent Neorg documents. 
+  - {:Metagen:}[`core.esupports.metagen`] - A Neorg module for generating document metadata automatically. 
+  - {:Exporting-Files:}[`core.export`] - Exports Neorg documents into any other supported filetype. 
+  - {:Markdown-Export:}[`core.export.markdown`] - Interface for `core.export` to allow exporting to markdown. 
+  - {:Itero:}[`core.itero`] - Module designed to continue lists, headings and other iterables. 
+  - {:Journal:}[`core.journal`] - Easily track a journal within Neorg. 
+  - {:Core-Latex-Renderer:}[`core.latex.renderer`] - An experimental module for rendering latex images inline. 
+  - {:Looking-Glass:}[`core.looking-glass`] - Allows for editing of code blocks within a separate buffer. 
+  - {:Pivot:}[`core.pivot`] - Toggles the type of list currently under the cursor. 
+  - {:Core-Presenter:}[`core.presenter`] - Neorg module to create gorgeous presentation slides. 
+  - {:Promo:}[`core.promo`] - Promotes or demotes nestable items within Neorg files. 
+  - {:TOC:}[`core.qol.toc`] - Generates a table of contents for a given Norg buffer. 
+  - {:Todo-Items:}[`core.qol.todo_items`] - Module for implementing todo lists. 
+  - {:Queries-Module:}[`core.queries.native`] - TS wrapper in order to fetch nodes using a custom table. 
+  - {:Summary:}[`core.summary`] - Creates links to all files in any workspace. 
+  - {:Syntax:}[`core.syntax`] - Handles interaction for syntax files for code blocks. 
+  - {:Tangling:}[`core.tangle`] - An Advanced Code Block Exporter. 
+  - {:Norg-Text-Objects:}[`core.text-objects`] - A Neorg module for moving and selecting elements of the document. 
+  - {:Todo-Introspector:}[`core.todo-introspector`] - Module for displaying progress of completed subtasks in the virtual line. 
 

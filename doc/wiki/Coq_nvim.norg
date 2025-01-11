@@ -5,7 +5,7 @@
 
 * Overview
 
-  This module works with the {https://github.com/nvim-neorg/neorg/wiki/Completion}[`core.completion`] module to attempt to provide
+  This module works with the {:Completion:}[`core.completion`] module to attempt to provide
   intelligent completions. Note that integrations like this are second-class citizens and may not work in 100%
   of scenarios. If they don’t then please file a bug report! 
 

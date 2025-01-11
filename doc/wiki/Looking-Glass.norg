@@ -12,7 +12,7 @@
 
   The magnify command can be accessed by running `:Neorg keybind all core.looking-glass.magnify-code-block` with your cursor underneath the code
   block you would like to magnify - it is not bound to any key as of currently,
-  but you may map it yourself via the {https://github.com/nvim-neorg/neorg/wiki/User-Keybinds}[`core.keybinds`] module. 
+  but you may map it yourself via the {:User-Keybinds:}[`core.keybinds`] module. 
 
 * Configuration
 
@@ -20,6 +20,6 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Treesitter-Integration}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Core-UI}[`core.ui`] - A set of public functions to help developers create and manage UI (selection popups, prompts…) in their modules. 
+  - {:Treesitter-Integration:}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
+  - {:Core-UI:}[`core.ui`] - A set of public functions to help developers create and manage UI (selection popups, prompts…) in their modules. 
 

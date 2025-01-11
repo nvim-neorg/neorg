@@ -21,7 +21,7 @@
 ** Troubleshooting
 
    If you have any issues like bold/italic not rendering or highlights being improperly applied
-   I encourage you to check out the {https://github.com/nvim-neorg/neorg/wiki/Dependencies}[dependencies document] which explains troubleshooting steps
+   I encourage you to check out the {:Dependencies:}[dependencies document] which explains troubleshooting steps
    for different kinds of terminals. 
 
    With that, let’s begin! 

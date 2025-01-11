@@ -19,7 +19,7 @@
 
   The way the summary is generated relies on the `strategy` configuration option,
   which by default consults the document metadata (see also
-  {https://github.com/nvim-neorg/neorg/wiki/Metagen}[`core.esupports.metagen`]) or the first heading title
+  {:Metagen:}[`core.esupports.metagen`]) or the first heading title
   as a fallback to build up a tree of categories, titles and descriptions. 
 
 * Configuration
@@ -39,5 +39,5 @@
 
    * Dependencies
 
-   - {https://github.com/nvim-neorg/neorg/wiki/Treesitter-Integration}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
+   - {:Treesitter-Integration:}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
 

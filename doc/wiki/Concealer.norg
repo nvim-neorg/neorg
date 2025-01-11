@@ -563,6 +563,6 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Autocommands}[`core.autocommands`] - Handles the creation and management of Neovim’s autocommands. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Treesitter-Integration}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
+  - {:Autocommands:}[`core.autocommands`] - Handles the creation and management of Neovim’s autocommands. 
+  - {:Treesitter-Integration:}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
 

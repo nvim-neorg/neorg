@@ -9,7 +9,7 @@
   That does not mean it will not work, however any bugs will not be dealt with by the main Neorg team. 
 
   A module for integrating nvim-compe with Neorg.
-  Works with {https://github.com/nvim-neorg/neorg/wiki/Completion}[`core.completion`] to provide intelligent completions. 
+  Works with {:Completion:}[`core.completion`] to provide intelligent completions. 
 
 * Configuration
 

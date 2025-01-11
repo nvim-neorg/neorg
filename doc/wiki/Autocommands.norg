@@ -45,12 +45,12 @@
 
 * Required By
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Concealer}[`core.concealer`] - Enhances the basic Neorg experience by using icons instead of text. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Dirman}[`core.dirman`] - This module is be responsible for managing directories full of .norg files. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Indent}[`core.esupports.indent`] - A set of instructions for Neovim to indent Neorg documents. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Metagen}[`core.esupports.metagen`] - A Neorg module for generating document metadata automatically. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Core-Highlights}[`core.highlights`] - Manages your highlight groups with this module. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Core-Latex-Renderer}[`core.latex.renderer`] - An experimental module for rendering latex images inline. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Storage}[`core.storage`] - Deals with storing persistent data across Neorg sessions. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Syntax}[`core.syntax`] - Handles interaction for syntax files for code blocks. 
+  - {:Concealer:}[`core.concealer`] - Enhances the basic Neorg experience by using icons instead of text. 
+  - {:Dirman:}[`core.dirman`] - This module is be responsible for managing directories full of .norg files. 
+  - {:Indent:}[`core.esupports.indent`] - A set of instructions for Neovim to indent Neorg documents. 
+  - {:Metagen:}[`core.esupports.metagen`] - A Neorg module for generating document metadata automatically. 
+  - {:Core-Highlights:}[`core.highlights`] - Manages your highlight groups with this module. 
+  - {:Core-Latex-Renderer:}[`core.latex.renderer`] - An experimental module for rendering latex images inline. 
+  - {:Storage:}[`core.storage`] - Deals with storing persistent data across Neorg sessions. 
+  - {:Syntax:}[`core.syntax`] - Handles interaction for syntax files for code blocks. 
 

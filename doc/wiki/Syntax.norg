@@ -10,7 +10,7 @@
   The `core.syntax` module highlights any `@code` region where there is no treesitter parser present
   to highlight the region. 
 
-  This module very closely resembles the {https://github.com/nvim-neorg/neorg/wiki/Concealer}[`concealer`], but some parts have been
+  This module very closely resembles the {:Concealer:}[`concealer`], but some parts have been
   adapted to fit the correct use case. 
 
 ***** Author’s note:
@@ -25,7 +25,7 @@
 
    Performance options for highlighting. 
 
-   These options exhibit the same behaviour as the {https://github.com/nvim-neorg/neorg/wiki/Concealer}[`concealer`]’s. 
+   These options exhibit the same behaviour as the {:Concealer:}[`concealer`]’s. 
 
 *** increment (number)
 
@@ -63,6 +63,6 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Autocommands}[`core.autocommands`] - Handles the creation and management of Neovim’s autocommands. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Treesitter-Integration}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
+  - {:Autocommands:}[`core.autocommands`] - Handles the creation and management of Neovim’s autocommands. 
+  - {:Treesitter-Integration:}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
 

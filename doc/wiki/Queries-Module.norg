@@ -14,9 +14,9 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Treesitter-Integration}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
+  - {:Treesitter-Integration:}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
 
 * Required By
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Core-Presenter}[`core.presenter`] - Neorg module to create gorgeous presentation slides. 
+  - {:Core-Presenter:}[`core.presenter`] - Neorg module to create gorgeous presentation slides. 
 

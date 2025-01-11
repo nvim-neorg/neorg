@@ -5,7 +5,7 @@
 
   > [!NOTE]
     If you’re just getting started and have no idea why and where to use Neorg,
-    feel free to check out the {https://github.com/nvim-neorg/neorg/wiki/Tutorial}[tutorial]. 
+    feel free to check out the {:Tutorial:}[tutorial]. 
 
 ** Where do I begin?
 
@@ -58,7 +58,7 @@
 
    The most common module people set up is the concealer module - it converts our
    notes from regular plaintext to beautified plaintext thanks to its use of
-   icons. If you click on the module name in the wiki, it’ll take you to {https://github.com/nvim-neorg/neorg/wiki/Concealer}[this
+   icons. If you click on the module name in the wiki, it’ll take you to {:Concealer:}[this
    page]. 
 
    To load the module, we use the full path of the module (in this case `core.concealer`).
@@ -127,5 +127,5 @@
 
 ** That’s it!
 
-   These are the most critical things that you need to know to get started with configuring Neorg. If you would like to understand /how/ to start using Neorg, check out the {https://github.com/nvim-neorg/neorg/wiki/Tutorial}[tutorial]! 
+   These are the most critical things that you need to know to get started with configuring Neorg. If you would like to understand /how/ to start using Neorg, check out the {:Tutorial:}[tutorial]! 
 

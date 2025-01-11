@@ -13,9 +13,9 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Autocommands}[`core.autocommands`] - Handles the creation and management of Neovim’s autocommands. 
+  - {:Autocommands:}[`core.autocommands`] - Handles the creation and management of Neovim’s autocommands. 
 
 * Required By
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Dirman}[`core.dirman`] - This module is be responsible for managing directories full of .norg files. 
+  - {:Dirman:}[`core.dirman`] - This module is be responsible for managing directories full of .norg files. 
 

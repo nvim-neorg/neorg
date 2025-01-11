@@ -14,5 +14,5 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Neorgcmd-Module}[`core.neorgcmd`] - This module deals with handling everything related to the `:Neorg` command. 
+  - {:Neorgcmd-Module:}[`core.neorgcmd`] - This module deals with handling everything related to the `:Neorg` command. 
 

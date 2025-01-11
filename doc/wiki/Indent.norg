@@ -8,7 +8,7 @@
   `core.esupports.indent` uses Norg’s format to unambiguously determine
   the indentation level for the current line. 
 
-  The indent calculation is aided by {https://github.com/nvim-neorg/neorg/wiki/Treesitter-Integration}[treesitter], which
+  The indent calculation is aided by {:Treesitter-Integration:}[treesitter], which
   means that the quality of indents is "limited" by the quality of the produced syntax tree,
   which will get better and better with time. 
 
@@ -201,10 +201,10 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Autocommands}[`core.autocommands`] - Handles the creation and management of Neovim’s autocommands. 
-  - {https://github.com/nvim-neorg/neorg/wiki/Treesitter-Integration}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
+  - {:Autocommands:}[`core.autocommands`] - Handles the creation and management of Neovim’s autocommands. 
+  - {:Treesitter-Integration:}[`core.integrations.treesitter`] - A module designed to integrate Treesitter into Neorg. 
 
 * Required By
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Promo}[`core.promo`] - Promotes or demotes nestable items within Neorg files. 
+  - {:Promo:}[`core.promo`] - Promotes or demotes nestable items within Neorg files. 
 

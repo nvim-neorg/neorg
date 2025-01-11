@@ -18,5 +18,5 @@
 
 * Dependencies
 
-  - {https://github.com/nvim-neorg/neorg/wiki/Core-UI}[`core.ui`] - A set of public functions to help developers create and manage UI (selection popups, prompts…) in their modules. 
+  - {:Core-UI:}[`core.ui`] - A set of public functions to help developers create and manage UI (selection popups, prompts…) in their modules. 
 
