@@ -106,7 +106,9 @@ module.public = {
     ---used for the export
     export_range = function(buffer, start_row, end_row, filetype)
         local converter = module.private.get_converter_checked(filetype)
-        if not converter then return end
+        if not converter then
+            return
+        end
         local content = vim.iter(vim.api.nvim_buf_get_lines(buffer, start_row - 1, end_row, false)):join("\n")
         local root = ts.get_document_root(content)
         if not root then
@@ -202,10 +204,7 @@ module.public = {
                             table.insert(output, result)
                         end
                     elseif exporter == true then
-                        table.insert(
-                            output,
-                            ts.get_node_text(node, source)
-                        )
+                        table.insert(output, ts.get_node_text(node, source))
                     else
                         table.insert(output, exporter)
                     end
@@ -270,7 +269,6 @@ module.private = {
 
         return converter, converter_config
     end,
-
 }
 
 ---@param event neorg.event
