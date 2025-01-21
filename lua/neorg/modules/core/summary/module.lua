@@ -337,11 +337,19 @@ module.public = {
         end
 
         local ws_root = dirman.get_current_workspace()[2]
+        local categories = {}
+        -- Make sure that the categories table includes only strings
+        for _, v in ipairs(include_categories or {}) do
+            if type(v) == "string" then
+                table.insert(categories, v)
+            end
+        end
+
         local generated = module.config.public.strategy(
             dirman.get_norg_files(dirman.get_current_workspace()[1]) or {},
             ws_root,
             level + 1,
-            vim.tbl_map(string.lower, include_categories or {})
+            vim.tbl_map(string.lower, categories or {})
         )
 
         if not generated or vim.tbl_isempty(generated) then
