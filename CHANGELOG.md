@@ -1,5 +1,32 @@
 # Changelog
 
+## [9.2.0](https://github.com/nvim-neorg/neorg/compare/v9.1.1...v9.2.0) (2025-01-22)
+
+
+### Features
+
+* automatically typed `module.required` dependencies ([#1537](https://github.com/nvim-neorg/neorg/issues/1537)) ([1985f2d](https://github.com/nvim-neorg/neorg/commit/1985f2d6f152622b0066f48ba8e39d157635dd38))
+* **dirman:** dynamically set default workspace ([#1623](https://github.com/nvim-neorg/neorg/issues/1623)) ([29993a7](https://github.com/nvim-neorg/neorg/commit/29993a7bb8279ffa0ba473a3f393daa28c645825))
+* **dirman:** in_workspace function ([#1615](https://github.com/nvim-neorg/neorg/issues/1615)) ([62671a7](https://github.com/nvim-neorg/neorg/commit/62671a7b03a1f38a6e5e03b006a9b6f8d804be0e))
+* **esupports.hop:** Add tab drop as option for open_mode ([#1580](https://github.com/nvim-neorg/neorg/issues/1580)) ([c7ada78](https://github.com/nvim-neorg/neorg/commit/c7ada7881d7076a235b6323edcd81ae260affb41))
+* **export:** copy to clipboard ([#1627](https://github.com/nvim-neorg/neorg/issues/1627)) ([1783928](https://github.com/nvim-neorg/neorg/commit/178392822c8c2ef0911458b7f43c980667784011))
+* **introspector:** implement introspector customizability and improvements ([#1539](https://github.com/nvim-neorg/neorg/issues/1539)) ([fd11950](https://github.com/nvim-neorg/neorg/commit/fd11950048d111b837b9f615c5d023e79bd1af9a))
+* **keybinds:** add back keybind "gO" for ToC ([#1633](https://github.com/nvim-neorg/neorg/issues/1633)) ([bed58f8](https://github.com/nvim-neorg/neorg/commit/bed58f884ecf9b0b5e855cebe26760bfadbc8f38))
+* make journal methods public ([8b59db7](https://github.com/nvim-neorg/neorg/commit/8b59db79307037032c5f83fc79dff5741d6da869))
+* support ranges in Neorg command, ([c04bd96](https://github.com/nvim-neorg/neorg/commit/c04bd96eeb3bed19f23d394bebb6193bcd5271da))
+
+
+### Bug Fixes
+
+* coq_nvim completion integration ([#1597](https://github.com/nvim-neorg/neorg/issues/1597)) ([488507b](https://github.com/nvim-neorg/neorg/commit/488507bb996f75ee29073f50dec32fa220867ca5))
+* don't suggest leading chars for file completions ([ba35900](https://github.com/nvim-neorg/neorg/commit/ba35900b21921c439e676b063a79c8fad914eac9))
+* intuitive default undone icon ([#1578](https://github.com/nvim-neorg/neorg/issues/1578)) ([13d1d54](https://github.com/nvim-neorg/neorg/commit/13d1d546684c83ba464adbf463a8a272c884e1e8))
+* Neorg return to most recent file ([e5e797e](https://github.com/nvim-neorg/neorg/commit/e5e797e6eddcb6efb1d2c3fc2612b31ad9a76cef))
+* **summary:** unpack summary category list ([#1637](https://github.com/nvim-neorg/neorg/issues/1637)) ([41aa380](https://github.com/nvim-neorg/neorg/commit/41aa3800cf5d30a5f90520c2a31b34727b443219))
+* **toc:** only capture first detached modifier ([#1631](https://github.com/nvim-neorg/neorg/issues/1631)) ([399832e](https://github.com/nvim-neorg/neorg/commit/399832e5437de0cea5efb1d5428de03adc42cc79))
+* **ToC:** only try to open when still in norg buffer ([#1549](https://github.com/nvim-neorg/neorg/issues/1549)) ([88dbab5](https://github.com/nvim-neorg/neorg/commit/88dbab5325ce07092ab7a38b160bc8e988830524))
+* weird tangle file path logic ([#1604](https://github.com/nvim-neorg/neorg/issues/1604)) ([993f077](https://github.com/nvim-neorg/neorg/commit/993f077f0bff8faa68dbdb89ad95f67116b8007a))
+
 ## [9.1.1](https://github.com/nvim-neorg/neorg/compare/v9.1.0...v9.1.1) (2024-07-24)
 
 
