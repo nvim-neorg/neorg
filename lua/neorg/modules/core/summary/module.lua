@@ -366,7 +366,7 @@ module.on_event = function(event)
 	-- Extract any additional arguments past the first
 	-- So that :Neorg generate_workspace_summary a b c
 	-- Will result in include_categories = {"a", "b", "c"}
-	local include_categories = {table.unpack(event.content.data.fargs, 2)}
+	local include_categories = {unpack(event.content.data.fargs, 2)}
         module.public.generate_workspace_summary(event.buffer, event.cursor_position, include_categories)
     end
 end
