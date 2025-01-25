@@ -299,7 +299,9 @@ module.public = {
             return
         end
         local res = create_dvi.result()
+        vim.notify(res)
         if res ~= 0 then
+            vim.notify("hi")
             return
         end
 
@@ -322,7 +324,7 @@ module.public = {
                 document_name .. ".dvi",
             },
         })
-
+        vim.notify(dvipng)
         if not dvipng or type(dvipng) == "string" then
             return
         end
