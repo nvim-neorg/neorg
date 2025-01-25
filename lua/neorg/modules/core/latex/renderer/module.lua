@@ -318,7 +318,6 @@ module.public = {
                 document_name .. ".dvi",
             },
         })
-        vim.notify(dvipng)
         if not dvipng or type(dvipng) == "string" then
             return
         end
