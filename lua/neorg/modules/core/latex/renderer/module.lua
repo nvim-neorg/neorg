@@ -299,12 +299,6 @@ module.public = {
             return
         end
         local res = create_dvi.result()
-        vim.notify(res)
-        if res ~= 0 then
-            vim.notify("hi")
-            return
-        end
-
         local png_result = nio.fn.tempname()
         png_result = ("%s.png"):format(png_result)
 
