@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.2.1](https://github.com/nvim-neorg/neorg/compare/v9.2.0...v9.2.1) (2025-01-30)
+
+
+### Bug Fixes
+
+* expand tangle paths ([#1622](https://github.com/nvim-neorg/neorg/issues/1622)) ([10bf607](https://github.com/nvim-neorg/neorg/commit/10bf607f11ed94151fb5496e6127d8823d162a7e))
+
 ## [9.2.0](https://github.com/nvim-neorg/neorg/compare/v9.1.1...v9.2.0) (2025-01-22)
 
 
