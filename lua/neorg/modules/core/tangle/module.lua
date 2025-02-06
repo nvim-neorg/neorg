@@ -498,7 +498,12 @@ module.on_event = function(event)
         local tangled_count = 0
 
         for file, content in pairs(tangles) do
-            file = dirman_utils.expand_pathlib(file, true):tostring()
+            file = dirman_utils.expand_pathlib(file, true)
+            if not file then goto continue end
+            if not file:parent():exists() then
+                file:parent():mkdir(Path.permission("rwxr-xr-x"), true)
+            end
+            file = file:tostring()
             vim.loop.fs_open(file, "w", 438, function(err, fd)
                 assert(not err and fd, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
@@ -528,6 +533,7 @@ module.on_event = function(event)
                 end)
                 vim.uv.fs_close(fd)
             end)
+            ::continue::
         end
     end
 end
