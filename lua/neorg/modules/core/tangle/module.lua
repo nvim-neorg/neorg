@@ -526,6 +526,7 @@ module.on_event = function(event)
                         )
                     end
                 end)
+                vim.uv.fs_close(fd)
             end)
         end
     end
