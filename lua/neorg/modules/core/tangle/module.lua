@@ -499,7 +499,9 @@ module.on_event = function(event)
 
         for file, content in pairs(tangles) do
             file = dirman_utils.expand_pathlib(file, true)
-            if not file then goto continue end
+            if not file then
+                goto continue
+            end
             if not file:parent():exists() then
                 file:parent():mkdir(Path.permission("rwxr-xr-x"), true)
             end
