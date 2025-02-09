@@ -506,7 +506,7 @@ module.on_event = function(event)
                 file:parent():mkdir(Path.permission("rwxr-xr-x"), true)
             end
             file = file:tostring()
-            vim.loop.fs_open(file, "w", 438, function(err, fd)
+            vim.uv.fs_open(file, "w", 438, function(err, fd)
                 assert(not err and fd, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
 
                 local write_content = table.concat(content, "\n")
@@ -516,7 +516,7 @@ module.on_event = function(event)
                     end)
                 end
 
-                vim.loop.fs_write(fd, write_content, 0, function(werr)
+                vim.uv.fs_write(fd, write_content, 0, function(werr)
                     assert(not werr, lib.lazy_string_concat("Failed to write to '", file, "' for tangling: ", werr))
                     tangled_count = tangled_count + 1
                     file_count = file_count - 1
@@ -533,7 +533,9 @@ module.on_event = function(event)
                         )
                     end
                 end)
-                vim.uv.fs_close(fd)
+                vim.uv.fs_close(fd, function(err)
+                    assert(not err, lib.lazy_string_concat("Failed to close file '", file, "' for tangling: ", err))
+                end)
             end)
             ::continue::
         end
