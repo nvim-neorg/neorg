@@ -281,7 +281,6 @@ module.public = {
                         end
 
                         if mtype == "directory" then
-
                             -- Check if the folder name is a valid month (01-12)
                             local month_number = tonumber(mname)
                             if not month_number or month_number < 1 or month_number > 12 then
