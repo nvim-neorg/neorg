@@ -87,6 +87,7 @@ local utils = require("neorg.core.utils")
 --- @field replaced? boolean If `true`, this means the module is a replacement for a core module. This flag is set automatically whenever `setup().replaces` is set to a value.
 --- @field on_event fun(event: neorg.event) A callback that is invoked any time an event the module has subscribed to has fired.
 
+---@class neorg.modules
 local modules = {}
 
 --- Returns a new Neorg module, exposing all the necessary function and variables.
