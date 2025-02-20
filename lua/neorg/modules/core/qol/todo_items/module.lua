@@ -128,11 +128,8 @@ module.private = {
         ["?"] = "ambiguous",
     },
     fire_update_event = function(char, line)
-        local ev = modules.create_event(
-            module,
-            module.events.defined["todo-changed"].type,
-            { char = char, line = line }
-        )
+        local ev =
+            modules.create_event(module, module.events.defined["todo-changed"].type, { char = char, line = line })
         if ev then
             modules.broadcast_event(ev)
         end
