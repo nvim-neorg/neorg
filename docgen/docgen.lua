@@ -56,6 +56,7 @@ end
 docgen.open_file = function(path)
     local uri = vim.uri_from_fname(path)
     local buf = vim.uri_to_bufnr(uri)
+    vim.fn.bufload(buf)
 
     return buf
 end
