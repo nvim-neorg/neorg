@@ -44,7 +44,7 @@ module.config.public = {
     -- - `{ module_name = "external.lsp-completion" }` this must be used with
     --   [neorg-interim-ls](https://github.com/benlubas/neorg-interim-ls) and can provide
     --   completions through a shim Language Server. This allows users without an auto complete
-    --   plugin to still get neorg completions
+    --   plugin to still get Neorg completions
     engine = nil,
 
     -- The identifier for the Neorg source.
