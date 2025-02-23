@@ -37,6 +37,7 @@ local lib, modules, utils, log = neorg.lib, neorg.modules, neorg.utils, neorg.lo
 neorg.org_file_entered(false)
 
 -- Extract treesitter utility functions provided by Neorg and nvim-treesitter.ts_utils
+---@type core.integrations.treesitter
 local ts = modules.get_module("core.integrations.treesitter")
 assert(ts, "treesitter not available")
 
