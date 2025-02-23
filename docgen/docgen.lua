@@ -69,12 +69,14 @@ docgen.get_module_top_comment = function(buf)
     local node = ts.get_first_node_recursive("comment", { buf = buf, ft = "lua" })
 
     if not node then
+        print("no comment node")
         return
     end
 
     -- Verify if it's the first line
     local start_row = node:range()
     if start_row ~= 0 then
+        print("doens't start of the first line")
         return
     end
 
@@ -82,6 +84,7 @@ docgen.get_module_top_comment = function(buf)
 
     -- Stops execution if it's not a multiline comment
     if comment[1] ~= [[--[[]] or comment[#comment] ~= "--]]" then
+        print("not a block comment")
         return
     end
 
