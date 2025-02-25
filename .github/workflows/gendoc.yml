@@ -9,9 +9,6 @@ jobs:
   generate-documentation:
     strategy:
       fail-fast: false
-      matrix:
-        version:
-          - nightly
     name: Generate Markdown Docs
     runs-on: ubuntu-latest
     steps:
@@ -34,7 +31,6 @@ jobs:
         id: neovim
         with:
           neovim: true
-          version: ${{ matrix.version }}
 
       - uses: luarocks/gh-actions-lua@v10
         with:
