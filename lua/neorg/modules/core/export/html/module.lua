@@ -162,6 +162,32 @@ local function anchor_recollector(output)
     "</a>",
   }
 end
+
+local function footnote()
+  return {
+    output = "",
+    keep_descending = true,
+  }
+end
+
+local function footnote_recollector(output)
+  local title = table.remove(output, 1) .. table.remove(output, 1)
+  local content = table.concat(output)
+
+  local output_table = {
+    "\n<div class=\"footnote\">",
+    "\n<div class=\"footnote-title\">\n",
+    title,
+    "\n</div>",
+    "\n<div class=\"footnore-content\">\n",
+    content,
+    "\n</div>",
+    "\n</div>",
+    "\n",
+  }
+
+  return output_table
+end
 ---
 
 module.load = function()
@@ -169,7 +195,7 @@ end
 
 module.config.public = {
   html = {
-    ranged_macro_handler = {}
+    ranged_tag_handler = {}
   },
   -- Used by the exporter to know what extension to use
   -- when creating markdown files.
@@ -178,7 +204,7 @@ module.config.public = {
 }
 
 module.private = {
-  ranged_macro_handler = {
+  ranged_tag_handler = {
     ["code"] = function(params, content)
       local language = params[1] or ""
       return "\n<pre>\n<code class=\"" .. language .. "\">\n" .. content .. "\n</code>\n</pre>\n"
@@ -380,6 +406,11 @@ module.public = {
         }
       end,
 
+      -- [UNSUPPORTED] Infirm Tags are not currently supported, TS parsing
+      -- is returning unexpected ranges for .image tag, specically "http:"
+      -- gets included as a param and then the rest of hte URL is moved to
+      -- the following paragraph as content.
+      ["infirm_tag"] = "",
 
       ["todo_item_done"] = todo_item("done"),
       ["todo_item_undone"] = todo_item("undone"),
@@ -389,6 +420,9 @@ module.public = {
       ["todo_item_recurring"] = todo_item("recurring"),
       ["todo_item_on_hold"] = todo_item("on_hold"),
       ["todo_item_uncertain"] = todo_item("uncertain"),
+
+      ["single_footnote"] = footnote,
+      ["multi_footnote"] = footnote,
 
       ["single_definition_prefix"] = function()
         return module.config.public.extensions["definition-nest_tags"] and ": "
@@ -442,16 +476,10 @@ module.public = {
         return string.rep(" ", state.indent) .. (text == "authors" and "author" or text)
       end,
 
-      [":"] = ": ",
-
-      ["["] = update_indent(2),
-      ["]"] = update_indent(-2),
-      ["{"] = update_indent(2),
-      ["}"] = update_indent(-2),
 
       ["string"] = handle_metadata_literal,
       ["number"] = handle_metadata_literal,
-      ["horizontal_line"] = "___",
+
     },
 
     recollectors = {
@@ -531,18 +559,21 @@ module.public = {
         local params = state.tag_params
         local content = state.tag_content
 
-        local ranged_macro_handler = module.config.public.html.ranged_macro_handler[name] or
-            module.private.ranged_macro_handler[name] or
-            module.private.ranged_macro_handler["comment"]
+        local ranged_tag_handler = module.config.public.html.ranged_tag_handler[name] or
+            module.private.ranged_tag_handler[name] or
+            module.private.ranged_tag_handler["comment"]
 
-        table.insert(output, ranged_macro_handler(params, content, state))
+        table.insert(output, ranged_tag_handler(params, content, state))
 
         state.tag_name = ""
         state.tag_params = {}
         state.tag_content = ""
 
         return output
-      end
+      end,
+
+      ["single_footnote"] = footnote_recollector,
+      ["multi_footnote"] = footnote_recollector,
     },
 
     cleanup = function()
