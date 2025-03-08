@@ -165,66 +165,32 @@ end
 ---
 
 module.load = function()
-  if module.config.public.extensions == "all" then
-    module.config.public.extensions = {
-      "todo-items-basic",
-      "todo-items-pending",
-      "todo-items-extended",
-      "definition-nest_tags",
-      "mathematics",
-      "metadata",
-      "latex",
-    }
-  end
-
-  module.config.public.extensions = lib.to_keys(module.config.public.extensions, {})
 end
 
 module.config.public = {
-  -- Any extensions you may want to use when exporting to markdown. By
-  -- default no extensions are loaded (the exporter is commonmark compliant).
-  -- You can also set this value to `"all"` to enable all extensions.
-  -- The full extension nest_tag is: `todo-items-basic`, `todo-items-pending`, `todo-items-extended`,
-  -- `definition-nest_tags`, `mathematics`, `metadata` and `latex`.
-  extensions = {},
-
-  -- Data about how to render mathematics.
-  -- The default is recommended as it is the most common, although certain flavours
-  -- of markdown use different syntax.
-  mathematics = {
-    -- Inline mathematics are represented `$like this$`.
-    inline = {
-      start = "$",
-      ["end"] = "$",
-    },
-    -- Block-level mathematics are represented as such:
-    --
-    -- ```md
-    -- $$
-    -- \frac{3, 2}
-    -- $$
-    -- ```
-    block = {
-      start = "$$",
-      ["end"] = "$$",
-    },
+  html = {
+    macro_handler = {}
   },
-
-  -- Data about how to render metadata
-  -- There are a few ways to render metadata blocks, but this is the most
-  -- common.
-  metadata = {
-    start = "---",
-    ["end"] = "---", -- Is usually also "..."
-  },
-
   -- Used by the exporter to know what extension to use
   -- when creating markdown files.
   -- The default is recommended, although you can change it.
-  extension = "md",
+  extension = "html",
 }
 
---- @class core.export.markdown
+module.private = {
+  macro_handler = {
+    ["code"] = function(params, content)
+      local language = params[1] or ""
+      return "\n<pre>\n<code class=\"" .. language .. "\">\n" .. content .. "\n</code>\n</pre>\n"
+    end,
+
+    ["comment"] = function(_, content)
+      return "\n<!--\n" .. content .. "\n-->\n"
+    end,
+  },
+}
+
+--- @class core.export.html
 module.public = {
   export = {
     init_state = function()
@@ -373,115 +339,43 @@ module.public = {
       ["quote5"] = nest_tag("blockquote", 5, StackKey.BLOCK_QUOTE),
       ["quote6"] = nest_tag("blockquote", 6, StackKey.BLOCK_QUOTE),
 
-      ["tag_parameters"] = function(text, _, state)
-        if state.ignore_tag_parameters then
-          state.ignore_tag_parameters = nil
-          return {
-            output = "",
-            state = state,
-          }
-        end
 
-        return text
-      end,
-
-      ["tag_name"] = function(text, node, _, _)
-        local _, tag_start_column = node:range()
-
-        if text == "code" then
-          return {
-            output = "\n<pre>\n<code>\n",
-            state = {
-              -- Minus one to account for the `@`
-              tag_indent = tag_start_column - 1,
-              tag_close = "\n</pre>\n<code>\n",
-            },
-          }
-        elseif text == "comment" then
-          return {
-            output = "<!--",
-            state = {
-              tag_indent = tag_start_column - 1,
-              tag_close = "-->",
-            },
-          }
-        elseif text == "math" and module.config.public.extensions["mathematics"] then
-          return {
-            output = module.config.public.mathematics.block["start"],
-            state = {
-              tag_indent = tag_start_column - 1,
-              tag_close = module.config.public.mathematics.block["end"],
-            },
-          }
-        elseif text == "document.meta" then
-          local allows_metadata = module.config.public.extensions["metadata"]
-
-          return {
-            output = allows_metadata and module.config.public.metadata["start"] or nil,
-            state = {
-              tag_indent = tag_start_column - 1,
-              tag_close = allows_metadata and module.config.public.metadata["end"] or nil,
-              is_meta = true,
-            },
-          }
-        elseif
-            text == "embed"
-            and node:next_named_sibling()
-            and vim.tbl_contains(
-              { "markdown", "html", module.config.public.extensions["latex"] and "latex" or nil },
-              module.required["core.integrations.treesitter"].get_node_text(node:next_named_sibling())
-            )
-        then
-          return {
-            state = {
-              tag_indent = tag_start_column - 1,
-              tag_close = "",
-              ignore_tag_parameters = true,
-            },
-          }
-        end
-
+      ["tag_name"] = function(text, _, _, _)
         return {
+          output = "",
           state = {
-            ignore_tag_parameters = true,
-            tag_close = nil,
+            tag_name = text,
           },
         }
       end,
 
-      ["ranged_verbatim_tag_content"] = function(text, node, state)
-        if state.is_meta then
-          state.is_meta = false
-          if module.config.public.extensions["metadata"] then
-            return {
-              keep_descending = true,
-              state = {
-                parse_as = "norg_meta",
-              },
-            }
-          else
-            return
-          end
-        end
+      ["tag_param"] = function(text, _, state)
+        table.insert(state.tag_params, text)
 
-        local _, ranged_tag_content_column_start = node:range()
-
-        local split_text = vim.split(text, "\n")
-
-        split_text[1] = string.rep(" ", ranged_tag_content_column_start - state.tag_indent) .. split_text[1]
-
-        for i = 2, #split_text do
-          split_text[i] = split_text[i]:sub(state.tag_indent + 1)
-        end
-
-        return state.tag_close and (table.concat(split_text, "\n") .. "\n")
+        return {
+          output = "",
+        }
       end,
 
-      ["ranged_verbatim_tag_end"] = function(_, _, state)
-        local tag_close = state.tag_close
-        state.tag_close = nil
-        return tag_close
+      ["tag_parameters"] = function()
+        return {
+          output = "",
+          keep_descending = true,
+          state = {
+            tag_params = {},
+          },
+        }
       end,
+
+      ["ranged_verbatim_tag_content"] = function(text, _)
+        return {
+          output = "",
+          state = {
+            tag_content = text,
+          },
+        }
+      end,
+
 
       ["todo_item_done"] = todo_item("done"),
       ["todo_item_undone"] = todo_item("undone"),
@@ -587,14 +481,6 @@ module.public = {
       ["link"] = anchor_recollector,
       ["anchor_definition"] = anchor_recollector,
 
-      ["ranged_verbatim_tag"] = function(output)
-        if output[2] and output[2]:match("^[ \t]+$") then
-          table.remove(output, 2)
-        end
-
-        return output
-      end,
-
       ["generic_list"] = nested_tag_recollector(StackKey.LIST),
       ["quote"] = nested_tag_recollector(StackKey.BLOCK_QUOTE),
 
@@ -636,6 +522,22 @@ module.public = {
 
       ["object"] = handle_metadata_composite_element("{}"),
       ["array"] = handle_metadata_composite_element("[]"),
+      ["ranged_verbatim_tag_end"] = function(output, state)
+        local name = state.tag_name
+        local params = state.tag_params
+        local content = state.tag_content
+
+        local macro_handler = module.config.public.html.macro_handler[name] or module.private.macro_handler[name] or
+            module.private.macro_handler["comment"]
+
+        table.insert(output, macro_handler(params, content, state))
+
+        state.tag_name = ""
+        state.tag_params = {}
+        state.tag_content = ""
+
+        return output
+      end
     },
 
     cleanup = function()
