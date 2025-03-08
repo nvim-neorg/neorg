@@ -222,14 +222,10 @@ module.public = {
     init_state = function()
       return {
         todo = nil,
-        weak_indent = 0,
-        indent = 0,
-        heading = 0,
-        tag_indent = 0,
+        is_math = false,
         tag_close = nil,
         ranged_tag_indentation_level = 0,
         is_url = false,
-        footnote_count = 0,
         nested_tag_stacks = {},
       }
     end,
@@ -249,6 +245,8 @@ module.public = {
           output = "<h" .. state.heading .. ">"
         elseif is_stack_empty(state, StackKey.LIST) then
           output = "<li>"
+        elseif state.is_math then
+          output = '<pre><code class="math">'
         else
           output = "<p>"
         end
@@ -272,6 +270,7 @@ module.public = {
       ["heading5"] = heading_function(5),
       ["heading6"] = heading_function(6),
 
+
       ["_open"] = function(_, node)
         local type = node:parent():type()
 
@@ -291,10 +290,8 @@ module.public = {
           return "<sup>"
         elseif type == "subscript" then
           return "<sub>"
-        elseif type == "inline_comment" then
-          return "<!-- "
-        elseif type == "inline_math" and module.config.public.extensions["mathematics"] then
-          return module.config.public.mathematics.inline["start"]
+        elseif type == "inline_math" then
+          return '<pre class="math">'
         end
       end,
 
@@ -317,10 +314,8 @@ module.public = {
           return "</sup>"
         elseif type == "subscript" then
           return "</sub>"
-        elseif type == "inline_comment" then
-          return " -->"
-        elseif type == "inline_math" and module.config.public.extensions["mathematics"] then
-          return module.config.public.mathematics.inline["end"]
+        elseif type == "inline_math" then
+          return "</pre>"
         end
       end,
 
