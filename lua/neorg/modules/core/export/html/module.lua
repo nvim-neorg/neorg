@@ -169,7 +169,7 @@ end
 
 module.config.public = {
   html = {
-    macro_handler = {}
+    ranged_macro_handler = {}
   },
   -- Used by the exporter to know what extension to use
   -- when creating markdown files.
@@ -178,7 +178,7 @@ module.config.public = {
 }
 
 module.private = {
-  macro_handler = {
+  ranged_macro_handler = {
     ["code"] = function(params, content)
       local language = params[1] or ""
       return "\n<pre>\n<code class=\"" .. language .. "\">\n" .. content .. "\n</code>\n</pre>\n"
@@ -313,10 +313,14 @@ module.public = {
         }
       end,
 
-      ["escape_sequence"] = function(text)
-        local escaped_char = text:sub(-1)
-        return escaped_char:match("%p") and text or escaped_char
+      ["escape_sequence"] = function()
+        return {
+          output = "",
+          keep_descending = true,
+        }
       end,
+
+      ["any_char"] = true,
 
       ["unordered_list1"] = nest_tag("ul", 1, StackKey.LIST),
       ["unordered_list2"] = nest_tag("ul", 2, StackKey.LIST),
@@ -527,10 +531,11 @@ module.public = {
         local params = state.tag_params
         local content = state.tag_content
 
-        local macro_handler = module.config.public.html.macro_handler[name] or module.private.macro_handler[name] or
-            module.private.macro_handler["comment"]
+        local ranged_macro_handler = module.config.public.html.ranged_macro_handler[name] or
+            module.private.ranged_macro_handler[name] or
+            module.private.ranged_macro_handler["comment"]
 
-        table.insert(output, macro_handler(params, content, state))
+        table.insert(output, ranged_macro_handler(params, content, state))
 
         state.tag_name = ""
         state.tag_params = {}
