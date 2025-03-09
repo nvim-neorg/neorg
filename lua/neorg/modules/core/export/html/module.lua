@@ -28,8 +28,6 @@ module.setup = function()
   }
 end
 
-local last_parsed_link_location = ""
-
 local StackKey = {
   LIST = "list",
   BLOCK_QUOTE = "blockquote",
@@ -127,7 +125,7 @@ local function file_to_path(file)
 end
 
 local function build_href(location)
-  if not location.type then
+  if not location or not location.type then
     return ""
   end
 
@@ -207,12 +205,37 @@ local function handle_metadata_composite_element(empty_element)
   end
 end
 
-local function anchor_recollector(output)
+local function link()
   return {
-    "<a href=\"" .. last_parsed_link_location .. "\">",
-    output[1],
-    "</a>",
+    output = "",
+    keep_descending = true,
+    state = {
+      link = {},
+    },
   }
+end
+
+local function link_recollector(type)
+  return function(_, state)
+    local href = build_href(state.link.location)
+    local content = state.link.description or build_link_description(state.link.location)
+
+    if type == "anchor_definition" then
+      state.anchors[content] = href
+    elseif type == "anchor_declaration" then
+      href = state.anchors[content] or ""
+    end
+
+    local output = {
+      '<a href="' .. href .. '">',
+      content,
+      "</a>",
+    }
+
+    state.link = nil
+
+    return output
+  end
 end
 
 local function footnote()
@@ -284,6 +307,7 @@ module.public = {
         ranged_tag_indentation_level = 0,
         is_url = false,
         nested_tag_stacks = {},
+        anchors = {},
       }
     end,
 
@@ -521,15 +545,9 @@ module.public = {
       ["string"] = handle_metadata_literal,
       ["number"] = handle_metadata_literal,
 
-      ["link"] = function()
-        return {
-          output = "",
-          keep_descending = true,
-          state = {
-            link = {},
-          },
-        }
-      end,
+      ["anchor_declaration"] = link,
+      ["anchor_definition"] = link,
+      ["link"] = link,
 
       ["link_location"] = function(_, _, state)
         state.link.location = {}
@@ -556,7 +574,7 @@ module.public = {
       ["link_target_heading6"] = link_target_type(LinkTargetType.HEADING6),
       ["link_target_generic"] = link_target_type(LinkTargetType.GENERIC),
       ["link_target_external_file"] = link_target_type(LinkTargetType.EXTERNAL_FILE),
-      ["link_target_target_url"] = link_target_type(LinkTargetType.TARGET_URL),
+      ["link_target_url"] = link_target_type(LinkTargetType.TARGET_URL),
 
       ["paragraph"] = function(text, node, state)
         local type = node:parent():type()
@@ -601,22 +619,9 @@ module.public = {
         return output
       end,
 
-      ["link"] = function(_, state)
-        local href = build_href(state.link.location)
-        local content = state.link.description or build_link_description(state.link.location)
-
-        local output = {
-          '<a href="' .. href .. '">',
-          content,
-          "</a>",
-        }
-
-        state.link = nil
-
-        return output
-      end,
-
-      ["anchor_definition"] = anchor_recollector,
+      ["link"] = link_recollector("link"),
+      ["anchor_definition"] = link_recollector("anchor_definition"),
+      ["anchor_declaration"] = link_recollector("anchor_declaration"),
 
       ["generic_list"] = nested_tag_recollector(StackKey.LIST),
       ["quote"] = nested_tag_recollector(StackKey.BLOCK_QUOTE),
