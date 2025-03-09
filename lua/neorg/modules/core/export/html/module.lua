@@ -117,8 +117,19 @@ end
 
 local function file_to_path(file)
   if #file > 0 then
-    local workspace_path = "/my/workspace" -- TODO
-    return file:gsub('%$', workspace_path):gsub(".norg", "")
+    if file:match('%$/') then
+      local workspace_path = "/"
+      local dirman = modules.get_module("core.dirman")
+      if dirman then
+        local current_workspace = dirman.get_current_workspace()
+        if current_workspace then
+          workspace_path = "/" .. current_workspace[1] .. "/"
+        end
+      end
+      return file:gsub('%$/', workspace_path):gsub(".norg", "")
+    else
+      return file:gsub('%$', "/"):gsub(".norg", "")
+    end
   else
     return ""
   end
@@ -269,6 +280,9 @@ local function heading_id(text, level)
   return target_type .. "-" .. text:lower(text):gsub(" ", "")
 end
 ---
+
+local workspaces
+local get_current_workspace
 
 module.load = function()
 end
