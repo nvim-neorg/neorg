@@ -15,7 +15,7 @@ To learn more about configuration, consult the [relevant section](#configuration
 -- details will be necessary.
 
 local neorg = require("neorg.core")
-local lib, modules = neorg.lib, neorg.modules
+local modules = neorg.modules
 
 local module = modules.create("core.export.html")
 
@@ -28,12 +28,17 @@ module.setup = function()
   }
 end
 
+
+--- Enumeration of different stackk types
+---@enum StackKey
 local StackKey = {
   LIST = "list",
   BLOCK_QUOTE = "blockquote",
 }
 
-local LinkTargetType = {
+--- Enumeration of differnete link target types.
+--- @enum LinkType
+local LinkType = {
   HEADING1 = "heading1",
   HEADING2 = "heading2",
   HEADING3 = "heading3",
@@ -45,8 +50,18 @@ local LinkTargetType = {
   TARGET_URL = "target_url",
 }
 
+--- @class Location
+--- @field file string
+--- @field text string
+--- @field type LinkType
+
 --> Generic Utility Functions
 
+--- Re
+---@param tag string
+---@param level number
+---@param stack_key StackKey
+---@return fun(_: any, _: any, state: table): table
 local function nest_tag(tag, level, stack_key)
   return function(_, _, state)
     if not state.nested_tag_stacks[stack_key] then
@@ -73,6 +88,10 @@ local function nest_tag(tag, level, stack_key)
   end
 end
 
+--- Recollects tags by popping them off the stack and appending them to the
+--- output
+---@param stack_key StackKey
+---@return fun(output: table, state: table): table
 local function nested_tag_recollector(stack_key)
   return function(output, state)
     local suffix = ""
@@ -89,10 +108,17 @@ local function nested_tag_recollector(stack_key)
   end
 end
 
+--- Return true when a given stack key is empty
+---@param state table
+---@param stack_key StackKey
+---@return boolean
 local function is_stack_empty(state, stack_key)
   return state.nested_tag_stacks[stack_key] and #state.nested_tag_stacks[stack_key] > 0
 end
 
+--- Creates a link description
+---@param location Location
+---@return string
 local function build_link_description(location)
   local description = ""
   if location.file then
@@ -104,6 +130,8 @@ local function build_link_description(location)
   return description
 end
 
+---@param type TodoItemType
+---@return fun(): table
 local function todo_item(type)
   return function()
     return {
@@ -115,37 +143,41 @@ local function todo_item(type)
   end
 end
 
+---
+---@param file string
+---@return string
 local function file_to_path(file)
-  if #file > 0 then
-    if file:match('%$/') then
-      local workspace_path = "/"
-      local dirman = modules.get_module("core.dirman")
-      if dirman then
-        local current_workspace = dirman.get_current_workspace()
-        if current_workspace then
-          workspace_path = "/" .. current_workspace[1] .. "/"
-        end
+  if file:match('%$/') then
+    local workspace_path = "/"
+    local dirman = modules.get_module("core.dirman")
+    if dirman then
+      local current_workspace = dirman.get_current_workspace()
+      if current_workspace then
+        workspace_path = "/" .. current_workspace[1] .. "/"
       end
-      return file:gsub('%$/', workspace_path):gsub(".norg", "")
-    else
-      return file:gsub('%$', "/"):gsub(".norg", "")
     end
+    return (file:gsub('%$/', workspace_path):gsub(".norg", ""))
+  elseif #file > 0 then
+    return (file:gsub('%$', "/"):gsub(".norg", ""))
   else
     return ""
   end
 end
 
+--- Returns href given a Location table
+---@param location Location
+---@return string
 local function build_href(location)
   if not location or not location.type then
     return ""
   end
 
-  if location.type == LinkTargetType.GENERIC then
+  if location.type == LinkType.GENERIC then
     return "#generic-" .. location.text:lower():gsub(" ", "")
-  elseif location.type == LinkTargetType.EXTERNAL_FILE then
+  elseif location.type == LinkType.EXTERNAL_FILE then
     local file = location.file or ""
     return "file://" .. file:gsub(" ", "") .. "" .. location.text
-  elseif location.type == LinkTargetType.TARGET_URL then
+  elseif location.type == LinkType.TARGET_URL then
     return location.text
   else
     local path = file_to_path(location.file or "")
@@ -154,18 +186,10 @@ local function build_href(location)
   end
 end
 
-
-local function get_metadata_array_prefix(node, state)
-  return node:parent():type() == "array" and string.rep(" ", state.indent) .. "- " or ""
-end
-
-local function handle_metadata_literal(text, node, state)
-  -- If the parent is an array, we need to indent it and add the `- ` prefix. Otherwise, there will be a key right before which will take care of indentation
-  return get_metadata_array_prefix(node, state) .. text .. "\n"
-end
-
 --> Recollector Utility Functions
 
+---@param target_type LinkType
+---@return fun(): table
 local function heading(target_type)
   return function()
     return {
@@ -178,6 +202,8 @@ local function heading(target_type)
   end
 end
 
+---@param type LinkType
+---@return fun(_: any, _: any, state: table): table
 local function link_target_type(type)
   return function(_, _, state)
     state.link.location.type = type
@@ -189,6 +215,10 @@ local function link_target_type(type)
   end
 end
 
+---Appends a given tag to the output
+---@param tag string
+---@param cleanup? fun(state)
+---@return fun(output: table, state: table): table
 local function add_closing_tag(tag, cleanup)
   return function(output, state)
     table.insert(output, tag)
@@ -199,23 +229,7 @@ local function add_closing_tag(tag, cleanup)
   end
 end
 
-local function handle_metadata_composite_element(empty_element)
-  return function(output, state, node)
-    if vim.tbl_isempty(output) then
-      return { get_metadata_array_prefix(node, state), empty_element, "\n" }
-    end
-    local parent = node:parent():type()
-    if parent == "array" then
-      -- If the parent is an array, we need to splice an extra `-` prefix to the first element
-      output[1] = output[1]:sub(1, state.indent) .. "-" .. output[1]:sub(state.indent + 2)
-    elseif parent == "pair" then
-      -- If the parent is a pair, the first element should be on the next line
-      output[1] = "\n" .. output[1]
-    end
-    return output
-  end
-end
-
+---@return table
 local function link()
   return {
     output = "",
@@ -226,6 +240,9 @@ local function link()
   }
 end
 
+---Builds a link and adds it to the output givne recollected data in the state table.
+---@param type "anchor_definition"|"anchor_declaration"|"link"
+---@return fun(_: any, state: table): table
 local function link_recollector(type)
   return function(_, state)
     local href = build_href(state.link.location)
@@ -249,14 +266,20 @@ local function link_recollector(type)
   end
 end
 
-local function footnote()
-  return {
-    output = "",
-    keep_descending = true,
-  }
+--- Just keeps swimming
+---@return fun(): table
+local function keep_descending()
+  return function()
+    return {
+      output = "",
+      keep_descending = true,
+    }
+  end
 end
 
-local function footnote_recollector(output)
+---@param output table
+---@return table
+local function recollect_footnote(output)
   local title = table.remove(output, 1) .. table.remove(output, 1)
   local content = table.concat(output)
 
@@ -275,14 +298,27 @@ local function footnote_recollector(output)
   return output_table
 end
 
-local function heading_id(text, level)
+---Builds a unique ID based on the text that can be used for linking in the future
+---@param text string
+---@param level number
+---@return string
+local function build_heading_id(text, level)
   local target_type = heading .. tostring(level)
-  return target_type .. "-" .. text:lower(text):gsub(" ", "")
+  return target_type .. "-" .. text:lower():gsub(" ", "")
+end
+
+---@return fun(text: string): table
+local function ranged_verbatim_tag_content()
+  return function(text)
+    return {
+      output = "",
+      state = {
+        tag_content = text,
+      },
+    }
+  end
 end
 ---
-
-local workspaces
-local get_current_workspace
 
 module.load = function()
 end
@@ -307,6 +343,17 @@ module.private = {
     ["comment"] = function(_, content)
       return "\n<!--\n" .. content .. "\n-->\n"
     end,
+  },
+  open_close_tags = {
+    ["bold"] = "b",
+    ["italic"] = "i",
+    ["underline"] = "u",
+    ["strikethrough"] = "s",
+    ["spoiler"] = "span",
+    ["verbatim"] = "pre",
+    ["superscript"] = "sup",
+    ["subscript"] = "sub",
+    ["inline_math"] = "pre",
   },
 }
 
@@ -337,7 +384,7 @@ module.public = {
         local output = ""
 
         if state.heading and state.heading > 0 then
-          output = '<h id="' .. heading_id(text, state.heading) .. '">' .. state.heading .. ">"
+          output = '<h id="' .. build_heading_id(text, state.heading) .. '">' .. state.heading .. ">"
         elseif is_stack_empty(state, StackKey.LIST) then
           output = "<li>"
         elseif state.is_math then
@@ -358,59 +405,27 @@ module.public = {
         }
       end,
 
-      ["heading1"] = heading(LinkTargetType.HEADING1),
-      ["heading2"] = heading(LinkTargetType.HEADING2),
-      ["heading3"] = heading(LinkTargetType.HEADING3),
-      ["heading4"] = heading(LinkTargetType.HEADING4),
-      ["heading5"] = heading(LinkTargetType.HEADING5),
-      ["heading6"] = heading(LinkTargetType.HEADING6),
+      ["heading1"] = heading(LinkType.HEADING1),
+      ["heading2"] = heading(LinkType.HEADING2),
+      ["heading3"] = heading(LinkType.HEADING3),
+      ["heading4"] = heading(LinkType.HEADING4),
+      ["heading5"] = heading(LinkType.HEADING5),
+      ["heading6"] = heading(LinkType.HEADING6),
 
 
       ["_open"] = function(_, node)
         local type = node:parent():type()
-
-        if type == "bold" then
-          return "<b>"
-        elseif type == "italic" then
-          return "<i>"
-        elseif type == "underline" then
-          return "<u>"
-        elseif type == "strikethrough" then
-          return "<s>"
-        elseif type == "spoiler" then
-          return "<span class=\"spoiler\">"
-        elseif type == "verbatim" then
-          return "<pre>"
-        elseif type == "superscript" then
-          return "<sup>"
-        elseif type == "subscript" then
-          return "<sub>"
-        elseif type == "inline_math" then
-          return '<pre class="math">'
+        local tag = module.private.open_close_tags[type]
+        if tag then
+          return "<" .. tag .. ">"
         end
       end,
 
       ["_close"] = function(_, node)
         local type = node:parent():type()
-
-        if type == "bold" then
-          return "</b>"
-        elseif type == "italic" then
-          return "</i>"
-        elseif type == "underline" then
-          return "</u>"
-        elseif type == "strikethrough" then
-          return "</s>"
-        elseif type == "spoiler" then
-          return "</span>" -- TODO
-        elseif type == "verbatim" then
-          return "</pre>"  -- TODO
-        elseif type == "superscript" then
-          return "</sup>"
-        elseif type == "subscript" then
-          return "</sub>"
-        elseif type == "inline_math" then
-          return "</pre>"
+        local tag = module.private.open_close_tags[type]
+        if tag then
+          return "</" .. tag .. ">"
         end
       end,
 
@@ -476,14 +491,7 @@ module.public = {
         }
       end,
 
-      ["ranged_verbatim_tag_content"] = function(text, _)
-        return {
-          output = "",
-          state = {
-            tag_content = text,
-          },
-        }
-      end,
+      ["ranged_verbatim_tag_content"] = ranged_verbatim_tag_content(),
 
       -- [UNSUPPORTED] Infirm Tags are not currently supported, TS parsing
       -- is returning unexpected ranges for .image tag, specically "http:"
@@ -500,53 +508,8 @@ module.public = {
       ["todo_item_on_hold"] = todo_item("on_hold"),
       ["todo_item_uncertain"] = todo_item("uncertain"),
 
-      ["single_footnote"] = footnote,
-      ["multi_footnote"] = footnote,
-
-      ["single_definition_prefix"] = function()
-        return module.config.public.extensions["definition-nest_tags"] and ": "
-      end,
-
-      ["multi_definition_prefix"] = function(_, _, state)
-        if not module.config.public.extensions["definition-nest_tags"] then
-          return
-        end
-
-        return {
-          output = ": ",
-          state = {
-            indent = state.indent + 2,
-          },
-        }
-      end,
-
-      ["multi_definition_suffix"] = function(_, _, state)
-        if not module.config.public.extensions["definition-nest_tags"] then
-          return
-        end
-
-        return {
-          state = {
-            indent = state.indent - 2,
-          },
-        }
-      end,
-
-      ["_prefix"] = function(_, node)
-        return {
-          state = {
-            ranged_tag_indentation_level = ({ node:range() })[2],
-          },
-        }
-      end,
-
-      ["capitalized_word"] = function(text, node)
-        if node:parent():type() == "insertion" then
-          if text == "Image" then
-            return "!["
-          end
-        end
-      end,
+      ["single_footnote"] = keep_descending(),
+      ["multi_footnote"] = keep_descending(),
 
       ["strong_carryover"] = "",
       ["weak_carryover"] = "",
@@ -554,10 +517,6 @@ module.public = {
       ["key"] = function(text, _, state)
         return string.rep(" ", state.indent) .. (text == "authors" and "author" or text)
       end,
-
-
-      ["string"] = handle_metadata_literal,
-      ["number"] = handle_metadata_literal,
 
       ["anchor_declaration"] = link,
       ["anchor_definition"] = link,
@@ -580,15 +539,15 @@ module.public = {
         }
       end,
 
-      ["link_target_heading1"] = link_target_type(LinkTargetType.HEADING1),
-      ["link_target_heading2"] = link_target_type(LinkTargetType.HEADING2),
-      ["link_target_heading3"] = link_target_type(LinkTargetType.HEADING3),
-      ["link_target_heading4"] = link_target_type(LinkTargetType.HEADING4),
-      ["link_target_heading5"] = link_target_type(LinkTargetType.HEADING5),
-      ["link_target_heading6"] = link_target_type(LinkTargetType.HEADING6),
-      ["link_target_generic"] = link_target_type(LinkTargetType.GENERIC),
-      ["link_target_external_file"] = link_target_type(LinkTargetType.EXTERNAL_FILE),
-      ["link_target_url"] = link_target_type(LinkTargetType.TARGET_URL),
+      ["link_target_heading1"] = link_target_type(LinkType.HEADING1),
+      ["link_target_heading2"] = link_target_type(LinkType.HEADING2),
+      ["link_target_heading3"] = link_target_type(LinkType.HEADING3),
+      ["link_target_heading4"] = link_target_type(LinkType.HEADING4),
+      ["link_target_heading5"] = link_target_type(LinkType.HEADING5),
+      ["link_target_heading6"] = link_target_type(LinkType.HEADING6),
+      ["link_target_generic"] = link_target_type(LinkType.GENERIC),
+      ["link_target_external_file"] = link_target_type(LinkType.EXTERNAL_FILE),
+      ["link_target_url"] = link_target_type(LinkType.TARGET_URL),
 
       ["paragraph"] = function(text, node, state)
         local type = node:parent():type()
@@ -615,20 +574,6 @@ module.public = {
         else
           table.insert(output, "</p>\n")
         end
-
-        return output
-      end,
-
-      ["link_location"] = function(output, state)
-        last_parsed_link_location = output[#output - 1]
-
-        if state.is_url then
-          state.is_url = false
-          return output
-        end
-
-        table.insert(output, #output - 1, "#")
-        output[#output - 1] = output[#output - 1]:lower():gsub("-", " "):gsub("%p+", ""):gsub("%s+", "-")
 
         return output
       end,
@@ -676,8 +621,6 @@ module.public = {
       ["heading5"] = add_closing_tag("</div>\n"),
       ["heading6"] = add_closing_tag("</div>\n"),
 
-      ["object"] = handle_metadata_composite_element("{}"),
-      ["array"] = handle_metadata_composite_element("[]"),
       ["ranged_verbatim_tag_end"] = function(output, state)
         local name = state.tag_name
         local params = state.tag_params
@@ -696,12 +639,11 @@ module.public = {
         return output
       end,
 
-      ["single_footnote"] = footnote_recollector,
-      ["multi_footnote"] = footnote_recollector,
+      ["single_footnote"] = recollect_footnote,
+      ["multi_footnote"] = recollect_footnote,
     },
 
     cleanup = function()
-      last_parsed_link_location = ""
     end,
   },
 }
