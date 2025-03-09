@@ -35,6 +35,18 @@ local StackKey = {
   BLOCK_QUOTE = "blockquote",
 }
 
+local LinkTargetType = {
+  HEADING1 = "heading1",
+  HEADING2 = "heading2",
+  HEADING3 = "heading3",
+  HEADING4 = "heading4",
+  HEADING5 = "heading5",
+  HEADING6 = "heading6",
+  GENERIC = "generic",
+  EXTERNAL_FILE = "external_file",
+  TARGET_URL = "target_url",
+}
+
 --> Generic Utility Functions
 
 local function nest_tag(tag, level, stack_key)
@@ -83,14 +95,53 @@ local function is_stack_empty(state, stack_key)
   return state.nested_tag_stacks[stack_key] and #state.nested_tag_stacks[stack_key] > 0
 end
 
+local function build_link_description(location)
+  local description = ""
+  if location.file then
+    description = description .. '<span class="link-file">' .. location.file .. '</span>'
+  end
+  if location.text then
+    description = description .. '<span class="link-text">' .. location.text .. '</span>'
+  end
+  return description
+end
+
 local function todo_item(type)
   return function()
     return {
       output = "",
       state = {
-        todo = "undone",
+        todo = type,
       },
     }
+  end
+end
+
+local function file_to_path(file)
+  if #file > 0 then
+    local workspace_path = "/my/workspace" -- TODO
+    return file:gsub('%$', workspace_path):gsub(".norg", "")
+  else
+    return ""
+  end
+end
+
+local function build_href(location)
+  if not location.type then
+    return ""
+  end
+
+  if location.type == LinkTargetType.GENERIC then
+    return "#generic-" .. location.text:lower():gsub(" ", "")
+  elseif location.type == LinkTargetType.EXTERNAL_FILE then
+    local file = location.file or ""
+    return "file://" .. file:gsub(" ", "") .. "" .. location.text
+  elseif location.type == LinkTargetType.TARGET_URL then
+    return location.text
+  else
+    local path = file_to_path(location.file or "")
+    local id = location.text:lower():gsub(" ", "")
+    return path .. "#" .. location.type .. "-" .. id
   end
 end
 
@@ -104,26 +155,27 @@ local function handle_metadata_literal(text, node, state)
   return get_metadata_array_prefix(node, state) .. text .. "\n"
 end
 
-local function update_indent(value)
-  return function(_, _, state)
-    return {
-      state = {
-        indent = state.indent + value,
-      },
-    }
-  end
-end
-
 --> Recollector Utility Functions
 
-local function heading_function(level)
+local function heading(target_type)
   return function()
     return {
       output = "<div>\n",
       keep_descending = true,
       state = {
-        heading = level,
+        heading_target_type = target_type,
       },
+    }
+  end
+end
+
+local function link_target_type(type)
+  return function(_, _, state)
+    state.link.location.type = type
+
+    return {
+      output = "",
+      keep_descending = true,
     }
   end
 end
@@ -188,6 +240,11 @@ local function footnote_recollector(output)
 
   return output_table
 end
+
+local function heading_id(text, level)
+  local target_type = heading .. tostring(level)
+  return target_type .. "-" .. text:lower(text):gsub(" ", "")
+end
 ---
 
 module.load = function()
@@ -238,11 +295,11 @@ module.public = {
       ["_space"] = true,
       -- TODO: ["_segment"] = true,
 
-      ["paragraph_segment"] = function(_, _, state)
+      ["paragraph_segment"] = function(text, _, state)
         local output = ""
 
         if state.heading and state.heading > 0 then
-          output = "<h" .. state.heading .. ">"
+          output = '<h id="' .. heading_id(text, state.heading) .. '">' .. state.heading .. ">"
         elseif is_stack_empty(state, StackKey.LIST) then
           output = "<li>"
         elseif state.is_math then
@@ -263,12 +320,12 @@ module.public = {
         }
       end,
 
-      ["heading1"] = heading_function(1),
-      ["heading2"] = heading_function(2),
-      ["heading3"] = heading_function(3),
-      ["heading4"] = heading_function(4),
-      ["heading5"] = heading_function(5),
-      ["heading6"] = heading_function(6),
+      ["heading1"] = heading(LinkTargetType.HEADING1),
+      ["heading2"] = heading(LinkTargetType.HEADING2),
+      ["heading3"] = heading(LinkTargetType.HEADING3),
+      ["heading4"] = heading(LinkTargetType.HEADING4),
+      ["heading5"] = heading(LinkTargetType.HEADING5),
+      ["heading6"] = heading(LinkTargetType.HEADING6),
 
 
       ["_open"] = function(_, node)
@@ -322,17 +379,6 @@ module.public = {
       ["_begin"] = "",
       ["_end"] = "",
 
-      ["link_file_text"] = function(text)
-        return vim.uri_from_fname(text .. ".html"):sub(string.len("file://") + 1)
-      end,
-
-      ["link_target_url"] = function()
-        return {
-          state = {
-            is_url = true,
-          },
-        }
-      end,
 
       ["escape_sequence"] = function()
         return {
@@ -475,6 +521,56 @@ module.public = {
       ["string"] = handle_metadata_literal,
       ["number"] = handle_metadata_literal,
 
+      ["link"] = function()
+        return {
+          output = "",
+          keep_descending = true,
+          state = {
+            link = {},
+          },
+        }
+      end,
+
+      ["link_location"] = function(_, _, state)
+        state.link.location = {}
+        return {
+          output = "",
+          keep_descending = true,
+        }
+      end,
+
+      ["link_file_text"] = function(text, _, state)
+        state.link.location.file = text
+
+        return {
+          output = "",
+          keep_descending = true,
+        }
+      end,
+
+      ["link_target_heading1"] = link_target_type(LinkTargetType.HEADING1),
+      ["link_target_heading2"] = link_target_type(LinkTargetType.HEADING2),
+      ["link_target_heading3"] = link_target_type(LinkTargetType.HEADING3),
+      ["link_target_heading4"] = link_target_type(LinkTargetType.HEADING4),
+      ["link_target_heading5"] = link_target_type(LinkTargetType.HEADING5),
+      ["link_target_heading6"] = link_target_type(LinkTargetType.HEADING6),
+      ["link_target_generic"] = link_target_type(LinkTargetType.GENERIC),
+      ["link_target_external_file"] = link_target_type(LinkTargetType.EXTERNAL_FILE),
+      ["link_target_target_url"] = link_target_type(LinkTargetType.TARGET_URL),
+
+      ["paragraph"] = function(text, node, state)
+        local type = node:parent():type()
+        if type == "link_location" then
+          state.link.location.text = text
+        elseif type == "link_description" and state.link then
+          state.link.description = text
+        end
+
+        return {
+          output = "",
+          keep_descending = true,
+        }
+      end
     },
 
     recollectors = {
@@ -505,7 +601,21 @@ module.public = {
         return output
       end,
 
-      ["link"] = anchor_recollector,
+      ["link"] = function(_, state)
+        local href = build_href(state.link.location)
+        local content = state.link.description or build_link_description(state.link.location)
+
+        local output = {
+          '<a href="' .. href .. '">',
+          content,
+          "</a>",
+        }
+
+        state.link = nil
+
+        return output
+      end,
+
       ["anchor_definition"] = anchor_recollector,
 
       ["generic_list"] = nested_tag_recollector(StackKey.LIST),
