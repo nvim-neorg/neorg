@@ -309,7 +309,6 @@ local function init_state()
 end
 
 ---@param text string
----@param _ any
 ---@param state  table
 ---@return table
 local function paragraph_segment(text, _, state)
@@ -337,7 +336,6 @@ local function paragraph_segment(text, _, state)
   }
 end
 
----@param _ any
 ---@param node TSNode
 ---@return string
 local function get_opening_tag(_, node)
@@ -352,7 +350,6 @@ local function get_opening_tag(_, node)
   end
 end
 
----@param _ any
 ---@param node TSNode
 ---@return string
 local function get_closing_tag(_, node)
@@ -380,7 +377,6 @@ local function add_tag_name(text)
 end
 
 ---@param text string
----@param _ any
 ---@param state table
 ---@return table
 local function add_tag_param(text, _, state)
@@ -391,7 +387,6 @@ local function add_tag_param(text, _, state)
   }
 end
 
----@param _ any
 ---@param state table
 ---@return table
 local function reset_link_location(_, _, state)
@@ -403,7 +398,6 @@ local function reset_link_location(_, _, state)
 end
 
 ---@param text string
----@param _ any
 ---@param state table
 ---@return table
 local function set_link_loction_file(text, _, state)
