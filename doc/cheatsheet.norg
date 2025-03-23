@@ -143,7 +143,7 @@
 *** Links to Objects
 
     To link to an object, you use its prefix and its name. The name part is
-    *only word and punctuation sensistive*. Case and whitespace are ignored.
+    *only word and punctuation sensitive*. Case and whitespace are ignored.
 
     @code norg
 
