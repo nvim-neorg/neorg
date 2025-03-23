@@ -112,7 +112,7 @@ end
 ---@param stack_key StackKey
 ---@return boolean
 local function is_stack_empty(state, stack_key)
-  return state.nested_tag_stacks[stack_key] and #state.nested_tag_stacks[stack_key] > 0
+  return not state.nested_tag_stacks[stack_key] or #state.nested_tag_stacks[stack_key] == 0
 end
 
 --- Creates a link description
@@ -174,15 +174,15 @@ end
 
 --> Recollector Utility Functions
 
----@param target_type LinkType
+---@param heading_num integer
 ---@return fun(): table
-local function heading(target_type)
+local function heading(heading_num)
   return function()
     return {
       output = "<div>\n",
       keep_descending = true,
       state = {
-        heading_target_type = target_type,
+        heading = heading_num,
       },
     }
   end
@@ -280,7 +280,7 @@ end
 ---@param level number
 ---@return string
 local function build_heading_id(text, level)
-  local target_type = heading .. tostring(level)
+  local target_type = 'heading' .. tostring(level)
   return target_type .. "-" .. text:lower():gsub(" ", "")
 end
 
@@ -315,13 +315,11 @@ local function paragraph_segment(text, _, state)
   local output = ""
 
   if state.heading and state.heading > 0 then
-    output = '<h id="' .. build_heading_id(text, state.heading) .. '">' .. state.heading .. ">"
-  elseif is_stack_empty(state, StackKey.LIST) then
+    output = '<h' .. state.heading .. ' id="' .. build_heading_id(text, state.heading) .. '">'
+  elseif not is_stack_empty(state, StackKey.LIST) then
     output = "<li>"
   elseif state.is_math then
     output = '<pre><code class="math">'
-  else
-    output = "<p>"
   end
 
   local todo = ""
@@ -415,14 +413,18 @@ end
 ---@return table
 local function parse_paragraph_node(text, node, state)
   local type = node:parent():type()
+  local output = ""
   if type == "link_location" then
     state.link.location.text = text
   elseif type == "link_description" and state.link then
     state.link.description = text
+  elseif is_stack_empty(state, StackKey.LIST) then
+    output = "<p>"
+    state.in_paragraph = true
   end
 
   return {
-    output = "",
+    output = output,
     keep_descending = true,
   }
 end
@@ -430,14 +432,12 @@ end
 ---@param output table
 ---@param state table
 ---@return table
-local function add_closing_paragraph_tags(output, state)
+local function add_closing_segement_tags(output, state)
   if state.heading and state.heading > 0 then
     table.insert(output, "</h" .. state.heading .. ">\n")
     state.heading = 0
-  elseif is_stack_empty(state, StackKey.LIST) then
+  elseif not is_stack_empty(state, StackKey.LIST) then
     table.insert(output, "</li>\n")
-  else
-    table.insert(output, "</p>\n")
   end
 
   return output
@@ -518,12 +518,12 @@ module.public = {
       ["paragraph_segment"] = paragraph_segment,
       ["paragraph"] = parse_paragraph_node,
 
-      ["heading1"] = heading(LinkType.HEADING1),
-      ["heading2"] = heading(LinkType.HEADING2),
-      ["heading3"] = heading(LinkType.HEADING3),
-      ["heading4"] = heading(LinkType.HEADING4),
-      ["heading5"] = heading(LinkType.HEADING5),
-      ["heading6"] = heading(LinkType.HEADING6),
+      ["heading1"] = heading(1),
+      ["heading2"] = heading(2),
+      ["heading3"] = heading(3),
+      ["heading4"] = heading(4),
+      ["heading5"] = heading(5),
+      ["heading6"] = heading(6),
 
 
       ["unordered_list1"] = nest_tag("ul", 1, StackKey.LIST),
@@ -591,7 +591,7 @@ module.public = {
     },
 
     recollectors = {
-      ["paragraph_segment"] = add_closing_paragraph_tags,
+      ["paragraph_segment"] = add_closing_segement_tags,
 
       ["link"] = get_anchor_element("link"),
       ["anchor_definition"] = get_anchor_element("anchor_definition"),
@@ -606,6 +606,15 @@ module.public = {
       ["heading4"] = add_closing_tag("</div>\n"),
       ["heading5"] = add_closing_tag("</div>\n"),
       ["heading6"] = add_closing_tag("</div>\n"),
+
+      ["paragraph"] = function(output, state)
+        local closing = add_closing_tag("</p>\n")
+        if state.in_paragraph then
+          state.in_paragraph = false
+          return closing(output, state)
+        end
+        return output
+      end,
 
       ["ranged_verbatim_tag_end"] = apply_ranged_tag_handlers,
 
