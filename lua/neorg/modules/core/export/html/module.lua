@@ -201,6 +201,26 @@ local function set_link_type(type)
   end
 end
 
+---Appends the closing p tag when required
+---@param output table
+---@param state table
+---@return table
+local function add_closing_p_tag(output, state)
+  if not state.link and is_stack_empty(state, StackKey.LIST) then
+    print('Paragraph: ')
+    print(vim.json.encode(output))
+    local new_output = { '\n<p>\n' }
+    for i, value in ipairs(output) do
+      print(value)
+      table.insert(new_output, value)
+    end
+    table.insert(new_output, '\n</p>\n')
+    output = new_output
+  end
+
+  return output
+end
+
 ---Appends a given tag to the output
 ---@param tag string
 ---@param cleanup? fun(state)
@@ -312,7 +332,7 @@ end
 ---@param state  table
 ---@return table
 local function paragraph_segment(text, _, state)
-  local output = ""
+  local output = "\n"
 
   if state.heading and state.heading > 0 then
     output = '<h' .. state.heading .. ' id="' .. build_heading_id(text, state.heading) .. '">'
@@ -418,9 +438,6 @@ local function parse_paragraph_node(text, node, state)
     state.link.location.text = text
   elseif type == "link_description" and state.link then
     state.link.description = text
-  elseif is_stack_empty(state, StackKey.LIST) then
-    output = "<p>"
-    state.in_paragraph = true
   end
 
   return {
@@ -591,6 +608,7 @@ module.public = {
     },
 
     recollectors = {
+      ["paragraph"] = add_closing_p_tag,
       ["paragraph_segment"] = add_closing_segement_tags,
 
       ["link"] = get_anchor_element("link"),
@@ -600,21 +618,12 @@ module.public = {
       ["generic_list"] = nested_tag_recollector(StackKey.LIST),
       ["quote"] = nested_tag_recollector(StackKey.BLOCK_QUOTE),
 
-      ["heading1"] = add_closing_tag("</div>\n"),
-      ["heading2"] = add_closing_tag("</div>\n"),
-      ["heading3"] = add_closing_tag("</div>\n"),
-      ["heading4"] = add_closing_tag("</div>\n"),
-      ["heading5"] = add_closing_tag("</div>\n"),
-      ["heading6"] = add_closing_tag("</div>\n"),
-
-      ["paragraph"] = function(output, state)
-        local closing = add_closing_tag("</p>\n")
-        if state.in_paragraph then
-          state.in_paragraph = false
-          return closing(output, state)
-        end
-        return output
-      end,
+      ["heading1"] = add_closing_tag("\n</div>\n"),
+      ["heading2"] = add_closing_tag("\n</div>\n"),
+      ["heading3"] = add_closing_tag("\n</div>\n"),
+      ["heading4"] = add_closing_tag("\n</div>\n"),
+      ["heading5"] = add_closing_tag("\n</div>\n"),
+      ["heading6"] = add_closing_tag("\n</div>\n"),
 
       ["ranged_verbatim_tag_end"] = apply_ranged_tag_handlers,
 
