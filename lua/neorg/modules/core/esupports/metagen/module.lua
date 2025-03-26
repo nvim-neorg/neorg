@@ -240,6 +240,10 @@ module.public = {
 
         for id, node in pairs(found) do
             local name = query.captures[id]
+            -- node is a list in nvim 0.11+
+            if vim.islist(node) then
+                node = node[1]
+            end
             if name == "meta" then
                 metadata_node = node
                 range[1], _, range[2], _ = node:range()
