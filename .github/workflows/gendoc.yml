@@ -31,6 +31,7 @@ jobs:
         id: neovim
         with:
           neovim: true
+          version: v0.10.4
 
       - uses: luarocks/gh-actions-lua@v10
         with:
