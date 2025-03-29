@@ -1,5 +1,24 @@
 # Changelog
 
+## [9.3.0](https://github.com/nvim-neorg/neorg/compare/v9.2.0...v9.3.0) (2025-03-29)
+
+
+### Features
+
+* **todo_items:** todo-changed event ([#1651](https://github.com/nvim-neorg/neorg/issues/1651)) ([5f0195d](https://github.com/nvim-neorg/neorg/commit/5f0195d99e21fc1db3d544f7473b34bf41740c16))
+
+
+### Bug Fixes
+
+* **docgen:** load buffers after opening them ([#1657](https://github.com/nvim-neorg/neorg/issues/1657)) ([18d1a18](https://github.com/nvim-neorg/neorg/commit/18d1a182720fba71ea286d9ce6c3e9970bf7ed51))
+* expand tangle paths ([#1622](https://github.com/nvim-neorg/neorg/issues/1622)) ([10bf607](https://github.com/nvim-neorg/neorg/commit/10bf607f11ed94151fb5496e6127d8823d162a7e))
+* iter_matches returns list of nodes now ([#1674](https://github.com/nvim-neorg/neorg/issues/1674)) ([a48166d](https://github.com/nvim-neorg/neorg/commit/a48166d3f5729d424ad39254351288944994f097))
+* pin to 0.10.4 for doc gen ([#1676](https://github.com/nvim-neorg/neorg/issues/1676)) ([79ffd34](https://github.com/nvim-neorg/neorg/commit/79ffd346ca19af49197d9c1b45d0b902c32c3e14))
+* Tangle should close fd for files ([#1618](https://github.com/nvim-neorg/neorg/issues/1618)) ([cd3056e](https://github.com/nvim-neorg/neorg/commit/cd3056eaf39a838b0a26438ff203bb3123c94aec))
+* **tangle:** create missing dirs ([#1644](https://github.com/nvim-neorg/neorg/issues/1644)) ([e1b4bb4](https://github.com/nvim-neorg/neorg/commit/e1b4bb4ff144a953f802f665afdd9a7f7532014f))
+* **tangle:** proper error handling for fs_close ([#1647](https://github.com/nvim-neorg/neorg/issues/1647)) ([1a4c20a](https://github.com/nvim-neorg/neorg/commit/1a4c20a5ed3dea4abae20e85d66b5f0f94c96f5b))
+* tree-sitter-norg parser builds on MacOS ([#1587](https://github.com/nvim-neorg/neorg/issues/1587)) ([71cd029](https://github.com/nvim-neorg/neorg/commit/71cd0291a80be9b5258f5ec16fd6846d60623c29))
+
 ## [9.2.0](https://github.com/nvim-neorg/neorg/compare/v9.1.1...v9.2.0) (2025-01-22)
 
 
