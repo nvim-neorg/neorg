@@ -82,7 +82,7 @@ local config = {
     arguments = {},
 
     norg_version = "1.1.1",
-    version = "9.2.0",
+    version = "9.3.0",
 
     os_info = os_info,
     pathsep = os_info == "windows" and "\\" or "/",
