@@ -97,6 +97,40 @@ module.setup = function()
     }
 end
 
+---@type core.integrations.treesitter
+local ts
+module.load = function()
+    ts = module.required["core.integrations.treesitter"] --[[@as core.integrations.treesitter]]
+
+    if module.config.private.strategies[module.config.public.strategy] then
+        module.config.public.strategy = module.config.private.strategies[module.config.public.strategy]
+    end
+
+    modules.await("core.neorgcmd", function(neorgcmd)
+        neorgcmd.add_commands_from_table({
+            journal = {
+                min_args = 1,
+                max_args = 2,
+                subcommands = {
+                    tomorrow = { args = 0, name = "journal.tomorrow" },
+                    yesterday = { args = 0, name = "journal.yesterday" },
+                    today = { args = 0, name = "journal.today" },
+                    custom = { max_args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
+                    template = { args = 0, name = "journal.template" },
+                    toc = {
+                        args = 1,
+                        name = "journal.toc",
+                        subcommands = {
+                            open = { args = 0, name = "journal.toc.open" },
+                            update = { args = 0, name = "journal.toc.update" },
+                        },
+                    },
+                },
+            },
+        })
+    end)
+end
+
 module.config.public = {
     -- Which workspace to use for the journal files, the default behaviour
     -- is to use the current workspace.
@@ -251,11 +285,21 @@ module.public = {
             return handle
         end
 
-        -- Gets the title from the metadata of a file, must be called in a vim.schedule
+        ---Gets the title from the metadata of a file, must be called in a vim.schedule
+        ---@param file PathlibPath
+        ---@return string?
         local get_title = function(file)
-            local buffer = vim.fn.bufadd(workspace_path .. config.pathsep .. folder_name .. config.pathsep .. file)
-            local meta = module.required["core.integrations.treesitter"].get_document_metadata(buffer)
-            return meta.title
+            local path = workspace_path / folder_name / file
+            local meta
+            if vim.fn.bufexists(tostring(path)) == 1 then
+                local buf = vim.fn.bufloaded(vim.fn.bufnr(tostring(path)))
+                meta = ts.get_document_metadata(buf)
+            else
+                meta = ts.get_document_metadata(path)
+            end
+            if meta then
+                return meta.title
+            end
         end
 
         vim.loop.fs_scandir(workspace_path .. config.pathsep .. folder_name .. config.pathsep, function(err, handle)
@@ -415,36 +459,6 @@ module.public = {
         end)
     end,
 }
-
-module.load = function()
-    if module.config.private.strategies[module.config.public.strategy] then
-        module.config.public.strategy = module.config.private.strategies[module.config.public.strategy]
-    end
-
-    modules.await("core.neorgcmd", function(neorgcmd)
-        neorgcmd.add_commands_from_table({
-            journal = {
-                min_args = 1,
-                max_args = 2,
-                subcommands = {
-                    tomorrow = { args = 0, name = "journal.tomorrow" },
-                    yesterday = { args = 0, name = "journal.yesterday" },
-                    today = { args = 0, name = "journal.today" },
-                    custom = { max_args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
-                    template = { args = 0, name = "journal.template" },
-                    toc = {
-                        args = 1,
-                        name = "journal.toc",
-                        subcommands = {
-                            open = { args = 0, name = "journal.toc.open" },
-                            update = { args = 0, name = "journal.toc.update" },
-                        },
-                    },
-                },
-            },
-        })
-    end)
-end
 
 module.on_event = function(event)
     if event.split_type[1] == "core.neorgcmd" then

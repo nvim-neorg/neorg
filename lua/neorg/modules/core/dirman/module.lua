@@ -151,6 +151,7 @@ module.private = {
 
 ---@class core.dirman
 module.public = {
+    ---@return table<string, PathlibPath>
     get_workspaces = function()
         return module.config.public.workspaces
     end,
@@ -160,6 +161,7 @@ module.public = {
     end,
     --- If present retrieve a workspace's path by its name, else returns nil
     ---@param name string #The name of the workspace
+    ---@return PathlibPath
     get_workspace = function(name)
         return module.config.public.workspaces[name]
     end,
