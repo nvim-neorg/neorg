@@ -96,6 +96,11 @@ module.public = {
             end
         end
 
+        -- Check if the code is within a verbatim block
+        local ranged_tag =
+            module.required["core.integrations.treesitter"].find_parent(node, "ranged_verbatim_tag_content")
+        indent_data = ranged_tag and module.config.public.indents[ranged_tag:type()] or indent_data
+
         -- Indents can be a static value, so account for that here
         if type(indent_data.indent) == "number" then
             -- If the indent is -1 then let Neovim indent instead of us
@@ -239,21 +244,27 @@ module.config.public = {
             indent = 0,
         },
 
-        ["ranged_tag"] = {
-            modifiers = { "under-headings" },
-            indent = 0,
-        },
-
         -- Ranged tag contents' indentation should be calculated by Neovim itself.
-        ["ranged_tag_content"] = {
+        ["ranged_verbatim_tag_content"] = {
             indent = -1,
         },
 
         -- `@end` tags should always be indented as far as the beginning `@` ranged verbatim tag.
+        ["ranged_verbatim_tag_end"] = {
+            modifiers = { "ranged-tag-end" },
+            indent = 0,
+        },
+
+        -- `|end` tags should always be indented as far as the beginning `|` ranged tag.
         ["ranged_tag_end"] = {
-            indent = function(_, node)
-                return module.required["core.integrations.treesitter"].get_node_range(node:parent()).column_start
-            end,
+            modifiers = { "ranged-tag-end" },
+            indent = 0,
+        },
+
+        -- `=end` tags should always be indented as far as the beginning `=` ranged tag.
+        ["macro_tag_end"] = {
+            modifiers = { "ranged-tag-end" },
+            indent = 0,
         },
     },
 
@@ -308,6 +319,11 @@ module.config.public = {
             end
 
             return module.required["core.integrations.treesitter"].get_node_range(list:named_child(1)).column_start
+        end,
+
+        -- For any ranged tag end that should always be indented as far as the beginning of the ranged tag
+        ["ranged-tag-end"] = function(_, node)
+            return module.required["core.integrations.treesitter"].get_node_range(node:parent()).column_start
         end,
     },
 
