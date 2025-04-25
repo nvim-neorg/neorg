@@ -149,7 +149,7 @@ module.public = {
     ---@param new_indent number
     buffer_set_line_indent = function(buffer, start_row, new_indent)
         local line = vim.api.nvim_buf_get_lines(buffer, start_row, start_row + 1, true)[1]
-        if line:match("^%s*$") then
+        if line:match("^%s*$") or new_indent == -1 then
             return
         end
 
