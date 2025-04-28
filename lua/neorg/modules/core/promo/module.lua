@@ -298,7 +298,7 @@ module.public = {
         for i = start_pos[1], end_pos[1] do
             module.private.promote_or_demote(buffer, "promote", i - 1, false, false)
         end
-        indent.reindent_range(buffer, start_pos[1], end_pos[1])
+        indent.reindent_range(buffer, start_pos[1] - 1, end_pos[1])
     end),
     demote = neorg.utils.wrap_dotrepeat(function()
         local buffer = vim.api.nvim_get_current_buf()
@@ -320,7 +320,7 @@ module.public = {
         for i = start_pos[1], end_pos[1] do
             module.private.promote_or_demote(buffer, "demote", i - 1, false, false)
         end
-        indent.reindent_range(buffer, start_pos[1], end_pos[1])
+        indent.reindent_range(buffer, start_pos[1] - 1, end_pos[1])
     end),
 }
 
