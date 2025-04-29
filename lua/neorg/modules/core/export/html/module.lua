@@ -1,7 +1,7 @@
 --[[
     file: HTML-Export
-    title: Neorg's Markdown Exporter
-    summary: Interface for `core.export` to allow exporting to markdown.
+    title: Neorg's HTML Exporter
+    summary: Interface for `core.export` to allow exporting to HTML.
     ---
 This module exists as an interface for `core.export` to export `.norg` files to HTML.
 As a user the only reason you would ever have to touch this module is to configure *how* you'd
@@ -170,8 +170,6 @@ local function build_href(location)
 		return path .. "#" .. location.type .. "-" .. id
 	end
 end
-
---> Recollector Utility Functions
 
 ---@param heading_num integer
 ---@return fun(): table
@@ -471,7 +469,7 @@ local function apply_ranged_tag_handlers(output, state)
 	local params = state.tag_params
 	local content = state.tag_content
 
-	local ranged_tag_handler = module.config.public.html.ranged_tag_handler[name]
+	local ranged_tag_handler = module.config.public.ranged_tag_handler[name]
 		or module.private.ranged_tag_handler[name]
 		or module.private.ranged_tag_handler["comment"]
 
@@ -487,11 +485,13 @@ end
 module.load = function() end
 
 module.config.public = {
-	html = {
-		ranged_tag_handler = {},
-	},
+	--- If you'd like to modify the way specific range tabs are handled. For
+	--- example if you wanted to translate document.meta into use-case specific
+	--- HTML, you could so here (see: module.private[ranged_tag_handler""] for
+	--- examples).
+	ranged_tag_handler = {},
 	-- Used by the exporter to know what extension to use
-	-- when creating markdown files.
+	-- when creating HTML files.
 	-- The default is recommended, although you can change it.
 	extension = "html",
 }
@@ -565,9 +565,9 @@ module.public = {
 			["quote5"] = nest_tag("blockquote", 5, StackKey.BLOCK_QUOTE),
 			["quote6"] = nest_tag("blockquote", 6, StackKey.BLOCK_QUOTE),
 
+			["tag_parameters"] = keep_descending({ tag_params = {} }),
 			["tag_name"] = add_tag_name,
 			["tag_param"] = add_tag_param,
-			["tag_parameters"] = keep_descending({ tag_params = {} }),
 			["ranged_verbatim_tag_content"] = ranged_verbatim_tag_content(),
 
 			["todo_item_done"] = keep_descending({ todo = "done" }),
