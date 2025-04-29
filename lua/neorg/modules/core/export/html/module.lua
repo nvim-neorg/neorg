@@ -207,11 +207,8 @@ end
 ---@return table
 local function add_closing_p_tag(output, state)
   if not state.link and is_stack_empty(state, StackKey.LIST) then
-    print('Paragraph: ')
-    print(vim.json.encode(output))
     local new_output = { '\n<p>\n' }
     for i, value in ipairs(output) do
-      print(value)
       table.insert(new_output, value)
     end
     table.insert(new_output, '\n</p>\n')
@@ -255,6 +252,12 @@ local function get_anchor_element(type)
       "</a>",
     }
 
+    -- Reset all link fields, because the link.description was being persisted
+    -- across nodes. My theory is that is due to the way that vim.tbl_extend
+    -- handles merges, but the easiest solution is to set all fields to nil.
+    state.link.description = nil
+    state.link.type = nil
+    state.link.location = nil
     state.link = nil
 
     return output
@@ -325,6 +328,7 @@ local function init_state()
     is_url = false,
     nested_tag_stacks = {},
     anchors = {},
+    link = nil,
   }
 end
 
