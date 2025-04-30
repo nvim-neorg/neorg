@@ -1,5 +1,14 @@
 # Changelog
 
+## [9.3.1](https://github.com/nvim-neorg/neorg/compare/v9.3.0...v9.3.1) (2025-04-30)
+
+
+### Bug Fixes
+
+* **esupports.indent:** keep indentation of verbatim blocks without an injected TS parser ([#1685](https://github.com/nvim-neorg/neorg/issues/1685)) ([aa35325](https://github.com/nvim-neorg/neorg/commit/aa353253aeacf01464a8214373b64ec500571a45))
+* **journal:** journal index generation ([#1680](https://github.com/nvim-neorg/neorg/issues/1680)) ([35da593](https://github.com/nvim-neorg/neorg/commit/35da593c55d78086a3203ee3e6d749fafe2e4e73))
+* load buffer before parsing with TS ([#1689](https://github.com/nvim-neorg/neorg/issues/1689)) ([8fdd9b2](https://github.com/nvim-neorg/neorg/commit/8fdd9b2986acfb4ce310bebfc338111793862f00))
+
 ## [9.3.0](https://github.com/nvim-neorg/neorg/compare/v9.2.0...v9.3.0) (2025-03-29)
 
 
