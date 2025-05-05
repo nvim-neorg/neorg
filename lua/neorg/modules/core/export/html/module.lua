@@ -355,8 +355,6 @@ local function paragraph_segment(text, _, state)
 
 	if state.heading and state.heading > 0 then
 		output = "<h" .. state.heading .. ' id="' .. build_heading_id(text, state.heading) .. '">'
-	elseif not is_stack_empty(state, StackKey.LIST) then
-		output = ""
 	elseif state.is_math then
 		output = '<pre><code class="math">'
 	end
@@ -472,8 +470,6 @@ local function add_closing_segement_tags(output, state)
 	if state.heading and state.heading > 0 then
 		table.insert(output, "</h" .. state.heading .. ">\n")
 		state.heading = 0
-	elseif not is_stack_empty(state, StackKey.LIST) then
-		table.insert(output, "")
 	end
 
 	return output
