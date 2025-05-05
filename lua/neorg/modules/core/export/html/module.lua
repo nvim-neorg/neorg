@@ -318,8 +318,9 @@ end
 ---@param level number
 ---@return string
 local function build_heading_id(text, level)
-	local target_type = "heading" .. tostring(level)
-	return target_type .. "-" .. text:lower():gsub(" ", "")
+	local heading_name = text:lower():gsub(" ", "")
+
+	return "heading" .. tostring(level) .. "-" .. heading_name
 end
 
 ---@return fun(text: string): table
@@ -355,6 +356,11 @@ local function paragraph_segment(text, _, state)
 
 	if state.heading and state.heading > 0 then
 		output = "<h" .. state.heading .. ' id="' .. build_heading_id(text, state.heading) .. '">'
+
+		-- Add generic link target in an empty span because a single heading can only have
+		-- one link target
+		local generic_link_target = "generic-" .. text:lower():gsub(" ", "")
+		output = output .. '<span class="link-target" id="' .. generic_link_target .. '"></span>'
 	elseif state.is_math then
 		output = '<pre><code class="math">'
 	end
