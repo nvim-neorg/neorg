@@ -261,8 +261,6 @@ local function get_anchor_element(type)
 			href = state.anchors[content] or ""
 		end
 
-		print(content)
-
 		local output = {
 			'<a href="' .. href .. '">',
 			content,
@@ -358,7 +356,7 @@ local function paragraph_segment(text, _, state)
 	if state.heading and state.heading > 0 then
 		output = "<h" .. state.heading .. ' id="' .. build_heading_id(text, state.heading) .. '">'
 	elseif not is_stack_empty(state, StackKey.LIST) then
-		output = "<li>"
+		output = ""
 	elseif state.is_math then
 		output = '<pre><code class="math">'
 	end
@@ -475,7 +473,7 @@ local function add_closing_segement_tags(output, state)
 		table.insert(output, "</h" .. state.heading .. ">\n")
 		state.heading = 0
 	elseif not is_stack_empty(state, StackKey.LIST) then
-		table.insert(output, "</li>\n")
+		table.insert(output, "")
 	end
 
 	return output
@@ -570,6 +568,12 @@ module.public = {
 			["unordered_list4"] = nest_tag("ul", 4, StackKey.LIST),
 			["unordered_list5"] = nest_tag("ul", 5, StackKey.LIST),
 			["unordered_list6"] = nest_tag("ul", 6, StackKey.LIST),
+			["unordered_list1_prefix"] = "\n<li>\n",
+			["unordered_list2_prefix"] = "\n<li>\n",
+			["unordered_list3_prefix"] = "\n<li>\n",
+			["unordered_list4_prefix"] = "\n<li>\n",
+			["unordered_list5_prefix"] = "\n<li>\n",
+			["unordered_list6_prefix"] = "\n<li>\n",
 
 			["ordered_list1"] = nest_tag("ol", 1, StackKey.LIST),
 			["ordered_list2"] = nest_tag("ol", 2, StackKey.LIST),
@@ -577,6 +581,12 @@ module.public = {
 			["ordered_list4"] = nest_tag("ol", 4, StackKey.LIST),
 			["ordered_list5"] = nest_tag("ol", 5, StackKey.LIST),
 			["ordered_list6"] = nest_tag("ol", 6, StackKey.LIST),
+			["ordered_list1_prefix"] = "\n<li>\n",
+			["ordered_list2_prefix"] = "\n<li>\n",
+			["ordered_list3_prefix"] = "\n<li>\n",
+			["ordered_list4_prefix"] = "\n<li>\n",
+			["ordered_list5_prefix"] = "\n<li>\n",
+			["ordered_list6_prefix"] = "\n<li>\n",
 
 			["quote1"] = nest_tag("blockquote", 1, StackKey.BLOCK_QUOTE),
 			["quote2"] = nest_tag("blockquote", 2, StackKey.BLOCK_QUOTE),
@@ -645,6 +655,19 @@ module.public = {
 			["heading4"] = add_closing_tag("\n</div>\n"),
 			["heading5"] = add_closing_tag("\n</div>\n"),
 			["heading6"] = add_closing_tag("\n</div>\n"),
+
+			["unordered_list1"] = add_closing_tag("\n</li>\n"),
+			["unordered_list2"] = add_closing_tag("\n</li>\n"),
+			["unordered_list3"] = add_closing_tag("\n</li>\n"),
+			["unordered_list4"] = add_closing_tag("\n</li>\n"),
+			["unordered_list5"] = add_closing_tag("\n</li>\n"),
+			["unordered_list6"] = add_closing_tag("\n</li>\n"),
+			["ordered_list1"] = add_closing_tag("\n</li>\n"),
+			["ordered_list2"] = add_closing_tag("\n</li>\n"),
+			["ordered_list3"] = add_closing_tag("\n</li>\n"),
+			["ordered_list4"] = add_closing_tag("\n</li>\n"),
+			["ordered_list5"] = add_closing_tag("\n</li>\n"),
+			["ordered_list6"] = add_closing_tag("\n</li>\n"),
 
 			["ranged_verbatim_tag_end"] = apply_ranged_tag_handlers,
 
