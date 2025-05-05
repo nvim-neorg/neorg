@@ -563,7 +563,7 @@ module.private = {
 		["verbatim"] = "pre",
 		["superscript"] = "sup",
 		["subscript"] = "sub",
-		["inline_math"] = { tag = "pre", class = "math" },
+		["inline_math"] = { tag = "pre", class = "inline-math" },
 	},
 }
 
