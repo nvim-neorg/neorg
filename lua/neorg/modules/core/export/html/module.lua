@@ -323,13 +323,22 @@ local function build_heading_id(text, level)
 	return "heading" .. tostring(level) .. "-" .. heading_name
 end
 
----@return fun(text: string): table
+---@return fun(text: string, node: TSNode): table
 local function ranged_verbatim_tag_content()
-	return function(text)
+	return function(text, node)
+		local _, start_column = node:range()
+		local indent = ""
+		local i = 0
+		while i < start_column do
+			indent = indent .. " "
+			i = i + 1
+		end
+
 		return {
 			output = "",
 			state = {
-				tag_content = text,
+				tag_content = indent .. text,
+				tag_indent_level = start_column,
 			},
 		}
 	end
@@ -493,11 +502,12 @@ local function apply_ranged_tag_handlers(output, state)
 		or module.private.ranged_tag_handler[name]
 		or module.private.ranged_tag_handler["comment"]
 
-	table.insert(output, ranged_tag_handler(params, content, state))
+	table.insert(output, ranged_tag_handler(params, content, state.tag_indent_level))
 
 	state.tag_name = ""
 	state.tag_params = {}
 	state.tag_content = ""
+	state.tag_indent_level = 0
 
 	return output
 end
@@ -518,9 +528,20 @@ module.config.public = {
 
 module.private = {
 	ranged_tag_handler = {
-		["code"] = function(params, content)
+		["code"] = function(params, content, indent_level)
 			local language = params[1] or ""
-			return '\n<pre>\n<code class="' .. language .. '">\n' .. content .. "\n</code>\n</pre>\n"
+
+			local indent_regex = "^" .. string.rep("%s", indent_level)
+			local lines_of_code = {}
+
+			for line in string.gmatch(content, "[^\n]+") do
+				local normalized_line = line:gsub(indent_regex, "")
+				table.insert(lines_of_code, normalized_line)
+			end
+
+			local code_block = table.concat(lines_of_code, "\n")
+
+			return '\n<pre>\n<code class="' .. language .. '">\n' .. code_block .. "\n</code>\n</pre>\n"
 		end,
 
 		["comment"] = function(_, content)
