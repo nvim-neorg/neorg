@@ -532,7 +532,7 @@ module.private = {
 		["italic"] = "i",
 		["underline"] = "u",
 		["strikethrough"] = "s",
-		["spoiler"] = "span",
+		["spoiler"] = { tag = "span", class = "spoiler" },
 		["verbatim"] = "pre",
 		["superscript"] = "sup",
 		["subscript"] = "sub",
