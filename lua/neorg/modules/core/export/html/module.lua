@@ -33,6 +33,7 @@ end
 local StackKey = {
 	LIST = "list",
 	BLOCK_QUOTE = "blockquote",
+	SPAN = "span",
 }
 
 --- Enumeration of differnete link target types.
@@ -79,13 +80,18 @@ end
 ---@param stack_key StackKey
 ---@return fun(_: any, _: any, state: table): table
 local function nest_tag(tag, level, stack_key)
-	return function(_, _, state)
+	return function(text, _, state)
 		if not state.nested_tag_stacks[stack_key] then
 			state.nested_tag_stacks[stack_key] = {}
 		end
 
+		local attributes = ""
+		if stack_key == StackKey.SPAN then
+			attributes = ' id="generic-' .. text:lower():gsub("<", ""):gsub(">", ""):gsub(" ", "") .. '" '
+		end
+
 		local output = ""
-		local opening_tag = "\n<" .. tag .. ">\n"
+		local opening_tag = "\n<" .. tag .. attributes .. ">\n"
 		local closing_tag = "\n</" .. tag .. ">\n"
 
 		while level > #state.nested_tag_stacks[stack_key] do
@@ -221,7 +227,7 @@ end
 ---@param state table
 ---@return table
 local function add_closing_p_tag(output, state)
-	if not state.link and is_stack_empty(state, StackKey.LIST) then
+	if not state.link and is_stack_empty(state, StackKey.LIST) and is_stack_empty(state, StackKey.SPAN) then
 		local new_output = { "\n<p>\n" }
 		for i, value in ipairs(output) do
 			table.insert(new_output, value)
@@ -585,6 +591,8 @@ module.public = {
 			["heading5"] = heading(5),
 			["heading6"] = heading(6),
 
+			["inline_link_target"] = nest_tag("span", 1, StackKey.SPAN),
+
 			["unordered_list1"] = nest_tag("ul", 1, StackKey.LIST),
 			["unordered_list2"] = nest_tag("ul", 2, StackKey.LIST),
 			["unordered_list3"] = nest_tag("ul", 3, StackKey.LIST),
@@ -671,6 +679,7 @@ module.public = {
 
 			["generic_list"] = nested_tag_recollector(StackKey.LIST),
 			["quote"] = nested_tag_recollector(StackKey.BLOCK_QUOTE),
+			["inline_link_target"] = nested_tag_recollector(StackKey.SPAN),
 
 			["heading1"] = add_closing_tag("\n</div>\n"),
 			["heading2"] = add_closing_tag("\n</div>\n"),
