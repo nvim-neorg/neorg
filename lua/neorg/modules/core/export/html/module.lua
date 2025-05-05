@@ -55,7 +55,25 @@ local LinkType = {
 
 --> Generic Utility Functions
 
---- Re
+--- Escapes unsafe characters in the string
+---@param text string string being escaped
+---@return string
+local function html_escape(text)
+	local escaped_text =
+		text:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;"):gsub("'", "&#39;")
+	return escaped_text
+end
+
+--- Applies HTML escaping to a word node
+---@param word string
+---@return  table
+local function escape_word(word)
+	return {
+		output = html_escape(word),
+	}
+end
+
+--- Adds opening tag and pushes closing tag onto stack to be popped in a recollector.
 ---@param tag string
 ---@param level number
 ---@param stack_key StackKey
@@ -120,10 +138,10 @@ end
 local function build_link_description(location)
 	local description = ""
 	if location.file then
-		description = description .. '<span class="link-file">' .. location.file .. "</span>"
+		description = '<span class="link-file">' .. html_escape(location.file) .. "</span>"
 	end
 	if location.text then
-		description = description .. '<span class="link-text">' .. location.text .. "</span>"
+		description = '<span class="link-text">' .. html_escape(location.text) .. "</span>"
 	end
 	return description
 end
@@ -242,6 +260,8 @@ local function get_anchor_element(type)
 		elseif type == "anchor_declaration" then
 			href = state.anchors[content] or ""
 		end
+
+		print(content)
 
 		local output = {
 			'<a href="' .. href .. '">',
@@ -438,7 +458,7 @@ local function parse_paragraph_node(text, node, state)
 	if type == "link_location" then
 		state.link.location.text = text
 	elseif type == "link_description" and state.link then
-		state.link.description = text
+		state.link.description = html_escape(text)
 	end
 
 	return {
@@ -525,7 +545,7 @@ module.public = {
 	export = {
 		init_state = init_state,
 		functions = {
-			["_word"] = true,
+			["_word"] = escape_word,
 			["_space"] = true,
 			["_open"] = get_opening_tag,
 			["_close"] = get_closing_tag,
