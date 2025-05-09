@@ -286,10 +286,17 @@ local function get_anchor_element(type)
 end
 
 ---Just keeps swimming
----@param state? table
+---@param state? table|fun(): table
 ---@return fun(): table
-local function keep_descending(state)
+local function keep_descending(state_or_fn)
 	return function()
+		local state
+		if type(state_or_fn) == "function" then
+			state = state_or_fn()
+		else
+			state = state_or_fn
+		end
+
 		return {
 			output = "",
 			keep_descending = true,
@@ -354,6 +361,7 @@ local function init_state()
 	return {
 		todo = nil,
 		is_math = false,
+		tag_params = {},
 		tag_close = nil,
 		ranged_tag_indentation_level = 0,
 		is_url = false,
@@ -424,6 +432,8 @@ end
 ---@param text string
 ---@return table
 local function add_tag_name(text)
+	--print('tag params')
+	--print(state.tag_params)
 	return {
 		output = "",
 		state = {
@@ -436,10 +446,13 @@ end
 ---@param state table
 ---@return table
 local function add_tag_param(text, _, state)
-	table.insert(state.tag_params, text)
+	tag_params = table.insert(state.tag_params, text)
 
 	return {
 		output = "",
+		state = {
+			tag_params = tag_params,
+		},
 	}
 end
 
@@ -501,8 +514,10 @@ end
 ---@return table
 local function apply_ranged_tag_handlers(output, state)
 	local name = state.tag_name
-	local params = state.tag_params
 	local content = state.tag_content
+	local params = state.tag_params
+
+	print(#params)
 
 	local ranged_tag_handler = module.config.public.ranged_tag_handler[name]
 		or module.private.ranged_tag_handler[name]
@@ -536,6 +551,7 @@ module.private = {
 	ranged_tag_handler = {
 		["code"] = function(params, content, indent_level)
 			local language = params[1] or ""
+			--print(language)
 
 			local indent_regex = "^" .. string.rep("%s", indent_level)
 			local lines_of_code = {}
@@ -626,7 +642,9 @@ module.public = {
 			["quote5"] = nest_tag("blockquote", 5, StackKey.BLOCK_QUOTE),
 			["quote6"] = nest_tag("blockquote", 6, StackKey.BLOCK_QUOTE),
 
-			["tag_parameters"] = keep_descending({ tag_params = {} }),
+			["tag_parameters"] = keep_descending(function()
+				return { tag_params = {} }
+			end),
 			["tag_name"] = add_tag_name,
 			["tag_param"] = add_tag_param,
 			["ranged_verbatim_tag_content"] = ranged_verbatim_tag_content(),
@@ -645,9 +663,15 @@ module.public = {
 
 			["link_file_text"] = set_link_loction_file,
 			["link_location"] = reset_link_location,
-			["anchor_declaration"] = keep_descending({ link = {} }),
-			["anchor_definition"] = keep_descending({ link = {} }),
-			["link"] = keep_descending({ link = {} }),
+			["anchor_declaration"] = keep_descending(function()
+				return { link = {} }
+			end),
+			["anchor_definition"] = keep_descending(function()
+				return { link = {} }
+			end),
+			["link"] = keep_descending(function()
+				return { link = {} }
+			end),
 
 			["link_target_heading1"] = set_link_type(LinkType.HEADING1),
 			["link_target_heading2"] = set_link_type(LinkType.HEADING2),
