@@ -432,8 +432,6 @@ end
 ---@param text string
 ---@return table
 local function add_tag_name(text)
-	--print('tag params')
-	--print(state.tag_params)
 	return {
 		output = "",
 		state = {
@@ -517,8 +515,6 @@ local function apply_ranged_tag_handlers(output, state)
 	local content = state.tag_content
 	local params = state.tag_params
 
-	print(#params)
-
 	local ranged_tag_handler = module.config.public.ranged_tag_handler[name]
 		or module.private.ranged_tag_handler[name]
 		or module.private.ranged_tag_handler["comment"]
@@ -551,7 +547,6 @@ module.private = {
 	ranged_tag_handler = {
 		["code"] = function(params, content, indent_level)
 			local language = params[1] or ""
-			--print(language)
 
 			local indent_regex = "^" .. string.rep("%s", indent_level)
 			local lines_of_code = {}
@@ -561,7 +556,7 @@ module.private = {
 				table.insert(lines_of_code, normalized_line)
 			end
 
-			local code_block = table.concat(lines_of_code, "\n")
+			local code_block = html_escape(table.concat(lines_of_code, "\n"))
 
 			return '\n<pre>\n<code class="' .. language .. '">\n' .. code_block .. "\n</code>\n</pre>\n"
 		end,
@@ -579,7 +574,7 @@ module.private = {
 		["verbatim"] = "pre",
 		["superscript"] = "sup",
 		["subscript"] = "sub",
-		["inline_math"] = { tag = "pre", class = "inline-math" },
+		["inline_math"] = { tag = "code", class = "inline-math" },
 	},
 }
 
@@ -589,7 +584,7 @@ module.public = {
 		init_state = init_state,
 		functions = {
 			["_word"] = escape_word,
-			["_space"] = true,
+			["_space"] = escape_word,
 			["_open"] = get_opening_tag,
 			["_close"] = get_closing_tag,
 			["_begin"] = "",
