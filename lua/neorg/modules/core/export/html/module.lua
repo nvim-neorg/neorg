@@ -307,23 +307,16 @@ end
 
 ---@param output table
 ---@return table
-local function recollect_footnote(output)
+local function recollect_footnote(output, state)
 	local title = table.remove(output, 1) .. table.remove(output, 1)
 	local content = table.concat(output)
+	local footnote_number = #state.footnotes + 1
 
-	local output_table = {
-		'\n<div class="footnote">',
-		'\n<div class="footnote-title">\n',
-		title,
-		"\n</div>",
-		'\n<div class="footnore-content">\n',
-		content,
-		"\n</div>",
-		"\n</div>",
-		"\n",
+	table.insert(state.footnotes, { title = title, content = content, number = footnote_number })
+
+	return {
+		'<a href="#footnote-' .. footnote_number .. '">[' .. footnote_number .. "]</a>",
 	}
-
-	return output_table
 end
 
 ---Builds a unique ID based on the text that can be used for linking in the future
@@ -367,6 +360,7 @@ local function init_state()
 		nested_tag_stacks = {},
 		anchors = {},
 		link = nil,
+		footnotes = {},
 	}
 end
 
@@ -524,6 +518,23 @@ local function apply_ranged_tag_handlers(output, state)
 	state.tag_indent_level = 0
 
 	return output
+end
+
+local function build_footnote(footnote)
+	return table.concat({
+		'\n<div class="footnote" id="footnote-' .. footnote.number .. '">',
+		'\n<div class="footnote-number">\n',
+		footnote.number,
+		"\n</div>",
+		'\n<div class="footnote-title">\n',
+		footnote.title,
+		"\n</div>",
+		'\n<div class="footnore-content">\n',
+		footnote.content,
+		"\n</div>",
+		"\n</div>",
+		"\n",
+	})
 end
 
 module.load = function() end
@@ -723,7 +734,16 @@ module.public = {
 			["multi_footnote"] = recollect_footnote,
 		},
 
-		cleanup = function() end,
+		cleanup = function(output, state)
+			if #state.footnotes > 0 then
+				output = output .. "\n<hr />\n"
+			end
+
+			for _, footnote in ipairs(state.footnotes) do
+				output = output .. "\n" .. build_footnote(footnote)
+			end
+			return output
+		end,
 	},
 }
 
