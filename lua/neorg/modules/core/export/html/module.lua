@@ -360,7 +360,6 @@ end
 local function init_state()
 	return {
 		todo = nil,
-		is_math = false,
 		tag_params = {},
 		tag_close = nil,
 		ranged_tag_indentation_level = 0,
@@ -384,8 +383,6 @@ local function paragraph_segment(text, _, state)
 		-- one link target
 		local generic_link_target = "generic-" .. text:lower():gsub(" ", "")
 		output = output .. '<span class="link-target" id="' .. generic_link_target .. '"></span>'
-	elseif state.is_math then
-		output = '<pre><code class="math">'
 	end
 
 	local todo = ""
@@ -571,7 +568,7 @@ module.private = {
 		["underline"] = "u",
 		["strikethrough"] = "s",
 		["spoiler"] = { tag = "span", class = "spoiler" },
-		["verbatim"] = "pre",
+		["verbatim"] = { tag = "code", class = "verbatim" },
 		["superscript"] = "sup",
 		["subscript"] = "sub",
 		["inline_math"] = { tag = "code", class = "inline-math" },
