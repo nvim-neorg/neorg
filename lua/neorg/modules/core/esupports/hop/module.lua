@@ -25,7 +25,9 @@ mapping them):
 
 local neorg = require("neorg.core")
 local config, lib, log, modules, utils = neorg.config, neorg.lib, neorg.log, neorg.modules, neorg.utils
-local links, dirman_utils
+
+---@type core.links, core.dirman.utils, core.dirman
+local links, dirman_utils, dirman
 
 local module = modules.create("core.esupports.hop")
 
@@ -36,6 +38,7 @@ module.setup = function()
             "core.integrations.treesitter",
             "core.ui",
             "core.dirman.utils",
+            "core.dirman",
             "core.links",
         },
     }
@@ -44,6 +47,7 @@ end
 module.load = function()
     links = module.required["core.links"]
     dirman_utils = module.required["core.dirman.utils"]
+    dirman = module.required["core.dirman"]
     vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link)", module.public.hop_link)
     vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link.vsplit)", lib.wrap(module.public.hop_link, "vsplit"))
     vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link.drop)", lib.wrap(module.public.hop_link, "drop"))
@@ -110,6 +114,9 @@ end
 ---@field node TSNode The node of the target.
 ---@field type LinkTargetType The type of target that was located.
 ---@field buffer number The buffer ID in which the target was found.
+---@field path string? file path where the target resides
+---@field line number?
+---@field uri string?
 
 ---@class (exact) PotentialLinkFixes
 ---@field similarity number The similarity of this candidate to the current title of the link.
@@ -183,7 +190,7 @@ module.public = {
         end
 
         local function jump_to_line(line)
-            local status, _ = pcall(vim.api.nvim_win_set_cursor, 0, { line, 1 })
+            local status, _ = pcall(vim.api.nvim_win_set_cursor, 0, { line, 0 })
 
             if not status then
                 log.error("Failed to jump to line:", line, "- make sure the line number exists!")
@@ -197,14 +204,6 @@ module.public = {
             end
 
             lib.match(located_link_information.type)({
-                -- Filter the currently unsupported link types and let the user know that they do not work
-                wiki = function()
-                    vim.notify(
-                        "Neorg doesn't support wiki links yet, please use a more specific link type instead.",
-                        vim.log.levels.WARN
-                    )
-                end,
-
                 -- If we're dealing with a URI, simply open the URI in the user's preferred method
                 external_app = function()
                     os_open_link(located_link_information.uri)
@@ -568,7 +567,7 @@ module.public = {
     ---@param parsed_link_information Link #A table returned by `parse_link()`
     ---@return LinkTarget #A table containing data about the link target
     locate_link_target = function(parsed_link_information)
-        --- A pointer to the target buffer we will be parsing.
+        -- A pointer to the target buffer we will be parsing.
         -- This may change depending on the target file the user gave.
         local buf_pointer = vim.api.nvim_get_current_buf()
 
@@ -592,11 +591,6 @@ module.public = {
         end
 
         return lib.match(parsed_link_information.link_type)({
-            -- Wiki links are currently unsupported, so we simply forward the link type
-            wiki = function()
-                return { type = "wiki" }
-            end,
-
             url = function()
                 return { type = "external_app", uri = parsed_link_information.link_location_text }
             end,
@@ -663,8 +657,13 @@ module.public = {
                 }
             end,
 
+            -- wiki falls through to here
             _ = function()
-                local query_str = links.get_link_target_query_string(parsed_link_information.link_type)
+                local typ = parsed_link_information.link_type
+                if typ == "wiki" then
+                    typ = "generic"
+                end
+                local query_str = links.get_link_target_query_string(typ)
                 local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
 
                 if not document_root then
@@ -672,6 +671,11 @@ module.public = {
                 end
 
                 local query = utils.ts_parse_query("norg", query_str)
+                local link_target = parsed_link_information.link_location_text
+                if not link_target then
+                    return
+                end
+                local target = link_target:gsub("[%s\\]", ""):lower()
 
                 for id, node in query:iter_captures(document_root, buf_pointer) do
                     local capture = query.captures[id]
@@ -682,9 +686,8 @@ module.public = {
 
                         if original_title then
                             local title = original_title:gsub("[%s\\]", "")
-                            local target = parsed_link_information.link_location_text:gsub("[%s\\]", "")
 
-                            if title:lower() == target:lower() then
+                            if title:lower() == target then
                                 return {
                                     type = "buffer",
                                     original_title = original_title,
@@ -694,6 +697,34 @@ module.public = {
                             end
                         end
                     end
+                end
+
+                -- if we didn't find in the current file, search every other file, doesn't matter
+                -- which file wins.
+                local target_regex = target:gsub(" ", " ?"):lower()
+                local heading_regex = ([[^\*+ %s$]]):format(target_regex)
+                local workspace_path = dirman.get_current_workspace()[2]
+
+                local res = vim.system(
+                    { "rg", "-i", "--column", "-o", heading_regex },
+                    { cwd = tostring(workspace_path), text = true }
+                ):wait()
+
+                if res.code == 0 then
+                    local best = vim.iter(vim.split(res.stdout, "\n", { trimempty = true })):map(function(line)
+                        return { line:match("(.-):(%d+):(%d+)") }
+                    end):fold({}, function(acc, val)
+                        if acc[1] and acc[1]:len() < val[1]:len() then
+                            return acc
+                        end
+                        return val
+                    end)
+                    return {
+                        type = "buffer",
+                        buffer = vim.uri_to_bufnr((workspace_path / best[1]):as_uri()),
+                        line = tonumber(best[2]),
+                        column = tonumber(best[3]),
+                    }
                 end
             end,
         } --[[@as table<string, fun(): LinkTarget?>]])
@@ -800,7 +831,7 @@ module.private = {
     ---@return PotentialLinkFixes[]? #A table of similarities (fuzzed items)
     fix_link_strict = function(parsed_link_information)
         local query = lib.match(parsed_link_information.link_type)({
-            generic = [[
+            [{ "generic", "wiki" }] = [[
                 [(_
                   [(strong_carryover_set
                      (strong_carryover
@@ -933,10 +964,13 @@ module.private = {
 
         local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
 
-        local prefix = lib.when(
-            parsed_link_information.link_type == "generic" and not force_type,
-            "#",
-            lib.match(most_similar.node:type())({
+        local prefix
+        if parsed_link_information.link_type == "generic" and not force_type then
+            prefix = "#"
+        elseif parsed_link_information.link_type == "wiki" and not force_type then
+            prefix = "?"
+        else
+            prefix = lib.match(most_similar.node:type())({
                 heading1 = "*",
                 heading2 = "**",
                 heading3 = "***",
@@ -949,7 +983,8 @@ module.private = {
                 multi_footnote = "^",
                 _ = "#",
             })
-        ) .. " "
+        end
+        prefix = prefix .. " "
 
         local function callback(replace)
             vim.api.nvim_buf_set_text(
@@ -963,19 +998,19 @@ module.private = {
         end
         callback(
             "{"
-                .. lib.when(
-                    parsed_link_information.link_file_text --[[@as boolean]],
-                    lib.lazy_string_concat(":", parsed_link_information.link_file_text, ":"),
-                    ""
-                )
-                .. prefix
-                .. most_similar.text
-                .. "}"
-                .. lib.when(
-                    parsed_link_information.link_description --[[@as boolean]],
-                    lib.lazy_string_concat("[", parsed_link_information.link_description, "]"),
-                    ""
-                )
+            .. lib.when(
+                parsed_link_information.link_file_text --[[@as boolean]],
+                lib.lazy_string_concat(":", parsed_link_information.link_file_text, ":"),
+                ""
+            )
+            .. prefix
+            .. most_similar.text
+            .. "}"
+            .. lib.when(
+                parsed_link_information.link_description --[[@as boolean]],
+                lib.lazy_string_concat("[", parsed_link_information.link_description, "]"),
+                ""
+            )
         )
     end,
 }
