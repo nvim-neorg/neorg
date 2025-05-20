@@ -286,7 +286,7 @@ module.private = {
                     {
                         "<LocalLeader>ta",
                         "<Plug>(neorg.qol.todo-items.todo.task-ambiguous)",
-                        opts = { desc = "[neorg] Mark as Ambigous" },
+                        opts = { desc = "[neorg] Mark as Ambiguous" },
                     },
 
                     -- Switch the task under the cursor between a select few states
