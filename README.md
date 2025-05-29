@@ -130,6 +130,10 @@ the [Lua for Windows](https://github.com/rjpcomputing/luaforwindows) all-in-one 
 
 </details>
 
+While lazy [supports lazy-loading upon specific commands and
+filetypes](https://lazy.folke.io/spec#spec-lazy-loading), it is known to break
+things sometimes. Use at your own risk.
+
 ### `packer.nvim`
 
 Neorg can be installed purely via luarocks on packer, pulling in all required dependencies in the process.
