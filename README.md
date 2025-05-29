@@ -122,7 +122,8 @@ the [Lua for Windows](https://github.com/rjpcomputing/luaforwindows) all-in-one 
 ```lua
 {
     "nvim-neorg/neorg",
-    lazy = false, -- Disable lazy loading as some `lazy.nvim` distributions set `lazy = true` by default
+    cmd = { "Neorg" }, -- Load neorg upon :Neorg command...
+    ft = { "norg" }, -- ...or on "norg" filetype
     version = "*", -- Pin Neorg to the latest stable release
     config = true,
 }
