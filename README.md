@@ -128,11 +128,12 @@ the [Lua for Windows](https://github.com/rjpcomputing/luaforwindows) all-in-one 
 }
 ```
 
-</details>
-
 While lazy [supports lazy-loading upon specific commands and
-filetypes](https://lazy.folke.io/spec#spec-lazy-loading), it is known to break
-things sometimes. Use at your own risk.
+filetypes](https://lazy.folke.io/spec#spec-lazy-loading), it can cause neorg to load incorrectly,
+leading to a 'broken' plugin. Lazy load at your own risk, and disable lazy loading as your first
+debugging step.
+
+</details>
 
 ### `packer.nvim`
 
