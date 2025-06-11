@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - host: ubuntu-20.04
+          - host: ubuntu-24.04
           # - host: windows-2019
           - host: macos-11 # x86_64
           - host: macos-14 # aarch64

@@ -8,7 +8,7 @@ on:
 jobs:
   release:
     name: release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: google-github-actions/release-please-action@v3
         with:
