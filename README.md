@@ -88,10 +88,9 @@ One way of installing Neorg is via [rocks.nvim](https://github.com/nvim-neorocks
   require("neorg").setup()
   ```
 
-For the time being you also need `nvim-treesitter` installed, but the plugin is not readily available on luarocks yet.
-To counter this, you also need to run the following:
-- `:Rocks install rocks-git.nvim`
-- `:Rocks install nvim-treesitter/nvim-treesitter`
+<!-- TODO: rewrite this section once a new luarocks release is made, as it will automatically download nvim-treesitter-legacy-api as a dependency -->
+For the time being you also need `nvim-treesitter` installed.
+- `:Rocks install nvim-treesitter-legacy-api`
 - Just like the `neorg.lua` file, create a `lua/plugins/treesitter.lua` file and place the following content inside:
   ```lua
   require("nvim-treesitter.configs").setup({
@@ -147,7 +146,7 @@ It is not recommended to use packer as it is now unmaintained.
 ```lua
 use {
   "nvim-neorg/neorg",
-  rocks = { "lua-utils.nvim", "nvim-nio", "nui.nvim", "plenary.nvim", "pathlib.nvim" },
+  rocks = { "lua-utils.nvim", "nvim-nio", "nui.nvim", "plenary.nvim", "pathlib.nvim", "nvim-treesitter-legacy-api" },
   tag = "*", -- Pin Neorg to the latest stable release
   config = function()
       require("neorg").setup()
