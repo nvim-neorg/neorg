@@ -16,7 +16,7 @@ jobs:
         os:
           - host: ubuntu-24.04
           # - host: windows-2019
-          - host: macos-11 # x86_64
+          - host: macos-13 # x86_64
           - host: macos-14 # aarch64
     steps:
       - uses: actions/checkout@v4
