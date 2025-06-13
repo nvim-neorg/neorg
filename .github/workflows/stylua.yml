@@ -1,6 +1,6 @@
 name: Formatting
 
-on: 
+on:
   push:
     branches: [ "main" ]
     paths-ignore:
@@ -12,11 +12,11 @@ jobs:
   format-with-stylua:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Cache cargo modules
         id: cache-cargo
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         env:
           cache-name: cache-node-modules
         with:
@@ -36,7 +36,7 @@ jobs:
       - name: Run formatting
         run: stylua -v --verify .
 
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "chore: autoformat with stylua"
           branch: ${{ github.ref }}
