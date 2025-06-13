@@ -20,6 +20,6 @@ jobs:
           - host: macos-14 # aarch64
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v10
+      - uses: DeterminateSystems/nix-installer-action@v17
       - name: Run Checks
         run: nix run .#integration-test
