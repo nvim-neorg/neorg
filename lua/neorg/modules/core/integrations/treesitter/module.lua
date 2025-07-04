@@ -522,7 +522,9 @@ module.public = {
                 root = tree:root()
             end
 
-            if not root then return end
+            if not root then
+                return
+            end
 
             --- Recursively searches for a node of a given type
             ---@param node TSNode #The starting point for the search
@@ -736,7 +738,9 @@ module.public = {
                 break
             end
 
-            if not parent then return end
+            if not parent then
+                return
+            end
 
             descendant = parent
         end
