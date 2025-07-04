@@ -666,7 +666,7 @@ module.public = {
         if type(src) == "string" then
             parser = vim.treesitter.get_string_parser(src, filetype)
         else
-            if src ~= 0 then
+            if src ~= 0 and src ~= nil then
                 vim.fn.bufload(src)
             end
             parser = vim.treesitter.get_parser(src or 0, filetype)
