@@ -100,7 +100,7 @@ module.load = function()
 
     if module.config.public.open_last_workspace and vim.fn.argc(-1) == 0 then
         if module.config.public.open_last_workspace == "default" then
-            if not module.config.public.default_workspace then
+            if not module.public.get_default_workspace() then
                 log.warn(
                     'Configuration error in `core.dirman`: the `open_last_workspace` option is set to "default", but no default workspace is provided in the `default_workspace` configuration variable. Defaulting to opening the last known workspace.'
                 )
@@ -108,12 +108,12 @@ module.load = function()
                 return
             end
 
-            module.public.open_workspace(module.config.public.default_workspace)
+            module.public.open_workspace(module.public.get_default_workspace())
         else
             module.public.set_last_workspace()
         end
-    elseif module.config.public.default_workspace then
-        module.public.set_workspace(module.config.public.default_workspace)
+    elseif module.public.get_default_workspace() then
+        module.public.set_workspace(module.public.get_default_workspace())
     end
 end
 
@@ -131,6 +131,7 @@ module.config.public = {
     -- The index file is the "entry point" for all of your notes.
     index = "index.norg",
     -- The default workspace to set whenever Neovim starts.
+    -- If a function, will be called with the current workspace and should resolve to a valid workspace name
     default_workspace = nil,
     -- Whether to open the last workspace's index file when `nvim` is executed
     -- without arguments.
@@ -150,6 +151,7 @@ module.private = {
 
 ---@class core.dirman
 module.public = {
+    ---@return table<string, PathlibPath>
     get_workspaces = function()
         return module.config.public.workspaces
     end,
@@ -159,12 +161,22 @@ module.public = {
     end,
     --- If present retrieve a workspace's path by its name, else returns nil
     ---@param name string #The name of the workspace
+    ---@return PathlibPath
     get_workspace = function(name)
         return module.config.public.workspaces[name]
     end,
     --- @return { [1]: string, [2]: PathlibPath }
     get_current_workspace = function()
         return module.private.current_workspace
+    end,
+    --- The default workspace, may be set dynamically based on cwd
+    ---@return string? # Should evaluate to a valid workspace name
+    get_default_workspace = function()
+        if type(module.config.public.default_workspace) == "function" then
+            return module.config.public.default_workspace()
+        end
+
+        return module.config.public.default_workspace
     end,
     --- Sets the workspace to the one specified (if it exists) and broadcasts the workspace_changed event
     ---@param ws_name string #The name of a valid namespace we want to switch to
@@ -361,7 +373,7 @@ module.public = {
 
         local last_workspace = storage.retrieve("last_workspace")
         last_workspace = type(last_workspace) == "string" and last_workspace
-            or module.config.public.default_workspace
+            or module.public.get_default_workspace()
             or ""
 
         local workspace_path = module.public.get_workspace(last_workspace)

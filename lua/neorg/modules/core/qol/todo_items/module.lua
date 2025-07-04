@@ -23,7 +23,7 @@ Parent items of the same type and children items of the same type are update acc
 --]]
 
 local neorg = require("neorg.core")
-local log, modules = neorg.log, neorg.modules
+local log, modules = neorg.log, neorg.modules --[[@as neorg.modules]]
 
 local module = modules.create("core.qol.todo_items")
 
@@ -117,6 +117,23 @@ module.config.public = {
 ---|"uncertain"
 
 module.private = {
+    names = {
+        ["x"] = "done",
+        [" "] = "undone",
+        ["-"] = "pending",
+        ["="] = "on_hold",
+        ["_"] = "cancelled",
+        ["!"] = "important",
+        ["+"] = "recurring",
+        ["?"] = "ambiguous",
+    },
+    fire_update_event = function(char, line)
+        local ev =
+            modules.create_event(module, module.events.defined["todo-changed"].type, { char = char, line = line })
+        if ev then
+            modules.broadcast_event(ev)
+        end
+    end,
     --- Updates the parent todo item for the current todo item if it exists
     ---@param recursion_level number the index of the parent to change. The higher the number the more the code will traverse up the syntax tree.
     update_parent = function(buf, line, recursion_level)
@@ -223,6 +240,8 @@ module.private = {
 
             vim.api.nvim_buf_set_text(buf, row, column, row, column, { "(" .. resulting_char .. ") " })
 
+            module.private.fire_update_event(resulting_char, row)
+
             module.private.update_parent(buf, line, recursion_level + 1)
             return
         end
@@ -238,6 +257,8 @@ module.private = {
             range.column_end,
             { resulting_char }
         )
+
+        module.private.fire_update_event(resulting_char, range.row_start)
 
         module.private.update_parent(buf, line, recursion_level + 1)
     end,
@@ -336,6 +357,8 @@ module.private = {
         else
             local range = module.required["core.integrations.treesitter"].get_node_range(first_status_extension)
 
+            module.private.fire_update_event(char, range.row_start)
+
             vim.api.nvim_buf_set_text(
                 buf,
                 range.row_start,
@@ -404,31 +427,44 @@ module.private = {
     end,
 }
 
-local function task_set(character, name)
+---Set the todo item in the given buffer at the given line
+---@param buffer number 0 for current
+---@param line number 1 based line number, 0 for current
+---@param character string
+local function task_set_at(buffer, line, character)
+    local name = module.private.names[character]
+    if buffer == 0 then
+        buffer = vim.api.nvim_get_current_buf()
+    end
+    if line == 0 then
+        line = vim.api.nvim_win_get_cursor(0)[1]
+    end
+    local todo_item_at_cursor = module.private.get_todo_item_from_cursor(buffer, line - 1)
+
+    if not todo_item_at_cursor then
+        return
+    end
+
+    module.private.make_all(buffer, todo_item_at_cursor, name, character)
+end
+
+local function task_set(character)
     return neorg.utils.wrap_dotrepeat(function()
-        local buffer = vim.api.nvim_get_current_buf()
-        local cursor = vim.api.nvim_win_get_cursor(0)
-
-        local todo_item_at_cursor = module.private.get_todo_item_from_cursor(buffer, cursor[1] - 1)
-
-        if not todo_item_at_cursor then
-            return
-        end
-
-        module.private.make_all(buffer, todo_item_at_cursor, name, character)
+        task_set_at(0, 0, character)
     end)
 end
 
 ---@class core.qol.todo_items
 module.public = {
-    ["task-done"] = task_set("x", "done"),
-    ["task-undone"] = task_set(" ", "undone"),
-    ["task-pending"] = task_set("-", "pending"),
-    ["task-on-hold"] = task_set("=", "on_hold"),
-    ["task-cancelled"] = task_set("_", "cancelled"),
-    ["task-important"] = task_set("!", "important"),
-    ["task-recurring"] = task_set("+", "recurring"),
-    ["task-ambiguous"] = task_set("?", "ambiguous"),
+    ["set_at"] = task_set_at,
+    ["task-done"] = task_set("x"),
+    ["task-undone"] = task_set(" "),
+    ["task-pending"] = task_set("-"),
+    ["task-on-hold"] = task_set("="),
+    ["task-cancelled"] = task_set("_"),
+    ["task-important"] = task_set("!"),
+    ["task-recurring"] = task_set("+"),
+    ["task-ambiguous"] = task_set("?"),
     ["task-cycle"] = function()
         local buffer = vim.api.nvim_get_current_buf()
         local cursor = vim.api.nvim_win_get_cursor(0)
@@ -451,6 +487,10 @@ module.public = {
             vim.fn.reverse(module.config.public.order_with_children)
         )
     end,
+}
+
+module.events.defined = {
+    ["todo-changed"] = modules.define_event(module, "todo-changed"),
 }
 
 return module

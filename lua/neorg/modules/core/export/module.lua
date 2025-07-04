@@ -24,6 +24,10 @@ It takes 3 arguments:
 - `filetype` - the filetype to export to
 - `output-dir` (optional) - a custom output directory to use. If not provided will fall back to `config.public.export_dir`
   (see [configuration](#configuration)).
+
+And if you just want to export a snippet from a single document, you can use `:Neorg export
+to-clipboard <filetype>`. Filetype is required, at the time of writing the only option is "markdown".
+This copies the range given to the command to the `+` register.
 --]]
 
 local neorg = require("neorg.core")
@@ -39,7 +43,12 @@ module.setup = function()
     }
 end
 
+---@type core.integrations.treesitter
+local ts
+
 module.load = function()
+    ts = module.required["core.integrations.treesitter"]
+
     modules.await("core.neorgcmd", function(neorgcmd)
         neorgcmd.add_commands_from_table({
             export = {
@@ -56,6 +65,10 @@ module.load = function()
                         min_args = 2,
                         max_args = 3,
                         name = "export.directory",
+                    },
+                    ["to-clipboard"] = {
+                        args = 1,
+                        name = "export.to-clipboard",
                     },
                 },
             },
@@ -84,39 +97,58 @@ module.public = {
         return modules.get_module("core.export." .. ftype), modules.get_module_config("core.export." .. ftype)
     end,
 
+    ---export part of a buffer
+    ---@param buffer number
+    ---@param start_row number 1 indexed
+    ---@param end_row number 1 indexed, inclusive
+    ---@param filetype string
+    ---@return string? content, string? extension exported content as a string, and the extension
+    ---used for the export
+    export_range = function(buffer, start_row, end_row, filetype)
+        local converter = module.private.get_converter_checked(filetype)
+        if not converter then
+            return
+        end
+        local content = vim.iter(vim.api.nvim_buf_get_lines(buffer, start_row - 1, end_row, false)):join("\n")
+        local root = ts.get_document_root(content)
+        if not root then
+            return
+        end
+
+        return module.public.export_from_root(root, converter, content)
+    end,
+
     --- Takes a buffer and exports it to a specific file
     ---@param buffer number #The buffer ID to read the contents from
     ---@param filetype string #A Neovim filetype to specify which language to export to
     ---@return string?, string? #The entire buffer parsed, converted and returned as a string, as well as the extension used for the export.
     export = function(buffer, filetype)
-        local converter, converter_config = module.public.get_converter(filetype)
-
+        local converter, converter_config = module.private.get_converter_checked(filetype)
         if not converter or not converter_config then
-            log.error("Unable to export file - did not find exporter for filetype '" .. filetype .. "'.")
             return
         end
 
-        -- Each converter must have a `extension` field in its public config
-        -- This is done to do a backwards lookup, e.g. `markdown` uses the `.md` file extension.
-        if not converter_config.extension then
-            log.error(
-                "Unable to export file - exporter for filetype '"
-                    .. filetype
-                    .. "' did not return a preferred extension. The exporter is unable to infer extensions."
-            )
-            return
-        end
-
-        local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
+        local document_root = ts.get_document_root(buffer)
 
         if not document_root then
             return
         end
 
+        local content = module.public.export_from_root(document_root, converter, buffer)
+
+        return content, converter_config.extension
+    end,
+
+    ---Do the work of exporting the given TS node via the given converter
+    ---@param root TSNode
+    ---@param converter table
+    ---@param source number | string
+    ---@return string
+    export_from_root = function(root, converter, source)
         -- Initialize the state. The state is a table that exists throughout the entire duration
         -- of the export, and can be used to e.g. retain indent levels and/or keep references.
         local state = converter.export.init_state and converter.export.init_state() or {}
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
+        local ts_utils = ts.get_ts_utils()
 
         --- Descends down a node and its children
         ---@param start table #The TS node to begin at
@@ -144,7 +176,7 @@ module.public = {
                         --  `keep_descending`  - if true will continue to recurse down the current node's children despite the current
                         --                      node already being parsed
                         --  `state`   - a modified version of the state that then gets merged into the main state table
-                        local result = exporter(vim.treesitter.get_node_text(node, buffer), node, state, ts_utils)
+                        local result = exporter(vim.treesitter.get_node_text(node, source), node, state, ts_utils)
 
                         if type(result) == "table" then
                             state = result.state and vim.tbl_extend("force", state, result.state) or state
@@ -155,8 +187,8 @@ module.public = {
 
                             if result.keep_descending then
                                 if state.parse_as then
-                                    node = module.required["core.integrations.treesitter"].get_document_root(
-                                        "\n" .. vim.treesitter.get_node_text(node, buffer),
+                                    node = ts.get_document_root(
+                                        "\n" .. vim.treesitter.get_node_text(node, source),
                                         state.parse_as
                                     )
                                     state.parse_as = nil
@@ -172,10 +204,7 @@ module.public = {
                             table.insert(output, result)
                         end
                     elseif exporter == true then
-                        table.insert(
-                            output,
-                            module.required["core.integrations.treesitter"].get_node_text(node, buffer)
-                        )
+                        table.insert(output, ts.get_node_text(node, source))
                     else
                         table.insert(output, exporter)
                     end
@@ -208,13 +237,41 @@ module.public = {
                 or (not vim.tbl_isempty(output) and table.concat(output))
         end
 
-        local output = descend(document_root)
+        local output = descend(root)
 
         -- Every converter can also come with a `cleanup` function that performs some final tweaks to the output string
-        return converter.export.cleanup and converter.export.cleanup(output) or output, converter_config.extension
+        return converter.export.cleanup and converter.export.cleanup(output) or output
     end,
 }
 
+module.private = {
+    ---get the converter for the given filetype
+    ---@param filetype string
+    ---@return table?, table?
+    get_converter_checked = function(filetype)
+        local converter, converter_config = module.public.get_converter(filetype)
+
+        if not converter or not converter_config then
+            log.error("Unable to export file - did not find exporter for filetype '" .. filetype .. "'.")
+            return
+        end
+
+        -- Each converter must have a `extension` field in its public config
+        -- This is done to do a backwards lookup, e.g. `markdown` uses the `.md` file extension.
+        if not converter_config.extension then
+            log.error(
+                "Unable to export file - exporter for filetype '"
+                    .. filetype
+                    .. "' did not return a preferred extension. The exporter is unable to infer extensions."
+            )
+            return
+        end
+
+        return converter, converter_config
+    end,
+}
+
+---@param event neorg.event
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.export.to-file" then
         -- Syntax: Neorg export to-file file.extension forced-filetype?
@@ -234,6 +291,15 @@ module.on_event = function(event)
 
             vim.schedule(lib.wrap(utils.notify, "Successfully exported 1 file!"))
         end)
+    elseif event.type == "core.neorgcmd.events.export.to-clipboard" then
+        -- Syntax: Neorg export to-clipboard filetype
+        -- Example: Neorg export to-clipboard markdown
+
+        local filetype = event.content[1]
+        local data = event.content.data
+        local exported = module.public.export_range(event.buffer, data.line1, data.line2, filetype)
+
+        vim.fn.setreg("+", exported, "l")
     elseif event.type == "core.neorgcmd.events.export.directory" then
         local path = event.content[3] and vim.fn.expand(event.content[3])
             or module.config.public.export_dir
@@ -328,6 +394,7 @@ end
 module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["export.to-file"] = true,
+        ["export.to-clipboard"] = true,
         ["export.directory"] = true,
     },
 }

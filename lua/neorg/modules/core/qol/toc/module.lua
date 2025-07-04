@@ -59,36 +59,36 @@ module.load = function()
 end
 
 module.config.public = {
-    -- close the Table of Contents after an entry in the table is picked
+    -- Close the Table of Contents after an entry in the table is picked
     close_after_use = false,
 
-    -- width of the Table of Contents window will automatically fit its longest line, up to
+    -- Width of the Table of Contents window will automatically fit its longest line, up to
     -- `max_width`
     fit_width = true,
 
-    -- max width of the ToC window when `fit_width = true` (in columns)
+    -- Max width of the ToC window when `fit_width = true` (in columns)
     max_width = 30,
 
-    -- when set, the ToC window will always be this many cols wide.
+    -- When set, the ToC window will always be this many cols wide.
     -- will override `fit_width` and ignore `max_width`
     fixed_width = nil,
 
-    -- enable `cursorline` in the ToC window, and sync the cursor position between ToC and content
+    -- Enable `cursorline` in the ToC window, and sync the cursor position between ToC and content
     -- window
     sync_cursorline = true,
 
     -- Enter a ToC window opened manually (any ToC window not opened by auto_toc)
     enter = true,
 
-    -- options for automatically opening/entering the ToC window
+    -- Options for automatically opening/entering the ToC window
     auto_toc = {
-        -- automatically open a ToC window when entering any `norg` buffer
+        -- Automatically open a ToC window when entering any `norg` buffer
         open = false,
-        -- enter an automatically opened ToC window
+        -- Enter an automatically opened ToC window
         enter = false,
-        -- automatically close the ToC window when there is no longer an open norg buffer
+        -- Automatically close the ToC window when there is no longer an open norg buffer
         close = true,
-        -- will exit nvim if the ToC is the last buffer on the screen, similar to help windows
+        -- Will exit nvim if the ToC is the last buffer on the screen, similar to help windows
         exit_nvim = true,
     },
 }
@@ -268,17 +268,21 @@ module.public = {
         local start_lines = { offset = offset }
         ui_data.start_lines = start_lines
 
+        ---@type vim.treesitter.Query
         toc_query = toc_query
             or utils.ts_parse_query(
                 "norg",
-                [[
-        (
-            [(heading1_prefix)(heading2_prefix)(heading3_prefix)(heading4_prefix)(heading5_prefix)(heading6_prefix)]@prefix
-            .
-            state: (detached_modifier_extension (_)@modifier)?
-            .
-            title: (paragraph_segment)@title
-        )]]
+                [[ (
+                  [(heading1_prefix)
+                   (heading2_prefix)
+                   (heading3_prefix)
+                   (heading4_prefix)
+                   (heading5_prefix)
+                   (heading6_prefix)
+                  ] @prefix
+                  state: (detached_modifier_extension . (_)@modifier)?
+                  title: (paragraph_segment) @title
+                ) ]]
             )
 
         local norg_root = module.required["core.integrations.treesitter"].get_document_root(norg_buffer)

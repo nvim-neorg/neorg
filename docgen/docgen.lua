@@ -37,6 +37,7 @@ local lib, modules, utils, log = neorg.lib, neorg.modules, neorg.utils, neorg.lo
 neorg.org_file_entered(false)
 
 -- Extract treesitter utility functions provided by Neorg and nvim-treesitter.ts_utils
+---@type core.integrations.treesitter
 local ts = modules.get_module("core.integrations.treesitter")
 assert(ts, "treesitter not available")
 
@@ -56,6 +57,7 @@ end
 docgen.open_file = function(path)
     local uri = vim.uri_from_fname(path)
     local buf = vim.uri_to_bufnr(uri)
+    vim.fn.bufload(buf)
 
     return buf
 end
@@ -79,7 +81,7 @@ docgen.get_module_top_comment = function(buf)
     local comment = vim.split(ts.get_node_text(node, buf), "\n")
 
     -- Stops execution if it's not a multiline comment
-    if comment[1] ~= "--[[" or comment[#comment] ~= "--]]" then
+    if comment[1] ~= [[--[[]] or comment[#comment] ~= "--]]" then
         return
     end
 
@@ -345,9 +347,9 @@ docgen.generators = {
             "We agreed on a module naming convention, and it should be used as is.",
             "This convention should help users know at a glance what function the module serves in the grand scheme of things.",
             "- Core modules: `core.*`",
-            "- Integrations with 3rd party software that are emdebbed in neorg: `core.integrations.*`",
+            "- Integrations with 3rd party software that are embedded in neorg: `core.integrations.*`",
             "- External modules: `external.*`",
-            "- Integrations with 3rd party software that aren't emdebbed in neorg: `external.integrations.*`",
+            "- Integrations with 3rd party software that aren't embedded in neorg: `external.integrations.*`",
             "",
             "# Default Modules",
             "",

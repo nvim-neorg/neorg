@@ -9,11 +9,8 @@ jobs:
   generate-documentation:
     strategy:
       fail-fast: false
-      matrix:
-        version:
-          - nightly
     name: Generate Markdown Docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -34,12 +31,14 @@ jobs:
         id: neovim
         with:
           neovim: true
-          version: ${{ matrix.version }}
+          version: v0.10.4
 
-      - uses: leafo/gh-actions-lua@v9
+      - uses: luarocks/gh-actions-lua@v10
         with:
           luaVersion: "luajit-2.1.0-beta3"
-      - uses: leafo/gh-actions-luarocks@v4
+      - uses: luarocks/gh-actions-luarocks@v5
+        with:
+          luarocksVersion: "3.12.0"
 
       - name: Install all required modules
         run: |
@@ -55,7 +54,7 @@ jobs:
       - name: Run Documentation Generator
         run: |
           if ls wiki/*.md 1> /dev/null 2>&1; then
-            rm wiki/*.md 
+            rm wiki/*.md
           fi
           make documentation
 

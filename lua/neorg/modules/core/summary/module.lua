@@ -363,7 +363,10 @@ module.events.subscribed = {
 
 module.on_event = function(event)
     if event.type == "core.neorgcmd.events.summary.summarize" then
-        module.public.generate_workspace_summary(event.buffer, event.cursor_position, event.content)
+        -- Remove `data` key, and take only the numerical keys from event.content
+        -- these numerical keys are the category args passed to the command
+        local include_categories = { unpack(event.content) }
+        module.public.generate_workspace_summary(event.buffer, event.cursor_position, include_categories)
     end
 end
 
