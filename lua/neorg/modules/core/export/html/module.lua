@@ -24,6 +24,7 @@ module.setup = function()
 		success = true,
 		requires = {
 			"core.integrations.treesitter",
+			"core.esupports.hop",
 		},
 	}
 end
@@ -37,22 +38,24 @@ local StackKey = {
 }
 
 --- Enumeration of differnete link target types.
-local LinkType = {
-	HEADING1 = "heading1",
-	HEADING2 = "heading2",
-	HEADING3 = "heading3",
-	HEADING4 = "heading4",
-	HEADING5 = "heading5",
-	HEADING6 = "heading6",
-	GENERIC = "generic",
-	EXTERNAL_FILE = "external_file",
-	TARGET_URL = "url",
+--- @enum HeadingType
+local HeadingType = {
+	HEADING1 = "h1",
+	HEADING2 = "h2",
+	HEADING3 = "h3",
+	HEADING4 = "h4",
+	HEADING5 = "h5",
+	HEADING6 = "h6",
 }
 
 --- @class Location
 --- @field file string
 --- @field text string
---- @field type LinkType
+--- @field type HeadingType
+---
+--- @class FragmentArgs
+--- @field type string
+--- @field text string
 
 --> Generic Utility Functions
 
@@ -138,86 +141,18 @@ local function is_stack_empty(state, stack_key)
 	return not state.nested_tag_stacks[stack_key] or #state.nested_tag_stacks[stack_key] == 0
 end
 
---- Creates a link description
----@param location Location
----@return string
-local function build_link_description(location)
-	local description = ""
-	if location.file then
-		description = '<span class="link-file">' .. html_escape(location.file) .. "</span>"
-	end
-	if location.text then
-		description = '<span class="link-text">' .. html_escape(location.text) .. "</span>"
-	end
-	return description
-end
-
----
----@param file string
----@return string
-local function file_to_path(file)
-	if file:match("%$/") then
-		local workspace_path = "/"
-		local dirman = modules.get_module("core.dirman")
-		if dirman then
-			local current_workspace = dirman.get_current_workspace()
-			if current_workspace then
-				workspace_path = "/" .. current_workspace[1] .. "/"
-			end
-		end
-		return (file:gsub("%$/", workspace_path):gsub(".norg", ""))
-	elseif #file > 0 then
-		return (file:gsub("%$", "/"):gsub(".norg", ""))
-	else
-		return ""
-	end
-end
-
---- Returns href given a Location table
----@param location Location
----@return string
-local function build_href(location)
-	if not location or not location.type then
-		return ""
-	end
-
-	if location.type == LinkType.GENERIC then
-		return "#generic-" .. location.text:lower():gsub(" ", "")
-	elseif location.type == LinkType.EXTERNAL_FILE then
-		local file = location.file or ""
-		return "file://" .. file:gsub(" ", "") .. "" .. location.text
-	elseif location.type == LinkType.TARGET_URL then
-		return location.text
-	else
-		local path = file_to_path(location.file or "")
-		local id = location.text:lower():gsub(" ", "")
-		return path .. "#" .. location.type .. "-" .. id
-	end
-end
-
----@param heading_num integer
+---@param heading_type HeadingType
+---@param target_type LinkType
 ---@return fun(): table
-local function heading(heading_num)
+local function heading(heading_type, target_type)
 	return function()
 		return {
 			output = "<div>\n",
 			keep_descending = true,
 			state = {
-				heading = heading_num,
+				heading = heading_type,
+				target_type = target_type,
 			},
-		}
-	end
-end
-
----@param type LinkType
----@return fun(_: any, _: any, state: table): table
-local function set_link_type(type)
-	return function(_, _, state)
-		state.link.location.type = type
-
-		return {
-			output = "",
-			keep_descending = true,
 		}
 	end
 end
@@ -229,7 +164,7 @@ end
 local function add_closing_p_tag(output, state)
 	if not state.link and is_stack_empty(state, StackKey.LIST) and is_stack_empty(state, StackKey.SPAN) then
 		local new_output = { "\n<p>\n" }
-		for i, value in ipairs(output) do
+		for _, value in ipairs(output) do
 			table.insert(new_output, value)
 		end
 		table.insert(new_output, "\n</p>\n")
@@ -254,39 +189,51 @@ local function add_closing_tag(tag, cleanup)
 end
 
 ---Builds a link and adds it to the output givne recollected data in the state table.
----@param type "anchor_definition"|"anchor_declaration"|"link"
 ---@return fun(_: any, state: table): table
-local function get_anchor_element(type)
-	return function(_, state)
-		local href = build_href(state.link.location)
-		local content = state.link.description or build_link_description(state.link.location)
+local function wrap_anchor()
+	return function(output, state)
+		local link_builder = module.config.public.link_builders.link_builder
 
-		if type == "anchor_definition" then
-			state.anchors[content] = href
-		elseif type == "anchor_declaration" then
-			href = state.anchors[content] or ""
+		local href
+		if state.link then
+			href = link_builder(state.link)
+		else
+			href = ""
 		end
 
-		local output = {
+		local content
+		if #output > 0 and output[1] ~= "" then
+			content = output[1]
+		else
+			content = state.link.link_text
+		end
+
+		output = {
 			'<a href="' .. href .. '">',
 			content,
 			"</a>",
 		}
 
-		-- Reset all link fields, because the link.description was being persisted
-		-- across nodes. My theory is that is due to the way that vim.tbl_extend
-		-- handles merges, but the easiest solution is to set all fields to nil.
-		state.link.description = nil
-		state.link.type = nil
-		state.link.location = nil
 		state.link = nil
 
 		return output
 	end
 end
 
+local function set_link(_, node)
+	local hop = modules.get_module("core.esupports.hop")
+	local link = hop.parse_link(node, 0)
+
+	return {
+		keep_descending = true,
+		state = {
+			link = link,
+		},
+	}
+end
+
 ---Just keeps swimming
----@param state? table|fun(): table
+---@param state_or_fn? table|fun(): table
 ---@return fun(): table
 local function keep_descending(state_or_fn)
 	return function()
@@ -319,16 +266,6 @@ local function recollect_footnote(output, state)
 	}
 end
 
----Builds a unique ID based on the text that can be used for linking in the future
----@param text string
----@param level number
----@return string
-local function build_heading_id(text, level)
-	local heading_name = text:lower():gsub(" ", "")
-
-	return "heading" .. tostring(level) .. "-" .. heading_name
-end
-
 ---@return fun(text: string, node: TSNode): table
 local function ranged_verbatim_tag_content()
 	return function(text, node)
@@ -355,6 +292,7 @@ local function init_state()
 		todo = nil,
 		tag_params = {},
 		tag_close = nil,
+		heading = nil,
 		ranged_tag_indentation_level = 0,
 		is_url = false,
 		nested_tag_stacks = {},
@@ -369,14 +307,12 @@ end
 ---@return table
 local function paragraph_segment(text, _, state)
 	local output = "\n"
+	local fragment_builder = module.config.public.link_builders.fragment_builder
 
-	if state.heading and state.heading > 0 then
-		output = "<h" .. state.heading .. ' id="' .. build_heading_id(text, state.heading) .. '">'
-
-		-- Add generic link target in an empty span because a single heading can only have
-		-- one link target
-		local generic_link_target = "generic-" .. text:lower():gsub(" ", "")
-		output = output .. '<span class="link-target" id="' .. generic_link_target .. '"></span>'
+	if state.heading then
+		output = "<" .. state.heading .. ' id="' .. fragment_builder({ type = state.target_type, text = text }) .. '">'
+		-- Add span to support generic link targets
+		output = output .. '<span id="' .. fragment_builder({ type = "generic", text = text }) .. '"></span>'
 	end
 
 	local todo = ""
@@ -435,7 +371,7 @@ end
 ---@param state table
 ---@return table
 local function add_tag_param(text, _, state)
-	tag_params = table.insert(state.tag_params, text)
+	local tag_params = table.insert(state.tag_params, text)
 
 	return {
 		output = "",
@@ -445,54 +381,14 @@ local function add_tag_param(text, _, state)
 	}
 end
 
----@param state table
----@return table
-local function reset_link_location(_, _, state)
-	state.link.location = {}
-	return {
-		output = "",
-		keep_descending = true,
-	}
-end
-
----@param text string
----@param state table
----@return table
-local function set_link_loction_file(text, _, state)
-	state.link.location.file = text
-
-	return {
-		output = "",
-		keep_descending = true,
-	}
-end
-
----@param text string
----@param node TSNode
----@param state table
----@return table
-local function parse_paragraph_node(text, node, state)
-	local type = node:parent():type()
-	local output = ""
-	if type == "link_location" then
-		state.link.location.text = text
-	elseif type == "link_description" and state.link then
-		state.link.description = html_escape(text)
-	end
-
-	return {
-		output = output,
-		keep_descending = true,
-	}
-end
-
 ---@param output table
 ---@param state table
 ---@return table
 local function add_closing_segement_tags(output, state)
-	if state.heading and state.heading > 0 then
-		table.insert(output, "</h" .. state.heading .. ">\n")
-		state.heading = 0
+	if state.heading then
+		table.insert(output, "</" .. state.heading .. ">")
+		state.heading = nil
+		state.target_type = nil
 	end
 
 	return output
@@ -537,6 +433,31 @@ local function build_footnote(footnote)
 	})
 end
 
+local function get_anchor(_, node, _)
+	local hop = modules.get_module("core.esupports.hop")
+
+	local target = hop.locate_anchor_declaration_target(node)
+	local link = nil
+	local link_desription = nil
+	local anchor_definition = nil
+	if target then
+		link_desription = target.node:parent()
+	end
+	if link_desription then
+		anchor_definition = link_desription:parent()
+	end
+	if anchor_definition then
+		link = hop.parse_link(anchor_definition, 0)
+	end
+
+	return {
+		keep_descending = true,
+		state = {
+			link = link,
+		},
+	}
+end
+
 module.load = function() end
 
 module.config.public = {
@@ -549,6 +470,62 @@ module.config.public = {
 	-- when creating HTML files.
 	-- The default is recommended, although you can change it.
 	extension = "html",
+	link_builders = {
+		--- Function handler for building just the fragment. The fragment is the part
+    --- of the URL that comes after the "#" and it's used for linking to specific
+    --- IDs within a file.
+		---@param args FragmentArgs
+		---@return string
+		fragment_builder = function(args)
+			if args.type == "external_file" or args.type == "url" then
+				-- External links and target URLs don't have target support by default.
+				return ""
+			end
+			local text = args.text or ""
+
+			return args.type .. "-" .. text:lower():gsub(" ", "")
+		end,
+		-- Function handler for building just the path URL path.
+		---@param link Link
+		---@return string
+		path_builder = function(link)
+			local file = link.link_file_text or ""
+			if file:match("%$/") then
+				local workspace_path = "/"
+				local dirman = modules.get_module("core.dirman")
+				local current_workspace = dirman.get_current_workspace()
+				if current_workspace then
+					workspace_path = "/" .. current_workspace[1] .. "/"
+				end
+				return (file:gsub("%$/", workspace_path):gsub(".norg", ".html"))
+			elseif #file > 0 then
+				return (file:gsub("%$", "/"):gsub(".norg", ".html"))
+			else
+				return ""
+			end
+		end,
+		--- Function handler for building the entire link. If you change this handler
+    --- you'll need to change 
+		---@param link Link
+		---@return string
+		link_builder = function(link)
+			if link.link_type == "external_file" then
+				local file = link.link_location_text or ""
+				return "file://" .. file:gsub(" ", "")
+			end
+
+			if link.link_type == "url" then
+				return link.link_location_text
+			end
+
+			local fragment_builder = module.config.public.link_builders.fragment_builder
+			local path_builder = module.config.public.link_builders.path_builder
+
+			return path_builder(link)
+				.. "#"
+				.. fragment_builder({ type = link.link_type, text = link.link_location_text })
+		end,
+	},
 }
 
 module.private = {
@@ -601,14 +578,14 @@ module.public = {
 			["any_char"] = true,
 
 			["paragraph_segment"] = paragraph_segment,
-			["paragraph"] = parse_paragraph_node,
+			["paragraph"] = keep_descending(),
 
-			["heading1"] = heading(1),
-			["heading2"] = heading(2),
-			["heading3"] = heading(3),
-			["heading4"] = heading(4),
-			["heading5"] = heading(5),
-			["heading6"] = heading(6),
+			["heading1"] = heading(HeadingType.HEADING1, "heading1"),
+			["heading2"] = heading(HeadingType.HEADING2, "heading2"),
+			["heading3"] = heading(HeadingType.HEADING3, "heading3"),
+			["heading4"] = heading(HeadingType.HEADING4, "heading4"),
+			["heading5"] = heading(HeadingType.HEADING5, "heading5"),
+			["heading6"] = heading(HeadingType.HEADING6, "heading6"),
 
 			["inline_link_target"] = nest_tag("span", 1, StackKey.SPAN),
 
@@ -664,27 +641,9 @@ module.public = {
 			["single_footnote"] = keep_descending(),
 			["multi_footnote"] = keep_descending(),
 
-			["link_file_text"] = set_link_loction_file,
-			["link_location"] = reset_link_location,
-			["anchor_declaration"] = keep_descending(function()
-				return { link = {} }
-			end),
-			["anchor_definition"] = keep_descending(function()
-				return { link = {} }
-			end),
-			["link"] = keep_descending(function()
-				return { link = {} }
-			end),
-
-			["link_target_heading1"] = set_link_type(LinkType.HEADING1),
-			["link_target_heading2"] = set_link_type(LinkType.HEADING2),
-			["link_target_heading3"] = set_link_type(LinkType.HEADING3),
-			["link_target_heading4"] = set_link_type(LinkType.HEADING4),
-			["link_target_heading5"] = set_link_type(LinkType.HEADING5),
-			["link_target_heading6"] = set_link_type(LinkType.HEADING6),
-			["link_target_generic"] = set_link_type(LinkType.GENERIC),
-			["link_target_external_file"] = set_link_type(LinkType.EXTERNAL_FILE),
-			["link_target_url"] = set_link_type(LinkType.TARGET_URL),
+			["link"] = set_link,
+			["anchor_definition"] = set_link,
+			["anchor_declaration"] = get_anchor,
 
 			["strong_carryover"] = "",
 			["weak_carryover"] = "",
@@ -700,9 +659,9 @@ module.public = {
 			["paragraph"] = add_closing_p_tag,
 			["paragraph_segment"] = add_closing_segement_tags,
 
-			["link"] = get_anchor_element("link"),
-			["anchor_definition"] = get_anchor_element("anchor_definition"),
-			["anchor_declaration"] = get_anchor_element("anchor_declaration"),
+			["link"] = wrap_anchor(),
+			["anchor_definition"] = wrap_anchor(),
+			["anchor_declaration"] = wrap_anchor(),
 
 			["generic_list"] = nested_tag_recollector(StackKey.LIST),
 			["quote"] = nested_tag_recollector(StackKey.BLOCK_QUOTE),

@@ -240,7 +240,7 @@ module.public = {
         local output = descend(root)
 
         -- Every converter can also come with a `cleanup` function that performs some final tweaks to the output string
-        return converter.export.cleanup and converter.export.cleanup(output, state) or output
+        return converter.export.cleanup and converter.export.cleanup(output) or output
     end,
 }
 
