@@ -472,8 +472,8 @@ module.config.public = {
 	extension = "html",
 	link_builders = {
 		--- Function handler for building just the fragment. The fragment is the part
-    --- of the URL that comes after the "#" and it's used for linking to specific
-    --- IDs within a file.
+		--- of the URL that comes after the "#" and it's used for linking to specific
+		--- IDs within a file.
 		---@param args FragmentArgs
 		---@return string
 		fragment_builder = function(args)
@@ -505,7 +505,7 @@ module.config.public = {
 			end
 		end,
 		--- Function handler for building the entire link. If you change this handler
-    --- you'll need to change 
+		--- you'll need to change
 		---@param link Link
 		---@return string
 		link_builder = function(link)
