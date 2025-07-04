@@ -10,9 +10,9 @@ on:
 
 jobs:
   integration-test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v10
+      - uses: DeterminateSystems/nix-installer-action@v17
       - name: Run Checks
         run: nix flake check

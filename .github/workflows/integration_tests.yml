@@ -14,12 +14,12 @@ jobs:
     strategy:
       matrix:
         os:
-          - host: ubuntu-20.04
+          - host: ubuntu-24.04
           # - host: windows-2019
-          - host: macos-11 # x86_64
+          - host: macos-13 # x86_64
           - host: macos-14 # aarch64
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v10
+      - uses: DeterminateSystems/nix-installer-action@v17
       - name: Run Checks
         run: nix run .#integration-test

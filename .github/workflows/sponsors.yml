@@ -5,10 +5,10 @@ on:
     - cron: 30 15 * * 0-6
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Generate Sponsors 💖
         uses: JamesIves/github-sponsors-readme-action@v1
@@ -18,6 +18,6 @@ jobs:
           template: '<a href="https://github.com/{{{ login }}}"><img src="https://github.com/{{{ login }}}.png" width="60px" alt="{{{ login }}}" /></a>&nbsp;&nbsp;&nbsp;'
 
       - name: Commit to repository
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "docs(README): update sponsors list"

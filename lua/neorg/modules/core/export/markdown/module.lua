@@ -418,6 +418,14 @@ module.public = {
                             tag_close = "-->",
                         },
                     }
+                elseif text == "table" then
+                    return {
+                        output = "",
+                        state = {
+                            tag_indent = tag_start_column - 1,
+                            tag_close = "",
+                        },
+                    }
                 elseif text == "math" and module.config.public.extensions["mathematics"] then
                     return {
                         output = module.config.public.mathematics.block["start"],

@@ -88,10 +88,9 @@ One way of installing Neorg is via [rocks.nvim](https://github.com/nvim-neorocks
   require("neorg").setup()
   ```
 
-For the time being you also need `nvim-treesitter` installed, but the plugin is not readily available on luarocks yet.
-To counter this, you also need to run the following:
-- `:Rocks install rocks-git.nvim`
-- `:Rocks install nvim-treesitter/nvim-treesitter`
+<!-- TODO: rewrite this section once a new luarocks release is made, as it will automatically download nvim-treesitter-legacy-api as a dependency -->
+For the time being you also need `nvim-treesitter` installed.
+- `:Rocks install nvim-treesitter-legacy-api`
 - Just like the `neorg.lua` file, create a `lua/plugins/treesitter.lua` file and place the following content inside:
   ```lua
   require("nvim-treesitter.configs").setup({
@@ -128,6 +127,11 @@ the [Lua for Windows](https://github.com/rjpcomputing/luaforwindows) all-in-one 
 }
 ```
 
+While lazy [supports lazy-loading upon specific commands and
+filetypes](https://lazy.folke.io/spec#spec-lazy-loading), it can cause neorg to load incorrectly,
+leading to a 'broken' plugin. Lazy load at your own risk, and disable lazy loading as your first
+debugging step.
+
 </details>
 
 ### `packer.nvim`
@@ -142,7 +146,7 @@ It is not recommended to use packer as it is now unmaintained.
 ```lua
 use {
   "nvim-neorg/neorg",
-  rocks = { "lua-utils.nvim", "nvim-nio", "nui.nvim", "plenary.nvim", "pathlib.nvim" },
+  rocks = { "lua-utils.nvim", "nvim-nio", "nui.nvim", "plenary.nvim", "pathlib.nvim", "nvim-treesitter-legacy-api" },
   tag = "*", -- Pin Neorg to the latest stable release
   config = function()
       require("neorg").setup()
@@ -188,6 +192,6 @@ Immense thank you to all of the sponsors of my work!
 
 <div align="center">
 
-<!-- sponsors --><a href="https://github.com/vsedov"><img src="https://github.com/vsedov.png" width="60px" alt="vsedov" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/skbolton"><img src="https://github.com/skbolton.png" width="60px" alt="skbolton" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/molleweide"><img src="https://github.com/molleweide.png" width="60px" alt="molleweide" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/danymat"><img src="https://github.com/danymat.png" width="60px" alt="danymat" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/purepani"><img src="https://github.com/purepani.png" width="60px" alt="purepani" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/jgregoire"><img src="https://github.com/jgregoire.png" width="60px" alt="jgregoire" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/bottd"><img src="https://github.com/bottd.png" width="60px" alt="bottd" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/DingDean"><img src="https://github.com/DingDean.png" width="60px" alt="DingDean" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/kvodenicharov"><img src="https://github.com/kvodenicharov.png" width="60px" alt="kvodenicharov" /></a>&nbsp;&nbsp;&nbsp;<!-- sponsors -->
+<!-- sponsors --><a href="https://github.com/vsedov"><img src="https://github.com/vsedov.png" width="60px" alt="vsedov" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/skbolton"><img src="https://github.com/skbolton.png" width="60px" alt="skbolton" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/molleweide"><img src="https://github.com/molleweide.png" width="60px" alt="molleweide" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/danymat"><img src="https://github.com/danymat.png" width="60px" alt="danymat" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/purepani"><img src="https://github.com/purepani.png" width="60px" alt="purepani" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/jgregoire"><img src="https://github.com/jgregoire.png" width="60px" alt="jgregoire" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/bottd"><img src="https://github.com/bottd.png" width="60px" alt="bottd" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/kvodenicharov"><img src="https://github.com/kvodenicharov.png" width="60px" alt="kvodenicharov" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/freexploit"><img src="https://github.com/freexploit.png" width="60px" alt="freexploit" /></a>&nbsp;&nbsp;&nbsp;<!-- sponsors -->
 
 </div>

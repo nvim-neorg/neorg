@@ -4,15 +4,15 @@ on:
   workflow_run:
     workflows: ["Release Please Automatic Semver"]
     branches: [main]
-    types: 
+    types:
       - completed
 
 jobs:
   release:
     name: release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 

@@ -7,15 +7,15 @@ on:
 
 jobs:
   luarocks-upload:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Required to count the commits
       - name: Get Version
         run: echo "LUAROCKS_VERSION=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
       - name: LuaRocks Upload
-        uses: nvim-neorocks/luarocks-tag-release@v5
+        uses: nvim-neorocks/luarocks-tag-release@v7
         env:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
         with:
@@ -27,3 +27,4 @@ jobs:
             plenary.nvim == 0.1.4
             nui.nvim == 0.3.0
             pathlib.nvim ~> 2.2
+            nvim-treesitter-legacy-api == 0.9.2
