@@ -254,6 +254,10 @@ module.public = {
         -- Gets the title from the metadata of a file, must be called in a vim.schedule
         local get_title = function(file)
             local buffer = vim.fn.bufadd(workspace_path .. config.pathsep .. folder_name .. config.pathsep .. file)
+
+            -- 💡 fix: Explicitly load the buffer's content into memory
+            vim.fn.bufload(buffer)
+
             local meta = module.required["core.integrations.treesitter"].get_document_metadata(buffer)
             return meta.title
         end
