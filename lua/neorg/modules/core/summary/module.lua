@@ -155,7 +155,7 @@ module.load = function()
                     -- normalise categories into a list. Could be vim.NIL, a number, a string or a list ...
                     if not metadata.categories or metadata.categories == vim.NIL then
                         metadata.categories = { "Uncategorised" }
-                    elseif not vim.tbl_islist(metadata.categories) then ---@diagnostic disable-line
+                    elseif not vim.islist(metadata.categories) then ---@diagnostic disable-line
                         metadata.categories = { tostring(metadata.categories) }
                     end
 

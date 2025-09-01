@@ -253,7 +253,7 @@ module.public = {
         }
 
         ---@diagnostic disable-next-line
-        if vim.tbl_islist(options.languages) then
+        if vim.islist(options.languages) then
             options.filenames_only = options.languages
             options.languages = {}
         elseif type(options.languages) == "string" then
