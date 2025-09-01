@@ -224,6 +224,7 @@ function module.public.perform_introspection(buffer, node)
             },
         },
         invalidate = true,
+        hl_mode = "combine",
     })
 end
 
