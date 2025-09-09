@@ -101,7 +101,7 @@ local function set_mark(bufid, row_0b, col_0b, text, highlight, ext_opts)
         end_row = row_0b,
         end_col = col_0b,
         hl_eol = nil,
-        virt_text_hide = nil,
+        virt_text_hide = true,
         hl_mode = "combine",
         virt_lines = nil,
         virt_lines_above = nil,
