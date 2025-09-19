@@ -58,14 +58,14 @@ module.setup = function()
 end
 
 module.load = function()
-    local success, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
+    local success, ts_utils = pcall(require, "neorg.modules.core.integrations.treesitter.ts_utils")
 
     assert(success, "Unable to load nvim-treesitter.ts_utils :(")
 
     if module.config.public.configure_parsers then
         -- luacheck: push ignore
 
-        local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
+        local parser_configs = require("nvim-treesitter.parsers")
 
         parser_configs.norg = {
             install_info = module.config.public.parser_configs.norg,
