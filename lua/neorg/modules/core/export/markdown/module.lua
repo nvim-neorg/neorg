@@ -108,8 +108,8 @@ local function todo_item_recollector()
 end
 
 local function handle_heading_newlines()
-    return function(output, _, node, ts_utils)
-        local prev = ts_utils.get_previous_node(node, true, true)
+    return function(output, _, node, ts)
+        local prev = ts.get_previous_node(node, true, true)
 
         if
             prev
