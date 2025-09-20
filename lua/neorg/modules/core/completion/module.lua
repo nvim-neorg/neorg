@@ -30,7 +30,7 @@ link completions are smart about closing `:` and `}`.
 local neorg = require("neorg.core")
 local Path = require("pathlib")
 local log, modules, utils = neorg.log, neorg.modules, neorg.utils
-local dirutils, dirman, link_utils, treesitter
+local dirutils, dirman, link_utils, ts
 
 local module = modules.create("core.completion")
 
@@ -101,7 +101,7 @@ module.private = {
     ---@param link_type "generic" | "definition" | "footnote" | string
     get_linkables = function(source, link_type)
         local query_str = link_utils.get_link_target_query_string(link_type)
-        local norg_parser, iter_src = treesitter.get_ts_parser(source)
+        local norg_parser, iter_src = ts.get_ts_parser(source)
         if not norg_parser then
             return {}
         end
@@ -111,7 +111,7 @@ module.private = {
         for id, node in query:iter_captures(norg_tree:root(), iter_src, 0, -1) do
             local capture = query.captures[id]
             if capture == "title" then
-                local original_title = treesitter.get_node_text(node, iter_src)
+                local original_title = ts.get_node_text(node, iter_src)
                 if original_title then
                     local title = original_title:gsub("\\", "")
                     title = title:gsub("%s+", " ")
@@ -230,7 +230,7 @@ module.private = {
 module.private.foreign_link_names = function(_context, _prev, _saved, match)
     local file, target = match[2], match[3]
     local path = dirutils.expand_pathlib(file)
-    local meta = treesitter.get_document_metadata(path)
+    local meta = ts.get_document_metadata(path)
     local suggestions = {}
     if meta then
         table.insert(suggestions, meta.title)
@@ -253,10 +253,10 @@ module.private.anchor_suggestions = function(_context, _prev, _saved, _match)
               text: (paragraph) @anchor_name ))
     ]]
 
-    treesitter.execute_query(anchor_query_string, function(query, id, node, _metadata)
+    ts.execute_query(anchor_query_string, function(query, id, node, _metadata)
         local capture_name = query.captures[id]
         if capture_name == "anchor_name" then
-            table.insert(suggestions, treesitter.get_node_text(node, 0))
+            table.insert(suggestions, ts.get_node_text(node, 0))
         end
     end, 0)
     return suggestions
@@ -304,7 +304,7 @@ module.load = function()
     dirman = module.required["core.dirman"]
     link_utils = module.required["core.links"]
     ---@type core.integrations.treesitter
-    treesitter = module.required["core.integrations.treesitter"]
+    ts = module.required["core.integrations.treesitter"]
 
     -- Set a special function in the integration module to allow it to communicate with us
     module.private.engine.invoke_completion_engine = function(context) ---@diagnostic disable-line
@@ -693,7 +693,7 @@ module.public = {
                                         return { items = {}, options = {} }
                                     end
 
-                                    local previous_node = treesitter.get_previous_node(current_node, true, true)
+                                    local previous_node = ts.get_previous_node(current_node, true, true)
 
                                     -- If the previous node is nil
                                     if not previous_node then
@@ -726,7 +726,7 @@ module.public = {
                                         return { items = {}, options = {} }
                                     end
 
-                                    local next_node = treesitter.get_next_node(current_node, true, true)
+                                    local next_node = ts.get_next_node(current_node, true, true)
 
                                     -- If it's nil
                                     if not next_node then
@@ -770,12 +770,12 @@ module.public = {
                                 return ret_completions
                             end
 
-                            local next_node = treesitter.get_next_node(current_node, true, true)
-                            local previous_node = treesitter.get_previous_node(current_node, true, true)
+                            local next_node = ts.get_next_node(current_node, true, true)
+                            local previous_node = ts.get_previous_node(current_node, true, true)
 
                             -- Execute the callback function with all of our parameters.
                             -- If it returns true then that means the match was successful, and so return completions
-                            if completion_data.node(current_node, previous_node, next_node, treesitter) then
+                            if completion_data.node(current_node, previous_node, next_node, ts) then
                                 return ret_completions
                             end
 
