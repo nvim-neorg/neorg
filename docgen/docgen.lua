@@ -687,8 +687,7 @@ docgen.render = function(configuration_option, open)
         local t = type(self.object)
 
         if t == "table" then
-            return (vim.tbl_isempty(self.object) and "empty " or "")
-                .. (vim.islist(self.object) and "list" or "table")
+            return (vim.tbl_isempty(self.object) and "empty " or "") .. (vim.islist(self.object) and "list" or "table")
         else
             return t
         end
