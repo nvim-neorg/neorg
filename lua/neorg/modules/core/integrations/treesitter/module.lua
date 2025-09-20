@@ -23,7 +23,6 @@ local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.util
 local module = modules.create("core.integrations.treesitter")
 
 module.private = {
-    ts_utils = nil,
     link_query = [[
                 (link) @next-segment
                 (anchor_declaration) @next-segment
@@ -58,14 +57,14 @@ module.setup = function()
 end
 
 module.load = function()
-    local success, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
-
-    assert(success, "Unable to load nvim-treesitter.ts_utils :(")
-
     if module.config.public.configure_parsers then
         -- luacheck: push ignore
 
-        local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
+        -- compat: nvim-treesitter master requires the extra function call, main does not
+        local parser_configs = require("nvim-treesitter.parsers")
+        if parser_configs.get_parser_configs then
+            parser_configs = parser_configs.get_parser_configs()
+        end
 
         parser_configs.norg = {
             install_info = module.config.public.parser_configs.norg,
@@ -108,8 +107,6 @@ module.load = function()
             end,
         })
     end
-
-    module.private.ts_utils = ts_utils
 
     vim.keymap.set(
         "",
@@ -164,11 +161,7 @@ module.config.public = {
 ---@class core.integrations.treesitter
 module.public = {
     parser_path = nil,
-    --- Gives back an instance of `nvim-treesitter.ts_utils`
-    ---@return table #`nvim-treesitter.ts_utils`
-    get_ts_utils = function()
-        return module.private.ts_utils
-    end,
+
     --- Jumps to the next match of a query in the current buffer
     ---@param query_string string Query with `@next-segment` captures
     goto_next_query_match = function(query_string)
@@ -194,7 +187,7 @@ module.public = {
 
                 -- Find and go to the first matching node that starts after the current cursor position.
                 if (start_line == line_number and start_col > col_number) or start_line > line_number then
-                    module.private.ts_utils.goto_node(node) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                    module.public.goto_node(node)
                     return
                 end
             end
@@ -236,7 +229,7 @@ module.public = {
             ::continue::
         end
         if final_node then
-            module.private.ts_utils.goto_node(final_node) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+            module.public.goto_node(final_node)
         end
     end,
     ---  Gets all nodes of a given type from the AST
@@ -944,6 +937,103 @@ module.public = {
         return norg_parser, iter_src
     end,
 }
+
+
+--[[
+-- attribution notice:
+-- The below public functions are originally licensed under Apache v2 taken from:
+-- https://github.com/nvim-treesitter/nvim-treesitter/blob/master/lua/nvim-treesitter/ts_utils.lua
+--]]
+
+-- Get previous node with same parent
+---@param node                   TSNode
+---@param allow_switch_parents?  boolean allow switching parents if first node
+---@param allow_previous_parent? boolean allow previous parent if first node and previous parent without children
+module.public.get_previous_node = function(node, allow_switch_parents, allow_previous_parent)
+    local destination_node ---@type TSNode?
+    local parent = node:parent()
+    if not parent then
+        return
+    end
+
+    local found_pos = 0
+    for i = 0, parent:named_child_count() - 1, 1 do
+        if parent:named_child(i) == node then
+            found_pos = i
+            break
+        end
+    end
+    if 0 < found_pos then
+        destination_node = parent:named_child(found_pos - 1)
+    elseif allow_switch_parents then
+        local previous_node = module.private.get_previous_node(node:parent())
+        if previous_node and previous_node:named_child_count() > 0 then
+            destination_node = previous_node:named_child(previous_node:named_child_count() - 1)
+        elseif previous_node and allow_previous_parent then
+            destination_node = previous_node
+        end
+    end
+    return destination_node
+end
+
+module.public.goto_node = function(node, goto_end, avoid_set_jump)
+    if not node then
+        return
+    end
+    if not avoid_set_jump then
+        vim.cmd("normal! m'")
+    end
+    local range = module.public.get_node_range(node)
+
+    ---@type table<number>
+    local position
+    if not goto_end then
+        position = { range.row_start, range.column_start }
+    else
+        position = { range.row_end, range.column_end }
+    end
+
+    -- Enter visual mode if we are in operator pending mode
+    -- If we don't do this, it will miss the last character.
+    local mode = vim.api.nvim_get_mode()
+    if mode.mode == "no" then
+        vim.cmd("normal! v")
+    end
+
+    vim.api.nvim_win_set_cursor(0, { position[1] + 1, position[2] })
+end
+
+-- Get next node with same parent
+---@param node                  TSNode
+---@param allow_switch_parents? boolean allow switching parents if last node
+---@param allow_next_parent?    boolean allow next parent if last node and next parent without children
+module.public.get_next_node = function(node, allow_switch_parents, allow_next_parent)
+  local destination_node ---@type TSNode?
+  local parent = node:parent()
+
+  if not parent then
+    return
+  end
+  local found_pos = 0
+  for i = 0, parent:named_child_count() - 1, 1 do
+    if parent:named_child(i) == node then
+      found_pos = i
+      break
+    end
+  end
+  if parent:named_child_count() > found_pos + 1 then
+    destination_node = parent:named_child(found_pos + 1)
+  elseif allow_switch_parents then
+    local next_node = module.public.get_next_node(parent)
+    if next_node and next_node:named_child_count() > 0 then
+      destination_node = next_node:named_child(0)
+    elseif next_node and allow_next_parent then
+      destination_node = next_node
+    end
+  end
+
+  return destination_node
+end
 
 module.on_event = function(event)
     if event.split_type[2] == "sync-parsers" then

@@ -345,13 +345,7 @@ module.public = {
     --- Locate a `link` or `anchor` node under the cursor
     ---@return TSNode? #A `link` or `anchor` node if present under the cursor, else `nil`
     extract_link_node = function()
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-
-        if not ts_utils then
-            return
-        end
-
-        local current_node = ts_utils.get_node_at_cursor()
+        local current_node = vim.treesitter.get_node()
         local found_node = module.required["core.integrations.treesitter"].find_parent(
             current_node,
             { "link", "anchor_declaration", "anchor_definition" }
@@ -367,8 +361,6 @@ module.public = {
     --- Attempts to locate a `link` or `anchor` node after the cursor on the same line
     ---@return TSNode? #A `link` or `anchor` node if present on the current line, else `nil`
     lookahead_link_node = function()
-        local ts_utils = module.required["core.integrations.treesitter"].get_ts_utils()
-
         local line = vim.api.nvim_get_current_line()
         local current_cursor_pos = vim.api.nvim_win_get_cursor(0)
         local current_line = current_cursor_pos[1]
@@ -395,7 +387,10 @@ module.public = {
                 smaller_value - 1,
             })
 
-            local node_under_cursor = ts_utils.get_node_at_cursor()
+            local node_under_cursor = vim.treesitter.get_node()
+            if not node_under_cursor then
+                return
+            end
 
             if vim.tbl_contains({ "link_location", "link_description" }, node_under_cursor:type()) then
                 resulting_node = node_under_cursor:parent()
@@ -963,19 +958,19 @@ module.private = {
         end
         callback(
             "{"
-                .. lib.when(
-                    parsed_link_information.link_file_text --[[@as boolean]],
-                    lib.lazy_string_concat(":", parsed_link_information.link_file_text, ":"),
-                    ""
-                )
-                .. prefix
-                .. most_similar.text
-                .. "}"
-                .. lib.when(
-                    parsed_link_information.link_description --[[@as boolean]],
-                    lib.lazy_string_concat("[", parsed_link_information.link_description, "]"),
-                    ""
-                )
+            .. lib.when(
+                parsed_link_information.link_file_text --[[@as boolean]],
+                lib.lazy_string_concat(":", parsed_link_information.link_file_text, ":"),
+                ""
+            )
+            .. prefix
+            .. most_similar.text
+            .. "}"
+            .. lib.when(
+                parsed_link_information.link_description --[[@as boolean]],
+                lib.lazy_string_concat("[", parsed_link_information.link_description, "]"),
+                ""
+            )
         )
     end,
 }

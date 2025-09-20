@@ -148,7 +148,6 @@ module.public = {
         -- Initialize the state. The state is a table that exists throughout the entire duration
         -- of the export, and can be used to e.g. retain indent levels and/or keep references.
         local state = converter.export.init_state and converter.export.init_state() or {}
-        local ts_utils = ts.get_ts_utils()
 
         --- Descends down a node and its children
         ---@param start table #The TS node to begin at
@@ -176,7 +175,7 @@ module.public = {
                         --  `keep_descending`  - if true will continue to recurse down the current node's children despite the current
                         --                      node already being parsed
                         --  `state`   - a modified version of the state that then gets merged into the main state table
-                        local result = exporter(vim.treesitter.get_node_text(node, source), node, state, ts_utils)
+                        local result = exporter(vim.treesitter.get_node_text(node, source), node, state, ts)
 
                         if type(result) == "table" then
                             state = result.state and vim.tbl_extend("force", state, result.state) or state
@@ -233,7 +232,7 @@ module.public = {
             -- and rearrange its components to { "Term", ": ", "Definition" } to then achieve the desired result.
             local recollector = converter.export.recollectors[start:type()]
 
-            return recollector and table.concat(recollector(output, state, start, ts_utils) or {})
+            return recollector and table.concat(recollector(output, state, start, ts) or {})
                 or (not vim.tbl_isempty(output) and table.concat(output))
         end
 

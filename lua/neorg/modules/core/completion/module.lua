@@ -30,7 +30,7 @@ link completions are smart about closing `:` and `}`.
 local neorg = require("neorg.core")
 local Path = require("pathlib")
 local log, modules, utils = neorg.log, neorg.modules, neorg.utils
-local dirutils, dirman, link_utils, treesitter
+local dirutils, dirman, link_utils, ts
 
 local module = modules.create("core.completion")
 
@@ -101,7 +101,7 @@ module.private = {
     ---@param link_type "generic" | "definition" | "footnote" | string
     get_linkables = function(source, link_type)
         local query_str = link_utils.get_link_target_query_string(link_type)
-        local norg_parser, iter_src = treesitter.get_ts_parser(source)
+        local norg_parser, iter_src = ts.get_ts_parser(source)
         if not norg_parser then
             return {}
         end
@@ -111,7 +111,7 @@ module.private = {
         for id, node in query:iter_captures(norg_tree:root(), iter_src, 0, -1) do
             local capture = query.captures[id]
             if capture == "title" then
-                local original_title = treesitter.get_node_text(node, iter_src)
+                local original_title = ts.get_node_text(node, iter_src)
                 if original_title then
                     local title = original_title:gsub("\\", "")
                     title = title:gsub("%s+", " ")
@@ -230,7 +230,7 @@ module.private = {
 module.private.foreign_link_names = function(_context, _prev, _saved, match)
     local file, target = match[2], match[3]
     local path = dirutils.expand_pathlib(file)
-    local meta = treesitter.get_document_metadata(path)
+    local meta = ts.get_document_metadata(path)
     local suggestions = {}
     if meta then
         table.insert(suggestions, meta.title)
@@ -253,10 +253,10 @@ module.private.anchor_suggestions = function(_context, _prev, _saved, _match)
               text: (paragraph) @anchor_name ))
     ]]
 
-    treesitter.execute_query(anchor_query_string, function(query, id, node, _metadata)
+    ts.execute_query(anchor_query_string, function(query, id, node, _metadata)
         local capture_name = query.captures[id]
         if capture_name == "anchor_name" then
-            table.insert(suggestions, treesitter.get_node_text(node, 0))
+            table.insert(suggestions, ts.get_node_text(node, 0))
         end
     end, 0)
     return suggestions
@@ -303,7 +303,8 @@ module.load = function()
     dirutils = module.required["core.dirman.utils"]
     dirman = module.required["core.dirman"]
     link_utils = module.required["core.links"]
-    treesitter = module.required["core.integrations.treesitter"]
+    ---@type core.integrations.treesitter
+    ts = module.required["core.integrations.treesitter"]
 
     -- Set a special function in the integration module to allow it to communicate with us
     module.private.engine.invoke_completion_engine = function(context) ---@diagnostic disable-line
@@ -668,9 +669,6 @@ module.public = {
 
                     -- If the completion data has a node variable then attempt to match the current node too!
                     if completion_data.node then
-                        -- Grab the treesitter utilities
-                        local ts = treesitter.get_ts_utils()
-
                         -- If the type of completion data we're dealing with is a string then attempt to parse it
                         if type(completion_data.node) == "string" then
                             -- Split the completion node string down every pipe character
@@ -689,7 +687,7 @@ module.public = {
                                 -- Is our other value "prev"? If so, compare the current node in the syntax tree with the previous node
                                 if split[2] == "prev" then
                                     -- Get the previous node
-                                    local current_node = ts.get_node_at_cursor()
+                                    local current_node = vim.treesitter.get_node()
 
                                     if not current_node then
                                         return { items = {}, options = {} }
@@ -722,7 +720,7 @@ module.public = {
                                     -- Else if our second split is equal to "next" then it's time to inspect the next node in the AST
                                 elseif split[2] == "next" then
                                     -- Grab the next node
-                                    local current_node = ts.get_node_at_cursor()
+                                    local current_node = vim.treesitter.get_node()
 
                                     if not current_node then
                                         return { items = {}, options = {} }
@@ -753,7 +751,7 @@ module.public = {
                                     end
                                 end
                             else -- If we haven't defined a split (no pipe was found) then compare the current node
-                                if ts.get_node_at_cursor():type() == split[1] then
+                                if vim.treesitter.get_node():type() == split[1] then
                                     -- If we're not negating then return completions
                                     if not negate then
                                         return ret_completions
@@ -765,7 +763,7 @@ module.public = {
                             -- If our completion data type is not a string but rather it is a function then
                         elseif type(completion_data.node) == "function" then
                             -- Grab all the necessary variables (current node, previous node, next node)
-                            local current_node = ts.get_node_at_cursor()
+                            local current_node = vim.treesitter.get_node()
 
                             -- The file is blank, return completions
                             if not current_node then

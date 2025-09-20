@@ -85,9 +85,7 @@ module.public = {
                 -- Make sure that the cursor is within bounds of the code block
                 if cursor_pos[1] > extmark_begin[1] and cursor_pos[1] <= (extmark_end[1] + 1) then
                     -- For extra information grab the current node under the cursor
-                    local current_node = module.required["core.integrations.treesitter"]
-                        .get_ts_utils()
-                        .get_node_at_cursor(source_window, true)
+                    local current_node = vim.treesitter.get_node({ bufnr = source, ignore_injections = true })
 
                     if not current_node then
                         vim.api.nvim_buf_delete(target, { force = true })
