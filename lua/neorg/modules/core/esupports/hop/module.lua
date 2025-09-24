@@ -958,19 +958,19 @@ module.private = {
         end
         callback(
             "{"
-            .. lib.when(
-                parsed_link_information.link_file_text --[[@as boolean]],
-                lib.lazy_string_concat(":", parsed_link_information.link_file_text, ":"),
-                ""
-            )
-            .. prefix
-            .. most_similar.text
-            .. "}"
-            .. lib.when(
-                parsed_link_information.link_description --[[@as boolean]],
-                lib.lazy_string_concat("[", parsed_link_information.link_description, "]"),
-                ""
-            )
+                .. lib.when(
+                    parsed_link_information.link_file_text --[[@as boolean]],
+                    lib.lazy_string_concat(":", parsed_link_information.link_file_text, ":"),
+                    ""
+                )
+                .. prefix
+                .. most_similar.text
+                .. "}"
+                .. lib.when(
+                    parsed_link_information.link_description --[[@as boolean]],
+                    lib.lazy_string_concat("[", parsed_link_information.link_description, "]"),
+                    ""
+                )
         )
     end,
 }

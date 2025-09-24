@@ -938,7 +938,6 @@ module.public = {
     end,
 }
 
-
 --[[
 -- attribution notice:
 -- The below public functions are originally licensed under Apache v2 taken from:
@@ -1008,31 +1007,31 @@ end
 ---@param allow_switch_parents? boolean allow switching parents if last node
 ---@param allow_next_parent?    boolean allow next parent if last node and next parent without children
 module.public.get_next_node = function(node, allow_switch_parents, allow_next_parent)
-  local destination_node ---@type TSNode?
-  local parent = node:parent()
+    local destination_node ---@type TSNode?
+    local parent = node:parent()
 
-  if not parent then
-    return
-  end
-  local found_pos = 0
-  for i = 0, parent:named_child_count() - 1, 1 do
-    if parent:named_child(i) == node then
-      found_pos = i
-      break
+    if not parent then
+        return
     end
-  end
-  if parent:named_child_count() > found_pos + 1 then
-    destination_node = parent:named_child(found_pos + 1)
-  elseif allow_switch_parents then
-    local next_node = module.public.get_next_node(parent)
-    if next_node and next_node:named_child_count() > 0 then
-      destination_node = next_node:named_child(0)
-    elseif next_node and allow_next_parent then
-      destination_node = next_node
+    local found_pos = 0
+    for i = 0, parent:named_child_count() - 1, 1 do
+        if parent:named_child(i) == node then
+            found_pos = i
+            break
+        end
     end
-  end
+    if parent:named_child_count() > found_pos + 1 then
+        destination_node = parent:named_child(found_pos + 1)
+    elseif allow_switch_parents then
+        local next_node = module.public.get_next_node(parent)
+        if next_node and next_node:named_child_count() > 0 then
+            destination_node = next_node:named_child(0)
+        elseif next_node and allow_next_parent then
+            destination_node = next_node
+        end
+    end
 
-  return destination_node
+    return destination_node
 end
 
 module.on_event = function(event)
