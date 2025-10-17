@@ -965,7 +965,7 @@ module.public.get_previous_node = function(node, allow_switch_parents, allow_pre
     if 0 < found_pos then
         destination_node = parent:named_child(found_pos - 1)
     elseif allow_switch_parents then
-        local previous_node = module.private.get_previous_node(node:parent())
+        local previous_node = module.public.get_previous_node(parent)
         if previous_node and previous_node:named_child_count() > 0 then
             destination_node = previous_node:named_child(previous_node:named_child_count() - 1)
         elseif previous_node and allow_previous_parent then
