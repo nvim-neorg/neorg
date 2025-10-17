@@ -440,6 +440,7 @@ local function create_ui(tabpage, split_dir, enter)
     ui_wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
     ui_wo.foldlevel = 99
     ui_wo.winfixbuf = true
+    ui_wo.winfixwidth = true
 
     if module.config.public.sync_cursorline then
         ui_wo.cursorline = true
