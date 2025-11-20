@@ -144,7 +144,6 @@ module.public = {
                 local original_snippet = module.required["core.integrations.treesitter"].get_node_text(node, buf)
                 
                 -- FIX: Only clean the surrounding pipe delimeters ($|...|$).
-                -- We do NOT strip backslashes anymore, because that breaks LaTeX commands like \hat and \frac.
                 local clean_snippet = original_snippet:gsub("^%$|", "$"):gsub("|%$$", "$")
                 
                 if #clean_snippet - 2 < module.config.public.min_length then return end
