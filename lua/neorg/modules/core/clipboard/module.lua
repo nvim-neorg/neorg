@@ -62,7 +62,7 @@ module.load = function()
                                     }
                                 )
                             end) or register,
-                            "l" ---@diagnostic disable-line
+                            vim.v.event.regtype ---@diagnostic disable-line
                         )
 
                         return
