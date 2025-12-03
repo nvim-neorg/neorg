@@ -101,7 +101,7 @@ local function set_mark(bufid, row_0b, col_0b, text, highlight, ext_opts)
         end_row = row_0b,
         end_col = col_0b,
         hl_eol = nil,
-        virt_text_hide = nil,
+        virt_text_hide = true,
         hl_mode = "combine",
         virt_lines = nil,
         virt_lines_above = nil,
@@ -466,13 +466,18 @@ module.public = {
                     return
                 end
 
-                local text = (" "):rep(len - 1) .. icon
-
-                local _, first_unicode_end = text:find("[%z\1-\127\194-\244][\128-\191]*", len)
+                local _, first_unicode_end = icon:find("[%z\1-\127\194-\244][\128-\191]*", len)
                 local highlight = config.highlights and table_get_default_last(config.highlights, len)
-                set_mark(bufid, row_0b, col_0b, text:sub(1, first_unicode_end), highlight)
-                if vim.fn.strcharlen(text) > len then
-                    set_mark(bufid, row_0b, col_0b + len, text:sub(first_unicode_end + 1), highlight, {
+                -- set_mark(bufid, row_0b, 0, "", highlight, {
+                --     end_row = row_0b + 1,
+                --     end_col = 0,
+                --     hl_eol = true,
+                --     hl_group = highlight,
+                -- })
+                set_mark(bufid, row_0b, col_0b, (" "):rep(len - 1), "Normal")
+                set_mark(bufid, row_0b, col_0b + len - 1, icon:sub(1, first_unicode_end), highlight)
+                if vim.fn.strcharlen(icon) > 1 then
+                    set_mark(bufid, row_0b, col_0b + len, icon:sub(first_unicode_end + 1), highlight, {
                         virt_text_pos = "inline",
                     })
                 end
