@@ -78,14 +78,34 @@ module.public = {
     ---Call attempt to edit a file, catches and suppresses the error caused by a swap file being
     ---present. Re-raises other errors via log.error
     ---@param path string
-    edit_file = function(path)
-        local ok, err = pcall(vim.cmd.edit, path)
+    ---@param opts table? Optional parameters
+    ---@param opts.mode string? The vim command to use for opening the file (default: "edit")
+    ---  - "edit" (default) - open in current window
+    ---  - "tabedit" - open in new tab
+    ---  - "vsplit" - open in vertical split
+    ---  - "split" - open in horizontal split
+    ---  - "tab-drop" - open in new tab or switch to existing tab
+    ---  - "drop" - switch to existing buffer or open in current window
+    edit_file = function(path, opts)
+        opts = opts or {}
+        local mode = opts.mode or "edit"
+
+        local ok, err
+        -- Special handling for tab-drop and drop commands
+        if mode == "tab-drop" or mode == "drop" then
+            local cmd = mode == "tab-drop" and "tab drop" or "drop"
+            ok, err = pcall(vim.cmd, cmd .. " " .. vim.fn.fnameescape(path))
+        else
+            -- For edit, tabedit, vsplit, split
+            ok, err = pcall(vim.cmd[mode], path)
+        end
+
         if not ok then
             -- Vim:E325 is the swap file error, in which case, a lengthy message already shows to
             -- the user, and we don't have to crash out of this function (which creates a long and
             -- misleading error message).
             if err and not err:match("Vim:E325") then
-                log.error("Failed to edit file %s. Error:\n%s"):format(path, err)
+                log.error(string.format("Failed to edit file %s. Error:\n%s", path, err))
             end
         end
     end,

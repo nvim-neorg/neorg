@@ -212,9 +212,17 @@ module.public = {
 
                 -- If we're dealing with an external file, open it up in another Neovim buffer (unless otherwise applicable)
                 external_file = function()
-                    open_split()
+                    -- Map open_mode to vim command mode
+                    local mode_map = {
+                        vsplit = "vsplit",
+                        split = "split",
+                        tab = "tabedit",
+                        ["tab-drop"] = "tab-drop",
+                        drop = "drop",
+                    }
+                    local mode = open_mode and mode_map[open_mode] or "edit"
 
-                    dirman_utils.edit_file(located_link_information.path)
+                    dirman_utils.edit_file(located_link_information.path, { mode = mode })
 
                     if located_link_information.line then
                         jump_to_line(located_link_information.line)
