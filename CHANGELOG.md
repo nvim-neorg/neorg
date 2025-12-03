@@ -1,5 +1,33 @@
 # Changelog
 
+## [9.4.0](https://github.com/nvim-neorg/neorg/compare/v9.3.0...v9.4.0) (2025-12-03)
+
+
+### Features
+
+* export ranged table tag correctly in core.export.markdown ([#1697](https://github.com/nvim-neorg/neorg/issues/1697)) ([233fe1d](https://github.com/nvim-neorg/neorg/commit/233fe1d85754c6cf59245257354afc9a2429911e))
+* foldable lists and ranged verbatim ([#1690](https://github.com/nvim-neorg/neorg/issues/1690)) ([431de0a](https://github.com/nvim-neorg/neorg/commit/431de0a233ce5ab86da4b4e03786d6fe568daf62))
+* **todo_items:** configurable parent update behavior ([91db472](https://github.com/nvim-neorg/neorg/commit/91db472c7f65a1a8f7fdc461e0fb040f565a95c4))
+* winfixwidth for toc ([1dd99ed](https://github.com/nvim-neorg/neorg/commit/1dd99edd73c48196f7fa9ec763089fb774cf5499))
+
+
+### Bug Fixes
+
+* **ci:** typo in gendoc workflow ([9d75ae8](https://github.com/nvim-neorg/neorg/commit/9d75ae8e2625db240636870dd7f029c9a82ab9ef))
+* **ci:** update actions version ([7cac123](https://github.com/nvim-neorg/neorg/commit/7cac12395b06f549b434e9f829ff6389da598e0c))
+* **ci:** update Ubuntu runner version ([f720f55](https://github.com/nvim-neorg/neorg/commit/f720f55ba2057956f585f3c19e5dedd639982d53))
+* **ci:** use `macos-13` to run integration tests on Intel macOS, `macos-11` has been deprecated a long time ago ([a849204](https://github.com/nvim-neorg/neorg/commit/a8492049c2cfb9fcabe511eb2a883a602777acb0))
+* **clipboard:** yank to use correct regtype instead of always 'line-wise' ([de0bf99](https://github.com/nvim-neorg/neorg/commit/de0bf99a95f4053862f0e63c8083b5e14f3ad6ec))
+* compatibility with nvim-treesitter main branch ([87242d4](https://github.com/nvim-neorg/neorg/commit/87242d458d7d0bb50532b791892fb1251a4e7293))
+* **esupports.indent:** keep indentation of verbatim blocks without an injected TS parser ([#1685](https://github.com/nvim-neorg/neorg/issues/1685)) ([aa35325](https://github.com/nvim-neorg/neorg/commit/aa353253aeacf01464a8214373b64ec500571a45))
+* **journal:** journal index generation ([#1680](https://github.com/nvim-neorg/neorg/issues/1680)) ([35da593](https://github.com/nvim-neorg/neorg/commit/35da593c55d78086a3203ee3e6d749fafe2e4e73))
+* load buffer before parsing with TS ([#1689](https://github.com/nvim-neorg/neorg/issues/1689)) ([8fdd9b2](https://github.com/nvim-neorg/neorg/commit/8fdd9b2986acfb4ce310bebfc338111793862f00))
+* replace deprecated `vim.tbl_islist` with `vim.islist` ([#1723](https://github.com/nvim-neorg/neorg/issues/1723)) ([1ebab96](https://github.com/nvim-neorg/neorg/commit/1ebab969b45520b680516ffffced1b7719355ed8))
+* **rockspec:** add `nvim-treesitter-legacy-api` dependency ([208f7ca](https://github.com/nvim-neorg/neorg/commit/208f7ca7f6a9fa97fa049ae17cc1046ae509811f))
+* **todo_items:** update parent node when child state is changed ([4b8e64a](https://github.com/nvim-neorg/neorg/commit/4b8e64a1dd919c934a200f28873eb5be84c5d9fa))
+* **todo-instrospector:** use combine hl_mode ([#1733](https://github.com/nvim-neorg/neorg/issues/1733)) ([c429af2](https://github.com/nvim-neorg/neorg/commit/c429af26352fc5194b24a4aa88fc5ecc406e23f9))
+* ts module bug ([1f40253](https://github.com/nvim-neorg/neorg/commit/1f40253cda954f71a3c2a8f5a6f428a950e36cc8))
+
 ## [9.3.0](https://github.com/nvim-neorg/neorg/compare/v9.2.0...v9.3.0) (2025-03-29)
 
 
