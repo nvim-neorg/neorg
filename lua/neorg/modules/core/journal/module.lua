@@ -216,7 +216,7 @@ module.public = {
             and module.config.public.use_template
             and module.required["core.dirman"].file_exists(workspace_path .. "/" .. folder_name .. "/" .. template_name)
         then
-            vim.cmd("$read " .. workspace_path .. "/" .. folder_name .. "/" .. template_name .. "| w")
+            vim.cmd("$read " .. workspace_path .. "/" .. folder_name .. "/" .. template_name .. "| 1d | w")
         end
     end,
 
