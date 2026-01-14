@@ -25,6 +25,7 @@ local neorg = require("neorg.core")
 local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
 
 local module = modules.create("core.summary")
+local ts
 
 module.setup = function()
     return {
@@ -43,94 +44,34 @@ module.load = function()
             },
         })
     end)
-    local ts = module.required["core.integrations.treesitter"]
 
-    -- declare query on load so that it's parsed once, on first use
-    local heading_query
+    ts = module.required["core.integrations.treesitter"]
 
-    local get_first_heading_title = function(bufnr)
-        local document_root = ts.get_document_root(bufnr)
-        if not heading_query then
-            -- allow second level headings, just in case
-            local heading_query_string = [[
-                         [
-                             (heading1
-                                 title: (paragraph_segment) @next-segment
-                             )
-                             (heading2
-                                 title: (paragraph_segment) @next-segment
-                             )
-                         ]
-                     ]]
-            heading_query = utils.ts_parse_query("norg", heading_query_string)
-        end
-        -- search up to 20 lines (a doc could potentially have metadata without metadata.title)
-        local _, heading = heading_query:iter_captures(document_root, bufnr)()
-        if not heading then
-            return nil
-        end
-        local start_line, _ = heading:start()
-        local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, start_line + 1, false)
-        if #lines > 0 then
-            local title = lines[1]:gsub("^%s*%*+%s*", "") -- strip out '*' prefix (handle '* title', ' **title', etc)
-            if title ~= "" then -- exclude an empty heading like `*` (although the query should have excluded)
-                return title
-            end
-        end
-    end
+    module.config.public.strategy = lib.match(module.config.public.strategy)(module.public.strategies) or
+        module.config.public.strategy
+end
 
-    -- Return true if catagories_path is or is a subcategory of an entry in included_categories
-    local is_included_category = function(included_categories, category_path)
-        local found_match = false
-        for _, included in ipairs(included_categories) do
-            local included_path = vim.split(included, ".", { plain = true })
-            for i, path in ipairs(included_path) do
-                if path == category_path[i] and i == #included_path then
-                    found_match = true
-                    break
-                elseif path ~= category_path[i] then
-                    break
-                end
-            end
-        end
-        return found_match
-    end
+module.private = {
+    heading_query = nil
+}
 
-    -- Insert a categorized record for the given file into the categories table
-    local insert_categorized = function(categories, category_path, norgname, metadata)
-        local leaf_categories = categories
-        for i, path in ipairs(category_path) do
-            local titled_path = lib.title(path)
-            if i == #category_path then
-                -- There are no more sub catergories so insert the record
-                table.insert(leaf_categories[titled_path], {
-                    title = tostring(metadata.title),
-                    norgname = norgname,
-                    description = metadata.description,
-                })
-                break
-            end
-            local sub_categories = vim.defaulttable()
-            if leaf_categories[titled_path] then
-                -- This category already been added so find it's sub_categories table
-                for _, item in ipairs(leaf_categories[titled_path]) do
-                    if item.sub_categories then
-                        leaf_categories = item.sub_categories
-                        goto continue
-                    end
-                end
-            end
-            -- This is a new sub category
-            table.insert(leaf_categories[titled_path], {
-                title = titled_path,
-                sub_categories = sub_categories,
-            })
-            leaf_categories = sub_categories
-            ::continue::
-        end
-    end
+module.config.public = {
+    -- The strategy to use to generate a summary.
+    --
+    -- Possible options are:
+    -- - "default" - read the metadata to categorize and annotate files. Files
+    --   without metadata will use the top level heading as the title. If no headings are present, the filename will be used.
+    -- - "by_path" - Similar to "default" but uses the capitalized name of the folder containing a *.norg file as category.
+    -- - A custom function with the signature:
+    --   `fun(files: PathlibPath[], ws_root: PathlibPath, heading_level: number?, include_categories: string[]?): string[]?`.
+    --   Returning a list of lines that make up the summary
+    strategy = "default",
+}
 
-    module.config.public.strategy = lib.match(module.config.public.strategy)({
+
+---@class core.summary
+module.public = {
+    strategies = {
         default = function()
             return function(files, ws_root, heading_level, include_categories)
                 local categories = vim.defaulttable()
@@ -160,7 +101,7 @@ module.load = function()
                     end
 
                     if not metadata.title then
-                        metadata.title = get_first_heading_title(bufnr)
+                        metadata.title = module.public.get_first_heading_title(bufnr)
                         if not metadata.title then
                             metadata.title = vim.fs.basename(norgname)
                         end
@@ -174,11 +115,11 @@ module.load = function()
                         local category_path = vim.split(category, ".", { plain = true })
 
                         if include_categories then
-                            if is_included_category(include_categories, category_path) then
-                                insert_categorized(categories, category_path, norgname, metadata)
+                            if module.public.is_included_category(include_categories, category_path) then
+                                module.public.insert_categorized(categories, category_path, norgname, metadata)
                             end
                         else
-                            insert_categorized(categories, category_path, norgname, metadata)
+                            module.public.insert_categorized(categories, category_path, norgname, metadata)
                         end
                     end
                 end)
@@ -207,9 +148,9 @@ module.load = function()
                                     lib.title(datapoint.title),
                                     "]",
                                 })
-                                    .. (
-                                        datapoint.description and (table.concat({ " - ", datapoint.description })) or ""
-                                    )
+                                .. (
+                                    datapoint.description and (table.concat({ " - ", datapoint.description })) or ""
+                                )
                             )
                         end
                     end
@@ -250,7 +191,7 @@ module.load = function()
                     norgname = string.sub(norgname, ws_root:len() + 1)
 
                     if not metadata.title then
-                        metadata.title = get_first_heading_title(bufnr) or vim.fs.basename(norgname)
+                        metadata.title = module.public.get_first_heading_title(bufnr) or vim.fs.basename(norgname)
                     end
 
                     if metadata.description == vim.NIL then
@@ -282,7 +223,7 @@ module.load = function()
                                 lib.title(datapoint.title),
                                 "]",
                             })
-                                .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
+                            .. (datapoint.description and (table.concat({ " - ", datapoint.description })) or "")
                         )
                     end
                 end
@@ -290,31 +231,95 @@ module.load = function()
                 return result
             end
         end,
-    }) or module.config.public.strategy
-end
+    },
 
-module.config.public = {
-    -- The strategy to use to generate a summary.
-    --
-    -- Possible options are:
-    -- - "default" - read the metadata to categorize and annotate files. Files
-    --   without metadata will use the top level heading as the title. If no headings are present, the filename will be used.
-    -- - "by_path" - Similar to "default" but uses the capitalized name of the folder containing a *.norg file as category.
-    -- - A custom function with the signature:
-    --   `fun(files: PathlibPath[], ws_root: PathlibPath, heading_level: number?, include_categories: string[]?): string[]?`.
-    --   Returning a list of lines that make up the summary
-    strategy = "default",
-}
+    get_first_heading_title = function(bufnr)
+        local document_root = ts.get_document_root(bufnr)
+        if not module.private.heading_query then
+            -- allow second level headings, just in case
+            local heading_query_string = [[
+                         [
+                             (heading1
+                                 title: (paragraph_segment) @next-segment
+                             )
+                             (heading2
+                                 title: (paragraph_segment) @next-segment
+                             )
+                         ]
+                     ]]
+            module.private.heading_query = utils.ts_parse_query("norg", heading_query_string) --[[@as vim.treesitter.Query]]
+        end
+        -- search up to 20 lines (a doc could potentially have metadata without metadata.title)
+        local _, heading = module.private.heading_query:iter_captures(document_root, bufnr)()
+        if not heading then
+            return nil
+        end
+        local start_line, _ = heading:start()
+        local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, start_line + 1, false)
+        if #lines > 0 then
+            local title = lines[1]:gsub("^%s*%*+%s*", "") -- strip out '*' prefix (handle '* title', ' **title', etc)
+            if title ~= "" then                           -- exclude an empty heading like `*` (although the query should have excluded)
+                return title
+            end
+        end
+    end,
 
----@class core.summary
-module.public = {
+    -- Return true if catagories_path is or is a subcategory of an entry in included_categories
+    is_included_category = function(included_categories, category_path)
+        local found_match = false
+        for _, included in ipairs(included_categories) do
+            local included_path = vim.split(included, ".", { plain = true })
+            for i, path in ipairs(included_path) do
+                if path == category_path[i] and i == #included_path then
+                    found_match = true
+                    break
+                elseif path ~= category_path[i] then
+                    break
+                end
+            end
+        end
+        return found_match
+    end,
+
+    -- Insert a categorized record for the given file into the categories table
+    insert_categorized = function(categories, category_path, norgname, metadata)
+        local leaf_categories = categories
+        for i, path in ipairs(category_path) do
+            local titled_path = lib.title(path)
+            if i == #category_path then
+                -- There are no more sub categories so insert the record
+                table.insert(leaf_categories[titled_path], {
+                    title = tostring(metadata.title),
+                    norgname = norgname,
+                    description = metadata.description,
+                })
+                break
+            end
+            local sub_categories = vim.defaulttable()
+            if leaf_categories[titled_path] then
+                -- This category already been added so find it's sub_categories table
+                for _, item in ipairs(leaf_categories[titled_path]) do
+                    if item.sub_categories then
+                        leaf_categories = item.sub_categories
+                        goto continue
+                    end
+                end
+            end
+            -- This is a new sub category
+            table.insert(leaf_categories[titled_path], {
+                title = titled_path,
+                sub_categories = sub_categories,
+            })
+            leaf_categories = sub_categories
+            ::continue::
+        end
+    end,
+
     ---@param buf integer? the buffer to insert the summary to
     ---@param cursor_pos integer[]? a tuple of row, col of the cursor positon (see nvim_win_get_cursor())
     ---@param include_categories string[]? table of strings (ignores case) for categories that you wish to include in the summary.
-    -- if excluded then all categories are written into the summary.
+    ---if excluded then all categories are written into the summary.
     generate_workspace_summary = function(buf, cursor_pos, include_categories)
-        local ts = module.required["core.integrations.treesitter"]
-
         local buffer = buf or 0
         local cursor_position = cursor_pos or vim.api.nvim_win_get_cursor(0)
 
