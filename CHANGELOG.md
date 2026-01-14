@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.4.1](https://github.com/nvim-neorg/neorg/compare/v9.4.0...v9.4.1) (2026-01-14)
+
+
+### Bug Fixes
+
+* **journal:** Remove empty line when using templates ([d4e6b36](https://github.com/nvim-neorg/neorg/commit/d4e6b3665504baa88685c9d2e79446d336dc0594))
+
 ## [9.4.0](https://github.com/nvim-neorg/neorg/compare/v9.3.0...v9.4.0) (2025-12-03)
 
 
