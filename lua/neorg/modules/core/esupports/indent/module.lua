@@ -69,14 +69,16 @@ module.public = {
         if current_lang:lang() ~= "norg" then
             if parent_ranged_verbatim_tag ~= nil then
                 return math.max(
-                    require("nvim-treesitter").indentexpr(),
+                    require("nvim-treesitter").indentexpr and require("nvim-treesitter").indentexpr()
+                        or vim.fn["nvim_treesitter#indent"](),
                     module.required["core.integrations.treesitter"].get_node_range(
                         ---@diagnostic disable-next-line: param-type-mismatch
                         parent_ranged_verbatim_tag -- ranged_verbatim_tag, e.g. `@code lua`
                     ).column_start
                 )
             else
-                return require("nvim-treesitter").indentexpr()
+                return require("nvim-treesitter").indentexpr and require("nvim-treesitter").indentexpr()
+                    or vim.fn["nvim_treesitter#indent"]()
             end
         end
 
