@@ -110,8 +110,11 @@ module.public = {
             return initial_indent
         end
 
-        -- Keep manual indents in verbatim blocks
-        if parent_ranged_verbatim_tag and computed_indent <= initial_indent then
+        if
+            parent_ranged_verbatim_tag
+            and module.required["core.integrations.treesitter"].find_parent(node, "ranged_verbatim_tag_content$")
+            and computed_indent <= initial_indent
+        then
             return initial_indent
         end
 
