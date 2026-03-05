@@ -70,6 +70,7 @@ With that, let's begin!
       },
       {
         "nvim-treesitter/nvim-treesitter",
+        version = "0.9.3",  -- the last supported version
         build = ":TSUpdate",
         opts = {
           ensure_installed = { "c", "lua", "vim", "vimdoc", "query" },
