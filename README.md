@@ -75,6 +75,11 @@ Neorg's setup process is slightly more complex than average, so we encourage you
 installation process, run `:checkhealth neorg` to see if everything's
 correct!**
 
+### `neorg-kickstart`
+
+Not bothered to set up Neovim on your own? Check out our [kickstart config](https://github.com/nvim-neorg/neorg/wiki/Kickstart)
+which will get you up and running with Neorg without any prior Neovim configuration knowledge.
+
 ### `rocks.nvim`
 
 One way of installing Neorg is via [rocks.nvim](https://github.com/nvim-neorocks/rocks.nvim).
@@ -104,11 +109,6 @@ For the time being you also need `nvim-treesitter` installed.
 The last three steps will eventually not be required to run Neorg.
 
 </details>
-
-### `neorg-kickstart`
-
-Not bothered to set up Neovim on your own? Check out our [kickstart config](https://github.com/nvim-neorg/neorg/wiki/Kickstart)
-which will get you up and running with Neorg without any prior Neovim configuration knowledge.
 
 ### `lazy.nvim`
 
