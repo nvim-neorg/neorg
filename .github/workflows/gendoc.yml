@@ -44,7 +44,12 @@ jobs:
       - name: Install all required modules
         run: |
           luarocks config lua_version 5.1
-          luarocks install --lua-version=5.1 neorg --deps-only
+          luarocks install lua-utils.nvim 1.0.2
+          luarocks install nui.nvim 0.3.0
+          luarocks install nvim-nio 1.10.1
+          luarocks install pathlib.nvim 2.2.3
+          luarocks install plenary.nvim 0.1.4
+
 
       - name: Clone Wiki
         uses: actions/checkout@v4
