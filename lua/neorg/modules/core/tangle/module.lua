@@ -506,8 +506,8 @@ module.on_event = function(event)
                 file:parent():mkdir(Path.permission("rwxr-xr-x"), true)
             end
             file = file:tostring()
-            vim.uv.fs_open(file, "w", 438, function(err, fd)
-                assert(not err and fd, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", err))
+            vim.uv.fs_open(file, "w", 438, function(werr, fd)
+                assert(not werr and fd, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", werr))
 
                 local write_content = table.concat(content, "\n")
                 if module.config.public.report_on_empty and write_content:len() == 0 then
