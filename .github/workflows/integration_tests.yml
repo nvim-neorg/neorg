@@ -1,7 +1,7 @@
 name: "Nix-based Integration Test"
 
 # This workflow attempts to install Neorg with a kickstart config on all major OSes.
-# Uses Nix for reproducability.
+# Uses Nix for reproducibility.
 
 on:
   push:
@@ -14,10 +14,10 @@ jobs:
     strategy:
       matrix:
         os:
-          - host: ubuntu-24.04
+          - host: ubuntu-latest
           # - host: windows-2019
-          - host: macos-13 # x86_64
-          - host: macos-14 # aarch64
+          - host: macos-26-intel # x86_64
+          - host: macos-latest # aarch64
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v17
